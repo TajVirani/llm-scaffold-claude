@@ -740,6 +740,33 @@
       "reviewed_at": "2026-10-19"
     },
     {
+      "path": ".agents/agents/standards-discovery.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the scan targets (existing instructions, executable config and CI, tracked source, targeted history, build and contribution files, child scopes scanned separately), scan before ask, verify every named path and command claim against the repo, and the commit-stamped refresh (pattern only, no text copied)",
+        "recast as a read-only sub-agent that returns fixed sections (Scope, Modules, Conventions, Versions, Contradictions, Unknowns, Discovered work) with file:line evidence and frequency counts"
+      ],
+      "why": "Discovery feeds the project-standards ledger without interviewing or writing.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/standards-discovery.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-architecture/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took brownfield ratification: investigate before deciding, ratify the conventions the code already shows rather than invent new ones (pattern only)"
+      ],
+      "why": "Report conventions by observed frequency, not ideals.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
       "path": ".agents/hooks/block-destructive-git.sh",
       "kind": "derived",
       "upstream_repo": "mattpocock/skills",
@@ -2370,6 +2397,227 @@
         "our own template: frontmatter listed by session-start-resume.sh, spec pointers, resume notes"
       ],
       "why": "Template for the handoff skill (D77/D78); no upstream text copied.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took the flow (assess, ask what the user brings, discover, interview, one approval, write), the ledger actions and deletion grounds, prefer a check over a line, refresh by commit (pattern only, no text copied); output split into rules.md, profiles, ADRs, pr-quality checks, lint config and an AGENTS.md block"
+      ],
+      "why": "Standards adoption flow that keeps existing instructions visible.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-architecture/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took coaching path by default with a fast path, recommend a verified current starter for greenfield, ratify brownfield conventions (pattern only)"
+      ],
+      "why": "Elicit decisions instead of inventing them.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-architecture/assets/spine-template.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took the named paradigm and the explicit Deferred list (pattern only)"
+      ],
+      "why": "Baseline ADR shape.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/references/template.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took the managed block between markers with a commit-stamped provenance line (pattern only)"
+      ],
+      "why": "AGENTS.md block that refresh can replace safely.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/modules/discovery.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took one scan per separable unit, fanned out in parallel (pattern only)"
+      ],
+      "why": "Discovery per scope.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/modules/discovery.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-architecture/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took recommend a well-known current starter verified on the web (pattern only)"
+      ],
+      "why": "Greenfield starter research.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/modules/interview.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took batches of at most eight, never ask what a scan answered, recall questions, show evidence on contradiction, offer non-obvious commands (pattern only)"
+      ],
+      "why": "Short, evidence-led interview.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/modules/interview.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-architecture/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took coaching vs fast path, [ASSUMPTION] tags, show alternatives for load-bearing calls, the two-builders divergence test (pattern only)"
+      ],
+      "why": "Decide only what could diverge.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/modules/interview.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "src/bmm-skills/3-solutioning/bmad-create-architecture/steps/step-05-patterns.md",
+      "upstream_commit": "560a2e3a6fbd9087765cb569bb860379117e2249",
+      "commit_basis": "pinned",
+      "changes": [
+        "took the conflict-point categories naming, structure, format, communication, process (pattern only)"
+      ],
+      "why": "Gap checklist for the interview.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/modules/interview.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "src/bmm-skills/3-solutioning/bmad-create-architecture/steps/step-06-structure.md",
+      "upstream_commit": "560a2e3a6fbd9087765cb569bb860379117e2249",
+      "commit_basis": "pinned",
+      "changes": [
+        "took integration boundaries (API, component, data) as boundary conflict points (pattern only)"
+      ],
+      "why": "Gap checklist for the interview.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/modules/write.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took splice only between markers, text outside changes only through a settled ledger row, provenance with the verified sha (pattern only)"
+      ],
+      "why": "Safe writes into AGENTS.md.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/modules/refresh.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took refresh as a diff from the recorded sha, git log --diff-filter=DR against every line, never re-ask settled points (pattern only)"
+      ],
+      "why": "Refresh by commit.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/assets/baseline.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-architecture/assets/spine-template.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took the explicit Deferred section (pattern only); every row adds destination, enforcement and evidence columns"
+      ],
+      "why": "Staging draft shape.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/assets/baseline.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took the existing-instructions ledger and its actions (pattern only)"
+      ],
+      "why": "Adoption keeps every existing instruction visible.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/assets/enforcement-map.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/references/best-practices.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took prefer a check over a line and the exclude list (trees, stack lists, aspirational state) (pattern only)"
+      ],
+      "why": "Route each line to the cheapest mechanism.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/assets/agents-block.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/references/template.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took section order, terse imperative lines and the provenance line inside markers (pattern only); policy stays in docs/rules.md"
+      ],
+      "why": "Managed AGENTS.md block.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-standards/assets/agents-block.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/references/best-practices.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "pinned",
+      "changes": [
+        "took pointers name an observable trigger; commands the manifest already states earn no line (pattern only)"
+      ],
+      "why": "Keep the always-loaded block small.",
       "reviewed_at": "2026-10-19"
     }
   ]

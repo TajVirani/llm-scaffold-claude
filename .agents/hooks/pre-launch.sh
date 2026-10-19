@@ -8,6 +8,7 @@
 #       profile-mini-review: spec_dir, task_id; work_type optional, looked up from tasks.md; a mismatch is denied (one task under one profile)
 #       retrieval, library-evaluation, fact-lookup, module-audit, review-standards, review-end-state, review-targets: spec_dir
 #       cache-regeneration: spec_dir when launched inside a feature (0.2.8); no header for bulk regenerate-caches runs
+#       standards-discovery: header optional, task_type only (project-standards runs outside any feature; D80)
 #   - Deny with reason when a required header field is missing, no model resolves for this host (no agent-overrides.yaml entry, no definition `models.<host>`, no model-map entry: surface 00.14), or a coding launch (implementation, integration, profile-mini-review) has no profile (surface 00.19)
 #   - Otherwise allow and return updatedInput: the FULL tool_input (all original keys kept) with the profile text inserted into `prompt` right after the launch-header block, so the header stays first (D37) (whole for implementation/integration, Mini-review checklist section only for profile-mini-review, none for other types) and `model` set to the value resolve-launch.sh resolved by precedence: agent-overrides.yaml[type][host] > definition `models.<host>` > model-map/<type>.md [host] > none (00.14) (D35). Claude Code does not read the definition's `models:` key natively, so this hook is what applies it
 # Codex equivalent: codex-pre-spawn.sh (PreToolUse `.*spawn_agent`; validates agent_type and task_name only, the message is encrypted).

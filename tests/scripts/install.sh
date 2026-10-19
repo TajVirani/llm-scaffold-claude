@@ -84,7 +84,7 @@ check "an installed hook runs from the target" 'printf "%s" "$out" | grep -qi "d
 
 echo "== vendored and scaffold-only files are absent (D30, D71, D72)"
 eq "installed skills are exactly the first-party set" "$(cd "$A/.agents/skills" && find . -mindepth 1 -maxdepth 1 | sed 's|^\./||' | LC_ALL=C sort | tr '\n' ' ')" \
-  "data-structure-audit deeper-prompt deps-audit deps-update design-pattern-doc domain-modeling feature-workflow glab handoff pr-quality pr-review-data project-setup regenerate-caches retrospective visual-change-report writing-for-agents "
+  "data-structure-audit deeper-prompt deps-audit deps-update design-pattern-doc domain-modeling feature-workflow glab handoff pr-quality pr-review-data project-setup project-standards regenerate-caches retrospective visual-change-report writing-for-agents "
 bad=""
 # No vendored skill remains (D78): handoff and writing-for-agents are first-party; the rest were deleted.
 for s in ask-matt clear-context code-review codebase-design diagnosing-bugs grill-me grill-with-docs grilling implement implement-spec improve-codebase-architecture install-anti-slop pr proof-of-work prototype research retro setup-matt-pocock-skills tdd to-questionnaire to-spec to-tickets triage wait-what wayfinder wizard wrap-up zoom-out; do

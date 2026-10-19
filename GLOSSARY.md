@@ -41,7 +41,7 @@ The per-work-type file of operating instructions for coding agents: file locatio
 _Avoid_: Persona, config
 
 **Task type**:
-The kind of sub-agent a launch runs (retrieval, implementation, review-standards and so on). Not the same as **work type**.
+The kind of sub-agent a launch runs, one per agent definition: retrieval, library-evaluation, cache-regeneration, fact-lookup, module-audit, implementation, integration, profile-mini-review, review-standards, review-end-state, review-targets, standards-discovery. Not the same as **work type**.
 _Avoid_: Agent role
 
 **Model map**:

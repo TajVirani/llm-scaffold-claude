@@ -5,7 +5,7 @@
 #   everything a launch needs: hooks/pre-launch.sh turns it into updatedInput (D33); on Codex the orchestrator places model and prompt itself (D9).
 # Triggers/inputs: hooks/pre-launch.sh on every Claude launch (D33); hooks/post-implementation-audit.sh (--parse-header, D39); on Codex the
 #   feature-workflow modules before every launch (advisory, D9).
-# Plan refs: 00.11-00.14, 00.18-00.20; reference "Model selection", "Sub-agent task types", "Work profiles"; assetlist D9, D12, D13, D14, D18, D23, D31, D32, D33, D35, D37, D38.
+# Plan refs: 00.11-00.14, 00.18-00.20; reference "Model selection", "Sub-agent task types", "Work profiles"; assetlist D9, D12, D13, D14, D18, D23, D31, D32, D33, D35, D37, D38, D80.
 # Sources: first-party; PLAN/decision-flow-reference.md "Sub-agent task types" (D31 table), "Model selection", 00.11-00.20; assetlist D13, D14, D18, D31, D33, D35, D37, D38.
 #
 # CLI:
@@ -14,7 +14,7 @@
 #       a header task_type that disagrees is denied (D37).
 #   resolve-launch.sh --host claude|codex --task-type <type> [--spec-dir <d>] [--task-id <id>] [--work-type <wt>] [--no-header] [--project-dir <dir>]
 #       Orchestrator mode (Codex, D9). Builds the header from the flags (task_type = --task-type) instead of reading it; stdin, when it is not a
-#       terminal, is the task body (it must not carry its own header). --no-header (only cache-regeneration, bulk runs) builds no header.
+#       terminal, is the task body (it must not carry its own header). --no-header (header-optional types only: cache-regeneration bulk runs, standards-discovery) builds no header.
 #       Prints the same JSON; .prompt is the complete launch prompt to send.
 #   resolve-launch.sh --parse-header [--task-type <type>] [--prompt-file <path>|-]
 #       Extract and validate the header only (syntax, known task_type, D31 shape, field formats; no file lookups). With --task-type, also deny a
@@ -79,6 +79,11 @@ D31_TABLE=$(cat <<'JSON'
       {"when": "inside a feature (0.2.8)", "required": ["spec_dir"], "optional": []},
       {"when": "bulk regenerate-caches run: no header", "required": [], "optional": []}
     ],
+    "header_optional": true, "profile": "none"
+  },
+  "standards-discovery": {
+    "d31_fields": [],
+    "shapes": [{"when": "project-standards run outside any feature (D80): task_type only, or no header", "required": [], "optional": []}],
     "header_optional": true, "profile": "none"
   }
 }

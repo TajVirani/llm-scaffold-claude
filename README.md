@@ -22,6 +22,7 @@ Workflow skills (`.agents/skills/`):
 
 - `feature-workflow` — entry point: sizes a request, runs discovery through sign-off, resumes in-flight specs (modules in `modules/`)
 - `project-setup` — sets up a target project: glossary, docs, profiles, model map, toolchain, boundary config
+- `project-standards` — drafts, approves and writes a project's standards: rules, work profiles, ADRs, pr-quality checks, lint config
 - `regenerate-caches` — regenerates and publishes the Tier B caches
 - `domain-modeling` — agrees terms and writes `GLOSSARY.md` and ADRs
 - `retrospective` — post-feature retrospective at sign-off
@@ -38,6 +39,7 @@ Agents (`.agents/agents/`, one line each):
 - `integration` — single owner of shared-core changes
 - `profile-mini-review` — reviews one task's diff against the profile checklist
 - `review-standards`, `review-end-state`, `review-targets` — Phase 4 review lenses (standards, spec conformance, measured targets)
+- `standards-discovery` — read-only brownfield standards scan for `project-standards`
 
 Hooks (`.agents/hooks/`; wiring in `claude-settings.template.json`, `codex-hooks.template.json`, `codex-config.template.toml`):
 

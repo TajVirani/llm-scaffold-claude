@@ -15,8 +15,9 @@ skills/domain-modeling
 skills/retrospective
 skills/deeper-prompt
 skills/handoff
+skills/project-standards
 
-# --- Agents (11)
+# --- Agents (12)
 agents/cache-regeneration.md
 agents/fact-lookup.md
 agents/implementation.md
@@ -28,6 +29,7 @@ agents/retrieval.md
 agents/review-end-state.md
 agents/review-standards.md
 agents/review-targets.md
+agents/standards-discovery.md
 
 # --- Claude hooks (8 workflow hooks + shared helper) and the destructive-git guard (wired by both templates; also the Codex Bash guard)
 hooks/_guard-common.sh

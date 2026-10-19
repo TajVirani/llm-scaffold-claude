@@ -17,7 +17,7 @@ mkdir -p "$FX"
 cd "$FX" || exit 1
 git init -q -b main . && git config user.email t@t.invalid && git config user.name tester
 mkdir -p .agents/agents model-map profiles specs/007-checkout
-for t in implementation integration profile-mini-review retrieval library-evaluation fact-lookup module-audit review-standards review-end-state review-targets cache-regeneration; do
+for t in implementation integration profile-mini-review retrieval library-evaluation fact-lookup module-audit review-standards review-end-state review-targets cache-regeneration standards-discovery; do
   printf -- '---\nname: %s\ndescription: "x"\n---\nbody\n' "$t" > ".agents/agents/$t.md"
   printf -- '---\ntier: cheap\nclaude: haiku\ncodex: <alias>\n---\n# %s\n' "$t" > "model-map/$t.md"
 done
@@ -122,7 +122,7 @@ P=(--project-dir "$FX")
 
 # ── Requirements table ──
 IN=""
-run "requirements: all 11 types" 0 'keys|length==11' "" -- --requirements
+run "requirements: all 12 types" 0 'keys|length==12' "" -- --requirements
 run "requirements: implementation D31 fields" 0 '.implementation.d31_fields==["spec_dir","task_id","work_type"]' "" -- --requirements --task-type implementation
 run "requirements: unknown type denied" 2 "" "unknown task type" -- --requirements --task-type nope
 
@@ -195,6 +195,13 @@ IN=$(hdr task_type=cache-regeneration spec_dir=specs/007-checkout)
 run "cache-regeneration: with spec_dir (0.2.8)" 0 '.header.spec_dir=="specs/007-checkout" and .profile==null' "" -- --host claude --task-type cache-regeneration "${P[@]}"
 IN=$'Regenerate docs/cache/modules.md for src/.\n'
 run "cache-regeneration: header-less bulk run accepted, prompt unchanged" 0 '.header==null and .header_block==null and .prompt=="Regenerate docs/cache/modules.md for src/.\n"' "" -- --host claude --task-type cache-regeneration "${P[@]}"
+IN=$'Scan src/ for conventions.\n'
+run "standards-discovery: header-less run accepted (D80)" 0 '.header==null and .profile==null and .prompt=="Scan src/ for conventions.\n"' "" -- --host claude --task-type standards-discovery "${P[@]}"
+IN=$(hdr task_type=standards-discovery)
+run "standards-discovery: task_type-only header accepted" 0 '.header=={task_type:"standards-discovery"} and .profile==null' "" -- --host claude --task-type standards-discovery "${P[@]}"
+IN=$(hdr task_type=standards-discovery spec_dir=specs/007-checkout)
+run "standards-discovery: spec_dir denied (runs outside a feature)" 2 "" "D31" -- --host claude --task-type standards-discovery "${P[@]}"
+IN=$'Scan src/ for conventions.\n'
 run "header-less prompt for retrieval denied" 2 "" "no launch header: task type 'retrieval' requires" -- --host claude --task-type retrieval "${P[@]}"
 
 # ── Mismatch and malformed headers ──
@@ -243,6 +250,7 @@ run "parse-header: --prompt-file" 0 '.task_type=="retrieval"' "" -- --parse-head
 IN=$'Implement T1.\n'
 run "flags: implementation T1 codex, prompt assembled" 0 '.model=="gpt-def" and .header=={task_type:"implementation",spec_dir:"specs/007-checkout",task_id:"T1"} and .header_block=="```yaml launch-header\ntask_type: implementation\nspec_dir: specs/007-checkout\ntask_id: T1\n```" and (. as $o | $o.prompt|startswith($o.header_block+"\n\n<!-- comment -->")) and (.prompt|endswith("Implement T1.\n"))' "" -- --host codex --task-type implementation --spec-dir specs/007-checkout --task-id T1 "${P[@]}"
 run "flags: --no-header for bulk cache-regeneration" 0 '.header==null and .prompt=="Implement T1.\n"' "" -- --host claude --task-type cache-regeneration --no-header "${P[@]}"
+run "flags: --no-header for standards-discovery (D80)" 0 '.header==null and .prompt=="Implement T1.\n"' "" -- --host claude --task-type standards-discovery --no-header "${P[@]}"
 run "flags: --no-header for retrieval denied" 2 "" "requires" -- --host claude --task-type retrieval --no-header "${P[@]}"
 IN=$(hdr task_type=retrieval spec_dir=specs/007-checkout)
 run "flags: body carrying its own header denied" 2 "" "must not carry" -- --host claude --task-type retrieval --spec-dir specs/007-checkout "${P[@]}"

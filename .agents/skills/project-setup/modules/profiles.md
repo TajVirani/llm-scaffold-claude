@@ -1,6 +1,6 @@
 <!--
-Module of project-setup: fill one profile per work type, then install the toolchain each profile names.
-Sources: first-party; plan PLAN/decision-flow-reference.md "Work profiles", 00.16-00.20, 1.2-1.3, 3.5, 3.7; assetlist D15, D19, D26 (example stack: Vitest, tsc, oxlint + anti-slop, oxfmt or Prettier, dependency-cruiser, Playwright), D50. "Install current compatible versions instead of remembered ones; keep the package manager; preserve unrelated ranges" adapted from dmmulroy/anti-slop/skills/install-anti-slop/SKILL.md@c44ef22 step 2 (MIT). Non-TS/JS toolchains are gap G11.
+Module of project-setup: agree the work types, seed one profile per work type with its Toolchain block, then install the toolchain each profile names. project-standards fills the other profile sections (D80).
+Sources: first-party; plan PLAN/decision-flow-reference.md "Work profiles", 00.16-00.20, 1.2-1.3, 3.5, 3.7; assetlist D15, D19, D26 (example stack: Vitest, tsc, oxlint + anti-slop, oxfmt or Prettier, dependency-cruiser, Playwright), D50, D80. "Install current compatible versions instead of remembered ones; keep the package manager; preserve unrelated ranges" adapted from dmmulroy/anti-slop/skills/install-anti-slop/SKILL.md@c44ef22 step 2 (MIT). Non-TS/JS toolchains are gap G11.
 -->
 
 # Profiles and toolchains
@@ -18,18 +18,18 @@ The human confirms the list. In "add a work type" mode, the list is the one new 
 
 Done when the list is agreed. A work type that already has a `profiles/<work-type>.md` keeps it unchanged: editing an existing profile is a 5.3 proposal.
 
-## Fill each profile
+## Seed each profile
 
-1. **Starting point.** If `.agents/skills/project-setup/assets/profiles/examples/<work-type>.md` exists and has no `STUB:` line, offer it as the starting point. It is marked "adapt before use": adapt it with the human and delete the banner. Otherwise copy `profiles/TEMPLATE.md`.
-2. **File locations, Approved libraries per concern, Language and style rules.** Fill them from what the code already does (directory layout, dependencies in the manifest, tsconfig strictness, existing lint rules), and ask the human only for what the scan cannot settle. Each line passes the line test in the template comment. A line that would appear in every profile goes in `docs/rules.md` instead.
-3. **Toolchain.** The keys are a fixed set; keep them all.
+`project-standards` fills File locations, Approved libraries per concern, Language and style rules and the Mini-review checklist from what the code does (D80). This module writes only what the toolchain install needs: the Toolchain block.
+
+1. **Starting point.** If `.agents/skills/project-setup/assets/profiles/examples/<work-type>.md` exists and has no `STUB:` line, offer it to the human as the starting point (D26). If accepted, copy it to `profiles/<work-type>.md` and keep its "adapt before use" banner and its other four sections for `project-standards` to confirm against the project and clear. Otherwise copy `profiles/TEMPLATE.md`, replace `{work-type}` in the title, and keep the template comment and the other four sections as they are.
+2. **Fill the Toolchain block** (adapt the example's if you started from one). The keys are a fixed set; keep them all.
    - **Command keys**, each the exact command run from the project root, or `""` when it does not apply: `lint`, `typecheck`, `format` (a check command, never a writer), `boundary` (for TS/JS, `depcruise --config tools/boundaries/dependency-cruiser.cjs <source dirs>`), `test` and `e2e`. `test` is **required** and never `""`: it is the unit/integration suite `run-toolchain.sh` runs at 3.5 and the 3.9 harness gate (D61). `e2e` is non-empty only for e2e work types; `evidence-capture` matches on it, and the orchestrator runs it at 3.10.
    - **`serve` and `serve_ready`**: the start command for the built app and the URL polled until it answers. `review-targets` uses them at 4.3 (D62); `run-toolchain.sh` never runs them. `""` when the work type has no runnable build.
    - **Non-command keys** that `run-toolchain.sh` ignores: `e2e_report` (e2e work types only: the Playwright JSON reporter `outputFile`, relative to the run directory, which `evidence-capture` reads; default `test-results/e2e-results.json`), `config` (config file path per tool) and `rule_set` (the rules in force).
-4. **Mini-review checklist.** List only judgement items that no tool can check, one line each.
-5. Delete the template comment, then write `profiles/<work-type>.md` with Write.
+3. Write `profiles/<work-type>.md` with Write.
 
-Done when every section holds real lines, `test` is a real command, and every other command key is a command or `""`.
+Done when every agreed work type has a profile file, `test` is a real command, and every other command key is a command or `""`.
 
 ## Install the toolchain
 

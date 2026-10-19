@@ -9,7 +9,7 @@ Resets the repository for workflow 2.0 and includes the build-out that followed 
 
 ### Added
 - **Workflow skills.** `feature-workflow` (entry point, phase modules, discovered-work and deferred-handoff modules, templates, shared scripts), `project-setup`, `regenerate-caches`, `domain-modeling` (first-party, adapted from upstream) and `retrospective`.
-- **Agents.** Eleven sub-agent definitions in `.agents/agents/`, with `.claude/agents` symlinked to them.
+- **Agents.** Twelve sub-agent definitions in `.agents/agents/`, with `.claude/agents` symlinked to them.
 - **Hooks.** Launch resolution (`pre-launch`), post-implementation audit, write guards for specs, Tier A and Tier B, boundary-config sync, evidence capture, session-start resume, and a first-party destructive-git guard; thin Claude adapters over host-neutral shared scripts.
 - **Discovered work and size budget.** Out-of-scope findings block the spec for a user ruling, feed a work backlog, and a soft size budget triggers the same protocol (D56-D58, D66-D69).
 - **`install.sh` and `.agents/install-manifest.txt`.** Installs only the first-party payload into a target project, creates the Claude shim, merges settings, and can upgrade in place; `--dry-run` and `--force` supported (D11, D36, D72).
@@ -20,6 +20,7 @@ Resets the repository for workflow 2.0 and includes the build-out that followed 
 - **Vendored copies (D74).** A first-party asset that needs a vendored file at runtime gets its own copy with a `Copied from` header and LICENSE, tracked in the scaffold-only `vendor-copies.json`. `pr-quality` now reads `references/codebase-design.md` instead of the removed `improve-codebase-architecture/LANGUAGE.md`.
 - **Project-owned content in shipped skills (D75).** `design-pattern-doc` conventions (`docs/design-pattern-doc/conventions.md`) and `pr-quality` project-specific modules (`docs/pr-quality/`) are read from the target project when present; the skills ship generic templates only and install never overwrites the project copies. Athena originals are archived under `PLAN/archive/`.
 - **Plan and decision docs.** `PLAN/`, `assetlist.md` (decisions D1+), `checklist.md`, `GLOSSARY.md` with the workflow vocabulary.
+- **`project-standards` skill and `standards-discovery` agent (D80).** Sets up and refreshes a project's standards: greenfield interview or brownfield discovery, a staging baseline and one approval ledger, written to `docs/rules.md`, work profiles, ADRs (including `0001-project-baseline`), `docs/pr-quality/` checks, per-profile lint config and a managed `AGENTS.md` block; `project-setup` now delegates rules and profile filling to it. `standards-discovery` is the twelfth task type (strong tier, header optional).
 - **`context-bridge.js` status line ships (D79).** The user's own `hooks/context-bridge.js` is first-party, in the install manifest, and wired as `statusLine` in the Claude settings template; `install.sh` keeps a different user `statusLine` with a warning (replaced with `--force`). It prints a context-usage bar and writes `<tmpdir>/claude-ctx-<session_id>.json`; nothing reads that file yet.
 
 ### Changed
