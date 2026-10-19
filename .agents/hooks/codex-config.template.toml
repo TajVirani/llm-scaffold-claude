@@ -1,0 +1,19 @@
+# Codex project config fragment for the workflow 2.0 scaffold (D9, D67). install.sh merges it into <target>/.codex/config.toml.
+# Hard write limits through a permissions profile: blocks both apply_patch and sandboxed shell writes (verified on codex-cli 0.155.1,
+# PLAN/hook-verification-codex.md rows 7a-7c; re-checked with `codex sandbox -P workflow` on 2026-10-16).
+#
+# - `extends = ":workspace"` is required. Without it the profile has no system read access and every sandboxed shell aborts (exit 134).
+#   The Codex docs say :workspace keeps .git, .agents and .codex read-only, but under `codex sandbox -P workflow` (0.155.1) all three
+#   were writable, so the scaffold does not rely on it.
+# - "docs/cache" = "read": Tier B caches (D17). A plain subpath, so it is portable.
+# - specs/*/.step is NOT listed: 0.155.1 rejects a glob with `read` ("filesystem glob path `specs/*/.step` only supports `deny` access")
+#   and `deny` also blocks reads, which the workflow scripts need. .step stays guarded by check-write.sh only (G7, advisory).
+# - Consequence: scripts the agent runs in the sandbox cannot write docs/cache either, so publish-cache.sh (regenerate-caches) needs an
+#   approved escalation (an approval_policy that can ask, e.g. the default on-request) or a run outside Codex.
+default_permissions = "workflow"
+
+[permissions.workflow]
+extends = ":workspace"
+
+[permissions.workflow.filesystem.":workspace_roots"]
+"docs/cache" = "read"

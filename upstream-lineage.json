@@ -1,0 +1,2376 @@
+{
+  "_about": "Scaffold-only, not installed. Which first-party file under .agents/ is based on which upstream file, at which commit, what we changed and why. kind: copy (runtime copy of a vendored file, D74), derived (our own rewrite based on upstream), pinned-addon (fetched or installed from upstream at a pin, not adapted). commit_basis: pinned (commit named in our file or PLAN record), blob-match (the vendored reference copy was byte-identical to upstream at this commit), release-tag (the upstream release we read), survey-date (read from the default branch; commit is the last one before the 2026-10-15 survey, so a diff from it may include changes already taken). To review upstream changes run scripts/upstream-diff.sh; accept or reject each change, apply accepted ones to path, then update upstream_commit (and sha256_of_upstream_at_copy for a copy), changes and reviewed_at. Checked by tests/lint/upstream-lineage.sh.",
+  "version": 1,
+  "upstreams": {
+    "mattpocock/skills": {
+      "url": "https://github.com/mattpocock/skills",
+      "license": "MIT",
+      "aliases": [
+        "mattpocock",
+        "mattpocock/skills"
+      ]
+    },
+    "athola/claude-night-market": {
+      "url": "https://github.com/athola/claude-night-market",
+      "license": "MIT",
+      "aliases": [
+        "claude-night-market"
+      ]
+    },
+    "dmmulroy/anti-slop": {
+      "url": "https://github.com/dmmulroy/anti-slop",
+      "license": "MIT",
+      "aliases": [
+        "dmmulroy/anti-slop"
+      ]
+    },
+    "bmad-code-org/BMAD-METHOD": {
+      "url": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "license": "MIT (names are trademarks)",
+      "aliases": [
+        "BMAD-METHOD"
+      ]
+    },
+    "github/spec-kit": {
+      "url": "https://github.com/github/spec-kit",
+      "license": "MIT",
+      "aliases": [
+        "github/spec-kit"
+      ]
+    },
+    "EveryInc/compound-engineering-plugin": {
+      "url": "https://github.com/EveryInc/compound-engineering-plugin",
+      "license": "MIT",
+      "aliases": [
+        "EveryInc"
+      ]
+    },
+    "anthropics/claude-plugins-official": {
+      "url": "https://github.com/anthropics/claude-plugins-official",
+      "license": "Apache-2.0",
+      "aliases": [
+        "claude-plugins-official"
+      ]
+    },
+    "obra/superpowers": {
+      "url": "https://github.com/obra/superpowers",
+      "license": "MIT",
+      "aliases": [
+        "obra/superpowers"
+      ]
+    },
+    "open-gsd/gsd-core": {
+      "url": "https://github.com/open-gsd/gsd-core",
+      "license": "MIT",
+      "aliases": [
+        "gsd-core"
+      ]
+    },
+    "humanlayer/humanlayer": {
+      "url": "https://github.com/humanlayer/humanlayer",
+      "license": "Apache-2.0",
+      "aliases": [
+        "humanlayer/humanlayer"
+      ]
+    },
+    "wshobson/agents": {
+      "url": "https://github.com/wshobson/agents",
+      "license": "MIT (conductor plugin Apache-2.0)",
+      "aliases": [
+        "wshobson/agents"
+      ]
+    },
+    "VoltAgent/awesome-claude-code-subagents": {
+      "url": "https://github.com/VoltAgent/awesome-claude-code-subagents",
+      "license": "MIT",
+      "aliases": [
+        "VoltAgent"
+      ]
+    },
+    "affaan-m/ECC": {
+      "url": "https://github.com/affaan-m/ECC",
+      "license": "MIT",
+      "aliases": [
+        "ECC `",
+        "affaan-m/ECC"
+      ]
+    }
+  },
+  "untracked": [
+    {
+      "name": "Tool documentation (Playwright incl. microsoft/playwright reporters/json.ts, Vitest, oxc, dependency-cruiser, Lighthouse CI, k6, OpenSSF Scorecard, deps.dev, OSV, SPDX)",
+      "why": "Tools we invoke, written from their docs with no text copied; tool output formats are covered by tests, not by upstream diffs."
+    },
+    {
+      "name": "PLAN/ hook-verification probes and the user's own prompts",
+      "why": "First-party."
+    },
+    {
+      "name": "feature-workflow references/REFERENCE-DOC.md and TEMPLATE.html",
+      "why": "First-party, written locally (originally kept alongside the vendored grill-with-docs copy, removed under D78), not upstream files; design-log.md round anatomy comes from REFERENCE-DOC.md."
+    },
+    {
+      "name": "tech-leads-club/agent-skills",
+      "why": "Named in review-targets.md only to say nothing was taken (CC-BY-4.0)."
+    }
+  ],
+  "entries": [
+    {
+      "path": ".agents/agents/retrieval.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/implement-spec/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took only step 2's idea of exploration notes that save implementers the reading",
+        "applied to a read-only Phase 0 retrieval agent, not a ticket implementer"
+      ],
+      "why": "Kept the exploration-notes purpose; everything about tickets and worktrees is out of scope for retrieval.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/retrieval.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/triage/OUT-OF-SCOPE.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the 'When to check' rule: match the deferred/ shelf by concept, not keyword",
+        "shelf is deferred/ (D24), not .out-of-scope/"
+      ],
+      "why": "Concept matching is what surfaces earlier decisions; the folder name is ours.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/retrieval.md",
+      "kind": "derived",
+      "upstream_repo": "humanlayer/humanlayer",
+      "upstream_path": ".claude/agents/codebase-locator.md",
+      "upstream_commit": "99abe673498cf8bdcd5f989aebe9406a27185b3b",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took read-only tool scoping (pattern only, no text copied)",
+        "returns cited extracts plus cache stamps instead of a file list"
+      ],
+      "why": "Tight tool scoping keeps the corpus out of the main session (Apache-2.0, so no text adapted).",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/retrieval.md",
+      "kind": "derived",
+      "upstream_repo": "humanlayer/humanlayer",
+      "upstream_path": ".claude/agents/thoughts-analyzer.md",
+      "upstream_commit": "99abe673498cf8bdcd5f989aebe9406a27185b3b",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 'document what exists, return only what matters' (pattern only, no text copied)",
+        "applied to Tier A docs, Tier B caches and the deferred/ shelf"
+      ],
+      "why": "Same discipline, our corpus and return contract.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/implementation.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/tdd/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "inlined seams, red before green, vertical slices, test anti-patterns into the agent prompt (D10: no runtime skill dependency)",
+        "rewritten as rules for one task under an injected work profile"
+      ],
+      "why": "TDD method is the core of the implementer; inlined because agents cannot load an upstream skill at runtime.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/implementation.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/tdd/tests.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "inlined what a good test looks like (behaviour through public interfaces) into the agent prompt (D10: no runtime skill dependency)",
+        "rewritten as rules for one task under an injected work profile"
+      ],
+      "why": "TDD method is the core of the implementer; inlined because agents cannot load an upstream skill at runtime.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/implementation.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/tdd/mocking.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "inlined mock only at system boundaries into the agent prompt (D10: no runtime skill dependency)",
+        "rewritten as rules for one task under an injected work profile"
+      ],
+      "why": "TDD method is the core of the implementer; inlined because agents cannot load an upstream skill at runtime.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/implementation.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/implement/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took: run typecheck and single test files regularly, the full suite once at the end",
+        "toolchain commands come from the work profile, run through run-toolchain.sh before stopping"
+      ],
+      "why": "Kept the cadence; the commands are profile-driven.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/implementation.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/implement-spec/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took step 4: one implementer per ticket in its own worktree on its own branch",
+        "launched by the feature-workflow orchestrator with a launch-header, not by implement-spec"
+      ],
+      "why": "Worktree isolation kept; orchestration is ours.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/implementation.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/subagent-driven-development/implementer-prompt.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: stop and escalate rather than guess, self-review of the own diff, RED/GREEN evidence, short status contract (pattern only, no text copied)",
+        "'blocked' becomes the 'profile is wrong' report"
+      ],
+      "why": "Escalation and evidence discipline; status values mapped onto our result schema.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/implementation.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-work/references/agents/implementation-worker.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: the unit is the authority boundary, scope_expansion status, inspect the full git delta before reporting, report observed commands (pattern only, no text copied)"
+      ],
+      "why": "Guards against scope creep and inferred success; structure only.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/implementation.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-work/references/implementation-result-schema.json",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the idea of a structured result (status, files, evidence)",
+        "our result fields: summary, files changed, tests added, evidence pointers"
+      ],
+      "why": "A fixed result shape lets the orchestrator gate on it; field names are ours.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/integration.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/implement-spec/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took step 5: a dedicated merger sub-agent integrates finished work",
+        "narrowed to applying shared-core change requests of one work type between waves (D28)"
+      ],
+      "why": "One owner for shared core prevents conflicting edits.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/integration.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/to-tickets/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took expand-contract for changes whose blast radius spans many callers"
+      ],
+      "why": "Shared-core changes must not break existing callers mid-feature.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/integration.md",
+      "kind": "derived",
+      "upstream_repo": "wshobson/agents",
+      "upstream_path": "plugins/agent-teams/skills/parallel-feature-development/SKILL.md",
+      "upstream_commit": "46891e7e60da0e52baf1050b7b6391b64e84c6d9",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: one owner per shared file, change requests applied sequentially, interface contracts consumers build against (pattern only, no text copied)",
+        "owned paths come from the Shared core section of docs/rules.md"
+      ],
+      "why": "Matches our single-owner shared-core model.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/integration.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-integration-checker.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 'existence is not integration': verify the connection a consumer needs (pattern only, no text copied)"
+      ],
+      "why": "Each applied request is checked for exports, signatures and existing callers.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/integration.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-work/references/agents/implementation-worker.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: inspect the full git delta; when two needs conflict and the packet leaves it open, build neither and report"
+      ],
+      "why": "Conflicts go back to the orchestrator instead of being resolved silently.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/module-audit.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/codebase-design/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the module / interface / depth / seam / adapter vocabulary, the deletion test, 'the interface is the test surface', 'one adapter = hypothetical seam'",
+        "applied to a one-module audit that returns reuse, gap and constraint findings with file:line"
+      ],
+      "why": "Shared deep-module vocabulary; the audit output shape is ours.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/module-audit.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/codebase-design/DEEPENING.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the dependency categories"
+      ],
+      "why": "Used to classify what the owning module depends on.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/module-audit.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took step 1's friction questions and recent-history scoping",
+        "no refactor proposals or HTML report"
+      ],
+      "why": "Audit only; redesign is not this agent's job.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/module-audit.md",
+      "kind": "derived",
+      "upstream_repo": "humanlayer/humanlayer",
+      "upstream_path": ".claude/agents/codebase-pattern-finder.md",
+      "upstream_commit": "99abe673498cf8bdcd5f989aebe9406a27185b3b",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took finding existing patterns to reuse, with file:line (pattern only, no text copied)"
+      ],
+      "why": "Reuse findings feed codebase-map.md.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/module-audit.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-plan/references/agents/repo-research-analyst.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took repo research for reuse (pattern only, no text copied)"
+      ],
+      "why": "Same purpose as the humanlayer pattern finder; MIT, structure only.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/profile-mini-review.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/code-review/SKILL.md",
+      "upstream_commit": "3da8c01116264675eeefbd6e9d59c734de9095cc",
+      "commit_basis": "pinned",
+      "changes": [
+        "took the Standards brief: hard violation versus judgement call; skip anything tooling enforces",
+        "scope narrowed to the work profile's Mini-review checklist for one task's diff"
+      ],
+      "why": "Checklist-only review; tool output from 3.5 is given, never re-derived.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/profile-mini-review.md",
+      "kind": "derived",
+      "upstream_repo": "VoltAgent/awesome-claude-code-subagents",
+      "upstream_path": "categories/04-quality-security/surgeon-reviewer.md",
+      "upstream_commit": "408d3c9eee2d0c75c12a3abb5de29e53c2ca6b9e",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: 'what concretely goes wrong, for whom', disprove each suspicion before reporting, nothing a linter catches (pattern only, no text copied)"
+      ],
+      "why": "Keeps findings to real defects. Upstream is itself from LucianFord/agent-pack.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/profile-mini-review.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/subagent-driven-development/task-reviewer-prompt.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: read the diff once, look outside it only for a named check, read-only checkout, every verdict cites file:line, report begins with the verdict (pattern only, no text copied)"
+      ],
+      "why": "Bounded, citable verdicts per checklist item.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/fact-lookup.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/productivity/grilling/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took 'finding facts is your job, the decisions are the user's' and the fact sub-agent",
+        "made a standalone agent called at 0.3.10 with a file:line or 'not determinable' return"
+      ],
+      "why": "The stakeholder is never asked a fact.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/fact-lookup.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/research/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took: primary sources, follow every claim back to the source that owns it",
+        "sources are the repo (code, docs, git history), not the web"
+      ],
+      "why": "Same citation discipline over a narrower corpus.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/fact-lookup.md",
+      "kind": "derived",
+      "upstream_repo": "humanlayer/humanlayer",
+      "upstream_path": ".claude/agents/codebase-analyzer.md",
+      "upstream_commit": "99abe673498cf8bdcd5f989aebe9406a27185b3b",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took file:line references and 'describe what exists, no critique' (pattern only, no text copied)"
+      ],
+      "why": "Return format discipline.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-standards.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/code-review/SKILL.md",
+      "upstream_commit": "3da8c01116264675eeefbd6e9d59c734de9095cc",
+      "commit_basis": "pinned",
+      "changes": [
+        "took standards-source discovery and the Standards brief (cite file + rule, hard vs judgement, skip what tooling enforces)",
+        "Fowler smell baseline copied with edits: framed as 'what it is -> how to fix', repo standards override it, every smell is a judgement call (category smell, severity at most medium)",
+        "single standards lens of a three-lens Phase 4 review; no Spec axis (that is review-end-state)",
+        "added baselines: docs/rules.md, work profiles, placement ADR, GLOSSARY naming, 3.5 tool output",
+        "returns a review-findings YAML block with confidence >= 80 instead of a chat report"
+      ],
+      "why": "Pre-D74 adaptation (not a runtime copy). Kept the brief and the smell list so the lens works on repos with no written standards; the extra baselines and schema serve review-triage.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-standards.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-code-review/references/personas/project-standards-reviewer.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: every finding cites a written rule plus the violating line, no invented rules, pre-existing violations are not findings, criteria-file discovery by ancestor directory"
+      ],
+      "why": "Rule-cited findings only.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-standards.md",
+      "kind": "derived",
+      "upstream_repo": "anthropics/claude-plugins-official",
+      "upstream_path": "plugins/code-review/commands/code-review.md",
+      "upstream_commit": "c2bdb427efe8673f190ae862c273cfa368d2390f",
+      "commit_basis": "survey-date",
+      "changes": [
+        "0-100 confidence rubric, cutoff 80 and false-positive list adapted and reworded for a lens that returns findings instead of PR comments",
+        "the cutoff is applied by the lens itself"
+      ],
+      "why": "Apache-2.0: adapted and marked as changed.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-standards.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-code-review/step-03-triage.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the severity scale only"
+      ],
+      "why": "Shared severity vocabulary with review-triage.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-standards.md",
+      "kind": "derived",
+      "upstream_repo": "VoltAgent/awesome-claude-code-subagents",
+      "upstream_path": "categories/04-quality-security/surgeon-reviewer.md",
+      "upstream_commit": "408d3c9eee2d0c75c12a3abb5de29e53c2ca6b9e",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took disprove-before-reporting and 'what goes wrong, for whom'"
+      ],
+      "why": "Cuts false positives.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/library-evaluation.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-pov/SKILL.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the graded verdict, project and external evidence floors, skeptic stance (pattern only, no text copied)",
+        "bounded to up to three candidates on a fixed rubric (fit, licence, maintenance, security, cost, deprecation)"
+      ],
+      "why": "Adoption verdict grounded in project constraints; the rubric fields are ours.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/library-evaluation.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-pov/references/method.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the evidence method behind the graded verdict"
+      ],
+      "why": "Same source as ce-pov SKILL.md.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/library-evaluation.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-plan/references/agents/framework-docs-researcher.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the mandatory deprecation check and version-aware docs"
+      ],
+      "why": "Deprecation is a rubric field.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/library-evaluation.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-plan/references/agents/best-practices-researcher.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took primary sources first and source authority labels"
+      ],
+      "why": "Every claim carries a URL.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/library-evaluation.md",
+      "kind": "derived",
+      "upstream_repo": "affaan-m/ECC",
+      "upstream_path": ".codex/agents/docs-researcher.toml",
+      "upstream_commit": "b92f181b3b748d1abbc2afd94af6aa7d8c8fca29",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 'cite the exact source for each claim'"
+      ],
+      "why": "Citation rule only.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/cache-regeneration.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-codebase-mapper.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the agent shape: one focus per launch, write the document straight to disk, return a short confirmation, current state only, never quote secrets, do not commit (pattern only, no text copied)",
+        "writes only to .cache-staging/<type>.md; the caller stamps and publishes"
+      ],
+      "why": "Keeps cache bodies out of the main session; determinism rules are ours (G6).",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/cache-regeneration.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "commands/gsd/map-codebase.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took parallel mappers that write to disk and return confirmations (pattern only, no text copied)"
+      ],
+      "why": "Orchestration pattern shared with regenerate-caches.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-end-state.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/code-review/SKILL.md",
+      "upstream_commit": "3da8c01116264675eeefbd6e9d59c734de9095cc",
+      "commit_basis": "pinned",
+      "changes": [
+        "took the Spec brief (missing or partial / scope creep / implemented but wrong; quote the spec line) and the diff-pinning step",
+        "checks against spec.md and verification-plan.md, using artifacts/ as proof journeys ran"
+      ],
+      "why": "Spec-conformance lens of the Phase 4 review.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-end-state.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/subagent-driven-development/task-reviewer-prompt.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 'nothing more, nothing less', missing / extra / misunderstood, do not trust the implementer's claims, 'cannot verify from diff' kept apart (pattern only, no text copied)"
+      ],
+      "why": "Wording for spec compliance.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-end-state.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-code-review/review-prompts/verification-gap.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: read evidence before claiming what it shows, search before claiming absence, never assert what you did not verify"
+      ],
+      "why": "Evidence-checked gap findings.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-end-state.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-code-review/step-03-triage.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the severity scale only"
+      ],
+      "why": "Shared severity vocabulary with review-triage.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-end-state.md",
+      "kind": "derived",
+      "upstream_repo": "anthropics/claude-plugins-official",
+      "upstream_path": "plugins/code-review/commands/code-review.md",
+      "upstream_commit": "c2bdb427efe8673f190ae862c273cfa368d2390f",
+      "commit_basis": "survey-date",
+      "changes": [
+        "0-100 confidence rubric and cutoff 80 adapted and reworded for spec conformance; applied by the lens itself"
+      ],
+      "why": "Apache-2.0: adapted and marked as changed.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/agents/review-end-state.md",
+      "kind": "derived",
+      "upstream_repo": "VoltAgent/awesome-claude-code-subagents",
+      "upstream_path": "categories/04-quality-security/surgeon-reviewer.md",
+      "upstream_commit": "408d3c9eee2d0c75c12a3abb5de29e53c2ca6b9e",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took disprove-before-reporting"
+      ],
+      "why": "Cuts false positives.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/hooks/block-destructive-git.sh",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "kept the blocked-command list and extended it",
+        "plain `git push` is allowed (upstream blocks it)",
+        "replaced raw-text grep with a shell tokenizer and per-subcommand rules, so heredoc bodies and quoted text no longer match",
+        "emits the PreToolUse deny JSON (Claude and Codex) instead of exit 2 + stderr",
+        "added the stash rule and reason text from the user's earlier version; fails closed when the command cannot be read"
+      ],
+      "why": "Upstream's grep matched text inside commit messages and heredocs; the tokenizer fixes that. Push stays allowed because the workflow pushes.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/hooks/generate-codex-agents.sh",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "src/converters/claude-to-codex.ts",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: convert Claude agent markdown to Codex toml; no code copied",
+        "bash + yq generator, deterministic, never writes model (D67), prunes only files with our marker"
+      ],
+      "why": "Prior art for the md -> toml mapping; keys come from our verified Codex 0.155.1 probes.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/hooks/generate-codex-agents.sh",
+      "kind": "derived",
+      "upstream_repo": "github/spec-kit",
+      "upstream_path": "src/specify_cli/integrations/codex",
+      "upstream_commit": "3238fa9285694dc539aeb9829b337bfd6aed7317",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: per-host install of agent definitions for Codex; no code copied"
+      ],
+      "why": "Prior art for Codex wiring; ours is generated by install.sh.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/domain-modeling/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "scoped to the feature-workflow term gates (0.2.2, 0.3.14, 0.4.2) and ADRs (D10)",
+        "stakeholder agreement before each glossary write",
+        "added 'Set the step before a Tier A write' (status-transition.sh step marker, D16)",
+        "added placement and superseding flow for 0.3.5-0.3.7 and a naming baseline for review-standards",
+        "ADR path moved to docs/decisions/adr/",
+        "upstream session sections (challenge, sharpen, scenarios, cross-reference) folded into the term-gate steps"
+      ],
+      "why": "Same glossary and ADR discipline, wired into the workflow's gates and write guards.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/assets/ADR-FORMAT.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/domain-modeling/ADR-FORMAT.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "header comment added",
+        "`docs/adr/` -> `docs/decisions/adr/` (plan 00.4)",
+        "template moved out to adr.md ('Start from adr.md')",
+        "Status frontmatter written as a `status:` key",
+        "added 'Superseding an ADR' section"
+      ],
+      "why": "Pre-D74 adaptation, near-verbatim; edits follow the plan's ADR location and the superseded-ADRs-stay-marked rule.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/assets/ADR-FORMAT.md",
+      "kind": "derived",
+      "upstream_repo": "wshobson/agents",
+      "upstream_path": "plugins/documentation-generation/skills/architecture-decision-records/SKILL.md",
+      "upstream_commit": "46891e7e60da0e52baf1050b7b6391b64e84c6d9",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the status lifecycle and supersede back-link pattern (pattern only, no text copied)"
+      ],
+      "why": "Upstream mattpocock format had no supersede procedure.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/assets/GLOSSARY-FORMAT.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/domain-modeling/GLOSSARY-FORMAT.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "header comment added",
+        "added optional 'Relationships' and 'Flagged ambiguities' sections and the 'Bold term names' rule",
+        "added 'Glossary only' and 'Changing an existing entry'",
+        "example dialogue left out, as upstream now does"
+      ],
+      "why": "Pre-D74 adaptation, near-verbatim; additions restore useful parts of the older CONTEXT-FORMAT and define how entries change.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/assets/GLOSSARY-FORMAT.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/domain-modeling/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the 'Glossary only' rule (no implementation detail in the glossary)"
+      ],
+      "why": "Moved into the format file so writers see it where they write.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/assets/GLOSSARY-FORMAT.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/grill-with-docs/CONTEXT-FORMAT.md",
+      "upstream_commit": "fb847c6aded783c1c4a67ec54bfc588fd44e91ab",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the 'Relationships' and 'Flagged ambiguities' sections and 'Bold term names' from the earlier CONTEXT-FORMAT.md"
+      ],
+      "why": "Upstream removed CONTEXT-FORMAT.md (folded into domain-modeling); the commit is the one the former vendored grill-with-docs copy matched (copy removed under D78).",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/assets/GLOSSARY-FORMAT.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-compound/references/concepts-vocabulary.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the fold and retire pattern for changing entries (pattern only, no text copied)"
+      ],
+      "why": "Upstream mattpocock format had no rule for changing an existing term.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/assets/adr.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/domain-modeling/ADR-FORMAT.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "the template and optional sections from ADR-FORMAT.md, split into a standalone file",
+        "supersede line per our 'Superseding an ADR'"
+      ],
+      "why": "A fill-in template next to the format rules.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-build/workflow.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the router shape: resolve state first, route by the status in frontmatter, EARLY EXIT to the step file, load only the current step (structure only, no Jinja)",
+        "our statuses, modules and sizing (light/full path)"
+      ],
+      "why": "Closest structural match for a status-driven router; BMad templating and names not used (trademark).",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-build/step-01-clarify-and-route.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took clarify-then-route sizing",
+        "sizing is trivial / light / full per our plan"
+      ],
+      "why": "Same routing idea, our sizes.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "docs/build/build-a-change.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the trivial bypass ('a trivial edit you are willing to review yourself', 'if a bug could escape into production') and the smallest-process rule"
+      ],
+      "why": "Keeps tiny changes out of the full workflow.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/productivity/writing-for-agents/SKILL-MECHANICS.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the invocation choice (model-invocable skill, D41)"
+      ],
+      "why": "Skill mechanics only.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/deferred-handoff.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/triage/AGENT-BRIEF.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the brief shape: current vs desired behaviour, acceptance criteria, out of scope; durable and behavioural, no paths outside evidence",
+        "written to deferred/ files, not issue comments"
+      ],
+      "why": "Deferred items must stay actionable after the spec closes.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/deferred-handoff.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/triage/OUT-OF-SCOPE.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took: one file per concept, kebab-case names, durable reasons, append later requests, concept match surfaces the prior decision",
+        "shelf is deferred/ (D24)"
+      ],
+      "why": "Concept-per-file avoids duplicate deferrals.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/deferred-handoff.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/productivity/handoff/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took 'reference, don't duplicate; redact'"
+      ],
+      "why": "Deferred files link to artifacts instead of copying them.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/deferred-handoff.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/wayfinder/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the HITL/AFK tag from 'Ticket Types'"
+      ],
+      "why": "Marks whether a deferred item needs a human.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/deferred-handoff.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-work/references/tracker-defer.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 'a deferral with no durable artifact and no message is data loss' and a written/appended/failed return (pattern only, no text copied)"
+      ],
+      "why": "Nothing is dropped silently.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/deferred-handoff.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-executor.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: out-of-scope discoveries are logged, not fixed ('SCOPE BOUNDARY')"
+      ],
+      "why": "Scope-creep guardrail.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/implement-spec/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took frontier-driven waves, one worktree and branch per implementer, background launches, context pointers, a dedicated integration owner, worktree clean-up",
+        "added the four gates (3.5-3.11), integration batching per work type, the light-path suite gap and Codex advisory calls"
+      ],
+      "why": "Execution skeleton kept; gates are ours (plan).",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/subagent-driven-development/SKILL.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: record the base commit before dispatch, resume the same implementer with findings, cap a fix loop at five rounds, never fix in the controller, a ledger that survives compaction (pattern only, no text copied)"
+      ],
+      "why": "Review-loop discipline.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/using-git-worktrees/SKILL.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: native worktree tool first, `git worktree add` as fallback"
+      ],
+      "why": "Host-neutral worktree creation.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-planner.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took waves computed from depends_on"
+      ],
+      "why": "Parallelism from the tasks.md dependency graph.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/spec-kit/agents/implementation-executor.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "prior art for execution tracking only"
+      ],
+      "why": "No text used; listed for traceability.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "kind": "derived",
+      "upstream_repo": "github/spec-kit",
+      "upstream_path": "templates/commands/specify.md",
+      "upstream_commit": "3238fa9285694dc539aeb9829b337bfd6aed7317",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 0.1.1-0.1.2 numbering and short names: scan specs/ for the highest number, use N+1, 2-4 word action-noun name preserving technical terms",
+        "numbering skips specs/work-backlog/"
+      ],
+      "why": "Spec Kit's numbering rules; read through the claude-night-market local copy.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/spec-kit/commands/speckit-specify.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "local copy of the Spec Kit specify command, steps 1-2 (numbering, short name)"
+      ],
+      "why": "The copy the rules were read from.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "docs/build/build-a-change.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the 0.3.20 three facts: intent gaps you would notice in the result, irreversible actions, footprint; clean on all three -> light path"
+      ],
+      "why": "Light-path sizing rule.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-build/customize.toml",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the footprint rule of thumb from route_selection: about 100 changed lines; more than five non-mechanical files is not small"
+      ],
+      "why": "Concrete footprint threshold.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "kind": "derived",
+      "upstream_repo": "anthropics/claude-plugins-official",
+      "upstream_path": "plugins/feature-dev/commands/feature-dev.md",
+      "upstream_commit": "c2bdb427efe8673f190ae862c273cfa368d2390f",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the discovery -> parallel explorers -> wait for answers skeleton (structure only, no text copied)"
+      ],
+      "why": "Apache-2.0; phase skeleton only.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/triage/OUT-OF-SCOPE.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took concept match on the deferred/ shelf"
+      ],
+      "why": "Surfaces earlier decisions during discovery.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/review-triage.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/code-review/SKILL.md",
+      "upstream_commit": "3da8c01116264675eeefbd6e9d59c734de9095cc",
+      "commit_basis": "pinned",
+      "changes": [
+        "took steps 4-5 and 'Why two axes': independent parallel lenses, no merging or reranking across lenses",
+        "three lenses (standards, end-state, targets) instead of two"
+      ],
+      "why": "Lenses stay independent; triage happens after.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/review-triage.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-code-review/step-03-triage.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: normalise, verify at the cited location, one verdict high/medium/low/false/maybe-false, reject rules, group by root cause, route decision-needed/patch/defer (prose adapted, no templating)"
+      ],
+      "why": "Triage procedure.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/review-triage.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-build/step-04-review.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 'carried' verdicts on a re-review and the loop counter capped at five"
+      ],
+      "why": "Bounded rework loop.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/review-triage.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-code-review/step-04-present.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: decision-needed entries carry options and a recommendation; failed lenses are reported before any clean result"
+      ],
+      "why": "Present step.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/review-triage.md",
+      "kind": "derived",
+      "upstream_repo": "anthropics/claude-plugins-official",
+      "upstream_path": "plugins/code-review/commands/code-review.md",
+      "upstream_commit": "c2bdb427efe8673f190ae862c273cfa368d2390f",
+      "commit_basis": "survey-date",
+      "changes": [
+        "references the confidence cutoff of 80 the lenses apply (not copied)"
+      ],
+      "why": "Consistency with the lenses.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/task-breakdown.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/to-tickets/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took tracer-bullet vertical slices, prefactoring first, blocking edges, expand-contract, quiz the user until approved, work the frontier",
+        "writes tasks.md YAML instead of tracker tickets"
+      ],
+      "why": "Slicing rules kept; output is our tasks.md schema.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/task-breakdown.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/to-spec/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took step 2: prefer existing seams, the highest seam, as few seams as possible; confirm with the user"
+      ],
+      "why": "Seam agreement at 2.3.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/task-breakdown.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/tdd/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took 'Seams': test only at pre-agreed seams; one line per seam on what it catches and misses"
+      ],
+      "why": "Seams drive the test plan.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/task-breakdown.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-planner.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: same-wave tasks sharing files get an edge ('assign_waves')"
+      ],
+      "why": "Prevents parallel edits to one file.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/verification-setup.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/imbue/skills/proof-of-work/modules/iron-law-enforcement.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "took prove-it-fails discipline",
+        "applied to Phase 1 suites with a known-bad-build check (1.4)"
+      ],
+      "why": "A check that never went red proves nothing.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/verification-setup.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/diagnosing-bugs/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took Phase 1's 'a feedback loop that goes red' and the red-capable completion criterion"
+      ],
+      "why": "Same idea for verification suites.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/verification-setup.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/tdd/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took red before green"
+      ],
+      "why": "Suites are written to fail first.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/verification-setup.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-planner.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: 'Nyquist rule', every journey gets an automated check"
+      ],
+      "why": "Coverage of JRN journeys.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/verification-setup.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/using-git-worktrees/SKILL.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: throwaway worktree for checks against a modified state"
+      ],
+      "why": "Known-bad-build runs never touch the main checkout.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/verification-setup.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/subagent-driven-development/SKILL.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: five-round cap on a fix loop"
+      ],
+      "why": "Bounded loop.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/questioning-loop.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/productivity/grilling/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the design tree, frontier rounds with numbered questions and a recommended answer each, 'yes' accepts the recommendation, facts via a sub-agent without blocking, recompute after each round, done when the frontier is empty and understanding is confirmed",
+        "added defer-to-deep-dive (0.3.12-0.3.13), the host multi-question UI, the term gate (0.3.14-0.3.15) and the scope gate (0.3.16-0.3.17)",
+        "input is the agreed 0.3.22 deeper prompt; every round is logged to design-log.md"
+      ],
+      "why": "Grilling already batched the frontier; only the gates, deferral and logging are ours. 'Grill me' routes here (D76).",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/questioning-loop.md",
+      "kind": "derived",
+      "upstream_repo": "anthropics/claude-plugins-official",
+      "upstream_path": "plugins/feature-dev/commands/feature-dev.md",
+      "upstream_commit": "c2bdb427efe8673f190ae862c273cfa368d2390f",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: on 'whatever you think is best', give the recommendation and get explicit confirmation"
+      ],
+      "why": "Apache-2.0; no text copied.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/questioning-loop.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-work/references/tracker-defer.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: use the host's blocking question tool, fall back to numbered options in chat"
+      ],
+      "why": "Host-neutral question UI.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/sign-off.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/imbue/skills/proof-of-work/SKILL.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "took 'The Iron Law': no completion claim without evidence first"
+      ],
+      "why": "Sign-off presents evidence, not claims.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/sign-off.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/imbue/skills/proof-of-work/modules/validation-protocols.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "took the validation protocol behind the Iron Law"
+      ],
+      "why": "Evidence rules for report.md.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/sign-off.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-build/step-05-present.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took a short completion summary (what changed, verification and review result, what was deferred) and 'never auto-push' (prose adapted)"
+      ],
+      "why": "Present step.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/sign-off.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/workflow.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: fixes and reconciliations are proposed and the human decides; the retrospective changes no status itself"
+      ],
+      "why": "Human-approved Tier A writes (5.3).",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/sign-off.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-work/references/shipping-workflow.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: 'Residual Work Gate', every unresolved concern is recorded with why it is deferred before presenting"
+      ],
+      "why": "No silent loose ends.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/tasks.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/to-tickets/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took slice rules, blocking edges and per-ticket fields (what to build, blocked by, acceptance criteria)",
+        "record schema is ours: tasks: YAML frontmatter (id, status, work_type, depends_on, touches_core, capability)"
+      ],
+      "why": "Ticket content kept; machine-readable schema for the scripts.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/tasks.md",
+      "kind": "derived",
+      "upstream_repo": "github/spec-kit",
+      "upstream_path": "templates/tasks-template.md",
+      "upstream_commit": "3238fa9285694dc539aeb9829b337bfd6aed7317",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took dependency patterns and phase ordering"
+      ],
+      "why": "Ordering rules.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/tasks.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/spec-kit/skills/task-planning/modules/dependency-patterns.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "took dependency patterns"
+      ],
+      "why": "Same as Spec Kit's tasks template, via the plugin.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/tasks.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-planner.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took wave computation ('assign_waves')"
+      ],
+      "why": "Waves come from depends_on.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/report.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/imbue/skills/proof-of-work/modules/validation-protocols.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "took evidence before claim, numbered evidence references, verification steps a human can repeat",
+        "section layout is ours (test output, targets vs measured, journeys -> artifacts, known gaps)"
+      ],
+      "why": "Evidence discipline for the sign-off report.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/report.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/imbue/skills/proof-of-work/modules/acceptance-criteria.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "took binary PASS / FAIL / BLOCKED per criterion"
+      ],
+      "why": "Binary results per criterion.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/report.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/references/retro-document.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 'Behavior verification': what was exercised end to end, or an explicit note that it was not"
+      ],
+      "why": "Explicit gaps.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/deferred.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/triage/AGENT-BRIEF.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the brief structure (summary, current vs desired behaviour, acceptance criteria, out of scope)",
+        "frontmatter and headings are plan-specified (origin_spec, created, severity, superseded_by)"
+      ],
+      "why": "Durable behavioural brief.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/deferred.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/triage/OUT-OF-SCOPE.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took one file per concept, kebab-case name, durable reasons, later requests appended"
+      ],
+      "why": "Concept-per-file.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/deferred.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/productivity/handoff/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took 'reference other artifacts, do not duplicate; redact secrets'"
+      ],
+      "why": "Links over copies.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/deferred.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/wayfinder/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the HITL/AFK tag ('Ticket Types')"
+      ],
+      "why": "Marks human-needed items.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/proposals.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/references/retro-document.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 'proposed remediation awaiting human application', each item with an owner ('Action items')",
+        "per-line status values and the Why field are ours (D21)"
+      ],
+      "why": "Proposals are approved line by line at 5.3.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/proposals.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/retro/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took 'Coding standards': a mechanical violation becomes a tool rule, judgement stays a checklist line"
+      ],
+      "why": "Routing of lessons to tools vs checklists.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/proposals.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-compound/SKILL.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: the durable bar, 'would losing it change behaviour'"
+      ],
+      "why": "Keeps proposals to lines that matter.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/data-model.md",
+      "kind": "derived",
+      "upstream_repo": "github/spec-kit",
+      "upstream_path": "templates/commands/plan.md",
+      "upstream_commit": "3238fa9285694dc539aeb9829b337bfd6aed7317",
+      "commit_basis": "survey-date",
+      "changes": [
+        "ported Phase 1's per-entity shape (entity, fields, relationships, validation rules, state transitions)",
+        "layout is ours (Spec Kit ships no data-model template); added create / extend / refactor / unchanged classification (0.4.4) and migration ordering"
+      ],
+      "why": "Entity extraction rules; classification drives Phase 2 ordering.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/data-model.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/spec-kit/commands/speckit-plan.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "local copy of Spec Kit plan.md Phase 1 ('Extract entities from feature spec')"
+      ],
+      "why": "The copy the shape was read from.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/data-model.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/to-tickets/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took expand-contract for wide changes"
+      ],
+      "why": "Safe schema migrations.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/codebase-map.md",
+      "kind": "derived",
+      "upstream_repo": "humanlayer/humanlayer",
+      "upstream_path": ".claude/commands/research_codebase.md",
+      "upstream_commit": "99abe673498cf8bdcd5f989aebe9406a27185b3b",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: 'document what exists, do not critique' and the commit stamp on research output",
+        "section-per-agent layout and cache_stamps frontmatter are ours"
+      ],
+      "why": "Apache-2.0; no text copied.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/spec.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-spec/assets/spec-template.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the body sections: Why; Capabilities (intent + success); Constraints; Non-goals; Success signal; optional Assumptions and Open Questions",
+        "frontmatter fields, Links and Known gaps are ours (plan, D16, D21, D22, D29)"
+      ],
+      "why": "Exact match for the spec body; frontmatter drives the status scripts.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/spec.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-build/plan-template.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "adapted the status states"
+      ],
+      "why": "Status lifecycle per our plan 'Status' table.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/spec.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-build/step-03-implement.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "adapted the meaning of baseline_revision"
+      ],
+      "why": "Review diffs start at the baseline.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/design-log.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/wayfinder/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took index-not-store: one line per decision, link to the detail ('Decisions so far')",
+        "round anatomy came from feature-workflow/references/REFERENCE-DOC.md, a first-party file (originally a local addition beside the vendored grill-with-docs copy), not an upstream file"
+      ],
+      "why": "Keeps the log scannable. The entry-shape catalogue is ours.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/design-log.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-code-review/step-03-triage.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took triage entry fields (id, source lens, location, verdict, evidence, route)"
+      ],
+      "why": "Same fields review-triage writes.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/design-log.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/subagent-driven-development/SKILL.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: a ledger that survives context compaction"
+      ],
+      "why": "Design log is the durable record.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/verification-plan.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/spec-kit/skills/shared/modules/artifact-structure.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "took the test-scenario role of Spec Kit's quickstart.md",
+        "JRN-### journeys, fixtures and oracles, and targets are ours"
+      ],
+      "why": "Scenario role only.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/verification-plan.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/spec-kit/skills/spec-writing/modules/success-criteria-patterns.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "took criteria that are measurable, verifiable, user-visible and binary"
+      ],
+      "why": "Criteria quality bar.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/verification-plan.md",
+      "kind": "derived",
+      "upstream_repo": "athola/claude-night-market",
+      "upstream_path": "plugins/imbue/skills/proof-of-work/modules/acceptance-criteria.md",
+      "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
+      "commit_basis": "release-tag",
+      "changes": [
+        "took binary acceptance criteria"
+      ],
+      "why": "Same bar as report.md.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/verification-plan.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-planner.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: 'Nyquist rule', every verify step has an automated check"
+      ],
+      "why": "Journeys map to suites.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/workflow.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "prose and structure adapted, no templating",
+        "one feature spec instead of an epic and its tickets",
+        "run with the stakeholder present; writes pitfalls.md, a design-log section and model observations (D35)",
+        "no team-discussion phase, no headless mode"
+      ],
+      "why": "Same retrospective flow, sized for one feature.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/references/evidence-gathering.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the evidence inventory (detailed in modules/evidence.md)"
+      ],
+      "why": "Part of the BMad retrospective the skill is built from.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/references/acceptance-verdict.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the acceptance verdict (detailed in modules/routing.md)"
+      ],
+      "why": "Part of the BMad retrospective the skill is built from.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/references/team-discussion.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the discussion structure, minus the team phase"
+      ],
+      "why": "Part of the BMad retrospective the skill is built from.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/references/retro-document.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the document structure (detailed in assets/retrospective.md)"
+      ],
+      "why": "Part of the BMad retrospective the skill is built from.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/retro/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took 'Coding standards': mechanical lesson -> tool rule, judgement lesson -> checklist line"
+      ],
+      "why": "Routing of lessons.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-compound/SKILL.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: durable bar, record only what final code, tests and docs do not already tell a reader"
+      ],
+      "why": "Keeps lessons few and useful.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/modules/evidence.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/references/evidence-gathering.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the inventory checklist, one range from the recorded baseline, and 'checked and clean' vs 'never checked'",
+        "inventory names this workflow's per-feature files",
+        "git_evidence.py replaced by plain git commands"
+      ],
+      "why": "No Python dependency; our file set.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/modules/routing.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/references/acceptance-verdict.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took two dispositions per finding (this instance, and what prevents the next) and 'proposed, not applied' action items",
+        "routing targets are ours (pitfalls.md, profiles, rules, model-map)"
+      ],
+      "why": "Human applies the fixes.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/modules/routing.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/retro/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took mechanical lesson -> tool rule, judgement lesson -> checklist line"
+      ],
+      "why": "Routing of lessons.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/modules/routing.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-compound/SKILL.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: durable bar"
+      ],
+      "why": "Keeps lessons few and useful.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/retrospective/assets/retrospective.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-retrospective/references/retro-document.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "structure adapted; epic and ticket fields dropped",
+        "added pointers to pitfalls.md, design-log.md and model observations (D35)"
+      ],
+      "why": "Same document, one feature.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/pr-quality/references/codebase-design.md",
+      "kind": "copy",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/codebase-design/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "sha256_of_upstream_at_copy": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+      "license_path": ".agents/skills/pr-quality/references/LICENSE",
+      "consumers": [
+        ".agents/skills/pr-quality/SKILL.md",
+        ".agents/skills/pr-quality/modules/seam-conformance.md"
+      ],
+      "changes": [
+        "added the D74 header comment",
+        "dropped the YAML frontmatter (reference, not a skill)",
+        "dropped the \"Going deeper\" section (links to DEEPENING.md and DESIGN-IT-TWICE.md, not copied)"
+      ],
+      "why": "Runtime copy (D74): pr-quality reads the deep-module vocabulary from it. Consumers: .agents/skills/pr-quality/SKILL.md, .agents/skills/pr-quality/modules/seam-conformance.md.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the explore-then-confirm interview and one-section-at-a-time questions with a recommended answer",
+        "creates the workflow's project files and toolchain instead of configuring mattpocock skills"
+      ],
+      "why": "Interview pattern only.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/SKILL.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took steps 3-4: scan before you ask; ask only what no scan reaches (pattern only, no text copied)"
+      ],
+      "why": "Fewer questions.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "wshobson/agents",
+      "upstream_path": "plugins/conductor/commands/setup.md",
+      "upstream_commit": "46891e7e60da0e52baf1050b7b6391b64e84c6d9",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took re-run safety: skip what exists, verify earlier files still exist (pattern only, no text copied)"
+      ],
+      "why": "Apache-2.0; idempotent setup.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "EveryInc/compound-engineering-plugin",
+      "upstream_path": "skills/ce-setup/SKILL.md",
+      "upstream_commit": "7a68002fc24139fe4876c759c9e5a3ebff976ad4",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the health-check posture: report missing tools, install only what the project uses (pattern only, no text copied)"
+      ],
+      "why": "No unneeded installs.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/modules/anti-slop.md",
+      "kind": "derived",
+      "upstream_repo": "dmmulroy/anti-slop",
+      "upstream_path": "skills/install-anti-slop/SKILL.md",
+      "upstream_commit": "c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b",
+      "commit_basis": "pinned",
+      "changes": [
+        "adapted fresh-install steps 1-5",
+        "fetch by pinned commit with git instead of copying a bundled tree",
+        "carry the repository-root LICENSE, which the skill assets do not include",
+        "no update path (an existing copy is kept)",
+        "rule names copied from upstream step 3"
+      ],
+      "why": "The scaffold ships no anti-slop copy (D42); the project vendors and owns it.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/modules/anti-slop.md",
+      "kind": "pinned-addon",
+      "upstream_repo": "dmmulroy/anti-slop",
+      "upstream_path": "skills/install-anti-slop/assets/anti-slop",
+      "upstream_commit": "c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b",
+      "commit_basis": "pinned",
+      "changes": [
+        "none: the whole tree is fetched at the pin into the target's tools/oxlint/anti-slop/ unmodified"
+      ],
+      "why": "Oxlint rules are not about how agents work, so we do not rebuild them; to move the pin, change the commit in anti-slop.md (table, script and Sources comment) and re-read upstream's install steps.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/modules/anti-slop.md",
+      "kind": "pinned-addon",
+      "upstream_repo": "dmmulroy/anti-slop",
+      "upstream_path": "LICENSE",
+      "upstream_commit": "c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b",
+      "commit_basis": "pinned",
+      "changes": [
+        "none: copied beside the fetched tree"
+      ],
+      "why": "MIT notice must travel with the vendored plugins.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/modules/profiles.md",
+      "kind": "derived",
+      "upstream_repo": "dmmulroy/anti-slop",
+      "upstream_path": "skills/install-anti-slop/SKILL.md",
+      "upstream_commit": "c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b",
+      "commit_basis": "pinned",
+      "changes": [
+        "took step 2: install current compatible versions instead of remembered ones; keep the package manager; preserve unrelated ranges",
+        "applied to every profile toolchain, not only oxlint"
+      ],
+      "why": "General install rule.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/modules/files.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took Section C: single- vs multi-context glossary choice, multi-context offered only on monorepo signals"
+      ],
+      "why": "Glossary layout choice.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/assets/GLOSSARY.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/domain-modeling/GLOSSARY-FORMAT.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "near-empty skeleton following the format's headings; the format itself is referenced, not copied"
+      ],
+      "why": "Wording must match domain-modeling/assets/GLOSSARY-FORMAT.md.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/assets/docs/capabilities.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-spec/assets/spec-template.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the CAP entry idea (id, intent)",
+        "index layout (CAP-### -> description -> introducing spec link) is ours"
+      ],
+      "why": "Capability ids match spec.md.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/assets/docs/rules.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/references/template.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took policy prose style: a prohibition names the alternative, terse imperative lines",
+        "Ownership and Shared core YAML schema is ours (D15, D20)"
+      ],
+      "why": "Prose style only; the schema feeds generate-boundary-config.sh.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/assets/docs/rules.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/references/best-practices.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the line test"
+      ],
+      "why": "Every rule line must change behaviour.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/assets/docs/decisions/pitfalls.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/references/best-practices.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the admission tone for known pitfalls",
+        "entry fields are plan-specified (00.4, observed failure only)"
+      ],
+      "why": "Tone only.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/assets/profiles/TEMPLATE.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/references/template.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took 'conventions that differ from defaults'",
+        "Toolchain YAML keys and extraction-stable headings are ours (D15)"
+      ],
+      "why": "Profiles list only non-default conventions.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/assets/profiles/TEMPLATE.md",
+      "kind": "derived",
+      "upstream_repo": "bmad-code-org/BMAD-METHOD",
+      "upstream_path": "skills/bmad-project-context/references/best-practices.md",
+      "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the line test"
+      ],
+      "why": "Every line must change behaviour.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/assets/profiles/examples/test-harness.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/tdd/tests.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "ideas only: checklist philosophy for good tests"
+      ],
+      "why": "Mini-review checklist lines.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/project-setup/assets/profiles/examples/test-harness.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/tdd/mocking.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "ideas only: mock at system boundaries"
+      ],
+      "why": "Mini-review checklist lines.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/regenerate-caches/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "commands/gsd/map-codebase.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took orchestration of parallel mappers that write to disk and return only confirmations, then a check that every document exists (pattern only, no text copied)",
+        "adds stamp checks, staging and publish-cache.sh (D17)"
+      ],
+      "why": "Keeps cache bodies out of the session.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/regenerate-caches/assets/cache-frontmatter.md",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-codebase-mapper.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: the commit stamp (last_mapped_commit -> generated_at_commit); the source file could not be fetched when written"
+      ],
+      "why": "Stamp idiom; fields are plan-specified (00.5-00.7).",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/handoff/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/productivity/handoff/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took: compact the session for a fresh agent, name skills to load, reference artifacts instead of duplicating, redact, tailor to the argument",
+        "location moved from $TMPDIR to a self-ignoring .handoff/ in the main checkout, listed by session-start-resume.sh",
+        "spec state (spec.md status, .step, design-log) is pointed to, never copied; added Resume steps and a template in assets/",
+        "model-invoked, host-neutral"
+      ],
+      "why": "D77/D78: first-party owner of session handoff that a fresh session and the resume offer can find.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/writing-for-agents/SKILL.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/productivity/writing-for-agents/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "condensed",
+        "added Where things live (.agents/ layout, AGENTS.md with CLAUDE.md as @AGENTS.md import, Claude Code and Codex)",
+        "added Finish completion check",
+        "templates in assets/"
+      ],
+      "why": "Shipped to target projects, which write their own skills, agents and AGENTS.md (D77/D78); host-neutral layout.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/writing-for-agents/references/skill-mechanics.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/productivity/writing-for-agents/SKILL-MECHANICS.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "condensed",
+        "added frontmatter rules for skills and sub-agent definitions",
+        "added Codex invocation switch (agents/openai.yaml allow_implicit_invocation)"
+      ],
+      "why": "Same invocation guidance, extended to agent definitions and both hosts.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/handoff/assets/handoff.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/productivity/handoff/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "idea only: a compact document a fresh agent resumes from",
+        "our own template: frontmatter listed by session-start-resume.sh, spec pointers, resume notes"
+      ],
+      "why": "Template for the handoff skill (D77/D78); no upstream text copied.",
+      "reviewed_at": "2026-10-19"
+    }
+  ]
+}

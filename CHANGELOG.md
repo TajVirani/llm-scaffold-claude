@@ -3,7 +3,48 @@
 All notable changes to llm-code-wiki are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
-The `Migration` subsection of each release lists anything `/wiki-update` cannot do for you — manual steps a consumer must take when upgrading past that version.
+## [2.0.0] — 2026-09-14
+
+Resets the repository for workflow 2.0 and includes the build-out that followed (previously listed under Unreleased), which builds the workflow 2.0 scaffold on top of the reset.
+
+### Added
+- **Workflow skills.** `feature-workflow` (entry point, phase modules, discovered-work and deferred-handoff modules, templates, shared scripts), `project-setup`, `regenerate-caches`, `domain-modeling` (first-party, adapted from upstream) and `retrospective`.
+- **Agents.** Eleven sub-agent definitions in `.agents/agents/`, with `.claude/agents` symlinked to them.
+- **Hooks.** Launch resolution (`pre-launch`), post-implementation audit, write guards for specs, Tier A and Tier B, boundary-config sync, evidence capture, session-start resume, and a first-party destructive-git guard; thin Claude adapters over host-neutral shared scripts.
+- **Discovered work and size budget.** Out-of-scope findings block the spec for a user ruling, feed a work backlog, and a soft size budget triggers the same protocol (D56-D58, D66-D69).
+- **`install.sh` and `.agents/install-manifest.txt`.** Installs only the first-party payload into a target project, creates the Claude shim, merges settings, and can upgrade in place; `--dry-run` and `--force` supported (D11, D36, D72).
+- **Codex shim.** `.codex/README.md` plus Codex hook, permission and agent-generator templates that `install.sh` merges into a target's `.codex/` (D9, D40, D66, D67).
+- **`PROVENANCE.md`.** First-party versus vendored inventory of `.agents/`.
+- **Tests.** `tests/run-all.sh` with a shared library and one suite per script and hook; end-to-end install and hook verification records under `PLAN/`.
+- **`deeper-prompt` skill (D73).** First-party skill and discovery step 0.3.22: rewrites the request into a deeper prompt the stakeholder agrees to, on first entry to the questioning loop only. Ships in the payload.
+- **Vendored copies (D74).** A first-party asset that needs a vendored file at runtime gets its own copy with a `Copied from` header and LICENSE, tracked in the scaffold-only `vendor-copies.json`. `pr-quality` now reads `references/codebase-design.md` instead of the removed `improve-codebase-architecture/LANGUAGE.md`.
+- **Project-owned content in shipped skills (D75).** `design-pattern-doc` conventions (`docs/design-pattern-doc/conventions.md`) and `pr-quality` project-specific modules (`docs/pr-quality/`) are read from the target project when present; the skills ship generic templates only and install never overwrites the project copies. Athena originals are archived under `PLAN/archive/`.
+- **Plan and decision docs.** `PLAN/`, `assetlist.md` (decisions D1+), `checklist.md`, `GLOSSARY.md` with the workflow vocabulary.
+- **`context-bridge.js` status line ships (D79).** The user's own `hooks/context-bridge.js` is first-party, in the install manifest, and wired as `statusLine` in the Claude settings template; `install.sh` keeps a different user `statusLine` with a warning (replaced with `--force`). It prints a context-usage bar and writes `<tmpdir>/claude-ctx-<session_id>.json`; nothing reads that file yet.
+
+### Changed
+- **Reset to implement workflow 2.0.** The 1.x wiki scaffold is retired in full and the repository is reset to a clean base for workflow 2.0. The distribution unit moves from `.claude/` to `.agents/` so the scaffold is agent-agnostic rather than Claude Code-specific; all project-relative `.claude/` paths inside retained skills and commands are updated to `.agents/`.
+- **Claude Code shim.** `.claude/` is reduced to `settings.json` (hooks, permissions, plugins, output style) plus `skills`, `commands`, and `output-styles` symlinks into `.agents/`. Claude Code does not discover `.agents/` natively, so the shim is what registers the scaffold with it; other agents read `.agents/` directly.
+- **`AGENTS.md` replaces `CLAUDE.md`.** Project instructions move to the agent-agnostic `AGENTS.md`. `CLAUDE.md` remains as a one-line `@AGENTS.md` import.
+- **Vendored skills are temporary; lineage moves to `upstream-lineage.json` (D77).** We ship a first-party version of everything that affects how agents work and delete each vendored skill once that version exists and its lineage is recorded; vendored skills still never install. Add-ons unrelated to how agents work (anti-slop Oxlint plugins) install from upstream at a pinned commit. The scaffold-only `upstream-lineage.json` replaces `vendor-copies.json` and records every derived asset (`copy`, `derived`, `pinned-addon`) so vendor updates can be diffed from the pinned commit.
+- **Vendored skills deleted except the two being rewritten (D78).** `handoff` (the session-handoff owner) and `writing-for-agents` get first-party rewrites; every other vendored skill and the unverified `wrap-up` are deleted with their `skills-lock.json` entries. First-party `Sources:` lines now cite upstream `<repo>/<path>@<commit>`, and the local `grill-with-docs` additions `REFERENCE-DOC.md` and `TEMPLATE.html` moved to `feature-workflow/references/` as first-party files. Anti-slop stays a pinned add-on fetched from upstream.
+- **Vendored skills refreshed from upstream, with the D71 policy.** Vendored skills (mattpocock/skills, dmmulroy/anti-slop, claude-night-market) are scaffold-repo tooling and upstream reference only. They are never installed into target projects and first-party assets do not depend on them at runtime. `grill-me` stays in `skills-lock.json` (its hash matches the vendored folder).
+- **Commands migrated to skills.** The `pr-quality` and `pr-review-data` commands are now skills; the workflow ships no commands (D27). The `.claude/commands` symlink is gone.
+- **Renamed upstream skills.** `diagnose` is `diagnosing-bugs` and `to-issues` is `to-tickets`.
+- **`evidence-capture` fires on failing suites.** It is now also wired to `PostToolUseFailure`, so a browser suite that exits non-zero still files its evidence (fixes E2E bug F-1).
+- **`AGENTS.md`** explains the scaffold repo versus target project split and the full layout.
+
+### Removed
+- **Wiki system.** `wiki/` (all notes, `Rules.md`, `_templates/`, `topic-index.md`, inbox archives), the `wiki-curator`, `wiki-recall`, and `module-author` sub-agents, the `inbox-stop.sh` and `recall-prompt.sh` hooks and their `Stop`/`UserPromptSubmit` registrations, and the `wiki-digest`, `wiki-recall`, `wiki-rules`, `wiki-modules`, `wiki-code-crawler`, and `inbox-update` skills. `MODULES-IMPLEMENTATION.md` design handoff.
+- **Install and update flow.** `INSTALL.md`, `VERSION`, `dist-manifest.txt`, and the `wiki-install` and `wiki-update` skills.
+- **Tests and CI.** `tests/` (static, hook, and install end-to-end layers) and `.github/workflows/test.yml`.
+- **Docs.** `docs/` including ADR 0001 (MODULES ownership and detection).
+- **`skills-lock.json` (D79).** No vendored skills remain (D78), so the lock file is gone; upstream commits live in `upstream-lineage.json` and the frontmatter lint treats every skill as first-party.
+- **Athena-specific content in `pr-quality`, `deps-audit` and `deps-update` (D79).** Removed outright rather than made project-owned: `pr-quality` (now 1.3.0) `seam-conformance` reads `docs/rules.md` § Ownership and `docs/cache/modules.md`; `deps-*` take commands from the work profile's Toolchain block and workspaces from the root `package.json`.
+
+### Migration
+- No upgrade path from 1.x. Consumers on the 1.x wiki scaffold should stay on the `main` branch history at tag/version 1.3.3; workflow 2.0 is a fresh start.
+- **Upgrade note (D75).** Projects that got `.agents/skills/design-pattern-doc/conventions.md`, or pr-quality's `modules/legend-state-review.md` / `modules/project-pitfalls.md`, from an earlier install will have them pruned on upgrade. Copy them first to `docs/design-pattern-doc/conventions.md` / `docs/pr-quality/`, or take athena's originals from `PLAN/archive/`.
 
 ## [1.3.3] — 2026-05-10
 

@@ -1,0 +1,73 @@
+<!--
+File: Template for docs/rules.md (Tier A rules). Copied by project-setup; read at 0.3.3, 2.4, 4.1; changed only at 5.3.
+Sources: first-party (assetlist D15, D20; plan 00.3); policy prose style ("a prohibition names the alternative", terse imperative lines, the line test) adapted from bmad-code-org/BMAD-METHOD skills/bmad-project-context/references/{template,best-practices}.md (MIT); dependency-cruiser `forbidden` format from its rules-reference.md and rules-tutorial.md (MIT).
+Contract: the headings "Ownership", "Shared core" and "Size budget" are fixed, and each holds exactly one fenced `yaml` block (parsed with mikefarah yq v4). Prose in those sections is commentary, not source. The rules are tool-neutral: no boundary-tool syntax in the blocks (D20).
+Line test: a line stays only if removing it would change what an agent does. Prohibitions name the permitted alternative. Delete this comment when filling.
+-->
+# Rules
+
+## Ownership
+
+Each module owns paths and may depend only on the modules it lists. Anything not listed is forbidden.
+
+```yaml
+# modules: map of module name -> owns (globs, repo-relative) and may_depend_on (module names).
+# Example (replace):
+#   modules:
+#     billing:
+#       owns: ["src/billing/**"]
+#       may_depend_on: [ledger]
+#     ledger:
+#       owns: ["src/ledger/**"]
+#       may_depend_on: []
+#
+# Adapter mapping notes (dependency-cruiser; generate-boundary-config.sh):
+#   - Format: config file tools/boundaries/dependency-cruiser.cjs exporting { forbidden: [...], options: {...} }.
+#     A `forbidden` rule is { name, comment, severity, from: { path }, to: { path } }; path values are regexes
+#     matched against repo-relative paths; severity: error fails `depcruise --config <file> <src>`.
+#   - Glob to regex: anchor with ^, escape ".", "**" -> ".*", "*" -> "[^/]*".
+#   - Modules become forbidden pairs: for each module M and each other module N not in M.may_depend_on and not
+#     shared core, emit
+#       { name: "<M>-not-to-<N>", severity: "error", from: { path: <owns(M)> }, to: { path: <owns(N)> } }
+#     (to.path may be an array of regexes when N has several owns entries; likewise from.path).
+#   - Capture groups: for peer folders sharing one pattern (e.g. "^src/features/([^/]+)/"), one rule may use
+#       from: { path: "(^src/features/)([^/]+)/" }, to: { path: "^$1", pathNot: "$1$2" }
+#     ($1, $2 refer to groups in from.path). Optional optimisation; per-pair rules are always valid.
+#   - options.tsConfig: { fileName: "tsconfig.json" } for TypeScript path resolution.
+modules: {}
+```
+
+## Shared core
+
+Shared core changes only through the integration agent, between batches. Every module may depend on shared core. Shared core may not depend on any module.
+
+```yaml
+# shared_core.paths: globs (same glob syntax as above) for code every module may use.
+# Adapter mapping: each module is allowed to import it (no rule emitted), and one rule per module N emits
+#   { name: "shared-core-not-to-<N>", severity: "error", from: { path: <shared_core.paths> }, to: { path: <owns(N)> } }
+# The integration agent treats any diff touching these paths as a shared-core change (D28).
+shared_core:
+  paths: []
+```
+
+## Size budget
+
+Soft per-spec limits (D58), copied into each spec's `budget` frontmatter when `tasks.md` is written (2.5, or 0.3.20 on the light path). Crossing either one pauses the work for a human decision (split, re-scope or approve the overrun). Changed only at 5.3.
+
+```yaml
+size_budget:
+  max_tasks: 10
+  max_changed_files: 30   # files in `git diff --name-only <baseline_revision>..HEAD`, excluding the spec folder
+```
+
+## Cross-cutting policy
+
+- {Rule that holds project-wide. Never X; use Y.}
+
+## External systems
+
+- {System}: {how it is reached, which module owns the integration, constraint.}
+
+## Required versions
+
+- {Tool or runtime}: {version, from the file that declares it.}

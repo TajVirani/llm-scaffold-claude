@@ -1,29 +1,70 @@
-# tests/
+# Tests
 
-Shell-based test harness for the llm-code-wiki scaffold. Three layers:
-
-| Layer | Script | What it covers |
-|-------|--------|----------------|
-| L1 — static | `static.sh` | Manifest paths resolve; SKILL.md + agent .md frontmatter is valid; hook scripts pass `bash -n` and are executable; every fenced ` ```bash ` block in every SKILL.md passes `bash -n`; VERSION/CHANGELOG/INSTALL/README sanity. |
-| L2 — hooks | `hooks.sh` | Unit tests for `inbox-stop.sh` and `recall-prompt.sh` — synthetic JSON in, asserts on `.hook-log` lines, stdout shape, and exit codes. Covers stop_hook_active, kill switches, noop turns, artifact turns, brainstorm-fallback, recall fire/noop/wiki-only/cooldown. |
-| L3 — install-e2e | `install-e2e.sh` | Runs the `/wiki-install` bash blocks end-to-end in a tmpdir fixture; asserts settings.json shape, CLAUDE.md section, wiki/ scaffolding, version stamp, smoke tests. Plus targeted `wiki-update` Step 5 tests for the permissions-backfill path on a stale-install fixture. |
-
-## Run
-
-```bash
-tests/run-all.sh                      # all three layers
-tests/run-all.sh static                # one layer
-tests/run-all.sh hooks install-e2e     # selected layers
-```
-
-Each script is independently runnable: `bash tests/hooks.sh`. Each layer prints PASS/FAIL per check and exits nonzero on any failure.
+Scaffold-only. This folder tests the scripts and hooks in `.agents/`. It is not part of the install payload: `install.sh` copies only what `.agents/install-manifest.txt` lists and leaves out `tests/`, like `PLAN/`, `assetlist.md`, `organization.md` and `checklist.md` (D30). Nothing in `.agents/` may depend on it.
 
 ## Requirements
 
-- `bash` 4+
-- `jq` (required for L3 — install-e2e exercises the same jq-based settings.json merge that the real `/wiki-install` uses)
-- `python3` (used by `recall-prompt.sh` for safe JSON decoding; the hook has a grep fallback, but L2's recall tests set the hook up to use the python path when available)
+- bash 3.2 or newer (macOS default is fine; no bash 4 features are used)
+- git
+- jq
+- [mikefarah yq](https://github.com/mikefarah/yq) v4 (not the Python `yq`)
+- shellcheck
 
-## Out of scope
+`run-all.sh` checks these first and exits 2 with an install hint if one is missing. A suite run directly skips its shellcheck assertion when shellcheck is absent and reports it as `skip`.
 
-L4 — semantic skill behavior (does the curator route correctly? does recall find the right note? does cluster detection fire on the right shapes?) — is not testable from a shell harness because those behaviors are produced by Claude executing the skill prompts. That layer needs an eval-style harness with a model invocation, not unit tests.
+## Run
+
+```sh
+tests/run-all.sh                       # every suite, then a summary; exit 1 if any suite failed
+tests/run-all.sh --suite pre-launch    # one suite (name without .sh; --list shows them)
+tests/run-all.sh -v                    # stream full output instead of failures only
+bash tests/hooks/write-guards.sh       # a suite directly
+TEST_BASH=/bin/bash tests/run-all.sh --suite status-transition-check-write   # run the scripts under another bash
+```
+
+The status-transition suite makes many `yq` calls and takes a few minutes; the rest take under a minute each.
+
+## CI
+
+The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh`, and treat a non-zero exit as failure. The last line of each suite is `RESULT passed=N failed=M skipped=K xfail=X`, which `run-all.sh` totals.
+
+## Layout
+
+| Path | Purpose |
+|---|---|
+| `lib/common.sh` | Shared helpers: tool preflight (bash, git, jq, yq v4), scratch dir (`new_workdir`), fixture builders (`copy_agents`, `make_fixture_repo`, `git_init_repo`), assertions (`t`, `eq`, `check`, `xfail`, `finish`), `shellcheck_files` |
+| `scripts/*.sh` | One suite per shared script |
+| `lint/*.sh` | Static checks over the repo itself (frontmatter, symlinks); read-only, no fixtures |
+| `hooks/*.sh` | One suite per hook (the three write guards share a suite; so do the audit, sync and resume hooks, which share one fixture) |
+| `run-all.sh` | Runs everything or one suite |
+| `.shellcheckrc` | Lets `shellcheck tests/**/*.sh` follow `source` lines |
+
+| Suite | Component |
+|---|---|
+| `scripts/status-transition-check-write` | `status-transition.sh`, `check-write.sh`, `budget-check.sh` |
+| `scripts/resolve-launch` | `resolve-launch.sh` |
+| `scripts/run-toolchain` | `run-toolchain.sh` |
+| `scripts/cache-scripts` | `publish-cache.sh`, `cache-stamp-check.sh` |
+| `scripts/generate-boundary-config` | `generate-boundary-config.sh` |
+| `scripts/generate-codex-agents` | `hooks/generate-codex-agents.sh` |
+| `scripts/install` | `install.sh` at the repo root (payload from `install-manifest.txt`, VERSION stamp, Claude and Codex shims, settings and config merges, `.gitignore`, refusals, `--dry-run`); runs against a copy of the scaffold inside the fixture |
+| `scripts/build-architecture` | regenerate-caches `build-architecture.sh`, `check-staged-cache.sh` (dependency-cruiser and tsc output are fixtures; no node needed) |
+| `scripts/upstream-diff` | `scripts/upstream-diff.sh` at the repo root (scaffold-only lineage diff): arguments, entry selection, `unknown`-commit skip, and a diff run against local `file://` upstreams; no network |
+| `hooks/pre-launch` | `pre-launch.sh` |
+| `hooks/audit-sync-resume` | `post-implementation-audit.sh`, `rules-boundary-config-sync.sh`, `session-start-resume.sh` |
+| `hooks/block-destructive-git` | `block-destructive-git.sh` (blocked and allowed git forms, nested and wrapped commands, heredoc and quoted text not matched, Codex argv payload, fail closed without awk) |
+| `hooks/evidence-capture` | `evidence-capture.sh` (Playwright JSON report → `artifacts/` evidence) |
+| `hooks/write-guards` | `spec-single-writer-guard.sh`, `tier-a-write-guard.sh`, `tier-b-write-guard.sh`, `_guard-common.sh` |
+| `hooks/codex-adapters` | Codex adapters: `_codex-patch.sh` (apply_patch parser), `codex-write-guard.sh`, `codex-pre-spawn.sh`, `codex-rules-sync.sh` and their template wiring |
+| `lint/frontmatter` | `.agents/skills/*/SKILL.md` and `.agents/agents/*.md` frontmatter (parses with yq; `name` matches folder or file; `description`; agents have no `model:` (D35) and only `claude`/`codex` under `models:`; `disable-model-invocation` and STUB markers consistent with each other and with `PROVENANCE.md`) |
+| `lint/symlinks` | `.claude/{skills,agents,output-styles}` symlinks into `.agents/`, no `.claude/commands`, every hook command in `.claude/settings.json` and both hook templates names an executable `.agents/hooks/` script |
+| `lint/upstream-lineage` | `upstream-lineage.json` (schema per kind, enums, paths exist outside the vendored copies, no duplicates) and coverage: every upstream a first-party `Sources:` / `Adapted from` / `Copied from` line names has an entry, and no such line points at a missing `.agents/skills/<name>/` directory |
+| `hooks/codex-shim` | Codex path of `post-implementation-audit.sh`, `codex-hooks.template.json`, `codex-config.template.toml` (live `codex sandbox` check when codex is installed, skipped otherwise) |
+
+## Conventions
+
+- Every suite sources `lib/common.sh`, calls `preflight`, and ends with `finish`.
+- Fixtures live in a `mktemp` directory removed on exit. Components under test are read from a copy of this repo's `.agents/` inside the fixture, so a test run never writes to the repo. No absolute or home paths.
+- Paths are relative to the repo root (found from the suite's own location) or to the temp dir.
+- An `xfail` records a known script defect. It does not fail the run, and it fails the run once the script is fixed, so the test gets updated. There are no current xfails.
+- Keep every file shellcheck clean (`shellcheck tests/lib/*.sh tests/scripts/*.sh tests/hooks/*.sh tests/lint/*.sh tests/run-all.sh`).

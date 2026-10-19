@@ -1,0 +1,80 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'exec \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.agents/hooks/session-start-resume.sh\"'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'exec \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.agents/hooks/block-destructive-git.sh\"'",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'exec \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.agents/hooks/codex-write-guard.sh\"'",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": ".*spawn_agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'exec \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.agents/hooks/codex-pre-spawn.sh\"'",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'exec \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.agents/hooks/evidence-capture.sh\"'",
+            "timeout": 60
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'exec \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.agents/hooks/codex-rules-sync.sh\"'",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'exec \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.agents/hooks/post-implementation-audit.sh\"'",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
+}

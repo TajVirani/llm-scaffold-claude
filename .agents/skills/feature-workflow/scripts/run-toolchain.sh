@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+# File: Shared script (host-neutral, not a hook): run a work profile's toolchain against one task's diff (3.5).
+# Purpose: Execute the commands in the profile's Toolchain YAML block (command keys lint, typecheck, format, boundary, test, e2e; D15, D61) against the task diff in the task's worktree, and save the output as evidence.
+# Triggers/inputs: Args = --spec-dir specs/NNN-slug, --task-id <id>, --cwd <task worktree> (D18). Reads work_type from tasks.md, profiles/<work-type>.md Toolchain block (via mikefarah yq v4; D38), boundary config under tools/boundaries/ (D20).
+# Outputs/handoff: Tool output saved to specs/NNN-slug/artifacts/<task-id>/toolchain.txt; exit 0 = clean (orchestrator launches profile-mini-review), non-zero = failures printed for the implementer (D19).
+# Called by: post-implementation-audit.sh (Claude, SubagentStop adapter); the orchestrator directly on Codex or other hosts without that event (D9, D19).
+# Plan refs: 3.5, 3.6; reference "The four gates of Phase 3", "Work profiles"; assetlist D9, D15, D18, D19, D20, D61, D62.
+# Sources: first-party; PLAN/decision-flow-reference.md 3.5-3.6, "Work profiles", "Per-feature files"; assetlist D9, D15, D18, D19, D20, D38, D61, D62.
+#
+# CLI: run-toolchain.sh --spec-dir <specs/NNN-slug> --task-id <id> [--cwd <dir>] [--work-type <name> | --profile <path>]
+#                       [--e2e] [--skip <key>]... [--tail <N>] [-h]
+#   --spec-dir   feature directory; relative paths resolve against the main checkout (D18). Required.
+#   --task-id    task id (T1, ...); names the evidence directory. Required.
+#   --cwd        directory the commands run in (the task worktree); default: current directory.
+#   --work-type  profile name. Without it and without --profile, work_type is read from <spec-dir>/tasks.md for the task id.
+#   --profile    explicit profile path (overrides --work-type). Otherwise profiles/<work-type>.md is looked up in --cwd, then the main checkout.
+#   --e2e        also run the e2e key (last, after the other five). Without it e2e is skipped: 3.5 does not run the browser suite, evidence-capture does (3.10).
+#   --skip       skip one command key (repeatable; valid: lint, typecheck, format, boundary, test, e2e; anything else exits 2). The key appears in
+#                results as status skipped, reason "skipped by caller". Used for Phase 1 stop audits, which skip `test` because new tests are red by design (D70).
+#   --tail       lines of output kept per failing command in the digest (default 40).
+# Commands: keys lint, typecheck, format, boundary, test (then e2e) from the profile's Toolchain yaml block, run in that order with `bash -c` in --cwd.
+#   `test` is the harness command (D61) that 3.5 runs and the 3.9 gate reuses.
+#   Empty or absent keys are skipped. All commands run even after a failure so one block reply lists every failure. Other keys are ignored,
+#   including the non-command keys `serve` and `serve_ready` (D62; review-targets uses them at 4.3) and `config` / `rule_set`: never run.
+# Evidence (main checkout, never the worktree; D18): <spec-dir>/artifacts/<task-id>/toolchain.txt (combined output, one section per key),
+#   toolchain.json (the summary below) and toolchain-digest.txt (failure digest; present only on failure).
+# stdout: one JSON object {status: pass|fail, task_id, work_type, profile, cwd, evidence_dir, ran, results:[{key, command, status: pass|fail|skipped, exit_code, reason?}], digest}.
+#   digest is "" on pass; on failure it is bounded text suitable as a SubagentStop block reason. The digest is also printed to stderr on failure.
+# Exit: 0 all run commands passed; 1 at least one failed; 2 usage or config error (message on stderr, no JSON).
+# Requires: bash, jq, mikefarah yq v4 (D38), git (optional; without a repo the main checkout is --cwd).
+
+set -euo pipefail
+
+die() { echo "run-toolchain.sh: $*" >&2; exit 2; }
+
+spec_dir="" task_id="" cwd="." work_type="" profile="" want_e2e=0 tail_n=40 skips=" "
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --spec-dir) [ $# -ge 2 ] || die "--spec-dir needs a value"; spec_dir=$2; shift 2 ;;
+    --task-id) [ $# -ge 2 ] || die "--task-id needs a value"; task_id=$2; shift 2 ;;
+    --cwd) [ $# -ge 2 ] || die "--cwd needs a value"; cwd=$2; shift 2 ;;
+    --work-type) [ $# -ge 2 ] || die "--work-type needs a value"; work_type=$2; shift 2 ;;
+    --profile) [ $# -ge 2 ] || die "--profile needs a value"; profile=$2; shift 2 ;;
+    --e2e) want_e2e=1; shift ;;
+    --skip)
+      [ $# -ge 2 ] || die "--skip needs a value"
+      case "$2" in lint|typecheck|format|boundary|test|e2e) ;; *) die "--skip: unknown key '$2' (valid: lint, typecheck, format, boundary, test, e2e)" ;; esac
+      skips="$skips$2 "; shift 2 ;;
+    --tail) [ $# -ge 2 ] || die "--tail needs a value"; tail_n=$2; shift 2 ;;
+    -h|--help) sed -n '2,/^set -euo/p' "$0" | sed '$d'; exit 0 ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+
+[ -n "$spec_dir" ] || die "missing --spec-dir"
+[ -n "$task_id" ] || die "missing --task-id"
+case "$tail_n" in ''|*[!0-9]*) die "--tail must be a non-negative integer" ;; esac
+command -v jq >/dev/null 2>&1 || die "jq not found"
+command -v yq >/dev/null 2>&1 || die "yq not found (mikefarah yq v4 required; D38)"
+yq --version 2>&1 | grep -q 'mikefarah' || die "yq is not mikefarah yq v4 (D38)"
+[ -d "$cwd" ] || die "--cwd is not a directory: $cwd"
+cwd=$(cd "$cwd" && pwd)
+
+# Main checkout: gitignored state and evidence live there, not in a worktree (D18).
+main_root=$cwd
+if common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+  main_root=$(dirname "$common")
+fi
+
+case "$spec_dir" in
+  /*) spec_abs=$spec_dir ;;
+  *) spec_abs=$main_root/$spec_dir ;;
+esac
+
+# Profile resolution.
+if [ -z "$profile" ]; then
+  if [ -z "$work_type" ]; then
+    tasks_file=$spec_abs/tasks.md
+    [ -f "$tasks_file" ] || tasks_file=$cwd/$spec_dir/tasks.md
+    [ -f "$tasks_file" ] || die "no --work-type or --profile, and tasks.md not found at $spec_abs/tasks.md"
+    work_type=$(TID=$task_id yq --front-matter=extract '.tasks[] | select(.id == strenv(TID)) | .work_type // ""' "$tasks_file" 2>/dev/null | head -n1) \
+      || die "cannot read tasks.md frontmatter: $tasks_file"
+    [ -n "$work_type" ] || die "task $task_id has no work_type in $tasks_file (or the task does not exist)"
+  fi
+  for d in "$cwd/profiles" "$main_root/profiles"; do
+    if [ -f "$d/$work_type.md" ]; then profile=$d/$work_type.md; break; fi
+  done
+  [ -n "$profile" ] || die "profile not found: profiles/$work_type.md (looked in $cwd and $main_root)"
+fi
+[ -f "$profile" ] || die "profile not found: $profile"
+[ -n "$work_type" ] || work_type=$(basename "$profile" .md)
+
+# Extract the first fenced yaml block under the "## Toolchain" heading.
+block=$(awk '
+  /^## /{ if (intool) exit; intool = ($0 ~ /^## Toolchain[[:space:]]*$/); next }
+  intool && !infence && /^```ya?ml[[:space:]]*$/ { infence=1; next }
+  intool && infence && /^```[[:space:]]*$/ { exit }
+  intool && infence { print }
+' "$profile")
+[ -n "$block" ] || die "no yaml block under '## Toolchain' in $profile"
+printf '%s\n' "$block" | yq '.' >/dev/null 2>&1 || die "Toolchain yaml block does not parse in $profile"
+
+evidence_dir=$spec_abs/artifacts/$task_id
+mkdir -p "$evidence_dir" || die "cannot create $evidence_dir"
+: > "$evidence_dir/toolchain.txt"
+
+keys=(lint typecheck format boundary test)   # serve, serve_ready, config, rule_set are never run (D62)
+[ "$want_e2e" -eq 1 ] && keys+=(e2e)
+
+results='[]' digest="" ran=0 failed=0
+for key in "${keys[@]}"; do
+  case "$skips" in *" $key "*)
+    results=$(jq -c --arg k "$key" '. + [{key:$k, command:"", status:"skipped", exit_code:null, reason:"skipped by caller"}]' <<<"$results")
+    continue ;;
+  esac
+  cmd=$(printf '%s\n' "$block" | K=$key yq '.[strenv(K)] // "" | select(tag == "!!str")' 2>/dev/null || true)
+  if [ -z "$cmd" ]; then
+    results=$(jq -c --arg k "$key" '. + [{key:$k, command:"", status:"skipped", exit_code:null, reason:"no command"}]' <<<"$results")
+    continue
+  fi
+  log=$(mktemp)
+  set +e
+  (cd "$cwd" && bash -c "$cmd") >"$log" 2>&1
+  rc=$?
+  set -e
+  ran=$((ran + 1))
+  {
+    printf '== %s: %s\n' "$key" "$cmd"
+    cat "$log"
+    printf '== %s exit %d\n\n' "$key" "$rc"
+  } >> "$evidence_dir/toolchain.txt"
+  if [ "$rc" -eq 0 ]; then st=pass; else
+    st=fail; failed=$((failed + 1))
+    digest+=$(printf '[%s] %s exited %d. Last %d lines:\n%s\n\n' "$key" "$cmd" "$rc" "$tail_n" "$(tail -n "$tail_n" "$log" | cut -c1-500)")$'\n'
+  fi
+  rm -f "$log"
+  results=$(jq -c --arg k "$key" --arg c "$cmd" --arg s "$st" --argjson r "$rc" '. + [{key:$k, command:$c, status:$s, exit_code:$r}]' <<<"$results")
+done
+
+if [ "$failed" -gt 0 ]; then
+  digest="Toolchain failed for task $task_id ($failed of $ran commands). Fix these in the same context, then stop again.
+Full output: $evidence_dir/toolchain.txt
+
+$digest"
+  printf '%s' "$digest" > "$evidence_dir/toolchain-digest.txt"
+  status=fail
+else
+  rm -f "$evidence_dir/toolchain-digest.txt"
+  status=pass
+fi
+
+summary=$(jq -n --arg status "$status" --arg task "$task_id" --arg wt "$work_type" --arg profile "$profile" \
+  --arg cwd "$cwd" --arg ev "$evidence_dir" --argjson ran "$ran" --argjson results "$results" --arg digest "$digest" \
+  '{status:$status, task_id:$task, work_type:$wt, profile:$profile, cwd:$cwd, evidence_dir:$ev, ran:$ran, results:$results, digest:$digest}')
+printf '%s\n' "$summary" > "$evidence_dir/toolchain.json"
+printf '%s\n' "$summary"
+
+if [ "$failed" -gt 0 ]; then
+  printf '%s\n' "$digest" >&2
+  exit 1
+fi
+exit 0
