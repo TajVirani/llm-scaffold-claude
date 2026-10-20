@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wayfinder vs Scaffold</title>
+<style>
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --surface-2: #f3f1ec;
+  --text: #1d1d1f;
+  --muted: #5d5d66;
+  --border: #e3e0d8;
+  --accent: #2f5bd3;
+  --wf: #8a4b00;
+  --wf-bg: #fdf0dc;
+  --sc: #1d5fbf;
+  --sc-bg: #e3edfc;
+  --tie: #3d6b2f;
+  --tie-bg: #e5f2df;
+  --dep: #6b3d8f;
+  --dep-bg: #f0e6f8;
+  --code-bg: #f1efe9;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141417;
+    --surface: #1c1c21;
+    --surface-2: #24242a;
+    --text: #ececf0;
+    --muted: #a3a3ad;
+    --border: #33333b;
+    --accent: #8aa8ff;
+    --wf: #f3b46a;
+    --wf-bg: #3a2a14;
+    --sc: #8ab4ff;
+    --sc-bg: #1b2a44;
+    --tie: #9fd38a;
+    --tie-bg: #1f3319;
+    --dep: #cfa3f0;
+    --dep-bg: #2e2140;
+    --code-bg: #26262c;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141417;
+  --surface: #1c1c21;
+  --surface-2: #24242a;
+  --text: #ececf0;
+  --muted: #a3a3ad;
+  --border: #33333b;
+  --accent: #8aa8ff;
+  --wf: #f3b46a;
+  --wf-bg: #3a2a14;
+  --sc: #8ab4ff;
+  --sc-bg: #1b2a44;
+  --tie: #9fd38a;
+  --tie-bg: #1f3319;
+  --dep: #cfa3f0;
+  --dep-bg: #2e2140;
+  --code-bg: #26262c;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+}
+main { max-width: 980px; margin: 0 auto; padding: 40px 16px 80px; }
+header.hero { margin-bottom: 32px; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.02em; }
+.sub { color: var(--muted); margin: 0; font-size: 1.05rem; }
+h2 {
+  font-size: 1.35rem; margin: 48px 0 12px; padding-top: 12px;
+  border-top: 1px solid var(--border); letter-spacing: -0.01em;
+}
+h3 { font-size: 1.05rem; margin: 24px 0 6px; }
+p { margin: 0 0 12px; }
+a { color: var(--accent); }
+code {
+  font: 0.88em/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+nav.toc {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 16px; margin: 20px 0 8px; font-size: 0.95rem;
+}
+nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 32px; }
+@media (max-width: 600px) { nav.toc ol { columns: 1; } }
+.callout {
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  border-radius: 8px; padding: 14px 16px; margin: 16px 0;
+}
+.callout.warn { border-left-color: var(--wf); }
+.callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+ul.tldr { padding-left: 20px; }
+ul.tldr li { margin-bottom: 8px; }
+.table-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+  margin: 12px 0 20px;
+}
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.93rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+th { background: var(--surface-2); font-weight: 600; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; white-space: nowrap; }
+.chip {
+  display: inline-block; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.02em;
+  padding: 2px 9px; border-radius: 999px; white-space: nowrap;
+}
+.chip.wf { color: var(--wf); background: var(--wf-bg); }
+.chip.sc { color: var(--sc); background: var(--sc-bg); }
+.chip.tie { color: var(--tie); background: var(--tie-bg); }
+.chip.dep { color: var(--dep); background: var(--dep-bg); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 12px 0; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+}
+.card h3 { margin-top: 0; }
+.card .pick { margin: 4px 0 8px; }
+.card p { font-size: 0.95rem; }
+.card p:last-child { margin-bottom: 0; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 700px) { .cols { grid-template-columns: 1fr; } }
+.cols ul { padding-left: 20px; margin: 0; }
+.cols li { margin-bottom: 6px; }
+.flow {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.9rem; margin: 8px 0 14px;
+}
+.flow span.step {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 3px 9px;
+}
+.flow span.arrow { color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.88rem; color: var(--muted); margin-bottom: 8px; }
+footer { margin-top: 56px; color: var(--muted); font-size: 0.85rem; }
+.sources li { overflow-wrap: anywhere; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<main>
+
+<header class="hero">
+  <h1>Wayfinder vs the workflow 2.0 scaffold</h1>
+  <p class="sub">For engineers who already use Matt Pocock's skills and want to know what this repo adds, what it costs, and when to reach for each.</p>
+</header>
+
+<div class="callout">
+  <p><strong>The comparison is uneven by design.</strong> Wayfinder is one skill, and it only plans. It charts a map of decision tickets on your tracker and resolves them one session at a time. It never builds. This scaffold is a whole delivery system: discovery, test setup, task breakdown, implementation, review and sign-off.</p>
+  <p>So the fair comparisons are:</p>
+  <ul>
+    <li><strong>(a)</strong> Wayfinder vs the scaffold's <strong>Phase 0</strong> (discovery and the questioning loop).</li>
+    <li><strong>(b)</strong> The full Pocock pipeline vs the scaffold's end-to-end <code>feature-workflow</code>.</li>
+  </ul>
+</div>
+
+<div class="flow" aria-label="Pocock pipeline">
+  <span class="step">wayfinder</span><span class="arrow">→</span>
+  <span class="step">to-spec</span><span class="arrow">→</span>
+  <span class="step">to-tickets</span><span class="arrow">→</span>
+  <span class="step">implement / implement-spec</span><span class="arrow">→</span>
+  <span class="step">code-review</span>
+</div>
+<div class="flow" aria-label="Scaffold pipeline">
+  <span class="step">0 Discovery</span><span class="arrow">→</span>
+  <span class="step">1 Verification setup</span><span class="arrow">→</span>
+  <span class="step">2 Task breakdown</span><span class="arrow">→</span>
+  <span class="step">3 Implementation waves</span><span class="arrow">→</span>
+  <span class="step">4 Review + triage</span><span class="arrow">→</span>
+  <span class="step">5 Sign-off</span>
+</div>
+
+<div class="callout">
+  <p><strong>Shared lineage.</strong> This scaffold borrows heavily from Pocock. <code>upstream-lineage.json</code> has 60 entries derived from <code>mattpocock/skills</code>. Three of them come from Wayfinder itself: the HITL/AFK tag on deferred items, and the "index, not store" shape of <code>design-log.md</code>. The grilling frontier, tracer-bullet tickets, worktree-per-implementer waves, two-axis review and the glossary/ADR format all trace back to Pocock too. Much of what you know carries over.</p>
+</div>
+
+<div class="callout warn">
+  <p><strong>Caveat.</strong> Wayfinder's internals were summarised from <code>skills/engineering/wayfinder/SKILL.md</code> and <code>docs/engineering/wayfinder.md</code>, not read verbatim. Exact ticket templates and label handling are unverified. Scaffold claims come from this repo at commit <code>4c827f9</code>.</p>
+</div>
+
+<nav class="toc">
+  <ol>
+    <li><a href="#tldr">TL;DR verdict</a></li>
+    <li><a href="#glance">At a glance</a></li>
+    <li><a href="#mapping">Concept mapping</a></li>
+    <li><a href="#excels">Where each excels</a></li>
+    <li><a href="#when">When to use each</a></li>
+    <li><a href="#together">Using them together</a></li>
+    <li><a href="#risks">Risks and gaps</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<h2 id="tldr">1. TL;DR verdict</h2>
+<ul class="tldr">
+  <li><strong>Unclear route over many sessions? Use Wayfinder.</strong> Its map lives on the tracker, survives across sessions and people, and keeps fog and out-of-scope items explicit. The scaffold's questioning loop assumes the route can be settled inside one feature's discovery.</li>
+  <li><strong>Shipping one well-scoped feature to a standard? Use the scaffold.</strong> It enforces things the Pocock skills only ask for in prose. Hooks gate writes, the toolchain must pass before an implementer can stop, test suites are proven red before code is written, and three review lenses run with triage.</li>
+  <li><strong>Small changes and quick adoption: Pocock wins.</strong> You can install the skills and use one today. The scaffold needs <code>install.sh</code>, <code>project-setup</code> and a standards interview, and even its light path is about 67 steps.</li>
+  <li><strong>Maturity: Pocock wins clearly.</strong> <code>mattpocock/skills</code> is widely used, versioned with changesets and supports five or more hosts. The scaffold has a real offline test suite, but <code>feature-workflow</code> has never been run end to end.</li>
+  <li><strong>They compose.</strong> Use Wayfinder to clear the route, then hand each decided destination to the scaffold as a spec.</li>
+</ul>
+
+<h2 id="glance">2. At a glance</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Aspect</th><th>Wayfinder (and Pocock skills)</th><th>This scaffold (workflow 2.0)</th></tr></thead>
+  <tbody>
+    <tr><td>Purpose</td><td>Plan work too large for one session by resolving decision tickets until the route to a named Destination is clear. Planning only.</td><td>Take one feature from request to signed-off merge through a gated state machine with about 150 numbered nodes.</td></tr>
+    <tr><td>Scope</td><td>Wayfinder: decisions only. The pipeline as a whole: spec → tickets → TDD build → review.</td><td>Discovery, verification setup, task breakdown, implementation, review and triage, sign-off. Also project setup and standards, caches, dependency and PR audits.</td></tr>
+    <tr><td>State store</td><td>The issue tracker: a map issue (<code>wayfinder:map</code>) with child tickets and native blocking edges. Local <code>.scratch/</code> is an option.</td><td>Committed files in <code>.workflow/</code>: <code>specs/NNN-slug/</code> (spec, design-log, tasks, report), glossary, rules, ADRs, profiles, caches, and the deferred shelf.</td></tr>
+    <tr><td>Install / hosts</td><td>Marketplace plugin for Claude Code, Codex and Copilot. Gemini paths, or <code>npx skills add</code>. Then run <code>/setup-matt-pocock-skills</code>.</td><td><code>./install.sh &lt;target&gt; --host claude|codex|all</code>, then the <code>project-setup</code> skill. Claude Code is live-verified. Codex is partly verified.</td></tr>
+    <tr><td>Components</td><td>Wayfinder is 1 skill. The repo has 37 skills, no hooks and no output styles.</td><td>17 skills, 12 sub-agents, about 11 Claude hooks plus 5 Codex adapters, 1 output style and 13 helper scripts. About 16k lines in <code>.agents/</code>.</td></tr>
+    <tr><td>Enforcement</td><td>Prose. The agent is asked to follow the skill.</td><td>Mechanical. Hooks guard spec and Tier A/B writes, keep implementers in their worktree, validate launch headers, resolve models and block an implementer's stop until the toolchain passes. Only <code>status-transition.sh</code> can change status.</td></tr>
+    <tr><td>Ceremony</td><td>Low per skill. Wayfinder is high per effort (a map, many tickets, one session per ticket) but only runs on demand.</td><td>High. Full path is 89 steps, light path 67. Only a trivial edit skips the flow.</td></tr>
+    <tr><td>Multi-session</td><td>Native. Tickets are the state, and claim-then-resolve allows many sessions and people.</td><td>Resumable from disk (<code>.step</code>, <code>design-log.md</code>, <code>tasks.md</code>), with a SessionStart resume offer and the <code>handoff</code> skill. Designed for one orchestrator per spec.</td></tr>
+    <tr><td>Maturity / testing</td><td>Active (last push 2026-10-19), changesets, very widely adopted. No test suite was seen for the skills.</td><td>Unreleased branch, no tags. 23 offline test suites plus shellcheck, and hooks live-verified on Claude Code. Never run end to end on a real feature.</td></tr>
+    <tr><td>License</td><td>MIT</td><td>No top-level LICENSE file. Pocock-derived copies keep the MIT LICENSE beside them.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="mapping">3. Concept mapping</h2>
+<p>Your Pocock vocabulary, translated.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Wayfinder / Pocock</th><th>Scaffold equivalent</th><th>Difference</th></tr></thead>
+  <tbody>
+    <tr><td>Map + Destination</td><td>Design tree in the questioning loop (0.3.8–0.3.19), bounded by <code>spec.md</code> and its Why</td><td>The design tree lives inside one spec, not across sessions. The deeper-prompt step (0.3.22) restates the ask one level up first.</td></tr>
+    <tr><td>Frontier</td><td>Frontier: open decisions whose prerequisites are settled</td><td>Same idea. The scaffold asks the whole frontier in one round, with a recommended answer for each question.</td></tr>
+    <tr><td>Decision tickets</td><td>Questioning rounds logged in <code>design-log.md</code> with decision ids</td><td>Rounds happen in the session, not as tracker issues. The log is an index, an idea taken from Wayfinder.</td></tr>
+    <tr><td>Research ticket (AFK)</td><td><code>fact-lookup</code> agent (repo facts), <code>library-evaluation</code> agent (external libraries)</td><td>Runs alongside the round without blocking it. Facts come with file:line or a URL.</td></tr>
+    <tr><td>Prototype ticket (HITL)</td><td>No direct equivalent</td><td>The scaffold doesn't prototype during discovery. Phase 1 builds tests, not throwaway artifacts.</td></tr>
+    <tr><td>Fog ("Not yet specified")</td><td>"Defer to deep dive" option, plus Open Questions in <code>spec.md</code></td><td>Open Questions must be empty before the spec is final.</td></tr>
+    <tr><td>Out of scope</td><td>Scope gate → <code>.workflow/deferred/&lt;slug&gt;.md</code> (tagged HITL/AFK)</td><td>The deferred shelf is searched by concept at the start of later features.</td></tr>
+    <tr><td>grilling / grill-me</td><td>Questioning loop. "Grill me" routes here.</td><td>Adds term gates, a scope gate and logging.</td></tr>
+    <tr><td>domain-modeling, GLOSSARY.md, docs/adr</td><td><code>domain-modeling</code> skill, <code>.workflow/GLOSSARY.md</code>, <code>.workflow/decisions/adr/</code></td><td>Term gates at 0.2.2, 0.3.14 and 0.4.2. The placement ADR is mandatory when ownership is unclear. The output style enforces the glossary.</td></tr>
+    <tr><td>to-spec</td><td>0.3.19 final <code>spec.md</code>, plus <code>data-model.md</code> and <code>verification-plan.md</code> (full path)</td><td>The spec has one writer and is guard-protected. The verification plan adds binary objectives and journeys.</td></tr>
+    <tr><td>to-tickets</td><td>Phase 2 task breakdown → <code>tasks.md</code> + <code>tasks/Tnn-slug.md</code></td><td>Same tracer bullets and blocking edges. Adds size classes, a file-overlap rule enforced by <code>task-waves.sh</code>, a budget check and <code>touches_core</code> flags.</td></tr>
+    <tr><td>tdd</td><td>Phase 1 (suites proven red against a known-bad build), then red→green inside the <code>implementation</code> agent</td><td>Test quality is checked by fault injection before any feature code exists.</td></tr>
+    <tr><td>implement-spec (worktree per ticket, merger)</td><td>Phase 3 waves: a worktree per task, an <code>integration</code> agent for shared core, merges in task-id order</td><td>Per-task gates: toolchain stop-audit (hook) and <code>profile-mini-review</code>, with at most 5 fix rounds.</td></tr>
+    <tr><td>code-review</td><td>Phase 4 lenses: <code>review-standards</code>, <code>review-end-state</code>, <code>review-targets</code> + triage</td><td>Adds measured targets against a running build, confidence ≥80 and a rework ceiling. <code>pr-quality</code> is also available on its own.</td></tr>
+    <tr><td>Issue tracker</td><td>Committed <code>.workflow/</code> files. <code>gh</code>/<code>glab</code> only for task and sign-off PRs.</td><td>The workflow does not file issues. The <code>glab</code> skill exists as a manual playbook.</td></tr>
+    <tr><td>setup-matt-pocock-skills</td><td><code>project-setup</code> + <code>project-standards</code></td><td>A much deeper interview (C1–C9 coverage) that writes rules, profiles, lint config and import boundaries.</td></tr>
+    <tr><td>handoff</td><td><code>handoff</code> skill → <code>.workflow/.handoff/</code></td><td>Plus a SessionStart hook that offers in-flight specs and handoffs.</td></tr>
+    <tr><td>retro</td><td><code>retrospective</code> skill at 5.7</td><td>Turns lessons into tool rules or checklist lines, and records model observations.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="excels">4. Where each excels</h2>
+<div class="legend">
+  <span><span class="chip wf">Wayfinder</span> Wayfinder or the Pocock pipeline is stronger</span>
+  <span><span class="chip sc">Scaffold</span> this repo is stronger</span>
+  <span><span class="chip tie">Tie</span> about equal</span>
+  <span><span class="chip dep">Depends</span> context decides</span>
+</div>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Dimension</th><th>Verdict</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>Long, uncertain, multi-session efforts</td><td><span class="chip wf">Wayfinder</span></td><td>Built for it: fog of war, one ticket per session, claiming. The scaffold's loop assumes the route can be settled inside one spec.</td></tr>
+    <tr><td>Team visibility via tracker</td><td><span class="chip wf">Wayfinder</span></td><td>The map and tickets are tracker issues anyone can see. The scaffold's state is files on a branch.</td></tr>
+    <tr><td>Single-feature delivery quality</td><td><span class="chip sc">Scaffold</span></td><td>Suites proven red first, per-task gates, three review lenses and triage, a sign-off report with measured targets.</td></tr>
+    <tr><td>Enforcement / guardrails</td><td><span class="chip sc">Scaffold</span></td><td>Hooks and scripts deny bad writes and block an implementer's stop until the toolchain is clean. Pocock relies on prose.</td></tr>
+    <tr><td>Standards and lint</td><td><span class="chip sc">Scaffold</span></td><td><code>project-standards</code> writes rules, profiles, lint config and dependency-cruiser boundaries. Pocock has no standards interview.</td></tr>
+    <tr><td>Parallel implementation</td><td><span class="chip dep">Depends</span></td><td>Both use worktree-per-task waves. The scaffold adds overlap checks and shared-core serialisation. <code>implement-spec</code> is simpler and proven in use.</td></tr>
+    <tr><td>Review depth</td><td><span class="chip sc">Scaffold</span></td><td>Four layers versus one code-review pass on the integration branch.</td></tr>
+    <tr><td>Context hygiene</td><td><span class="chip tie">Tie</span></td><td>Wayfinder: one ticket per session, tickets as state. Scaffold: the corpus never enters main context, and extracts come from sub-agents. Different mechanisms, both effective.</td></tr>
+    <tr><td>Model selection</td><td><span class="chip sc">Scaffold</span></td><td>A per-task-type model map with overrides is resolved and enforced at launch. Pocock leaves the choice to the host.</td></tr>
+    <tr><td>Small changes / low overhead</td><td><span class="chip wf">Wayfinder</span></td><td>Pocock skills are à la carte. The scaffold's light path still runs review lenses, sign-off and a retrospective.</td></tr>
+    <tr><td>Adoption cost</td><td><span class="chip wf">Wayfinder</span></td><td>Install a plugin and go. The scaffold needs jq, yq v4, dependency-cruiser, install.sh, project-setup and a standards interview.</td></tr>
+    <tr><td>Host breadth</td><td><span class="chip wf">Wayfinder</span></td><td>Claude Code, Codex, Copilot, Gemini and any host via <code>npx skills</code>. The scaffold supports Claude Code fully and Codex partly.</td></tr>
+    <tr><td>Maturity</td><td><span class="chip wf">Wayfinder</span></td><td>Large user base and active changesets. The scaffold is unreleased, and its main flow has never run end to end.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="when">5. When to use each</h2>
+<div class="cards">
+  <div class="card">
+    <h3>Migrating auth across a legacy monolith</h3>
+    <div class="pick"><span class="chip wf">Wayfinder</span></div>
+    <p>The route is unknown. You need research tickets, a prototype or two, and decisions spread over weeks. Chart the map first. Each slice that becomes clear can then go through the scaffold as its own spec.</p>
+  </div>
+  <div class="card">
+    <h3>Adding CSV export to an existing TS app</h3>
+    <div class="pick"><span class="chip sc">Scaffold, full path</span></div>
+    <p>The scope is clear and lives in one module. The scaffold's TS profile (Vitest, Playwright, oxlint, dependency-cruiser) fits directly. You get a journey test, gated tasks and a report proving it works.</p>
+  </div>
+  <div class="card">
+    <h3>One-file bug fix</h3>
+    <div class="pick"><span class="chip tie">Neither workflow</span></div>
+    <p>Use the scaffold's trivial-edit bypass if you will review it yourself, or Pocock's <code>diagnosing-bugs</code> / <code>tdd</code> on their own. Neither pipeline is worth the overhead here.</p>
+  </div>
+  <div class="card">
+    <h3>Greenfield project, conventions must stick</h3>
+    <div class="pick"><span class="chip sc">Scaffold</span></div>
+    <p>Run <code>project-setup</code> + <code>project-standards</code>. Folder layout, naming, approved libraries and import boundaries become lint config and hooks, not hopes.</p>
+  </div>
+  <div class="card">
+    <h3>Cross-team decision needing tracker visibility</h3>
+    <div class="pick"><span class="chip wf">Wayfinder</span></div>
+    <p>Stakeholders outside the repo can follow, comment on and claim tickets. A scaffold <code>design-log.md</code> on a spec branch is invisible to them.</p>
+  </div>
+  <div class="card">
+    <h3>Changing many independent modules in parallel</h3>
+    <div class="pick"><span class="chip dep">Depends</span></div>
+    <p>If the slices touch shared core, the scaffold's integration agent and overlap checks prevent merge fights. If they are truly independent, <code>implement-spec</code> is lighter.</p>
+  </div>
+</div>
+
+<h3>Worked example: the minimal Splitwise app in <code>testprompt.md</code></h3>
+<p>The brief: a Go backend (standard library), a React frontend, groups and members, expenses, balances, a minimal-payments "settle up" view, and data that persists across restarts.</p>
+<div class="cols">
+  <div class="card">
+    <h3>With Wayfinder + Pocock</h3>
+    <ul>
+      <li>Wayfinder is probably overkill. The route is clear enough for one grilling session (storage choice, split rules, rounding, the settle-up algorithm).</li>
+      <li><code>grill-with-docs</code> → <code>to-spec</code> → <code>to-tickets</code> (tracer bullets: create group → add expense → balances → settle up).</li>
+      <li><code>implement-spec</code> with TDD per ticket, then <code>code-review</code>.</li>
+      <li>Fast to start, and works with Go out of the box because nothing is stack-specific.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>With this scaffold</h3>
+    <ul>
+      <li><code>project-setup</code> must define new work types first. The example profiles assume TS, Vitest, Playwright and oxlint, and the deps skills are bun-only. A Go backend needs a new profile (<code>go test</code>, <code>go vet</code>, staticcheck or golangci-lint, and a boundary tool other than dependency-cruiser).</li>
+      <li>The questioning loop settles rounding, money representation and the settle-up algorithm. <code>verification-plan.md</code> defines journeys such as "add 3 expenses → settle up shows ≤ n−1 payments".</li>
+      <li>Phase 1 proves the Go tests and Playwright suite fail first. Phase 3 can run backend and frontend tasks in parallel waves.</li>
+      <li>More upfront cost, but you get stronger evidence that "persists across restarts" and "fewest payments" actually hold.</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="together">6. Using them together</h2>
+<ul>
+  <li><strong>Wayfinder upstream, scaffold downstream.</strong> Once a map is cleared, each decided slice becomes a scaffold spec. Paste the map's Decisions into the Why and constraints at 0.1, and the questioning loop starts with a near-empty frontier.</li>
+  <li><strong>Scaffold deferred shelf → Wayfinder.</strong> Items in <code>.workflow/deferred/</code> that grow large or unclear can seed a Wayfinder map. Their HITL/AFK tags already match Wayfinder's ticket modes.</li>
+  <li><strong>Keep one owner for glossary and ADRs.</strong> Both write <code>GLOSSARY.md</code> and ADRs, but in different places (<code>docs/adr</code> vs <code>.workflow/decisions/adr</code>). Pick the scaffold's location, or terms will drift.</li>
+  <li><strong>Don't install both <code>grill-me</code> and the scaffold</strong> in one project without care. "Grill me" is routed to the scaffold's questioning loop, so the two will compete for the trigger.</li>
+</ul>
+
+<h2 id="risks">7. Risks and gaps</h2>
+<div class="cols">
+  <div class="card">
+    <h3>Scaffold</h3>
+    <ul>
+      <li>Heavy ceremony: 89 steps on the full path, 67 on the light path. Easy to over-apply.</li>
+      <li><code>feature-workflow</code> has never been run end to end, light or full. Phase 2→3 (branches, worktrees, waves, PRs) is also untested live.</li>
+      <li>Codex support is partly unverified: hyphenated agent names, the status line, and the live hook run.</li>
+      <li>TS/bun bias in the example profiles and the deps skills.</li>
+      <li>Setup prerequisites: bash, git, jq, mikefarah yq v4, and node/dependency-cruiser in targets.</li>
+      <li>One orchestrator per spec, and no tracker visibility for the planning stage.</li>
+      <li>Loose ends, for example the context-bridge file has no consumer.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Wayfinder</h3>
+    <ul>
+      <li>Most-reported failure: agents write production code inside a map session.</li>
+      <li>Large maps drift into waterfall planning unless the destination is bounded and you prototype early.</li>
+      <li>Parallel tickets can give conflicting answers because sessions share no context.</li>
+      <li>Grilling questions can be verbose. Agents may design around a wrong decision instead of challenging it.</li>
+      <li>No enforcement: everything relies on the agent following prose.</li>
+      <li>Depends on the tracker (or local <code>.scratch/</code>). Tracker noise and label hygiene become your problem.</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="sources">8. Sources</h2>
+<h3>Wayfinder / Pocock</h3>
+<ul class="sources">
+  <li><a href="https://github.com/mattpocock/skills">github.com/mattpocock/skills</a> (README, install, skill list)</li>
+  <li><a href="https://github.com/mattpocock/skills/blob/main/skills/engineering/wayfinder/SKILL.md">skills/engineering/wayfinder/SKILL.md</a></li>
+  <li><a href="https://github.com/mattpocock/skills/blob/main/docs/engineering/wayfinder.md">docs/engineering/wayfinder.md</a> (pitfalls)</li>
+  <li><code>skills/engineering/wayfinder/agents/openai.yaml</code>, <code>.changeset/wayfinder-labels-refs-research-prs.md</code></li>
+  <li><a href="https://api.github.com/repos/mattpocock/skills">api.github.com/repos/mattpocock/skills</a> (dates, license)</li>
+</ul>
+<h3>This repo</h3>
+<ul class="sources">
+  <li><code>README.md</code>, <code>AGENTS.md</code>, <code>CHANGELOG.md</code>, <code>PROVENANCE.md</code>, <code>checklist.md</code>, <code>assetlist.md</code></li>
+  <li><code>upstream-lineage.json</code> (60 <code>mattpocock/skills</code> entries)</li>
+  <li><code>install.sh</code>, <code>.agents/install-manifest.txt</code></li>
+  <li><code>.agents/skills/feature-workflow/SKILL.md</code>, <code>modules/*.md</code>, <code>references/steps.tsv</code></li>
+  <li><code>.agents/skills/project-setup/</code>, <code>.agents/skills/project-standards/</code>, <code>.agents/skills/project-setup/assets/profiles/examples/</code></li>
+  <li><code>.agents/agents/*.md</code>, <code>.agents/hooks/claude-settings.template.json</code></li>
+  <li><code>PLAN/decision-flow-reference.md</code>, <code>PLAN/gap-research.md</code>, <code>tests/run-all.sh</code></li>
+  <li><code>testprompt.md</code> (worked example brief)</li>
+</ul>
+
+<footer>Generated 2026-10-20 from the repo at <code>4c827f9</code> (branch <code>workflow-2.0</code>) and a WebFetch summary of <code>mattpocock/skills</code>.</footer>
+</main>
+</body>
+</html>
