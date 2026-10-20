@@ -1,10 +1,3 @@
-<!--
-File: The comment and readability baseline for every line of code the workflow writes, in every project.
-Read by: the writers `implementation` (1.2, 1.3, 3.3) and `integration` (3.2); the checkers `profile-mini-review` (3.7) and `review-standards` (4.1). This file is the one source; those agents point here and do not copy it.
-Contract: the rule ids R1-R5 and the check lines under "Checking at 3.7" are quoted verbatim by profile-mini-review. Keep them stable.
-Sources: first-party; the rules and the example are the user's own (D86).
--->
-
 # Readable code and comments
 
 This baseline applies to every line of code and test the workflow adds or changes, in every project. Projects do not opt in, and a profile cannot switch it off. A project's written standard can ask for more: a docstring on every public function, a licence header. A comment that standard requires is correct, not a finding.

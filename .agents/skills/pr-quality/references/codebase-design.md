@@ -1,6 +1,5 @@
 <!--
 Copied from mattpocock/skills/skills/engineering/codebase-design/SKILL.md @ 49dd158d1076134a641b33efb035946536778336 (MIT, Copyright (c) 2026 Matt Pocock; notice in ./LICENSE). Local edits: dropped the YAML frontmatter (this is a reference, not a skill); dropped the "Going deeper" section (its links to DEEPENING.md and DESIGN-IT-TWICE.md point at files not copied here).
-Tracked in upstream-lineage.json at the scaffold root (D74, D77). Used by pr-quality SKILL.md (Agent 4) and modules/seam-conformance.md for the deep-module vocabulary.
 -->
 
 # Codebase Design

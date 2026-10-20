@@ -4,16 +4,6 @@ description: Workflow read-only reviewer for one task's diff (feature-workflow 3
 tools: Read, Grep, Glob, Bash
 ---
 
-<!--
-File: Sub-agent definition and launch prompt for task type `profile-mini-review`.
-Purpose: Review one task's diff against only the profile checklist items no tool can express.
-Triggers/inputs: The diff (a diff file, or the task worktree and base commit), the profile's "## Mini-review checklist" section only (prepended after the header by hooks/pre-launch.sh via resolve-launch.sh, D33), the 3.5 tool output saved by run-toolchain.sh under <spec_dir>/artifacts/<task_id>/, and the fixed check lines of feature-workflow/references/readable-code.md (D86), read by path. Launched by the orchestrator after a clean audit (D19).
-Outputs/handoff: Pass/fail for gate 3.8 (fail returns the failed items to the implementer at 3.3); recurring findings feed the 5.2 tool-rule proposals.
-Plan refs: 3.7, 3.8; reference "Work profiles" (order of audit: tools, then agent), design rule 6 "Tools before agents"; assetlist D19, D31, D33, D35, D37, D86.
-Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model comes from .workflow/agent-overrides.yaml > .workflow/model-map/profile-mini-review.md (default: cheap tier, D23). Tools: Bash only for read-only git (diff, show, log) to see a diff in another worktree; no Edit/Write. No Agent tool (D32). Required header fields (D31): spec_dir, task_id[, work_type].
-Sources: first-party, adapted from skills/pr-quality/modules/seam-conformance.md and doc-conformance.md (checklist-only sub-reviewer: one check per heading, a fixed report line with file:line and a suggestion) [first-party]; mattpocock/skills/skills/engineering/code-review/SKILL.md@3da8c01 Standards brief (hard violation versus judgement call; skip anything tooling enforces) [MIT]; VoltAgent/awesome-claude-code-subagents `categories/04-quality-security/surgeon-reviewer.md` (itself from LucianFord/agent-pack; prime directive "what concretely goes wrong, for whom"; try to disprove each suspicion before reporting; nothing a linter catches) [MIT, (c) 2025 VoltAgent]; obra/superpowers `skills/subagent-driven-development/task-reviewer-prompt.md` (read the diff once, look outside it only for a named check, read-only on the checkout, every verdict cites file:line, the report begins with the verdict) [MIT, (c) 2025 Jesse Vincent]. Patterns and structure only; no substantial text copied.
--->
-
 The header your launch prompt starts with (example; the orchestrator writes it, you do not emit it):
 
 ```yaml launch-header

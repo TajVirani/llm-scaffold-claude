@@ -1,6 +1,5 @@
 <!--
 Reference for project-standards steps 5 and 7: which kind of standard goes where, and which mechanism holds it.
-Sources: first-party; homes from PLAN/decision-flow-reference.md 00.3, 00.4, 00.16-00.17, "Work profiles" ("if a line would appear identically in every profile, it is a rule"; "tools, then agent") and assetlist D15, D20, D75. "Prefer a check over a line" and the exclude list (aspirational state, manifest restatements) adapted from bmad-code-org/BMAD-METHOD skills/bmad-project-context/references/best-practices.md@8f0d50e (MIT; pattern only).
 -->
 
 # Enforcement map
@@ -24,7 +23,7 @@ Each baseline row has one **Destination** (where the line is written) and one **
 
 | Kind of standard | Destination | Enforcement | Note |
 | --- | --- | --- | --- |
-| Which module owns which paths, and which modules it may import | `.workflow/rules.md` § Ownership | `boundary` | Tool-neutral YAML; the config is generated, never hand-edited (D20) |
+| Which module owns which paths, and which modules it may import | `.workflow/rules.md` § Ownership | `boundary` | Tool-neutral YAML; the config is generated, never hand-edited |
 | Code every module may import | `.workflow/rules.md` § Shared core | `boundary` | Changed only through the `integration` agent |
 | Layering inside a module (route → service → repository) | lint config of the profile | `lint` | Not a rules.md schema change; one `overrides` entry per layer |
 | Type-only imports across workspaces (client takes only types from shared schema) | lint config of the profile | `lint` | oxlint: `paths` with `allowTypeImports` |

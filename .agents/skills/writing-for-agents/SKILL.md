@@ -3,10 +3,6 @@ name: writing-for-agents
 description: Write documents agents run. Use when creating or editing a skill, a sub-agent definition, AGENTS.md or CLAUDE.md, or a doc an agent reaches through a pointer.
 ---
 
-<!--
-Sources: adapted from mattpocock/skills skills/productivity/writing-for-agents/{SKILL,SKILL-MECHANICS}.md @ 49dd158d1076134a641b33efb035946536778336 (MIT, Copyright (c) 2026 Matt Pocock; notice in ./LICENSE). Changes: condensed; added "Where things live" (the .agents/ layout, AGENTS.md with CLAUDE.md as a one-line import, Claude Code and Codex), frontmatter rules, templates in assets/ and the "Finish" check; skill mechanics moved to references/skill-mechanics.md with agent definitions and Codex invocation added.
--->
-
 # Writing for agents
 
 Reference for any document an agent runs: a skill, a sub-agent definition, `AGENTS.md`, a doc behind a pointer. The packaging differs; the writing does not. The goal is a predictable _process_: the agent takes the same path every run, even when the output differs.

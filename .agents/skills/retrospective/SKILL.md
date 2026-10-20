@@ -3,10 +3,6 @@ name: retrospective
 description: "Feature retrospective with the stakeholder: judges the combined result against spec.md, records process lessons and pitfalls, feature notes and model observations, and writes .workflow/decisions/retrospectives/NNN-slug.md. Use at sign-off (5.7), or when a stakeholder asks for a retrospective on a shipped feature."
 ---
 
-<!--
-Sources: adapted from bmad-code-org/BMAD-METHOD skills/bmad-retrospective/workflow.md and references/{evidence-gathering,acceptance-verdict,team-discussion,retro-document}.md (MIT, Copyright (c) 2025 BMad Code, LLC; prose and structure only, no templating). Changes: one feature spec instead of an epic and its tickets; run with the stakeholder present, so its Tier A writes are approved as agreed; writes pitfalls.md, a design-log.md section and model observations (D35) as well as the document; no team-discussion phase and no headless mode. Mechanical lesson -> tool rule, judgement lesson -> checklist line: mattpocock/skills/skills/engineering/retro/SKILL.md@49dd158 "Coding standards" (MIT). Durable bar for lessons (record only what the final code, tests and docs do not already tell a reader) after EveryInc/compound-engineering-plugin skills/ce-compound/SKILL.md (MIT; idea only). Plan: PLAN/decision-flow-reference.md 5.7, "Persistent files", "Tier A is agent-proposed, human-approved", 00.4, 00.11; assetlist D12, D16, D21, D22, D25, D35, D41, D47.
--->
-
 # Retrospective
 
 Judge a finished feature against its spec with the stakeholder, and turn what the feature taught into records the next feature reads. Every finding and lesson carries a source reference (file:line, commit, test output, a `report.md` section). A claim you cannot point at is not a finding: drop it.
@@ -25,7 +21,7 @@ The retrospective writes these files, each with the stakeholder's agreement:
 | `.workflow/decisions/retrospectives/NNN-slug.md` | A | The document |
 | `.workflow/decisions/pitfalls.md` | A | Observed failures only |
 | `.workflow/specs/NNN-slug/design-log.md` | — | One appended "Retrospective notes" section |
-| `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` | — | Model observations (D35) |
+| `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` | — | Model observations |
 
 At 5.7, set the step before the first Tier A write, so `tier-a-write-guard` allows it:
 
@@ -35,7 +31,7 @@ At 5.7, set the step before the first Tier A write, so `tier-a-write-guard` allo
 
 Standalone with no spec in flight, the guard allows Tier A writes without a step. If another spec is in flight, the guard denies them: stop and report the denial with the agreed text, so the human can apply it once that spec is done.
 
-Write Tier A files with Write or Edit, never through Bash. The retrospective does not change `status`: `sign-off` sets `done` after it returns (D47). It never edits `rules.md`, profiles, skills or `.agents/agents/*.md`: those changes become action items.
+Write Tier A files with Write or Edit, never through Bash. The retrospective does not change `status`: `sign-off` sets `done` after it returns. It never edits `rules.md`, profiles, skills or `.agents/agents/*.md`: those changes become action items.
 
 ## Steps
 
@@ -59,7 +55,7 @@ Done when every spec item has a row with evidence.
 
 ### 4. Findings and follow-through
 
-- **Findings.** Take the open findings from the triage entries in `design-log.md`, the known gaps in `report.md` (D29) and anything step 3 surfaced. Re-check each one against its source; drop any whose source does not hold up. Give each a disposition: `fix now` (it becomes an action item), `defer` (link the `.workflow/deferred/` file), or `accept` (with the reason).
+- **Findings.** Take the open findings from the triage entries in `design-log.md`, the known gaps in `report.md` and anything step 3 surfaced. Re-check each one against its source; drop any whose source does not hold up. Give each a disposition: `fix now` (it becomes an action item), `defer` (link the `.workflow/deferred/` file), or `accept` (with the reason).
 - **Previous retrospective.** Open the highest-numbered other file in `.workflow/decisions/retrospectives/`. For each of its action items, record whether it landed, with the commit, file or check that shows it. An item you cannot point at is "no evidence found", which is not the same as "not done". With no earlier file, write "No earlier retrospective."
 
 Done when every finding has a disposition, and every earlier action item has a line.
@@ -76,7 +72,7 @@ Compile **Action items**: fix-now findings, and approved lessons whose destinati
 
 Then render the machine verdict:
 
-- `accepted`: the spec items are met, no blocking finding is open, and every task in `tasks.md` is `done` or `split-out` (D68).
+- `accepted`: the spec items are met, no blocking finding is open, and every task in `tasks.md` is `done` or `split-out`.
 - `accepted-with-open-items`: the spec items are met, but named findings or known gaps remain and are deferred or tracked.
 - `rejected`: a spec item is not met, a blocking finding is unresolved, or a task is neither `done` nor `split-out`. A `split-out` task never counts as unfinished.
 
@@ -91,5 +87,5 @@ Fill **Open questions** ("None." if empty), replace any placeholder left in the 
 ## Done
 
 - `.workflow/decisions/retrospectives/NNN-slug.md` exists, every section is filled or says "None.", and it holds no placeholder.
-- Every approved pitfall is in `pitfalls.md`, every feature note is in `design-log.md`, and every model observation is in the one destination D35 names.
+- Every approved pitfall is in `pitfalls.md`, every feature note is in `design-log.md`, and every model observation is in its one destination (the model map for that task type).
 - Every Tier A write happened with the 5.7 step set, or outside any in-flight feature.

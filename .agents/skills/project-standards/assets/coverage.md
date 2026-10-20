@@ -1,6 +1,5 @@
 <!--
 Reference for project-standards steps 3-6: the mandatory coverage list. The interview is not finished, and the ledger is not approved, until every item below that applies has an `H` answer (or the human delegated it).
-Sources: first-party. Shape taken from a user-supplied architecture document (stack table with one library per concern, core decisions with rationale, naming per layer with examples, structure principle plus full tree, boundaries and layering, format and communication, process patterns, bootstrap order, deferred list).
 -->
 
 # Mandatory coverage
@@ -18,7 +17,7 @@ Ask for each concern the work type has, with 2-3 verified candidates from discov
 | Backend / API | runtime and version; framework or router; HTTP middleware (CORS, request logging, recovery); DB driver; ORM, query builder or raw SQL (and codegen such as sqlc); migrations tool and when they run; validation; config and secrets loading; logging (structured, levels); auth (identity provider, session or token library); background jobs (if any); testing (runner, assertions, fakes, DB in tests); lint and format |
 | Frontend / UI | framework and version; build and dev server; routing; server state and data fetching; client/UI state; forms; validation (shared with backend?); styling; component kit; HTTP client or RPC; dates and i18n (if any); testing (unit, component, browser); lint and format |
 | CLI, worker, library, data, infra | entry and argument parsing; I/O and persistence; config; logging; error reporting; testing; packaging or release; lint and format |
-| Every work type | package manager; monorepo tool (or none); the tool and exact command for each Toolchain key (`lint`, `typecheck`, `format`, `boundary`, `test`, `e2e`, `serve`, `serve_ready`), which project-setup writes into the profile verbatim; for each work type with a `test` key, also how its runner excludes a list of tests (`test_scoped`, optional: the `test` command with `$WF_EXCLUDE_TESTS` or `$WF_EXCLUDE_TESTS_FILE` excluded, e.g. Vitest `--exclude`, Playwright `--grep-invert`; without it a failing `test` while Phase 1 tests are still red is only recorded `unscoped`, a non-blocking warning). where its tests live when that differs from the size-budget defaults (`test_patterns`, optional: defaults `*.test.*`, `*.spec.*`, `__tests__/`, `tests/`, `test/`, `e2e/`, `*_test.go`, `test_*.py`, `*_test.py`; confirm them, ask only when the layout departs from them). TS/JS `boundary` is always dependency-cruiser (the boundary check and the caches run it): state it, do not ask. For `test-harness` and `e2e-browser`, offer the D26 example profiles (`.agents/skills/project-setup/assets/profiles/examples/`) as the candidate answer |
+| Every work type | package manager; monorepo tool (or none); the tool and exact command for each Toolchain key (`lint`, `typecheck`, `format`, `boundary`, `test`, `e2e`, `serve`, `serve_ready`), which project-setup writes into the profile verbatim; for each work type with a `test` key, also how its runner excludes a list of tests (`test_scoped`, optional: the `test` command with `$WF_EXCLUDE_TESTS` or `$WF_EXCLUDE_TESTS_FILE` excluded, e.g. Vitest `--exclude`, Playwright `--grep-invert`; without it a failing `test` while Phase 1 tests are still red is only recorded `unscoped`, a non-blocking warning). where its tests live when that differs from the size-budget defaults (`test_patterns`, optional: defaults `*.test.*`, `*.spec.*`, `__tests__/`, `tests/`, `test/`, `e2e/`, `*_test.go`, `test_*.py`, `*_test.py`; confirm them, ask only when the layout departs from them). TS/JS `boundary` is always dependency-cruiser (the boundary check and the caches run it): state it, do not ask. For `test-harness` and `e2e-browser`, offer the example profiles (`.agents/skills/project-setup/assets/profiles/examples/`) as the candidate answer |
 
 ## C2. Core decisions (project-wide, each with a rationale)
 
@@ -33,7 +32,7 @@ Paradigm (layered, hexagonal, ...); starter (or none); data store; ID scheme; ti
 
 Files (components, modules, tests); types and interfaces; functions and variables; constants; services and error types; DB tables, columns, foreign keys, indexes, enums; API routes, route params, query params; JSON and wire field casing; event or message names.
 
-Comment style and descriptive naming are a fixed scaffold baseline, `.agents/skills/feature-workflow/references/readable-code.md` (D86): every coding agent follows it and 3.7 and 4.1 check it. Do not ask about it. Record only what a project adds, such as a required docstring on public functions, as a row here.
+Comment style and descriptive naming are a fixed scaffold baseline, `.agents/skills/feature-workflow/references/readable-code.md`: every coding agent follows it and 3.7 and 4.1 check it. Do not ask about it. Record only what a project adds, such as a required docstring on public functions, as a row here.
 
 ## C5. Boundaries and layering
 

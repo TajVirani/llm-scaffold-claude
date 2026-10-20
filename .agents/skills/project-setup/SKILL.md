@@ -1,21 +1,18 @@
 ---
 name: project-setup
 description: "Set up a project for the feature workflow, outside the flow: creates the .workflow/ tree (GLOSSARY.md, rules.md, capabilities.md, decisions/, deferred/, model-map/, profiles/, agent-overrides.yaml) from templates, agrees the work types, runs the project-standards interview, fills each profile's Toolchain from the agreed tools and installs it (anti-slop for TS/JS), then has project-standards write lint config, and generates the import-boundary config from .workflow/rules.md. Use when adopting the workflow in a project after install.sh, or when adding a new work type."
+disable-model-invocation: true
 ---
-
-<!--
-Sources: first-party; plan PLAN/decision-flow-reference.md "Processes outside the flow" (Project setup), "Persistent files", "Work profiles", 00.1-00.4, 00.11, 00.16-00.17; assetlist D8, D10, D11, D12, D15, D20, D22, D23, D26, D35, D36, D38, D41, D42, D50, D80. Explore-then-confirm interview and one-section-at-a-time questions with a recommended answer adapted from mattpocock/skills/skills/engineering/setup-matt-pocock-skills/SKILL.md@49dd158 (MIT). "Scan before you ask; ask only what no scan reaches" adapted from bmad-code-org/BMAD-METHOD skills/bmad-project-context/SKILL.md steps 3-4 (MIT; pattern only). Re-run safety (skip what exists, verify earlier files still exist) after wshobson/agents plugins/conductor/commands/setup.md "Resume Handling" (Apache-2.0; pattern only, no text copied). Health-check posture (report missing tools, install only what the project uses) after EveryInc/compound-engineering-plugin skills/ce-setup/SKILL.md (MIT; pattern only). Anti-slop step: see modules/anti-slop.md.
--->
 
 # Project setup
 
-Create every project-owned file the feature workflow assumes under `.workflow/`, hand the standards (rules, profiles, ADRs, lint config) to the `project-standards` skill, install the tools the human chose there, and generate the boundary config. Tool choices are made in the `project-standards` interview, never before it: this skill installs what that ledger approved. `install.sh` has already copied `.agents/`, created the `.claude/` shim and merged the hook settings (D11, D36); this skill owns only the project-owned files outside `.agents/`.
+Create every project-owned file the feature workflow assumes under `.workflow/`, hand the standards (rules, profiles, ADRs, lint config) to the `project-standards` skill, install the tools the human chose there, and generate the boundary config. Tool choices are made in the `project-standards` interview, never before it: this skill installs what that ledger approved. `install.sh` has already copied `.agents/`, created the `.claude/` shim and merged the hook settings; this skill owns only the project-owned files outside `.agents/`.
 
 ## Ground rules
 
-- **Never overwrite project data.** Every path below is created only when absent. An existing file is kept as is and listed as "kept" in the closing report, so a re-run is always safe. The one exception is a seeded `.workflow/model-map/` file that still holds a `<...>` placeholder: fill only those fields (D23). Content changes to `.workflow/rules.md`, `.workflow/profiles/<work-type>.md`, ADRs, lint config and the `AGENTS.md` managed block go through `project-standards` and its approval ledger (D80). The one profile section this skill writes is the Toolchain block, verbatim from approved ledger rows (step 7).
+- **Never overwrite project data.** Every path below is created only when absent. An existing file is kept as is and listed as "kept" in the closing report, so a re-run is always safe. The one exception is a seeded `.workflow/model-map/` file that still holds a `<...>` placeholder: fill only those fields. Content changes to `.workflow/rules.md`, `.workflow/profiles/<work-type>.md`, ADRs, lint config and the `AGENTS.md` managed block go through `project-standards` and its approval ledger. The one profile section this skill writes is the Toolchain block, verbatim from approved ledger rows (step 7).
 - **Scan before you ask.** Read the repo (manifests, lockfiles, configs, CI, the directory layout) and ask the human only what no scan answers. Ask one section at a time and lead each question with your recommended answer; the human still answers each question.
-- **Write from the main session.** `tier-a-write-guard` allows Tier A writes (`.workflow/GLOSSARY.md`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/profiles/`) when no feature is in flight. Run this skill only when every `.workflow/specs/*/spec.md` has `status: done` or there are no specs. If a spec is in flight, a missing profile is created inside that feature at 00.19 (D50); everything else waits until the spec is done.
+- **Write from the main session.** `tier-a-write-guard` allows Tier A writes (`.workflow/GLOSSARY.md`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/profiles/`) when no feature is in flight. Run this skill only when every `.workflow/specs/*/spec.md` has `status: done` or there are no specs. If a spec is in flight, a missing profile is created inside that feature at 00.19; everything else waits until the spec is done.
 - **Leave `install.sh`'s job alone.** Leave `.agents/`, `.claude/settings.json`, `.codex/` and `.gitignore` untouched. If `.agents/` is missing, stop and tell the human to run `install.sh <project>` first.
 
 ## Modes
@@ -31,7 +28,7 @@ Create every project-owned file the feature workflow assumes under `.workflow/`,
 command -v git && command -v jq && command -v yq && yq --version
 ```
 
-`yq --version` must name mikefarah and report v4 (D38); kislyuk's Python `yq` does not work. If a tool is missing or wrong, stop and give the install hint (for example `brew install jq yq`, or the mikefarah release binary).
+`yq --version` must name mikefarah and report v4; kislyuk's Python `yq` does not work. If a tool is missing or wrong, stop and give the install hint (for example `brew install jq yq`, or the mikefarah release binary).
 
 Done when git, jq and mikefarah yq v4 are all on PATH.
 
@@ -61,7 +58,7 @@ Done when the human has confirmed the work-type list.
 
 ### 6. Set the project standards
 
-Run the `project-standards` skill with `phase: standards` (D80), passing the agreed work types and the mode: greenfield (no tracked source yet), brownfield, or add-work-type with the one new work type. Its interview settles every tool and library per work type (the D26 example profiles are offered there as candidate answers), and through one approval ledger it writes `.workflow/rules.md`, each `.workflow/profiles/<work-type>.md` except its Toolchain block, the ADRs (including `0001-project-baseline`), the `.workflow/pr-quality/` checks and the managed block in `AGENTS.md`.
+Run the `project-standards` skill with `phase: standards`, passing the agreed work types and the mode: greenfield (no tracked source yet), brownfield, or add-work-type with the one new work type. Its interview settles every tool and library per work type (the example profiles are offered there as candidate answers), and through one approval ledger it writes `.workflow/rules.md`, each `.workflow/profiles/<work-type>.md` except its Toolchain block, the ADRs (including `0001-project-baseline`), the `.workflow/pr-quality/` checks and the managed block in `AGENTS.md`.
 
 Done when `project-standards` has returned its files written, the approved Toolchain rows per work type, the approved lint rows and its open items, and every profile has its four prose sections filled.
 
@@ -73,7 +70,7 @@ Done when every profile's Toolchain block names a real command, a `TODO: <tool> 
 
 ### 8. Install each work type's toolchain
 
-Follow "Install the toolchain" in [modules/profiles.md](modules/profiles.md). For TS/JS work types whose approved lint tool is oxlint, this includes the anti-slop fetch in [modules/anti-slop.md](modules/anti-slop.md) (D10, D42), which creates the base lint config.
+Follow "Install the toolchain" in [modules/profiles.md](modules/profiles.md). For TS/JS work types whose approved lint tool is oxlint, this includes the anti-slop fetch in [modules/anti-slop.md](modules/anti-slop.md), which creates the base lint config.
 
 Done when every non-empty Toolchain command either runs (a non-zero exit from findings in project code counts as running) or is listed in the report as not installed, with the reason.
 
@@ -95,7 +92,7 @@ Done when `project-standards` has returned a lint result per profile with no con
 | 2 | The Ownership or Shared core block in `.workflow/rules.md` does not parse or validate (reason on stderr) | Fix the block through `project-standards`, then re-run. |
 | 3 | jq or mikefarah yq v4 missing | Back to step 1. |
 
-The config is derived from `.workflow/rules.md` and never hand-edited; the `rules-boundary-config-sync` hook re-runs the script on every approved write to `.workflow/rules.md` (D20). With `modules: {}` the config has no rules, which is valid; say so in the report.
+The config is derived from `.workflow/rules.md` and never hand-edited; the `rules-boundary-config-sync` hook re-runs the script on every approved write to `.workflow/rules.md`. With `modules: {}` the config has no rules, which is valid; say so in the report.
 
 Done when the script exits 0.
 
@@ -104,7 +101,7 @@ Done when the script exits 0.
 List each path as created, kept or skipped, with the reason; the toolchain commands that ran and their results; the anti-slop pin; the `project-standards` ledger summary, including its evidence counts; and every open item:
 
 - Codex models in `.workflow/model-map/` that `codex debug models` did not list, or that were left unchecked because Codex is not installed here.
-- Toolchains for non-TS/JS work types that were not installed (G11).
+- Toolchains for non-TS/JS work types that were not installed.
 
 Then point the human at `feature-workflow` as the way to start the first feature.
 

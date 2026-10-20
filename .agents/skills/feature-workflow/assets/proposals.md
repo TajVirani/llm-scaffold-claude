@@ -1,7 +1,6 @@
 <!--
-File: Template for .workflow/specs/NNN-slug/proposals.md: the 5.2 proposed updates to Tier A and the profiles, each approved line by line at 5.3 (D21). No frontmatter.
+File: Template for .workflow/specs/NNN-slug/proposals.md: the 5.2 proposed updates to Tier A and the profiles, each approved line by line at 5.3. No frontmatter.
 Written by modules/sign-off.md at 5.2; the Status column is updated at 5.3, and only `approved` and `modified` lines are applied. Also the landing place for writes tier-a-write-guard redirected mid-feature: record them here as they happen, with the step in Origin.
-Sources: "proposed remediation awaiting human application", each item with an owner, adapted from bmad-code-org/BMAD-METHOD skills/bmad-retrospective/references/retro-document.md "Action items" (MIT). Mechanical violation becomes a tool rule, judgement stays a checklist line: mattpocock/skills/skills/engineering/retro/SKILL.md@49dd158 "Coding standards" (MIT). The "would losing it change behaviour" counterfactual: EveryInc/compound-engineering-plugin skills/ce-compound/SKILL.md durable bar (MIT; idea only) and the BMad line test. Targets, per-line status values and the Why field are first-party (PLAN/decision-flow-reference.md 5.2, 5.3, "Tier A is agent-proposed, human-approved", "Work profiles"; assetlist D16, D20, D21).
 
 Rules:
   - One row per proposal. Ids P1, P2, ... in order across the file, never reused.

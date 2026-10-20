@@ -1,0 +1,5 @@
+interface:
+  display_name: "Project Setup"
+  short_description: "Set up a project for the feature workflow"
+policy:
+  allow_implicit_invocation: false

@@ -1,17 +1,10 @@
-<!--
-Module: discovery (Phase 0). Nodes 0.1.1-0.1.6, 0.2.1-0.2.8, 0.3.1-0.3.7, 0.3.20, 0.3.22 (through the deeper-prompt skill), 0.4.1-0.4.7, 0.5.1-0.5.4, 0.6; archival 00.9 through deferred-handoff.
-Entered from: SKILL.md (new request, a request seeded from a .workflow/specs/work-backlog/ item, or a draft spec resumed outside the questioning loop); questioning-loop at 0.3.20; sign-off at 5.9 (a work item started as the next feature).
-Exits to: questioning-loop (0.3.8); implementation-orchestrator (light path, ready-for-dev); verification-setup (full path, ready-for-dev).
-Sources: 0.1.1-0.1.2 numbering and short-name rules adapted from github/spec-kit templates/commands/specify.md (MIT; local copy claude-night-market spec-kit commands/speckit-specify.md steps 1-2, MIT): scan .workflow/specs/ for the highest number, use N+1, 2-4 word action-noun short name preserving technical terms. 0.3.20 three facts (intent gaps "you would notice in the result", irreversible actions, footprint; a design clean on all three takes the light path) from bmad-code-org/BMAD-METHOD docs/build/build-a-change.md, and the footprint rule of thumb (about 100 changed lines; more than five non-mechanical files is not small) from skills/bmad-build/customize.toml route_selection (MIT, Copyright (c) 2025 BMad Code, LLC). Parallel exploration launches with a bounded, cited return from .agents/skills/design-pattern-doc/SKILL.md Phases 4-5 (first-party); discovery -> parallel explorers -> wait for answers skeleton from anthropics/claude-plugins-official plugins/feature-dev/commands/feature-dev.md (Apache-2.0; structure only, no text copied). Concept match on the shelf from mattpocock/skills triage/OUT-OF-SCOPE.md (MIT). The orchestration of cache-stamp-check -> cache-regeneration -> publish-cache -> retrieval/library-evaluation, the placement gate (0.3.3) and the term gates are first-party: PLAN/decision-flow-reference.md "Phase 0 - Discovery", "Per-feature files", "Project context: Tier A and Tier B", "Sizing"; assetlist D7, D13, D14, D16, D17, D24, D31, D37, D43, D44, D45, D51, D56, D57, D58, D69 (work-backlog seeding, budget at 0.3.20, numbering skips specs/work-backlog/), D73 (0.3.22 deeper prompt before the loop), D85 (0.3.20 spec branch, task file, first commit).
--->
-
 # Discovery (Phase 0)
 
 Turn a request into a spec folder that says what to build, where it goes, what it touches and how it will be proven. You run in the main session; the corpus (Tier A docs, Tier B caches, the shelf) reaches you only as sub-agent extracts, except `.workflow/GLOSSARY.md`, which you read whole (design rule 3). Conventions for status, step markers, guarded writes and launches are in [../SKILL.md](../SKILL.md#5-conventions-every-module-follows); this module names the exact calls.
 
-Work raised during Phase 0 that sits outside the agreed scope goes through the scope gate 0.3.16–0.3.17 to `.workflow/deferred/`, never to `.workflow/specs/work-backlog/`; the discovered-work protocol (00.21–00.29) covers Phases 1–4 only (D56).
+Work raised during Phase 0 that sits outside the agreed scope goes through the scope gate 0.3.16–0.3.17 to `.workflow/deferred/`, never to `.workflow/specs/work-backlog/`; the discovered-work protocol (00.21–00.29) covers Phases 1–4 only.
 
-Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/status-transition.sh`: type the full path every time, because sandboxed projects allow that exact command line (D36). `NNN-slug` is this feature's folder. Keep `spec.md` an index: link the support files, never copy them.
+Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/status-transition.sh`: type the full path every time, because sandboxed projects allow that exact command line. `NNN-slug` is this feature's folder. Keep `spec.md` an index: link the support files, never copy them.
 
 ## 0.1 Initialise the feature folder
 
@@ -31,7 +24,7 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
 
 ### Seeded from a work item
 
-A request can come from a `.workflow/specs/work-backlog/<origin>-disc-<###>.md` item (D57, D69): sign-off chose **Start it** at 5.9 of the origin spec, or the stakeholder picked an open item at any later time. It is not off the shelf: 0.1.5 is No. The same steps apply however it started.
+A request can come from a `.workflow/specs/work-backlog/<origin>-disc-<###>.md` item: sign-off chose **Start it** at 5.9 of the origin spec, or the stakeholder picked an open item at any later time. It is not off the shelf: 0.1.5 is No. The same steps apply however it started.
 
 - **Seed.** Read the item whole. Its title and **Suggested scope and size** are the request for 0.1.2; its **Problem** drafts the Why at 0.1.6; its **Evidence** and **Why not a blocker** become the first facts for retrieval and the questioning loop.
 - **At 0.1.4** (step 0.1.4 admits both writes), while writing `spec.md`:
@@ -119,11 +112,11 @@ A request can come from a `.workflow/specs/work-backlog/<origin>-disc-<###>.md` 
 
 1. **0.3.1 Capability already exists?** Check the goal against the capabilities in **Prior decisions** and, for the candidate names, `grep -n -i '<term>' .workflow/capabilities.md`.
    - Yes → **0.3.2 Reframe** as a change to that capability: it keeps its `CAP-###`. Log the reframe in `design-log.md`; 0.3.19 writes it into `spec.md`.
-   - No → a new capability gets a provisional `CAP-NEW-<slug>` (lowercase kebab-case, unique in this spec) until 5.3 (D44).
+   - No → a new capability gets a provisional `CAP-NEW-<slug>` (lowercase kebab-case, unique in this spec) until 5.3.
 2. **0.3.3 Owning module clear?** Clear when every path the change touches falls under one module's `owns` in the Ownership block.
    - Yes → go to [0.3.22](#hand-off-to-the-questioning-loop). No placement ADR is needed.
    - No → **0.3.4 Resolve placement** with the stakeholder: put the candidate modules to them as one question with your recommendation (from **Seams and interfaces** and **Prior decisions**), then log a **Placement** entry in `design-log.md` (create it from [../assets/design-log.md](../assets/design-log.md) if missing; that is node 0.3.21).
-3. **0.3.5–0.3.7 Conflicts and the ADR.** Invoke `domain-modeling` for placement: it checks the placement against the ADRs and `.workflow/rules.md` (0.3.5), has the stakeholder conform or supersede (0.3.6), and writes the placement ADR under step `0.3.7`, or a design-log entry when the placement fails the three-part ADR test (D43). A rule conflict becomes a 5.3 proposal, never a mid-feature rule edit.
+3. **0.3.5–0.3.7 Conflicts and the ADR.** Invoke `domain-modeling` for placement: it checks the placement against the ADRs and `.workflow/rules.md` (0.3.5), has the stakeholder conform or supersede (0.3.6), and writes the placement ADR under step `0.3.7`, or a design-log entry when the placement fails the three-part ADR test. A rule conflict becomes a 5.3 proposal, never a mid-feature rule edit.
 
 ### Hand off to the questioning loop
 
@@ -132,7 +125,7 @@ A request can come from a `.workflow/specs/work-backlog/<origin>-disc-<###>.md` 
 
 ## 0.3.20 Light-path test
 
-The questioning loop evaluated the three facts at 0.3.19 and wrote `light_path` into `spec.md`; at 0.3.20 spec.md is writable only for the size `budget` and `spec_branch` (D58, D85). Read it back:
+The questioning loop evaluated the three facts at 0.3.19 and wrote `light_path` into `spec.md`; at 0.3.20 spec.md is writable only for the size `budget` and `spec_branch`. Read it back:
 
 ```bash
 yq --front-matter=extract '.light_path' .workflow/specs/NNN-slug/spec.md
@@ -146,11 +139,11 @@ The three facts (all must be clean for the light path):
 | Irreversible actions | No irreversible migration, data deletion, destructive external call, or removal of a public contract. |
 | Footprint | One owning module, one capability, small: as a rule of thumb about 100 changed lines; more than five files that are not simple or mechanical is not small. Read it from `codebase-map.md`. |
 
-- **`light_path: true` (pass).** Create the spec branch, write the size budget, the one-task `tasks.md` index and its task file (D14, D85), commit them, then set the status:
+- **`light_path: true` (pass).** Create the spec branch, write the size budget, the one-task `tasks.md` index and its task file, commit them, then set the status:
 
   ```bash
   ST step .workflow/specs/NNN-slug 0.3.20
-  # Spec branch (D85; the light path has no task branch): off the main branch, carrying the uncommitted spec folder with it.
+  # Spec branch (the light path has no task branch): off the main branch, carrying the uncommitted spec folder with it.
   git switch -c spec/NNN-slug "$(.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch)"   # already on spec/NNN-slug (a loop-back): skip
   # Edit the spec.md frontmatter line to `spec_branch: spec/NNN-slug`.
   # Read the project defaults from .workflow/rules.md "## Size budget":
@@ -174,7 +167,7 @@ The three facts (all must be clean for the light path):
 
   Seeded from a work item: now delete the item (see [Seeded from a work item](#seeded-from-a-work-item)).
 
-  If `tasks.md` already exists (a loop-back on a light-path spec), keep it: its task records change only through `set-task` (D45). If the revised goal needs work the existing task does not cover, take the full path instead. Then load implementation-orchestrator at 3.1 (it captures `baseline_revision` and `impl_base_revision` there, D53, D85).
+  If `tasks.md` already exists (a loop-back on a light-path spec), keep it: its task records change only through `set-task`. If the revised goal needs work the existing task does not cover, take the full path instead. Then [offer a fresh session](#offer-a-fresh-session) and load implementation-orchestrator at 3.1 (it captures `baseline_revision` and `impl_base_revision` there).
 - **`light_path: false` (full path).** Continue at 0.4.
 
 ## 0.4 Model the impact (full path)
@@ -227,7 +220,14 @@ All four must be clear, each checkable in a named file:
 | Testable objectives | Every capability in `spec.md` has an end-state objective and at least one journey in `verification-plan.md`. |
 
 - **Not clear** → `ST step .workflow/specs/NNN-slug 0.3.8`, load the questioning loop with each gap as a frontier question.
-- **Clear** → `ST status .workflow/specs/NNN-slug ready-for-dev --step 0.6`; for a spec seeded from a work item, delete the item (see [Seeded from a work item](#seeded-from-a-work-item)); then load verification-setup at 1.1.
+- **Clear** → `ST status .workflow/specs/NNN-slug ready-for-dev --step 0.6`; for a spec seeded from a work item, delete the item (see [Seeded from a work item](#seeded-from-a-work-item)); then [offer a fresh session](#offer-a-fresh-session) and load verification-setup at 1.1.
+
+## Offer a fresh session
+
+The spec is `ready-for-dev`, so everything implementation needs is on disk, while this session's context is full of discovery. Before loading the next module, ask the stakeholder: continue here, or start fresh?
+
+- **Continue**: load the next module now.
+- **Fresh**: load the `handoff` skill and write a handoff for this spec. Then tell the stakeholder to clear the context (`/clear` in Claude Code) or open a new session and ask to resume `NNN-slug`; the new session routes by the spec's status and `.step` ([Route by status](../SKILL.md#3-route-by-status)). Stop here.
 
 ## Done
 

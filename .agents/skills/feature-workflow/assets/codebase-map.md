@@ -7,9 +7,8 @@ cache_stamps:            # generated_at_commit of each .workflow/cache/ file the
 <!--
 File: Template for .workflow/specs/NNN-slug/codebase-map.md: per-feature extracts of the existing system. Not a cache and not Tier A: it holds what this feature needs, each item pointing back to its source.
 Created by modules/discovery.md at 0.2.6. Filled at 0.2.4 (`retrieval`), 0.2.5 (`library-evaluation`), 0.2.8 (stamps after `cache-regeneration` and publish-cache.sh) and 0.4.6 (`module-audit`). Source of recommended answers at 0.3.11; implementation launches receive the relevant extract.
-Sources: section-per-agent layout and `cache_stamps` are first-party (PLAN/decision-flow-reference.md "Per-feature files", "Sub-agent task types", 0.2.4-0.2.8, 0.4.6). Inventory tables, path citations and a "not found" list adapted from .agents/skills/design-pattern-doc/TEMPLATE.md (first-party). "Document what exists, do not critique" and the commit stamp on research output adapted from humanlayer/humanlayer .claude/commands/research_codebase.md (Apache-2.0; idea only, no text copied). Stamp values follow regenerate-caches/assets/cache-frontmatter.md.
 
-Frontmatter contract (mikefarah yq v4, `--front-matter=extract`; D38):
+Frontmatter contract (mikefarah yq v4, `--front-matter=extract`):
   - cache_stamps: a map with exactly the keys modules, flows, architecture (the Tier B cache types). Each value is the 40-hex `generated_at_commit` copied from that cache's frontmatter at the time it was read, or null when the cache was not read.
   - After 0.2.8 regenerates a cache, update its stamp here. A stamp that differs from the cache's current `generated_at_commit` means the extracts drawn from it may be stale.
   Add no other keys.

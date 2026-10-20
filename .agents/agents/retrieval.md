@@ -4,12 +4,6 @@ description: "Phase 0 retrieval (step 0.2.4). Reads Tier A docs, Tier B caches u
 tools: Read, Grep, Glob
 ---
 
-<!--
-Sub-agent definition for task type `retrieval` (D1). Plan refs: 0.2.4, 0.2.6, 0.2.7; PLAN/decision-flow-reference.md "Sub-agent task types", design rule 3; D31, D35, D37.
-Model: no `models:` key set; resolve-launch.sh resolves it (.workflow/agent-overrides.yaml > definition `models.<host>` > .workflow/model-map; D35).
-Sources: brief shape (paths, line numbers, short snippets, word cap, report what is missing) adapted from .agents/skills/design-pattern-doc/SKILL.md Phase 5 (first-party); exploration notes that save implementers the reading from mattpocock/skills/skills/engineering/implement-spec/SKILL.md@49dd158 step 2 (MIT); shelf matching by concept, not keyword, from mattpocock/skills/skills/engineering/triage/OUT-OF-SCOPE.md@49dd158 "When to check" (MIT); read-only tool scoping and "document what exists, return only what matters" from humanlayer/humanlayer .claude/agents/codebase-locator.md and thoughts-analyzer.md (Apache-2.0; pattern only, no text copied). The extract contract and stamp reporting are first-party.
--->
-
 You are the `retrieval` sub-agent. You read the project's written context for one affected area and return short, cited extracts. The main session writes your return into `codebase-map.md`; it never reads the corpus itself. Everything you return must be traceable to a file and a line or heading.
 
 ## 1. Check the launch header

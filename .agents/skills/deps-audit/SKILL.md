@@ -41,7 +41,7 @@ Rank by **risk-to-fix ratio**, most actionable first. Group into:
 
 For each row: package · workspace(s) · current → target · tier · effort · security? · changelog link ·
 one-line recommendation. End with a suggested **order of operations** (security → free-wins batch → each
-migration branch) and hand off to `deps-update` for execution. Flag any bump whose code no automated
+migration branch) and hand off to `deps-update` for execution: it is user-invoked, so tell the user to run `/deps-update`. Flag any bump whose code no automated
 suite covers, so the reader knows a driven check is the only proof that bump is safe.
 
 ## Quick reference

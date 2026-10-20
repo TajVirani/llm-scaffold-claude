@@ -4,16 +4,6 @@ description: Phase 4 review lens (workflow step 4.3). Measures the running build
 tools: Read, Grep, Glob, Bash
 ---
 
-<!--
-File: Sub-agent definition and launch prompt for task type `review-targets`.
-Purpose: Measure the running build against the 1.1 targets, numbers only.
-Triggers/inputs: `## Targets` in verification-plan.md, the `serve` and `serve_ready` keys of the touched work profiles, the running build. Never the diff for judgement, other lenses' output or the spec.md body.
-Outputs/handoff: A `review-findings` YAML block with a `measurements:` table, consumed by modules/review-triage.md (4.4; shape check with prefix RT) and copied into report.md "Targets vs measured" by modules/sign-off.md (5.4). Raw tool output under .workflow/specs/NNN-slug/artifacts/review/pass-<n>/targets/.
-Plan refs: 4.3; reference "Sub-agent task types", "Review: lenses, then triage"; D13, D23, D31, D35, D37, D38, D48, D56, D62; PLAN/gap-research.md G3.
-Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model is resolved by .workflow/agent-overrides.yaml > .workflow/model-map/review-targets.md (default: cheap tier, D23). Required header field: spec_dir (D31). No nested launches (D32). Bash runs the build and the measurement commands; the only files this agent writes itself are under the targets output folder. The only thing read from spec.md is the `baseline_revision` frontmatter key (D53).
-Sources: first-party. Design from PLAN/gap-research.md G3, which was built from the tool docs: Lighthouse CI configuration (assert, collect, upload; GoogleChrome/lighthouse-ci docs/configuration.md, Apache-2.0), k6 thresholds and end-of-test summary (grafana.com/docs/k6), Vitest coverage json-summary reporter, and the Playwright console-errors attachment (G1). No text copied from any of them, and nothing from tech-leads-club/agent-skills (skill content CC-BY-4.0). Return schema extends .agents/agents/review-standards.md; field names match the modules/review-triage.md step 3 shape check.
--->
-
 The header your launch prompt starts with (example; the orchestrator writes it, you do not emit it):
 
 ```yaml launch-header
@@ -29,13 +19,13 @@ You change no code: no edits, no commits, no reverts, no installs. Run the measu
 
 ## Receives
 
-The launch header (D37) with `spec_dir`, and a one-line task naming the review pass ("Review pass <n> of …"). Everything else you read yourself:
+The launch header with `spec_dir`, and a one-line task naming the review pass ("Review pass <n> of …"). Everything else you read yourself:
 
 | Input | Where |
 | --- | --- |
 | Targets | `<spec_dir>/verification-plan.md`, `## Targets` table: Target, Kind, Threshold, How measured (exact command), Source of the threshold |
 | Work types | `<spec_dir>/tasks.md` frontmatter, `tasks[].work_type` |
-| Start and ready | `.workflow/profiles/<work_type>.md`, the yaml block under `## Toolchain`: `serve` (start command) and `serve_ready` (URL to poll) (D62) |
+| Start and ready | `.workflow/profiles/<work_type>.md`, the yaml block under `## Toolchain`: `serve` (start command) and `serve_ready` (URL to poll) |
 | Revisions | `yq --front-matter=extract '.baseline_revision' <spec_dir>/spec.md` (read only this key) and `git rev-parse HEAD` |
 
 `OUT` is `<spec_dir>/artifacts/review/pass-<n>/targets`, with `<n>` from the task line. Create it with `mkdir -p` before anything else.
@@ -115,10 +105,10 @@ Then poll `serve_ready` once more. If it still answers, run the snippet again; i
 ### 6. Build the result
 
 - One `measurements` entry per `## Targets` row, in table order, including the `not_measurable` ones.
-- One finding per `fail` row, `RT-1`, `RT-2`, … in table order, with `category: target`, `severity: high` (a missed target is a threshold the spec committed to; D48 makes high the grade that can block) and `confidence: 100` (measured, not inferred).
+- One finding per `fail` row, `RT-1`, `RT-2`, … in table order, with `category: target`, `severity: high` (a missed target is a threshold the spec committed to, and high is the grade that can block) and `confidence: 100` (measured, not inferred).
 - `checked`: each target measured, and each profile whose `serve` you used. `not_checked`: each `not_measurable` target as "<target>: not measurable: <reason>", plus the gaps from steps 2 and 5.
 
-**Discovered work** (category `discovered-work`). A problem you notice in passing that lies outside this change, such as a `serve` command that is broken on the baseline too or a measurement command in `verification-plan.md` that cannot run as written. Report it only with concrete evidence; it carries no severity or confidence, and you never fix it (D56). Triage runs the discovered-work protocol for it.
+**Discovered work** (category `discovered-work`). A problem you notice in passing that lies outside this change, such as a `serve` command that is broken on the baseline too or a measurement command in `verification-plan.md` that cannot run as written. Report it only with concrete evidence; it carries no severity or confidence, and you never fix it. Triage runs the discovered-work protocol for it.
 
 ## Return
 

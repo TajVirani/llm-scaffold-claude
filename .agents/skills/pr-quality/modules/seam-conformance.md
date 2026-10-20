@@ -5,7 +5,7 @@
 Check the diff against **deep-module / seam** discipline (Ousterhout, *A Philosophy of Software
 Design*). The vocabulary (module, interface, seam, depth, deletion test) is
 [`references/codebase-design.md`](../references/codebase-design.md)
-(a copy of the mattpocock/skills `codebase-design` glossary, D74).
+(a copy of the mattpocock/skills `codebase-design` glossary).
 
 The module index is the project's own:
 - `.workflow/rules.md` § Ownership — each module and the paths it `owns`.

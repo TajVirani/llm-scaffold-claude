@@ -3,9 +3,9 @@ tasks:
   - id: T1
     title: "<short name of the slice>"
     status: pending          # pending | in-progress | done | blocked | split-out. Written only by scripts/status-transition.sh.
-    capability: CAP-NEW-example  # the capability ID from spec.md: CAP-### if it exists, else the provisional CAP-NEW-<slug> until 5.3 (D44)
+    capability: CAP-NEW-example  # the capability ID from spec.md: CAP-### if it exists, else the provisional CAP-NEW-<slug> until 5.3
     depends_on: []           # ids of the tasks that must be done before this one starts
-    touches_core: false      # true when the task changes shared core (.workflow/rules.md "Shared core"); batched for integration (2.4, D28)
+    touches_core: false      # true when the task changes shared core (.workflow/rules.md "Shared core"); batched for integration (2.4)
     work_type: null          # profile name (.workflow/profiles/<work_type>.md); null until classified at 3.1
     module: "<module>"       # owning module, a key under `modules` in .workflow/rules.md "Ownership"
     seam: "<interface under test>"  # the interface the tests drive, agreed at 2.3
@@ -19,19 +19,18 @@ tasks:
     pr: null                 # task PR/MR URL, set by the orchestrator at 3.16 through set-task; null until then or with task_review local
 ---
 <!--
-File: Template for .workflow/specs/NNN-slug/tasks.md, the task INDEX: the records, the waves table and the dependency graph. Every feature has one (D14). Each task's body lives in its own task file, tasks/Tnn-<slug>.md, from assets/task.md (D85); this file holds no per-task body text.
+File: Template for .workflow/specs/NNN-slug/tasks.md, the task INDEX: the records, the waves table and the dependency graph. Every feature has one. Each task's body lives in its own task file, tasks/Tnn-<slug>.md, from assets/task.md; this file holds no per-task body text.
 Written by modules/task-breakdown.md at 2.5, or by modules/discovery.md at 0.3.20 on the light path (one task). work_type is filled at 3.1, pr at 3.16.
-Sources: slice rules, blocking edges and "one file per ticket, numbered blockers-first" adapted from mattpocock/skills/skills/engineering/to-tickets/SKILL.md@49dd158 (MIT); dependency patterns and wave computation adapted from github/spec-kit templates/tasks-template.md (MIT), claude-night-market spec-kit skills/task-planning/modules/dependency-patterns.md (MIT) and open-gsd/gsd-core agents/gsd-planner.md (MIT, "assign_waves"). The record schema is first-party: PLAN/decision-flow-reference.md "Per-feature files", 2.1-2.5, 3.1; assetlist D14, D15, D28, D31, D37, D38, D85.
 
-Record schema (the `tasks:` array in the frontmatter is the source; the body is commentary). Read with mikefarah yq v4 `--front-matter=extract` (D38) by resolve-launch.sh (work_type by task id), status-transition.sh (writes records, via `--front-matter=process`), run-toolchain.sh (tests), budget-check.sh (size) and task-waves.sh (predicted_files, parallel_with).
+Record schema (the `tasks:` array in the frontmatter is the source; the body is commentary). Read with mikefarah yq v4 `--front-matter=extract` by resolve-launch.sh (work_type by task id), status-transition.sh (writes records, via `--front-matter=process`), run-toolchain.sh (tests), budget-check.sh (size) and task-waves.sh (predicted_files, parallel_with).
   Plan-specified fields (required on every record):
-  - id:           string, `T<n>` (T1, T2, ...), unique in this file, never reused or renumbered. It is the `task_id` in the launch header (D37).
+  - id:           string, `T<n>` (T1, T2, ...), unique in this file, never reused or renumbered. It is the `task_id` in the launch header.
   - status:       pending | in-progress | done | blocked | split-out.
   - work_type:    string naming .workflow/profiles/<work_type>.md, or null until 3.1 classifies the task. Once set it is not reclassified on resume.
   - depends_on:   list of ids in this file; [] when the task can start immediately. No cycles.
   - touches_core: boolean.
-  - capability:   string, a capability listed in spec.md: `CAP-###` for an existing capability, or the provisional `CAP-NEW-<slug>` (lowercase kebab-case) for a new one until sign-off 5.3 rewrites it to the assigned CAP-### (D44). A prefactoring task names the capability it unblocks.
-  Task-breakdown fields (D85). 2.5 and 0.3.20 write every one except tests; the validator accepts a missing one (lists written before D85) but checks each that is present:
+  - capability:   string, a capability listed in spec.md: `CAP-###` for an existing capability, or the provisional `CAP-NEW-<slug>` (lowercase kebab-case) for a new one until sign-off 5.3 rewrites it to the assigned CAP-###. A prefactoring task names the capability it unblocks.
+  Task-breakdown fields. 2.5 and 0.3.20 write every one except tests; the validator accepts a missing one (older lists) but checks each that is present:
   - file:            string, `tasks/T<nn>-<slug>.md`, `<nn>` the id number zero-padded to two digits (the validator accepts any zero-padding of the record's own number). The task file must exist.
   - branch:          string `task/<NNN-slug>/T<nn>-<slug>` (the same stem as `file`), or null on the light path, where T1 commits straight onto the spec branch.
   - predicted_files: list of repo-relative paths or globs, tests included.
@@ -44,10 +43,10 @@ Record schema (the `tasks:` array in the frontmatter is the source; the body is 
   - title:        string, short name of the slice.
   - module:       string, the owning module from .workflow/rules.md Ownership. One task works in one module (3.3).
   - seam:         string, the interface under test agreed at 2.3, which the implementation agent receives.
-  Status meaning: `pending` not started; `in-progress` launched; `done` its gates (3.6 tools, 3.8 mini-review) passed and its task branch is merged into the spec branch; `blocked` cannot continue without a human (for example a "profile is wrong" report); `split-out` terminal (D68): the work moved to a work-backlog item at a size-budget split, set only by `set-task --status split-out --step 00.29` from `pending`.
+  Status meaning: `pending` not started; `in-progress` launched; `done` its gates (3.6 tools, 3.8 mini-review) passed and its task branch is merged into the spec branch; `blocked` cannot continue without a human (for example a "profile is wrong" report); `split-out` terminal: the work moved to a work-backlog item at a size-budget split, set only by `set-task --status split-out --step 00.29` from `pending`.
   Add no other keys. Waves are not stored as a key: they are derived from depends_on (below) and copied into the Waves table.
 
-Waves (derived): a task with depends_on [] is in wave 1; otherwise its wave is 1 + the highest wave among its dependencies. At each wave start the orchestrator creates one task branch and worktree per task off the spec-branch tip, launches the wave in parallel, and merges it back in id order (D18, D85).
+Waves (derived): a task with depends_on [] is in wave 1; otherwise its wave is 1 + the highest wave among its dependencies. At each wave start the orchestrator creates one task branch and worktree per task off the spec-branch tip, launches the wave in parallel, and merges it back in id order.
 
 Read and validate with yq (prints true, exits non-zero otherwise):
   yq --front-matter=extract '.tasks[] | select(.id == "T1") | .file' .workflow/specs/NNN-slug/tasks.md

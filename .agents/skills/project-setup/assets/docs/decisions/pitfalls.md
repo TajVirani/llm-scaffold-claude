@@ -1,6 +1,5 @@
 <!--
 File: Template for .workflow/decisions/pitfalls.md (Tier A). Copied by project-setup; written at 5.7 by the retrospective skill, with approval.
-Sources: first-party (plan 00.4, "Pitfalls: observed failure only"); admission tone adapted from bmad-code-org/BMAD-METHOD skills/bmad-project-context/references/best-practices.md (MIT).
 Rules:
   - Admit a pitfall only when something actually went wrong. A suspicion or a trap-looking fact is not an entry.
   - Remove an entry only when the thing it is about is gone, or a tool now enforces it. Never remove it because it has not recurred.

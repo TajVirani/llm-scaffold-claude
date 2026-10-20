@@ -1,13 +1,10 @@
 <!--
 File: Tier B cache frontmatter schema shared by .workflow/cache/modules.md, .workflow/cache/flows.md and .workflow/cache/architecture.md (00.5-00.7). The schema `publish-cache.sh` writes and `cache-stamp-check.sh` and the `retrieval` agent read.
-Sources: fields from PLAN/decision-flow-reference.md "Persistent files" 00.5-00.7 and assetlist D8, D17. The commit stamp idiom is shared with open-gsd/gsd-core's codebase mapper (`last_mapped_commit`, MIT; its source file could not be fetched, so only the idea is used) and with skills/data-structure-audit/references/incremental.md (git-anchored changed-since-commit logic). YAML is read with mikefarah yq v4 (D38).
-Body shapes: PLAN/gap-research.md G6 (generated skeletons, agent-written slots, sorted lists, canonical Mermaid), first-party.
-Plan refs: 00.5-00.7, 0.2.7, 0.2.8; D4, D17, D38, D64.
 -->
 
 # Tier B cache frontmatter
 
-Every file in `.workflow/cache/` starts with this YAML frontmatter. A cache is derived from code, stamped with the commit it was derived from, and never hand-edited. Only `publish-cache.sh` writes into `.workflow/cache/` (D17).
+Every file in `.workflow/cache/` starts with this YAML frontmatter. A cache is derived from code, stamped with the commit it was derived from, and never hand-edited. Only `publish-cache.sh` writes into `.workflow/cache/`.
 
 ## Who writes what
 
@@ -43,7 +40,7 @@ generator: cache-regeneration
 
 ## Validate with yq
 
-yq is mikefarah v4; the frontmatter is read with `--front-matter=extract` (D38). This prints `true` for a valid file and exits non-zero otherwise (`-e`):
+yq is mikefarah v4; the frontmatter is read with `--front-matter=extract`. This prints `true` for a valid file and exits non-zero otherwise (`-e`):
 
 ```bash
 yq --front-matter=extract -e '
@@ -66,16 +63,16 @@ Always quote `generated_at`: an unquoted ISO timestamp is read as a YAML timesta
 
 ## Determinism
 
-Output is identical for identical scope and commit, whether launched by 0.2.8 or by `regenerate-caches` (D4). Regenerate a cache from scratch and replace it; never patch the previous one.
+Output is identical for identical scope and commit, whether launched by 0.2.8 or by `regenerate-caches`. Regenerate a cache from scratch and replace it; never patch the previous one.
 
 ## Body shape per cache type
 
-A script generates whatever can be generated; the `cache-regeneration` agent writes only bounded text into fixed slots (PLAN/gap-research.md G6). `scripts/build-architecture.sh` produces the generated parts from one dependency-cruiser run, and `scripts/check-staged-cache.sh` rejects a staged body that breaks the shapes below.
+A script generates whatever can be generated; the `cache-regeneration` agent writes only bounded text into fixed slots, so two runs at the same commit produce the same file. `scripts/build-architecture.sh` produces the generated parts from one dependency-cruiser run, and `scripts/check-staged-cache.sh` rejects a staged body that breaks the shapes below.
 
 ### Rules for every body
 
 - **Sorted.** Every list and every `##` section is in byte order (`LC_ALL=C sort`), with no duplicates. The only exceptions are a diagram's call order and the fixed section order of `architecture.md`.
-- **No timestamps or counts.** The stamp lives in the frontmatter only (D17).
+- **No timestamps or counts.** The stamp lives in the frontmatter only.
 - **Paths, not prose.** Modules are named by repo-relative path; the same path is the node name in every cache, and its Mermaid id is the path with every non-alphanumeric character replaced by `_` (`src/shared/core` → `src_shared_core`). Two paths with the same id stop the build rather than merge.
 - **Module paths.** A file belongs to its longest module root: the `owns` paths of the `.workflow/rules.md` Ownership block plus `shared_core.paths`, with a trailing `/**` or `/*` removed. A file under no root belongs to `<scope path>/<first segment>`, or is its own module when it sits directly in the scope path. The script reads the roots itself, so the agent never reads Tier A.
 - **From code at HEAD.** The scope paths must have no uncommitted or untracked changes; the build refuses otherwise.
@@ -136,7 +133,7 @@ flowchart LR
 
 ### `flows.md` (agent-written, constrained)
 
-Entry points are discovered on every run, with no config block (D64). `build-architecture.sh --cache entries` lists the candidates: source files that nothing in scope imports, tests and declarations excluded, each with the files and modules it reaches. The agent keeps a candidate only when its code shows it is an entry point (a route or page the framework loads, a CLI main with a shebang or `process.argv`, or an exported handler a platform invokes) and drops the rest.
+Entry points are discovered on every run, with no config block. `build-architecture.sh --cache entries` lists the candidates: source files that nothing in scope imports, tests and declarations excluded, each with the files and modules it reaches. The agent keeps a candidate only when its code shows it is an entry point (a route or page the framework loads, a CLI main with a shebang or `process.argv`, or an exported handler a platform invokes) and drops the rest.
 
 ````markdown
 # Flows

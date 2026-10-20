@@ -1,8 +1,3 @@
-<!--
-Module of project-standards: step 4, interview.
-Sources: first-party. Batches of at most eight, never ask what a scan answered, recall questions over review lists, show the evidence when the repo contradicts the user, and offer a non-obvious command as a candidate line adapted from bmad-code-org/BMAD-METHOD skills/bmad-project-context/SKILL.md@8f0d50e step 4 (MIT; pattern only). Coaching path by default, fast path with [ASSUMPTION] tags, show the alternatives for load-bearing calls, and the divergence test adapted from bmad-code-org/BMAD-METHOD skills/bmad-architecture/SKILL.md@8f0d50e (MIT; pattern only). The conflict-point categories adapted from bmad-code-org/BMAD-METHOD src/bmm-skills/3-solutioning/bmad-create-architecture/steps/step-05-patterns.md and step-06-structure.md@560a2e3a (MIT; pattern only). Mandatory coverage list (../assets/coverage.md) is first-party.
--->
-
 # Interview
 
 The interview is a **grill**: every item in [../assets/coverage.md](../assets/coverage.md) that applies gets an explicit answer from the human. Your recommendation speeds the answer up; it never replaces it.

@@ -1,8 +1,3 @@
-<!--
-File: ADR format and the three-part ADR test for the first-party `domain-modeling` skill (D10). Used at 0.3.5-0.3.7; read by review-standards (4.1) and retrieval (0.2.4).
-Sources: copied from mattpocock/skills skills/engineering/domain-modeling/ADR-FORMAT.md (MIT, Copyright (c) 2026 Matt Pocock; commit 49dd158; notice in ../LICENSE). Changes: `docs/adr/` -> `.workflow/decisions/adr/` (plan 00.4); the template now lives in adr.md; the Status frontmatter is written as a `status:` key; added the optional Deferred section (D80); added "Superseding an ADR" (plan 00.4 "Superseded ADRs stay, marked"; lifecycle and supersede back-link pattern from wshobson/agents plugins/documentation-generation/skills/architecture-decision-records/SKILL.md, MIT, pattern only).
--->
-
 # ADR Format
 
 ADRs live in `.workflow/decisions/adr/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc.
@@ -28,7 +23,7 @@ Only include these when they add genuine value. Most ADRs won't need them.
 - **Status** frontmatter (`status: proposed | accepted | deprecated | superseded by ADR-NNNN`): useful when decisions are revisited
 - **Considered Options**: only when the rejected alternatives are worth remembering
 - **Consequences**: only when non-obvious downstream effects need to be called out
-- **Deferred**: decisions knowingly left open, each with its reason; used by the `project-standards` baseline ADR (`0001-project-baseline`, D80)
+- **Deferred**: decisions knowingly left open, each with its reason; used by the `project-standards` baseline ADR (`0001-project-baseline`)
 
 ## Numbering
 

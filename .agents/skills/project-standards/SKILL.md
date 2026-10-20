@@ -3,11 +3,6 @@ name: project-standards
 description: "Grill the human through a mandatory coverage list (libraries per concern, folder structure and layout tree, naming per layer, boundaries, contracts, process patterns, bootstrap order, deferred), then approve and write the project's standards: a staged baseline split into .workflow/rules.md, work profiles, ADRs, .workflow/pr-quality checks, per-profile lint config and a managed AGENTS.md block, every line carrying its destination, enforcement and evidence. Use when project-setup hands over after agreeing the work types (and again for lint config once toolchains are installed), when adopting standards in an existing codebase, when importing an architecture or standards document, when refreshing standards after code changed, or when adding a work type."
 ---
 
-<!--
-Sources: first-party; plan PLAN/decision-flow-reference.md "Persistent artifacts" 00.3, 00.4, 00.16-00.17, "Work profiles", "Tier A is agent-proposed, human-approved"; assetlist D15, D16, D20, D21, D26, D35, D51, D75, D80.
-Adapted (patterns and structure, no text copied): bmad-code-org/BMAD-METHOD/skills/bmad-project-context/SKILL.md@8f0d50e (MIT): assess, ask what the user brings, discover, interview the gaps in batches of at most eight, the ledger (retain | rewrite | relocate | automate | delete) and its deletion grounds, "prefer a check over a line", one approval of the whole set, the managed block between markers, the commit-stamped provenance line and refresh-by-commit. bmad-code-org/BMAD-METHOD/skills/bmad-project-context/references/{template,best-practices}.md@8f0d50e (MIT): block sections, admit and exclude rules. bmad-code-org/BMAD-METHOD/skills/bmad-architecture/SKILL.md@8f0d50e and assets/spine-template.md@8f0d50e (MIT): coaching path by default with a fast path, the "two builders could diverge" test, recommend a verified current starter for greenfield, ratify brownfield conventions, a named paradigm, an explicit Deferred list. bmad-code-org/BMAD-METHOD/src/bmm-skills/3-solutioning/bmad-create-architecture/steps/{step-05-patterns,step-06-structure}.md@560a2e3a (MIT): conflict-point categories (naming, structure, format, communication, process) and integration boundaries.
--->
-
 # Project standards
 
 Turn what the project brings (policy, an imported document, the code itself) into enforced standards. The baseline in `.workflow/.standards-staging/baseline.md` is a **staging draft, never a source of truth**: each line is routed to its home (`.workflow/rules.md`, `.workflow/profiles/<work-type>.md`, an ADR, a `.workflow/pr-quality/` check, lint config, the AGENTS.md block) and to the cheapest mechanism that holds it. Done when every applicable item of the mandatory coverage list ([assets/coverage.md](assets/coverage.md)) has a human answer, every approved line is written to its destination, the boundary config regenerates, the lint config parses, and each written doc carries a `verified_at_commit` stamp.
@@ -32,7 +27,7 @@ project-setup calls this skill twice, passing the agreed work types and the mode
 
 project-setup owns the Toolchain blocks and the installs; you own every other standards line, every lint rule beyond the base config the installer registers (anti-slop), and the lint parse proof. project-setup runs the boundary generator itself after the `lint` call.
 
-The D26 example profiles (`.agents/skills/project-setup/assets/profiles/examples/`) are never pre-seeded: offer their lines as candidate answers inside the interview (C1, C3, C4 for `test-harness` and `e2e-browser`), and the human picks.
+The example profiles (`.agents/skills/project-setup/assets/profiles/examples/`) are never pre-seeded: offer their lines as candidate answers inside the interview (C1, C3, C4 for `test-harness` and `e2e-browser`), and the human picks.
 
 Standalone, run every step, and write Toolchain and lint rows yourself at step 7.
 
@@ -44,7 +39,7 @@ List the specs whose status is not `done`:
 for s in .workflow/specs/*/spec.md; do [ -f "$s" ] || continue; st=$(yq --front-matter=extract '.status // ""' "$s"); [ "$st" = done ] || echo "$s $st"; done
 ```
 
-- **None**: Tier A writes are allowed from the main session without a step (D51). Continue.
+- **None**: Tier A writes are allowed from the main session without a step. Continue.
 - **One or more**: run steps 1-6 as normal, but at step 7 write each approved line as a `proposed` row in the in-flight spec's `.workflow/specs/NNN-slug/proposals.md` instead (ask which spec when several are in flight). Copy `.agents/skills/feature-workflow/assets/proposals.md` there when the file is absent, and continue its `P<n>` numbering. Use its groups: Rules, Decisions, Profiles, and Tool rules for lint config. Set Origin to `project-standards <date>`. That spec's sign-off applies them at 5.3. Keep the `.workflow/pr-quality/` and AGENTS.md block lines in `.workflow/.standards-staging/baseline.md`, and write them in a later run once no spec is in flight.
 
 Done when the in-flight list is known and the write route (direct or proposals) is fixed.
@@ -93,7 +88,7 @@ Done when every row is `approved`, `modified` (the new text shown and confirmed)
 
 ## 7. Write
 
-Read [modules/write.md](modules/write.md) and write each approved row to its destination, from the main session (sub-agents are denied Tier A writes, D16). In the `phase: standards` call, leave Toolchain and lint rows for project-setup and the `phase: lint` call.
+Read [modules/write.md](modules/write.md) and write each approved row to its destination, from the main session (sub-agents are denied Tier A writes). In the `phase: standards` call, leave Toolchain and lint rows for project-setup and the `phase: lint` call.
 
 Done when every approved row this call owns is in its destination file, and the baseline's Written column names the file and section for each.
 

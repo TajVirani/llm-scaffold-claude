@@ -3,10 +3,6 @@ name: domain-modeling
 description: Agree canonical terms with the stakeholder and record decisions. Use when a request or answer uses a new, ambiguous or conflicting term, when a new concept has no canonical name, at the feature-workflow term gates (0.2.2, 0.3.14, 0.4.2), when writing, editing or superseding an ADR (including the placement ADR at 0.3.7), or when writing or editing .workflow/GLOSSARY.md.
 ---
 
-<!--
-Sources: adapted from mattpocock/skills skills/engineering/domain-modeling/SKILL.md (MIT, Copyright (c) 2026 Matt Pocock; commit 49dd158; notice in ./LICENSE). Changes: scoped to the term gates and ADRs (D10); stakeholder agreement before each glossary write; step marker before Tier A writes (D16); placement and superseding flow for 0.3.5-0.3.7; naming baseline for review-standards; paths moved to .workflow/decisions/adr/. Plan: PLAN/decision-flow-reference.md 00.1, 00.4, 0.2.2-0.2.3, 0.3.5-0.3.7, 0.3.14-0.3.15, 0.4.2-0.4.3, 5.3; assetlist D8, D10, D16, D21, D51.
--->
-
 # Domain Modeling
 
 Build and sharpen the project's domain model as you design: challenge terms, invent edge-case scenarios, and write the glossary and decisions down the moment they crystallise. Reading `.workflow/GLOSSARY.md` for vocabulary is a habit any skill can have; this skill is for changing the model.
@@ -16,7 +12,7 @@ Build and sharpen the project's domain model as you design: challenge terms, inv
 - `.workflow/GLOSSARY.md` at the repo root, or one per context listed in a root `.workflow/GLOSSARY-MAP.md`. Format: [assets/GLOSSARY-FORMAT.md](assets/GLOSSARY-FORMAT.md).
 - `.workflow/decisions/adr/NNNN-slug.md`. Format and test: [assets/ADR-FORMAT.md](assets/ADR-FORMAT.md). Template: [assets/adr.md](assets/adr.md).
 
-Create files lazily: only when you have something to write. Write them from the main session: the Tier A write guard denies writes made inside a sub-agent (D16).
+Create files lazily: only when you have something to write. Write them from the main session: the Tier A write guard denies writes made inside a sub-agent.
 
 ## Set the step before a Tier A write
 
@@ -32,9 +28,9 @@ Create files lazily: only when you have something to write. Write them from the 
 | Glossary entry agreed at term gate 0.3.14 | `0.3.15` |
 | Glossary entry agreed at term gate 0.4.2 | `0.4.3` |
 | Placement ADR, and marking a superseded ADR | `0.3.7` |
-| Glossary entry from a proposal approved at sign-off (D51) | `5.3` |
+| Glossary entry from a proposal approved at sign-off | `5.3` |
 
-Glossary files are writable only at the three agree-definition steps and at 5.3 (D51). At 5.3, `sign-off` applies the approved `proposals.md` entries; when one is a glossary change, write it exactly as approved, in the glossary format, under step `5.3`.
+Glossary files are writable only at the three agree-definition steps and at 5.3. At 5.3, `sign-off` applies the approved `proposals.md` entries; when one is a glossary change, write it exactly as approved, in the glossary format, under step `5.3`.
 
 If the guard denies a write, stop and report the denial with the agreed text. Write Tier A files only through Write or Edit, never through Bash.
 
@@ -89,7 +85,7 @@ If the placement fails the test, record it in the feature's `design-log.md` inst
 
 ### Other ADRs
 
-Inside a feature, the guard admits ADR writes only at 0.3.7 (and at 5.3 and 5.7, owned by other steps). An ADR that passes the test elsewhere goes to `proposals.md` for approval at 5.3 (D21).
+Inside a feature, the guard admits ADR writes only at 0.3.7 (and at 5.3 and 5.7, owned by other steps). An ADR that passes the test elsewhere goes to `proposals.md` for approval at 5.3.
 
 ## Done
 

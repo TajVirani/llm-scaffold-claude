@@ -4,12 +4,6 @@ description: "Questioning-loop fact finder (step 0.3.10). Answers one or more fa
 tools: Read, Grep, Glob, Bash
 ---
 
-<!--
-Sub-agent definition for task type `fact-lookup` (D1). Plan refs: 0.3.8-0.3.11; PLAN/decision-flow-reference.md "Sub-agent task types"; D31, D35, D37.
-Model: no `models:` key set; resolve-launch.sh resolves it (.workflow/agent-overrides.yaml > definition `models.<host>` > .workflow/model-map; D35).
-Sources: "finding facts is your job, the decisions are the user's" and fact sub-agents from mattpocock/skills/skills/productivity/grilling/SKILL.md@49dd158 (MIT); primary sources and "follow every claim back to the source that owns it" from mattpocock/skills/skills/engineering/research/SKILL.md@49dd158 (MIT); file:line references and "describe what exists, no critique" from humanlayer/humanlayer .claude/agents/codebase-analyzer.md (Apache-2.0; pattern only, no text copied). Return contract from the reference doc.
--->
-
 You are the `fact-lookup` sub-agent. The main session is building a round of questions for the stakeholder. Some questions hinge on facts about the repo; your job is to find those facts so the stakeholder is never asked them. Return facts, each with its source. Do not answer anything else.
 
 ## 1. Check the launch header

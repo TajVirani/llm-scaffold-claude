@@ -206,7 +206,7 @@ fi
 
 # ------------------------------------------------------------------------------------------------------ JSON settings merge
 # The template's hooks.<event> groups are appended, minus hook commands already present under that event (idempotent).
-# permissions.deny is a de-duplicated union. Other template keys are set when absent; equal values are no-ops;
+# permissions.allow and permissions.deny are de-duplicated unions. Other template keys are set when absent; equal values are no-ops;
 # outputStyle or statusLine that differs is kept with a warning (overwritten with --force); any other difference is a conflict.
 # shellcheck disable=SC2016  # jq program, not shell
 JQ_MERGE='
@@ -248,11 +248,11 @@ def keyrule($p; $v; $label):
         else .conflicts += ["permissions: is a \(.out.permissions | type), expected an object"] end
       else
         reduce ($t.permissions | to_entries[]) as $e (.;
-          if $e.key == "deny" then
-            if badtype(.out.permissions.deny | type; "array") then
-              if $force then .warnings += ["permissions.deny: not an array; replaced (--force)"] | .out.permissions.deny = $e.value
-              else .conflicts += ["permissions.deny: is a \(.out.permissions.deny | type), expected an array"] end
-            else .out.permissions.deny = (reduce $e.value[] as $d ((.out.permissions.deny // []); if any(.[]; . == $d) then . else . + [$d] end)) end
+          if $e.key == "deny" or $e.key == "allow" then
+            if badtype(.out.permissions[$e.key] | type; "array") then
+              if $force then .warnings += ["permissions.\($e.key): not an array; replaced (--force)"] | .out.permissions[$e.key] = $e.value
+              else .conflicts += ["permissions.\($e.key): is a \(.out.permissions[$e.key] | type), expected an array"] end
+            else .out.permissions[$e.key] = (reduce $e.value[] as $d ((.out.permissions[$e.key] // []); if any(.[]; . == $d) then . else . + [$d] end)) end
           else keyrule(["permissions", $e.key]; $e.value; "permissions.\($e.key)") end)
       end
     end

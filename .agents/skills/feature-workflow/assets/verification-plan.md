@@ -1,14 +1,13 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/verification-plan.md: how the feature will be proven. No frontmatter.
 Written by modules/discovery.md at 0.5.1-0.5.4 (End state, Journeys, Fixtures and oracles); Targets added by modules/verification-setup.md at 1.1. Drives the browser suite (1.3), review-end-state (4.2) and review-targets (4.3); report.md (5.4) reports against it.
-Sources: the test-scenario role of Spec Kit's quickstart.md (claude-night-market spec-kit skills/shared/modules/artifact-structure.md, MIT). Criteria that are measurable, verifiable, user-visible and binary adapted from claude-night-market spec-kit skills/spec-writing/modules/success-criteria-patterns.md (MIT) and athola/claude-night-market/plugins/imbue/skills/proof-of-work/modules/acceptance-criteria.md@54fcc85 (MIT). "Every verify step has an automated check" adapted from open-gsd/gsd-core agents/gsd-planner.md "Nyquist rule" (MIT; idea only). JRN-### journeys, fixtures and oracles, and targets are first-party (PLAN/decision-flow-reference.md "Per-feature files", 0.5.1-0.5.4, 1.1, 4.2, 4.3).
 
 Rules:
   - End state: each objective is binary (pass or fail), observable from outside the code, and names the CAP-### it proves. "Works correctly" is not an objective.
-  - Journeys: stable ids JRN-001, JRN-002, ... never reused or renumbered. Each journey names the automated check that runs it; the browser suite (1.3) is built from this list, tags each test `@JRN-###` (Playwright `tag` detail, with the id also at the start of the title; PLAN/gap-research.md G1) and so evidence in artifacts/ is filed by run and journey id. A journey with no automated check yet says "MISSING" in Check until 1.3 builds it.
+  - Journeys: stable ids JRN-001, JRN-002, ... never reused or renumbered. Each journey names the automated check that runs it; the browser suite (1.3) is built from this list, tags each test `@JRN-###` (Playwright `tag` detail, with the id also at the start of the title) and so evidence in artifacts/ is filed by run and journey id. A journey with no automated check yet says "MISSING" in Check until 1.3 builds it.
   - Fixtures and oracles: say where test data comes from and how a correct result is known (expected values, a reference system, a recorded baseline). An oracle that is "looks right" is not an oracle.
   - Targets: filled at 1.1. Each has a threshold and the exact command that measures it, so review-targets can measure without judgement. A target that cannot be measured says why.
-  - Suites: commands are never written here from memory. The unit/integration suite is the profile Toolchain `test` key and the browser suite is the `e2e` key (D61); this section points to them, and gates 3.9 and 3.10 run them.
+  - Suites: commands are never written here from memory. The unit/integration suite is the profile Toolchain `test` key and the browser suite is the `e2e` key; this section points to them, and gates 3.9 and 3.10 run them.
   - Delete this comment in the finished file.
 -->
 

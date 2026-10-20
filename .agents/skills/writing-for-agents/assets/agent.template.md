@@ -4,10 +4,6 @@ description: "<What it returns>. Launch when <condition>. Not for <neighbouring 
 tools: <Read, Grep, Glob>
 ---
 
-<!--
-Sources: <repo>/<path> @ <commit> (<licence>), or "first-party".
--->
-
 You are the `<file-name>` sub-agent. <One sentence: the job and who uses the result.>
 
 ## Input

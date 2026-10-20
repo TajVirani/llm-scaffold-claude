@@ -61,7 +61,7 @@ See `modules/doc-conformance.md` for spec/PRD ↔ code conformance and doc-drift
 
 ## Project checks
 
-Project-specific checks (a library's correct use, recurring fix patterns from the project's history, house rules no linter enforces) are **project-owned** (D75): they live in the target project, never in this skill.
+Project-specific checks (a library's correct use, recurring fix patterns from the project's history, house rules no linter enforces) are **project-owned**: they live in the target project, never in this skill.
 
 - **Contract:** every `.workflow/pr-quality/*.md` file in the project root except `README.md` is one project check. Each file is the complete methodology for one sub-agent: Objective, Scope (trigger and self-skip), Checks, What to report, What NOT to flag. Its H1 names its report section.
 - **Start one** by copying [assets/project-check.template.md](assets/project-check.template.md) to `.workflow/pr-quality/<check-name>.md` and filling it in.

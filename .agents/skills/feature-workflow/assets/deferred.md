@@ -4,11 +4,10 @@ created: YYYY-MM-DD
 severity: medium                 # review findings only (4.8): high | medium | low. Delete the key for any other item.
 ---
 <!--
-File: Template for .workflow/deferred/<slug>.md: one self-contained handoff per shelved concept. Written through modules/deferred-handoff.md (D24) from questioning-loop (0.3.17), review-triage (4.8) and the light-path suite gap (3.14, D29). Read by `retrieval` at 0.2.4.
+File: Template for .workflow/deferred/<slug>.md: one self-contained handoff per shelved concept. Written through modules/deferred-handoff.md from questioning-loop (0.3.17), review-triage (4.8) and the light-path suite gap (3.14). Read by `retrieval` at 0.2.4.
 Archival (00.9): when the item gets a spec of its own, deferred-handoff prepends `superseded_by: .workflow/specs/NNN-slug` to the frontmatter and moves the file to .workflow/deferred/archive/<slug>.md. Nothing else changes.
-Sources: brief structure (summary, current vs desired behaviour, acceptance criteria, out of scope; durable and behavioural rather than procedural) adapted from mattpocock/skills/skills/engineering/triage/AGENT-BRIEF.md@49dd158 (MIT). One file per concept, kebab-case concept name, durable reasons, later requests appended rather than duplicated: mattpocock/skills triage/OUT-OF-SCOPE.md (MIT). "Reference other artifacts, do not duplicate; redact secrets": mattpocock/skills handoff/SKILL.md (MIT). HITL/AFK: mattpocock/skills wayfinder/SKILL.md "Ticket Types" (MIT). Frontmatter fields and body headings (goal, background, constraints, decisions already made, evidence, back-link) are plan-specified: PLAN/decision-flow-reference.md "Persistent files" 00.8-00.10; assetlist D24, D29.
 
-Frontmatter contract (mikefarah yq v4, `--front-matter=extract`; D38):
+Frontmatter contract (mikefarah yq v4, `--front-matter=extract`):
   - origin_spec: string, repo-relative spec folder (.workflow/specs/NNN-slug).
   - created: date, YYYY-MM-DD.
   - severity: high | medium | low. Only on items deferred from review triage (4.8). An unverified (maybe-false) finding carries the severity it would have if true, and says "unverified" under Evidence.

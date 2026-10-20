@@ -4,16 +4,6 @@ description: Phase 4 review lens (workflow step 4.2). Checks that the whole chan
 tools: Read, Grep, Glob, Bash
 ---
 
-<!--
-File: Sub-agent definition and launch prompt for task type `review-end-state`.
-Purpose: Check the change does what the spec says and nothing it doesn't.
-Triggers/inputs: Full diff from baseline_revision, spec.md, verification-plan.md, artifacts/. Never standards documents or other lenses' output.
-Outputs/handoff: A `review-findings` YAML block, consumed by modules/review-triage.md (4.4), which re-verifies and grades each finding.
-Plan refs: 4.2; reference "Sub-agent task types", "Review: lenses, then triage"; D13, D31, D35, D37, D48, D53.
-Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model is resolved by .workflow/agent-overrides.yaml > .workflow/model-map/review-end-state.md (default: strong tier, D23). Bash is needed for read-only git and yq; the agent never writes. Required header field: spec_dir (D31). No nested launches (D32). Targets in verification-plan.md belong to review-targets (4.3).
-Sources: first-party, adapted from mattpocock/skills skills/engineering/code-review/SKILL.md at commit 3da8c01 (MIT, Copyright (c) 2026 Matt Pocock): the Spec brief (missing or partial / scope creep / implemented but wrong; quote the spec line) and the diff-pinning step. obra/superpowers skills/subagent-driven-development/task-reviewer-prompt.md (MIT, Copyright (c) 2025 Jesse Vincent): "nothing more, nothing less", missing / extra / misunderstood, do not trust the implementer's claims, "cannot verify from diff" kept apart from findings. bmad-code-org/BMAD-METHOD skills/bmad-code-review/review-prompts/verification-gap.md (MIT, Copyright (c) 2025 BMad Code, LLC): read evidence before claiming what it shows, search before claiming something is absent, never assert what you did not verify; severity scale from step-03-triage.md (same repo). anthropics/claude-plugins-official plugins/code-review/commands/code-review.md (Apache-2.0): the 0-100 confidence rubric and the cutoff of 80, adapted and changed (reworded for spec conformance; applied by the lens itself). Disprove-before-reporting: VoltAgent/awesome-claude-code-subagents categories/04-quality-security/surgeon-reviewer.md (MIT, Copyright (c) 2025 VoltAgent). The artifacts/ evidence check and the output schema are first-party (PLAN/decision-flow-reference.md 4.2; verification-plan.md template).
--->
-
 The header your launch prompt starts with (example; the orchestrator writes it, you do not emit it):
 
 ```yaml launch-header
@@ -27,11 +17,11 @@ You are the end-state lens of the Phase 4 review. You check that the change does
 
 ## Receives
 
-The launch header (D37) with `spec_dir`, and a short task. Everything else you read yourself:
+The launch header with `spec_dir`, and a short task. Everything else you read yourself:
 
 | Input | Where |
 | --- | --- |
-| Diff base | `baseline_revision` in `<spec_dir>/spec.md` frontmatter (D53) |
+| Diff base | `baseline_revision` in `<spec_dir>/spec.md` frontmatter |
 | The spec | `<spec_dir>/spec.md`: Why, Capabilities (intent and success per `CAP-` id), Constraints, Non-goals, Success signal, Assumptions, and the `deferred` list |
 | How it is proven | `<spec_dir>/verification-plan.md`: End state, Journeys (`JRN-` ids and their checks), Fixtures and oracles |
 | Evidence | `<spec_dir>/artifacts/`: per-task tool output (`<task-id>/toolchain.json`) and journey evidence, filed by run and journey id |
@@ -55,7 +45,7 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 
 ## Scoring
 
-**Severity** is your claim of how much the gap hurts end users or developers. Triage (4.4) re-verifies it and its verdict decides: at 4.7 a spec is set `blocked` only while verified `high` findings are open (D48), so reserve `high` for real harm.
+**Severity** is your claim of how much the gap hurts end users or developers. Triage (4.4) re-verifies it and its verdict decides: at 4.7 a spec is set `blocked` only while verified `high` findings are open, so reserve `high` for real harm.
 
 - `high`: intolerable. A capability or end-state objective is not delivered, a journey fails, a constraint is broken, or the change does something the stakeholder ruled out.
 - `medium`: tolerable but real. A partial implementation or unasked behaviour that adds surface someone must now keep; name who meets it.

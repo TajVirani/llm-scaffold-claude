@@ -1,8 +1,3 @@
-<!--
-Module of project-standards: step 3, discovery (brownfield, add-work-type, refresh), starter research (greenfield) and library candidates.
-Sources: first-party (D31, D35, D37, D80; the standards-discovery agent's input and return in .agents/agents/standards-discovery.md). One scan per separable unit and "fan out with parallel subagents" adapted from bmad-code-org/BMAD-METHOD skills/bmad-project-context/SKILL.md@8f0d50e steps 1 and 3 (MIT; pattern only). "Recommend a well-known current starter, verify the going choice on the web first" from bmad-code-org/BMAD-METHOD skills/bmad-architecture/SKILL.md@8f0d50e "How you work" (MIT; pattern only).
--->
-
 # Discovery
 
 ## Brownfield, add-work-type and refresh: one agent per scope
@@ -15,7 +10,7 @@ Done when the scope list is agreed.
 
 ### Launch
 
-Launch every scope's agent in one message so they run in parallel. The prompt carries no launch header (the `standards-discovery` header is optional and holds nothing but `task_type`; D31, D80) and no profile. The prompt is one line, then the input block:
+Launch every scope's agent in one message so they run in parallel. The prompt carries no launch header (the `standards-discovery` header is optional and holds nothing but `task_type`) and no profile. The prompt is one line, then the input block:
 
 ````
 Discover the standards for this scope.

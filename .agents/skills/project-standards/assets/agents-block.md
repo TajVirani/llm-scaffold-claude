@@ -23,4 +23,8 @@ Sources: first-party. Section order (Orientation, Where things are, Running and 
 
 - {Work type}: lint `{lint}` · typecheck `{typecheck}` · test `{test}`.
 - {A caveat the manifest does not state, e.g. a service that must be up first, or a filter flag the obvious command lacks.}
+
+## Compaction
+
+- When compacting, keep the active spec path under `.workflow/specs/`, its current step and status, and the files modified so far.
 <!-- project-standards:end -->

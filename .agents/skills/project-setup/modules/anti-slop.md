@@ -1,11 +1,6 @@
-<!--
-Module of project-setup: fetch dmmulroy/anti-slop at the pinned commit, vendor it into the project, and register its rules (D10, D42).
-Sources: adapted from dmmulroy/anti-slop skills/install-anti-slop/SKILL.md, fresh-install steps 1-5, at commit c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b (MIT, Copyright (c) 2026 Dillon Mulroy). Changes: fetch by pinned commit with git instead of copying a bundled tree; carry the repository-root LICENSE, which the skill assets do not include; no update path (an existing copy is kept). The rule names are copied from upstream step 3. Plan: assetlist D10, D42.
--->
-
 # Anti-slop
 
-Anti-slop is a set of Oxlint rules that the project vendors and then owns (MIT). This step fetches it at a pinned commit, rather than shipping a copy in the scaffold (D42), and it never calls the upstream `install-anti-slop` skill (D10).
+Anti-slop is a set of Oxlint rules that the project vendors and then owns (MIT). This step fetches it at a pinned commit, rather than shipping a copy in the scaffold, and it never calls the upstream `install-anti-slop` skill.
 
 ## Pin
 

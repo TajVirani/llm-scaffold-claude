@@ -1,11 +1,3 @@
-<!--
-File: Phase 4 module of `feature-workflow` (4.1-4.8): three independent review lenses in parallel, then finding-by-finding triage and routing in the main session.
-Triggers/inputs: spec status `in-review` (set at 3.11, or 3.14 on a light path without suites, by modules/implementation-orchestrator.md; again after each 4.7 rework). Reads the lens returns, the diff from `baseline_revision`, tasks.md, design-log.md and artifacts/.
-Outputs/handoff: design-log.md triage entries; raw lens returns (and the review-targets `measurements` table) under artifacts/review/; discovered-work entries to modules/discovered-work.md (00.21-00.28); rework to modules/implementation-orchestrator.md (4.7); loop back to modules/questioning-loop.md at 0.3.8 (4.5, 4.6); .workflow/deferred/ handoffs through modules/deferred-handoff.md (4.8); handoff to modules/sign-off.md (5.1).
-Plan refs: PLAN/decision-flow-reference.md Phase 4, "Review: lenses, then triage", "Status"; PLAN/decision-flow.mermaid P4 edges; assetlist D13, D24, D31, D33, D37, D38, D45, D48, D49, D54, D56, D62; PLAN/sourcing.md "Batch 2-4 outcomes" (review-findings contract); PLAN/gap-research.md G3 (review-targets return: `category: target`, `measurements:`).
-Sources: first-party, adapted from: mattpocock/skills skills/engineering/code-review/SKILL.md at 3da8c01 (MIT; steps 4-5 and "Why two axes": independent parallel lenses, no merging or reranking across lenses). bmad-code-org/BMAD-METHOD skills/bmad-code-review/step-03-triage.md and skills/bmad-build/step-04-review.md (MIT, Copyright (c) 2025 BMad Code, LLC): normalise, verify at the cited location, one verdict high/medium/low/false/maybe-false, reject rules, group by root cause, route decision-needed/patch/defer, "carried" verdicts on a re-review, loop counter capped at five; prose adapted and changed, no templating; BMad names are trademarks and are used for attribution only. bmad-code-org/BMAD-METHOD skills/bmad-code-review/step-04-present.md (MIT): decision-needed entries carry options and a recommendation; failed lenses are reported before any clean result. anthropics/claude-plugins-official plugins/code-review/commands/code-review.md (Apache-2.0): the confidence cutoff of 80 that the lenses apply before returning (referenced, not copied). Third-pass rule and rework ceiling of five: PLAN/decision-flow-reference.md 4.6-4.7 (BMad).
--->
-
 # Review and triage (Phase 4)
 
 Three lenses review the whole change independently; you then verify, grade and route every finding yourself in the main session. You are done with Phase 4 when one exit in step 6 has run: rework, loop back, or hand-off to sign-off.
@@ -35,20 +27,20 @@ spec_dir: .workflow/specs/NNN-slug
 Review pass <n> of .workflow/specs/NNN-slug. Return the review-findings block.
 ````
 
-Repeat with `task_type: review-end-state` and `task_type: review-targets`; `subagent_type` matches `task_type`. On Claude the `pre-launch` hook resolves the model through `resolve-launch.sh` and denies a malformed header (D33, D37). On Codex, build each prompt yourself and launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `review_standards`, `review_end_state`, `review_targets`, `task_name` `s<NNN>_<lens>` (`s007_review_standards`, `s007_review_end_state`, `s007_review_targets`), `fork_turns: "none"`:
+Repeat with `task_type: review-end-state` and `task_type: review-targets`; `subagent_type` matches `task_type`. On Claude the `pre-launch` hook resolves the model through `resolve-launch.sh` and denies a malformed header. On Codex, build each prompt yourself and launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `review_standards`, `review_end_state`, `review_targets`, `task_name` `s<NNN>_<lens>` (`s007_review_standards`, `s007_review_end_state`, `s007_review_targets`), `fork_turns: "none"`:
 
 ```bash
 echo "Review pass <n> of .workflow/specs/NNN-slug. Return the review-findings block." |
   .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type review-standards --spec-dir .workflow/specs/NNN-slug
 ```
 
-**`review-targets` runs the build itself** (G3). It starts the build with the profile's `serve`, waits for `serve_ready`, measures and stops it (D62), so start nothing for it. Its block is parsed as in step 3, including its `measurements:` table; a return with no parseable `review-findings` block is a failed lens like any other.
+**`review-targets` runs the build itself.** It starts the build with the profile's `serve`, waits for `serve_ready`, measures and stops it, so start nothing for it. Its block is parsed as in step 3, including its `measurements:` table; a return with no parseable `review-findings` block is a failed lens like any other.
 
 Done when all three launches have returned.
 
 ## 3. Save and parse the returns
 
-Save each lens's fenced `review-findings` block, without the fence lines, to `.workflow/specs/NNN-slug/artifacts/review/pass-<n>/<lens>.yaml`. Then check its shape with mikefarah yq v4 (D38); `PFX` is `RS` for `review-standards`, `RE` for `review-end-state` and `RT` for `review-targets`:
+Save each lens's fenced `review-findings` block, without the fence lines, to `.workflow/specs/NNN-slug/artifacts/review/pass-<n>/<lens>.yaml`. Then check its shape with mikefarah yq v4; `PFX` is `RS` for `review-standards`, `RE` for `review-end-state` and `RT` for `review-targets`:
 
 ```bash
 LENS=review-standards PFX=RS yq -e '
@@ -67,7 +59,7 @@ LENS=review-standards PFX=RS yq -e '
 
 A `category: discovered-work` finding has its own shape (`kind`, `summary`, `evidence`, `blocker_assessment`, `reason`) and no severity, confidence, location or claim; the 80 cutoff applies only to the other categories.
 
-For `review-targets`, also check the `measurements:` table (G3): one entry per `## Targets` row of `verification-plan.md`, in table order, each with a `result` of `pass`, `fail` or `not_measurable`, and a `reason` whenever it is `not_measurable`:
+For `review-targets`, also check the `measurements:` table: one entry per `## Targets` row of `verification-plan.md`, in table order, each with a `result` of `pass`, `fail` or `not_measurable`, and a `reason` whenever it is `not_measurable`:
 
 ```bash
 yq -e '((.measurements | tag) == "!!seq") and
@@ -97,10 +89,10 @@ Work on one combined list. Give each finding the next `F<n>` and keep its lens i
    - `false`: you checked, and the bad outcome does not happen there. Write what disproves this specific claim.
    - `maybe-false`: the diff and surrounding code leave it open. Write what would settle it.
 4. **Dismiss noise, with the reason recorded.** Route `none` for: every `false` (on its refutation); a `low` that users or developers are unlikely to meet in everyday use and whose fix adds guards, branches or parameters; an all-`maybe-false` finding that would only be `low` if true.
-5. **Spot discovered work.** A finding with `category: discovered-work`, or any finding you verified as real whose fix lies outside the spec's agreed scope (a new requirement, a bug found along the way, a needed refactor, scope spreading into another module, a decision nobody in the session can answer), is **discovered work** (D56). It routes to the protocol in step 5, never to patch: the current spec does not grow to fix it. Pre-existing behaviour that this change did not cause and that needs nothing now stays `defer`.
+5. **Spot discovered work.** A finding with `category: discovered-work`, or any finding you verified as real whose fix lies outside the spec's agreed scope (a new requirement, a bug found along the way, a needed refactor, scope spreading into another module, a decision nobody in the session can answer), is **discovered work**. It routes to the protocol in step 5, never to patch: the current spec does not grow to fix it. Pre-existing behaviour that this change did not cause and that needs nothing now stays `defer`.
 6. **Group by root cause.** Two findings share an entry only when the same defect produced both; the same location or the same fix is not enough. The group takes the highest verdict among its members (`high` > `medium` > `low` > `maybe-false`) and keeps every member's id.
 
-**Verified high** means a verdict of `high` you rendered here. Only verified high findings count toward D48 at 4.7; a lens's claimed `high` and an unverified `maybe-false` never do.
+**Verified high** means a verdict of `high` you rendered here. Only verified high findings count toward the rework ceiling at 4.7; a lens's claimed `high` and an unverified `maybe-false` never do.
 
 Done when every finding has a verdict and evidence; none is dropped, merged silently or left unread.
 
@@ -143,7 +135,7 @@ If any entry is **decision needed**: run 4.8 for the deferred entries, then
 .agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug draft --step 4.5
 ```
 
-Set the outcome line to `loop back (4.5 decision needed)` and load `modules/questioning-loop.md` at 0.3.8 with the decision-needed entries as the frontier, each with its options and recommendation. Patch entries in the same pass are moot: the code is re-derived after the spec changes (D49).
+Set the outcome line to `loop back (4.5 decision needed)` and load `modules/questioning-loop.md` at 0.3.8 with the decision-needed entries as the frontier, each with its options and recommendation. Patch entries in the same pass are moot: the code is re-derived after the spec changes.
 
 ### 6.2 Third pass still has non-trivial findings (4.6)
 
@@ -153,7 +145,7 @@ If pass `n` is 3 or more and any **patch** entry is verified `high` or `medium`,
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 4.6
 ```
 
-Edit `.workflow/specs/NNN-slug/spec.md` frontmatter to `followup_review_recommended: true` (the only key you change; D54), then
+Edit `.workflow/specs/NNN-slug/spec.md` frontmatter to `followup_review_recommended: true` (the only key you change), then
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug draft --step 4.6
@@ -163,19 +155,19 @@ Set the outcome line to `loop back (4.6 third pass)` and load `modules/questioni
 
 ### 6.3 Rework attempts remain (4.7 Yes)
 
-If any **patch** entry remains and rework used is below 5: run 4.8 for the deferred entries, then reopen each task that owns a patch location. Find the owner from the history since the baseline (`git log --format='%H %s' <baseline_revision>..HEAD -- <path>`, where each worktree merge names its task id), falling back to the task (never a `split-out` one, D68) whose `module` in `.workflow/specs/NNN-slug/tasks.md` owns the path under `.workflow/rules.md`. For each owning task:
+If any **patch** entry remains and rework used is below 5: run 4.8 for the deferred entries, then reopen each task that owns a patch location. Find the owner from the history since the baseline (`git log --format='%H %s' <baseline_revision>..HEAD -- <path>`, where each worktree merge names its task id), falling back to the task (never a `split-out` one) whose `module` in `.workflow/specs/NNN-slug/tasks.md` owns the path under `.workflow/rules.md`. For each owning task:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T<n> --status in-progress --step 4.7
 ```
 
-`set-task` allows `done` to `in-progress` only with `--step 4.7` (D45). Set the outcome line to `rework <used + 1> of 5` and load `modules/implementation-orchestrator.md` for those tasks, handing it each patch as one line: `<file:line> - <what is wrong> - <what the smallest fix must do>`. The orchestrator relaunches `implementation`, re-runs the gates, sets `in-review` again at 3.11 (or 3.14), and returns here for pass `n + 1`.
+`set-task` allows `done` to `in-progress` only with `--step 4.7`. Set the outcome line to `rework <used + 1> of 5` and load `modules/implementation-orchestrator.md` for those tasks, handing it each patch as one line: `<file:line> - <what is wrong> - <what the smallest fix must do>`. The orchestrator relaunches `implementation`, re-runs the gates, sets `in-review` again at 3.11 (or 3.14), and returns here for pass `n + 1`.
 
 ### 6.4 Rework ceiling reached (4.7 No)
 
 If **patch** entries remain and rework used is 5:
 
-- **Verified high entries are open** (D48):
+- **Verified high entries are open**:
 
   ```bash
   .agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step 4.7 --blocked "Rework ceiling (5) reached with verified high-severity findings open: F<n>, F<m>. A human decides at sign-off whether to accept them as known gaps."
@@ -200,4 +192,4 @@ Run 4.8 whenever deferred entries exist, before the exit that needs it:
 
 Then load `modules/deferred-handoff.md` and write one handoff per deferred entry (proposal-routed entries already live in `proposals.md`). Pass it, for each entry: the concept the finding is about, origin step 4.8, `severity` from your verdict (a `maybe-false` entry carries the severity it would have if true and says "unverified" under Evidence), the location tied to the current `HEAD` commit, the verdict evidence, and the design-log triage entry. Add the remaining gaps from the lenses the same way: requirements under `not_verifiable` and targets that could not be measured; a gap has no verdict, so its handoff omits `severity`. `deferred-handoff` adds each file to `deferred` in `.workflow/specs/NNN-slug/spec.md` (admitted at step 4.8) and fills the Route cells of the triage rows. Check its Return lists every entry you handed over; a `failed` item stays open in the triage entry until it is written.
 
-Done when every deferred entry has a `.workflow/deferred/` file listed in `spec.md`. After an exit in 6.4 or 6.5, load `modules/sign-off.md`. A spec set `blocked` at 6.4 continues there only with the stakeholder present: 5.1 lifts the block (D47).
+Done when every deferred entry has a `.workflow/deferred/` file listed in `spec.md`. After an exit in 6.4 or 6.5, load `modules/sign-off.md`. A spec set `blocked` at 6.4 continues there only with the stakeholder present: 5.1 lifts the block.

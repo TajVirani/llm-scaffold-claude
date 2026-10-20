@@ -1,8 +1,3 @@
-<!--
-Module of project-standards: refresh mode (stamps exist).
-Sources: first-party. Refresh as a diff from the recorded sha, `git log --diff-filter=DR --name-only` against every line, re-verify every path and caveat, never re-ask what a prior run settled, and grow only on new evidence adapted from bmad-code-org/BMAD-METHOD skills/bmad-project-context/SKILL.md@8f0d50e "Refresh" (MIT; pattern only).
--->
-
 # Refresh
 
 Bring the standards back in line with the code since they were last verified. Same steps as a full run, with step 1 as a diff and the interview limited to what changed.

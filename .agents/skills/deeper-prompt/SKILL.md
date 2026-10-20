@@ -3,10 +3,6 @@ name: deeper-prompt
 description: Rewrite a feature request into a deeper prompt the stakeholder agrees to (the ask one level up, its goals, downstream work, suggested tools and gotchas) before the questioning loop. Use at feature-workflow step 0.3.22, or when asked for a deeper version of a task.
 ---
 
-<!--
-Sources: first-party. The steps (elevate the ask, define its goals, ask about downstream effects and suggested tools or gotchas, restate, revise until agreed) are the user's own prompt, adapted. Plan: PLAN/decision-flow-reference.md 0.3.22, "The questioning loop"; assetlist D73. Hands off to feature-workflow modules/questioning-loop.md, never to a grilling skill (the vendored ones were deleted, D78).
--->
-
 # Deeper prompt
 
 Make the request **deeper, not bigger**: sharpen its intent, goals and constraints while keeping its scope exactly as asked. The output is one agreed prompt block, and it becomes the input to the questioning loop. A feature or extra the stakeholder did not ask for goes under **Not asked for**, never into **Ask**.

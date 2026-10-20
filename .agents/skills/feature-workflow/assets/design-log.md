@@ -1,7 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter.
 Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4, 0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry) and sign-off / retrospective (5.x, 5.7).
-Sources: round anatomy (numbered questions, options, recommendation, the user's words verbatim, a decision ledger with stable ids where superseded decisions stay marked) adapted from .agents/skills/feature-workflow/references/REFERENCE-DOC.md (first-party; written locally alongside the former vendored copy of mattpocock/skills grill-with-docs, not an upstream file). Index-not-store ("one line per decision, link to the detail") adapted from mattpocock/skills/skills/engineering/wayfinder/SKILL.md@49dd158 "Decisions so far" (MIT). Triage entry fields (id, source lens, location, verdict high/medium/low/false/maybe-false, evidence, route) adapted from bmad-code-org/BMAD-METHOD skills/bmad-code-review/step-03-triage.md (MIT). Ledger that survives context compaction: obra/superpowers skills/subagent-driven-development/SKILL.md (MIT; idea only). The catalogue of entry shapes is first-party (PLAN/decision-flow-reference.md "Per-feature files", 0.3.4, 0.3.17, 0.3.21, 0.4.4, 4.4, 5.7).
 
 Rules:
   - Append only. Never edit or delete an earlier entry. A reversal is a new entry that names what it supersedes; the old entry stays.
@@ -21,7 +20,7 @@ Spec: [spec.md](spec.md)
 
 ## YYYY-MM-DD Origin: <work-item filename>
 
-<!-- 0.1.4. Written only for a spec seeded from a .workflow/specs/work-backlog/ item (D69). First entry in the log. -->
+<!-- 0.1.4. Written only for a spec seeded from a .workflow/specs/work-backlog/ item. First entry in the log. -->
 
 - Work item: <NNN-slug-disc-###.md>
 - Origin spec and step: <.workflow/specs/NNN-slug>, step <n>
@@ -112,18 +111,18 @@ Outcome: <rework k of 5 | loop back (4.5 decision needed) | loop back (4.6 third
 
 ## YYYY-MM-DD Discovered work: <slug>
 
-<!-- 00.21-00.29. Work found outside the agreed scope (D56) and the size-budget halt (D58). Use one of the three records below; the first is the full entry, the others are short. -->
+<!-- 00.21-00.29. Work found outside the agreed scope and the size-budget halt. Use one of the three records below; the first is the full entry, the others are short. -->
 
 - Found at: step <n> by <agent or reviewer>. Kind: bug / requirement / refactor / scope-expansion / decision / budget-split
 - Problem and evidence: <one line; `path:line` or failing test>
 - Assessment and ruling: blocker / can be solved later; <to discovery (spec back to draft) | stays blocked, human resolves | backlog item | ignored | split | re-scoped | overrun approved>
 - Backlog item: [work-backlog/<NNN-slug>-disc-<###>.md](../work-backlog/<NNN-slug>-disc-<###>.md)
 
-Dismissed item (00.25 No, D56), one line only:
+Dismissed item (00.25 No), one line only:
 
 - Dismissed discovered work: <slug>: <problem in a phrase> (`<path:line>`), not a blocker, user chose not to pursue.
 
-Approved budget overrun (00.29 Approve, D58):
+Approved budget overrun (00.29 Approve):
 
 - Approved budget overrun: <max_tasks | max_changed_files> reached <n> against <limit>. Reason: "<stakeholder's words>". Budget raised to <new value> for this spec only (spec.md `budget`).
 

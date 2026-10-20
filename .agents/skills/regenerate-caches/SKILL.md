@@ -3,22 +3,16 @@ name: regenerate-caches
 description: "Bulk or on-demand regeneration of the Tier B caches (.workflow/cache/modules.md, flows.md, architecture.md): checks commit stamps, launches one cache-regeneration agent per stale, missing or invalid cache, validates each staged body, and publishes it with a fresh stamp through publish-cache.sh. Use on a schedule, after merges, when caches are stale or missing, or when asked to regenerate, refresh or rebuild the caches. Inside a feature, discovery 0.2.8 does this for the affected area instead."
 ---
 
-<!--
-File: SKILL.md for the `regenerate-caches` skill (renamed from the plan's `cache-regeneration` skill so it does not clash with the `cache-regeneration` agent, D4). Bulk or on-demand regeneration of Tier B caches.
-Sources: first-party; plan PLAN/decision-flow-reference.md "Processes outside the flow" (Cache regeneration skill), "Project context: Tier A and Tier B", "Persistent files" 00.5-00.7, "Helper scripts", "Sub-agent task types"; PLAN/gap-research.md G6; assetlist D4, D7, D17, D18, D31, D37, D38, D41, D64. Orchestration of parallel mappers that write to disk and return only confirmations, then a check that every document exists, adapted from open-gsd/gsd-core commands/gsd/map-codebase.md (MIT, Copyright (c) 2026 Open GSD; pattern only, no text copied). Parallel dispatch in one message from .agents/skills/design-pattern-doc/SKILL.md Phases 4-5 (first-party). Skill only, no command alias (D27).
-Owns: assets/cache-frontmatter.md (schema and body shapes), scripts/cache-stamp-check.sh, scripts/publish-cache.sh, scripts/build-architecture.sh, scripts/check-staged-cache.sh.
--->
-
 # Regenerate caches
 
-Bring `.workflow/cache/modules.md`, `flows.md` and `architecture.md` back in line with the code at `HEAD`. You run in the main session and orchestrate: the `cache-regeneration` agent derives each cache into `.workflow/.cache-staging/`, and `scripts/publish-cache.sh` stamps it and moves it into `.workflow/cache/` (D17). The result must be identical to what discovery 0.2.8 produces for the same scope and commit (D4), because both launch the same agent, which runs the same scripts.
+Bring `.workflow/cache/modules.md`, `flows.md` and `architecture.md` back in line with the code at `HEAD`. You run in the main session and orchestrate: the `cache-regeneration` agent derives each cache into `.workflow/.cache-staging/`, and `scripts/publish-cache.sh` stamps it and moves it into `.workflow/cache/`. The result must be identical to what discovery 0.2.8 produces for the same scope and commit, because both launch the same agent, which runs the same scripts.
 
 Schema and body shapes: [assets/cache-frontmatter.md](assets/cache-frontmatter.md).
 
 ## Ground rules
 
-- **Never write under `.workflow/cache/` yourself.** `tier-b-write-guard` denies every Write/Edit there. Only `publish-cache.sh` moves files in, and always call it with exactly the prefix `.agents/skills/regenerate-caches/scripts/publish-cache.sh` (the sandbox exclusion matches that command line, D36).
-- **Work in the main checkout.** Every script defaults to the main checkout, even from a worktree (D18). Caches describe `HEAD` of that checkout.
+- **Never write under `.workflow/cache/` yourself.** `tier-b-write-guard` denies every Write/Edit there. Only `publish-cache.sh` moves files in, and always call it with exactly the prefix `.agents/skills/regenerate-caches/scripts/publish-cache.sh` (the sandbox exclusion matches that command line).
+- **Work in the main checkout.** Every script defaults to the main checkout, even from a worktree. Caches describe `HEAD` of that checkout.
 - **Regenerate, never patch.** Each run derives a cache from scratch. Never hand the agent the previous cache or any Tier A file.
 - **Leave git alone.** Do not commit. The report tells the human which `.workflow/cache/` files changed.
 
@@ -39,7 +33,7 @@ command -v git && command -v jq && command -v yq && yq --version
 test -x node_modules/.bin/depcruise || npx --no-install depcruise --version
 ```
 
-`yq` must be mikefarah v4 (D38). If dependency-cruiser is missing, stop and tell the human to add it as a dev dependency (it is in the TS/JS work profile's toolchain); nothing can be generated without it.
+`yq` must be mikefarah v4. If dependency-cruiser is missing, stop and tell the human to add it as a dev dependency (it is in the TS/JS work profile's toolchain); nothing can be generated without it.
 
 Done when git, jq, yq v4 and depcruise all answer.
 
@@ -86,7 +80,7 @@ mkdir -p .workflow/.cache-staging
 git rev-parse HEAD
 ```
 
-Launch one `cache-regeneration` per selected cache in a single message, so they run in parallel. A bulk launch carries **no** launch header (D31): the prompt is the four task lines only.
+Launch one `cache-regeneration` per selected cache in a single message, so they run in parallel. A bulk launch carries **no** launch header: the prompt is the four task lines only.
 
 ```
 Cache type: <modules | flows | architecture>
@@ -102,7 +96,7 @@ printf '%s\n' "Cache type: <type>" "Scope: <path>" "Commit: <sha>" "Staging path
   .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type cache-regeneration --no-header
 ```
 
-Exit 2 is a deny: one naming **00.14** means no Codex model is set for `cache-regeneration`; record one in `.workflow/model-map/cache-regeneration.md` and rerun. Then spawn with `agent_type` `cache_regeneration` (the definition name with `-` replaced by `_`; `--task-type` keeps the hyphen), `.prompt` as its message, `.model` as its model, `task_name` `cache_<type>` (`cache_modules`, `cache_flows`, `cache_architecture`; `codex-pre-spawn.sh` accepts any `[a-z0-9_]` name for this type, and one without an `s<NNN>_` prefix names no spec) and `fork_turns: "none"` (a full-history fork may ignore the spawn `model` override, D67).
+Exit 2 is a deny: one naming **00.14** means no Codex model is set for `cache-regeneration`; record one in `.workflow/model-map/cache-regeneration.md` and rerun. Then spawn with `agent_type` `cache_regeneration` (the definition name with `-` replaced by `_`; `--task-type` keeps the hyphen), `.prompt` as its message, `.model` as its model, `task_name` `cache_<type>` (`cache_modules`, `cache_flows`, `cache_architecture`; `codex-pre-spawn.sh` accepts any `[a-z0-9_]` name for this type, and one without an `s<NNN>_` prefix names no spec) and `fork_turns: "none"` (a full-history fork may ignore the spawn `model` override).
 
 For `architecture`, `Scope` lists the source paths only, never `.workflow/tools/boundaries/dependency-cruiser.cjs` (step 3).
 
@@ -121,7 +115,7 @@ Publish only when the check prints `ok` and `HEAD` still equals the commit you l
 
 ### 6. Verify mode only: compare two runs
 
-Copy the staged file aside (`cp .workflow/.cache-staging/<type>.md .workflow/.cache-staging/<type>.first.md`), launch the same task again, and `diff` the two. Identical: delete the copy and go on. Different: do not publish; report the diff as a prompt fix needed in `.agents/agents/cache-regeneration.md` (PLAN/gap-research.md G6, "Determinism check"), then delete both staged files.
+Copy the staged file aside (`cp .workflow/.cache-staging/<type>.md .workflow/.cache-staging/<type>.first.md`), launch the same task again, and `diff` the two. Identical: delete the copy and go on. Different: do not publish; report the diff as a prompt fix needed in `.agents/agents/cache-regeneration.md`, then delete both staged files.
 
 ### 7. Publish
 

@@ -7,9 +7,8 @@ status: open                        # open | promoted | moved-to-deferred | dism
 kind: bug                           # bug | requirement | refactor | scope-expansion | decision | budget-split
 ---
 <!--
-File: Template for .workflow/specs/work-backlog/<NNN-slug>-disc-<###>.md, one discovered-work item (D57). <NNN-slug> is the origin spec; <###> increments per origin spec. The file sits outside the origin spec's folder because that spec will not solve it.
-Written by the main session only: at 00.26 (user chose to tackle it as a next feature, or a size-budget split), at 5.9 (the `moved-to-deferred` status update only; 5.9 offers and hands off, it does not delete) and by the new spec's 0.1.4 (status `promoted` and promoted_to, D69). Deletion of a promoted item happens at the new spec's 0.6 (0.3.20 on the light path). Sub-agents are denied (check-write.sh; D16 pattern). Not the .workflow/deferred/ shelf (00.8-00.10), which holds out-of-scope work decided during discovery or review.
-Sources: first-party (assetlist D56, D57, D58; PLAN/decision-flow-reference.md "Discovered work" and 00.21-00.29).
+File: Template for .workflow/specs/work-backlog/<NNN-slug>-disc-<###>.md, one discovered-work item. <NNN-slug> is the origin spec; <###> increments per origin spec. The file sits outside the origin spec's folder because that spec will not solve it.
+Written by the main session only: at 00.26 (user chose to tackle it as a next feature, or a size-budget split), at 5.9 (the `moved-to-deferred` status update only; 5.9 offers and hands off, it does not delete) and by the new spec's 0.1.4 (status `promoted` and promoted_to). Deletion of a promoted item happens at the new spec's 0.6 (0.3.20 on the light path). Sub-agents are denied (check-write.sh). Not the .workflow/deferred/ shelf (00.8-00.10), which holds out-of-scope work decided during discovery or review.
 
 Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`):
   - origin_spec: repo-relative spec folder. origin_step: string. discovered_at: ISO date.
@@ -18,7 +17,7 @@ Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`):
   - kind: bug | requirement | refactor | scope-expansion | decision | budget-split.
   Add no other keys.
 
-Lifecycle (D69): a promoted item is DELETED once the new spec it seeded finishes discovery (0.6, or 0.3.20 on the light path), so no stale doc remains. Before deleting, copy the item's problem, evidence and suggested scope into the new spec (its Why and Assumptions as fit) and set the new spec's `origin:` frontmatter to this file's name, with a one-line "Origin" note in the spec body. Items that are `open`, `moved-to-deferred` or `dismissed` stay until their own resolution.
+Lifecycle: a promoted item is DELETED once the new spec it seeded finishes discovery (0.6, or 0.3.20 on the light path), so no stale doc remains. Before deleting, copy the item's problem, evidence and suggested scope into the new spec (its Why and Assumptions as fit) and set the new spec's `origin:` frontmatter to this file's name, with a one-line "Origin" note in the spec body. Items that are `open`, `moved-to-deferred` or `dismissed` stay until their own resolution.
 
 Writing rules:
   - Facts only, with sources. Evidence is file:line, a failing test, or the agent's return quoted. Leave time estimates out.

@@ -4,7 +4,7 @@ Per-project state for `design-pattern-doc`. Auto-populated on first run by the s
 
 ## File location
 
-`.workflow/design-pattern-doc/conventions.md` in the project root. Project-owned (D75): each repo has its own, the skill ships only this format, and the scaffold installer never writes, overwrites or removes it. Commit it with the project's docs.
+`.workflow/design-pattern-doc/conventions.md` in the project root. Project-owned: each repo has its own, the skill ships only this format, and the scaffold installer never writes, overwrites or removes it. Commit it with the project's docs.
 
 ## Schema
 

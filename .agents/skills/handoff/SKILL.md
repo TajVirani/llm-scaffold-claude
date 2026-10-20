@@ -4,10 +4,6 @@ description: Write a session handoff, one compact file in .workflow/.handoff/ th
 argument-hint: "What will the next session focus on?"
 ---
 
-<!--
-Sources: derived from mattpocock/skills@49dd158d1076134a641b33efb035946536778336 skills/productivity/handoff/SKILL.md (MIT; ideas only, no text copied): compact the session into a document for a fresh agent, name the skills it should load, reference artifacts instead of duplicating them, redact secrets, tailor to what the next session is for. Ours: the .workflow/.handoff/ location in the main checkout and the frontmatter that hooks/session-start-resume.sh lists, the spec pointer rule (spec.md status and .step stay the source of truth), the resume steps. Terms: .workflow/GLOSSARY.md (step marker; a session handoff is not a deferred handoff). Plan: assetlist D77; checklist "pick one owner for session handoff".
--->
-
 # Handoff
 
 A **session handoff** is one file a fresh session reads to carry on the work: what the conversation knows that no artifact records yet, plus pointers to everything an artifact does record. It is not a **deferred handoff** (out-of-scope work shelved in `.workflow/deferred/` by feature-workflow).

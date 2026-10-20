@@ -1,8 +1,3 @@
-<!--
-Module of retrospective: gather the evidence a feature left, and record what is missing.
-Sources: adapted from bmad-code-org/BMAD-METHOD skills/bmad-retrospective/references/evidence-gathering.md (MIT, Copyright (c) 2025 BMad Code, LLC): the inventory checklist, one range from the recorded baseline, and the missing-evidence rule ("checked and clean" vs "never checked"). Changes: the inventory names this workflow's per-feature files (PLAN/decision-flow-reference.md "Per-feature files"); git_evidence.py is replaced by plain git commands.
--->
-
 # Evidence
 
 List what the feature produced so every later step works from artifacts rather than memory. Record each source's path, or `missing`, in the document's **Summary**.
@@ -13,7 +8,7 @@ List what the feature produced so every later step works from artifacts rather t
 | --- | --- |
 | `.workflow/specs/NNN-slug/spec.md` | Capabilities (`CAP-###`), constraints, non-goals, success signal; frontmatter `baseline_revision`, `deferred[]`, `followup_review_recommended`, `light_path` |
 | `.workflow/specs/NNN-slug/verification-plan.md` | Journeys (`JRN-###`) and targets |
-| `.workflow/specs/NNN-slug/report.md` | Test output, targets against measured values, known gaps (D29), evidence links |
+| `.workflow/specs/NNN-slug/report.md` | Test output, targets against measured values, known gaps, evidence links |
 | `.workflow/specs/NNN-slug/tasks.md` | Each task's `status` (read with `yq --front-matter=extract '.tasks[] \| [.id, .status] \| @tsv'`) |
 | `.workflow/specs/NNN-slug/design-log.md` | Triage entries from each review pass (finding ids, verdicts, routes), decisions and their reversals, deep dives |
 | `.workflow/specs/NNN-slug/proposals.md` | What 5.3 approved, modified or rejected |

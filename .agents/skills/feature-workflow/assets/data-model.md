@@ -1,7 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/data-model.md: the schema this feature creates or changes. No frontmatter.
 Written by modules/discovery.md at 0.4.4-0.4.5; read by task-breakdown at 2.1, which orders migration tasks by the Migrations section.
-Sources: per-entity shape (entity name, fields, relationships, validation rules from requirements, state transitions) ported from Phase 1 of github/spec-kit templates/commands/plan.md (MIT; local copy claude-night-market spec-kit commands/speckit-plan.md, "Extract entities from feature spec"). Spec Kit ships no data-model template, so the layout is first-party. "Invalid states ruled out" framing adapted from .agents/skills/data-structure-audit/references/invalid-states.md (first-party). Expand-contract for wide changes from mattpocock/skills to-tickets/SKILL.md (MIT). The create / extend / refactor / unchanged classification (0.4.4) and migration ordering are first-party (PLAN/decision-flow-reference.md 0.4.1-0.4.5, 2.1).
 
 Rules:
   - Classify every part the change touches: `create` (new), `extend` (adds to an existing part without changing what is there), `refactor` (changes the existing shape or meaning), `unchanged` (read or depended on, not modified). List `unchanged` parts too, so reviewers see what was deliberately left alone.

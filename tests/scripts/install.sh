@@ -226,7 +226,8 @@ eq "outputStyle kept" "$(jq -r .outputStyle "$S")" "Explanatory"
 check "outputStyle warning printed" 'printf "%s" "$out" | grep -q "outputStyle: keeping your"'
 eq "statusLine kept" "$(jq -r .statusLine.command "$S")" "my-status.sh"
 check "statusLine warning printed" 'printf "%s" "$out" | grep -q "statusLine: keeping your"'
-eq "unrelated user keys kept" "$(jq -c '[.enabledPlugins, .env, .permissions.allow]' "$S")" '[{"foo@bar":true},{"FOO":"1"},["Bash(ls:*)"]]'
+eq "unrelated user keys kept" "$(jq -c '[.enabledPlugins, .env]' "$S")" '[{"foo@bar":true},{"FOO":"1"}]'
+eq "user allow rule kept first, template allow rules appended" "$(jq -c '.permissions.allow | [.[0], (index("Bash(git status:*)") != null)]' "$S")" '["Bash(ls:*)",true]'
 eq "deny unioned, user first, no duplicates" "$(jq -c .permissions.deny "$S")" '["Read(.env)","Edit(.workflow/cache/**)","Edit(.workflow/specs/*/.step)"]'
 check "user hooks kept" '[ "$(jq -r ".hooks.Stop[0].hooks[0].command" "$S")" = my-stop.sh ] && jq -e "[.hooks.PreToolUse[].hooks[].command] | index(\"my-read-hook.sh\")" "$S" >/dev/null'
 eq "block-destructive-git not duplicated" "$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("block-destructive-git"))] | length' "$S")" 1

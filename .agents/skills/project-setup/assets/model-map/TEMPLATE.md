@@ -1,10 +1,10 @@
 ---
-# One file per task type, at .workflow/model-map/ in the project, named for the task type. Seeded by project-setup with the D23 tier defaults.
-# Lowest-precedence model source (D35): used for a host only when neither .workflow/agent-overrides.yaml[type][host]
+# One file per task type, at .workflow/model-map/ in the project, named for the task type. Seeded by project-setup with the default tier for that task type.
+# Lowest-precedence model source: used for a host only when neither .workflow/agent-overrides.yaml[type][host]
 # nor the agent definition's per-host `models` entry gives one. If none gives a model, the launch is blocked at 00.14.
-# Sources: first-party (assetlist D2, D12, D23, D34, D35; plan 00.11, 00.14, 5.7). Claude aliases are Claude Code built-ins.
+# Claude aliases are Claude Code built-ins.
 tier: cheap            # cheap | strong. cheap: retrieval, fact-lookup, profile-mini-review, review-targets, library-evaluation. strong: implementation, integration, review-standards, review-end-state, module-audit, cache-regeneration.
-claude: <alias>        # Claude Code alias: haiku | sonnet | opus. Aliases only, never a dated version ID (D23). project-setup writes the tier default.
+claude: <alias>        # Claude Code alias: haiku | sonnet | opus. Aliases only, never a dated version ID. project-setup writes the tier default.
 codex: <alias>         # Codex model name: gpt-6-luna (cheap) | gpt-6-sol (strong). Names get retired; project-setup checks them against `codex debug models`.
 # fallback: <alias>    # optional; used when the primary alias is unavailable
 ---

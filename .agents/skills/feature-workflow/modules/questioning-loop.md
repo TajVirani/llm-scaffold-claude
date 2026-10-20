@@ -1,10 +1,3 @@
-<!--
-Module: questioning-loop. Nodes 0.3.8-0.3.19 (and 0.3.21, the design log it appends to).
-Entered from: discovery (after 0.3.22, the deeper prompt, which follows 0.3.3 Yes or 0.3.7); loop-backs from 0.4.7 and 0.6 (discovery), 2.2 and 2.3 (task-breakdown), 4.5 and 4.6 (review-triage), 5.6 (SKILL.md), 00.24 (discovered-work: a blocker sent to discovery), 00.29 (discovered-work: a budget re-scope). Every loop-back arrives with status draft (D49, D56).
-Exits to: discovery at 0.3.20.
-Sources: adapted from mattpocock/skills/skills/productivity/grilling/SKILL.md@49dd158 (MIT): the design tree, the frontier of decisions whose prerequisites are settled, one round per frontier with numbered questions and a recommended answer each, wording so "yes" accepts the recommendation, facts found by a sub-agent without blocking the rest of the round, recompute after each round, done when the frontier is empty and the stakeholder confirms shared understanding. "If the user says whatever you think is best, give your recommendation and get explicit confirmation" from anthropics/claude-plugins-official plugins/feature-dev/commands/feature-dev.md Phase 3 (Apache-2.0; idea only, no text copied). "Use the host's blocking question tool; fall back to numbered options in chat" from EveryInc/compound-engineering-plugin skills/ce-work/references/tracker-defer.md (MIT; idea only). Ours (PLAN/decision-flow-reference.md "The questioning loop", 0.3.8-0.3.19; design rules 7 and 8): the defer-to-deep-dive option (0.3.12-0.3.13), the host multi-question UI, the term gate (0.3.14-0.3.15) and the scope gate (0.3.16-0.3.17); assetlist D13, D24, D31, D37, D49, D51, D56, D58, D73 (input is the 0.3.22 deeper prompt).
--->
-
 # Questioning loop
 
 Interview the stakeholder until the feature's design tree is settled. Work in **rounds**: each round asks the whole **frontier** at once (design rule 7). **Facts are your job; decisions are the stakeholder's** (design rule 8). Every round, deep dive and scope ruling is appended to `design-log.md`, so the loop survives a cleared context and resumes from the log.
@@ -24,8 +17,8 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
    | 2.2 / 2.3 | What made the spec unspecifiable, or the interfaces under test not agreed |
    | 4.5 / 4.6 | The triage finding `F<n>` that needs a decision, or the upstream problem the third pass exposed |
    | 5.6 | The stakeholder's change request, verbatim |
-   | 00.24 | The discovered problem and its evidence, from the newest **Discovered work** entry in `design-log.md` (D56) |
-   | 00.29 (budget re-scope) | The size-budget crossing and the reduction the stakeholder wants, from the newest **Discovered work** entry in `design-log.md` (D58) |
+   | 00.24 | The discovered problem and its evidence, from the newest **Discovered work** entry in `design-log.md` |
+   | 00.29 (budget re-scope) | The size-budget crossing and the reduction the stakeholder wants, from the newest **Discovered work** entry in `design-log.md` |
 
 ## The round
 
@@ -80,12 +73,12 @@ ST step .workflow/specs/NNN-slug 0.3.19
 ```
 
 - **Why:** the final goal: the deeper prompt's Ask and Goals, as revised by the loop.
-- **Capabilities:** each with its ID (existing `CAP-###`, or provisional `CAP-NEW-<slug>`, D44), intent and success line.
+- **Capabilities:** each with its ID (existing `CAP-###`, or provisional `CAP-NEW-<slug>`), intent and success line.
 - **Constraints**, **Non-goals**, **Assumptions** (calls made without explicit confirmation).
 - **Open Questions:** empty; anything still open means the loop is not done.
 - Frontmatter `light_path`: `true` only when all three facts are clean. Leave `status` and every other key as they are.
 
-Return to [discovery](discovery.md#0320-light-path-test) at 0.3.20. The size `budget` is not written here: discovery writes it at 0.3.20 on the light path, task-breakdown at 2.5 on the full path (D58).
+Return to [discovery](discovery.md#0320-light-path-test) at 0.3.20. The size `budget` is not written here: discovery writes it at 0.3.20 on the light path, task-breakdown at 2.5 on the full path.
 
 ## Done
 

@@ -1,7 +1,3 @@
-<!--
-Adapted from mattpocock/skills skills/productivity/writing-for-agents/SKILL-MECHANICS.md @ 49dd158d1076134a641b33efb035946536778336 (MIT, Copyright (c) 2026 Matt Pocock; notice in ../LICENSE). Changes: condensed; added frontmatter rules, the Codex invocation switch and sub-agent definitions.
--->
-
 # Skill and agent mechanics
 
 What changes when the document is a skill or a sub-agent definition. The writing itself follows [../SKILL.md](../SKILL.md).
@@ -13,7 +9,7 @@ Frontmatter is the first thing in the file and must parse as YAML.
 - **Skill** (`.agents/skills/<name>/SKILL.md`): `name` equals the folder name; `description` is non-empty. Template: [../assets/SKILL.template.md](../assets/SKILL.template.md).
 - **Sub-agent definition** (`.agents/agents/<name>.md`): `name` equals the file name; `description` says what the agent returns, when to launch it, and which neighbouring agent to use instead; `tools` lists only what the task needs. Leave out `model:`; a definition that must pin a model uses `models:` with only `claude` and `codex` keys. The body is the agent's whole prompt: it sees nothing of the parent conversation, so state its input, its steps and its return shape. Template: [../assets/agent.template.md](../assets/agent.template.md).
 - Codex reads only `name`, `description` and the body of a definition (its agent name maps `-` to `_`). Re-run `.agents/hooks/generate-codex-agents.sh` after editing one.
-- Cite what a skill or definition was adapted from in an HTML comment after the frontmatter: `Sources: <repo>/<path> @ <commit> (<licence>)`, with the licence notice beside it when you keep substantial text.
+- Record what a skill or definition was adapted from (`<repo>/<path> @ <commit> (<licence>)`) in the repo's provenance or lineage file, not in the file the agent loads: a header comment costs context on every load and changes nothing the agent does. Keep the licence notice beside the file when you keep substantial upstream text. Leave decision ids and design-doc paths out of the body too, unless the agent must open that document.
 
 ## Invocation
 

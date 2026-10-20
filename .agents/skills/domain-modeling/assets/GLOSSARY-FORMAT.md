@@ -1,8 +1,3 @@
-<!--
-File: .workflow/GLOSSARY.md format for the first-party `domain-modeling` skill (D10). Used at the term gates (0.2.3, 0.3.15, 0.4.3); naming baseline for review-standards (4.1).
-Sources: copied from mattpocock/skills skills/engineering/domain-modeling/GLOSSARY-FORMAT.md (MIT, Copyright (c) 2026 Matt Pocock; commit 49dd158; notice in ../LICENSE). Changes: added the optional "Relationships" and "Flagged ambiguities" sections and the "Bold term names" rule from the earlier mattpocock CONTEXT-FORMAT.md (mattpocock/skills/skills/engineering/grill-with-docs/CONTEXT-FORMAT.md@fb847c6, MIT; since removed upstream); added "Glossary only" (from the upstream domain-modeling SKILL.md) and "Changing an existing entry" (fold and retire pattern from EveryInc/compound-engineering-plugin skills/ce-compound/references/concepts-vocabulary.md, MIT, pattern only). The example dialogue is left out, as upstream now does.
--->
-
 # .workflow/GLOSSARY.md Format
 
 ## Structure

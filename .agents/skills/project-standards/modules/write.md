@@ -1,8 +1,3 @@
-<!--
-Module of project-standards: step 7 (write each approved row) and the stamp placement for step 9.
-Sources: first-party; contracts read from .agents/skills/project-setup/assets/docs/rules.md and assets/profiles/TEMPLATE.md (D15, D20), .agents/skills/domain-modeling/assets/ADR-FORMAT.md, .agents/skills/pr-quality/assets/project-check.template.md (D75), .agents/skills/feature-workflow/scripts/check-write.sh (D16, D51). Splice only between the markers, text outside changes only through a settled ledger row, and the provenance line with the verified sha adapted from bmad-code-org/BMAD-METHOD skills/bmad-project-context/SKILL.md@8f0d50e step 5 (MIT; pattern only). oxlint `overrides` and `no-restricted-imports` options from the oxc docs (https://oxc.rs/docs/guide/usage/linter/config-file-reference.html, https://oxc.rs/docs/guide/usage/linter/rules/eslint/no-restricted-imports.html).
--->
-
 # Write
 
 Write from the main session with Write or Edit, so the Tier A guard sees each write. Write only rows whose Status is `approved` or `modified` (the modified text). After each file, fill the row's Written cell with the file and section.
@@ -25,7 +20,7 @@ Lint config files are not stamped; the profile that names them is.
 
 When the file is absent (standalone, before project-setup), copy `.agents/skills/project-setup/assets/docs/rules.md`.
 
-- **Ownership, Shared core**: write into the fenced `yaml` blocks only, in the tool-neutral schema the block comments give (module → `owns` globs → `may_depend_on` names; `shared_core.paths`). Keep the comment lines. Never write boundary-tool syntax there (D20).
+- **Ownership, Shared core**: write into the fenced `yaml` blocks only, in the tool-neutral schema the block comments give (module → `owns` globs → `may_depend_on` names; `shared_core.paths`). Keep the comment lines. Never write boundary-tool syntax there.
 - **Cross-cutting policy, External systems, Required versions**: one terse imperative bullet per row. A prohibition names the permitted alternative. Delete each `{...}` placeholder bullet the section still holds.
 - **Size budget**: leave it unchanged.
 
@@ -53,13 +48,13 @@ Done when every `adr` row is an ADR or was rerouted with the human's agreement.
 
 ## .workflow/pr-quality/<check>.md
 
-One file per group of related PR-level judgement rows (for example `auth-before-data.md`), copied from `.agents/skills/pr-quality/assets/project-check.template.md`. The H1 names the report section. Fill Objective, Scope (a trigger matched against the diff, and the self-skip), Checks (each a concrete rule: the pattern to flag and the sanctioned alternative), What to report and What NOT to flag. Delete the template comment. The scaffold never ships or overwrites these files (D75).
+One file per group of related PR-level judgement rows (for example `auth-before-data.md`), copied from `.agents/skills/pr-quality/assets/project-check.template.md`. The H1 names the report section. Fill Objective, Scope (a trigger matched against the diff, and the self-skip), Checks (each a concrete rule: the pattern to flag and the sanctioned alternative), What to report and What NOT to flag. Delete the template comment. The scaffold never ships or overwrites these files.
 
 Done when every `pr-quality` row is a Checks line in exactly one file.
 
 ## Lint config
 
-Runs in the `phase: lint` call when project-setup called you (the config exists only once the toolchain is installed), else at step 7. Write `lint` rows into the config the profile's Toolchain names (`config.lint`, else the file the `lint` command reads). Merge into the existing file and keep every existing entry. Module-to-module rules stay in `.workflow/rules.md` § Ownership; the generated boundary config is never hand-edited (D20). Lint config holds the rules finer than a module: layering inside a module, type-only imports, banned libraries.
+Runs in the `phase: lint` call when project-setup called you (the config exists only once the toolchain is installed), else at step 7. Write `lint` rows into the config the profile's Toolchain names (`config.lint`, else the file the `lint` command reads). Merge into the existing file and keep every existing entry. Module-to-module rules stay in `.workflow/rules.md` § Ownership; the generated boundary config is never hand-edited. Lint config holds the rules finer than a module: layering inside a module, type-only imports, banned libraries.
 
 For oxlint (`.oxlintrc.json`):
 

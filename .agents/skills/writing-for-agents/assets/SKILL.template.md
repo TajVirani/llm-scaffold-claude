@@ -3,10 +3,6 @@ name: <folder-name>
 description: <What it does, in one clause led by its leading word>. Use when <branch one>, when <branch two>.
 ---
 
-<!--
-Sources: <repo>/<path> @ <commit> (<licence>), or "first-party".
--->
-
 # <Title>
 
 <One or two sentences: what this skill is for and what done looks like.>

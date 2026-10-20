@@ -1,6 +1,7 @@
 ---
 name: deps-update
 description: Update and maintain a bun project's dependencies with regression validation scaled to each package's blast radius. Use when updating/bumping/upgrading packages, running bun outdated/update, checking for outdated deps, addressing a dependency CVE, or asking "is this package update safe / how do I test this bump".
+disable-model-invocation: true
 ---
 
 # Dependency updates (bun)

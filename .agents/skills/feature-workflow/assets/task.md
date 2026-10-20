@@ -1,8 +1,7 @@
 <!--
-File: Template for one task file, .workflow/specs/NNN-slug/tasks/Tnn-<slug>.md: the body of one task (D85). The record (status, edges, branch, size) lives in the tasks.md index frontmatter; this file holds what the implementer reads. One file per task, never one combined file.
+File: Template for one task file, .workflow/specs/NNN-slug/tasks/Tnn-<slug>.md: the body of one task. The record (status, edges, branch, size) lives in the tasks.md index frontmatter; this file holds what the implementer reads. One file per task, never one combined file.
 Written by modules/task-breakdown.md at 2.5, or by modules/discovery.md at 0.3.20 on the light path (T01 only), together with the index. Read by the implementation agent from its task worktree (3.3) and by the orchestrator for briefs and 3.2 shared-core requests.
 Name: `T<nn>-<slug>.md`, `<nn>` the task number zero-padded to two digits (T01, T02, ...), `<slug>` lowercase kebab-case from the title. The index record's `file` key names this path relative to the spec folder; its `branch` key is `task/NNN-slug/T<nn>-<slug>`.
-Sources: per-ticket fields (what to build, blocked by, acceptance criteria) and "one file per ticket, numbered blockers-first, never a single combined file" adapted from mattpocock/skills/skills/engineering/to-tickets/SKILL.md@49dd158 (MIT, local-ticket-template). Predicted files, size points, mode and the "Notes" request are first-party (assetlist D85, D28).
 Writing rules: no section left empty (write "None." instead); predicted files name paths or globs, never code; keep the frontmatter-free form (the index is the only machine-read file). Delete this comment in the finished file.
 -->
 

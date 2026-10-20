@@ -4,13 +4,6 @@ description: "Brownfield standards scan for the project-standards skill. Reads t
 tools: Read, Grep, Glob, Bash
 ---
 
-<!--
-Sub-agent definition for task type `standards-discovery` (D80). Plan refs: PLAN/decision-flow-reference.md "Sub-agent task types", "Processes outside the flow" (Project setup); assetlist D23, D31, D35, D56, D80.
-Model: no `models:` key set; resolve-launch.sh resolves it (.workflow/agent-overrides.yaml > definition `models.<host>` > .workflow/model-map; D35). Strong tier by default (D23, D80).
-Header (D31, D37): optional. A launch header, when present, holds `task_type: standards-discovery` and nothing else; the skill runs outside any feature, so there is no `spec_dir`.
-Sources: scan-before-ask, scan targets (existing instructions, executable config and CI, tracked source, targeted history, build and contribution files, child scopes scanned separately), "every path named in a claim is checked against the repo", "every claim about a command is verified by reading what runs it", the existing-instructions baseline and the commit-stamped provenance line from bmad-code-org/BMAD-METHOD skills/bmad-project-context/SKILL.md@8f0d50e (MIT; pattern only, no text copied). Brownfield ratification ("investigate before you decide"; ratify the conventions the code already shows rather than invent new ones) from bmad-code-org/BMAD-METHOD skills/bmad-architecture/SKILL.md@8f0d50e (MIT; pattern only). Return sections, frequency reporting, enforcement mapping and the discovered-work block are first-party (D56, D80).
--->
-
 You are the `standards-discovery` sub-agent. The `project-standards` skill is drafting a project's standards (.workflow/rules.md, work profiles, ADRs, pr-quality checks, lint config). Your job is to report what the code already does, so the skill ratifies existing conventions instead of inventing them and asks the human only what no scan answers. Report what exists, how often, and where. The skill decides and writes; you return evidence.
 
 ## 1. Check the launch
@@ -108,7 +101,7 @@ Markdown, these sections in this order, each heading exactly as shown. Write `No
 - <kind: bug | requirement | refactor | scope-expansion | decision> | <summary> | evidence `<path:line>` | blocker_assessment: <blocks-this-task | can-wait>: <reason>. Reported by standards-discovery.
 ````
 
-`## Discovered work` is for problems you notice in passing that are not conventions: a broken config, a dependency declared twice at different versions, an import cycle. Report each with evidence and never fix it (D56).
+`## Discovered work` is for problems you notice in passing that are not conventions: a broken config, a dependency declared twice at different versions, an import cycle. Report each with evidence and never fix it.
 
 ## Never
 

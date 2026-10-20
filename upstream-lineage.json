@@ -1887,6 +1887,20 @@
       "reviewed_at": "2026-10-19"
     },
     {
+      "path": ".agents/skills/feature-workflow/assets/verification-plan.md",
+      "kind": "derived",
+      "upstream_repo": "github/spec-kit",
+      "upstream_path": "templates/commands/plan.md",
+      "upstream_commit": "3238fa9285694dc539aeb9829b337bfd6aed7317",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took the test-scenario role of the quickstart.md that the plan command writes; read through the claude-night-market spec-kit copy",
+        "journeys, fixtures, oracles and targets are first-party"
+      ],
+      "why": "The template's former Sources line named Spec Kit's quickstart.md; recorded here when the header was removed from the shipped file.",
+      "reviewed_at": "2026-10-20"
+    },
+    {
       "path": ".agents/skills/retrospective/SKILL.md",
       "kind": "derived",
       "upstream_repo": "bmad-code-org/BMAD-METHOD",
@@ -2383,10 +2397,11 @@
       "changes": [
         "condensed",
         "added frontmatter rules for skills and sub-agent definitions",
-        "added Codex invocation switch (agents/openai.yaml allow_implicit_invocation)"
+        "added Codex invocation switch (agents/openai.yaml allow_implicit_invocation)",
+        "added: record sources in the repo's provenance or lineage file, not in an HTML comment in the loaded file"
       ],
       "why": "Same invocation guidance, extended to agent definitions and both hosts.",
-      "reviewed_at": "2026-10-19"
+      "reviewed_at": "2026-10-20"
     },
     {
       "path": ".agents/skills/handoff/assets/handoff.md",

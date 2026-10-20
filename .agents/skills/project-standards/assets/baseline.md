@@ -1,6 +1,5 @@
 <!--
 File: Template for .workflow/.standards-staging/baseline.md, the project-standards staging draft (gitignored). Not a source of truth: every row is written to its Destination at step 7, and the draft is then discarded.
-Sources: first-party. Section list adapted from a user-supplied architecture document (stack, core decisions, naming, structure, boundaries, format and communication, process patterns, bootstrap order, deferred); invariants with an explicit Deferred list from bmad-code-org/BMAD-METHOD skills/bmad-architecture/assets/spine-template.md@8f0d50e (MIT; pattern only); the existing-instructions ledger and its actions from bmad-code-org/BMAD-METHOD skills/bmad-project-context/SKILL.md@8f0d50e step 1 (MIT; pattern only).
 Columns:
   Line         one concrete, checkable rule, with an example where it helps (`users`, `idx_items_project_id`). A prohibition names the permitted alternative.
   Destination  rules.md § <section> | profile:<work-type> § <section> (when project-setup called project-standards, it writes the Toolchain rows itself) | adr:<slug> | pr-quality:<check> | lint:<config path> | agents-block § <section> | glossary | pitfall | drop

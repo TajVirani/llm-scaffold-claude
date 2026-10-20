@@ -1,5 +1,3 @@
-<!-- First-party: written locally for this repo, originally kept alongside the vendored mattpocock/skills grill-with-docs copy (removed under D78); not an upstream file. Moved here unchanged except that "Rounds" now names the questioning loop instead of the removed `grilling` skill. -->
-
 # The reference doc
 
 A long interview outruns the terminal. By question five the user is scrolling back through prose recaps trying to remember which decisions are settled, what the current question actually depends on, and why you're asking it now. That is the failure this doc prevents: **a single page the user refreshes to see the whole state of the session, with the open question as the loudest thing on it.**

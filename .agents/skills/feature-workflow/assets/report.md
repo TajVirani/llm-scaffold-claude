@@ -1,12 +1,11 @@
 <!--
-File: Template for .workflow/specs/NNN-slug/report.md: the 5.4 results report (D21). No frontmatter.
+File: Template for .workflow/specs/NNN-slug/report.md: the 5.4 results report. No frontmatter.
 Written by modules/sign-off.md at 5.4; read by the stakeholder at 5.5 and by the `retrospective` skill at 5.7.
-Sources: evidence before claim, numbered evidence references, binary PASS / FAIL / BLOCKED per criterion, and verification steps a human can repeat adapted from athola/claude-night-market/plugins/imbue/skills/proof-of-work/modules/validation-protocols.md@54fcc85 and acceptance-criteria.md (MIT). "What was exercised end to end, or an explicit note that it was not" adapted from bmad-code-org/BMAD-METHOD skills/bmad-retrospective/references/retro-document.md "Behavior verification" (MIT). Section layout is first-party (PLAN/decision-flow-reference.md 5.4, 5.5, 3.12-3.14, design rule 12; assetlist D21, D29).
 
 Rules:
   - Nothing is claimed that has not been verified (design rule 12). Every PASS links evidence: a file under artifacts/, a CI run, or command output pasted from the run.
   - Report real numbers. A target that was not measured says "not measured" and why, never an estimate.
-  - A skipped gate is a gap, never a pass. Light-path suite gaps (3.14, D29) are listed under Known gaps even when everything else passed.
+  - A skipped gate is a gap, never a pass. Light-path suite gaps (3.14) are listed under Known gaps even when everything else passed.
   - Evidence references: [E1], [E2], ... numbered in order of first use, each resolving to a path, URL or pasted output in the Evidence section.
   - Delete this comment in the finished file. Write "None." in a section with nothing to report rather than deleting it.
 -->

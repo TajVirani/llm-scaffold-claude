@@ -2,8 +2,7 @@
 status: accepted
 ---
 <!--
-File: Template for .workflow/decisions/adr/NNNN-slug.md (D8, D10). Written by `domain-modeling` for the placement ADR at 0.3.7 and for any ADR that passes the three-part test. Read by review-standards (4.1) and retrieval (0.2.4).
-Sources: the template and optional sections in mattpocock/skills skills/engineering/domain-modeling/ADR-FORMAT.md (MIT, Copyright (c) 2026 Matt Pocock; notice in ../LICENSE). Supersede line per ADR-FORMAT.md "Superseding an ADR". Plan: 00.4, 0.3.5-0.3.7.
+File: Template for .workflow/decisions/adr/NNNN-slug.md. Written by `domain-modeling` for the placement ADR at 0.3.7 and for any ADR that passes the three-part test. Read by review-standards (4.1) and retrieval (0.2.4).
 
 How to fill it in (rules in ADR-FORMAT.md):
   - File name: next number from .workflow/decisions/adr/, four digits, plus a short kebab-case slug.

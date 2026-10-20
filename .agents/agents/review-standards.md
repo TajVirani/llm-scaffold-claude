@@ -4,16 +4,6 @@ description: Phase 4 review lens (workflow step 4.1). Checks the whole change si
 tools: Read, Grep, Glob, Bash
 ---
 
-<!--
-File: Sub-agent definition and launch prompt for task type `review-standards`.
-Purpose: Standards, rules, profile and architecture conformance across the whole change.
-Triggers/inputs: Full diff from baseline_revision, .workflow/rules.md, profiles for touched work types, placement ADR, .workflow/GLOSSARY.md, documented standards, readable-code baseline (feature-workflow/references/readable-code.md, D86), Fowler baseline, 3.5 tool output. Never other lenses' output or the spec.md body.
-Outputs/handoff: A `review-findings` YAML block, consumed by modules/review-triage.md (4.4), which re-verifies and grades each finding.
-Plan refs: 4.1; reference "Sub-agent task types", "Review: lenses, then triage"; D13, D31, D35, D37, D46, D48, D53, D86.
-Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model is resolved by .workflow/agent-overrides.yaml > .workflow/model-map/review-standards.md (default: strong tier, D23). Bash is needed for read-only git and yq; the agent never writes. Required header field: spec_dir (D31). No nested launches (D32). The only thing read from spec.md is the `baseline_revision` frontmatter key (D53); the body stays out of this lens.
-Sources: first-party, adapted from mattpocock/skills skills/engineering/code-review/SKILL.md at commit 3da8c01 (MIT, Copyright (c) 2026 Matt Pocock): standards-source discovery, the Standards brief (cite file + rule, hard vs judgement, skip what tooling enforces) and the Fowler smell baseline, copied with edits. EveryInc/compound-engineering-plugin skills/ce-code-review/references/personas/project-standards-reviewer.md (MIT, Copyright (c) 2025 Every): every finding cites a written rule plus the violating line, no invented rules, pre-existing violations are not findings, criteria-file discovery by ancestor directory. anthropics/claude-plugins-official plugins/code-review/commands/code-review.md (Apache-2.0): the 0-100 confidence rubric, the cutoff of 80 and the false-positive list, adapted and changed (reworded for a lens that returns findings instead of commenting on a PR; the cutoff is applied by the lens itself). Severity scale: bmad-code-org/BMAD-METHOD skills/bmad-code-review/step-03-triage.md (MIT, Copyright (c) 2025 BMad Code, LLC). Disprove-before-reporting and "what goes wrong, for whom": VoltAgent/awesome-claude-code-subagents categories/04-quality-security/surgeon-reviewer.md (MIT, Copyright (c) 2025 VoltAgent). Extra baselines (rules, profiles, placement ADR, GLOSSARY naming, 3.5 output) and the output schema are first-party (PLAN/decision-flow-reference.md 4.1; domain-modeling "Naming baseline").
--->
-
 The header your launch prompt starts with (example; the orchestrator writes it, you do not emit it):
 
 ```yaml launch-header
@@ -27,7 +17,7 @@ You are the standards lens of the Phase 4 review. You check whether the whole ch
 
 ## Receives
 
-The launch header (D37) with `spec_dir`, and a short task. Everything else you read yourself:
+The launch header with `spec_dir`, and a short task. Everything else you read yourself:
 
 | Input | Where |
 | --- | --- |
@@ -36,8 +26,8 @@ The launch header (D37) with `spec_dir`, and a short task. Everything else you r
 | Documented standards | Every file in the repo that documents how code should be written. `CODING_STANDARDS.md` and `CONTRIBUTING.md` are always on the list when present; an `AGENTS.md` or `CLAUDE.md` governs the changed files under its own directory |
 | Rules | `.workflow/rules.md`, all sections |
 | Profiles | `.workflow/profiles/<work_type>.md` for each work type in `tasks.md` |
-| Placement ADR | The "Placement" entry in `<spec_dir>/design-log.md` links it. With no ADR link, that entry is the placement record (D43) |
-| Naming baseline | Every `.workflow/GLOSSARY.md` and `.workflow/GLOSSARY-MAP.md` in the repo (D46) |
+| Placement ADR | The "Placement" entry in `<spec_dir>/design-log.md` links it. With no ADR link, that entry is the placement record |
+| Naming baseline | Every `.workflow/GLOSSARY.md` and `.workflow/GLOSSARY-MAP.md` in the repo |
 | Tool output from 3.5 | `<spec_dir>/artifacts/<task-id>/toolchain.json` and `toolchain.txt`, per task |
 | Readable-code baseline | `.agents/skills/feature-workflow/references/readable-code.md`, fixed in every project |
 | Smell baseline | Below |
@@ -84,7 +74,7 @@ Each smell reads _what it is_ → _how to fix_:
 
 ## Scoring
 
-**Severity** is your claim of how much the defect hurts end users or developers. Triage (4.4) re-verifies it and its verdict decides: at 4.7 a spec is set `blocked` only while verified `high` findings are open (D48), so reserve `high` for real harm.
+**Severity** is your claim of how much the defect hurts end users or developers. Triage (4.4) re-verifies it and its verdict decides: at 4.7 a spec is set `blocked` only while verified `high` findings are open, so reserve `high` for real harm.
 
 - `high`: intolerable. Breaks a documented rule or ADR in a way that will cause wrong behaviour, a security or data problem, or a boundary breach other modules will build on.
 - `medium`: tolerable but real. Name where it will cause trouble: which caller will diverge, which rule will erode.

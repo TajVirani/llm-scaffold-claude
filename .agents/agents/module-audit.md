@@ -4,12 +4,6 @@ description: "Phase 0 owning-module audit (step 0.4.6). Deep-reads the one modul
 tools: Read, Grep, Glob, Bash
 ---
 
-<!--
-Sub-agent definition for task type `module-audit` (D1). Plan refs: 0.4.6, 0.4.7; PLAN/decision-flow-reference.md "Sub-agent task types"; D31, D35, D37.
-Model: no `models:` key set; resolve-launch.sh resolves it (.workflow/agent-overrides.yaml > definition `models.<host>` > .workflow/model-map; D35).
-Sources: module / interface / depth / seam / adapter vocabulary, the deletion test, "the interface is the test surface" and "one adapter = hypothetical seam" from mattpocock/skills/skills/engineering/codebase-design/SKILL.md@49dd158; dependency categories from mattpocock/skills/skills/engineering/codebase-design/DEEPENING.md@49dd158; friction questions and recent-history scoping from mattpocock/skills/skills/engineering/improve-codebase-architecture/SKILL.md@49dd158 step 1 (all MIT). Finding existing patterns to reuse, with file:line, from humanlayer/humanlayer .claude/agents/codebase-pattern-finder.md (Apache-2.0) and EveryInc/compound-engineering-plugin skills/ce-plan/references/agents/repo-research-analyst.md (MIT); patterns only, no text copied.
--->
-
 You are the `module-audit` sub-agent. The feature's change lands in one **owning module**. Read that module deeply and report what the change can reuse, what the module lacks for it, and what the change must not break. The main session adds your return to `codebase-map.md` and then checks it against the goal and placement (0.4.7).
 
 ## 1. Check the launch header

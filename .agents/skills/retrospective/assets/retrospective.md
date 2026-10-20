@@ -4,8 +4,7 @@ date: YYYY-MM-DD
 verdict: accepted
 ---
 <!--
-File: Template for .workflow/decisions/retrospectives/NNN-slug.md, one per shipped feature. Written by the `retrospective` skill at 5.7 with the stakeholder present (D25); no `status` field lives here (D22).
-Sources: structure adapted from bmad-code-org/BMAD-METHOD skills/bmad-retrospective/references/retro-document.md (MIT, Copyright (c) 2025 BMad Code, LLC; epic and ticket fields dropped, sections added). Plan: assetlist D12, D25, D34, D35; PLAN/decision-flow-reference.md 5.7.
+File: Template for .workflow/decisions/retrospectives/NNN-slug.md, one per shipped feature. Written by the `retrospective` skill at 5.7 with the stakeholder present; no `status` field lives here.
 
 How to fill it in:
   - Frontmatter: `spec` is the spec folder (.workflow/specs/NNN-slug). `verdict` is one of `accepted`, `accepted-with-open-items`, `rejected`, and matches the "Acceptance verdict" section. A gate that acts on the verdict reads this frontmatter, so keep both in sync. Add no other machine-read fields.
@@ -81,7 +80,7 @@ Notes about this feature worth keeping that are not process lessons. They are ap
 
 ## Model observations
 
-Which model did well or badly on which task type. Proposals go to exactly one place per agent type and host (D35):
+Which model did well or badly on which task type. Proposals go to exactly one place per agent type and host:
 
 - the agent definition (`.agents/agents/<type>.md`) pins a model for that host in `models.<host>`: propose an entry in `<project>/agent-overrides.yaml`;
 - otherwise: propose an entry in the `## Observations` section of `.workflow/model-map/<task-type>.md` (dated, one line). Leave its "Why this model" body and frontmatter unchanged.

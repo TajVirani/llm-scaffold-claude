@@ -1,13 +1,12 @@
 <!--
-File: Example filled profile for work type `e2e-browser` (D26): Phase 1.3 browser suite, one Playwright test per JRN-### journey.
+File: Example filled profile for work type `e2e-browser`: Phase 1.3 browser suite, one Playwright test per JRN-### journey.
 Use: project-standards offers its lines as candidate answers in the interview (coverage C1, C3, C4) for <project>/.workflow/profiles/e2e-browser.md; it is never copied in whole. Adopted lines are adapted to the project; this comment and the banner never reach the project.
-Stack: Playwright, tsc, oxlint + vendored anti-slop, oxfmt (Prettier variant noted), dependency-cruiser (D26).
+Stack: Playwright, tsc, oxlint + vendored anti-slop, oxfmt (Prettier variant noted), dependency-cruiser.
 Contract: hooks/evidence-capture.sh matches Bash commands that start with the `e2e` value and reads the JSON report at `e2e_report` (a descriptive key; run-toolchain.sh never runs it).
-Sources: first-party, from PLAN/gap-research.md G1 and G4, written from the Playwright docs (Apache-2.0; no text copied): https://playwright.dev/docs/test-use-options, https://playwright.dev/docs/test-cli, https://playwright.dev/docs/api/class-testconfig#test-config-output-dir, https://playwright.dev/docs/test-reporters, https://playwright.dev/docs/test-annotations, https://playwright.dev/docs/test-fixtures, https://playwright.dev/docs/network; structure from .workflow/profiles/TEMPLATE.md. Plan refs: 1.3, 1.4, 3.10-3.12, 4.3; assetlist D15, D26, D61, D62, D63.
 -->
 # Profile: e2e-browser
 
-> **Example: adapt before use.** Every path, command, URL and port below is a starting point for a TS/JS web app on the D26 stack. Check each line against the project, change what differs, then delete this banner.
+> **Example: adapt before use.** Every path, command, URL and port below is a starting point for a TS/JS web app on the example stack (Playwright, tsc, oxlint, oxfmt, dependency-cruiser). Check each line against the project, change what differs, then delete this banner.
 
 ## File locations
 
@@ -62,7 +61,7 @@ export default defineConfig({
 
 ### Required `e2e/fixtures.ts`
 
-An auto fixture attaches console errors and network failures to every test, and honours the 1.4 fault switch: with `E2E_INJECT_FAULT=1`, every app API request is answered with a 500, so every journey must fail (D63).
+An auto fixture attaches console errors and network failures to every test, and honours the 1.4 fault switch: with `E2E_INJECT_FAULT=1`, every app API request is answered with a 500, so every journey must fail.
 
 ```ts
 import { test as base, expect } from '@playwright/test';
@@ -97,10 +96,10 @@ typecheck: "npx tsc --noEmit -p tsconfig.json"
 format: "npx oxfmt --check"          # Prettier variant: "npx prettier --check ."
 boundary: "npx depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs --output-type err-long src"
 test: "npx playwright test --list"   # 3.5 for this work type: the suite compiles and every test is collected, without a running app (journeys are red until the feature exists). The harness gate (3.9) uses .workflow/profiles/test-harness.md.
-test_scoped: 'npx playwright test --list --grep-invert "$(paste -sd "|" "$WF_EXCLUDE_TESTS_FILE")"'   # in place of test while other tasks' journeys are excluded (D85); selectors are @JRN-### tags
+test_scoped: 'npx playwright test --list --grep-invert "$(paste -sd "|" "$WF_EXCLUDE_TESTS_FILE")"'   # in place of test while other tasks' journeys are excluded; selectors are @JRN-### tags
 e2e: "npx playwright test"           # evidence-capture matches commands that start with this; append --grep @JRN-001, --project chromium or -x freely
 # Descriptive keys (not commands; run-toolchain.sh never runs them):
-serve: "npm run start"               # start command for the built app (review-targets, 4.3, D62)
+serve: "npm run start"               # start command for the built app (review-targets, 4.3)
 serve_ready: "http://localhost:3000" # URL polled until the app answers
 e2e_report: "test-results/e2e-results.json"   # JSON reporter outputFile, relative to the run directory; read by evidence-capture
 config:
@@ -118,6 +117,6 @@ rule_set: "oxlint defaults + vendored anti-slop (all generic rules at error, plu
 - [ ] Each journey ends by asserting the expected outcome the journey row names, as the user sees it, not an intermediate state or a network call.
 - [ ] Assertions use user-facing locators (role, label, text) or an agreed test id; no CSS or XPath chains tied to markup structure.
 - [ ] No test depends on another test's state or run order; each seeds its own data from `e2e/data/` or the fixtures.
-- [ ] The journey would fail under `E2E_INJECT_FAULT=1`: it asserts something that needs the backend, not only static page content (D63).
+- [ ] The journey would fail under `E2E_INJECT_FAULT=1`: it asserts something that needs the backend, not only static page content.
 - [ ] Stubs with `page.route` are limited to third-party services the journey row names as out of scope; the app's own API is never stubbed outside the fault switch.
 - [ ] Whether a console error should fail this journey is decided per journey and stated in the test (assert empty, or leave it attached), not left implicit.
