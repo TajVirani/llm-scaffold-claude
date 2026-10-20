@@ -16,7 +16,7 @@
 #       description            = frontmatter `description`
 #       developer_instructions = the body after the closing `---`, leading blank lines and trailing whitespace removed
 #     Every other frontmatter key (tools, models, model, ...) is ignored. `model` is NEVER written: a toml `model` overrides the
-#     spawn-time model on Codex 0.155.1, so writing one would defeat agent-overrides.yaml (D35, D67). The orchestrator passes the
+#     spawn-time model on Codex 0.155.1, so writing one would defeat .workflow/agent-overrides.yaml (D35, D67). The orchestrator passes the
 #     resolve-launch.sh model at spawn instead.
 #   - developer_instructions is a TOML multi-line literal string ('''...''') when the body allows it (no ''' , no control
 #     characters other than tab and newline), closed on its own line, so the value ends with one newline; otherwise a basic

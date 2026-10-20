@@ -1,5 +1,5 @@
 <!--
-File: Template for specs/NNN-slug/verification-plan.md: how the feature will be proven. No frontmatter.
+File: Template for .workflow/specs/NNN-slug/verification-plan.md: how the feature will be proven. No frontmatter.
 Written by modules/discovery.md at 0.5.1-0.5.4 (End state, Journeys, Fixtures and oracles); Targets added by modules/verification-setup.md at 1.1. Drives the browser suite (1.3), review-end-state (4.2) and review-targets (4.3); report.md (5.4) reports against it.
 Sources: the test-scenario role of Spec Kit's quickstart.md (claude-night-market spec-kit skills/shared/modules/artifact-structure.md, MIT). Criteria that are measurable, verifiable, user-visible and binary adapted from claude-night-market spec-kit skills/spec-writing/modules/success-criteria-patterns.md (MIT) and athola/claude-night-market/plugins/imbue/skills/proof-of-work/modules/acceptance-criteria.md@54fcc85 (MIT). "Every verify step has an automated check" adapted from open-gsd/gsd-core agents/gsd-planner.md "Nyquist rule" (MIT; idea only). JRN-### journeys, fixtures and oracles, and targets are first-party (PLAN/decision-flow-reference.md "Per-feature files", 0.5.1-0.5.4, 1.1, 4.2, 4.3).
 
@@ -48,7 +48,7 @@ Spec: [spec.md](spec.md)
 
 ## Suites
 
-<!-- 1.2-1.4. Filled by modules/verification-setup.md. Commands come from the profile Toolchain keys, not from this file: `test` (profiles/test-harness.md) and `e2e` (profiles/e2e-browser.md). Gates 3.9 and 3.10 run them. -->
+<!-- 1.2-1.4. Filled by modules/verification-setup.md. Commands come from the profile Toolchain keys, not from this file: `test` (.workflow/profiles/test-harness.md) and `e2e` (.workflow/profiles/e2e-browser.md). Gates 3.9 and 3.10 run them. -->
 
 | Suite | Profile key | Command (copied from the profile) | CI check | Known-bad-build evidence (1.4) |
 | --- | --- | --- | --- | --- |

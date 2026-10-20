@@ -4,7 +4,7 @@ Read this when scope output looks wrong, a state-file merge conflict needs resol
 
 ## The model
 
-State file: `.agents/data-structure-audit-state.jsonl`, committed to the repo. One JSON object per line:
+State file: `.workflow/data-structure-audit-state.jsonl`, committed to the repo. One JSON object per line:
 
 ```json
 {"commit": "<full sha>", "date": "2026-08-25T11:35:51Z"}
@@ -42,7 +42,7 @@ With the union driver configured, git auto-resolves by keeping both sides' lines
 
 ```
 # .gitattributes
-.agents/data-structure-audit-state.jsonl merge=union
+.workflow/data-structure-audit-state.jsonl merge=union
 ```
 
 Without it, a conflict looks like both sides appended different lines. Resolve by union: keep every line from both sides (dedupe identical lines), no markers. Never resolve by picking one side — that silently discards the other branch's audit record and causes re-checks (annoying) or, if someone "fixes" it by picking the wrong ancestor, stale exclusions.
@@ -57,4 +57,4 @@ The state file is an honor-system cache, not a security control: anyone can appe
 
 - **Force a full re-audit**: delete the state file (or run with it moved aside), audit, record fresh.
 - **Invalidate one branch's record**: remove its line, commit.
-- **Inspect why a file is/isn't in scope**: `git log --oneline HEAD --not $(grep -o '"commit": "[0-9a-f]*"' .agents/data-structure-audit-state.jsonl | grep -o '[0-9a-f]\{40\}') -- <file>` — empty output means every change to the file is reachable from an audited commit.
+- **Inspect why a file is/isn't in scope**: `git log --oneline HEAD --not $(grep -o '"commit": "[0-9a-f]*"' .workflow/data-structure-audit-state.jsonl | grep -o '[0-9a-f]\{40\}') -- <file>` — empty output means every change to the file is reachable from an audited commit.

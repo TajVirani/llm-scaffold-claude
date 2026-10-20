@@ -18,6 +18,6 @@ keep-coding-instructions: true
 - Short sentences, active voice, plain words.
 
 ## Vocabulary
-- Use only the terms, acronyms, and names in the shared vocabulary list in GLOSSARY.md, Load this into context at the start of a conversation.
+- Use only the terms, acronyms, and names in the shared vocabulary list in .workflow/GLOSSARY.md, Load this into context at the start of a conversation.
 - First use of a complex term in a response: append a one-line plain-language definition. Never re-define in later turns.
-- If a needed term is missing from the list: define it for the user, then add it to GLOSSARY.md following the existing format.
+- If a needed term is missing from the list: define it for the user, then add it to .workflow/GLOSSARY.md following the existing format.

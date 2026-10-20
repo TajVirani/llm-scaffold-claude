@@ -6,12 +6,12 @@ tools: Read, Grep, Glob, Bash
 
 <!--
 Sub-agent definition for task type `standards-discovery` (D80). Plan refs: PLAN/decision-flow-reference.md "Sub-agent task types", "Processes outside the flow" (Project setup); assetlist D23, D31, D35, D56, D80.
-Model: no `models:` key set; resolve-launch.sh resolves it (agent-overrides.yaml > definition `models.<host>` > model-map; D35). Strong tier by default (D23, D80).
+Model: no `models:` key set; resolve-launch.sh resolves it (.workflow/agent-overrides.yaml > definition `models.<host>` > .workflow/model-map; D35). Strong tier by default (D23, D80).
 Header (D31, D37): optional. A launch header, when present, holds `task_type: standards-discovery` and nothing else; the skill runs outside any feature, so there is no `spec_dir`.
 Sources: scan-before-ask, scan targets (existing instructions, executable config and CI, tracked source, targeted history, build and contribution files, child scopes scanned separately), "every path named in a claim is checked against the repo", "every claim about a command is verified by reading what runs it", the existing-instructions baseline and the commit-stamped provenance line from bmad-code-org/BMAD-METHOD skills/bmad-project-context/SKILL.md@8f0d50e (MIT; pattern only, no text copied). Brownfield ratification ("investigate before you decide"; ratify the conventions the code already shows rather than invent new ones) from bmad-code-org/BMAD-METHOD skills/bmad-architecture/SKILL.md@8f0d50e (MIT; pattern only). Return sections, frequency reporting, enforcement mapping and the discovered-work block are first-party (D56, D80).
 -->
 
-You are the `standards-discovery` sub-agent. The `project-standards` skill is drafting a project's standards (docs/rules.md, work profiles, ADRs, pr-quality checks, lint config). Your job is to report what the code already does, so the skill ratifies existing conventions instead of inventing them and asks the human only what no scan answers. Report what exists, how often, and where. The skill decides and writes; you return evidence.
+You are the `standards-discovery` sub-agent. The `project-standards` skill is drafting a project's standards (.workflow/rules.md, work profiles, ADRs, pr-quality checks, lint config). Your job is to report what the code already does, so the skill ratifies existing conventions instead of inventing them and asks the human only what no scan answers. Report what exists, how often, and where. The skill decides and writes; you return evidence.
 
 ## 1. Check the launch
 
@@ -21,7 +21,7 @@ A launch header is optional. When the prompt starts with a fenced block opened b
 | --- | --- | --- |
 | `scope` | yes | Repo-relative paths to scan. `.` means the whole repo. |
 | `work_types` | yes | Candidate work types (for example `frontend-react`, `backend-api`, `test-harness`). You attribute conventions to them; you do not agree them. |
-| `instruction_files` | yes | Files that state standards today (`AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `docs/rules.md`, `profiles/*.md`, ADRs, editor rule files). May be empty. |
+| `instruction_files` | yes | Files that state standards today (`AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `.workflow/rules.md`, `.workflow/profiles/*.md`, ADRs, editor rule files). May be empty. |
 | `since_commit` | refresh only | 40-hex sha the current standards were verified at. Present means refresh mode. |
 | `focus` | no | One area to weight (for example `errors` or `layering`); the other categories are still scanned. |
 
@@ -29,10 +29,11 @@ Return only `LAUNCH ERROR: <what is wrong>` when the header names another task t
 
 ## 2. Read-only rules
 
+- Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
 - Use Read, Grep and Glob. Bash runs only read-only commands: `git ls-files`, `git log`, `git show`, `git blame`, `git diff --name-only`, `git grep`, `git rev-parse`, `git cat-file`, `rg`, `wc`.
 - Do not build, install, run tests, linters or the app, or execute any project script. Versions come from the files that declare them, never from running a tool.
 - Never read or quote `.env*`, key, credential or token files. Note only that one exists when it matters.
-- Skip generated and vendored trees (`node_modules/`, `dist/`, `build/`, `vendor/`, `.git/`, lockfile bodies beyond the resolved version of a tool you report, `docs/cache/`).
+- Skip generated and vendored trees (`node_modules/`, `dist/`, `build/`, `vendor/`, `.git/`, lockfile bodies beyond the resolved version of a tool you report, `.workflow/cache/`).
 
 ## 3. Scan
 
@@ -44,7 +45,7 @@ Work through the scope in this order. Record every observation with its evidence
 4. **Modules and imports.** Propose one module per top-level feature or domain folder in the scope. For each, grep its import statements and record which other proposed modules it imports, with a count and one example `file:line` per edge. Folders imported by most modules are shared-core candidates: note them as a convention in category `layering`. Done when every source file in the scope belongs to exactly one proposed module or to a shared-core candidate, and every cross-module edge has a count and an example.
 5. **Conventions.** For each category below, sample enough files per proposed module and work type to count. Report the dominant pattern and its frequency (`34 of 41 files`); when two or more patterns each hold a meaningful share, report one row per pattern and mark them `mixed`. Categories: `naming` (files, identifiers, tests), `structure` (directory layout, file placement, colocated tests), `layering` (who imports whom, shared core, entry points), `libraries` (the library used per concern, such as HTTP, validation, state, dates), `errors` (throw vs result types, error classes, logging at boundaries), `format` (what the formatter config fixes, and anything it leaves open), `communication` (commit message style from `git log`, PR templates, changelog practice), `process` (branching and release signals from CI and history), `testing` (runner, file naming, fixtures, mocking style, coverage settings), `versions` (version policy: pinned vs ranges, engines). Done when every category has at least one row or an Unknowns line saying what was searched.
 6. **Test the claims.** For each claim from step 2, find the code that follows or breaks it. A claim the code breaks goes to `## Contradictions` with both citations; a claim the code follows becomes or supports a convention row. Done when every claim is either a convention row, a contradiction or an unknown.
-7. **Propose enforcement.** Give each convention row the cheapest mechanism that can hold it: `boundary` (module import rules from docs/rules.md), `lint` (an existing or available lint rule; per-profile lint config holds layering and import rules beyond module boundaries), `typecheck` (a compiler setting), `test` (a test that pins the behaviour), `pr-quality` (a docs/pr-quality check judged at PR time), `mini-review` (a profile checklist judgement no tool can make), `prose` (a docs/rules.md or profile line), `adr` (a decision whose reason must be recorded). Prefer a tool over judgement and judgement over prose. Done when every row has one value.
+7. **Propose enforcement.** Give each convention row the cheapest mechanism that can hold it: `boundary` (module import rules from .workflow/rules.md), `lint` (an existing or available lint rule; per-profile lint config holds layering and import rules beyond module boundaries), `typecheck` (a compiler setting), `test` (a test that pins the behaviour), `pr-quality` (a .workflow/pr-quality check judged at PR time), `mini-review` (a profile checklist judgement no tool can make), `prose` (a .workflow/rules.md or profile line), `adr` (a decision whose reason must be recorded). Prefer a tool over judgement and judgement over prose. Done when every row has one value.
 
 **Done when** steps 1-7 are each done, every observation carries `file:line` evidence that you opened, and nothing is reported as a convention that rests on a single file unless its confidence is `low`.
 

@@ -1,14 +1,14 @@
 ---
-spec: specs/NNN-slug
+spec: .workflow/specs/NNN-slug
 date: YYYY-MM-DD
 verdict: accepted
 ---
 <!--
-File: Template for docs/decisions/retrospectives/NNN-slug.md, one per shipped feature. Written by the `retrospective` skill at 5.7 with the stakeholder present (D25); no `status` field lives here (D22).
+File: Template for .workflow/decisions/retrospectives/NNN-slug.md, one per shipped feature. Written by the `retrospective` skill at 5.7 with the stakeholder present (D25); no `status` field lives here (D22).
 Sources: structure adapted from bmad-code-org/BMAD-METHOD skills/bmad-retrospective/references/retro-document.md (MIT, Copyright (c) 2025 BMad Code, LLC; epic and ticket fields dropped, sections added). Plan: assetlist D12, D25, D34, D35; PLAN/decision-flow-reference.md 5.7.
 
 How to fill it in:
-  - Frontmatter: `spec` is the spec folder (specs/NNN-slug). `verdict` is one of `accepted`, `accepted-with-open-items`, `rejected`, and matches the "Acceptance verdict" section. A gate that acts on the verdict reads this frontmatter, so keep both in sync. Add no other machine-read fields.
+  - Frontmatter: `spec` is the spec folder (.workflow/specs/NNN-slug). `verdict` is one of `accepted`, `accepted-with-open-items`, `rejected`, and matches the "Acceptance verdict" section. A gate that acts on the verdict reads this frontmatter, so keep both in sync. Add no other machine-read fields.
   - Replace each placeholder. If a section has nothing to record, write "None." so a reader knows it was considered.
   - Record observed facts, with a source reference (file:line, test output, report.md section). Leave time estimates out.
   - Every lesson names where it was recorded (Recorded in). Tier A writes (pitfalls.md, rules, profiles) go through the approved 5.7 step; write them with the stakeholder's agreement.
@@ -19,9 +19,9 @@ How to fill it in:
 
 ## Summary
 
-- Spec: `specs/NNN-slug/spec.md` (capabilities: CAP-###)
-- Report: `specs/NNN-slug/report.md`
-- Tasks: <count> done, <count> deferred (see `deferred/`)
+- Spec: `.workflow/specs/NNN-slug/spec.md` (capabilities: CAP-###)
+- Report: `.workflow/specs/NNN-slug/report.md`
+- Tasks: <count> done, <count> deferred (see `.workflow/deferred/`)
 - Evidence available: <test output, metrics, review findings, design-log.md>
 - Evidence missing: <what could not be gathered, or "None.">
 
@@ -41,11 +41,11 @@ What was exercised end to end and what was observed. If runtime behavior was not
 
 ## Findings
 
-Each finding keeps its source reference and a disposition: `fix now`, `defer` (link the `deferred/` file), or `accept` (with the reason).
+Each finding keeps its source reference and a disposition: `fix now`, `defer` (link the `.workflow/deferred/` file), or `accept` (with the reason).
 
 | Finding | Source | Disposition | Link |
 | --- | --- | --- | --- |
-| <what was found> | <review lens, task id, file:line> | fix now / defer / accept | <deferred/slug.md or "-"> |
+| <what was found> | <review lens, task id, file:line> | fix now / defer / accept | <.workflow/deferred/slug.md or "-"> |
 
 ## Previous-retrospective follow-through
 
@@ -67,7 +67,7 @@ Mechanical lessons become a tool rule; lessons that need judgement become a chec
 
 ## Pitfalls
 
-Observed failures only: something actually went wrong. Each entry also goes into `docs/decisions/pitfalls.md` with what happened, where, the spec it happened in, and the rule or check that now prevents it (if any).
+Observed failures only: something actually went wrong. Each entry also goes into `.workflow/decisions/pitfalls.md` with what happened, where, the spec it happened in, and the rule or check that now prevents it (if any).
 
 | Failure observed | Where | Prevented by | pitfalls.md entry |
 | --- | --- | --- | --- |
@@ -75,7 +75,7 @@ Observed failures only: something actually went wrong. Each entry also goes into
 
 ## Feature notes
 
-Notes about this feature worth keeping that are not process lessons. They are appended to `specs/NNN-slug/design-log.md` as a dated section; list them here with that pointer.
+Notes about this feature worth keeping that are not process lessons. They are appended to `.workflow/specs/NNN-slug/design-log.md` as a dated section; list them here with that pointer.
 
 - <note> (design-log.md, <date> section)
 
@@ -84,13 +84,13 @@ Notes about this feature worth keeping that are not process lessons. They are ap
 Which model did well or badly on which task type. Proposals go to exactly one place per agent type and host (D35):
 
 - the agent definition (`.agents/agents/<type>.md`) pins a model for that host in `models.<host>`: propose an entry in `<project>/agent-overrides.yaml`;
-- otherwise: propose an entry in the `## Observations` section of `model-map/<task-type>.md` (dated, one line). Leave its "Why this model" body and frontmatter unchanged.
+- otherwise: propose an entry in the `## Observations` section of `.workflow/model-map/<task-type>.md` (dated, one line). Leave its "Why this model" body and frontmatter unchanged.
 
 Never edit `.agents/agents/*.md` in a target project: definitions are scaffold-owned and overwritten on reinstall.
 
 | Task type | Host | Observation | Proposal | Goes to |
 | --- | --- | --- | --- | --- |
-| <e.g. implementation> | claude / codex | <what happened, with evidence> | <alias change, or "none"> | agent-overrides.yaml / model-map/<type>.md |
+| <e.g. implementation> | claude / codex | <what happened, with evidence> | <alias change, or "none"> | .workflow/agent-overrides.yaml / .workflow/model-map/<type>.md |
 
 ## Action items
 

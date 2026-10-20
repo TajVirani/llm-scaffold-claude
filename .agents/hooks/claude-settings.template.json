@@ -2,7 +2,7 @@
   "outputStyle": "Concise Technical",
   "statusLine": {
     "type": "command",
-    "command": "node \"${CLAUDE_PROJECT_DIR:-.}\"/.agents/hooks/context-bridge.js"
+    "command": "node \"${CLAUDE_PROJECT_DIR:-.}\"/.agents/hooks/context-bridge.cjs"
   },
   "hooks": {
     "SessionStart": [
@@ -53,6 +53,16 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/tier-b-write-guard.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/worktree-write-guard.sh",
             "timeout": 10
           }
         ]
@@ -107,8 +117,8 @@
   },
   "permissions": {
     "deny": [
-      "Edit(docs/cache/**)",
-      "Edit(specs/*/.step)"
+      "Edit(.workflow/cache/**)",
+      "Edit(.workflow/specs/*/.step)"
     ]
   }
 }

@@ -4,7 +4,7 @@ Per-project state for `design-pattern-doc`. Auto-populated on first run by the s
 
 ## File location
 
-`docs/design-pattern-doc/conventions.md` in the project root. Project-owned (D75): each repo has its own, the skill ships only this format, and the scaffold installer never writes, overwrites or removes it. Commit it with the project's docs.
+`.workflow/design-pattern-doc/conventions.md` in the project root. Project-owned (D75): each repo has its own, the skill ships only this format, and the scaffold installer never writes, overwrites or removes it. Commit it with the project's docs.
 
 ## Schema
 
@@ -15,7 +15,7 @@ Single markdown file. H2 sections in this order. Skill reads each section by hea
 
 ## Doc locations
 - design patterns: docs/architecture/
-- decisions / ADRs: docs/decisions/adr/
+- decisions / ADRs: .workflow/decisions/adr/
 - diagrams: docs/diagrams/
 
 ## Anchor files
@@ -25,7 +25,7 @@ Single markdown file. H2 sections in this order. Skill reads each section by hea
 ## Drift scan globs
 - CLAUDE.md
 - docs/**/*.md
-- specs/**/*.md
+- .workflow/specs/**/*.md
 - README.md
 
 ## Naming conventions
@@ -48,7 +48,7 @@ Single markdown file. H2 sections in this order. Skill reads each section by hea
 
 ## Notes
 - <stack, e.g. "TypeScript monorepo, one package per service">. Architecture overview is in docs/architecture/README.md.
-- Specs live in specs/<NNN>-<slug>/.
+- Specs live in .workflow/specs/<NNN>-<slug>/.
 ```
 
 ## Section meanings
@@ -66,7 +66,7 @@ Files the skill must read before launching exploration agents. The first item is
 
 ### Drift scan globs
 
-Glob patterns the skill scans for drift candidates. Greedy by default (`docs/**/*.md`, `specs/**/*.md`, `CLAUDE.md`, `README.md`). User can narrow if scans are too expensive (e.g., exclude `specs/_archive/**`).
+Glob patterns the skill scans for drift candidates. Greedy by default (`docs/**/*.md`, `.workflow/specs/**/*.md`, `CLAUDE.md`, `README.md`). User can narrow if scans are too expensive (e.g., exclude `.workflow/specs/_archive/**`).
 
 ### Naming conventions
 
@@ -89,7 +89,7 @@ Free-form. Anything that didn't fit the structured sections. Useful for user han
 When `conventions.md` is missing, the skill:
 
 1. Creates the file with auto-detected values (locations, anchor files, scan globs, verification commands inferred from `package.json` / `Taskfile.yml` / `Makefile`).
-2. Tells the user: *"First run — wrote `docs/design-pattern-doc/conventions.md`. Edit it if I got anything wrong, then re-invoke."*
+2. Tells the user: *"First run — wrote `.workflow/design-pattern-doc/conventions.md`. Edit it if I got anything wrong, then re-invoke."*
 3. Stops. Does NOT proceed to explore. The user reviews the conventions before the first real run.
 
 This keeps the skill from making bad assumptions on novel projects.

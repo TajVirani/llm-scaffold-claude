@@ -8,18 +8,20 @@ docs elsewhere don't contradict the new work. Report-only: never edit docs or co
 
 ## Locating the documentation
 
-1. **Originating spec (primary).** Branch names follow `NNN-slug` matching `specs/NNN-slug/`.
-   Get the branch (`git rev-parse --abbrev-ref HEAD`) and read the matching folder: `spec.md`
-   and `tasks.md`, plus `plan.md`, `data-model.md`, `verification-plan.md`, `design-log.md`
+1. **Originating spec (primary).** Branch names follow `spec/NNN-slug` (a task branch:
+   `task/NNN-slug/Tnn-<slug>`; older branches plain `NNN-slug`), matching `.workflow/specs/NNN-slug/`.
+   Get the branch (`git rev-parse --abbrev-ref HEAD`), take its `NNN-slug` part, and read the matching
+   folder: `spec.md`, `tasks.md` and the task files under `tasks/` (on a task branch, that task's file), plus `plan.md`, `data-model.md`, `verification-plan.md`, `design-log.md`
    and `contracts/` when present.
    - **No matching spec folder** → report "no originating spec/PRD found for branch `<name>`"
      as a Tier 1 finding and stop. Do not guess at another doc.
 2. **Cited ADRs (secondary).** Scan branch commit messages (`git log origin/main..HEAD`) and
    the diff itself for ADR references (e.g. `ADR-0020`). Read each cited ADR (ADRs live in
-   `docs/decisions/adr/`). Checked for contradiction only, not completeness.
+   `.workflow/decisions/adr/`). Checked for contradiction only, not completeness.
 3. **Wider sweep (tertiary).** Extract the key concepts the diff touches (module names,
-   feature nouns, table/field names, tool names). Grep `docs/` (except the generated
-   `docs/cache/`), `GLOSSARY.md` and `README.md` for those concepts and read the hits.
+   feature nouns, table/field names, tool names). Grep `docs/`, `.workflow/rules.md`, `.workflow/capabilities.md`,
+   `.workflow/decisions/`, `.workflow/GLOSSARY.md` and `README.md` (never the generated `.workflow/cache/`;
+   search hidden dirs, e.g. `rg --hidden`) for those concepts and read the hits.
    Checked for contradiction only.
 
 ## Checks
@@ -27,7 +29,7 @@ docs elsewhere don't contradict the new work. Report-only: never edit docs or co
 ### 1. Doc claims without code (Tier 1)
 
 For each requirement in `spec.md` and each task in `tasks.md` marked complete (`status: done`
-in its frontmatter record, or `[x]` in a checkbox list): verify the diff (or existing code it builds on) actually contains that behavior. A task
+in its frontmatter record, or `[x]` in a checkbox list; its acceptance criteria are in its task file): verify the diff (or existing code it builds on) actually contains that behavior. A task
 checked off with no corresponding change is a hard finding.
 
 ### 2. Code without doc record (Tier 1)
@@ -57,7 +59,7 @@ Wider-sweep hits that state something the diff has now made false. These are sof
 
 Tier 1:
 ```
-- **[DOC-MISMATCH]** `specs/NNN-…/tasks.md:LINE` ↔ `path/to/code.ts:LINE`
+- **[DOC-MISMATCH]** `.workflow/specs/NNN-…/tasks.md:LINE` ↔ `path/to/code.ts:LINE`
   Claim: [what the doc says]
   Reality: [what the diff actually does / doesn't do]
   Suggestion: [update doc / implement task / amend ADR]

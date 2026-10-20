@@ -17,7 +17,7 @@
 #       profile-mini-review   s<NNN>_t<N>_r<round> (3.7 review round; the bare s<NNN>_t<N> is the implementer's name); required
 #       other workflow types  optional: when it starts with s<NNN>_ the spec folder is checked; any other valid name passes (a repeated
 #                             Phase 0/4 launch adds _r<round>, e.g. s007_fact_lookup_r2)
-#     s<NNN> must resolve to exactly one folder specs/<NNN>-*; a <enc(work_type)> must equal enc() of exactly one profiles/<wt>.md.
+#     s<NNN> must resolve to exactly one folder .workflow/specs/<NNN>-*; a <enc(work_type)> must equal enc() of exactly one .workflow/profiles/<wt>.md.
 #   - Any failed check: deny with the reason. jq missing, unreadable payload, or the task-type table not readable: deny, fail closed.
 # Outputs/handoff: stdout is nothing (allow) or exactly one deny JSON:
 #   {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"codex-pre-spawn: ..."}}
@@ -60,6 +60,9 @@ if common=$(git -C "$root" rev-parse --path-format=absolute --git-common-dir 2>/
   root=$(dirname "$common")
 fi
 [ -d "$root/.agents/skills/feature-workflow" ] || exit 0
+# Workflow paths (D81); sourced once the workflow is known to be installed.
+# shellcheck source=../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
 resolver=$root/.agents/skills/feature-workflow/scripts/resolve-launch.sh
 [ -f "$resolver" ] || env_deny "${resolver#"$root"/} not found although .agents/skills/feature-workflow exists; reinstall the scaffold"
 
@@ -85,20 +88,20 @@ if [ -z "$task_name" ]; then
 fi
 printf '%s' "$task_name" | grep -Eq '^[a-z0-9_]+$' || bad "must use only lowercase letters, digits and underscores (Codex rejects anything else)"
 
-# spec_folder NNN : exactly one specs/<NNN>-* in the main checkout.
+# spec_folder NNN : exactly one .workflow/specs/<NNN>-* in the main checkout.
 spec_folder() {
   local d n=0
-  for d in "$root"/specs/"$1"-*/; do [ -d "$d" ] && n=$((n + 1)); done
-  [ "$n" -eq 1 ] || bad "names spec s$1, but $n folders match specs/$1-* (need exactly one)"
+  for d in "$root/$WF_SPECS/$1"-*/; do [ -d "$d" ] && n=$((n + 1)); done
+  [ "$n" -eq 1 ] || bad "names spec s$1, but $n folders match $WF_SPECS/$1-* (need exactly one)"
 }
-# work_type ENC : exactly one profiles/<wt>.md with enc(wt) = ENC.
+# work_type ENC : exactly one .workflow/profiles/<wt>.md with enc(wt) = ENC.
 work_type() {
   local p n=0
-  for p in "$root"/profiles/*.md; do
+  for p in "$root/$WF_PROFILES"/*.md; do
     [ -f "$p" ] || continue
     [ "$(codex_enc "$(basename "$p" .md)")" = "$1" ] && n=$((n + 1))
   done
-  [ "$n" -eq 1 ] || bad "names work type '$1', but $n profiles under profiles/ encode to it (need exactly one)"
+  [ "$n" -eq 1 ] || bad "names work type '$1', but $n profiles under $WF_PROFILES/ encode to it (need exactly one)"
 }
 
 num="" rest=""

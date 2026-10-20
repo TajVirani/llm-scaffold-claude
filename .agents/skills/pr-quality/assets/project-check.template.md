@@ -1,7 +1,7 @@
 # <Check name>
 
-<!-- Template for a project check. Copy to docs/pr-quality/<check-name>.md in your project and fill it in.
-     pr-quality runs one sub-agent per docs/pr-quality/*.md file (README.md excluded), handing it this file as
+<!-- Template for a project check. Copy to .workflow/pr-quality/<check-name>.md in your project and fill it in.
+     pr-quality runs one sub-agent per .workflow/pr-quality/*.md file (README.md excluded), handing it this file as
      its whole methodology. The file is project-owned: the scaffold never ships, overwrites or removes it.
      The H1 above becomes the section heading in the pr-quality report. Delete this comment. -->
 

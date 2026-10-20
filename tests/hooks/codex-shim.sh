@@ -2,7 +2,7 @@
 # Suite: Codex shim (D9, D66, D67): the Codex task_name path of hooks/post-implementation-audit.sh, hooks/codex-hooks.template.json
 #   and hooks/codex-config.template.toml.
 # Covers: task lookup from the session_meta agent_path of a Codex rollout (top-level and source.subagent fallback, nested paths),
-#   s<NNN>_t<N> and s<NNN>_phase_1_<wt> forms, the toolchain running in .worktrees/<task_name> (warning when absent), block / pass
+#   s<NNN>_t<N> and s<NNN>_phase_1_<wt> forms, the toolchain running in .workflow/.worktrees/<task_name> (warning when absent), block / pass
 #   with evidence in the main checkout, the forked parent prompt being
 #   ignored, warnings for unparseable names, missing or ambiguous specs and profiles, integration names, and the Claude path still
 #   working; template JSON shape, matchers limited to the verified set, commands that resolve the project root from a sub-directory
@@ -18,8 +18,8 @@ P=$B/proj
 copy_agents "$P"
 cd "$P" || exit 1
 git init -q -b main && git config user.email t@t.invalid && git config user.name tester
-mkdir -p specs/007-checkout specs/008-a specs/008-b profiles sub/dir
-cat > specs/007-checkout/spec.md <<'S'
+mkdir -p .workflow/specs/007-checkout .workflow/specs/008-a .workflow/specs/008-b .workflow/profiles sub/dir
+cat > .workflow/specs/007-checkout/spec.md <<'S'
 ---
 status: in-progress
 baseline_revision: ""
@@ -29,7 +29,7 @@ deferred: []
 ---
 # Checkout
 S
-cat > specs/007-checkout/tasks.md <<'S'
+cat > .workflow/specs/007-checkout/tasks.md <<'S'
 ---
 tasks:
   - id: T3
@@ -43,7 +43,7 @@ tasks:
     seam: s
 ---
 S
-cat > profiles/web.md <<'S'
+cat > .workflow/profiles/web.md <<'S'
 # web
 ## Toolchain
 
@@ -55,22 +55,22 @@ boundary: ""
 e2e: ""
 ```
 S
-cat > profiles/harness.md <<'S'
+cat > .workflow/profiles/harness.md <<'S'
 ## Toolchain
 
 ```yaml
 lint: "true"
 ```
 S
-cp profiles/harness.md profiles/web-ui.md
-cp profiles/harness.md profiles/web_ui.md
-printf '.worktrees/\n' > .gitignore
+cp .workflow/profiles/harness.md .workflow/profiles/web-ui.md
+cp .workflow/profiles/harness.md .workflow/profiles/web_ui.md
+printf '.workflow/.worktrees/\n' > .gitignore
 git add -A >/dev/null && git commit -qm init
-# Codex worktrees, as the orchestrator creates them: .worktrees/<task_name>, branch wf/<NNN-slug>/<task_name>.
+# Codex worktrees, as the orchestrator creates them: .workflow/.worktrees/<task_name>, branch wf/<NNN-slug>/<task_name>.
 for n in s007_t3 s007_phase_1_harness s007_phase_1_redtest; do
-  git worktree add -q ".worktrees/$n" -b "wf/007-checkout/$n" >/dev/null 2>&1
+  git worktree add -q ".workflow/.worktrees/$n" -b "wf/007-checkout/$n" >/dev/null 2>&1
 done
-WT3=$P/.worktrees/s007_t3
+WT3=$P/.workflow/.worktrees/s007_t3
 
 H=$P/.agents/hooks
 # Codex rollout: session_meta first (agent_path = /root/<task_name>), then the forked parent history, whose first user message
@@ -82,7 +82,7 @@ mk_rollout() { # file agent_path [style: top|source]
   else
     jq -cn --arg a "$2" '{type:"session_meta",payload:{id:"c1",source:{subagent:{thread_spawn:{agent_path:$a,agent_role:"implementation"}}}}}' > "$1"
   fi
-  jq -cn '{type:"response_item",payload:{type:"message",role:"user",content:[{type:"input_text",text:"```yaml launch-header\ntask_type: implementation\nspec_dir: specs/008-a\ntask_id: T9\n```"}]}}' >> "$1"
+  jq -cn '{type:"response_item",payload:{type:"message",role:"user",content:[{type:"input_text",text:"```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/008-a\ntask_id: T9\n```"}]}}' >> "$1"
   jq -cn '{type:"response_item",payload:{type:"agent_message",content:{type:"encrypted_content",encrypted_content:"gAAAAA"}}}' >> "$1"
 }
 stop() { # transcript active [agent_type]
@@ -91,15 +91,15 @@ stop() { # transcript active [agent_type]
       agent_id:"c1",agent_type:$at,agent_transcript_path:$t,last_assistant_message:"done",stop_hook_active:$a}' \
     | bash "$H/post-implementation-audit.sh" 2>/dev/null
 }
-EV=$P/specs/007-checkout/artifacts/T3
-WARN=$P/specs/007-checkout/artifacts/audit-warnings.jsonl
+EV=$P/.workflow/specs/007-checkout/artifacts/T3
+WARN=$P/.workflow/specs/007-checkout/artifacts/audit-warnings.jsonl
 
 echo "== Codex task_name -> task"
 mk_rollout "$B/t3.jsonl" /root/s007_t3
 out=$(stop "$B/t3.jsonl" false)
 check "s007_t3, failing lint -> block with digest" '[ "$(jq -r .decision <<<"$out")" = block ] && [ -n "$(jq -r .reason <<<"$out")" ]' "$out"
-check "evidence under specs/007-checkout/artifacts/T3 (task from task_name, not the forked header)" \
-  '[ "$(jq -r .status "$EV/toolchain.json")" = fail ] && [ ! -e "$P/specs/008-a/artifacts" ]'
+check "evidence under .workflow/specs/007-checkout/artifacts/T3 (task from task_name, not the forked header)" \
+  '[ "$(jq -r .status "$EV/toolchain.json")" = fail ] && [ ! -e "$P/.workflow/specs/008-a/artifacts" ]'
 out=$(stop "$B/t3.jsonl" true)
 check "loop counter works on Codex (stop_hook_active)" '[ "$(jq .count "$EV/audit-loop.json")" = 2 ]' "$out"
 touch lint-ok
@@ -108,9 +108,9 @@ check "lint-ok only in the main checkout -> still fails (toolchain runs in the w
 rm -f lint-ok
 touch "$WT3/lint-ok"
 out=$(stop "$B/t3.jsonl" true); rc=$?
-check "passing toolchain in .worktrees/s007_t3 -> silent allow" '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r .status "$EV/toolchain.json")" = pass ] && [ ! -f "$EV/audit-loop.json" ]' "$out"
+check "passing toolchain in .workflow/.worktrees/s007_t3 -> silent allow" '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r .status "$EV/toolchain.json")" = pass ] && [ ! -f "$EV/audit-loop.json" ]' "$out"
 eq "toolchain.json cwd is the worktree; evidence stays in the main checkout" "$(jq -r .cwd "$EV/toolchain.json")" "$(cd "$WT3" && pwd)"
-check "no evidence written inside the worktree" '[ ! -e "$WT3/specs/007-checkout/artifacts" ]'
+check "no evidence written inside the worktree" '[ ! -e "$WT3/.workflow/specs/007-checkout/artifacts" ]'
 rm -f "$WT3/lint-ok"
 mk_rollout "$B/src.jsonl" /root/s007_t3 source
 out=$(stop "$B/src.jsonl" false)
@@ -121,23 +121,23 @@ eq "nested agent_path: last segment is the task_name" "$(jq -r .decision <<<"$ou
 mk_rollout "$B/p1.jsonl" /root/s007_phase_1_harness
 out=$(stop "$B/p1.jsonl" false); rc=$?
 check "s007_phase_1_harness -> toolchain under artifacts/phase-1-harness" \
-  '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r .status "$P/specs/007-checkout/artifacts/phase-1-harness/toolchain.json")" = pass ]' "$out"
-sed 's/^lint: "true"/lint: "true"\ntest: "false"/' profiles/harness.md > profiles/redtest.md
+  '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r .status "$P/.workflow/specs/007-checkout/artifacts/phase-1-harness/toolchain.json")" = pass ]' "$out"
+sed 's/^lint: "true"/lint: "true"\ntest: "false"/' .workflow/profiles/harness.md > .workflow/profiles/redtest.md
 mk_rollout "$B/p1r.jsonl" /root/s007_phase_1_redtest
 out=$(stop "$B/p1r.jsonl" false); rc=$?
 check "Codex phase 1 with failing test key -> allowed, test skipped (D70)" \
-  '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r ".results[]|select(.key==\"test\")|.status" "$P/specs/007-checkout/artifacts/phase-1-redtest/toolchain.json")" = skipped ]' "$out"
+  '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r ".results[]|select(.key==\"test\")|.status" "$P/.workflow/specs/007-checkout/artifacts/phase-1-redtest/toolchain.json")" = skipped ]' "$out"
 
 echo "== Codex warnings (stop allowed)"
 mk_rollout "$B/t4.jsonl" /root/s007_t4
 out=$(stop "$B/t4.jsonl" false)
-check "no .worktrees/s007_t4 -> warning, toolchain not run, audit.json filed" \
+check "no .workflow/.worktrees/s007_t4 -> warning, toolchain not run, audit.json filed" \
   '[ -z "$(jq -r ".decision // empty" <<<"$out")" ] && jq -r .systemMessage <<<"$out" | grep -q "no worktree" &&
-   [ "$(jq -r .outcome "$P/specs/007-checkout/artifacts/T4/audit.json")" = warning ] && [ ! -f "$P/specs/007-checkout/artifacts/T4/toolchain.json" ]' "$out"
+   [ "$(jq -r .outcome "$P/.workflow/specs/007-checkout/artifacts/T4/audit.json")" = warning ] && [ ! -f "$P/.workflow/specs/007-checkout/artifacts/T4/toolchain.json" ]' "$out"
 mk_rollout "$B/p1n.jsonl" /root/s007_phase_1_web
 out=$(stop "$B/p1n.jsonl" false)
 check "Phase 1 without a worktree -> warning filed under artifacts/phase-1-web" \
-  'jq -r .systemMessage <<<"$out" | grep -q "no worktree" && [ "$(jq -r .outcome "$P/specs/007-checkout/artifacts/phase-1-web/audit.json")" = warning ]' "$out"
+  'jq -r .systemMessage <<<"$out" | grep -q "no worktree" && [ "$(jq -r .outcome "$P/.workflow/specs/007-checkout/artifacts/phase-1-web/audit.json")" = warning ]' "$out"
 mk_rollout "$B/amb.jsonl" /root/s007_phase_1_web_ui
 out=$(stop "$B/amb.jsonl" false)
 check "phase_1 name matching two profiles (web-ui, web_ui) -> warning" \
@@ -165,7 +165,7 @@ out=$(stop "$B/t3.jsonl" false integration)
 eq "integration agent type is skipped" "$out" ""
 
 echo "== Claude path unchanged"
-jq -cn '{type:"user",message:{role:"user",content:"```yaml launch-header\ntask_type: implementation\nspec_dir: specs/007-checkout\ntask_id: T3\n```\n\nGo."}}' > "$B/claude.jsonl"
+jq -cn '{type:"user",message:{role:"user",content:"```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/007-checkout\ntask_id: T3\n```\n\nGo."}}' > "$B/claude.jsonl"
 out=$(stop "$B/claude.jsonl" false)
 eq "Claude transcript (no session_meta) -> header path, block" "$(jq -r .decision <<<"$out")" block
 
@@ -203,20 +203,20 @@ cj=$(yq -p toml -o json -I=0 '.' "$C" 2>/dev/null)
 check "parses as TOML" '[ -n "$cj" ]'
 eq "default_permissions" "$(jq -r .default_permissions <<<"$cj")" workflow
 eq "extends :workspace (else every sandboxed shell aborts)" "$(jq -r .permissions.workflow.extends <<<"$cj")" ":workspace"
-eq "docs/cache read-only" "$(jq -r '.permissions.workflow.filesystem[":workspace_roots"]["docs/cache"]' <<<"$cj")" read
+eq ".workflow/cache read-only" "$(jq -r '.permissions.workflow.filesystem[":workspace_roots"][".workflow/cache"]' <<<"$cj")" read
 eq "no glob entries (0.155.1 allows only deny on globs)" \
   "$(jq -r '[.permissions.workflow.filesystem[":workspace_roots"] | keys[] | select(test("[*?\\[]"))] | length' <<<"$cj")" 0
 check "no model key anywhere" '! grep -Eq "^[[:space:]]*model[[:space:]]*=" "$C"'
 
 if command -v codex >/dev/null 2>&1; then
   S=$B/sbx
-  mkdir -p "$S/docs/cache" "$S/.codex"
+  mkdir -p "$S/.workflow/cache" "$S/.codex"
   git init -q "$S"
   cp "$C" "$S/.codex/config.toml"
-  printf 'echo ok > a.txt; echo x > docs/cache/b.txt; echo rc=$?\n' > "$B/probe.sh"
+  printf 'echo ok > a.txt; echo x > .workflow/cache/b.txt; echo rc=$?\n' > "$B/probe.sh"
   out=$(cd "$S" && codex sandbox -P workflow -C "$S" -c "projects={\"$S\"={trust_level=\"trusted\"}}" -- /bin/sh "$B/probe.sh" 2>&1); rc=$?
   if [ $rc -eq 0 ] && [ -f "$S/a.txt" ]; then
-    check "codex sandbox: workspace write ok, docs/cache write blocked" '[ ! -f "$S/docs/cache/b.txt" ] && grep -q "rc=1" <<<"$out"' "$out"
+    check "codex sandbox: workspace write ok, .workflow/cache write blocked" '[ ! -f "$S/.workflow/cache/b.txt" ] && grep -q "rc=1" <<<"$out"' "$out"
   else
     skip "codex sandbox live check" "codex sandbox could not run here (rc=$rc)"
   fi

@@ -7,7 +7,7 @@ This repo is being reset to implement workflow 2.0 — an agent-agnostic scaffol
 This repo is the **scaffold repo**: it builds and tests the workflow. A **target project** is any repo that runs `install.sh` against it.
 
 - Scaffold repo: holds everything below, including the scaffold-only docs.
-- Target project: gets only the first-party payload listed in `.agents/install-manifest.txt`, copied into its own `.agents/`, plus the host shims. Its `GLOSSARY.md`, `docs/`, `deferred/`, `specs/`, `profiles/` and `model-map/` belong to that project and are created by the `project-setup` skill.
+- Target project: gets only the first-party payload listed in `.agents/install-manifest.txt`, copied into its own `.agents/`, plus the host shims. All its workflow data lives in one committed folder, `.workflow/` (glossary, rules, capabilities, decisions, caches, profiles, model map, specs, deferred items, tools; D81), created by the `project-setup` skill and owned by that project. Only `e2e/` (the app's browser tests) and the project's own `docs/` stay outside it.
 
 Edit the scaffold here; never edit an installed copy.
 
@@ -15,6 +15,7 @@ Edit the scaffold here; never edit an installed copy.
 
 - `.agents/` — the distribution unit (skills, agents, hooks, output-styles, `install-manifest.txt`)
 - `.agents/agents/` — sub-agent definitions, one `.md` per task type (host-neutral; Codex tomls are generated from them)
+- `.agents/lib/` — shared sourced shell helpers; `workflow-paths.sh` is the one home for target-project paths under `.workflow/` (D81), so hooks and skill scripts build paths from it
 - `.claude/` — Claude Code shim: `settings.json` (hooks, permissions, plugins, output style) plus `skills`, `agents`, and `output-styles` symlinks into `.agents/` (Claude Code still requires these under `.claude/`; `.claude/agents` is the agents symlink)
 - `.codex/` — Codex shim docs (`README.md`). The Codex config and agent tomls are created in target projects by `install.sh`, not kept here
 - `install.sh` — installs the manifest payload and host shims into a target project

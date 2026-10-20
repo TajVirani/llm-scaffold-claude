@@ -1,5 +1,5 @@
 <!--
-File: Template for specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter.
+File: Template for .workflow/specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter.
 Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4, 0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry) and sign-off / retrospective (5.x, 5.7).
 Sources: round anatomy (numbered questions, options, recommendation, the user's words verbatim, a decision ledger with stable ids where superseded decisions stay marked) adapted from .agents/skills/feature-workflow/references/REFERENCE-DOC.md (first-party; written locally alongside the former vendored copy of mattpocock/skills grill-with-docs, not an upstream file). Index-not-store ("one line per decision, link to the detail") adapted from mattpocock/skills/skills/engineering/wayfinder/SKILL.md@49dd158 "Decisions so far" (MIT). Triage entry fields (id, source lens, location, verdict high/medium/low/false/maybe-false, evidence, route) adapted from bmad-code-org/BMAD-METHOD skills/bmad-code-review/step-03-triage.md (MIT). Ledger that survives context compaction: obra/superpowers skills/subagent-driven-development/SKILL.md (MIT; idea only). The catalogue of entry shapes is first-party (PLAN/decision-flow-reference.md "Per-feature files", 0.3.4, 0.3.17, 0.3.21, 0.4.4, 4.4, 5.7).
 
@@ -7,9 +7,9 @@ Rules:
   - Append only. Never edit or delete an earlier entry. A reversal is a new entry that names what it supersedes; the old entry stays.
   - One dated section per round or event, newest last: `## YYYY-MM-DD <entry type>: <short title>`.
   - Decisions get stable ids D1, D2, ... in order across the whole file (ids are local to this feature). Superseding: `D7 (supersedes D3)`.
-  - Index, not store: link to the artifact that holds the detail (spec.md section, ADR, deferred/ file, data-model.md, report.md) rather than copying it.
+  - Index, not store: link to the artifact that holds the detail (spec.md section, ADR, .workflow/deferred/ file, data-model.md, report.md) rather than copying it.
   - Quote the stakeholder verbatim where a decision turned on their wording.
-  - Terms agreed at a term gate go in GLOSSARY.md; the log records only that the gate ran and links the term.
+  - Terms agreed at a term gate go in .workflow/GLOSSARY.md; the log records only that the gate ran and links the term.
   - Delete the entry shapes you are not using, and this comment, in the finished file. Copy a shape each time you append.
 -->
 
@@ -21,10 +21,10 @@ Spec: [spec.md](spec.md)
 
 ## YYYY-MM-DD Origin: <work-item filename>
 
-<!-- 0.1.4. Written only for a spec seeded from a specs/work-backlog/ item (D69). First entry in the log. -->
+<!-- 0.1.4. Written only for a spec seeded from a .workflow/specs/work-backlog/ item (D69). First entry in the log. -->
 
 - Work item: <NNN-slug-disc-###.md>
-- Origin spec and step: <specs/NNN-slug>, step <n>
+- Origin spec and step: <.workflow/specs/NNN-slug>, step <n>
 - Problem: <the item's problem, one or two lines>
 - Evidence: <`path:line`, failing test or agent return, carried from the item>
 
@@ -76,10 +76,10 @@ Facts looked up instead of asked (0.3.10): <fact>: <answer> (source `<path:line>
 
 <!-- 0.3.3-0.3.4, and 0.3.5-0.3.7 when an ADR or rule conflict was found. -->
 
-- Owning module: <module from docs/rules.md Ownership>
+- Owning module: <module from .workflow/rules.md Ownership>
 - Alternatives considered: <module: why not>
 - Conflict with an ADR or rule: <none | conformed | superseded ADR-NNNN | proposed rule change, see proposals.md>
-- Decision: **D<n>** <placement>. ADR: [docs/decisions/adr/NNNN-slug.md](../../docs/decisions/adr/NNNN-slug.md)
+- Decision: **D<n>** <placement>. ADR: [.workflow/decisions/adr/NNNN-slug.md](../../docs/decisions/adr/NNNN-slug.md)
 
 ## YYYY-MM-DD Scope decision: <item>
 
@@ -87,7 +87,7 @@ Facts looked up instead of asked (0.3.10): <fact>: <answer> (source `<path:line>
 
 - Item: <what was asked for>
 - Ruling: <deferred | dropped>, because <durable reason>
-- Handoff: [deferred/<slug>.md](../../deferred/<slug>.md) (HITL | AFK), also listed in spec.md `deferred`
+- Handoff: [.workflow/deferred/<slug>.md](../../deferred/<slug>.md) (HITL | AFK), also listed in spec.md `deferred`
 
 ## YYYY-MM-DD Impact classification
 
@@ -103,7 +103,7 @@ Facts looked up instead of asked (0.3.10): <fact>: <answer> (source `<path:line>
 
 | Id | Source lens | Finding | Location | Verdict | Evidence | Route |
 | --- | --- | --- | --- | --- | --- | --- |
-| F<n> | review-standards / review-end-state / review-targets | <one line> | `<path:line>` | high / medium / low / false / maybe-false | <what verified or disproved it; for maybe-false, what would settle it> | patch / defer ([deferred/<slug>.md](../../deferred/<slug>.md)) / decision needed (Q<n>) / discovered work (see "Discovered work" entry) / none (dismissed: <reason>) |
+| F<n> | review-standards / review-end-state / review-targets | <one line> | `<path:line>` | high / medium / low / false / maybe-false | <what verified or disproved it; for maybe-false, what would settle it> | patch / defer ([.workflow/deferred/<slug>.md](../../deferred/<slug>.md)) / decision needed (Q<n>) / discovered work (see "Discovered work" entry) / none (dismissed: <reason>) |
 
 Failed lenses: none
 Outcome: <rework k of 5 | loop back (4.5 decision needed) | loop back (4.6 third pass) | loop back (00.24 discovered work) | loop back (00.29 budget re-scope) | blocked (4.7) | deferred, to sign-off | clean, to sign-off>
@@ -129,6 +129,6 @@ Approved budget overrun (00.29 Approve, D58):
 
 ## YYYY-MM-DD Retrospective notes
 
-<!-- 5.7. Feature-specific notes only. Process lessons go to the decision log (docs/decisions/), pitfalls to pitfalls.md. -->
+<!-- 5.7. Feature-specific notes only. Process lessons go to the decision log (.workflow/decisions/), pitfalls to pitfalls.md. -->
 
-- <note about this feature, with a link to the retrospective: docs/decisions/retrospectives/NNN-slug.md>
+- <note about this feature, with a link to the retrospective: .workflow/decisions/retrospectives/NNN-slug.md>

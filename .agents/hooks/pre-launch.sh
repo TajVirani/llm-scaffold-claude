@@ -9,15 +9,15 @@
 #       retrieval, library-evaluation, fact-lookup, module-audit, review-standards, review-end-state, review-targets: spec_dir
 #       cache-regeneration: spec_dir when launched inside a feature (0.2.8); no header for bulk regenerate-caches runs
 #       standards-discovery: header optional, task_type only (project-standards runs outside any feature; D80)
-#   - Deny with reason when a required header field is missing, no model resolves for this host (no agent-overrides.yaml entry, no definition `models.<host>`, no model-map entry: surface 00.14), or a coding launch (implementation, integration, profile-mini-review) has no profile (surface 00.19)
-#   - Otherwise allow and return updatedInput: the FULL tool_input (all original keys kept) with the profile text inserted into `prompt` right after the launch-header block, so the header stays first (D37) (whole for implementation/integration, Mini-review checklist section only for profile-mini-review, none for other types) and `model` set to the value resolve-launch.sh resolved by precedence: agent-overrides.yaml[type][host] > definition `models.<host>` > model-map/<type>.md [host] > none (00.14) (D35). Claude Code does not read the definition's `models:` key natively, so this hook is what applies it
+#   - Deny with reason when a required header field is missing, no model resolves for this host (no .workflow/agent-overrides.yaml entry, no definition `models.<host>`, no model-map entry: surface 00.14), or a coding launch (implementation, integration, profile-mini-review) has no profile (surface 00.19)
+#   - Otherwise allow and return updatedInput: the FULL tool_input (all original keys kept) with the profile text inserted into `prompt` right after the launch-header block, so the header stays first (D37) (whole for implementation/integration, Mini-review checklist section only for profile-mini-review, none for other types) and `model` set to the value resolve-launch.sh resolved by precedence: .workflow/agent-overrides.yaml[type][host] > definition `models.<host>` > .workflow/model-map/<type>.md [host] > none (00.14) (D35). Claude Code does not read the definition's `models:` key natively, so this hook is what applies it
 # Codex equivalent: codex-pre-spawn.sh (PreToolUse `.*spawn_agent`; validates agent_type and task_name only, the message is encrypted).
 # Behaviour:
 #   - tool_name other than Agent (or legacy Task): exit 0, no output.
 #   - subagent_type not one of the workflow task types (resolve-launch.sh --requirements): exit 0, no output. Built-in and other agents
 #     (Explore, general-purpose, ...) are untouched.
 #   - Project root without .agents/skills/feature-workflow: exit 0, no output (workflow not installed). A project that has the workflow but
-#     no model-map/, agent-overrides.yaml or profiles/ is denied by resolve-launch.sh (00.14 / 00.19), which says what to set up.
+#     no .workflow/model-map/, .workflow/agent-overrides.yaml or .workflow/profiles/ is denied by resolve-launch.sh (00.14 / 00.19), which says what to set up.
 #   - resolve-launch.sh exit 0: allow + updatedInput; exit 2: deny with its stderr reason; any other failure (exit 1, bad JSON, no model,
 #     jq missing, unreadable payload): deny, fail closed, with an environment-error reason.
 # Triggers/inputs: PreToolUse JSON on stdin for the Agent tool. Paths from the payload `cwd`, not $CLAUDE_PROJECT_DIR (D18); $CLAUDE_PROJECT_DIR

@@ -59,5 +59,5 @@ For each finding:
 - Exports from route files (used by the router framework)
 - Exports from schema files (read by an ORM or migration tool at runtime)
 - Route handler exports a framework mounts by convention
-- Type exports from shared core (`docs/rules.md` § Shared core) or a published package (may be used by external consumers)
+- Type exports from shared core (`.workflow/rules.md` § Shared core) or a published package (may be used by external consumers)
 - Exports with `@public` or `@api` JSDoc tags

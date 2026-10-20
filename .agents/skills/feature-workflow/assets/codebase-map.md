@@ -1,11 +1,11 @@
 ---
-cache_stamps:            # generated_at_commit of each docs/cache/ file the extracts were drawn from; null when that cache was not read
+cache_stamps:            # generated_at_commit of each .workflow/cache/ file the extracts were drawn from; null when that cache was not read
   modules: null
   flows: null
   architecture: null
 ---
 <!--
-File: Template for specs/NNN-slug/codebase-map.md: per-feature extracts of the existing system. Not a cache and not Tier A: it holds what this feature needs, each item pointing back to its source.
+File: Template for .workflow/specs/NNN-slug/codebase-map.md: per-feature extracts of the existing system. Not a cache and not Tier A: it holds what this feature needs, each item pointing back to its source.
 Created by modules/discovery.md at 0.2.6. Filled at 0.2.4 (`retrieval`), 0.2.5 (`library-evaluation`), 0.2.8 (stamps after `cache-regeneration` and publish-cache.sh) and 0.4.6 (`module-audit`). Source of recommended answers at 0.3.11; implementation launches receive the relevant extract.
 Sources: section-per-agent layout and `cache_stamps` are first-party (PLAN/decision-flow-reference.md "Per-feature files", "Sub-agent task types", 0.2.4-0.2.8, 0.4.6). Inventory tables, path citations and a "not found" list adapted from .agents/skills/design-pattern-doc/TEMPLATE.md (first-party). "Document what exists, do not critique" and the commit stamp on research output adapted from humanlayer/humanlayer .claude/commands/research_codebase.md (Apache-2.0; idea only, no text copied). Stamp values follow regenerate-caches/assets/cache-frontmatter.md.
 
@@ -15,7 +15,7 @@ Frontmatter contract (mikefarah yq v4, `--front-matter=extract`; D38):
   Add no other keys.
 
 Writing rules:
-  - Every extract carries its source: `path/to/file.ext:line` for code, the document path and heading for Tier A, Tier B and deferred/ files.
+  - Every extract carries its source: `path/to/file.ext:line` for code, the document path and heading for Tier A, Tier B and .workflow/deferred/ files.
   - Extracts describe what exists. Recommendations belong to the questioning loop and the design log, not here.
   - Each agent's section is written from its return only. The main session never pastes the full corpus in (design rule 3).
   - A wrong cache is a stamp problem, fixed by regeneration, never by editing an extract to disagree with its source.
@@ -26,7 +26,7 @@ Validate the frontmatter:
   yq --front-matter=extract -e '
     ((.cache_stamps | keys | sort | join(",")) == "architecture,flows,modules") and
     ([.cache_stamps[] | select(. == null or (tostring | test("^[0-9a-f]{40}$")))] | length) == 3
-  ' specs/NNN-slug/codebase-map.md
+  ' .workflow/specs/NNN-slug/codebase-map.md
 -->
 
 # Codebase map: <feature title>
@@ -39,7 +39,7 @@ Affected area: <modules and paths identified at 0.2.1>
 
 | Item | What it does today | Source |
 | --- | --- | --- |
-| <module, function, type or flow> | <one line> | `<path:line>` or `docs/cache/<type>.md` § <heading> |
+| <module, function, type or flow> | <one line> | `<path:line>` or `.workflow/cache/<type>.md` § <heading> |
 
 ## Seams and interfaces
 
@@ -51,15 +51,15 @@ Affected area: <modules and paths identified at 0.2.1>
 
 ## Prior decisions
 
-<!-- From `retrieval` (0.2.4): ADRs, rules, pitfalls, retrospectives, and deferred/ items that match the affected area by concept. -->
+<!-- From `retrieval` (0.2.4): ADRs, rules, pitfalls, retrospectives, and .workflow/deferred/ items that match the affected area by concept. -->
 
 | Decision or item | What it says | Source |
 | --- | --- | --- |
-| <ADR, rule, pitfall or deferred item> | <the constraint or decision, one line> | `<docs/... or deferred/...>` § <heading> |
+| <ADR, rule, pitfall or deferred item> | <the constraint or decision, one line> | `<docs/... or .workflow/deferred/...>` § <heading> |
 
 ## Library options
 
-<!-- From `library-evaluation` (0.2.5), against docs/rules.md "External systems". -->
+<!-- From `library-evaluation` (0.2.5), against .workflow/rules.md "External systems". -->
 
 | Concern | Option | Cost | Licence | Fit | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -69,7 +69,7 @@ Affected area: <modules and paths identified at 0.2.1>
 
 <!-- From `module-audit` (0.4.6) on the owning module only. -->
 
-Owning module: <module name from docs/rules.md Ownership>
+Owning module: <module name from .workflow/rules.md Ownership>
 
 | Kind | Finding | Source |
 | --- | --- | --- |

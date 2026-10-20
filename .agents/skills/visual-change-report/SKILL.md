@@ -101,8 +101,8 @@ Output a **single self-contained file**. Mermaid loads from a CDN (the one exter
 
 **Where the report lands.** The report belongs with the branch's specification, inside the repo, so it can be committed and reviewed alongside it. Find the destination in this order:
 
-1. **The diff tells you.** If the change set itself touches files under a specification directory (a path segment named `spec`, `specs`, `specification`, or `specifications` — e.g. `specs/event-driven-checkout/design.md`), that folder is the branch's spec folder. Write the report there.
-2. **The branch name tells you.** Otherwise, list the repo's spec-like directories and look for a subfolder matching the branch's feature slug (branch `feat/event-driven-checkout` → `specs/event-driven-checkout/` or similar fuzzy match).
+1. **The diff tells you.** If the change set itself touches files under a specification directory (a path segment named `spec`, `specs`, `specification`, or `specifications` — e.g. `.workflow/specs/007-event-driven-checkout/spec.md`, where the feature workflow keeps its specs), that folder is the branch's spec folder. Write the report there.
+2. **The branch name tells you.** Otherwise, list the repo's spec-like directories, including hidden ones such as `.workflow/specs/` (search with hidden dirs, e.g. `rg --files --hidden`), and look for a subfolder matching the branch's feature slug (branch `feat/event-driven-checkout` → `.workflow/specs/007-event-driven-checkout/` or similar fuzzy match).
 3. **Ask.** If neither yields a confident match, ask one short question listing the candidates found — don't guess a home for a document meant to be committed, and don't silently drop it in the repo root.
 
 Name it `change-report.html` (stable, so regenerating as the branch evolves overwrites in place and the spec folder always holds the current picture — the header strip inside already records exactly which refs it covers). If the user overrides the destination or the report isn't landing in a spec folder, fall back to `change-report-<base-short>-<head-short>.html` to avoid ambiguity.

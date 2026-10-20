@@ -11,19 +11,25 @@
 #   - Paths: `*** Add File:`, `*** Update File:`, `*** Delete File:` and `*** Move to:` (parsed by the sourced _codex-patch.sh). Each is checked
 #     as given; relative paths resolve against the payload `cwd` (Codex has no project-dir variable, row 8).
 #   - --agent = agent_type (else agent_id) only when the payload carries agent_id: Codex adds agent_id/agent_type only inside a sub-agent (row 5a, D16).
-#   - specs/*/spec.md (status and blocked_condition change only through status-transition.sh):
+#   - .workflow/specs/*/spec.md (status and blocked_condition change only through status-transition.sh):
 #       Add File: the `+` lines are the proposed content, passed as check-write.sh --proposed (a new spec.md must say status: draft).
 #       Update File: the hunks are not applied. Instead the `-` and `+` lines of top-level `status:` / `blocked_condition:` keys are compared;
 #       any difference denies. Conservative: a body line that starts with `status:` and is edited also denies.
+#   - Worktree confinement (D85), sub-agents only: the worktree is named by the spawn task_name, read from the session_meta agent_path on the
+#     first line of the payload transcript_path (as post-implementation-audit.sh reads it from agent_transcript_path). When the name is
+#     s<NNN>_... and .workflow/.worktrees/<task_name> exists, every path is also checked by
+#     skills/feature-workflow/scripts/check-worktree-scope.sh: a path inside the main checkout but outside that worktree is denied. No
+#     session_meta agent_path in the transcript (unverified on 0.155.1 for PreToolUse; row 4a shows SubagentStart's transcript_path is the
+#     sub-agent's own rollout) or no such worktree: no confinement.
 #   - check-write.sh exit 0 for every path and class: allow (no output). Exit 2: deny with every denied path's reason. Any other exit, an
 #     unparsable payload, a missing or unparsable patch: deny, fail closed.
 #   - jq missing, or any failure before a decision: a static, hand-written deny JSON and exit 0 (as _guard-common.sh does).
 # Outputs/handoff: stdout is nothing or exactly one deny JSON (same shape as Claude's; verified on Codex, row 5b):
 #   {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"..."}}. Exit code always 0.
 # Wiring: codex-hooks.template.json (written to <target>/.codex/hooks.json by install.sh): PreToolUse, matcher "apply_patch".
-# Plan refs: assetlist D9, D16, D17, D21, D40, D67; PLAN/hook-verification-codex.md rows 5a, 5b, 8.
-# Notes: Accident prevention only, as on Claude. Shell writes do not reach this hook; the hard limit for docs/cache is the permissions profile in
-#   codex-config.template.toml (rows 7a, 7b). specs/*/.step has no Codex hard limit (G7), so this guard is its only file-tool protection.
+# Plan refs: assetlist D9, D16, D17, D21, D40, D67, D85; PLAN/hook-verification-codex.md rows 5a, 5b, 8.
+# Notes: Accident prevention only, as on Claude. Shell writes do not reach this hook; the hard limit for .workflow/cache is the permissions profile in
+#   codex-config.template.toml (rows 7a, 7b). .workflow/specs/*/.step has no Codex hard limit (G7), so this guard is its only file-tool protection.
 # Sources: first-party; check-write.sh CLI; _guard-common.sh (fail-closed pattern); PLAN/hook-verification-codex/hooks/pre_edit_deny.sh (deny shape).
 # Requires: bash 3.2+, jq, awk; check-write.sh needs mikefarah yq v4 for Tier A and --proposed (D38).
 
@@ -61,6 +67,8 @@ script=$here/../skills/feature-workflow/scripts/check-write.sh
 [ -f "$script" ] || exit 0
 # shellcheck source=_codex-patch.sh
 source "$here/_codex-patch.sh"
+# shellcheck source=../lib/workflow-paths.sh
+. "$(cd -P "$here" && pwd)/../lib/workflow-paths.sh"
 
 input=$(cat)
 if ! command -v jq >/dev/null 2>&1; then
@@ -85,14 +93,30 @@ codex_patch_paths "$TMP/patch" >"$TMP/paths" 2>"$TMP/perr" \
 is_spec_md() {
   local l
   l=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
-  case "$l" in */specs/work-backlog/* | specs/work-backlog/*) return 1 ;; esac
-  printf '%s' "$l" | grep -Eq '(^|/)specs/[^/]+/spec\.md$'
+  local backlog specs_re
+  backlog=$(printf '%s' "$WF_WORK_BACKLOG" | tr '[:upper:]' '[:lower:]')
+  specs_re=$(printf '%s' "$WF_SPECS" | tr '[:upper:]' '[:lower:]' | sed 's/[.]/\\./g')
+  case "$l" in */"$backlog"/* | "$backlog"/*) return 1 ;; esac
+  printf '%s' "$l" | grep -Eq "(^|/)$specs_re/[^/]+/spec\\.md\$"
 }
 
 # status_keys <sign> : the top-level status/blocked_condition lines of one sign (- or +) in $TMP/body, sorted.
 status_keys() {
   sed -nE "s/^[$1](status|blocked_condition)[[:space:]]*:/\\1:/p" "$TMP/body" | sed 's/[[:space:]]*$//' | LC_ALL=C sort
 }
+
+# Worktree name for a sub-agent (D85): the last segment of the session_meta agent_path, when it is an orchestrator name s<NNN>_...
+wt_name=""
+if [ -n "$agent_id" ]; then
+  transcript=$(jq -r '.transcript_path // "" | strings' <<<"$input")
+  if [ -n "$transcript" ] && [ -f "$transcript" ]; then
+    agent_path=$(head -n 1 "$transcript" | jq -r 'select(type == "object" and .type == "session_meta") | .payload
+      | (.agent_path // .source.subagent.thread_spawn.agent_path // "") | strings' 2>/dev/null || true)
+    wt_name=${agent_path##*/}
+    [[ "$wt_name" =~ ^s[0-9]+_[a-z0-9_]+$ ]] || wt_name=""
+  fi
+fi
+scope=$here/../skills/feature-workflow/scripts/check-worktree-scope.sh
 
 reasons=()
 while IFS=$'\t' read -r idx op path; do
@@ -105,6 +129,17 @@ while IFS=$'\t' read -r idx op path; do
       proposed=$TMP/proposed.$idx
     elif [ "$op" = update ] && [ "$(status_keys -)" != "$(status_keys +)" ]; then
       reasons+=("$path: the patch changes status or blocked_condition; only status-transition.sh may change them (use status-transition.sh, then patch the rest)")
+      continue
+    fi
+  fi
+  if [ -n "$wt_name" ] && [ -f "$scope" ]; then
+    rc=0
+    bash "$scope" --cwd "$cwd" --worktree-name "$wt_name" --path "$path" >/dev/null 2>"$TMP/err" || rc=$?
+    if [ "$rc" -ne 0 ]; then
+      reason=$(tr '\n' ' ' <"$TMP/err" | sed 's/ *$//')
+      [ -n "$reason" ] || reason="check-worktree-scope.sh exited $rc"
+      [ "$rc" -eq 2 ] || reason="write guard error (denying, fail closed): $reason"
+      reasons+=("$path: $reason")
       continue
     fi
   fi

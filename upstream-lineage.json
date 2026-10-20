@@ -137,8 +137,8 @@
       "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
       "commit_basis": "blob-match",
       "changes": [
-        "took the 'When to check' rule: match the deferred/ shelf by concept, not keyword",
-        "shelf is deferred/ (D24), not .out-of-scope/"
+        "took the 'When to check' rule: match the .workflow/deferred/ shelf by concept, not keyword",
+        "shelf is .workflow/deferred/ (D24), not .out-of-scope/"
       ],
       "why": "Concept matching is what surfaces earlier decisions; the folder name is ours.",
       "reviewed_at": "2026-10-19"
@@ -166,7 +166,7 @@
       "commit_basis": "survey-date",
       "changes": [
         "took 'document what exists, return only what matters' (pattern only, no text copied)",
-        "applied to Tier A docs, Tier B caches and the deferred/ shelf"
+        "applied to Tier A docs, Tier B caches and the .workflow/deferred/ shelf"
       ],
       "why": "Same discipline, our corpus and return contract.",
       "reviewed_at": "2026-10-19"
@@ -318,7 +318,7 @@
       "commit_basis": "survey-date",
       "changes": [
         "took: one owner per shared file, change requests applied sequentially, interface contracts consumers build against (pattern only, no text copied)",
-        "owned paths come from the Shared core section of docs/rules.md"
+        "owned paths come from the Shared core section of .workflow/rules.md"
       ],
       "why": "Matches our single-owner shared-core model.",
       "reviewed_at": "2026-10-19"
@@ -508,7 +508,7 @@
         "took standards-source discovery and the Standards brief (cite file + rule, hard vs judgement, skip what tooling enforces)",
         "Fowler smell baseline copied with edits: framed as 'what it is -> how to fix', repo standards override it, every smell is a judgement call (category smell, severity at most medium)",
         "single standards lens of a three-lens Phase 4 review; no Spec axis (that is review-end-state)",
-        "added baselines: docs/rules.md, work profiles, placement ADR, GLOSSARY naming, 3.5 tool output",
+        "added baselines: .workflow/rules.md, work profiles, placement ADR, GLOSSARY naming, 3.5 tool output",
         "returns a review-findings YAML block with confidence >= 80 instead of a chat report"
       ],
       "why": "Pre-D74 adaptation (not a runtime copy). Kept the brief and the smell list so the lens works on repos with no written standards; the extra baselines and schema serve review-triage.",
@@ -642,7 +642,7 @@
       "commit_basis": "survey-date",
       "changes": [
         "took the agent shape: one focus per launch, write the document straight to disk, return a short confirmation, current state only, never quote secrets, do not commit (pattern only, no text copied)",
-        "writes only to .cache-staging/<type>.md; the caller stamps and publishes"
+        "writes only to .workflow/.cache-staging/<type>.md; the caller stamps and publishes"
       ],
       "why": "Keeps cache bodies out of the main session; determinism rules are ours (G6).",
       "reviewed_at": "2026-10-19"
@@ -822,7 +822,7 @@
         "stakeholder agreement before each glossary write",
         "added 'Set the step before a Tier A write' (status-transition.sh step marker, D16)",
         "added placement and superseding flow for 0.3.5-0.3.7 and a naming baseline for review-standards",
-        "ADR path moved to docs/decisions/adr/",
+        "ADR path moved to .workflow/decisions/adr/",
         "upstream session sections (challenge, sharpen, scenarios, cross-reference) folded into the term-gate steps"
       ],
       "why": "Same glossary and ADR discipline, wired into the workflow's gates and write guards.",
@@ -837,7 +837,7 @@
       "commit_basis": "blob-match",
       "changes": [
         "header comment added",
-        "`docs/adr/` -> `docs/decisions/adr/` (plan 00.4)",
+        "`docs/adr/` -> `.workflow/decisions/adr/` (plan 00.4, D81)",
         "template moved out to adr.md ('Start from adr.md')",
         "Status frontmatter written as a `status:` key",
         "added 'Superseding an ADR' section"
@@ -990,7 +990,7 @@
       "commit_basis": "blob-match",
       "changes": [
         "took the brief shape: current vs desired behaviour, acceptance criteria, out of scope; durable and behavioural, no paths outside evidence",
-        "written to deferred/ files, not issue comments"
+        "written to .workflow/deferred/ files, not issue comments"
       ],
       "why": "Deferred items must stay actionable after the spec closes.",
       "reviewed_at": "2026-10-19"
@@ -1004,7 +1004,7 @@
       "commit_basis": "blob-match",
       "changes": [
         "took: one file per concept, kebab-case names, durable reasons, append later requests, concept match surfaces the prior decision",
-        "shelf is deferred/ (D24)"
+        "shelf is .workflow/deferred/ (D24)"
       ],
       "why": "Concept-per-file avoids duplicate deferrals.",
       "reviewed_at": "2026-10-19"
@@ -1070,7 +1070,8 @@
       "commit_basis": "blob-match",
       "changes": [
         "took frontier-driven waves, one worktree and branch per implementer, background launches, context pointers, a dedicated integration owner, worktree clean-up",
-        "added the four gates (3.5-3.11), integration batching per work type, the light-path suite gap and Codex advisory calls"
+        "added the four gates (3.5-3.11), integration batching per work type, the light-path suite gap and Codex advisory calls",
+        "took integration branch per spec (spec/NNN-slug), worktree+branch per ticket created by the orchestrator on both hosts, merge back in id order, PR for review (task PR/MR non-blocking by default; spec PR at sign-off) (D85)"
       ],
       "why": "Execution skeleton kept; gates are ours (plan).",
       "reviewed_at": "2026-10-19"
@@ -1135,8 +1136,8 @@
       "upstream_commit": "3238fa9285694dc539aeb9829b337bfd6aed7317",
       "commit_basis": "survey-date",
       "changes": [
-        "took 0.1.1-0.1.2 numbering and short names: scan specs/ for the highest number, use N+1, 2-4 word action-noun name preserving technical terms",
-        "numbering skips specs/work-backlog/"
+        "took 0.1.1-0.1.2 numbering and short names: scan .workflow/specs/ for the highest number, use N+1, 2-4 word action-noun name preserving technical terms",
+        "numbering skips .workflow/specs/work-backlog/"
       ],
       "why": "Spec Kit's numbering rules; read through the claude-night-market local copy.",
       "reviewed_at": "2026-10-19"
@@ -1201,7 +1202,7 @@
       "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
       "commit_basis": "blob-match",
       "changes": [
-        "took concept match on the deferred/ shelf"
+        "took concept match on the .workflow/deferred/ shelf"
       ],
       "why": "Surfaces earlier decisions during discovery.",
       "reviewed_at": "2026-10-19"
@@ -1281,7 +1282,8 @@
       "commit_basis": "blob-match",
       "changes": [
         "took tracer-bullet vertical slices, prefactoring first, blocking edges, expand-contract, quiz the user until approved, work the frontier",
-        "writes tasks.md YAML instead of tracker tickets"
+        "writes tasks.md YAML instead of tracker tickets",
+        "one file per ticket numbered blockers-first (tasks/Tnn-slug.md) plus the tasks.md index; predicted files, S/M/L size, afk/hitl mode and approved parallel overlaps are ours (D85)"
       ],
       "why": "Slicing rules kept; output is our tasks.md schema.",
       "reviewed_at": "2026-10-19"
@@ -1519,7 +1521,8 @@
       "commit_basis": "blob-match",
       "changes": [
         "took slice rules, blocking edges and per-ticket fields (what to build, blocked by, acceptance criteria)",
-        "record schema is ours: tasks: YAML frontmatter (id, status, work_type, depends_on, touches_core, capability)"
+        "record schema is ours: tasks: YAML frontmatter (id, status, work_type, depends_on, touches_core, capability)",
+        "tasks.md is now the index; per-task bodies moved to tasks/Tnn-slug.md; records add file, branch, predicted_files, size, mode, parallel_with, pr (D85)"
       ],
       "why": "Ticket content kept; machine-readable schema for the scripts.",
       "reviewed_at": "2026-10-19"
@@ -2145,7 +2148,7 @@
       "upstream_commit": "c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b",
       "commit_basis": "pinned",
       "changes": [
-        "none: the whole tree is fetched at the pin into the target's tools/oxlint/anti-slop/ unmodified"
+        "none: the whole tree is fetched at the pin into the target's .workflow/tools/oxlint/anti-slop/ unmodified"
       ],
       "why": "Oxlint rules are not about how agents work, so we do not rebuild them; to move the pin, change the commit in anti-slop.md (table, script and Sources comment) and re-read upstream's install steps.",
       "reviewed_at": "2026-10-19"
@@ -2347,7 +2350,7 @@
       "commit_basis": "blob-match",
       "changes": [
         "took: compact the session for a fresh agent, name skills to load, reference artifacts instead of duplicating, redact, tailor to the argument",
-        "location moved from $TMPDIR to a self-ignoring .handoff/ in the main checkout, listed by session-start-resume.sh",
+        "location moved from $TMPDIR to a gitignored .workflow/.handoff/ in the main checkout (install.sh's .gitignore block), listed by session-start-resume.sh",
         "spec state (spec.md status, .step, design-log) is pointed to, never copied; added Resume steps and a template in assets/",
         "model-invoked, host-neutral"
       ],
@@ -2420,7 +2423,8 @@
       "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
       "commit_basis": "pinned",
       "changes": [
-        "took coaching path by default with a fast path, recommend a verified current starter for greenfield, ratify brownfield conventions (pattern only)"
+        "took coaching path by default with a fast path, recommend a verified current starter for greenfield, ratify brownfield conventions (pattern only)",
+        "coaching is the only default; fast path only on the human's explicit request; a mandatory coverage list gates the end of the interview and approval"
       ],
       "why": "Elicit decisions instead of inventing them.",
       "reviewed_at": "2026-10-19"
@@ -2485,7 +2489,8 @@
       "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
       "commit_basis": "pinned",
       "changes": [
-        "took batches of at most eight, never ask what a scan answered, recall questions, show evidence on contradiction, offer non-obvious commands (pattern only)"
+        "took batches of at most eight, never ask what a scan answered, recall questions, show evidence on contradiction, offer non-obvious commands (pattern only)",
+        "kept batches of at most eight; dropped 'fewer is better' and 'a batch with nothing new ends the interview' in favour of the mandatory coverage list"
       ],
       "why": "Short, evidence-led interview.",
       "reviewed_at": "2026-10-19"
@@ -2498,7 +2503,8 @@
       "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
       "commit_basis": "pinned",
       "changes": [
-        "took coaching vs fast path, [ASSUMPTION] tags, show alternatives for load-bearing calls, the two-builders divergence test (pattern only)"
+        "took coaching vs fast path, [ASSUMPTION] tags, show alternatives for load-bearing calls, the two-builders divergence test (pattern only)",
+        "[ASSUMPTION] rows become `A` tags that block approval in mandatory items"
       ],
       "why": "Decide only what could diverge.",
       "reviewed_at": "2026-10-19"
@@ -2589,7 +2595,8 @@
       "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
       "commit_basis": "pinned",
       "changes": [
-        "took prefer a check over a line and the exclude list (trees, stack lists, aspirational state) (pattern only)"
+        "took prefer a check over a line and the exclude list (trees, stack lists, aspirational state) (pattern only)",
+        "the exclude list no longer drops directory trees or bootstrap lists: the layout tree goes to File locations, the bootstrap list to the baseline ADR"
       ],
       "why": "Route each line to the cheapest mechanism.",
       "reviewed_at": "2026-10-19"
@@ -2602,7 +2609,7 @@
       "upstream_commit": "8f0d50e1817fdd8fcf05a20c524218222d13cd8d",
       "commit_basis": "pinned",
       "changes": [
-        "took section order, terse imperative lines and the provenance line inside markers (pattern only); policy stays in docs/rules.md"
+        "took section order, terse imperative lines and the provenance line inside markers (pattern only); policy stays in .workflow/rules.md"
       ],
       "why": "Managed AGENTS.md block.",
       "reviewed_at": "2026-10-19"
@@ -2618,6 +2625,47 @@
         "took pointers name an observable trigger; commands the manifest already states earn no line (pattern only)"
       ],
       "why": "Keep the always-loaded block small.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/assets/task.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/to-tickets/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took the local-ticket-template fields (what to build, blocked by, acceptance criteria) and one file per ticket, numbered blockers-first, never one combined file",
+        "added seam, predicted files, size S/M/L, afk/hitl mode, parallel_with and notes; no frontmatter (records live in the tasks.md index)"
+      ],
+      "why": "Per-task body file for the implementer (D85).",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/scripts/task-waves.sh",
+      "kind": "derived",
+      "upstream_repo": "open-gsd/gsd-core",
+      "upstream_path": "agents/gsd-planner.md",
+      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
+      "commit_basis": "survey-date",
+      "changes": [
+        "idea only: waves as the longest path over depends_on (assign_waves), the jq form formerly inline in task-breakdown.md 2.5",
+        "added predicted_files overlap detection (segment-wise glob intersection), implied depends_on edges, mutual parallel_with overrides, split-out exclusion, overlap and quiz tables, JSON output (D85)"
+      ],
+      "why": "Parallel tasks must not edit the same files; waves are derived, never stored.",
+      "reviewed_at": "2026-10-19"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/scripts/task-waves.sh",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/implement-spec/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "idea only: tickets that touch the same files are not run in parallel; made mechanical from predicted_files with a stakeholder-approved parallel_with escape (D85)"
+      ],
+      "why": "Overlap must force ordering unless a human approves it.",
       "reviewed_at": "2026-10-19"
     }
   ]

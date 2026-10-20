@@ -1,9 +1,9 @@
 <!--
-File: GLOSSARY.md format for the first-party `domain-modeling` skill (D10). Used at the term gates (0.2.3, 0.3.15, 0.4.3); naming baseline for review-standards (4.1).
+File: .workflow/GLOSSARY.md format for the first-party `domain-modeling` skill (D10). Used at the term gates (0.2.3, 0.3.15, 0.4.3); naming baseline for review-standards (4.1).
 Sources: copied from mattpocock/skills skills/engineering/domain-modeling/GLOSSARY-FORMAT.md (MIT, Copyright (c) 2026 Matt Pocock; commit 49dd158; notice in ../LICENSE). Changes: added the optional "Relationships" and "Flagged ambiguities" sections and the "Bold term names" rule from the earlier mattpocock CONTEXT-FORMAT.md (mattpocock/skills/skills/engineering/grill-with-docs/CONTEXT-FORMAT.md@fb847c6, MIT; since removed upstream); added "Glossary only" (from the upstream domain-modeling SKILL.md) and "Changing an existing entry" (fold and retire pattern from EveryInc/compound-engineering-plugin skills/ce-compound/references/concepts-vocabulary.md, MIT, pattern only). The example dialogue is left out, as upstream now does.
 -->
 
-# GLOSSARY.md Format
+# .workflow/GLOSSARY.md Format
 
 ## Structure
 
@@ -57,9 +57,9 @@ _Avoid_: Client, buyer, account
 
 ## Single vs multi-context repos
 
-**Single context (most repos):** One `GLOSSARY.md` at the repo root.
+**Single context (most repos):** One `.workflow/GLOSSARY.md` at the repo root.
 
-**Multiple contexts:** A `GLOSSARY-MAP.md` at the repo root lists the contexts, where they live, and how they relate to each other:
+**Multiple contexts:** A `.workflow/GLOSSARY-MAP.md` at the repo root lists the contexts, where they live, and how they relate to each other:
 
 ```md
 # Glossary Map
@@ -79,8 +79,8 @@ _Avoid_: Client, buyer, account
 
 The skill infers which structure applies:
 
-- If `GLOSSARY-MAP.md` exists, read it to find contexts
-- If only a root `GLOSSARY.md` exists, single context
-- If neither exists, create a root `GLOSSARY.md` lazily when the first term is resolved
+- If `.workflow/GLOSSARY-MAP.md` exists, read it to find contexts
+- If only a root `.workflow/GLOSSARY.md` exists, single context
+- If neither exists, create a root `.workflow/GLOSSARY.md` lazily when the first term is resolved
 
 When multiple contexts exist, infer which one the current topic relates to. If unclear, ask.

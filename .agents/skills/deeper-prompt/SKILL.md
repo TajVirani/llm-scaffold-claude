@@ -13,10 +13,10 @@ Make the request **deeper, not bigger**: sharpen its intent, goals and constrain
 
 ## Inputs
 
-- **Inside the workflow** (step 0.3.22, `specs/NNN-slug/` in flight): the request, the draft **Why** in `spec.md` (0.1.6), and `codebase-map.md` (what exists, what the change touches). Set the step first:
+- **Inside the workflow** (step 0.3.22, `.workflow/specs/NNN-slug/` in flight): the request, the draft **Why** in `spec.md` (0.1.6), and `codebase-map.md` (what exists, what the change touches). Set the step first:
 
   ```bash
-  .agents/skills/feature-workflow/scripts/status-transition.sh step specs/NNN-slug 0.3.22
+  .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 0.3.22
   ```
 
   If `design-log.md` already holds a **Deeper prompt** entry the stakeholder agreed to, the step is done: go to [Hand off](#4-hand-off).
@@ -26,7 +26,7 @@ Make the request **deeper, not bigger**: sharpen its intent, goals and constrain
 
 Your own work, done before asking anything.
 
-1. **Elevate the ask.** Name the problem behind the request, one level of abstraction up: "add a CSV export button" becomes "let users take their report data into their own tools". Keep the stakeholder's terms; use `GLOSSARY.md` names where they exist.
+1. **Elevate the ask.** Name the problem behind the request, one level of abstraction up: "add a CSV export button" becomes "let users take their report data into their own tools". Keep the stakeholder's terms; use `.workflow/GLOSSARY.md` names where they exist.
 2. **Define the goals.** List the outcomes that would make the ask a success, each one observable in the result ("a user can open the export in a spreadsheet without fixing columns"). Two to five goals; each traces back to something the request said or clearly implied.
 
 Done when you have one elevated statement and a goal list, each goal traceable to the request.
@@ -69,7 +69,7 @@ Loop until agreement. Done when the stakeholder has explicitly agreed to the blo
 
 ## 4. Hand off
 
-- **Inside the workflow:** append the agreed block to `specs/NNN-slug/design-log.md` as a **Deeper prompt** entry (create the log from `.agents/skills/feature-workflow/assets/design-log.md` if missing), with each revision round summarised in one line. Then return to discovery, which loads the questioning loop at 0.3.8; the loop frames its design tree from this block.
+- **Inside the workflow:** append the agreed block to `.workflow/specs/NNN-slug/design-log.md` as a **Deeper prompt** entry (create the log from `.agents/skills/feature-workflow/assets/design-log.md` if missing), with each revision round summarised in one line. Then return to discovery, which loads the questioning loop at 0.3.8; the loop frames its design tree from this block.
 - **Standalone:** return the agreed block. When the next step is the feature workflow, it starts there with this block as the request.
 
 ## Done

@@ -1,9 +1,9 @@
 <!--
 File: Example filled profile for work type `e2e-browser` (D26): Phase 1.3 browser suite, one Playwright test per JRN-### journey.
-Use: project-setup offers it as the starting point for <project>/profiles/e2e-browser.md (modules/profiles.md). Adapt every line to the project, then delete this comment and the banner.
+Use: project-standards offers its lines as candidate answers in the interview (coverage C1, C3, C4) for <project>/.workflow/profiles/e2e-browser.md; it is never copied in whole. Adopted lines are adapted to the project; this comment and the banner never reach the project.
 Stack: Playwright, tsc, oxlint + vendored anti-slop, oxfmt (Prettier variant noted), dependency-cruiser (D26).
 Contract: hooks/evidence-capture.sh matches Bash commands that start with the `e2e` value and reads the JSON report at `e2e_report` (a descriptive key; run-toolchain.sh never runs it).
-Sources: first-party, from PLAN/gap-research.md G1 and G4, written from the Playwright docs (Apache-2.0; no text copied): https://playwright.dev/docs/test-use-options, https://playwright.dev/docs/test-cli, https://playwright.dev/docs/api/class-testconfig#test-config-output-dir, https://playwright.dev/docs/test-reporters, https://playwright.dev/docs/test-annotations, https://playwright.dev/docs/test-fixtures, https://playwright.dev/docs/network; structure from profiles/TEMPLATE.md. Plan refs: 1.3, 1.4, 3.10-3.12, 4.3; assetlist D15, D26, D61, D62, D63.
+Sources: first-party, from PLAN/gap-research.md G1 and G4, written from the Playwright docs (Apache-2.0; no text copied): https://playwright.dev/docs/test-use-options, https://playwright.dev/docs/test-cli, https://playwright.dev/docs/api/class-testconfig#test-config-output-dir, https://playwright.dev/docs/test-reporters, https://playwright.dev/docs/test-annotations, https://playwright.dev/docs/test-fixtures, https://playwright.dev/docs/network; structure from .workflow/profiles/TEMPLATE.md. Plan refs: 1.3, 1.4, 3.10-3.12, 4.3; assetlist D15, D26, D61, D62, D63.
 -->
 # Profile: e2e-browser
 
@@ -16,7 +16,7 @@ Sources: first-party, from PLAN/gap-research.md G1 and G4, written from the Play
 - Page objects, when two journeys drive the same screen: `e2e/pages/<screen>.ts`. Never a page object for a screen only one journey uses.
 - Test data seeded through the app's API or a seed script: `e2e/data/`. Never hand-edited database rows.
 - Playwright config: `playwright.config.ts` at the project root (shape below). TypeScript: `tsconfig.json` includes `e2e/**/*.ts`.
-- Run output: `test-results/e2e/` (`outputDir`, cleaned at the start of every run), the JSON report at `test-results/e2e-results.json` (outside `outputDir`, so the cleanup cannot delete it) and the HTML report in `playwright-report/`. All three are gitignored. Evidence is filed from the JSON report into `specs/NNN-slug/artifacts/` by the evidence-capture hook (3.12); never copy run output into `specs/` by hand.
+- Run output: `test-results/e2e/` (`outputDir`, cleaned at the start of every run), the JSON report at `test-results/e2e-results.json` (outside `outputDir`, so the cleanup cannot delete it) and the HTML report in `playwright-report/`. All three are gitignored. Evidence is filed from the JSON report into `.workflow/specs/NNN-slug/artifacts/` by the evidence-capture hook (3.12); never copy run output into `.workflow/specs/` by hand.
 
 ## Approved libraries per concern
 
@@ -95,8 +95,9 @@ Change `'**/api/**'` to the app's API prefix. A HAR per test (`recordHar` on a c
 lint: "npx oxlint -c .oxlintrc.json --deny-warnings"
 typecheck: "npx tsc --noEmit -p tsconfig.json"
 format: "npx oxfmt --check"          # Prettier variant: "npx prettier --check ."
-boundary: "npx depcruise --config tools/boundaries/dependency-cruiser.cjs --output-type err-long src"
-test: "npx playwright test --list"   # 3.5 for this work type: the suite compiles and every test is collected, without a running app (journeys are red until the feature exists). The harness gate (3.9) uses profiles/test-harness.md.
+boundary: "npx depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs --output-type err-long src"
+test: "npx playwright test --list"   # 3.5 for this work type: the suite compiles and every test is collected, without a running app (journeys are red until the feature exists). The harness gate (3.9) uses .workflow/profiles/test-harness.md.
+test_scoped: 'npx playwright test --list --grep-invert "$(paste -sd "|" "$WF_EXCLUDE_TESTS_FILE")"'   # in place of test while other tasks' journeys are excluded (D85); selectors are @JRN-### tags
 e2e: "npx playwright test"           # evidence-capture matches commands that start with this; append --grep @JRN-001, --project chromium or -x freely
 # Descriptive keys (not commands; run-toolchain.sh never runs them):
 serve: "npm run start"               # start command for the built app (review-targets, 4.3, D62)
@@ -106,7 +107,7 @@ config:
   lint: ".oxlintrc.json"
   typecheck: "tsconfig.json"
   format: ".oxfmtrc.json"
-  boundary: "tools/boundaries/dependency-cruiser.cjs"
+  boundary: ".workflow/tools/boundaries/dependency-cruiser.cjs"
   e2e: "playwright.config.ts"
 rule_set: "oxlint defaults + vendored anti-slop (all generic rules at error, plus oxc/no-accumulating-spread) + project rules; Playwright config above"
 ```

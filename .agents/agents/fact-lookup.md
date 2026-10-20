@@ -6,7 +6,7 @@ tools: Read, Grep, Glob, Bash
 
 <!--
 Sub-agent definition for task type `fact-lookup` (D1). Plan refs: 0.3.8-0.3.11; PLAN/decision-flow-reference.md "Sub-agent task types"; D31, D35, D37.
-Model: no `models:` key set; resolve-launch.sh resolves it (agent-overrides.yaml > definition `models.<host>` > model-map; D35).
+Model: no `models:` key set; resolve-launch.sh resolves it (.workflow/agent-overrides.yaml > definition `models.<host>` > .workflow/model-map; D35).
 Sources: "finding facts is your job, the decisions are the user's" and fact sub-agents from mattpocock/skills/skills/productivity/grilling/SKILL.md@49dd158 (MIT); primary sources and "follow every claim back to the source that owns it" from mattpocock/skills/skills/engineering/research/SKILL.md@49dd158 (MIT); file:line references and "describe what exists, no critique" from humanlayer/humanlayer .claude/agents/codebase-analyzer.md (Apache-2.0; pattern only, no text copied). Return contract from the reference doc.
 -->
 
@@ -24,11 +24,13 @@ The rest of the prompt gives one or more **questions** (numbered) and the **affe
 
 ## 2. Find each fact
 
+Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
+
 For each question:
 
 1. **Is it a fact?** A fact can be read off the repo: what the code does, where something is, which version is pinned, what a config sets, when a file last changed. A choice about what the feature *should* do is a decision. Return decisions as `not a fact` and stop on that question.
 2. **Search the primary source first**: the code, config and manifests that own the fact. Start in the affected area; widen to the rest of the repo only if the fact lives elsewhere.
-3. **Use docs as a second source.** If a doc and the code disagree, the code wins: give the code answer and note the disagreement. A Tier B cache (`docs/cache/*.md`) may be stale: cite one only together with its `generated_at_commit`, and prefer the code.
+3. **Use docs as a second source.** If a doc and the code disagree, the code wins: give the code answer and note the disagreement. A Tier B cache (`.workflow/cache/*.md`) may be stale: cite one only together with its `generated_at_commit`, and prefer the code.
 4. **Git history** for history facts. Use Bash only for read-only commands: `git log`, `git show`, `git blame`, `git grep`, `git rev-parse`, `rg`. Run nothing that changes files, the index, branches or the network, and do not build, install or run the project.
 5. **Stop at the answer.** Once the fact is found and sourced, move to the next question.
 

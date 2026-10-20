@@ -49,6 +49,9 @@ run_guard() {
   here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
   script="$here/../skills/feature-workflow/scripts/check-write.sh"
   [[ -f "$script" ]] || exit 0
+  # Workflow paths (D81), for guards that need them; sourced only once the workflow is known to be installed.
+  # shellcheck source=../lib/workflow-paths.sh
+  . "$(cd -P "$here" && pwd)/../lib/workflow-paths.sh"
 
   input=$(cat)
   if ! command -v jq >/dev/null 2>&1; then

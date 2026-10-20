@@ -10,7 +10,7 @@ Bring the standards back in line with the code since they were last verified. Sa
 ## 1. Find the stamps
 
 ```bash
-grep -rHo 'verified_at_commit: [0-9a-f]\{40\}' docs/rules.md profiles docs/decisions/adr docs/pr-quality AGENTS.md 2>/dev/null
+grep -rHo 'verified_at_commit: [0-9a-f]\{40\}' .workflow/rules.md .workflow/profiles .workflow/decisions/adr .workflow/pr-quality AGENTS.md 2>/dev/null
 ```
 
 Take the oldest stamped commit as `since_commit` (`git merge-base --is-ancestor` orders them). A doc with no stamp is treated as unverified: every line in it is re-checked as in brownfield.
@@ -29,7 +29,7 @@ Done when every path named in the docs is checked and the changed scopes are lis
 
 Launch `standards-discovery` per changed scope as in [discovery.md](discovery.md), with `since_commit` set and `instruction_files` listing the standards docs. Its `## Contradictions` section is the drift between the docs and the code.
 
-Done when every changed scope's return is saved under `.standards-staging/`.
+Done when every changed scope's return is saved under `.workflow/.standards-staging/`.
 
 ## 4. Report drift, then interview
 
@@ -41,4 +41,4 @@ Done when every drift item is answered.
 
 ## 5. Back to the main steps
 
-Draft only the changed lines in `.standards-staging/baseline.md` (each removal is a row with its ground), then run SKILL.md steps 5-9. Re-stamp every doc this run re-verified, including one whose lines all still hold.
+Draft only the changed lines in `.workflow/.standards-staging/baseline.md` (each removal is a row with its ground), then run SKILL.md steps 5-9. Re-stamp every doc this run re-verified, including one whose lines all still hold.

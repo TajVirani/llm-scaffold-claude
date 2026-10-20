@@ -1,36 +1,35 @@
 ---
 name: handoff
-description: Write a session handoff, one compact file in .handoff/ that a fresh session resumes from, or resume from one. Use when the user asks to hand off, pause or end a session, before clearing or compacting a long session, when context is running low mid-task, or when picking up a handoff offered at session start.
+description: Write a session handoff, one compact file in .workflow/.handoff/ that a fresh session resumes from, or resume from one. Use when the user asks to hand off, pause or end a session, before clearing or compacting a long session, when context is running low mid-task, or when picking up a handoff offered at session start.
 argument-hint: "What will the next session focus on?"
 ---
 
 <!--
-Sources: derived from mattpocock/skills@49dd158d1076134a641b33efb035946536778336 skills/productivity/handoff/SKILL.md (MIT; ideas only, no text copied): compact the session into a document for a fresh agent, name the skills it should load, reference artifacts instead of duplicating them, redact secrets, tailor to what the next session is for. Ours: the .handoff/ location in the main checkout and the frontmatter that hooks/session-start-resume.sh lists, the spec pointer rule (spec.md status and .step stay the source of truth), the resume steps. Terms: GLOSSARY.md (step marker; a session handoff is not a deferred handoff). Plan: assetlist D77; checklist "pick one owner for session handoff".
+Sources: derived from mattpocock/skills@49dd158d1076134a641b33efb035946536778336 skills/productivity/handoff/SKILL.md (MIT; ideas only, no text copied): compact the session into a document for a fresh agent, name the skills it should load, reference artifacts instead of duplicating them, redact secrets, tailor to what the next session is for. Ours: the .workflow/.handoff/ location in the main checkout and the frontmatter that hooks/session-start-resume.sh lists, the spec pointer rule (spec.md status and .step stay the source of truth), the resume steps. Terms: .workflow/GLOSSARY.md (step marker; a session handoff is not a deferred handoff). Plan: assetlist D77; checklist "pick one owner for session handoff".
 -->
 
 # Handoff
 
-A **session handoff** is one file a fresh session reads to carry on the work: what the conversation knows that no artifact records yet, plus pointers to everything an artifact does record. It is not a **deferred handoff** (out-of-scope work shelved in `deferred/` by feature-workflow).
+A **session handoff** is one file a fresh session reads to carry on the work: what the conversation knows that no artifact records yet, plus pointers to everything an artifact does record. It is not a **deferred handoff** (out-of-scope work shelved in `.workflow/deferred/` by feature-workflow).
 
 ## Write
 
 ### 1. Locate
 
-1. **Root and folder.** Handoffs live in `.handoff/` at the main checkout, where the session-start hook looks, even when you work in a worktree. The folder ignores itself, so nothing is committed.
+1. **Root and folder.** Handoffs live in `.workflow/.handoff/` at the main checkout, where the session-start hook looks, even when you work in a worktree. `install.sh` gitignores the folder, so nothing is committed.
 
    ```bash
    if common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then root=$(dirname "$common"); else root=$PWD; fi
-   mkdir -p "$root/.handoff"
-   [ -f "$root/.handoff/.gitignore" ] || printf '*\n' > "$root/.handoff/.gitignore"
+   mkdir -p "$root/.workflow/.handoff"
    ```
 
-2. **Spec or not.** The work belongs to a spec when the session worked in `specs/NNN-slug/` (named, resumed, or the one being edited). Then read its live state; you point to it, never copy it:
+2. **Spec or not.** The work belongs to a spec when the session worked in `.workflow/specs/NNN-slug/` (named, resumed, or the one being edited). Then read its live state; you point to it, never copy it:
 
    ```bash
-   yq --front-matter=extract '.status' specs/NNN-slug/spec.md; cat specs/NNN-slug/.step 2>/dev/null
+   yq --front-matter=extract '.status' .workflow/specs/NNN-slug/spec.md; cat .workflow/specs/NNN-slug/.step 2>/dev/null
    ```
 
-3. **File name.** `.handoff/NNN-slug.md` for spec work; `.handoff/<topic>.md` (kebab-case, two to four words) otherwise. If that file exists it is the previous handoff for this work: read it and replace it.
+3. **File name.** `.workflow/.handoff/NNN-slug.md` for spec work; `.workflow/.handoff/<topic>.md` (kebab-case, two to four words) otherwise. If that file exists it is the previous handoff for this work: read it and replace it.
 
 Done when you hold the file path and, for spec work, the spec's status and step.
 
@@ -38,7 +37,7 @@ Done when you hold the file path and, for spec work, the spec's status and step.
 
 Write each fact once, in the place that owns it. For each section of the template, take the first that applies:
 
-- **An artifact records it**: point to it by path, commit sha or URL. In a spec: goal and scope (`spec.md`), status and step (`spec.md`, `.step`), decisions (`design-log.md`), tasks (`tasks.md`), shelved work (`deferred/`). Outside a spec: commits, branches, issues, PRs, ADRs, docs.
+- **An artifact records it**: point to it by path, commit sha or URL. In a spec: goal and scope (`spec.md`), status and step (`spec.md`, `.step`), decisions (`design-log.md`), tasks (`tasks.md`), shelved work (`.workflow/deferred/`). Outside a spec: commits, branches, issues, PRs, ADRs, docs.
 - **Only the conversation knows it**: write it in one line. A decision agreed in the conversation but not yet in `design-log.md` goes under Decisions marked `not logged`, so the next session logs it at its step.
 - **Nothing to say**: write `none`.
 
@@ -52,7 +51,7 @@ Done when a fresh session holding only this file and the repo could take the nex
 
 ### 4. Tell the user
 
-Give the path and one line on resuming: start a fresh session (or clear the context); where the session-start hook is installed it offers the handoff, otherwise ask the agent to resume from `.handoff/<name>.md`.
+Give the path and one line on resuming: start a fresh session (or clear the context); where the session-start hook is installed it offers the handoff, otherwise ask the agent to resume from `.workflow/.handoff/<name>.md`.
 
 ## Resume
 

@@ -1,5 +1,5 @@
 <!--
-File: Template for specs/NNN-slug/report.md: the 5.4 results report (D21). No frontmatter.
+File: Template for .workflow/specs/NNN-slug/report.md: the 5.4 results report (D21). No frontmatter.
 Written by modules/sign-off.md at 5.4; read by the stakeholder at 5.5 and by the `retrospective` skill at 5.7.
 Sources: evidence before claim, numbered evidence references, binary PASS / FAIL / BLOCKED per criterion, and verification steps a human can repeat adapted from athola/claude-night-market/plugins/imbue/skills/proof-of-work/modules/validation-protocols.md@54fcc85 and acceptance-criteria.md (MIT). "What was exercised end to end, or an explicit note that it was not" adapted from bmad-code-org/BMAD-METHOD skills/bmad-retrospective/references/retro-document.md "Behavior verification" (MIT). Section layout is first-party (PLAN/decision-flow-reference.md 5.4, 5.5, 3.12-3.14, design rule 12; assetlist D21, D29).
 
@@ -63,11 +63,11 @@ Behaviour verification: <what was exercised end to end against the running build
 
 ## Known gaps
 
-- <Gate skipped or check not run>: <reason>. Handoff: [deferred/<slug>.md](../../deferred/<slug>.md)
+- <Gate skipped or check not run>: <reason>. Handoff: [.workflow/deferred/<slug>.md](../../deferred/<slug>.md)
 
 ## Deferred
 
-- [deferred/<slug>.md](../../deferred/<slug>.md): <one line> (<severity if a review finding>)
+- [.workflow/deferred/<slug>.md](../../deferred/<slug>.md): <one line> (<severity if a review finding>)
 
 ## How to verify
 

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# File: Helper script (not a hook): generate import-boundary tool config from docs/rules.md.
-# Purpose: Parse the tool-neutral fenced `yaml` blocks under the fixed Ownership and Shared core headings of docs/rules.md (module -> owned paths -> allowed dependencies; D15) and emit per-language config through adapters (D20). First adapter: dependency-cruiser for TS/JS. The rules are the source; the config is derived and never hand-edited.
-# Triggers/inputs: Path to the target project (docs/rules.md). Called by project-setup at setup, by the rules-boundary-config-sync hook after every approved write to docs/rules.md, and by sign-off at 5.3 on hosts without that hook (D9).
-# Outputs/handoff: Generated config under tools/boundaries/ (tools/boundaries/dependency-cruiser.cjs), run by the profile's `boundary` toolchain key at 3.5; non-zero exit when the blocks do not parse (the hook fails the write).
+# File: Helper script (not a hook): generate import-boundary tool config from .workflow/rules.md.
+# Purpose: Parse the tool-neutral fenced `yaml` blocks under the fixed Ownership and Shared core headings of .workflow/rules.md (module -> owned paths -> allowed dependencies; D15) and emit per-language config through adapters (D20). First adapter: dependency-cruiser for TS/JS. The rules are the source; the config is derived and never hand-edited.
+# Triggers/inputs: Path to the target project (.workflow/rules.md). Called by project-setup at setup, by the rules-boundary-config-sync hook after every approved write to .workflow/rules.md, and by sign-off at 5.3 on hosts without that hook (D9).
+# Outputs/handoff: Generated config under .workflow/tools/boundaries/ (.workflow/tools/boundaries/dependency-cruiser.cjs), run by the profile's `boundary` toolchain key at 3.5; non-zero exit when the blocks do not parse (the hook fails the write).
 # Plan refs: 00.3, 3.5; reference "Processes outside the flow" (Project setup), "Hooks" (Rules -> boundary config sync); assetlist D15, D20, D38.
 # Sources: first-party (D15, D20, D38). dependency-cruiser `forbidden` / `options.tsConfig` format from its rules-reference.md and options-reference.md (MIT). Script style after skills/data-structure-audit/scripts/audit_scope.sh.
 # Notes: Requires mikefarah yq v4 (D38) and jq.
 #
 # Usage:
 #   generate-boundary-config.sh [--check] [--adapter NAME] [--print-intermediate] [PROJECT_DIR]
-#     PROJECT_DIR           target project root (default: current directory); reads PROJECT_DIR/docs/rules.md
+#     PROJECT_DIR           target project root (default: current directory); reads PROJECT_DIR/.workflow/rules.md
 #     --check               write nothing; exit 1 if any generated file is missing or differs from a fresh render
 #     --adapter NAME        render one adapter only (default: all). Known: dependency-cruiser
 #     --print-intermediate  print the tool-neutral intermediate JSON to stdout and exit (no files)
@@ -26,8 +26,12 @@
 
 set -euo pipefail
 
+# Workflow paths (D81).
+# shellcheck source=../../../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
+
 ADAPTERS=(dependency-cruiser)
-RULES_REL="docs/rules.md"
+RULES_REL="$WF_RULES"
 
 die() { # die EXIT_CODE MESSAGE...
   local code="$1"
@@ -131,11 +135,11 @@ build_intermediate() {
 # ---------------------------------------------------------------- adapters
 
 # --- dependency-cruiser (TS/JS) ---
-adapter_dependency-cruiser_file() { echo "tools/boundaries/dependency-cruiser.cjs"; }
+adapter_dependency-cruiser_file() { echo "$WF_BOUNDARIES/dependency-cruiser.cjs"; }
 
 adapter_dependency-cruiser_render() { # intermediate JSON on stdin -> .cjs on stdout
   local body
-  body="$(jq '
+  body="$(jq --arg rules "$WF_RULES" '
     # glob -> anchored regex: ** -> .*, **/ -> (.*/|), * -> [^/]*, ? -> [^/], other regex metacharacters escaped
     def g2r:
       ltrimstr("./")
@@ -147,7 +151,7 @@ adapter_dependency-cruiser_render() { # intermediate JSON on stdin -> .cjs on st
     {
       forbidden: (.forbidden | map({
         name: .name,
-        comment: ("Generated from docs/rules.md: " + (
+        comment: ("Generated from " + $rules + ": " + (
           if (.name | startswith("shared-core-not-to-")) then "shared core may not depend on module " + (.name | ltrimstr("shared-core-not-to-"))
           else (.name | split("-not-to-") | "module " + .[0] + " may not depend on module " + .[1]) end)),
         severity: "error",
@@ -157,9 +161,9 @@ adapter_dependency-cruiser_render() { # intermediate JSON on stdin -> .cjs on st
       options: { tsConfig: { fileName: "tsconfig.json" } }
     }')"
   printf '%s\n' \
-    '// GENERATED — do not edit; source docs/rules.md' \
+    "// GENERATED — do not edit; source $WF_RULES" \
     '// Regenerate with: .agents/skills/project-setup/scripts/generate-boundary-config.sh' \
-    '// Run from the project root: depcruise --config tools/boundaries/dependency-cruiser.cjs <src>' \
+    "// Run from the project root: depcruise --config $WF_BOUNDARIES/dependency-cruiser.cjs <src>" \
     "module.exports = $body;"
 }
 

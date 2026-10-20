@@ -1,7 +1,7 @@
 <!--
-File: Template for docs/rules.md (Tier A rules). Copied by project-setup; read at 0.3.3, 2.4, 4.1; changed only at 5.3.
+File: Template for .workflow/rules.md (Tier A rules). Copied by project-setup; read at 0.3.3, 2.4, 4.1; changed only at 5.3.
 Sources: first-party (assetlist D15, D20; plan 00.3); policy prose style ("a prohibition names the alternative", terse imperative lines, the line test) adapted from bmad-code-org/BMAD-METHOD skills/bmad-project-context/references/{template,best-practices}.md (MIT); dependency-cruiser `forbidden` format from its rules-reference.md and rules-tutorial.md (MIT).
-Contract: the headings "Ownership", "Shared core" and "Size budget" are fixed, and each holds exactly one fenced `yaml` block (parsed with mikefarah yq v4). Prose in those sections is commentary, not source. The rules are tool-neutral: no boundary-tool syntax in the blocks (D20).
+Contract: the headings "Ownership", "Shared core" and "Size budget" are fixed, and each holds exactly one fenced `yaml` block (parsed with mikefarah yq v4). "Workflow settings" is optional (D85); when present it holds one fenced `yaml` block too, and a missing section or key takes the default shown. Prose in those sections is commentary, not source. The rules are tool-neutral: no boundary-tool syntax in the blocks (D20).
 Line test: a line stays only if removing it would change what an agent does. Prohibitions name the permitted alternative. Delete this comment when filling.
 -->
 # Rules
@@ -22,7 +22,7 @@ Each module owns paths and may depend only on the modules it lists. Anything not
 #       may_depend_on: []
 #
 # Adapter mapping notes (dependency-cruiser; generate-boundary-config.sh):
-#   - Format: config file tools/boundaries/dependency-cruiser.cjs exporting { forbidden: [...], options: {...} }.
+#   - Format: config file .workflow/tools/boundaries/dependency-cruiser.cjs exporting { forbidden: [...], options: {...} }.
 #     A `forbidden` rule is { name, comment, severity, from: { path }, to: { path } }; path values are regexes
 #     matched against repo-relative paths; severity: error fails `depcruise --config <file> <src>`.
 #   - Glob to regex: anchor with ^, escape ".", "**" -> ".*", "*" -> "[^/]*".
@@ -57,7 +57,17 @@ Soft per-spec limits (D58), copied into each spec's `budget` frontmatter when `t
 ```yaml
 size_budget:
   max_tasks: 10
-  max_changed_files: 30   # files in `git diff --name-only <baseline_revision>..HEAD`, excluding the spec folder
+  max_changed_files: 30   # files in `git diff --name-only <impl_base_revision>..HEAD`, excluding the spec folder; 2.6 also checks the predicted sum
+```
+
+## Workflow settings
+
+Optional (D85). How the orchestrator reviews each task branch before merging it into the spec branch at 3.16. Delete the section to keep the default. Changed only at 5.3.
+
+```yaml
+task_review: pr   # pr (default): open a PR/MR into the spec branch as a non-blocking review record, merge locally and continue
+                  # pr-blocking: open it and wait for approval before merging
+                  # local: no push, no PR
 ```
 
 ## Cross-cutting policy

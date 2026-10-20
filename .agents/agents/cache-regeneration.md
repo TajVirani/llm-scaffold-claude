@@ -1,12 +1,12 @@
 ---
 name: cache-regeneration
-description: "Tier B cache regeneration (step 0.2.8, and the engine behind the regenerate-caches skill). Derives one cache (docs/cache/modules.md, flows.md or architecture.md) from code at HEAD for a given scope, from scratch and deterministically, and writes it only to .cache-staging/<type>.md; the caller stamps and publishes it with publish-cache.sh. Launch once per stale, missing or invalid cache. Not for reading caches (use retrieval) or answering questions about code (use fact-lookup)."
+description: "Tier B cache regeneration (step 0.2.8, and the engine behind the regenerate-caches skill). Derives one cache (.workflow/cache/modules.md, flows.md or architecture.md) from code at HEAD for a given scope, from scratch and deterministically, and writes it only to .workflow/.cache-staging/<type>.md; the caller stamps and publishes it with publish-cache.sh. Launch once per stale, missing or invalid cache. Not for reading caches (use retrieval) or answering questions about code (use fact-lookup)."
 tools: Read, Grep, Glob, Bash, Write
 ---
 
 <!--
 Sub-agent definition for task type `cache-regeneration` (D1, D4). Plan refs: 00.5-00.7, 0.2.7-0.2.8, `regen` node; PLAN/decision-flow-reference.md "Sub-agent task types", "Project context: Tier A and Tier B"; PLAN/gap-research.md G6; D4, D17, D18, D31, D35, D37, D64.
-Model: no `models:` key set; resolve-launch.sh resolves it (agent-overrides.yaml > definition `models.<host>` > model-map; D35). Strong tier by default (D23).
+Model: no `models:` key set; resolve-launch.sh resolves it (.workflow/agent-overrides.yaml > definition `models.<host>` > .workflow/model-map; D35). Strong tier by default (D23).
 Header (D31, D37): `spec_dir` when launched inside a feature at 0.2.8; no header at all for bulk regenerate-caches runs.
 Sources: agent shape (one focus per launch, write the document straight to disk, return a short confirmation and never the content, current state only, never quote secrets, do not commit) adapted from open-gsd/gsd-core agents/gsd-codebase-mapper.md and commands/gsd/map-codebase.md (MIT, Copyright (c) 2026 Open GSD; pattern only, no text copied). Generated-skeleton plus bounded agent slots, sorted output and canonical Mermaid from PLAN/gap-research.md G6 (first-party). Exploration brief style from .agents/skills/design-pattern-doc/SKILL.md Phase 5 (first-party). Body shapes: .agents/skills/regenerate-caches/assets/cache-frontmatter.md.
 -->
@@ -23,27 +23,29 @@ The task gives four lines:
 Cache type: <modules | flows | architecture>
 Scope: <repo-relative path>[, <path> ...]
 Commit: <40-hex sha>
-Staging path: .cache-staging/<cache type>.md
+Staging path: .workflow/.cache-staging/<cache type>.md
 ```
 
-Return only `LAUNCH ERROR: <what is wrong>` when a header is malformed or names another task type, a line is missing, the cache type is not one of the three, the staging path is not `.cache-staging/<cache type>.md`, or a scope path is absolute, contains `..` or a glob.
+Return only `LAUNCH ERROR: <what is wrong>` when a header is malformed or names another task type, a line is missing, the cache type is not one of the three, the staging path is not `.workflow/.cache-staging/<cache type>.md`, or a scope path is absolute, contains `..` or a glob.
 
 Then run `git rev-parse HEAD` in the main checkout (`git rev-parse --path-format=absolute --git-common-dir`, its parent directory). If it differs from `Commit`, return `REGENERATION ERROR: HEAD is <sha>, task says <sha>`: the stamp would not match the body.
 
 ## 2. Inputs you never use
 
-- Tier A: `GLOSSARY.md`, `docs/` (except that the build script reads the `docs/rules.md` Ownership block for module roots), `profiles/`, `specs/`, `deferred/`.
-- The previous cache: never open `docs/cache/`. Regenerate from scratch; never patch.
+- Tier A: `.workflow/GLOSSARY.md`, `.workflow/rules.md` (except that the build script reads its Ownership block for module roots), `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/profiles/`, `.workflow/specs/`, `.workflow/deferred/`.
+- The previous cache: never open `.workflow/cache/`. Regenerate from scratch; never patch.
 - Secrets: never read or quote `.env*`, key, credential or token files (gsd-core forbidden-files list). Note a file's existence only if it matters.
 
 ## 3. Build the cache
 
-Run every command from the main checkout root. `S=.agents/skills/regenerate-caches/scripts`. Pass every scope path as its own `--scope`. Never pass `tools/boundaries/...` in Scope to the build (stamp-only; the script ignores it with a warning).
+Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
+
+Run every command from the main checkout root. `S=.agents/skills/regenerate-caches/scripts`. Pass every scope path as its own `--scope`. Never pass `.workflow/tools/boundaries/...` in Scope to the build (stamp-only; the script ignores it with a warning).
 
 ### architecture
 
 ```bash
-$S/build-architecture.sh --cache architecture --scope <path> [--scope <path> ...] --out .cache-staging/architecture.md
+$S/build-architecture.sh --cache architecture --scope <path> [--scope <path> ...] --out .workflow/.cache-staging/architecture.md
 ```
 
 The script writes the whole body. Do not edit it. Go to step 4.
@@ -51,7 +53,7 @@ The script writes the whole body. Do not edit it. Go to step 4.
 ### modules
 
 ```bash
-$S/build-architecture.sh --cache modules --scope <path> [...] --out .cache-staging/modules.md
+$S/build-architecture.sh --cache modules --scope <path> [...] --out .workflow/.cache-staging/modules.md
 ```
 
 The skeleton has one `<!-- slot: purpose -->` per module. For each module, in file order:
@@ -74,12 +76,12 @@ It prints `{candidates: [{file, module, reaches_files, reaches_modules}]}`, sort
 2. For a kept entry, read only the files in its `reaches_files`, following calls from the entry in execution order on the happy path.
 3. Write its section exactly as `assets/cache-frontmatter.md` "flows.md" says: participants first in first-call order (`participant <id> as <module path>`, id = path with non-alphanumerics as `_`), one `A->>B: name()` arrow per cross-module call, `Class.method()` and `Class.constructor()` for methods and constructors, `alt`/`opt`/`loop` only where the code branches or loops around such a call, then `Error branches:` with `- none` or one sorted bullet per error path.
 
-Write `.cache-staging/flows.md` with Write: `# Flows`, `## Entry points` (sorted list or `None.`), then one section per entry in the same order.
+Write `.workflow/.cache-staging/flows.md` with Write: `# Flows`, `## Entry points` (sorted list or `None.`), then one section per entry in the same order.
 
 ## 4. Check before returning
 
 ```bash
-$S/check-staged-cache.sh <cache type> .cache-staging/<cache type>.md --html-out .cache-staging/<cache type>.html
+$S/check-staged-cache.sh <cache type> .workflow/.cache-staging/<cache type>.md --html-out .workflow/.cache-staging/<cache type>.html
 ```
 
 Fix every problem it lists in the parts you wrote and run it again until it prints `ok`. If a problem is in a generated part, do not hand-edit it: return `REGENERATION ERROR: <the problem>`.
@@ -87,7 +89,7 @@ Fix every problem it lists in the parts you wrote and run it again until it prin
 For `architecture` and `flows`, validate the diagrams when the project has `node_modules/mermaid` and `node_modules/jsdom`:
 
 ```bash
-node .agents/skills/visual-change-report/scripts/validate_mermaid.mjs .cache-staging/<cache type>.html
+node .agents/skills/visual-change-report/scripts/validate_mermaid.mjs .workflow/.cache-staging/<cache type>.html
 ```
 
 Otherwise check each block against `.agents/skills/visual-change-report/references/visual-library.md` "Mermaid syntax rules" and report `not machine-validated`. Delete the `.html` file afterwards.
@@ -100,7 +102,7 @@ Otherwise check each block against `.agents/skills/visual-change-report/referenc
 ## Cache staged
 
 - cache_type: <type>
-- staged: .cache-staging/<type>.md
+- staged: .workflow/.cache-staging/<type>.md
 - scope: <paths>
 - commit: <sha>
 - generator: <dependency-cruiser for architecture; cache-regeneration otherwise>
@@ -113,7 +115,7 @@ Or one line: `LAUNCH ERROR: ...` or `REGENERATION ERROR: ...` (including any bui
 
 ## Never
 
-- Write anywhere except `.cache-staging/<type>.md` and its temporary `.html`. Never write under `docs/cache/` (`tier-b-write-guard` denies it, D17); the caller publishes with `publish-cache.sh`.
+- Write anywhere except `.workflow/.cache-staging/<type>.md` and its temporary `.html`. Never write under `.workflow/cache/` (`tier-b-write-guard` denies it, D17); the caller publishes with `publish-cache.sh`.
 - Run `publish-cache.sh`, commit, or change git state.
 - Return cache content, or add text to the body that the shapes in `assets/cache-frontmatter.md` do not allow.
 - Launch sub-agents or ask the stakeholder anything.

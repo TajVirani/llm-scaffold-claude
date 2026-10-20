@@ -11,16 +11,16 @@ List what the feature produced so every later step works from artifacts rather t
 
 | Source | Read for |
 | --- | --- |
-| `specs/NNN-slug/spec.md` | Capabilities (`CAP-###`), constraints, non-goals, success signal; frontmatter `baseline_revision`, `deferred[]`, `followup_review_recommended`, `light_path` |
-| `specs/NNN-slug/verification-plan.md` | Journeys (`JRN-###`) and targets |
-| `specs/NNN-slug/report.md` | Test output, targets against measured values, known gaps (D29), evidence links |
-| `specs/NNN-slug/tasks.md` | Each task's `status` (read with `yq --front-matter=extract '.tasks[] \| [.id, .status] \| @tsv'`) |
-| `specs/NNN-slug/design-log.md` | Triage entries from each review pass (finding ids, verdicts, routes), decisions and their reversals, deep dives |
-| `specs/NNN-slug/proposals.md` | What 5.3 approved, modified or rejected |
-| `specs/NNN-slug/artifacts/` | Toolchain output per task, browser evidence per journey |
-| `deferred/*.md` whose `origin_spec` is this spec | What was shelved, and why |
+| `.workflow/specs/NNN-slug/spec.md` | Capabilities (`CAP-###`), constraints, non-goals, success signal; frontmatter `baseline_revision`, `deferred[]`, `followup_review_recommended`, `light_path` |
+| `.workflow/specs/NNN-slug/verification-plan.md` | Journeys (`JRN-###`) and targets |
+| `.workflow/specs/NNN-slug/report.md` | Test output, targets against measured values, known gaps (D29), evidence links |
+| `.workflow/specs/NNN-slug/tasks.md` | Each task's `status` (read with `yq --front-matter=extract '.tasks[] \| [.id, .status] \| @tsv'`) |
+| `.workflow/specs/NNN-slug/design-log.md` | Triage entries from each review pass (finding ids, verdicts, routes), decisions and their reversals, deep dives |
+| `.workflow/specs/NNN-slug/proposals.md` | What 5.3 approved, modified or rejected |
+| `.workflow/specs/NNN-slug/artifacts/` | Toolchain output per task, browser evidence per journey |
+| `.workflow/deferred/*.md` whose `origin_spec` is this spec | What was shelved, and why |
 | Git, from `baseline_revision` to `HEAD` | `git log --oneline <baseline>..HEAD` and `git diff --stat <baseline>..HEAD`: commits and change volume |
-| The previous retrospective | The highest-numbered other file in `docs/decisions/retrospectives/` |
+| The previous retrospective | The highest-numbered other file in `.workflow/decisions/retrospectives/` |
 | Session logs, when they exist | Why a session took an unexpected turn. They are the evidence most likely to expire, so capture references now. |
 
 On the light path (`light_path: true`), the feature went from 0.3.20 straight to implementation, so `verification-plan.md` is absent by design. Record it as "not produced (light path)", not as missing, and judge against `spec.md` alone.

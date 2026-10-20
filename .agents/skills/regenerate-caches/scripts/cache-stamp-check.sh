@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): detect stale Tier B caches before retrieval runs.
-# Purpose: For each Tier B cache (docs/cache/modules.md, flows.md, architecture.md), read the frontmatter, validate it against assets/cache-frontmatter.md, and decide fresh or stale. A cache is stale when any commit in generated_at_commit..HEAD touched a path under `scope`.
+# Purpose: For each Tier B cache (.workflow/cache/modules.md, flows.md, architecture.md), read the frontmatter, validate it against assets/cache-frontmatter.md, and decide fresh or stale. A cache is stale when any commit in generated_at_commit..HEAD touched a path under `scope`.
 # Triggers/inputs: Called by feature-workflow modules/discovery.md at 0.2.7 before launching `retrieval`, and by regenerate-caches for stale-only runs.
 # Plan refs: 0.2.7; reference "Helper scripts" (Cache stamp check); assetlist D7, D38.
 # Sources: first-party; changed-since-commit idea from skills/data-structure-audit/scripts/audit_scope.sh.
@@ -10,13 +10,13 @@
 #     --area PATH      repo-relative path of the affected area (repeatable). Only caches whose
 #                      scope intersects an area (one path is the other, or a parent of it) are
 #                      checked for staleness. Without --area, every scope path counts.
-#     --cache-dir DIR  default: <root>/docs/cache
+#     --cache-dir DIR  default: <root>/.workflow/cache
 #     --root DIR       repo root override. Default (D18): the MAIN checkout, found through
 #                      `git rev-parse --git-common-dir`, even when run from a worktree. Caches
 #                      are read from, and HEAD is taken from, that checkout.
 #
 # Output (stdout, one JSON object):
-#   {"head":"<sha>","stale":<bool>,"stamps":{"modules":"<40-hex>|null","flows":...,"architecture":...},"caches":[{"cache_type":"modules","file":"docs/cache/modules.md",
+#   {"head":"<sha>","stale":<bool>,"stamps":{"modules":"<40-hex>|null","flows":...,"architecture":...},"caches":[{"cache_type":"modules","file":".workflow/cache/modules.md",
 #     "status":"fresh|stale|missing|invalid","generated_at_commit":"<sha>|null",
 #     "stale_paths":["<files changed since the stamp under checked scope>"],"reason":"<text>"}]}
 #   stamps is ready for codebase-map.md `cache_stamps`: the cache's generated_at_commit when its
@@ -30,6 +30,10 @@
 #             2 = at least one invalid, or a usage or tooling error (message on stderr).
 # Requires: git, jq, mikefarah yq v4 on PATH (D38).
 set -euo pipefail
+
+# Workflow paths (D81).
+# shellcheck source=../../../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
 resolve_root() { # main checkout (D18): the parent of the common git dir, so worktrees share one root
   local common
@@ -59,7 +63,7 @@ yq --version 2>&1 | grep -q 'mikefarah' || die "yq must be mikefarah yq v4 (D38)
 
 [[ -n "$root" ]] || root="$(resolve_root)" || die "not in a git repository (use --root)"
 cd "$root"
-[[ -n "$cache_dir" ]] || cache_dir="$root/docs/cache"
+[[ -n "$cache_dir" ]] || cache_dir="$root/$WF_CACHE"
 head_sha="$(git rev-parse HEAD)"
 
 valid_expr='
@@ -84,7 +88,7 @@ any_invalid=0
 any_stale=0
 
 emit() { # type status commit stale_paths_json reason
-  results+=("$(jq -n --arg t "$1" --arg f "docs/cache/$1.md" --arg s "$2" --arg c "$3" \
+  results+=("$(jq -n --arg t "$1" --arg f "$WF_CACHE/$1.md" --arg s "$2" --arg c "$3" \
     --argjson p "$4" --arg r "$5" \
     '{cache_type:$t,file:$f,status:$s,generated_at_commit:(if $c=="" then null else $c end),stale_paths:$p,reason:$r}')")
   case "$2" in

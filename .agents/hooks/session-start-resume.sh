@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 # File: Hook (Claude and Codex adapter): offer to resume in-flight work.
 # Goals:
-#   - If specs/ exists, scan specs/*/spec.md frontmatter for features that are not done (no docs/decisions/status.md; D22)
+#   - If .workflow/specs/ exists, scan .workflow/specs/*/spec.md frontmatter for features that are not done (no .workflow/decisions/status.md; D22)
 #   - Offer to resume at the recorded step via feature-workflow
-#   - List session handoffs in .handoff/*.md (written by the handoff skill) so a fresh session can pick one up
+#   - List session handoffs in .workflow/.handoff/*.md (written by the handoff skill) so a fresh session can pick one up
 # Triggers/inputs: SessionStart JSON on stdin (any `source`: startup, resume, clear, compact; all get the offer, since a cleared or compacted
-#   context has lost it). Paths from the payload `cwd` (D18), normalised to the main checkout (git rev-parse --git-common-dir), where specs/
+#   context has lost it). Paths from the payload `cwd` (D18), normalised to the main checkout (git rev-parse --git-common-dir), where .workflow/specs/
 #   and the gitignored .step markers live.
 # Behaviour:
 #   - No spec.md with a status other than `done`, no open backlog item and no session handoff: exit 0, no output.
 #   - Each non-done spec (draft, ready-for-dev, in-progress, in-review, blocked; sorted by folder name) is listed with its status,
-#     blocked_condition (while blocked), and the current step from specs/NNN-slug/.step (step, updated_at, blocked_from), or "no .step marker".
+#     blocked_condition (while blocked), and the current step from .workflow/specs/NNN-slug/.step (step, updated_at, blocked_from), or "no .step marker".
 #     A spec.md whose frontmatter cannot be read is listed as unreadable rather than skipped.
 #   - The text ends with the next action: load the feature-workflow skill for the chosen spec, which routes by spec.md status; a blocked spec
 #     needs its blocked_condition resolved by a human first.
 #   - A blocked spec whose blocked_condition starts with `discovered work:` or `size budget:` is flagged "discovered-work prompt pending" (D56).
-#   - specs/work-backlog/ is not a spec folder and is skipped by the scan; its *.md items with `status: open` are summarised as a count plus
+#   - .workflow/specs/work-backlog/ is not a spec folder and is skipped by the scan; its *.md items with `status: open` are summarised as a count plus
 #     up to 5 filenames (D57), and alone are enough to produce output.
-#   - Session handoffs (.handoff/*.md at the main checkout, newest first by mtime): up to 3 listed with frontmatter created, spec and goal
+#   - Session handoffs (.workflow/.handoff/*.md at the main checkout, newest first by mtime): up to 3 listed with frontmatter created, spec and goal
 #     (or "frontmatter unreadable"), the rest counted; alone they are enough to produce output, and the text names the handoff skill's Resume.
 #   - The text is capped below the 10,000-character additionalContext limit: specs past the cap are counted, not listed.
 # Outputs/handoff: {"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"<resume offer>"}} or nothing; exit 0 always.
@@ -33,6 +33,10 @@
 
 set -euo pipefail
 
+# Workflow paths (D81).
+# shellcheck source=../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
+
 LIMIT=9000      # characters of list text; leaves room for the header and footer under the 10,000 cap
 TIME_BUDGET=6   # seconds spent reading specs before the rest are only counted (hook timeout 10 s)
 
@@ -46,9 +50,9 @@ if common=$(git -C "$root" rev-parse --path-format=absolute --git-common-dir 2>/
 fi
 
 shopt -s nullglob
-specs=("$root"/specs/*/spec.md)
-backlog=("$root"/specs/work-backlog/*.md)
-handoffs=("$root"/.handoff/*.md)
+specs=("$root/$WF_SPECS"/*/spec.md)
+backlog=("$root/$WF_WORK_BACKLOG"/*.md)
+handoffs=("$root/$WF_HANDOFF"/*.md)
 [ "${#specs[@]}" -gt 0 ] || [ "${#backlog[@]}" -gt 0 ] || [ "${#handoffs[@]}" -gt 0 ] || exit 0
 command -v yq >/dev/null 2>&1 || exit 0
 
@@ -63,7 +67,7 @@ raw_status() {
 # JSON array on stdin (from yq) -> one value per line; null -> "", whitespace runs folded so each value stays on one line.
 lines() { jq -r 'if type == "array" then .[] else error("not an array") end | if . == null then "" else tostring | gsub("\\s+"; " ") end'; }
 
-# Session handoffs (.handoff/*.md, from the handoff skill): newest first, 3 listed, the rest counted. Read first so the spec list
+# Session handoffs (.workflow/.handoff/*.md, from the handoff skill): newest first, 3 listed, the rest counted. Read first so the spec list
 # cap leaves room for them.
 htext="" h_n=0
 if [ "${#handoffs[@]}" -gt 0 ]; then
@@ -71,7 +75,7 @@ if [ "${#handoffs[@]}" -gt 0 ]; then
   while IFS= read -r h; do
     h_n=$((h_n + 1))
     [ "$h_n" -le 3 ] || continue
-    entry="- .handoff/$(basename "$h")"
+    entry="- $WF_HANDOFF/$(basename "$h")"
     if hf=$(yq --front-matter=extract -o=json -I=0 '[.goal, .spec, .created]' "$h" 2>/dev/null | lines); then
       goal="" hspec="" created=""
       { IFS= read -r goal; IFS= read -r hspec; IFS= read -r created; } <<<"$hf" || true
@@ -93,7 +97,7 @@ for spec in ${specs[@]+"${specs[@]}"}; do
   [ "$(basename "$(dirname "$spec")")" != "work-backlog" ] || continue # the discovered-work backlog is not a spec (D57)
   [ "$(raw_status "$spec")" != "done" ] || continue
   dir=$(dirname "$spec")
-  slug=specs/$(basename "$dir")
+  slug=$WF_SPECS/$(basename "$dir")
   # Past the character cap or the time budget (the hook timeout is 10 s): count, do not list.
   if [ "${#list}" -ge "$LIMIT" ] || [ "$SECONDS" -ge "$TIME_BUDGET" ]; then
     omitted=$((omitted + 1))
@@ -131,7 +135,7 @@ for spec in ${specs[@]+"${specs[@]}"}; do
   listed=$((listed + 1))
 done
 
-# Open discovered-work backlog items (specs/work-backlog/*.md with status open): a count and up to 5 filenames.
+# Open discovered-work backlog items (.workflow/specs/work-backlog/*.md with status open): a count and up to 5 filenames.
 open_n=0 open_names=""
 for item in ${backlog[@]+"${backlog[@]}"}; do
   [ "$SECONDS" -lt 8 ] || break
@@ -144,17 +148,17 @@ done
 
 text=""
 if [ $((listed + omitted)) -gt 0 ]; then
-  text="In-flight features in this project (from specs/*/spec.md frontmatter; status and .step are written only by status-transition.sh):
+  text="In-flight features in this project (from $WF_SPECS/*/spec.md frontmatter; status and .step are written only by status-transition.sh):
 $list"
 fi
-[ "$omitted" -eq 0 ] || text+="- ... and $omitted more not listed (character or time limit); scan specs/*/spec.md for the rest.
+[ "$omitted" -eq 0 ] || text+="- ... and $omitted more not listed (character or time limit); scan $WF_SPECS/*/spec.md for the rest.
 "
 if [ "$open_n" -gt 0 ]; then
-  text+="Open discovered-work backlog items in specs/work-backlog/: $open_n (${open_names}$([ "$open_n" -le 5 ] || echo ", ...")); each is offered as a next feature at sign-off (5.9) or can be started through discovery.
+  text+="Open discovered-work backlog items in $WF_WORK_BACKLOG/: $open_n (${open_names}$([ "$open_n" -le 5 ] || echo ", ...")); each is offered as a next feature at sign-off (5.9) or can be started through discovery.
 "
 fi
 if [ "$h_n" -gt 0 ]; then
-  text+="Session handoffs in .handoff/ (newest first, written by the handoff skill):
+  text+="Session handoffs in $WF_HANDOFF/ (newest first, written by the handoff skill):
 $htext"
 fi
 if [ $((listed + omitted)) -eq 0 ]; then

@@ -5,15 +5,22 @@
 # - `extends = ":workspace"` is required. Without it the profile has no system read access and every sandboxed shell aborts (exit 134).
 #   The Codex docs say :workspace keeps .git, .agents and .codex read-only, but under `codex sandbox -P workflow` (0.155.1) all three
 #   were writable, so the scaffold does not rely on it.
-# - "docs/cache" = "read": Tier B caches (D17). A plain subpath, so it is portable.
-# - specs/*/.step is NOT listed: 0.155.1 rejects a glob with `read` ("filesystem glob path `specs/*/.step` only supports `deny` access")
+# - ".workflow/cache" = "read": Tier B caches (D17). A plain subpath, so it is portable.
+# - .workflow/specs/*/.step is NOT listed: 0.155.1 rejects a glob with `read` ("filesystem glob path `.workflow/specs/*/.step` only supports `deny` access")
 #   and `deny` also blocks reads, which the workflow scripts need. .step stays guarded by check-write.sh only (G7, advisory).
-# - Consequence: scripts the agent runs in the sandbox cannot write docs/cache either, so publish-cache.sh (regenerate-caches) needs an
+# - Consequence: scripts the agent runs in the sandbox cannot write .workflow/cache either, so publish-cache.sh (regenerate-caches) needs an
 #   approved escalation (an approval_policy that can ask, e.g. the default on-request) or a run outside Codex.
+# - [tui] status_line: the context bar (D83). Codex has no custom-command status line, only built-in item IDs
+#   (openai/codex codex-rs/tui/src/bottom_pane/status_line_setup.rs). install.sh writes [tui] in its own marker block, and
+#   keeps a [tui] table the user already has (with a warning). Whether a project-level .codex/config.toml [tui] is honoured is
+#   unverified live (checklist.md).
 default_permissions = "workflow"
 
 [permissions.workflow]
 extends = ":workspace"
 
 [permissions.workflow.filesystem.":workspace_roots"]
-"docs/cache" = "read"
+".workflow/cache" = "read"
+
+[tui]
+status_line = ["model-with-reasoning", "context-remaining", "current-dir", "git-branch"]

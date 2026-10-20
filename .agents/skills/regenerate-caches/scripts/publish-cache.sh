@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
-# File: Helper script (not a hook): stamp a regenerated Tier B cache and publish it into docs/cache/.
-# Purpose: The cache-regeneration agent writes the body to the staging path; this script writes the stamp frontmatter (assets/cache-frontmatter.md), validates it, and atomically moves the file into docs/cache/<type>.md (D17).
+# File: Helper script (not a hook): stamp a regenerated Tier B cache and publish it into .workflow/cache/.
+# Purpose: The cache-regeneration agent writes the body to the staging path; this script writes the stamp frontmatter (assets/cache-frontmatter.md), validates it, and atomically moves the file into .workflow/cache/<type>.md (D17).
 # Plan refs: 0.2.8, `regen` node, Tier B; assetlist D17, D36, D38.
 # Called by: regenerate-caches skill and feature-workflow modules/discovery.md after a 0.2.8 cache-regeneration launch returns.
 # Sources: first-party.
 #
-# Staging path (fixed here): <main checkout root>/.cache-staging/<type>.md, outside docs/cache/ and gitignored
-# (install.sh adds `.cache-staging/` to .gitignore). The agent writes there with Write/Edit.
+# Staging path (fixed here): <main checkout root>/.workflow/.cache-staging/<type>.md, outside .workflow/cache/ and gitignored
+# (install.sh adds `.workflow/.cache-staging/` to .gitignore). The agent writes there with Write/Edit.
 #
 # Usage:
 #   .agents/skills/regenerate-caches/scripts/publish-cache.sh <staged-file> <modules|flows|architecture> <scope-path>... [--generator NAME] [--root DIR]
-#     staged-file   must live under <root>/.cache-staging/; any frontmatter it has is discarded
+#     staged-file   must live under <root>/.workflow/.cache-staging/; any frontmatter it has is discarded
 #     scope-path    repo-relative file or directory, no globs, at least one
 #     --generator   default: cache-regeneration
 #     --root        override. Default (D18): the MAIN checkout, found through
 #                   `git rev-parse --git-common-dir`, even when run from a worktree. The stamp is
-#                   that checkout's HEAD; docs/cache/ and .cache-staging/ are that checkout's too.
+#                   that checkout's HEAD; .workflow/cache/ and .workflow/.cache-staging/ are that checkout's too.
 #                   Pass the staged file as an absolute path when running from a worktree.
 # Stamp written: generated_at_commit = full HEAD SHA, generated_at = quoted UTC ISO 8601,
 #   scope, cache_type, generator. The result is validated with the yq expression from
-#   assets/cache-frontmatter.md before the move; on any failure nothing in docs/cache/ changes.
+#   assets/cache-frontmatter.md before the move; on any failure nothing in .workflow/cache/ changes.
 # Output: prints the published path. Exit 0 = published; 1 = staged file missing, empty or outside
 #   the staging dir, or the stamped result fails validation; 2 = usage or tooling error.
 #
-# SANDBOX (D36): the deny rule Edit(docs/cache/**) does not see this script's move. A project that
+# SANDBOX (D36): the deny rule Edit(.workflow/cache/**) does not see this script's move. A project that
 # enables the Claude Code sandbox merges that rule into OS-level write denies and would block the
 # move. Such a project must add this exact command line to `sandbox.excludedCommands`, and the
 # skills must always call the script with exactly this prefix:
@@ -31,6 +31,10 @@
 # Runs through Bash, never Write/Edit, so tier-b-write-guard does not apply to it.
 # Requires: git, jq, mikefarah yq v4 on PATH (D38).
 set -euo pipefail
+
+# Workflow paths (D81).
+# shellcheck source=../../../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
 resolve_root() { # main checkout (D18): the parent of the common git dir, so worktrees share one root
   local common
@@ -74,12 +78,12 @@ root="$(cd "$root" && pwd -P)"
 
 [[ -f "$staged" ]] || die "staged file missing: $staged" 1
 staged_abs="$(cd "$(dirname "$staged")" && pwd -P)/$(basename "$staged")"
-[[ "$staged_abs" == "$root/.cache-staging/"* ]] || die "staged file must be under $root/.cache-staging/" 1
+[[ "$staged_abs" == "$root/$WF_CACHE_STAGING/"* ]] || die "staged file must be under $root/$WF_CACHE_STAGING/" 1
 
 head_sha="$(git -C "$root" rev-parse HEAD)"
 now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-dest_dir="$root/docs/cache"
+dest_dir="$root/$WF_CACHE"
 mkdir -p "$dest_dir"
 tmp="$(mktemp "$dest_dir/.$type.XXXXXX")"
 trap 'rm -f "$tmp"' EXIT
@@ -113,4 +117,4 @@ chmod 644 "$tmp"
 mv -f "$tmp" "$dest_dir/$type.md"
 trap - EXIT
 rm -f "$staged_abs"
-echo "docs/cache/$type.md"
+echo "$WF_CACHE/$type.md"

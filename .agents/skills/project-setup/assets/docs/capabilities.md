@@ -1,5 +1,5 @@
 <!--
-File: Template for docs/capabilities.md (Tier A capabilities index). Copied by project-setup; read at 0.3.1; grows at 5.3 (approved proposals only).
+File: Template for .workflow/capabilities.md (Tier A capabilities index). Copied by project-setup; read at 0.3.1; grows at 5.3 (approved proposals only).
 Sources: first-party; CAP entry idea (id, intent) adapted from bmad-code-org/BMAD-METHOD skills/bmad-spec/assets/spec-template.md (MIT).
 Rules:
   - One row per user-facing capability: stable ID `CAP-###` (zero-padded, never reused or renumbered), what the system does for users (WHAT, not HOW), and a link to the spec that introduced it.
@@ -11,4 +11,4 @@ Rules:
 
 | ID | Description | Introduced by |
 | --- | --- | --- |
-| CAP-001 | {User or system can do X to achieve Y.} | [specs/NNN-slug](../specs/NNN-slug/spec.md) |
+| CAP-001 | {User or system can do X to achieve Y.} | [.workflow/specs/NNN-slug](specs/NNN-slug/spec.md) |

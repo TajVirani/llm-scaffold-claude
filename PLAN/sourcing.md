@@ -1,5 +1,7 @@
 # Sourcing plan for checklist §4
 
+> **Path note (D81, 2026-10-19).** This plan was drafted before target-project workflow data moved under `.workflow/`. Target-side paths named below (`docs/rules.md`, `docs/capabilities.md`, `docs/decisions/`, `docs/cache/`, `profiles/`, `model-map/`, `agent-overrides.yaml`, `specs/`, `deferred/`, `.cache-staging/`) now live at `.workflow/<same path>`, with `docs/rules.md` and `docs/capabilities.md` becoming `.workflow/rules.md` and `.workflow/capabilities.md`. Template source paths under `skills/*/assets/` are scaffold paths and are unaffected.
+
 > Scaffold-only (D30). For every item in `checklist.md` §4, this lists the reference material to build it from, so nothing is invented. It also sets the build conventions every builder must follow, and the batch plan. Drafted 2026-10-15 from:
 >
 > - `checklist.md` §4, `PLAN/decision-flow-reference.md`, `assetlist.md` (D1–D55) and `PROVENANCE.md`;
@@ -154,7 +156,7 @@ All are bash + `jq`/`yq`, specified by their stub headers, the reference doc "He
 | `skills/feature-workflow/scripts/run-toolchain.sh` | Stub; D15, D18, D19 | FULL | FP | 4a `profiles/TEMPLATE.md` Toolchain block; 4b `tasks.md` |
 | `skills/feature-workflow/scripts/check-write.sh` | Stub; reference doc "Hooks" (allowed steps per path); D16, D17, D18 | FULL | FP | `.step` format (fixed by `status-transition.sh`) |
 | `skills/regenerate-caches/scripts/cache-stamp-check.sh` | Stub; `audit_scope.sh` (changed-since-commit logic) | FULL | FP | 4b `cache-frontmatter.md` |
-| `skills/regenerate-caches/scripts/publish-cache.sh` | Stub; D17 | FULL (fix the staging dir name, e.g. `.cache-staging/`) | FP | 4b `cache-frontmatter.md` |
+| `skills/regenerate-caches/scripts/publish-cache.sh` | Stub; D17 | FULL (fix the staging dir name, e.g. `.workflow/.cache-staging/`) | FP | 4b `cache-frontmatter.md` |
 
 ## 4e. feature-workflow router and phase modules (D3)
 
@@ -480,7 +482,7 @@ Each slot starts when its gap closes.
 - writes the version stamp or manifest;
 - wires the Claude shim and the settings merge;
 - generates `.codex/agents/*.toml` and `.codex/hooks.json` from 6D's rules;
-- adds `.gitignore` entries for `specs/*/.step` and for the staging dir from 2D.
+- adds `.gitignore` entries for `.workflow/specs/*/.step` and for the staging dir from 2D.
 
 Run the remaining gap briefs (G1, G2, G3, G4, the G7 live test, G8, G9) in the background alongside Batches 1–3, so Batch 6 stays off the critical path.
 

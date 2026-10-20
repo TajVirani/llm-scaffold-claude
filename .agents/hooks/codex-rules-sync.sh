@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# File: Hook (Codex adapter): keep the import-boundary config in step with docs/rules.md after an `apply_patch` (D9, D15, D20, D40).
+# File: Hook (Codex adapter): keep the import-boundary config in step with .workflow/rules.md after an `apply_patch` (D9, D15, D20, D40).
 # Goals:
 #   - Codex edits files through `apply_patch` (patch text in tool_input.command, row 5a), which rules-boundary-config-sync.sh does not read.
-#     This adapter finds the patch's paths and, when one of them is a docs/rules.md, hands rules-boundary-config-sync.sh an equivalent
+#     This adapter finds the patch's paths and, when one of them ends in .workflow/rules.md, hands rules-boundary-config-sync.sh an equivalent
 #     Write payload for that path, so the generator call, the project-root checks and the outputs stay in one place.
 # Behaviour:
 #   - tool_name other than apply_patch, jq missing, unparsable payload or patch: exit 0, no output (a PostToolUse hook cannot undo the write;
 #     the patch was already allowed by codex-write-guard.sh, which fails closed on the same parse).
 #   - Paths considered: `*** Add File:`, `*** Update File:` and `*** Move to:` (a deleted rules.md has nothing to generate from). The first
-#     one whose basename is rules.md under a docs/ folder is passed on; rules-boundary-config-sync.sh then acts only when it is the
-#     docs/rules.md of the main checkout or of the cwd's worktree.
+#     one ending in .workflow/rules.md is passed on; rules-boundary-config-sync.sh then acts only when it is the
+#     .workflow/rules.md of the main checkout or of the cwd's worktree.
 #   - Output is rules-boundary-config-sync.sh's: nothing, {"decision":"block","reason":...} (rules.md does not parse; the reason goes back
 #     to the model), or {"systemMessage":...} (environment error). Exit code always 0.
 # Wiring: codex-hooks.template.json: PostToolUse, matcher "apply_patch".
@@ -20,6 +20,10 @@
 # Requires: bash 3.2+, jq, awk; the generator needs mikefarah yq v4 (D38).
 
 set -euo pipefail
+
+# Workflow paths (D81).
+# shellcheck source=../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
 
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # shellcheck source=_codex-patch.sh
@@ -38,7 +42,7 @@ paths=$(codex_patch_paths "$tmp" 2>/dev/null) || exit 0
 path=""
 while IFS=$'\t' read -r _ op p; do
   [ "$op" != delete ] || continue
-  case "$p" in docs/rules.md | */docs/rules.md) path=$p; break ;; esac
+  case "$p" in "$WF_RULES" | */"$WF_RULES") path=$p; break ;; esac
 done <<<"$paths"
 [ -n "$path" ] || exit 0
 

@@ -28,7 +28,7 @@ Interpret the output:
 - **A list of file paths** — the only files this run may audit. Everything else is already covered by a previous run.
 - **Empty output** — nothing has changed since the last audited commit reachable from here. Report exactly that ("no diffed code since last audit at `<sha>`") and stop; do not audit anyway, and do not record a new run unless HEAD advanced.
 
-How the anchoring works (so you can explain it or debug it): the state file `.agents/data-structure-audit-state.jsonl` holds a *set* of audited commits, and changed files are computed as `git log --name-only HEAD --not <every audited commit>` plus uncommitted/untracked files. Using a set rather than a single "last commit" pointer is what makes merges work: after two audited branches merge, both heads are ancestors of HEAD, so neither branch's code resurfaces, regardless of merge order. Rebased-away entries degrade gracefully to their merge-base (may over-check, never under-checks). Full mechanics and edge cases: `references/incremental.md` — read it if scope output looks wrong or a merge conflict on the state file needs resolving.
+How the anchoring works (so you can explain it or debug it): the state file `.workflow/data-structure-audit-state.jsonl` holds a *set* of audited commits, and changed files are computed as `git log --name-only HEAD --not <every audited commit>` plus uncommitted/untracked files. Using a set rather than a single "last commit" pointer is what makes merges work: after two audited branches merge, both heads are ancestors of HEAD, so neither branch's code resurfaces, regardless of merge order. Rebased-away entries degrade gracefully to their merge-base (may over-check, never under-checks). Full mechanics and edge cases: `references/incremental.md` — read it if scope output looks wrong or a merge conflict on the state file needs resolving.
 
 If the script can't run, replicate its core manually: extract commits from the state file, then `git log --name-only --pretty=format: -c HEAD --not <shas>` and `git diff --name-only HEAD`, filtered to files that still exist.
 
@@ -119,9 +119,9 @@ Then:
 
 1. **Ensure the union merge driver is configured** — one-time per repo, prevents merge conflicts when parallel branches both record runs. Check `.gitattributes` for the line below; if absent, add it:
    ```
-   .agents/data-structure-audit-state.jsonl merge=union
+   .workflow/data-structure-audit-state.jsonl merge=union
    ```
-2. **Get the state file committed.** It only anchors future runs if it travels with the branch. Stage `.agents/data-structure-audit-state.jsonl` (and `.gitattributes` if changed) with the user's changes, or remind them to.
+2. **Get the state file committed.** It only anchors future runs if it travels with the branch. Stage `.workflow/data-structure-audit-state.jsonl` (and `.gitattributes` if changed) with the user's changes, or remind them to.
 3. If the script warned about a dirty working tree, tell the user: uncommitted changes were audited but can't be pinned to a commit, so they'll reappear in scope once committed — harmless double-check, not a bug.
 
 Do NOT record if the audit was partial by user choice (e.g., they said "just look at this one file" while other in-scope changes exist) — recording would mark the skipped changes as audited. Record only when everything in scope was actually examined, and say so either way.

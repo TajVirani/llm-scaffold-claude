@@ -1,6 +1,6 @@
 ---
 name: regenerate-caches
-description: "Bulk or on-demand regeneration of the Tier B caches (docs/cache/modules.md, flows.md, architecture.md): checks commit stamps, launches one cache-regeneration agent per stale, missing or invalid cache, validates each staged body, and publishes it with a fresh stamp through publish-cache.sh. Use on a schedule, after merges, when caches are stale or missing, or when asked to regenerate, refresh or rebuild the caches. Inside a feature, discovery 0.2.8 does this for the affected area instead."
+description: "Bulk or on-demand regeneration of the Tier B caches (.workflow/cache/modules.md, flows.md, architecture.md): checks commit stamps, launches one cache-regeneration agent per stale, missing or invalid cache, validates each staged body, and publishes it with a fresh stamp through publish-cache.sh. Use on a schedule, after merges, when caches are stale or missing, or when asked to regenerate, refresh or rebuild the caches. Inside a feature, discovery 0.2.8 does this for the affected area instead."
 ---
 
 <!--
@@ -11,16 +11,16 @@ Owns: assets/cache-frontmatter.md (schema and body shapes), scripts/cache-stamp-
 
 # Regenerate caches
 
-Bring `docs/cache/modules.md`, `flows.md` and `architecture.md` back in line with the code at `HEAD`. You run in the main session and orchestrate: the `cache-regeneration` agent derives each cache into `.cache-staging/`, and `scripts/publish-cache.sh` stamps it and moves it into `docs/cache/` (D17). The result must be identical to what discovery 0.2.8 produces for the same scope and commit (D4), because both launch the same agent, which runs the same scripts.
+Bring `.workflow/cache/modules.md`, `flows.md` and `architecture.md` back in line with the code at `HEAD`. You run in the main session and orchestrate: the `cache-regeneration` agent derives each cache into `.workflow/.cache-staging/`, and `scripts/publish-cache.sh` stamps it and moves it into `.workflow/cache/` (D17). The result must be identical to what discovery 0.2.8 produces for the same scope and commit (D4), because both launch the same agent, which runs the same scripts.
 
 Schema and body shapes: [assets/cache-frontmatter.md](assets/cache-frontmatter.md).
 
 ## Ground rules
 
-- **Never write under `docs/cache/` yourself.** `tier-b-write-guard` denies every Write/Edit there. Only `publish-cache.sh` moves files in, and always call it with exactly the prefix `.agents/skills/regenerate-caches/scripts/publish-cache.sh` (the sandbox exclusion matches that command line, D36).
+- **Never write under `.workflow/cache/` yourself.** `tier-b-write-guard` denies every Write/Edit there. Only `publish-cache.sh` moves files in, and always call it with exactly the prefix `.agents/skills/regenerate-caches/scripts/publish-cache.sh` (the sandbox exclusion matches that command line, D36).
 - **Work in the main checkout.** Every script defaults to the main checkout, even from a worktree (D18). Caches describe `HEAD` of that checkout.
 - **Regenerate, never patch.** Each run derives a cache from scratch. Never hand the agent the previous cache or any Tier A file.
-- **Leave git alone.** Do not commit. The report tells the human which `docs/cache/` files changed.
+- **Leave git alone.** Do not commit. The report tells the human which `.workflow/cache/` files changed.
 
 ## Modes
 
@@ -60,16 +60,16 @@ In this order:
 1. The scope the human gave.
 2. The cache's current scope, when its status is `fresh` or `stale`:
    ```bash
-   yq --front-matter=extract '.scope[]' docs/cache/<type>.md
+   yq --front-matter=extract '.scope[]' .workflow/cache/<type>.md
    ```
-3. For a `missing` or `invalid` cache: the module roots of `docs/rules.md`, the same list the build script uses:
+3. For a `missing` or `invalid` cache: the module roots of `.workflow/rules.md`, the same list the build script uses:
    ```bash
    .agents/skills/project-setup/scripts/generate-boundary-config.sh --print-intermediate . \
      | jq -r '[.modules[].owns[], .shared_core.paths[]] | map(sub("/\\*\\*$"; "") | sub("/\\*$"; "") | sub("/$"; "")) | map(select(test("[*?\\[\\]{}!]") | not)) | unique | .[]'
    ```
-4. If that list is empty or `docs/rules.md` is missing, ask the human for the scope paths, recommending the source root (for example `src`).
+4. If that list is empty or `.workflow/rules.md` is missing, ask the human for the scope paths, recommending the source root (for example `src`).
 
-**`architecture` also covers the boundary config.** Its Boundary violations section comes from `tools/boundaries/dependency-cruiser.cjs`, which lies outside the source paths. So when that file exists, the `architecture` scope always includes the file path `tools/boundaries/dependency-cruiser.cjs`, whichever rule above chose the rest. A `docs/rules.md` change regenerates the config, and that marks `architecture` stale. It is a stamp-only path: keep it out of the agent's `Scope` line, because `build-architecture.sh` would analyse it as a source file, and add it back when publishing (step 7). When rule 2 reads the current scope, split it off the same way.
+**`architecture` also covers the boundary config.** Its Boundary violations section comes from `.workflow/tools/boundaries/dependency-cruiser.cjs`, which lies outside the source paths. So when that file exists, the `architecture` scope always includes the file path `.workflow/tools/boundaries/dependency-cruiser.cjs`, whichever rule above chose the rest. A `.workflow/rules.md` change regenerates the config, and that marks `architecture` stale. It is a stamp-only path: keep it out of the agent's `Scope` line, because `build-architecture.sh` would analyse it as a source file, and add it back when publishing (step 7). When rule 2 reads the current scope, split it off the same way.
 
 Every scope path must exist. Then check that the scope is committed, since a cache describes `HEAD`:
 
@@ -82,7 +82,7 @@ If it prints anything, stop and ask the human to commit or stash those changes f
 ### 4. Launch one agent per cache
 
 ```bash
-mkdir -p .cache-staging
+mkdir -p .workflow/.cache-staging
 git rev-parse HEAD
 ```
 
@@ -92,19 +92,19 @@ Launch one `cache-regeneration` per selected cache in a single message, so they 
 Cache type: <modules | flows | architecture>
 Scope: <path>[, <path> ...]
 Commit: <the HEAD sha above>
-Staging path: .cache-staging/<type>.md
+Staging path: .workflow/.cache-staging/<type>.md
 ```
 
 On Codex, resolve each launch first; with `--no-header` it builds no header, so `.prompt` is the four lines as given:
 
 ```bash
-printf '%s\n' "Cache type: <type>" "Scope: <path>" "Commit: <sha>" "Staging path: .cache-staging/<type>.md" |
+printf '%s\n' "Cache type: <type>" "Scope: <path>" "Commit: <sha>" "Staging path: .workflow/.cache-staging/<type>.md" |
   .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type cache-regeneration --no-header
 ```
 
-Exit 2 is a deny: one naming **00.14** means no Codex model is set for `cache-regeneration`; record one in `model-map/cache-regeneration.md` and rerun. Then spawn with `agent_type` `cache_regeneration` (the definition name with `-` replaced by `_`; `--task-type` keeps the hyphen), `.prompt` as its message, `.model` as its model, `task_name` `cache_<type>` (`cache_modules`, `cache_flows`, `cache_architecture`; `codex-pre-spawn.sh` accepts any `[a-z0-9_]` name for this type, and one without an `s<NNN>_` prefix names no spec) and `fork_turns: "none"` (a full-history fork may ignore the spawn `model` override, D67).
+Exit 2 is a deny: one naming **00.14** means no Codex model is set for `cache-regeneration`; record one in `.workflow/model-map/cache-regeneration.md` and rerun. Then spawn with `agent_type` `cache_regeneration` (the definition name with `-` replaced by `_`; `--task-type` keeps the hyphen), `.prompt` as its message, `.model` as its model, `task_name` `cache_<type>` (`cache_modules`, `cache_flows`, `cache_architecture`; `codex-pre-spawn.sh` accepts any `[a-z0-9_]` name for this type, and one without an `s<NNN>_` prefix names no spec) and `fork_turns: "none"` (a full-history fork may ignore the spawn `model` override, D67).
 
-For `architecture`, `Scope` lists the source paths only, never `tools/boundaries/dependency-cruiser.cjs` (step 3).
+For `architecture`, `Scope` lists the source paths only, never `.workflow/tools/boundaries/dependency-cruiser.cjs` (step 3).
 
 Each agent returns `## Cache staged` with `check`, `mermaid` and `not determinable` lines, or a `LAUNCH ERROR` / `REGENERATION ERROR` line. An error leaves that cache as it was; record it for the report and do not publish it.
 
@@ -113,7 +113,7 @@ Each agent returns `## Cache staged` with `check`, `mermaid` and `not determinab
 For every `## Cache staged` return:
 
 ```bash
-.agents/skills/regenerate-caches/scripts/check-staged-cache.sh <type> .cache-staging/<type>.md
+.agents/skills/regenerate-caches/scripts/check-staged-cache.sh <type> .workflow/.cache-staging/<type>.md
 git rev-parse HEAD
 ```
 
@@ -121,15 +121,15 @@ Publish only when the check prints `ok` and `HEAD` still equals the commit you l
 
 ### 6. Verify mode only: compare two runs
 
-Copy the staged file aside (`cp .cache-staging/<type>.md .cache-staging/<type>.first.md`), launch the same task again, and `diff` the two. Identical: delete the copy and go on. Different: do not publish; report the diff as a prompt fix needed in `.agents/agents/cache-regeneration.md` (PLAN/gap-research.md G6, "Determinism check"), then delete both staged files.
+Copy the staged file aside (`cp .workflow/.cache-staging/<type>.md .workflow/.cache-staging/<type>.first.md`), launch the same task again, and `diff` the two. Identical: delete the copy and go on. Different: do not publish; report the diff as a prompt fix needed in `.agents/agents/cache-regeneration.md` (PLAN/gap-research.md G6, "Determinism check"), then delete both staged files.
 
 ### 7. Publish
 
 ```bash
-.agents/skills/regenerate-caches/scripts/publish-cache.sh .cache-staging/<type>.md <type> <scope path> [<scope path> ...] [--generator dependency-cruiser]
+.agents/skills/regenerate-caches/scripts/publish-cache.sh .workflow/.cache-staging/<type>.md <type> <scope path> [<scope path> ...] [--generator dependency-cruiser]
 ```
 
-Pass `--generator dependency-cruiser` for `architecture` only (the agent's return names the generator). For `architecture`, the scope paths are the source paths plus `tools/boundaries/dependency-cruiser.cjs` when that file exists (step 3). Exit 0 prints the published path; exit 1 means the staged file is missing, empty or fails the schema, and nothing in `docs/cache/` changed.
+Pass `--generator dependency-cruiser` for `architecture` only (the agent's return names the generator). For `architecture`, the scope paths are the source paths plus `.workflow/tools/boundaries/dependency-cruiser.cjs` when that file exists (step 3). Exit 0 prints the published path; exit 1 means the staged file is missing, empty or fails the schema, and nothing in `.workflow/cache/` changed.
 
 ### 8. Confirm and report
 
@@ -140,6 +140,6 @@ Run `cache-stamp-check.sh` again; every published cache must now be `fresh`. The
 | modules | stale | published | `src/billing`, `src/ledger` | `<sha>` | n/a | none |
 
 - **Action** is `published`, `skipped (fresh)`, `failed: <reason>` or `not published: verify diff`.
-- After the table, list the `docs/cache/` files that changed, for the human to commit.
+- After the table, list the `.workflow/cache/` files that changed, for the human to commit.
 
-**Done when** every selected cache is either published and `fresh`, or listed with the reason it was not, and `.cache-staging/` holds no file this run left behind except ones a failure is reported for.
+**Done when** every selected cache is either published and `fresh`, or listed with the reason it was not, and `.workflow/.cache-staging/` holds no file this run left behind except ones a failure is reported for.

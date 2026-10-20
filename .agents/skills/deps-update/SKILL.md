@@ -10,7 +10,7 @@ blast radius, so the regression proof must scale to what a bad bump would silent
 whole point: a `@types/*` bump needs a build; a rendering-library bump needs eyes on the UI.
 
 Validation commands come from the project, not from this skill: the Toolchain block of the work profile that
-owns the touched code (`profiles/<work-type>.md`: `lint`, `typecheck`, `format`, `test`, `e2e`, `serve`,
+owns the touched code (`.workflow/profiles/<work-type>.md`: `lint`, `typecheck`, `format`, `test`, `e2e`, `serve`,
 `serve_ready`). This skill decides *how deep to go*; the profile says *how to run it*. No profile → ask the
 user for the build, lint and test commands before bumping anything.
 

@@ -12,12 +12,12 @@ new_workdir
 copy_agents "$WORK/scaffold"
 SETUP="$WORK/scaffold/.agents/skills/project-setup"
 GEN="$SETUP/scripts/generate-boundary-config.sh"
-CFG=tools/boundaries/dependency-cruiser.cjs
+CFG=.workflow/tools/boundaries/dependency-cruiser.cjs
 
-# proj NAME RULES_TEXT : fresh project dir with docs/rules.md; prints its path.
+# proj NAME RULES_TEXT : fresh project dir with .workflow/rules.md; prints its path.
 proj() {
-  mkdir -p "$WORK/$1/docs"
-  printf '%s' "$2" > "$WORK/$1/docs/rules.md"
+  mkdir -p "$WORK/$1/.workflow"
+  printf '%s' "$2" > "$WORK/$1/.workflow/rules.md"
   echo "$WORK/$1"
 }
 # cjs_json FILE : the JSON object assigned to module.exports.
@@ -136,7 +136,7 @@ eq "literal dot escaped, array when several owns" "$(rule billing-not-to-ui | jq
 eq "**/ and * and escaped dot" "$(rule ledger-not-to-billing | jq -r '.from.path')" '^src/ledger/(.*/|)[^/]*\.ts$'
 eq "severity error" "$(rule ledger-not-to-billing | jq -r .severity)" error
 check "comment names the rule" 'rule ledger-not-to-billing | jq -r .comment | grep -q "module ledger may not depend on module billing"'
-eq "shared core comment" "$(rule shared-core-not-to-ui | jq -r .comment)" "Generated from docs/rules.md: shared core may not depend on module ui"
+eq "shared core comment" "$(rule shared-core-not-to-ui | jq -r .comment)" "Generated from .workflow/rules.md: shared core may not depend on module ui"
 eq "shared core from path" "$(rule shared-core-not-to-ui | jq -r '.from.path')" '^src/shared/.*$'
 QMARK='## Ownership
 

@@ -7,7 +7,7 @@
 #   content, Update status-line comparison), worktree cwd, fail closed on unparsable payload, missing patch text, parse errors and
 #   check-write.sh environment errors, static deny without jq, silence without the workflow; spawn validation of agent_type (both the
 #   definition and the Codex [a-z0-9_] form) and the D66 task_name forms per type, spec-folder and profile resolution, pass-through of
-#   non-workflow agents; rules sync for docs/rules.md in Add/Update/Move (not Delete), block on a bad rules.md; template commands run
+#   non-workflow agents; rules sync for .workflow/rules.md in Add/Update/Move (not Delete), block on a bad rules.md; template commands run
 #   from a sub-directory.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -21,18 +21,18 @@ H=$P/.agents/hooks
 ST="$P/.agents/skills/feature-workflow/scripts/status-transition.sh"
 TPL="$P/.agents/skills/feature-workflow/assets"
 
-mkdir -p "$P/specs/001-demo" "$P/specs/007-checkout" "$P/specs/008-a" "$P/specs/008-b" "$P/profiles" "$P/docs/cache" "$P/src" "$P/sub/dir"
-cp "$TPL/spec.md" "$P/specs/001-demo/spec.md"
-cp "$TPL/tasks.md" "$P/specs/001-demo/tasks.md"
-echo '# glossary' > "$P/GLOSSARY.md"
-echo '# rules' > "$P/docs/rules.md"
-for p in web web-ui web_ui test-harness; do echo "# $p" > "$P/profiles/$p.md"; done
-echo 'specs/*/.step' > "$P/.gitignore"
+mkdir -p "$P/.workflow/specs/001-demo" "$P/.workflow/specs/007-checkout" "$P/.workflow/specs/008-a" "$P/.workflow/specs/008-b" "$P/.workflow/profiles" "$P/.workflow/cache" "$P/src" "$P/sub/dir"
+cp "$TPL/spec.md" "$P/.workflow/specs/001-demo/spec.md"
+cp "$TPL/tasks.md" "$P/.workflow/specs/001-demo/tasks.md"
+echo '# glossary' > "$P/.workflow/GLOSSARY.md"
+echo '# rules' > "$P/.workflow/rules.md"
+for p in web web-ui web_ui test-harness; do echo "# $p" > "$P/.workflow/profiles/$p.md"; done
+echo '.workflow/specs/*/.step' > "$P/.gitignore"
 git_commit_all "$P" fixture
 git -C "$P" worktree add -q .claude/worktrees/agent-x -b wt-x
 WT=$P/.claude/worktrees/agent-x
-at() { "$ST" step specs/001-demo "$1" --cwd "$P" >/dev/null 2>&1 || echo "setup failed: step $1" >&2; }
-"$ST" status specs/001-demo draft --cwd "$P" >/dev/null 2>&1
+at() { "$ST" step .workflow/specs/001-demo "$1" --cwd "$P" >/dev/null 2>&1 || echo "setup failed: step $1" >&2; }
+"$ST" status .workflow/specs/001-demo draft --cwd "$P" >/dev/null 2>&1
 
 # shellcheck source=../../.agents/hooks/_codex-patch.sh
 source "$H/_codex-patch.sh"
@@ -95,32 +95,36 @@ upd() { printf '*** Begin Patch\n*** Update File: %s\n@@\n-a\n+b\n*** End Patch\
 at 0.3.19
 expect "other tool (Bash) ignored" allow "$(wp x | jq -c '.tool_name="Bash"')"
 expect "src file -> allow" allow "$(wp "$(add src/a.ts)")"
-expect "docs/cache (Tier B) -> deny" deny "$(wp "$(add docs/cache/modules.md)")" "docs/cache/modules.md: .*regenerate-caches|docs/cache"
+expect ".workflow/cache (Tier B) -> deny" deny "$(wp "$(add .workflow/cache/modules.md)")" ".workflow/cache/modules.md: .*regenerate-caches|.workflow/cache"
 expect "multi-file: one bad path denies the patch, all reasons listed" deny \
-  "$(wp $'*** Begin Patch\n*** Add File: src/ok.ts\n+x\n*** Add File: docs/cache/a.md\n+x\n*** Update File: GLOSSARY.md\n-a\n+b\n*** End Patch\n')" \
-  "docs/cache/a.md: .*; GLOSSARY.md: "
+  "$(wp $'*** Begin Patch\n*** Add File: src/ok.ts\n+x\n*** Add File: .workflow/cache/a.md\n+x\n*** Update File: .workflow/GLOSSARY.md\n-a\n+b\n*** End Patch\n')" \
+  ".workflow/cache/a.md: .*; .workflow/GLOSSARY.md: "
 check "allowed path not named in the reason" '! reason | grep -q src/ok.ts'
-expect "Move to docs/cache -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: src/a.ts\n*** Move to: docs/cache/a.ts\n-a\n+b\n*** End Patch\n')" "docs/cache/a.ts"
+expect "Move to .workflow/cache -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: src/a.ts\n*** Move to: .workflow/cache/a.ts\n-a\n+b\n*** End Patch\n')" ".workflow/cache/a.ts"
 expect "Move between plain paths -> allow" allow "$(wp $'*** Begin Patch\n*** Update File: src/a.ts\n*** Move to: src/b.ts\n-a\n+b\n*** End Patch\n')"
-expect "Delete specs/*/.step -> deny" deny "$(wp $'*** Begin Patch\n*** Delete File: specs/001-demo/.step\n*** End Patch\n')" "status-transition|\\.step"
-expect "GLOSSARY.md at 0.3.19 -> deny (Tier A)" deny "$(wp "$(upd GLOSSARY.md)")" "GLOSSARY.md"
+expect "Delete .workflow/specs/*/.step -> deny" deny "$(wp $'*** Begin Patch\n*** Delete File: .workflow/specs/001-demo/.step\n*** End Patch\n')" "status-transition|\\.step"
+expect ".workflow/GLOSSARY.md at 0.3.19 -> deny (Tier A)" deny "$(wp "$(upd .workflow/GLOSSARY.md)")" ".workflow/GLOSSARY.md"
 at 0.2.3
-expect "GLOSSARY.md at 0.2.3, main -> allow" allow "$(wp "$(upd GLOSSARY.md)")"
-expect "GLOSSARY.md at 0.2.3, sub-agent (agent_id) -> deny" deny "$(wp "$(upd GLOSSARY.md)" "$P" "$SUB")"
+expect ".workflow/GLOSSARY.md at 0.2.3, main -> allow" allow "$(wp "$(upd .workflow/GLOSSARY.md)")"
+expect ".workflow/GLOSSARY.md at 0.2.3, sub-agent (agent_id) -> deny" deny "$(wp "$(upd .workflow/GLOSSARY.md)" "$P" "$SUB")"
 expect "src file from a sub-agent -> allow" allow "$(wp "$(add src/x.ts)" "$P" "$SUB")"
 at 0.3.19
-expect "spec.md body edit at 0.3.19 -> allow" allow "$(wp $'*** Begin Patch\n*** Update File: specs/001-demo/spec.md\n@@\n-light_path: false\n+light_path: false\n*** End Patch\n')"
-expect "spec.md status edit -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: specs/001-demo/spec.md\n@@\n-status: draft\n+status: done\n*** End Patch\n')" "status-transition"
-expect "spec.md status line as unchanged -/+ pair -> allow" allow "$(wp $'*** Begin Patch\n*** Update File: specs/001-demo/spec.md\n@@\n-status: draft\n+status: draft \n-light_path: false\n+light_path: true\n*** End Patch\n')"
-expect "spec.md blocked_condition added -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: specs/001-demo/spec.md\n@@\n status: draft\n+blocked_condition: x\n*** End Patch\n')" "blocked_condition"
-expect "spec.md sub-agent -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: specs/001-demo/spec.md\n@@\n-a\n+b\n*** End Patch\n' "$P" "$SUB")"
-done_spec=$(sed -e 's/^status: draft/status: done/' -e 's/^/+/' "$P/specs/001-demo/spec.md")
-same_spec=$(sed -e 's/^/+/' "$P/specs/001-demo/spec.md")
-expect "spec.md Add with a changed status -> deny (--proposed)" deny "$(wp "*** Begin Patch${NL}*** Add File: specs/001-demo/spec.md${NL}${done_spec}${NL}*** End Patch${NL}")" "status"
-expect "spec.md Add with the same content -> allow" allow "$(wp "*** Begin Patch${NL}*** Add File: specs/001-demo/spec.md${NL}${same_spec}${NL}*** End Patch${NL}")"
+expect "spec.md body edit at 0.3.19 -> allow" allow "$(wp $'*** Begin Patch\n*** Update File: .workflow/specs/001-demo/spec.md\n@@\n-light_path: false\n+light_path: false\n*** End Patch\n')"
+expect "spec.md status edit -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: .workflow/specs/001-demo/spec.md\n@@\n-status: draft\n+status: done\n*** End Patch\n')" "status-transition"
+expect "spec.md status line as unchanged -/+ pair -> allow" allow "$(wp $'*** Begin Patch\n*** Update File: .workflow/specs/001-demo/spec.md\n@@\n-status: draft\n+status: draft \n-light_path: false\n+light_path: true\n*** End Patch\n')"
+expect "spec.md blocked_condition added -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: .workflow/specs/001-demo/spec.md\n@@\n status: draft\n+blocked_condition: x\n*** End Patch\n')" "blocked_condition"
+expect "spec.md sub-agent -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: .workflow/specs/001-demo/spec.md\n@@\n-a\n+b\n*** End Patch\n' "$P" "$SUB")"
+for p in specs/001-demo/spec.md .workflow/specs-x/001-demo/spec.md xworkflow/specs/001-demo/spec.md; do
+  expect "status edit on look-alike $p -> allow (not a spec.md, D81)" allow "$(wp "*** Begin Patch${NL}*** Update File: $p${NL}@@${NL}-status: draft${NL}+status: done${NL}*** End Patch${NL}")"
+done
+expect "old root docs/cache -> allow (not Tier B, D81)" allow "$(wp $'*** Begin Patch\n*** Add File: docs/cache/a.md\n+x\n*** End Patch\n')"
+done_spec=$(sed -e 's/^status: draft/status: done/' -e 's/^/+/' "$P/.workflow/specs/001-demo/spec.md")
+same_spec=$(sed -e 's/^/+/' "$P/.workflow/specs/001-demo/spec.md")
+expect "spec.md Add with a changed status -> deny (--proposed)" deny "$(wp "*** Begin Patch${NL}*** Add File: .workflow/specs/001-demo/spec.md${NL}${done_spec}${NL}*** End Patch${NL}")" "status"
+expect "spec.md Add with the same content -> allow" allow "$(wp "*** Begin Patch${NL}*** Add File: .workflow/specs/001-demo/spec.md${NL}${same_spec}${NL}*** End Patch${NL}")"
 at 0.3.7
-expect "spec.md at 0.3.7 -> deny (step)" deny "$(wp "$(upd specs/001-demo/spec.md)")" "spec"
-expect "worktree cwd, relative docs/cache -> deny" deny "$(wp "$(add docs/cache/a.md)" "$WT")" "docs/cache"
+expect "spec.md at 0.3.7 -> deny (step)" deny "$(wp "$(upd .workflow/specs/001-demo/spec.md)")" "spec"
+expect "worktree cwd, relative .workflow/cache -> deny" deny "$(wp "$(add .workflow/cache/a.md)" "$WT")" ".workflow/cache"
 expect "worktree cwd, src -> allow" allow "$(wp "$(add src/w.ts)" "$WT")"
 expect "parse error -> deny (fail closed)" deny "$(wp $'*** Begin Patch\n*** Add File: a\n')" "parse error.*fail closed"
 expect "no patch text -> deny" deny "$(wp x | jq -c '.tool_input={}')" "no patch text"
@@ -133,16 +137,16 @@ for b in bash git cat sed tr grep mktemp rm dirname basename head awk env wc sor
 done
 out=$(wp "$(add src/a.ts)" | (cd "$P" && PATH="$NOJQ" "$NOJQ/bash" "$H/codex-write-guard.sh" 2>/dev/null))
 check "write guard, no jq -> static deny JSON" 'grep -q "\"permissionDecision\":\"deny\"" <<<"$out" && grep -q "jq not found" <<<"$out"' "$out"
-out=$(wp "$(upd GLOSSARY.md)" | PATH=/usr/bin:/bin:$(dirname "$(command -v jq)") bash "$H/codex-write-guard.sh" 2>/dev/null)
+out=$(wp "$(upd .workflow/GLOSSARY.md)" | PATH=/usr/bin:/bin:$(dirname "$(command -v jq)") bash "$H/codex-write-guard.sh" 2>/dev/null)
 check "Tier A without yq -> deny, fail closed" 'jq -r .hookSpecificOutput.permissionDecisionReason <<<"$out" | grep -q "fail closed"' "$out"
 N=$WORK/noflow
 mkdir -p "$N/.agents"
 cp -R "$H" "$N/.agents/hooks"
-out=$(wp "$(add docs/cache/a.md)" "$N" | bash "$N/.agents/hooks/codex-write-guard.sh"); rc=$?
+out=$(wp "$(add .workflow/cache/a.md)" "$N" | bash "$N/.agents/hooks/codex-write-guard.sh"); rc=$?
 check "workflow not installed -> silent allow" '[ $rc -eq 0 ] && [ -z "$out" ]' "$out"
 
 echo "== codex-pre-spawn.sh"
-mkdir -p "$P/specs/007-checkout"
+mkdir -p "$P/.workflow/specs/007-checkout"
 sp() { # agent_type task_name [cwd] : spawn payload; task_name "-" = absent
   jq -cn --arg a "$1" --arg t "$2" --arg c "${3:-$P}" \
     '{session_id:"s",transcript_path:"/x",cwd:$c,hook_event_name:"PreToolUse",model:"m",permission_mode:"default",turn_id:"u",
@@ -199,7 +203,7 @@ out=$(sp implementation s009_t1 "$N" | bash "$N/.agents/hooks/codex-pre-spawn.sh
 check "workflow not installed -> silent allow" '[ $rc -eq 0 ] && [ -z "$out" ]' "$out"
 
 echo "== codex-rules-sync.sh"
-cat > "$P/docs/rules.md" <<'S'
+cat > "$P/.workflow/rules.md" <<'S'
 # Rules
 ## Ownership
 
@@ -219,24 +223,24 @@ shared_core:
 S
 pp() { wp "$1" "${2:-$P}" | jq -c '.hook_event_name="PostToolUse" | .tool_response="Exit code: 0\nOutput:\nSuccess."'; }
 sync() { out=$(printf '%s' "$1" | (cd "$P" && bash "$H/codex-rules-sync.sh" 2>/dev/null)); rc=$?; }
-CFG=$P/tools/boundaries/dependency-cruiser.cjs
+CFG=$P/.workflow/tools/boundaries/dependency-cruiser.cjs
 sync "$(pp "$(upd src/a.ts)")"
 check "patch without rules.md -> silent, nothing generated" '[ $rc -eq 0 ] && [ -z "$out" ] && [ ! -e "$CFG" ]' "$out"
 sync "$(pp "$(upd src/a.ts)" | jq -c '.tool_name="Bash"')"
 check "other tool ignored" '[ -z "$out" ] && [ ! -e "$CFG" ]' "$out"
-sync "$(pp $'*** Begin Patch\n*** Delete File: docs/rules.md\n*** End Patch\n')"
+sync "$(pp $'*** Begin Patch\n*** Delete File: .workflow/rules.md\n*** End Patch\n')"
 check "Delete of rules.md ignored" '[ -z "$out" ] && [ ! -e "$CFG" ]' "$out"
-sync "$(pp $'*** Begin Patch\n*** Add File: src/x.ts\n+x\n*** Update File: docs/rules.md\n@@\n-a\n+b\n*** End Patch\n')"
-check "Update of docs/rules.md (second file) -> config generated" '[ $rc -eq 0 ] && [ -z "$out" ] && [ -f "$CFG" ]' "$out"
+sync "$(pp $'*** Begin Patch\n*** Add File: src/x.ts\n+x\n*** Update File: .workflow/rules.md\n@@\n-a\n+b\n*** End Patch\n')"
+check "Update of .workflow/rules.md (second file) -> config generated" '[ $rc -eq 0 ] && [ -z "$out" ] && [ -f "$CFG" ]' "$out"
 rm -rf "$P/tools"
-sync "$(pp $'*** Begin Patch\n*** Update File: docs/old.md\n*** Move to: docs/rules.md\n*** End Patch\n')"
-check "Move to docs/rules.md -> config generated" '[ -f "$CFG" ]' "$out"
+sync "$(pp $'*** Begin Patch\n*** Update File: docs/old.md\n*** Move to: .workflow/rules.md\n*** End Patch\n')"
+check "Move to .workflow/rules.md -> config generated" '[ -f "$CFG" ]' "$out"
 cp "$CFG" "$WORK/good.cjs"
-printf '## Ownership\n\n```yaml\nmodules: [unclosed\n```\n' > "$P/docs/rules.md"
-sync "$(pp "$(upd "$P/docs/rules.md")")"
+printf '## Ownership\n\n```yaml\nmodules: [unclosed\n```\n' > "$P/.workflow/rules.md"
+sync "$(pp "$(upd "$P/.workflow/rules.md")")"
 check "bad rules.md (absolute path) -> block with reason, config untouched" \
   '[ "$(jq -r .decision <<<"$out")" = block ] && jq -r .reason <<<"$out" | grep -q Ownership && cmp -s "$WORK/good.cjs" "$CFG"' "$out"
-sync "$(pp $'*** Begin Patch\n*** Update File: docs/rules.md\n')"
+sync "$(pp $'*** Begin Patch\n*** Update File: .workflow/rules.md\n')"
 check "unparsable patch -> silent" '[ $rc -eq 0 ] && [ -z "$out" ]' "$out"
 
 echo "== template wiring"
@@ -245,10 +249,10 @@ cmd_for() { jq -r --arg e "$1" --arg m "$2" '.hooks[$e][] | select(.matcher == $
 check "PreToolUse apply_patch -> codex-write-guard.sh" 'cmd_for PreToolUse apply_patch | grep -q "hooks/codex-write-guard.sh"'
 check "PreToolUse .*spawn_agent -> codex-pre-spawn.sh" 'cmd_for PreToolUse ".*spawn_agent" | grep -q "hooks/codex-pre-spawn.sh"'
 check "PostToolUse apply_patch -> codex-rules-sync.sh" 'cmd_for PostToolUse apply_patch | grep -q "hooks/codex-rules-sync.sh"'
-out=$(cd "$P/sub/dir" && wp "$(add docs/cache/z.md)" "$P/sub/dir" | sh -c "$(cmd_for PreToolUse apply_patch)")
-check "write guard via template command, docs/cache/z.md relative to cwd sub/dir (not Tier B) -> allow" '[ -z "$out" ]' "$out"
-out=$(cd "$P/sub/dir" && wp "$(add ../../docs/cache/z.md)" "$P/sub/dir" | sh -c "$(cmd_for PreToolUse apply_patch)")
-eq "write guard via template command, ../../docs/cache from sub/dir -> deny" "$(jq -r .hookSpecificOutput.permissionDecision <<<"$out")" deny
+out=$(cd "$P/sub/dir" && wp "$(add .workflow/cache/z.md)" "$P/sub/dir" | sh -c "$(cmd_for PreToolUse apply_patch)")
+check "write guard via template command, .workflow/cache/z.md relative to cwd sub/dir (not Tier B) -> allow" '[ -z "$out" ]' "$out"
+out=$(cd "$P/sub/dir" && wp "$(add ../../.workflow/cache/z.md)" "$P/sub/dir" | sh -c "$(cmd_for PreToolUse apply_patch)")
+eq "write guard via template command, ../../.workflow/cache from sub/dir -> deny" "$(jq -r .hookSpecificOutput.permissionDecision <<<"$out")" deny
 out=$(cd "$P/sub/dir" && sp implementation s009_t1 "$P/sub/dir" | sh -c "$(cmd_for PreToolUse ".*spawn_agent")")
 eq "spawn check via template command from a sub-directory" "$(jq -r .hookSpecificOutput.permissionDecision <<<"$out")" deny
 

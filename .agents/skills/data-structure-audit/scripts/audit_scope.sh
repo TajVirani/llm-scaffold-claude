@@ -7,13 +7,15 @@
 #   audit_scope.sh record   Append current HEAD to the state file, pruning
 #                           entries subsumed by it (ancestors of HEAD).
 #
-# State lives in .agents/data-structure-audit-state.jsonl (one JSON object per
+# State lives in .workflow/data-structure-audit-state.jsonl (D81) (one JSON object per
 # line) and is meant to be COMMITTED, so it travels with branches and merges.
 # The audited set is a union: a file only needs checking if it changed on some
 # path not reachable from ANY audited commit.
 set -euo pipefail
 
-STATE_FILE=".agents/data-structure-audit-state.jsonl"
+# Shared path helper (D81); cd -P so the .claude/skills symlink still resolves into .agents/.
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
+STATE_FILE="$WF_DATA_STRUCTURE_AUDIT_STATE"
 CMD="${1:-scope}"
 
 extract_shas() {

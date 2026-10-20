@@ -14,8 +14,8 @@ FX=$T/proj
 mkdir -p "$FX"
 copy_agents "$FX"
 HOOK=$FX/.agents/hooks/pre-launch.sh
-mkdir -p "$FX/model-map" "$FX/profiles" "$FX/specs/001-demo"
-cat > "$FX/model-map/implementation.md" <<'M'
+mkdir -p "$FX/.workflow/model-map" "$FX/.workflow/profiles" "$FX/.workflow/specs/001-demo"
+cat > "$FX/.workflow/model-map/implementation.md" <<'M'
 ---
 tier: strong
 claude: opus
@@ -23,19 +23,19 @@ codex: <alias>
 ---
 # implementation
 M
-cat > "$FX/model-map/retrieval.md" <<'M'
+cat > "$FX/.workflow/model-map/retrieval.md" <<'M'
 ---
 tier: cheap
 claude: haiku
 ---
 M
-cat > "$FX/profiles/frontend-react.md" <<'M'
+cat > "$FX/.workflow/profiles/frontend-react.md" <<'M'
 # Profile: frontend-react
 PROFILE-MARKER-XYZ
 ## Mini-review checklist
 - item
 M
-cat > "$FX/specs/001-demo/tasks.md" <<'M'
+cat > "$FX/.workflow/specs/001-demo/tasks.md" <<'M'
 ---
 tasks:
   - id: T3
@@ -52,7 +52,7 @@ M
 git_init_repo "$FX"
 git_commit_all "$FX" init
 
-HDR=$'```yaml launch-header\ntask_type: implementation\nspec_dir: specs/001-demo\ntask_id: T3\n```\nDo the task.'
+HDR=$'```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/001-demo\ntask_id: T3\n```\nDo the task.'
 payload() { # tool_name subagent_type prompt cwd [extra-json]
   local x=${5:-}; [ -n "$x" ] || x='{}'
   jq -cn --arg t "$1" --arg s "$2" --arg p "$3" --arg c "$4" --argjson x "$x" \
@@ -88,7 +88,7 @@ then ok "valid implementation launch -> allow + full updatedInput"; else ko "val
 [ "$(printf '%s' "$out" | wc -l | tr -d ' ')" -le 1 ] && ok "single-line stdout" || ko "stdout" "multi-line"
 
 # 3b legacy Task tool name, retrieval (no profile, prompt unchanged)
-RH=$'```yaml launch-header\ntask_type: retrieval\nspec_dir: specs/001-demo\n```\nPull docs.'
+RH=$'```yaml launch-header\ntask_type: retrieval\nspec_dir: .workflow/specs/001-demo\n```\nPull docs.'
 run "$(payload Task retrieval "$RH" "$FX")"
 jq -e --arg p "$RH" '.hookSpecificOutput.permissionDecision=="allow" and .hookSpecificOutput.updatedInput.prompt==$p and .hookSpecificOutput.updatedInput.model=="haiku"' <<<"$out" >/dev/null \
   && ok "legacy Task + retrieval: prompt unchanged, model set" || ko "Task retrieval" "$out"
@@ -104,7 +104,7 @@ jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.p
   && ok "task_type mismatch -> deny" || ko "mismatch" "$out"
 
 # 5 model unresolved deny (fact-lookup has no model-map)
-FH=$'```yaml launch-header\ntask_type: fact-lookup\nspec_dir: specs/001-demo\n```\nq'
+FH=$'```yaml launch-header\ntask_type: fact-lookup\nspec_dir: .workflow/specs/001-demo\n```\nq'
 run "$(payload Agent fact-lookup "$FH" "$FX")"
 jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.permissionDecisionReason|test("00.14"))' <<<"$out" >/dev/null \
   && ok "model unresolved -> deny 00.14" || ko "00.14" "$out"
@@ -140,8 +140,8 @@ NW=$T/nowf; mkdir -p "$NW/.agents/hooks"; cp "$HOOK" "$NW/.agents/hooks/"
 out=$(payload Agent implementation "$HDR" "$NW" | bash "$NW/.agents/hooks/pre-launch.sh"); rc=$?
 [ $rc = 0 ] && [ -z "$out" ] && ok "workflow absent -> silent" || ko "no workflow" "rc=$rc $out"
 
-# 8b workflow installed but project not set up (no model-map/profiles) -> deny 00.14
-NS=$T/nosetup; mkdir -p "$NS"; cp -R "$AGENTS_SRC" "$NS/.agents"; mkdir -p "$NS/specs/001-demo"; cp "$FX/specs/001-demo/tasks.md" "$NS/specs/001-demo/"
+# 8b workflow installed but project not set up (no .workflow/model-map/profiles) -> deny 00.14
+NS=$T/nosetup; mkdir -p "$NS"; cp -R "$AGENTS_SRC" "$NS/.agents"; mkdir -p "$NS/.workflow/specs/001-demo"; cp "$FX/.workflow/specs/001-demo/tasks.md" "$NS/.workflow/specs/001-demo/"
 out=$(payload Agent implementation "$HDR" "$NS" | bash "$NS/.agents/hooks/pre-launch.sh"); rc=$?
 jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.permissionDecisionReason|test("00.14"))' <<<"$out" >/dev/null \
   && ok "workflow not set up -> deny 00.14" || ko "not set up" "$out"

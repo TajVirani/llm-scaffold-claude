@@ -1,5 +1,5 @@
 <!--
-File: Tier B cache frontmatter schema shared by docs/cache/modules.md, docs/cache/flows.md and docs/cache/architecture.md (00.5-00.7). The schema `publish-cache.sh` writes and `cache-stamp-check.sh` and the `retrieval` agent read.
+File: Tier B cache frontmatter schema shared by .workflow/cache/modules.md, .workflow/cache/flows.md and .workflow/cache/architecture.md (00.5-00.7). The schema `publish-cache.sh` writes and `cache-stamp-check.sh` and the `retrieval` agent read.
 Sources: fields from PLAN/decision-flow-reference.md "Persistent files" 00.5-00.7 and assetlist D8, D17. The commit stamp idiom is shared with open-gsd/gsd-core's codebase mapper (`last_mapped_commit`, MIT; its source file could not be fetched, so only the idea is used) and with skills/data-structure-audit/references/incremental.md (git-anchored changed-since-commit logic). YAML is read with mikefarah yq v4 (D38).
 Body shapes: PLAN/gap-research.md G6 (generated skeletons, agent-written slots, sorted lists, canonical Mermaid), first-party.
 Plan refs: 00.5-00.7, 0.2.7, 0.2.8; D4, D17, D38, D64.
@@ -7,12 +7,12 @@ Plan refs: 00.5-00.7, 0.2.7, 0.2.8; D4, D17, D38, D64.
 
 # Tier B cache frontmatter
 
-Every file in `docs/cache/` starts with this YAML frontmatter. A cache is derived from code, stamped with the commit it was derived from, and never hand-edited. Only `publish-cache.sh` writes into `docs/cache/` (D17).
+Every file in `.workflow/cache/` starts with this YAML frontmatter. A cache is derived from code, stamped with the commit it was derived from, and never hand-edited. Only `publish-cache.sh` writes into `.workflow/cache/` (D17).
 
 ## Who writes what
 
 - The `cache-regeneration` agent writes the body to the staging path and leaves the stamp fields to the script. It may omit the frontmatter entirely.
-- `publish-cache.sh` writes (or overwrites) the frontmatter below, then moves the file into `docs/cache/`.
+- `publish-cache.sh` writes (or overwrites) the frontmatter below, then moves the file into `.workflow/cache/`.
 - `cache-stamp-check.sh` and the `retrieval` agent read it. Neither writes it.
 
 ## Fields
@@ -21,8 +21,8 @@ Every file in `docs/cache/` starts with this YAML frontmatter. A cache is derive
 | --- | --- | --- | --- |
 | `generated_at_commit` | yes | string, 40 hex chars | Full SHA of `HEAD` when the cache was derived. `cache-stamp-check.sh` compares it with `HEAD` for the paths in `scope`. |
 | `generated_at` | yes | quoted string, UTC ISO 8601 (`"2026-10-15T09:30:00Z"`) | When the cache was published. Informational; staleness is decided by the commit, never by this date. |
-| `scope` | yes | list of repo-relative paths, at least one | Paths the cache covers (files or directories, no globs). A cache is stale when any path in `scope` changed between `generated_at_commit` and `HEAD`. `architecture` also lists `tools/boundaries/dependency-cruiser.cjs` when it exists: a stamp-only path for its Boundary violations, never passed to `build-architecture.sh --scope`. |
-| `cache_type` | yes | `modules` \| `flows` \| `architecture` | Which cache this is; must match the file name (`docs/cache/<cache_type>.md`). |
+| `scope` | yes | list of repo-relative paths, at least one | Paths the cache covers (files or directories, no globs). A cache is stale when any path in `scope` changed between `generated_at_commit` and `HEAD`. `architecture` also lists `.workflow/tools/boundaries/dependency-cruiser.cjs` when it exists: a stamp-only path for its Boundary violations, never passed to `build-architecture.sh --scope`. |
+| `cache_type` | yes | `modules` \| `flows` \| `architecture` | Which cache this is; must match the file name (`.workflow/cache/<cache_type>.md`). |
 | `generator` | yes | string | What produced the body, for example `cache-regeneration` or `dependency-cruiser`. Free text, no version-sensitive values required. |
 
 No other fields. Keep the frontmatter machine-read and the body human-read.
@@ -52,14 +52,14 @@ yq --front-matter=extract -e '
   ((.scope | tag) == "!!seq") and ((.scope | length) > 0) and
   (.cache_type | test("^(modules|flows|architecture)$")) and
   ((.generator | tag) == "!!str")
-' docs/cache/modules.md
+' .workflow/cache/modules.md
 ```
 
 Read a single field (what the stamp check does):
 
 ```bash
-yq --front-matter=extract '.generated_at_commit' docs/cache/modules.md
-yq --front-matter=extract '.scope[]' docs/cache/modules.md
+yq --front-matter=extract '.generated_at_commit' .workflow/cache/modules.md
+yq --front-matter=extract '.scope[]' .workflow/cache/modules.md
 ```
 
 Always quote `generated_at`: an unquoted ISO timestamp is read as a YAML timestamp rather than a string, and the `test` above would not match it. `publish-cache.sh` writes it quoted.
@@ -77,13 +77,13 @@ A script generates whatever can be generated; the `cache-regeneration` agent wri
 - **Sorted.** Every list and every `##` section is in byte order (`LC_ALL=C sort`), with no duplicates. The only exceptions are a diagram's call order and the fixed section order of `architecture.md`.
 - **No timestamps or counts.** The stamp lives in the frontmatter only (D17).
 - **Paths, not prose.** Modules are named by repo-relative path; the same path is the node name in every cache, and its Mermaid id is the path with every non-alphanumeric character replaced by `_` (`src/shared/core` → `src_shared_core`). Two paths with the same id stop the build rather than merge.
-- **Module paths.** A file belongs to its longest module root: the `owns` paths of the `docs/rules.md` Ownership block plus `shared_core.paths`, with a trailing `/**` or `/*` removed. A file under no root belongs to `<scope path>/<first segment>`, or is its own module when it sits directly in the scope path. The script reads the roots itself, so the agent never reads Tier A.
+- **Module paths.** A file belongs to its longest module root: the `owns` paths of the `.workflow/rules.md` Ownership block plus `shared_core.paths`, with a trailing `/**` or `/*` removed. A file under no root belongs to `<scope path>/<first segment>`, or is its own module when it sits directly in the scope path. The script reads the roots itself, so the agent never reads Tier A.
 - **From code at HEAD.** The scope paths must have no uncommitted or untracked changes; the build refuses otherwise.
 - **No slot left.** A generated `<!-- slot: ... -->` marker must be replaced before publishing.
 
 ### `architecture.md` (fully generated, `generator: dependency-cruiser`)
 
-`build-architecture.sh --cache architecture` writes the whole body; the agent does not change it. Its `scope` includes `tools/boundaries/dependency-cruiser.cjs` when that file exists, so a boundary-config change marks it stale (see the `scope` field).
+`build-architecture.sh --cache architecture` writes the whole body; the agent does not change it. Its `scope` includes `.workflow/tools/boundaries/dependency-cruiser.cjs` when that file exists, so a boundary-config change marks it stale (see the `scope` field).
 
 ````markdown
 # Architecture
@@ -108,7 +108,7 @@ flowchart LR
 
 - **Module graph:** every module node (sorted), then every module-to-module edge (sorted, self-edges dropped).
 - **Edges:** the same edges as text, or `None.`.
-- **Boundary violations:** `rule: from → to` from `depcruise --config tools/boundaries/dependency-cruiser.cjs -T json`, sorted, or `None.`; `Not checked: no boundary config at tools/boundaries/dependency-cruiser.cjs.` when the project has none.
+- **Boundary violations:** `rule: from → to` from `depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs -T json`, sorted, or `None.`; `Not checked: no boundary config at .workflow/tools/boundaries/dependency-cruiser.cjs.` when the project has none.
 
 ### `modules.md` (generated skeleton, agent-written Purpose)
 

@@ -2,25 +2,25 @@
 # File: Hook (Claude and Codex adapter): file browser-suite evidence after a browser-suite run (3.12).
 # Goals:
 #   - After a Bash call that ran the browser suite, copy screenshots, traces, videos and the console / network attachments of every
-#     failing test and every journey-tagged (JRN-###) test into specs/NNN-slug/artifacts/, filed by run and journey id, plus an index.
+#     failing test and every journey-tagged (JRN-###) test into .workflow/specs/NNN-slug/artifacts/, filed by run and journey id, plus an index.
 # Triggers/inputs: PostToolUse and PostToolUseFailure JSON for Bash (tool_input.command, cwd). tool_input.command is a string, or an argv
 #   array (Codex): a [bash|sh|zsh, -c|-lc|..., script] array is read as its script; any other array is joined with spaces, each element
 #   shell-quoted only when it holds characters outside [A-Za-z0-9_@%+=:,./-], so a plain argv still matches the prefixes below. A Bash call that exits non-zero fires only
 #   PostToolUseFailure on Claude Code 2.1.303 (payload: error, is_interrupt, duration_ms, no tool_response); a failing suite is the run whose
-#   evidence matters most (F-1), so both events are wired. The hook never reads tool_response or error: the JSON report is the source. Paths from the payload `cwd` (D18); specs/ and the gitignored .step
+#   evidence matters most (F-1), so both events are wired. The hook never reads tool_response or error: the JSON report is the source. Paths from the payload `cwd` (D18); .workflow/specs/ and the gitignored .step
 #   markers are read in the main checkout (git rev-parse --git-common-dir), since a 1.4 run happens in a throwaway worktree.
 # Match (leading NAME=value env assignments are skipped first; E2E_INJECT_FAULT=1 among them marks the run fault-injected, 1.4):
-#   - the command starts with the `e2e` value of the e2e-browser profile's Toolchain block (profiles/e2e-browser.md in cwd, then the main
+#   - the command starts with the `e2e` value of the e2e-browser profile's Toolchain block (.workflow/profiles/e2e-browser.md in cwd, then the main
 #     checkout), or with `npx playwright test`; followed by end of command or whitespace (agents append --grep @JRN-001, --project, -x); or
 #   - the command runs run-toolchain.sh with --e2e (3.10); its --spec-dir, --task-id, --cwd and --work-type / --profile are used when they
 #     are literal (a value holding `$` or a backtick is unexpanded text and is ignored).
 #   - A command carrying --list (collect only, the e2e-browser `test` key) never matches.
 # Report: the profile's descriptive Toolchain key `e2e_report` (default test-results/e2e-results.json), relative to the run directory.
 #   A report older than 15 minutes is stale (the run crashed before writing one): nothing is filed.
-# Spec: --spec-dir from a run-toolchain.sh command; otherwise the in-flight spec in specs/*/ (status ready-for-dev, in-progress, in-review
-#   or blocked; specs/work-backlog/ skipped) whose .step has the latest updated_at; a single in-flight spec without .step also counts.
-# Destination (main checkout): specs/NNN-slug/artifacts/<task-id>/ for a run-toolchain.sh run (earlier evidence of this hook in that
-#   directory is replaced, as toolchain.txt is), else specs/NNN-slug/artifacts/e2e-<run-id>/, run-id = UTC timestamp + short HEAD sha.
+# Spec: --spec-dir from a run-toolchain.sh command; otherwise the in-flight spec in .workflow/specs/*/ (status ready-for-dev, in-progress, in-review
+#   or blocked; .workflow/specs/work-backlog/ skipped) whose .step has the latest updated_at; a single in-flight spec without .step also counts.
+# Destination (main checkout): .workflow/specs/NNN-slug/artifacts/<task-id>/ for a run-toolchain.sh run (earlier evidence of this hook in that
+#   directory is replaced, as toolchain.txt is), else .workflow/specs/NNN-slug/artifacts/e2e-<run-id>/, run-id = UTC timestamp + short HEAD sha.
 #   Inside: <JRN-###>/ (or untagged/ for a failing test without a journey tag) holding <name>[-retry<r>][-<k>].<ext> (k on a name clash),
 #   e2e-results.json (the report) and evidence-index.json (run, command, stats, and per test: title, file:line, project, tags,
 #   journeys, outcome, final status, files).
@@ -42,6 +42,10 @@
 # Requires: bash 3.2+, jq, mikefarah yq v4 (D38), git (optional), base64 (optional; jq @base64d is the fallback for text bodies).
 
 set -euo pipefail
+
+# Workflow paths (D81).
+# shellcheck source=../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
 
 STALE_MINUTES=15
 DEFAULT_PREFIX="npx playwright test"
@@ -126,12 +130,12 @@ case "$rest" in
     ;;
 esac
 
-# Profile: --profile, else profiles/<work-type or e2e-browser>.md in the run directory, cwd, then the main checkout.
+# Profile: --profile, else .workflow/profiles/<work-type or e2e-browser>.md in the run directory, cwd, then the main checkout.
 if [ -z "$profile" ]; then
   wt=e2e-browser
   if [ "$via_toolchain" -eq 1 ]; then w=$(opt --work-type); [ -z "$w" ] || wt=$w; fi
   for d in "$run_dir" "$cwd" "$main_root"; do
-    if [ -f "$d/profiles/$wt.md" ]; then profile=$d/profiles/$wt.md; break; fi
+    if [ -f "$d/$WF_PROFILES/$wt.md" ]; then profile=$d/$WF_PROFILES/$wt.md; break; fi
   done
 fi
 
@@ -167,7 +171,7 @@ if [ "$via_toolchain" -eq 0 ]; then
 fi
 
 # From here the command was a browser-suite run: failures to file are reported, not silent.
-[ -d "$main_root/specs" ] || exit 0   # no workflow in this project
+[ -d "$main_root/$WF_SPECS" ] || exit 0   # no workflow in this project
 [ "$have_yq" -eq 1 ] || note "mikefarah yq v4 not found; browser-suite evidence was not filed (D38)."
 
 case "$report_rel" in /*) report=$report_rel ;; *) report=$run_dir/$report_rel ;; esac
@@ -183,7 +187,7 @@ if [ -n "$spec_opt" ]; then
 fi
 if [ -z "$spec_abs" ]; then
   best="" best_at="" nostep="" n_nostep=0
-  for s in "$main_root"/specs/*/spec.md; do
+  for s in "$main_root/$WF_SPECS"/*/spec.md; do
     [ -f "$s" ] || continue
     d=$(dirname "$s")
     [ "$(basename "$d")" != work-backlog ] || continue
@@ -197,7 +201,7 @@ if [ -z "$spec_abs" ]; then
   spec_abs=$best
   [ -n "$spec_abs" ] || { [ "$n_nostep" -ne 1 ] || spec_abs=$nostep; }
 fi
-[ -n "$spec_abs" ] || note "no in-flight spec found under specs/ (status ready-for-dev, in-progress, in-review or blocked); evidence from $report was not filed."
+[ -n "$spec_abs" ] || note "no in-flight spec found under $WF_SPECS/ (status ready-for-dev, in-progress, in-review or blocked); evidence from $report was not filed."
 spec_rel=${spec_abs#"$main_root"/}
 
 sha=$(git -C "$run_dir" rev-parse --short HEAD 2>/dev/null || echo nogit)

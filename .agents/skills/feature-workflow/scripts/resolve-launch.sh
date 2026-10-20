@@ -22,12 +22,12 @@
 #   resolve-launch.sh --requirements [--task-type <type>]
 #       Print the D31 table (or one entry) as JSON.
 # Project root (--project-dir, else $CLAUDE_PROJECT_DIR, else the current directory): always normalised to the main checkout via
-#   `git rev-parse --git-common-dir`, so a worktree cwd works; agent-overrides.yaml, model-map/, profiles/, .agents/agents/ and specs/ are read there (D18).
+#   `git rev-parse --git-common-dir`, so a worktree cwd works; .workflow/agent-overrides.yaml, .workflow/model-map/, .workflow/profiles/, .agents/agents/ and .workflow/specs/ are read there (D18).
 # Model (D35): <root>/agent-overrides.yaml [type][host] > <root>/.agents/agents/<type>.md frontmatter models.<host> > <root>/model-map/<type>.md
 #   frontmatter [host] > none: deny with 00.14. Empty values and unfilled template placeholders (`<...>`) count as unset. model-map `fallback` is not used.
 # Work type: header work_type; for implementation and profile-mini-review with task_id, the task record in <spec_dir>/tasks.md is authoritative:
 #   it fills a missing header work_type, and a header value that disagrees is denied. Phase 1 implementation (no task_id) carries it explicitly (D14).
-# Profile (coding types only): implementation, integration = whole profiles/<work_type>.md; profile-mini-review = its "## Mini-review checklist"
+# Profile (coding types only): implementation, integration = whole .workflow/profiles/<work_type>.md; profile-mini-review = its "## Mini-review checklist"
 #   section (heading through the line before the next level-2 heading); other types = null. Missing profile or section: deny with 00.19.
 # stdout (resolve and orchestrator modes): one JSON object
 #   {task_type, host, model, model_source: "override"|"definition"|"map", header: {...}|null, header_block: "<fenced block>"|null,
@@ -39,6 +39,9 @@
 # Requires: bash, jq, mikefarah yq v4 (D38), git (optional; without a repo the root is used as given).
 
 set -euo pipefail
+
+# shellcheck source=../../../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
 usage_err() { echo "resolve-launch.sh: $*" >&2; exit 1; }
 deny() { echo "resolve-launch.sh: $*" >&2; exit 2; }
@@ -90,8 +93,9 @@ D31_TABLE=$(cat <<'JSON'
 JSON
 )
 
-# Field formats (D37 values; task ids per the tasks.md schema; work_type names a file under profiles/).
-FORMATS='{"spec_dir": "^specs/[0-9]+-[A-Za-z0-9._-]+/?$", "task_id": "^T[0-9]+$", "work_type": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}'
+# Field formats (D37 values; task ids per the tasks.md schema; work_type names a file under .workflow/profiles/).
+SPECS_RE=$(printf '%s' "$WF_SPECS" | sed 's/\./[.]/g')   # literal dots, no JSON escaping needed
+FORMATS='{"spec_dir": "^'"$SPECS_RE"'/[0-9]+-[A-Za-z0-9._-]+/?$", "task_id": "^T[0-9]+$", "work_type": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}'
 FENCE_OPEN='```yaml launch-header'
 
 # ── Arguments ──
@@ -284,8 +288,8 @@ pick_model() { # $1 = json, then path keys
 
 # ── Model (D35) ──
 model="" model_source=""
-if [ -f "$root/agent-overrides.yaml" ]; then
-  doc=$(yaml_json "$root/agent-overrides.yaml")
+if [ -f "$root/$WF_AGENT_OVERRIDES" ]; then
+  doc=$(yaml_json "$root/$WF_AGENT_OVERRIDES")
   model=$(pick_model "$doc" "$task_type" "$host")
   [ -z "$model" ] || model_source=override
 fi
@@ -294,13 +298,13 @@ if [ -z "$model" ] && [ -f "$root/.agents/agents/$task_type.md" ]; then
   model=$(pick_model "$doc" models "$host")
   [ -z "$model" ] || model_source=definition
 fi
-if [ -z "$model" ] && [ -f "$root/model-map/$task_type.md" ]; then
-  doc=$(yaml_json "$root/model-map/$task_type.md" fm)
+if [ -z "$model" ] && [ -f "$root/$WF_MODEL_MAP/$task_type.md" ]; then
+  doc=$(yaml_json "$root/$WF_MODEL_MAP/$task_type.md" fm)
   model=$(pick_model "$doc" "$host")
   [ -z "$model" ] || model_source=map
 fi
 if [ -z "$model" ]; then
-  deny "00.14: no model for task type '$task_type' on host '$host'. Checked, in precedence order (D35): agent-overrides.yaml [$task_type][$host], .agents/agents/$task_type.md models.$host, model-map/$task_type.md [$host]. Assign one in model-map/$task_type.md (or in agent-overrides.yaml when the definition pins a model for this host) before launching."
+  deny "00.14: no model for task type '$task_type' on host '$host'. Checked, in precedence order (D35): $WF_AGENT_OVERRIDES [$task_type][$host], .agents/agents/$task_type.md models.$host, $WF_MODEL_MAP/$task_type.md [$host]. Assign one in $WF_MODEL_MAP/$task_type.md (or in $WF_AGENT_OVERRIDES when the definition pins a model for this host) before launching."
 fi
 
 # ── Work type (D14, D31) ──
@@ -325,8 +329,8 @@ fi
 profile_kind=$(jq -r --arg t "$task_type" '.[$t].profile' <<<"$D31_TABLE")
 profile=null profile_path=null profile_text=""
 if [ "$profile_kind" != none ]; then
-  rel=profiles/$work_type.md
-  [ -f "$root/$rel" ] || deny "00.19: no profile for work type '$work_type' ($rel not found). Define it from profiles/TEMPLATE.md before launching."
+  rel=$WF_PROFILES/$work_type.md
+  [ -f "$root/$rel" ] || deny "00.19: no profile for work type '$work_type' ($rel not found). Define it from $WF_PROFILES/TEMPLATE.md before launching."
   if [ "$profile_kind" = whole ]; then
     profile_text=$(cat "$root/$rel"; printf x); profile_text=${profile_text%x}
   else
@@ -334,7 +338,7 @@ if [ "$profile_kind" != none ]; then
       /^(```|~~~)/ { fence = !fence }
       !fence && /^## / { if (insec) exit; if ($0 ~ /^## Mini-review checklist[[:space:]]*$/) insec = 1 }
       insec { print }' "$root/$rel")
-    [ -n "$profile_text" ] || deny "00.19: profile $rel has no '## Mini-review checklist' section (profiles/TEMPLATE.md contract)"
+    [ -n "$profile_text" ] || deny "00.19: profile $rel has no '## Mini-review checklist' section ($WF_PROFILES/TEMPLATE.md contract)"
   fi
   # Trim trailing blank lines so the assembled prompt is stable.
   while [[ $profile_text == *$'\n' ]]; do profile_text=${profile_text%$'\n'}; done

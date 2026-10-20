@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: regenerate-caches build-architecture.sh and check-staged-cache.sh.
 # Covers: canonical architecture.md (sorted nodes and edges, self-edges dropped, out-of-scope and node_modules files
-#   dropped, module roots from docs/rules.md, --module override), order-independence of the input JSON, boundary
+#   dropped, module roots from .workflow/rules.md, --module override), order-independence of the input JSON, boundary
 #   violations, modules.md skeleton (files, depends on, used by, public interface from .d.ts with export * expanded),
 #   flows entry candidates, id collisions, dirty-scope refusal, --out guard, input rejections; the staged-body checker
 #   for all three shapes and its Mermaid HTML wrapper. No node needed: dependency-cruiser and tsc output are fixtures.
@@ -18,9 +18,9 @@ C="$S/check-staged-cache.sh"
 R="$WORK/repo"
 git_init_repo "$R"
 cd "$R" || exit 1
-mkdir -p src/a src/b/sub lib docs .cache-staging
+mkdir -p src/a src/b/sub lib docs .workflow/.cache-staging
 for f in src/main.ts src/a/index.ts src/a/x.ts src/a/x.test.ts src/b/y.ts src/b/sub/z.ts lib/other.ts; do echo "// $f" >"$f"; done
-cat >docs/rules.md <<'EOF'
+cat >.workflow/rules.md <<'EOF'
 # Rules
 
 ## Ownership
@@ -42,7 +42,7 @@ shared_core:
   paths: ["src/b/sub/**"]
 ```
 EOF
-printf '.cache-staging/\n' >.gitignore
+printf '.workflow/.cache-staging/\n' >.gitignore
 git_commit_all "$R" init
 
 cat >"$WORK/cruise.json" <<'EOF'
@@ -83,7 +83,7 @@ flowchart LR
 
 ## Boundary violations
 
-Not checked: no boundary config at tools/boundaries/dependency-cruiser.cjs.'
+Not checked: no boundary config at .workflow/tools/boundaries/dependency-cruiser.cjs.'
 
 # ---------------------------------------------------------------- architecture
 arch=$("$B" --cache architecture --scope src --from-json "$WORK/cruise.json"); rc=$?
@@ -165,10 +165,10 @@ eq ent-reaches-modules "$(jq -r '.candidates[0].reaches_modules | join(",")' <<<
 eq ent-reaches-files "$(jq -r '.candidates[0].reaches_files | length' <<<"$ent")" 5
 
 # ---------------------------------------------------------------- guards and rejections
-t out-staging 0 "$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --out .cache-staging/architecture.md
-eq out-same-as-stdout "$(cat .cache-staging/architecture.md)" "$arch"
-t out-under-cache 2 "$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --out docs/cache/architecture.md
-check out-under-cache-nothing-written '[ ! -e docs/cache/architecture.md ]'
+t out-staging 0 "$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --out .workflow/.cache-staging/architecture.md
+eq out-same-as-stdout "$(cat .workflow/.cache-staging/architecture.md)" "$arch"
+t out-under-cache 2 "$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --out .workflow/cache/architecture.md
+check out-under-cache-nothing-written '[ ! -e .workflow/cache/architecture.md ]'
 echo dirty >>src/a/x.ts
 t dirty-refused 2 "$B" --cache architecture --scope src --from-json "$WORK/cruise.json"
 t dirty-allowed 0 "$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --allow-dirty
@@ -177,10 +177,10 @@ git checkout -q -- src/a/x.ts
 touch src/a/new.ts
 t untracked-refused 2 "$B" --cache architecture --scope src --from-json "$WORK/cruise.json"
 rm -f src/a/new.ts
-eq scope-boundaries-ignored "$("$B" --cache architecture --scope src --scope tools/boundaries/x.cjs --from-json "$WORK/cruise.json" 2>/dev/null)" "$arch"
-w=$("$B" --cache architecture --scope src --scope tools/boundaries --from-json "$WORK/cruise.json" 2>&1 >/dev/null)
-case "$w" in *"ignoring --scope tools/boundaries"*) ok scope-boundaries-warns ;; *) ko scope-boundaries-warns "$w" ;; esac
-t scope-only-boundaries 2 "$B" --cache architecture --scope tools/boundaries --from-json "$WORK/cruise.json"
+eq scope-boundaries-ignored "$("$B" --cache architecture --scope src --scope .workflow/tools/boundaries/x.cjs --from-json "$WORK/cruise.json" 2>/dev/null)" "$arch"
+w=$("$B" --cache architecture --scope src --scope .workflow/tools/boundaries --from-json "$WORK/cruise.json" 2>&1 >/dev/null)
+case "$w" in *"ignoring --scope .workflow/tools/boundaries"*) ok scope-boundaries-warns ;; *) ko scope-boundaries-warns "$w" ;; esac
+t scope-only-boundaries 2 "$B" --cache architecture --scope .workflow/tools/boundaries --from-json "$WORK/cruise.json"
 t rej-no-scope 2 "$B" --cache architecture --from-json "$WORK/cruise.json"
 t rej-glob 2 "$B" --cache architecture --scope 'src/*' --from-json "$WORK/cruise.json"
 t rej-dotdot 2 "$B" --cache architecture --scope ../x --from-json "$WORK/cruise.json"
@@ -191,10 +191,10 @@ t rej-bad-json 2 "$B" --cache architecture --scope src --from-json "$WORK/bad.js
 echo '{"modules":[{"source":"lib/other.ts","dependencies":[]}]}' >"$WORK/empty.json"
 t rej-no-files 2 "$B" --cache architecture --scope src --from-json "$WORK/empty.json"
 DEPCRUISE=/nonexistent/depcruise t rej-depcruise-fails 2 "$B" --cache architecture --scope src
-cp docs/rules.md "$WORK/rules.bak"
-printf '# Rules\n\n## Ownership\n\nno block\n' >docs/rules.md
+cp .workflow/rules.md "$WORK/rules.bak"
+printf '# Rules\n\n## Ownership\n\nno block\n' >.workflow/rules.md
 t rej-rules-unparseable 2 "$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --allow-dirty
-cp "$WORK/rules.bak" docs/rules.md
+cp "$WORK/rules.bak" .workflow/rules.md
 
 R2="$WORK/repo2"
 git_init_repo "$R2"
@@ -208,23 +208,23 @@ eq collision-rc "$rc" 2
 check collision-names 'printf "%s" "$out" | grep -q "src/a-b and src/a_b"'
 
 # ---------------------------------------------------------------- check-staged-cache
-t chk-arch-ok 0 "$C" architecture .cache-staging/architecture.md
-printf '%s\n' "$mods" >.cache-staging/modules.md
-t chk-mod-slot 1 "$C" modules .cache-staging/modules.md
-sed 's|<!-- slot: purpose -->|Holds code.|' .cache-staging/modules.md >"$WORK/m.md" && cp "$WORK/m.md" .cache-staging/modules.md
-t chk-mod-ok 0 "$C" modules .cache-staging/modules.md
-printf -- '---\ncache_type: modules\n---\n' | cat - .cache-staging/modules.md >"$WORK/fm.md"
+t chk-arch-ok 0 "$C" architecture .workflow/.cache-staging/architecture.md
+printf '%s\n' "$mods" >.workflow/.cache-staging/modules.md
+t chk-mod-slot 1 "$C" modules .workflow/.cache-staging/modules.md
+sed 's|<!-- slot: purpose -->|Holds code.|' .workflow/.cache-staging/modules.md >"$WORK/m.md" && cp "$WORK/m.md" .workflow/.cache-staging/modules.md
+t chk-mod-ok 0 "$C" modules .workflow/.cache-staging/modules.md
+printf -- '---\ncache_type: modules\n---\n' | cat - .workflow/.cache-staging/modules.md >"$WORK/fm.md"
 t chk-mod-frontmatter-ignored 0 "$C" modules "$WORK/fm.md"
-awk 'BEGIN{d=0} /^- Purpose: Holds code\.$/ && !d {print "- Purpose: Holds code. Also more."; d=1; next} {print}' .cache-staging/modules.md >"$WORK/m2.md"
+awk 'BEGIN{d=0} /^- Purpose: Holds code\.$/ && !d {print "- Purpose: Holds code. Also more."; d=1; next} {print}' .workflow/.cache-staging/modules.md >"$WORK/m2.md"
 t chk-mod-two-sentences 1 "$C" modules "$WORK/m2.md"
-awk '/^## src\/main.ts$/ {print "## src/0first"; print ""; print "- Purpose: X."; print "- Files:"; print "- Depends on: none"; print "- Used by: none"; print "- Public interface: none exported"; print ""} {print}' .cache-staging/modules.md >"$WORK/m3.md"
+awk '/^## src\/main.ts$/ {print "## src/0first"; print ""; print "- Purpose: X."; print "- Files:"; print "- Depends on: none"; print "- Used by: none"; print "- Public interface: none exported"; print ""} {print}' .workflow/.cache-staging/modules.md >"$WORK/m3.md"
 t chk-mod-unsorted 1 "$C" modules "$WORK/m3.md"
-grep -v '^- Used by' .cache-staging/modules.md >"$WORK/m4.md"
+grep -v '^- Used by' .workflow/.cache-staging/modules.md >"$WORK/m4.md"
 t chk-mod-missing-field 1 "$C" modules "$WORK/m4.md"
 printf '# Modules\n\n## src/a\n\n- Purpose: Built 2026-10-15T09:30:00Z.\n- Files:\n- Depends on: none\n- Used by: none\n- Public interface: none exported\n' >"$WORK/m5.md"
 t chk-mod-timestamp 1 "$C" modules "$WORK/m5.md"
 
-cat >.cache-staging/flows.md <<'EOF'
+cat >.workflow/.cache-staging/flows.md <<'EOF'
 # Flows
 
 ## Entry points
@@ -259,20 +259,20 @@ sequenceDiagram
 Error branches:
 - none
 EOF
-t chk-flows-ok 0 "$C" flows .cache-staging/flows.md --html-out "$WORK/flows.html"
+t chk-flows-ok 0 "$C" flows .workflow/.cache-staging/flows.md --html-out "$WORK/flows.html"
 eq chk-html-blocks "$(grep -c '<pre class="mermaid">' "$WORK/flows.html")" 2
 check chk-html-escaped 'grep -q "src_cli-&gt;&gt;src_billing: charge()" "$WORK/flows.html" && ! grep -q "src_cli->>" "$WORK/flows.html"'
-awk '{print} /src_cli->>src_billing: charge\(\)/ {print "  Note over src_cli: hi"}' .cache-staging/flows.md >"$WORK/f1.md"
+awk '{print} /src_cli->>src_billing: charge\(\)/ {print "  Note over src_cli: hi"}' .workflow/.cache-staging/flows.md >"$WORK/f1.md"
 t chk-flows-note 1 "$C" flows "$WORK/f1.md"
-awk '{print} /src_routes->>src_billing/ {print "  participant late as src/late"}' .cache-staging/flows.md >"$WORK/f2.md"
+awk '{print} /src_routes->>src_billing/ {print "  participant late as src/late"}' .workflow/.cache-staging/flows.md >"$WORK/f2.md"
 t chk-flows-late-participant 1 "$C" flows "$WORK/f2.md"
-sed 's/charge()/charge(amount)/' .cache-staging/flows.md >"$WORK/f3.md"
+sed 's/charge()/charge(amount)/' .workflow/.cache-staging/flows.md >"$WORK/f3.md"
 t chk-flows-args 1 "$C" flows "$WORK/f3.md"
-awk '/^- `src\/cli\/main.ts`$/ {hold=$0; next} {print} /^- `src\/routes\/pay.ts`$/ && hold {print hold}' .cache-staging/flows.md >"$WORK/f4.md"
+awk '/^- `src\/cli\/main.ts`$/ {hold=$0; next} {print} /^- `src\/routes\/pay.ts`$/ && hold {print hold}' .workflow/.cache-staging/flows.md >"$WORK/f4.md"
 t chk-flows-unsorted-list 1 "$C" flows "$WORK/f4.md"
-grep -v '^- `src/routes/pay.ts`$' .cache-staging/flows.md >"$WORK/f5.md"
+grep -v '^- `src/routes/pay.ts`$' .workflow/.cache-staging/flows.md >"$WORK/f5.md"
 t chk-flows-list-mismatch 1 "$C" flows "$WORK/f5.md"
-awk '/^Error branches:$/ && !d {d=1; getline; next} {print}' .cache-staging/flows.md >"$WORK/f6.md"
+awk '/^Error branches:$/ && !d {d=1; getline; next} {print}' .workflow/.cache-staging/flows.md >"$WORK/f6.md"
 t chk-flows-no-error-branches 1 "$C" flows "$WORK/f6.md"
 printf '# Flows\n\n## Entry points\n\nNone.\n' >"$WORK/f7.md"
 t chk-flows-none-ok 0 "$C" flows "$WORK/f7.md"
@@ -282,8 +282,8 @@ printf '# Architecture\n\n## Edges\n\nNone.\n' >"$WORK/a1.md"
 t chk-arch-sections 1 "$C" architecture "$WORK/a1.md"
 : >"$WORK/empty.md"
 t chk-empty 1 "$C" modules "$WORK/empty.md"
-t chk-wrong-title 1 "$C" flows .cache-staging/architecture.md
-t chk-bad-type 2 "$C" bogus .cache-staging/flows.md
+t chk-wrong-title 1 "$C" flows .workflow/.cache-staging/architecture.md
+t chk-bad-type 2 "$C" bogus .workflow/.cache-staging/flows.md
 t chk-missing-file 2 "$C" flows "$WORK/none.md"
 
 shellcheck_files "shellcheck: build-architecture.sh, check-staged-cache.sh" "$B" "$C"

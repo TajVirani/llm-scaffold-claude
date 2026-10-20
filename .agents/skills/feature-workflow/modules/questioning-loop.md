@@ -13,7 +13,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 
 ## Entry
 
-1. `ST step specs/NNN-slug 0.3.8` (marks where to resume).
+1. `ST step .workflow/specs/NNN-slug 0.3.8` (marks where to resume).
 2. Read the newest **Deeper prompt** entry in `design-log.md` (0.3.22): its agreed Ask, Goals, Downstream, Tools and Gotchas are the loop's input and frame the design tree; its **Not asked for** items stay out of scope. Then read `spec.md` (the draft goal), `codebase-map.md` (where recommended answers come from) and `design-log.md` (decisions already made; create it from [../assets/design-log.md](../assets/design-log.md) if missing).
 3. On a loop-back, seed the tree with the reason you came back:
 
@@ -36,7 +36,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
    ````markdown
    ```yaml launch-header
    task_type: fact-lookup
-   spec_dir: specs/NNN-slug
+   spec_dir: .workflow/specs/NNN-slug
    ```
 
    Affected area: <modules and paths from codebase-map.md>
@@ -66,8 +66,8 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 5. **Log the round** in `design-log.md` with the **Questioning round** entry shape: per question the options, recommendation, the answer verbatim (or "deferred to deep dive") and a decision id `D<n>`; then the facts looked up instead of asked. Superseding an earlier decision is a new entry naming it.
 6. **0.3.12–0.3.13 Deep dives.** After the round closes, take each deferred question one at a time: gather what it needs (a `fact-lookup`, the map, the code via a sub-agent), lay out the options, ask it alone, and log a **Deep dive** entry.
 7. **0.3.14–0.3.15 Term gate.** For each answer that introduces a new or conflicting term, invoke the `domain-modeling` skill for gate 0.3.14; it agrees the term and writes the glossary under step `0.3.15`.
-8. **0.3.16–0.3.17 Scope gate.** For each answer that puts work outside the agreed scope, run [deferred-handoff](deferred-handoff.md#write) **Write** at step `0.3.17`. It writes `deferred/<slug>.md`, adds it to `spec.md` `deferred` and Non-goals, and logs the **Scope decision**.
-9. **0.3.18 Questions remaining?** Answers reshape the tree: settled decisions push the frontier outward and surface new questions. Any open or newly surfaced → `ST step specs/NNN-slug 0.3.8` and run the next round. None → 0.3.19.
+8. **0.3.16–0.3.17 Scope gate.** For each answer that puts work outside the agreed scope, run [deferred-handoff](deferred-handoff.md#write) **Write** at step `0.3.17`. It writes `.workflow/deferred/<slug>.md`, adds it to `spec.md` `deferred` and Non-goals, and logs the **Scope decision**.
+9. **0.3.18 Questions remaining?** Answers reshape the tree: settled decisions push the frontier outward and surface new questions. Any open or newly surfaced → `ST step .workflow/specs/NNN-slug 0.3.8` and run the next round. None → 0.3.19.
 
 ## Settle the goal
 
@@ -76,7 +76,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 Once confirmed, evaluate the **0.3.20 light-path facts** (table in [discovery.md](discovery.md#0320-light-path-test)) so the same write records them, then write `spec.md`:
 
 ```bash
-ST step specs/NNN-slug 0.3.19
+ST step .workflow/specs/NNN-slug 0.3.19
 ```
 
 - **Why:** the final goal: the deeper prompt's Ask and Goals, as revised by the loop.
@@ -90,5 +90,5 @@ Return to [discovery](discovery.md#0320-light-path-test) at 0.3.20. The size `bu
 ## Done
 
 - The frontier is empty and the stakeholder confirmed the summary.
-- Every round, deep dive and scope ruling is in `design-log.md` with decision ids; every new term is in the glossary; every shelved item is a `deferred/` file listed in `spec.md`.
+- Every round, deep dive and scope ruling is in `design-log.md` with decision ids; every new term is in the glossary; every shelved item is a `.workflow/deferred/` file listed in `spec.md`.
 - `spec.md` holds the final goal, capabilities and `light_path`, written at step 0.3.19.

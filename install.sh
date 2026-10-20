@@ -22,8 +22,11 @@
 #      merges codex-hooks.template.json into .codex/hooks.json (same hook rules) and codex-config.template.toml into
 #      .codex/config.toml (rules in the scaffold's .codex/README.md). yq v4 reads TOML but cannot write tables, so the
 #      config is edited through marker blocks that later runs refresh in place; user text outside them is never rewritten.
-#   5. <target>/.gitignore: specs/*/.step, .cache-staging/ and .worktrees/ in a marker block (D16, D17).
-#   Never touches project-owned files: agent-overrides.yaml, model-map/, profiles/, GLOSSARY.md, docs/, deferred/, specs/ (D11, D35).
+#      The tui block sets the built-in Codex status line (D83); a [tui] table the user already has is kept with a warning.
+#   5. <target>/.gitignore: .workflow/specs/*/.step, .workflow/.cache-staging/, .workflow/.worktrees/, .workflow/.handoff/ and
+#      .workflow/.standards-staging/ in a marker block (D16, D17, D81). Paths come from .agents/lib/workflow-paths.sh.
+#   Never creates or touches .workflow/ (D81): every project-owned file (GLOSSARY.md, rules.md, agent-overrides.yaml, model-map/,
+#   profiles/, decisions/, deferred/, specs/, ...) lives there and is created by the project-setup skill; nor the project's own docs/ and e2e/ (D11, D35).
 #   Scaffold-only files (PLAN/, tests/, assetlist.md, organization.md, checklist.md, PROVENANCE.md, CHANGELOG.md, upstream-lineage.json, scripts/, this script)
 #   are outside .agents/ and never copied (D30).
 # Conflicts: every check runs before anything is written. Without --force, install.sh refuses (exit 1, nothing written) when
@@ -34,7 +37,7 @@
 #   differs is left as is with a warning (it cannot be rewritten safely). Unparseable JSON or TOML always refuses.
 # Exit: 0 installed (or dry-run clean); 1 refused because of a conflict; 2 usage or preflight error.
 # Run it outside a Codex session (.codex/README.md). Plan refs: assetlist D9, D11, D15, D16, D17, D30, D35, D36, D38, D40,
-#   D66, D67, D71, D72. Tests: tests/scripts/install.sh.
+#   D66, D67, D71, D72, D83. Tests: tests/scripts/install.sh.
 
 set -euo pipefail
 export LC_ALL=C
@@ -45,6 +48,9 @@ MANIFEST=$SRC/install-manifest.txt
 CLAUDE_TPL=$SRC/hooks/claude-settings.template.json
 CODEX_HOOKS_TPL=$SRC/hooks/codex-hooks.template.json
 CODEX_CONFIG_TPL=$SRC/hooks/codex-config.template.toml
+# shellcheck source=.agents/lib/workflow-paths.sh
+. "$SRC/lib/workflow-paths.sh"
+GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_CACHE_STAGING/" "$WF_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/")
 SHIM_DIRS="skills agents output-styles"
 
 die() { echo "install.sh: error: $*" >&2; exit 2; }
@@ -347,20 +353,24 @@ if [ "$want_codex" -eq 1 ]; then
   fi
   merge_json .codex/hooks.json "$CODEX_HOOKS_TPL" "$T/.codex/hooks.json" "$tmp/hooks.json"
 
-  # config.toml: two marker blocks. "default-permissions" holds the top-level key (inserted at the top, before any
-  # table); "permissions-workflow" holds the template's tables (appended at the end).
+  # config.toml: three marker blocks. "default-permissions" holds the top-level key (inserted at the top, before any
+  # table); "permissions-workflow" holds the template's [permissions.*] tables and "tui" its [tui] table (both appended at the end).
   CFG=$T/.codex/config.toml
   rm -f "$tmp/config.toml"
   dp_want=$(yq -p toml -o json -I=0 '.default_permissions' "$CODEX_CONFIG_TPL")
   wf_want=$(yq -p toml -o json -I=0 '.permissions.workflow' "$CODEX_CONFIG_TPL")
   printf 'default_permissions = %s\n' "$dp_want" >"$tmp/cfg.top"
-  awk 'f || /^[[:space:]]*\[/ { f = 1; print }' "$CODEX_CONFIG_TPL" >"$tmp/cfg.tables"
+  tui_want=$(yq -p toml -o json -I=0 '.tui' "$CODEX_CONFIG_TPL")
+  awk '/^[[:space:]]*\[tui\][[:space:]]*$/ { exit } f || /^[[:space:]]*\[/ { f = 1; print }' "$CODEX_CONFIG_TPL" | awk '/^[[:space:]]*$/ { n++; next } { while (n > 0) { print ""; n-- } print }' >"$tmp/cfg.tables"
+  awk 'f || /^[[:space:]]*\[tui\][[:space:]]*$/ { f = 1; print }' "$CODEX_CONFIG_TPL" >"$tmp/cfg.tui"
   if [ ! -e "$CFG" ]; then
     {
       echo "# Codex project config. install.sh manages the marked blocks (see the scaffold's .codex/README.md); add your own settings outside them."
       block_text default-permissions "$tmp/cfg.top"
       echo
       block_text permissions-workflow "$tmp/cfg.tables"
+      echo
+      block_text tui "$tmp/cfg.tui"
     } >"$tmp/config.toml"
   elif ! cur_json=$(yq -p toml -o json -I=0 '.' "$CFG" 2>/dev/null); then
     refuse ".codex/config.toml: not valid TOML; fix it first (--force does not override this)"
@@ -368,8 +378,9 @@ if [ "$want_codex" -eq 1 ]; then
     cp "$CFG" "$tmp/cfg.work"
     st_top=$(block_state "$CFG" default-permissions)
     st_tab=$(block_state "$CFG" permissions-workflow)
+    st_tui=$(block_state "$CFG" tui)
     cfg_ok=1
-    for st in "$st_top" "$st_tab"; do
+    for st in "$st_top" "$st_tab" "$st_tui"; do
       [ "$st" != damaged ] || { refuse ".codex/config.toml: a workflow-2.0 marker block is damaged (unmatched or repeated markers); repair it by hand"; cfg_ok=0; }
     done
     if [ "$cfg_ok" -eq 1 ]; then
@@ -407,6 +418,22 @@ if [ "$want_codex" -eq 1 ]; then
           fi
         fi
       fi
+      # [tui] status_line (D83). A [tui] table or tui.* key the user wrote is never rewritten, even with --force.
+      if [ "$st_tui" = present ]; then
+        block_replace "$tmp/cfg.work" tui "$tmp/cfg.tui" >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
+      else
+        tui_cur=$(jq -c '.tui // null' <<<"$cur_json")
+        if [ "$tui_cur" = null ]; then
+          block_append "$tmp/cfg.work" tui "$tmp/cfg.tui" >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
+        elif [ "$(jq -c '.status_line // null' <<<"$tui_cur")" != "$(jq -c '.status_line' <<<"$tui_want")" ]; then
+          sl_want=$(jq -c '.status_line' <<<"$tui_want")
+          if [ "$force" -eq 1 ]; then
+            warn ".codex/config.toml: your [tui] table was left as is (--force does not rewrite it); add status_line = $sl_want to it yourself for the context bar"
+          else
+            warn ".codex/config.toml: keeping your [tui] table; add status_line = $sl_want to it for the workflow's context bar"
+          fi
+        fi
+      fi
       if ! yq -p toml -o json '.' "$tmp/cfg.work" >/dev/null 2>&1; then
         refuse ".codex/config.toml: the merge would produce invalid TOML; merge .agents/hooks/codex-config.template.toml by hand"
       elif ! cmp -s "$tmp/cfg.work" "$CFG"; then
@@ -419,7 +446,7 @@ fi
 # ---------------------------------------------------------------------------------------------------------- .gitignore plan
 GI=$T/.gitignore
 rm -f "$tmp/gitignore"
-printf '%s\n' 'specs/*/.step' '.cache-staging/' '.worktrees/' >"$tmp/gi.block"
+printf '%s\n' "${GI_ENTRIES[@]}" >"$tmp/gi.block"
 case "$(block_state "$GI" gitignore)" in
   absent) block_append "$GI" gitignore "$tmp/gi.block" >"$tmp/gitignore" ;;
   present)
@@ -543,7 +570,7 @@ fi
 # ------------------------------------------------------------------------------------------------------------- .gitignore
 echo ".gitignore:"
 if [ -f "$tmp/gitignore" ]; then
-  write_file "$tmp/gitignore" "$GI" ".gitignore (specs/*/.step, .cache-staging/, .worktrees/)"
+  write_file "$tmp/gitignore" "$GI" ".gitignore ($(printf '%s, ' "${GI_ENTRIES[@]}" | sed 's/, $//'))"
 else
   echo "  up to date"
 fi
@@ -570,5 +597,5 @@ changed=".agents/"
 [ "$want_claude" -eq 0 ] || changed="$changed, .claude/"
 [ "$want_codex" -eq 0 ] || changed="$changed, .codex/"
 echo "  Review and commit the changes ($changed, .gitignore)."
-echo "  Run the project-setup skill in the target to create GLOSSARY.md, docs/, profiles/, model-map/ and agent-overrides.yaml."
+echo "  Run the project-setup skill in the target to create $WF_DIR/ (GLOSSARY.md, rules.md, profiles/, model-map/, agent-overrides.yaml and the rest)."
 exit 0

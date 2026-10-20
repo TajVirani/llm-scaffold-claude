@@ -1,8 +1,8 @@
 <!--
 File: Example filled profile for work type `test-harness` (D26): Phase 1.2 harness and CI checks, unit and integration tests.
-Use: project-setup offers it as the starting point for <project>/profiles/test-harness.md (modules/profiles.md). Adapt every line to the project, then delete this comment and the banner.
+Use: project-standards offers its lines as candidate answers in the interview (coverage C1, C3, C4) for <project>/.workflow/profiles/test-harness.md; it is never copied in whole. Adopted lines are adapted to the project; this comment and the banner never reach the project.
 Stack: Vitest, tsc, oxlint + vendored anti-slop, oxfmt (Prettier variant noted), dependency-cruiser (D26).
-Sources: first-party, from PLAN/gap-research.md G2 (docs: https://vitest.dev/guide/reporters, https://vitest.dev/config/coverage, https://oxc.rs/docs/guide/usage/linter/config.html, https://oxc.rs/docs/guide/usage/formatter/cli.html, https://github.com/sverweij/dependency-cruiser/blob/main/doc/cli.md; all MIT tools, no text copied); structure from profiles/TEMPLATE.md; checklist philosophy from mattpocock/skills tdd/{tests,mocking}.md (MIT; ideas only). Plan refs: 1.2, 1.4, 3.5, 3.7, 3.9; assetlist D15, D26, D61, D63.
+Sources: first-party, from PLAN/gap-research.md G2 (docs: https://vitest.dev/guide/reporters, https://vitest.dev/config/coverage, https://oxc.rs/docs/guide/usage/linter/config.html, https://oxc.rs/docs/guide/usage/formatter/cli.html, https://github.com/sverweij/dependency-cruiser/blob/main/doc/cli.md; all MIT tools, no text copied); structure from .workflow/profiles/TEMPLATE.md; checklist philosophy from mattpocock/skills tdd/{tests,mocking}.md (MIT; ideas only). Plan refs: 1.2, 1.4, 3.5, 3.7, 3.9; assetlist D15, D26, D61, D63.
 -->
 # Profile: test-harness
 
@@ -16,7 +16,7 @@ Sources: first-party, from PLAN/gap-research.md G2 (docs: https://vitest.dev/gui
 - Fixtures and oracles from `verification-plan.md` ("Fixtures and oracles"): `test/fixtures/<fixture-name>.ts` (or `.json`). Never inline the same fixture in two tests.
 - Interface stubs for a new module (1.2, D63): the real module path from `codebase-map.md`, `src/<module>/index.ts`, returning a fixed placeholder value. Never a throwing stub, which fails on an error instead of an assertion.
 - Vitest config: `vitest.config.ts` at the project root. CI check: `.github/workflows/test.yml` (or the project's existing CI file), job `test`.
-- Machine-readable results for evidence: `--reporter=json --outputFile=specs/NNN-slug/artifacts/<id>/harness.json`. Never rely on the default `.vitest/json/` path.
+- Machine-readable results for evidence: `--reporter=json --outputFile=.workflow/specs/NNN-slug/artifacts/<id>/harness.json`. Never rely on the default `.vitest/json/` path.
 
 ## Approved libraries per concern
 
@@ -44,8 +44,9 @@ Sources: first-party, from PLAN/gap-research.md G2 (docs: https://vitest.dev/gui
 lint: "npx oxlint -c .oxlintrc.json --deny-warnings"
 typecheck: "npx tsc --noEmit -p tsconfig.json"
 format: "npx oxfmt --check"          # Prettier variant: "npx prettier --check ."
-boundary: "npx depcruise --config tools/boundaries/dependency-cruiser.cjs --output-type err-long src"
+boundary: "npx depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs --output-type err-long src"
 test: "npx vitest run --coverage"    # the harness; also the 3.9 gate (D61). Coverage thresholds in vitest.config.ts fail the run.
+test_scoped: 'npx vitest run $(sed "s/^/--exclude /" "$WF_EXCLUDE_TESTS_FILE")'   # runs in place of test while other tasks' Phase 1 tests are excluded (3.5, 3.9; D85); selectors are test file paths or globs. No --coverage: thresholds apply to the full run, which has nothing to exclude.
 e2e: ""
 # Descriptive keys (not commands; run-toolchain.sh never runs them):
 serve: ""                            # the harness needs no running app
@@ -54,7 +55,7 @@ config:
   lint: ".oxlintrc.json"
   typecheck: "tsconfig.json"
   format: ".oxfmtrc.json"
-  boundary: "tools/boundaries/dependency-cruiser.cjs"
+  boundary: ".workflow/tools/boundaries/dependency-cruiser.cjs"
   test: "vitest.config.ts"
 rule_set: "oxlint defaults + vendored anti-slop (all generic rules at error, plus oxc/no-accumulating-spread) + project rules"
 ```

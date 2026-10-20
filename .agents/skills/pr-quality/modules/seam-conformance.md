@@ -8,12 +8,12 @@ Design*). The vocabulary (module, interface, seam, depth, deletion test) is
 (a copy of the mattpocock/skills `codebase-design` glossary, D74).
 
 The module index is the project's own:
-- `docs/rules.md` § Ownership — each module and the paths it `owns`.
-- `docs/cache/modules.md` — each module's **Public interface** (the exported names of its entry
+- `.workflow/rules.md` § Ownership — each module and the paths it `owns`.
+- `.workflow/cache/modules.md` — each module's **Public interface** (the exported names of its entry
   declaration). That entry declaration is the module's **seam**: the only sanctioned way in.
 
-Read both first. If `docs/rules.md` has no modules, report "not applicable — no module index
-(docs/rules.md Ownership is empty)" and stop. If `docs/cache/modules.md` is missing, take each
+Read both first. If `.workflow/rules.md` has no modules, report "not applicable — no module index
+(.workflow/rules.md Ownership is empty)" and stop. If `.workflow/cache/modules.md` is missing, take each
 module's entry file (its `index.*` or the module file itself) as its seam and say so in the report.
 
 The other three modules find *shallowness smells* (size, duplication, orphans). This module
@@ -66,7 +66,7 @@ Report: the new code, the existing module that already does this, and its seam.
 ### 5. New subsystem without an Ownership entry
 
 If the diff introduces a substantial new subsystem (a new directory of cooperating modules, a
-new service, a new mounted endpoint) whose paths no module in `docs/rules.md` § Ownership
+new service, a new mounted endpoint) whose paths no module in `.workflow/rules.md` § Ownership
 `owns`, flag it.
 
 Report: the new subsystem and a proposed Ownership entry (module name, `owns` globs,
@@ -77,7 +77,7 @@ Report: the new subsystem and a proposed Ownership entry (module name, `owns` gl
 For each finding:
 ```
 - **[SEAM]** `path/to/file.ts:LINE` — [what the violation is]
-  Module: [module name from docs/rules.md, or "unowned"]
+  Module: [module name from .workflow/rules.md, or "unowned"]
   Seam: [the sanctioned entry point]
   Suggestion: [route through the seam / keep private / merge / add Ownership entry]
 ```

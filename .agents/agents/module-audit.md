@@ -6,7 +6,7 @@ tools: Read, Grep, Glob, Bash
 
 <!--
 Sub-agent definition for task type `module-audit` (D1). Plan refs: 0.4.6, 0.4.7; PLAN/decision-flow-reference.md "Sub-agent task types"; D31, D35, D37.
-Model: no `models:` key set; resolve-launch.sh resolves it (agent-overrides.yaml > definition `models.<host>` > model-map; D35).
+Model: no `models:` key set; resolve-launch.sh resolves it (.workflow/agent-overrides.yaml > definition `models.<host>` > .workflow/model-map; D35).
 Sources: module / interface / depth / seam / adapter vocabulary, the deletion test, "the interface is the test surface" and "one adapter = hypothetical seam" from mattpocock/skills/skills/engineering/codebase-design/SKILL.md@49dd158; dependency categories from mattpocock/skills/skills/engineering/codebase-design/DEEPENING.md@49dd158; friction questions and recent-history scoping from mattpocock/skills/skills/engineering/improve-codebase-architecture/SKILL.md@49dd158 step 1 (all MIT). Finding existing patterns to reuse, with file:line, from humanlayer/humanlayer .claude/agents/codebase-pattern-finder.md (Apache-2.0) and EveryInc/compound-engineering-plugin skills/ce-plan/references/agents/repo-research-analyst.md (MIT); patterns only, no text copied.
 -->
 
@@ -33,6 +33,8 @@ Use these terms exactly; do not substitute component, service, API or boundary.
 - **Dependency category** (for each external dependency): in-process, local-substitutable, remote but owned, true external. It decides how the change can be tested across the seam.
 
 ## 3. Audit
+
+Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
 
 1. **Read `codebase-map.md`** so you add to it rather than repeat it. Note any extract about this module that the code contradicts.
 2. **Map the interface.** Find the module's entry points (exports, public functions, routes, handlers) and record each interface the change would go through or test against, with its invariants and error modes.
@@ -81,7 +83,7 @@ Owning module: <name>
 ## Never
 
 - Fix, redesign or fold in anything outside the change's scope: report it under `Out of scope noticed` (`None.` when empty).
-- Write or edit any file, including `codebase-map.md` and anything under `docs/cache/`. A cache that disagrees with the code is a stamp problem, fixed by regeneration: report it, do not correct it.
+- Write or edit any file, including `codebase-map.md` and anything under `.workflow/cache/`. A cache that disagrees with the code is a stamp problem, fixed by regeneration: report it, do not correct it.
 - Ask the stakeholder anything.
 - Read other modules, other specs, Tier A docs or profiles.
 - Report a finding without a `path:line` source.

@@ -1,12 +1,12 @@
 ---
 name: retrieval
-description: "Phase 0 retrieval (step 0.2.4). Reads Tier A docs, Tier B caches under docs/cache/ and the deferred/ shelf for one affected area and returns cited extracts plus cache stamps, so the corpus never enters the main session. Launch once per feature after the affected area and terms are agreed (0.2.1-0.2.3). Not for single factual questions (use fact-lookup) or a deep read of the owning module (use module-audit)."
+description: "Phase 0 retrieval (step 0.2.4). Reads Tier A docs, Tier B caches under .workflow/cache/ and the .workflow/deferred/ shelf for one affected area and returns cited extracts plus cache stamps, so the corpus never enters the main session. Launch once per feature after the affected area and terms are agreed (0.2.1-0.2.3). Not for single factual questions (use fact-lookup) or a deep read of the owning module (use module-audit)."
 tools: Read, Grep, Glob
 ---
 
 <!--
 Sub-agent definition for task type `retrieval` (D1). Plan refs: 0.2.4, 0.2.6, 0.2.7; PLAN/decision-flow-reference.md "Sub-agent task types", design rule 3; D31, D35, D37.
-Model: no `models:` key set; resolve-launch.sh resolves it (agent-overrides.yaml > definition `models.<host>` > model-map; D35).
+Model: no `models:` key set; resolve-launch.sh resolves it (.workflow/agent-overrides.yaml > definition `models.<host>` > .workflow/model-map; D35).
 Sources: brief shape (paths, line numbers, short snippets, word cap, report what is missing) adapted from .agents/skills/design-pattern-doc/SKILL.md Phase 5 (first-party); exploration notes that save implementers the reading from mattpocock/skills/skills/engineering/implement-spec/SKILL.md@49dd158 step 2 (MIT); shelf matching by concept, not keyword, from mattpocock/skills/skills/engineering/triage/OUT-OF-SCOPE.md@49dd158 "When to check" (MIT); read-only tool scoping and "document what exists, return only what matters" from humanlayer/humanlayer .claude/agents/codebase-locator.md and thoughts-analyzer.md (Apache-2.0; pattern only, no text copied). The extract contract and stamp reporting are first-party.
 -->
 
@@ -24,21 +24,23 @@ The rest of the prompt gives the **affected area** (modules and paths) and the *
 
 ## 2. Read, in this order
 
+Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
+
 Work only on what touches the affected area or the agreed terms. Open a file, take what is relevant, move on.
 
-1. **Tier B caches**: `docs/cache/modules.md`, `docs/cache/flows.md`, `docs/cache/architecture.md`.
+1. **Tier B caches**: `.workflow/cache/modules.md`, `.workflow/cache/flows.md`, `.workflow/cache/architecture.md`.
    - Read each file's frontmatter first and record `generated_at_commit` (fields: `regenerate-caches/assets/cache-frontmatter.md`).
    - If the task lists a cache as stale (from `cache-stamp-check.sh`), do not extract from it: record its stamp as `null` and read the code for those paths instead.
    - A missing cache is `null` and goes under Not found.
 2. **Code**, only to confirm or locate what a cache section points to, or where no fresh cache covers the affected area. Cite `path:line`.
-3. **Tier A decisions and rules**: ADRs in `docs/decisions/adr/`, `docs/decisions/pitfalls.md`, `docs/decisions/retrospectives/`, `docs/rules.md` (Ownership, Shared core, External systems and policy sections), `docs/capabilities.md` (capabilities the area already provides). Keep only entries that constrain or describe the affected area. Note an ADR's status when it is superseded.
-4. **The shelf**: every file in `deferred/` (not `deferred/archive/`). Match by concept, not keyword: "night theme" matches `dark-mode.md`. A match means the request may already be shelved; report the file and the reason it was shelved.
+3. **Tier A decisions and rules**: ADRs in `.workflow/decisions/adr/`, `.workflow/decisions/pitfalls.md`, `.workflow/decisions/retrospectives/`, `.workflow/rules.md` (Ownership, Shared core, External systems and policy sections), `.workflow/capabilities.md` (capabilities the area already provides). Keep only entries that constrain or describe the affected area. Note an ADR's status when it is superseded.
+4. **The shelf**: every file in `.workflow/deferred/` (not `.workflow/deferred/archive/`). Match by concept, not keyword: "night theme" matches `dark-mode.md`. A match means the request may already be shelved; report the file and the reason it was shelved.
 
-Do not read: `GLOSSARY.md` (the main session already holds it), `profiles/`, `model-map/`, `agent-overrides.yaml`, other `specs/` folders.
+Do not read: `.workflow/GLOSSARY.md` (the main session already holds it), `.workflow/profiles/`, `.workflow/model-map/`, `.workflow/agent-overrides.yaml`, other `.workflow/specs/` folders.
 
 When a cache and the code disagree, cite both and report it under Not found as `cache disagrees with code`. Do not choose one silently and do not suggest editing the cache: a wrong cache is a stamp problem, fixed by regeneration.
 
-**Done when** every path in the affected area has been checked against all three caches (or the code when a cache is missing or stale), every ADR, pitfall, retrospective and rule section has been scanned for the area, and every `deferred/` file has been compared by concept.
+**Done when** every path in the affected area has been checked against all three caches (or the code when a cache is missing or stale), every ADR, pitfall, retrospective and rule section has been scanned for the area, and every `.workflow/deferred/` file has been compared by concept.
 
 ## 3. Return exactly this
 
@@ -58,7 +60,7 @@ cache_stamps:
 
 | Item | What it does today | Source |
 | --- | --- | --- |
-| <module, function, type or flow> | <one line> | `<path:line>` or `docs/cache/<type>.md` § <heading> |
+| <module, function, type or flow> | <one line> | `<path:line>` or `.workflow/cache/<type>.md` § <heading> |
 
 ## Seams and interfaces
 

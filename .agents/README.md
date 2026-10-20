@@ -25,7 +25,7 @@ See the repo [README.md](../README.md) for options and what it creates.
 
 ## State
 
-The skill records audited commits in .agents/data-structure-audit-state.jsonl
+The skill records audited commits in .workflow/data-structure-audit-state.jsonl
 (commit it with your changes) and adds a `merge=union` .gitattributes rule so
 parallel branches merge cleanly. Delete the state file to force a full re-audit.
 See skills/data-structure-audit/references/incremental.md for mechanics.

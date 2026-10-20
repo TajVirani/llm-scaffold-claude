@@ -8,9 +8,9 @@ tools: Read, Grep, Glob, Bash
 File: Sub-agent definition and launch prompt for task type `review-targets`.
 Purpose: Measure the running build against the 1.1 targets, numbers only.
 Triggers/inputs: `## Targets` in verification-plan.md, the `serve` and `serve_ready` keys of the touched work profiles, the running build. Never the diff for judgement, other lenses' output or the spec.md body.
-Outputs/handoff: A `review-findings` YAML block with a `measurements:` table, consumed by modules/review-triage.md (4.4; shape check with prefix RT) and copied into report.md "Targets vs measured" by modules/sign-off.md (5.4). Raw tool output under specs/NNN-slug/artifacts/review/pass-<n>/targets/.
+Outputs/handoff: A `review-findings` YAML block with a `measurements:` table, consumed by modules/review-triage.md (4.4; shape check with prefix RT) and copied into report.md "Targets vs measured" by modules/sign-off.md (5.4). Raw tool output under .workflow/specs/NNN-slug/artifacts/review/pass-<n>/targets/.
 Plan refs: 4.3; reference "Sub-agent task types", "Review: lenses, then triage"; D13, D23, D31, D35, D37, D38, D48, D56, D62; PLAN/gap-research.md G3.
-Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model is resolved by agent-overrides.yaml > model-map/review-targets.md (default: cheap tier, D23). Required header field: spec_dir (D31). No nested launches (D32). Bash runs the build and the measurement commands; the only files this agent writes itself are under the targets output folder. The only thing read from spec.md is the `baseline_revision` frontmatter key (D53).
+Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model is resolved by .workflow/agent-overrides.yaml > .workflow/model-map/review-targets.md (default: cheap tier, D23). Required header field: spec_dir (D31). No nested launches (D32). Bash runs the build and the measurement commands; the only files this agent writes itself are under the targets output folder. The only thing read from spec.md is the `baseline_revision` frontmatter key (D53).
 Sources: first-party. Design from PLAN/gap-research.md G3, which was built from the tool docs: Lighthouse CI configuration (assert, collect, upload; GoogleChrome/lighthouse-ci docs/configuration.md, Apache-2.0), k6 thresholds and end-of-test summary (grafana.com/docs/k6), Vitest coverage json-summary reporter, and the Playwright console-errors attachment (G1). No text copied from any of them, and nothing from tech-leads-club/agent-skills (skill content CC-BY-4.0). Return schema extends .agents/agents/review-standards.md; field names match the modules/review-triage.md step 3 shape check.
 -->
 
@@ -35,7 +35,7 @@ The launch header (D37) with `spec_dir`, and a one-line task naming the review p
 | --- | --- |
 | Targets | `<spec_dir>/verification-plan.md`, `## Targets` table: Target, Kind, Threshold, How measured (exact command), Source of the threshold |
 | Work types | `<spec_dir>/tasks.md` frontmatter, `tasks[].work_type` |
-| Start and ready | `profiles/<work_type>.md`, the yaml block under `## Toolchain`: `serve` (start command) and `serve_ready` (URL to poll) (D62) |
+| Start and ready | `.workflow/profiles/<work_type>.md`, the yaml block under `## Toolchain`: `serve` (start command) and `serve_ready` (URL to poll) (D62) |
 | Revisions | `yq --front-matter=extract '.baseline_revision' <spec_dir>/spec.md` (read only this key) and `git rev-parse HEAD` |
 
 `OUT` is `<spec_dir>/artifacts/review/pass-<n>/targets`, with `<n>` from the task line. Create it with `mkdir -p` before anything else.
@@ -138,7 +138,7 @@ measurements:                   # one per ## Targets row, in table order
     measured: "2310 ms"
     result: pass                # pass | fail | not_measurable
     exit_code: 0
-    raw_output: "specs/007-checkout/artifacts/review/pass-1/targets/checkout-page-lcp.txt"
+    raw_output: ".workflow/specs/007-checkout/artifacts/review/pass-1/targets/checkout-page-lcp.txt"
     reason: ""                  # required when not_measurable; also notes an exit code that disagrees with the number
   - target: "line coverage, billing module"
     kind: coverage
@@ -147,12 +147,12 @@ measurements:                   # one per ## Targets row, in table order
     measured: "74.2%"
     result: fail
     exit_code: 1
-    raw_output: "specs/007-checkout/artifacts/review/pass-1/targets/line-coverage-billing-module.txt"
+    raw_output: ".workflow/specs/007-checkout/artifacts/review/pass-1/targets/line-coverage-billing-module.txt"
     reason: ""
   - target: "checkout API p95"
     kind: performance
     threshold: "p95 < 200 ms"
-    command: "k6 run --summary-export=specs/007-checkout/artifacts/review/pass-1/targets/k6-summary.json load/checkout.js"
+    command: "k6 run --summary-export=.workflow/specs/007-checkout/artifacts/review/pass-1/targets/k6-summary.json load/checkout.js"
     measured: ""
     result: not_measurable
     exit_code: null
@@ -165,22 +165,22 @@ findings:
     confidence: 100             # measured, not inferred
     location: "verification-plan.md#targets: line coverage, billing module"
     claim: "line coverage, billing module measured 74.2%, threshold lines >= 80%"
-    consequence: "The build does not meet a target the spec committed to (source: docs/rules.md coverage floor)."
+    consequence: "The build does not meet a target the spec committed to (source: .workflow/rules.md coverage floor)."
     evidence:
-      basis: "specs/007-checkout/artifacts/review/pass-1/targets/line-coverage-billing-module.txt"
+      basis: ".workflow/specs/007-checkout/artifacts/review/pass-1/targets/line-coverage-billing-module.txt"
       diff: ""
     suggested_fix: ""           # this lens makes no fix suggestions
   - id: RT-2
     category: discovered-work
     kind: bug                   # bug | requirement | refactor | scope-expansion | decision
     summary: "The serve command logs an unhandled deprecation error on every start (code outside this change)."
-    evidence: "specs/007-checkout/artifacts/review/pass-1/targets/serve-1.log:3"
+    evidence: ".workflow/specs/007-checkout/artifacts/review/pass-1/targets/serve-1.log:3"
     blocker_assessment: can-wait    # blocks-this-task | can-wait
     reason: "The build still became ready and every target was measured."
 checked:
   - "checkout page LCP"
   - "line coverage, billing module"
-  - "serve from profiles/frontend-react.md"
+  - "serve from .workflow/profiles/frontend-react.md"
 not_checked:
   - "checkout API p95: not measurable: k6 not available"
 ```

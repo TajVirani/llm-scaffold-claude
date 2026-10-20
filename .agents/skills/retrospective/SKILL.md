@@ -1,6 +1,6 @@
 ---
 name: retrospective
-description: "Feature retrospective with the stakeholder: judges the combined result against spec.md, records process lessons and pitfalls, feature notes and model observations, and writes docs/decisions/retrospectives/NNN-slug.md. Use at sign-off (5.7), or when a stakeholder asks for a retrospective on a shipped feature."
+description: "Feature retrospective with the stakeholder: judges the combined result against spec.md, records process lessons and pitfalls, feature notes and model observations, and writes .workflow/decisions/retrospectives/NNN-slug.md. Use at sign-off (5.7), or when a stakeholder asks for a retrospective on a shipped feature."
 ---
 
 <!--
@@ -13,8 +13,8 @@ Judge a finished feature against its spec with the stakeholder, and turn what th
 
 ## Inputs
 
-- **Spec folder** `specs/NNN-slug/`. From `sign-off` at 5.7, the spec is `in-review`. Standalone, ask which spec, offering those with `status: done`.
-- **Output** `docs/decisions/retrospectives/NNN-slug.md`, with the same `NNN-slug` as the spec folder, from [assets/retrospective.md](assets/retrospective.md).
+- **Spec folder** `.workflow/specs/NNN-slug/`. From `sign-off` at 5.7, the spec is `in-review`. Standalone, ask which spec, offering those with `status: done`.
+- **Output** `.workflow/decisions/retrospectives/NNN-slug.md`, with the same `NNN-slug` as the spec folder, from [assets/retrospective.md](assets/retrospective.md).
 
 ## Writes and the step marker
 
@@ -22,15 +22,15 @@ The retrospective writes these files, each with the stakeholder's agreement:
 
 | File | Tier | What |
 | --- | --- | --- |
-| `docs/decisions/retrospectives/NNN-slug.md` | A | The document |
-| `docs/decisions/pitfalls.md` | A | Observed failures only |
-| `specs/NNN-slug/design-log.md` | — | One appended "Retrospective notes" section |
-| `model-map/<type>.md` or `agent-overrides.yaml` | — | Model observations (D35) |
+| `.workflow/decisions/retrospectives/NNN-slug.md` | A | The document |
+| `.workflow/decisions/pitfalls.md` | A | Observed failures only |
+| `.workflow/specs/NNN-slug/design-log.md` | — | One appended "Retrospective notes" section |
+| `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` | — | Model observations (D35) |
 
 At 5.7, set the step before the first Tier A write, so `tier-a-write-guard` allows it:
 
 ```bash
-.agents/skills/feature-workflow/scripts/status-transition.sh step specs/NNN-slug 5.7
+.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.7
 ```
 
 Standalone with no spec in flight, the guard allows Tier A writes without a step. If another spec is in flight, the guard denies them: stop and report the denial with the agreed text, so the human can apply it once that spec is done.
@@ -41,7 +41,7 @@ Write Tier A files with Write or Edit, never through Bash. The retrospective doe
 
 ### 1. Open or resume the document
 
-If `docs/decisions/retrospectives/NNN-slug.md` exists, read it, check what it records against the current evidence (the evidence wins), and resume at the first incomplete step. Otherwise, set the step (at 5.7), then copy the template with `spec`, `date` and the title filled in. Write each step's result into the document as you finish it: the document is the working state.
+If `.workflow/decisions/retrospectives/NNN-slug.md` exists, read it, check what it records against the current evidence (the evidence wins), and resume at the first incomplete step. Otherwise, set the step (at 5.7), then copy the template with `spec`, `date` and the title filled in. Write each step's result into the document as you finish it: the document is the working state.
 
 Done when the document exists and you know which step to start from.
 
@@ -59,8 +59,8 @@ Done when every spec item has a row with evidence.
 
 ### 4. Findings and follow-through
 
-- **Findings.** Take the open findings from the triage entries in `design-log.md`, the known gaps in `report.md` (D29) and anything step 3 surfaced. Re-check each one against its source; drop any whose source does not hold up. Give each a disposition: `fix now` (it becomes an action item), `defer` (link the `deferred/` file), or `accept` (with the reason).
-- **Previous retrospective.** Open the highest-numbered other file in `docs/decisions/retrospectives/`. For each of its action items, record whether it landed, with the commit, file or check that shows it. An item you cannot point at is "no evidence found", which is not the same as "not done". With no earlier file, write "No earlier retrospective."
+- **Findings.** Take the open findings from the triage entries in `design-log.md`, the known gaps in `report.md` (D29) and anything step 3 surfaced. Re-check each one against its source; drop any whose source does not hold up. Give each a disposition: `fix now` (it becomes an action item), `defer` (link the `.workflow/deferred/` file), or `accept` (with the reason).
+- **Previous retrospective.** Open the highest-numbered other file in `.workflow/decisions/retrospectives/`. For each of its action items, record whether it landed, with the commit, file or check that shows it. An item you cannot point at is "no evidence found", which is not the same as "not done". With no earlier file, write "No earlier retrospective."
 
 Done when every finding has a disposition, and every earlier action item has a line.
 
@@ -90,6 +90,6 @@ Fill **Open questions** ("None." if empty), replace any placeholder left in the 
 
 ## Done
 
-- `docs/decisions/retrospectives/NNN-slug.md` exists, every section is filled or says "None.", and it holds no placeholder.
+- `.workflow/decisions/retrospectives/NNN-slug.md` exists, every section is filled or says "None.", and it holds no placeholder.
 - Every approved pitfall is in `pitfalls.md`, every feature note is in `design-log.md`, and every model observation is in the one destination D35 names.
 - Every Tier A write happened with the 5.7 step set, or outside any in-flight feature.

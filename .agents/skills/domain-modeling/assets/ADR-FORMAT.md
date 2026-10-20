@@ -1,13 +1,13 @@
 <!--
 File: ADR format and the three-part ADR test for the first-party `domain-modeling` skill (D10). Used at 0.3.5-0.3.7; read by review-standards (4.1) and retrieval (0.2.4).
-Sources: copied from mattpocock/skills skills/engineering/domain-modeling/ADR-FORMAT.md (MIT, Copyright (c) 2026 Matt Pocock; commit 49dd158; notice in ../LICENSE). Changes: `docs/adr/` -> `docs/decisions/adr/` (plan 00.4); the template now lives in adr.md; the Status frontmatter is written as a `status:` key; added the optional Deferred section (D80); added "Superseding an ADR" (plan 00.4 "Superseded ADRs stay, marked"; lifecycle and supersede back-link pattern from wshobson/agents plugins/documentation-generation/skills/architecture-decision-records/SKILL.md, MIT, pattern only).
+Sources: copied from mattpocock/skills skills/engineering/domain-modeling/ADR-FORMAT.md (MIT, Copyright (c) 2026 Matt Pocock; commit 49dd158; notice in ../LICENSE). Changes: `docs/adr/` -> `.workflow/decisions/adr/` (plan 00.4); the template now lives in adr.md; the Status frontmatter is written as a `status:` key; added the optional Deferred section (D80); added "Superseding an ADR" (plan 00.4 "Superseded ADRs stay, marked"; lifecycle and supersede back-link pattern from wshobson/agents plugins/documentation-generation/skills/architecture-decision-records/SKILL.md, MIT, pattern only).
 -->
 
 # ADR Format
 
-ADRs live in `docs/decisions/adr/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc.
+ADRs live in `.workflow/decisions/adr/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc.
 
-Create the `docs/decisions/adr/` directory lazily: only when the first ADR is needed.
+Create the `.workflow/decisions/adr/` directory lazily: only when the first ADR is needed.
 
 ## Template
 
@@ -32,7 +32,7 @@ Only include these when they add genuine value. Most ADRs won't need them.
 
 ## Numbering
 
-Scan `docs/decisions/adr/` for the highest existing number and increment by one.
+Scan `.workflow/decisions/adr/` for the highest existing number and increment by one.
 
 ## Superseding an ADR
 

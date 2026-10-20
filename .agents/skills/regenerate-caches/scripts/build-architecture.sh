@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): derive the generated parts of the Tier B caches from one dependency-cruiser run.
 # Purpose: Deterministic, sorted output for a given scope and commit (D4). `--cache architecture` prints the whole
-#   docs/cache/architecture.md body; `--cache modules` prints the modules.md skeleton with one `<!-- slot: purpose -->`
+#   .workflow/cache/architecture.md body; `--cache modules` prints the modules.md skeleton with one `<!-- slot: purpose -->`
 #   per module for the cache-regeneration agent to fill; `--cache entries` prints the flows.md entry-point candidates
 #   (files nothing in scope imports) with what each reaches, as JSON, for the agent to choose from (D64).
 #   Body shapes: assets/cache-frontmatter.md "Body shape per cache type".
@@ -16,12 +16,12 @@
 # Usage:
 #   build-architecture.sh --cache architecture|modules|entries --scope PATH [--scope PATH]... [options]
 #     --scope PATH          repo-relative file or directory, no globs, no '..' (repeatable, at least one; '.' = whole repo);
-#                           any path under tools/boundaries/ is ignored with a stderr warning (stamp-only, never source)
-#     --module PATH         module root (repeatable). Default: the owns paths of docs/rules.md Ownership plus
+#                           any path under .workflow/tools/boundaries/ is ignored with a stderr warning (stamp-only, never source)
+#     --module PATH         module root (repeatable). Default: the owns paths of .workflow/rules.md Ownership plus
 #                           shared_core.paths (trailing /** or /* removed; entries still holding a glob skipped), read
 #                           through project-setup/scripts/generate-boundary-config.sh --print-intermediate. A file maps
 #                           to its longest module root; a file under none maps to <scope>/<first segment>.
-#     --out FILE            write here instead of stdout (refused under docs/cache/; use .cache-staging/<type>.md)
+#     --out FILE            write here instead of stdout (refused under .workflow/cache/; use .workflow/.cache-staging/<type>.md)
 #     --root DIR            repo root override. Default (D18): the MAIN checkout (git --git-common-dir), as publish-cache.sh
 #     --allow-dirty         skip the clean-tree check (output then is not tied to HEAD; for tests only)
 #     --from-json FILE      use this dependency-cruiser JSON (uncollapsed, -T json) instead of running depcruise
@@ -33,8 +33,12 @@
 # Determinism: every list is byte-sorted (LC_ALL=C); no timestamps or counts in the body; the scope paths must have no
 #   uncommitted or untracked changes, so the output is a function of HEAD (stamped by publish-cache.sh).
 # Exit codes: 0 = printed or written; 2 = usage error, dirty scope, missing depcruise, unparseable JSON, node-id collision.
-# Requires: git, jq, mikefarah yq v4 (only to read docs/rules.md, D38); node tooling as above.
+# Requires: git, jq, mikefarah yq v4 (only to read .workflow/rules.md, D38); node tooling as above.
 set -euo pipefail
+
+# Workflow paths (D81).
+# shellcheck source=../../../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 export LC_ALL=C
 
 die() { echo "build-architecture: $*" >&2; exit 2; }
@@ -92,14 +96,14 @@ cd "$root"
 ns=()
 for s in "${scopes[@]}"; do
   s="$(norm_path "$s")"
-  if [[ "$s" == tools/boundaries || "$s" == tools/boundaries/* ]]; then
-    echo "build-architecture.sh: ignoring --scope $s (tools/boundaries/ is stamp-only, never analysed as source)" >&2
+  if [[ "$s" == "$WF_BOUNDARIES" || "$s" == "$WF_BOUNDARIES"/* ]]; then
+    echo "build-architecture.sh: ignoring --scope $s ($WF_BOUNDARIES/ is stamp-only, never analysed as source)" >&2
     continue
   fi
   [[ -e "$s" ]] || die "scope path does not exist: $s"
   ns+=("$s")
 done
-[[ ${#ns[@]} -gt 0 ]] || die "no --scope left after ignoring tools/boundaries/ paths"
+[[ ${#ns[@]} -gt 0 ]] || die "no --scope left after ignoring $WF_BOUNDARIES/ paths"
 scopes=("${ns[@]}")
 scope_json="$(printf '%s\n' "${scopes[@]}" | jq -R . | jq -s 'unique')"
 
@@ -107,7 +111,7 @@ if [[ -n "$out" ]]; then
   out_dir="$(dirname "$out")"
   mkdir -p "$out_dir"
   out_abs="$(cd "$out_dir" && pwd -P)/$(basename "$out")"
-  [[ "$out_abs" != "$root/docs/cache/"* ]] || die "--out must not be under docs/cache/ (D17): write to .cache-staging/ and publish with publish-cache.sh"
+  [[ "$out_abs" != "$root/$WF_CACHE/"* ]] || die "--out must not be under $WF_CACHE/ (D17): write to $WF_CACHE_STAGING/ and publish with publish-cache.sh"
 fi
 
 if [[ $allow_dirty -eq 0 ]]; then
@@ -117,10 +121,10 @@ $dirty"
 fi
 
 # ---------------------------------------------------------------- module roots
-if [[ ${#mods[@]} -eq 0 && -f "$root/docs/rules.md" ]]; then
+if [[ ${#mods[@]} -eq 0 && -f "$root/$WF_RULES" ]]; then
   gbc="$HERE/../../project-setup/scripts/generate-boundary-config.sh"
-  [[ -x "$gbc" ]] || die "cannot read docs/rules.md: $gbc not found (pass --module)"
-  inter="$("$gbc" --print-intermediate "$root")" || die "docs/rules.md Ownership or Shared core does not parse (see generate-boundary-config.sh)"
+  [[ -x "$gbc" ]] || die "cannot read $WF_RULES: $gbc not found (pass --module)"
+  inter="$("$gbc" --print-intermediate "$root")" || die "$WF_RULES Ownership or Shared core does not parse (see generate-boundary-config.sh)"
   while IFS= read -r m; do
     [[ -n "$m" ]] && mods+=("$m")
   done < <(jq -r '[.modules[].owns[], .shared_core.paths[]]
@@ -214,14 +218,14 @@ render_architecture() {
   echo
   if [[ -n "$viol_json" ]]; then
     vfile="$viol_json"
-  elif [[ -f "$root/tools/boundaries/dependency-cruiser.cjs" ]]; then
+  elif [[ -f "$root/$WF_BOUNDARIES/dependency-cruiser.cjs" ]]; then
     vfile="$tmpd/violations.json"
     tool_cmd "${DEPCRUISE:-}" depcruise || die "depcruise not found (install dependency-cruiser, or set DEPCRUISE)"
     # violations make depcruise exit non-zero; only unparseable output is an error
-    "${cmd[@]}" --config tools/boundaries/dependency-cruiser.cjs -T json "${scopes[@]}" >"$vfile" 2>/dev/null || true
+    "${cmd[@]}" --config "$WF_BOUNDARIES/dependency-cruiser.cjs" -T json "${scopes[@]}" >"$vfile" 2>/dev/null || true
   fi
   if [[ -z "$vfile" ]]; then
-    echo "Not checked: no boundary config at tools/boundaries/dependency-cruiser.cjs."
+    echo "Not checked: no boundary config at $WF_BOUNDARIES/dependency-cruiser.cjs."
     return 0
   fi
   vlines="$(jq -r '.summary.violations // error("no .summary.violations")

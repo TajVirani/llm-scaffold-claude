@@ -18,10 +18,10 @@ flowchart TD
         regen["regenerate-caches skill: launches cache-regeneration, publishes via publish-cache.sh; runs outside this flow"]
     end
 
-    subgraph Deferred["deferred/ - work on the shelf"]
-        defFile[/"00.8 - deferred/slug.md: goal, background, constraints, links back to the originating spec; written by the deferred-handoff module"/]
+    subgraph Deferred[".workflow/deferred/ - work on the shelf"]
+        defFile[/"00.8 - .workflow/deferred/slug.md: goal, background, constraints, links back to the originating spec; written by the deferred-handoff module"/]
         archiveStep["00.9 - Mark superseded at the top and move to the archive"]
-        defArchive[/"00.10 - deferred/archive/slug.md"/]
+        defArchive[/"00.10 - .workflow/deferred/archive/slug.md"/]
     end
 
     subgraph DiscWork["Discovered work - scope-creep guardrail, run in the main session"]
@@ -31,22 +31,22 @@ flowchart TD
         gDwDiscovery{"00.24 - Go to discovery to address it?"}
         gDwNext{"00.25 - Tackle it as the next feature?"}
         dwWrite["00.26 - Write a work item to the backlog"]
-        dwItem[/"00.27 - specs/work-backlog/NNN-slug-disc-###.md: origin, problem, evidence, size, status"/]
+        dwItem[/"00.27 - .workflow/specs/work-backlog/NNN-slug-disc-###.md: origin, problem, evidence, size, status"/]
         dwResume["00.28 - Unblock to blocked_from; continue the current work unchanged"]
         gDwBudget{"00.29 - Size budget crossed: split, re-scope or approve the overrun?"}
     end
 
-    subgraph ModelMap["model-map/ - model selection map, read by the launcher only"]
-        modelFile[/"00.11 - model-map/task-type.md: tier, model alias per host, and why; lowest precedence after agent-overrides.yaml and the agent definition"/]
+    subgraph ModelMap[".workflow/model-map/ - model selection map, read by the launcher only"]
+        modelFile[/"00.11 - .workflow/model-map/task-type.md: tier, model alias per host, and why; lowest precedence after .workflow/agent-overrides.yaml and the agent definition"/]
         hook["00.12 - Pre-launch hook: resolve-launch.sh checks per-type header fields; prepends the profile and sets the resolved model via updatedInput"]
-        gModel{"00.13 - Model for this host? agent-overrides.yaml, then agent definition, then model-map"}
+        gModel{"00.13 - Model for this host? .workflow/agent-overrides.yaml, then agent definition, then model-map"}
         assignModel["00.14 - Assign a model for this task type and record it"]
     end
 
-    subgraph Profiles["profiles/ - work profiles: the operating context injected into coding agents, by work type"]
-        pTemplate[/"00.16 - profiles/TEMPLATE.md: file locations, approved libraries per concern, language and style rules, toolchain, mini-review checklist"/]
-        setup["project-setup skill: fill the template once per work type, install toolchains incl. anti-slop, seed model-map/; separate process"]
-        pFile[/"00.17 - profiles/work-type.md: e.g. frontend-react, backend-api, data-migration"/]
+    subgraph Profiles[".workflow/profiles/ - work profiles: the operating context injected into coding agents, by work type"]
+        pTemplate[/"00.16 - .workflow/profiles/TEMPLATE.md: file locations, approved libraries per concern, language and style rules, toolchain, mini-review checklist"/]
+        setup["project-setup skill: fill the template once per work type, install toolchains incl. anti-slop, seed .workflow/model-map/; separate process"]
+        pFile[/"00.17 - .workflow/profiles/work-type.md: e.g. frontend-react, backend-api, data-migration"/]
         gProfile{"00.18 - Task matches a work profile?"}
         newProfile["00.19 - Human defines the missing profile from the template"]
         inject["00.20 - Inject the profile into the launch prompt, in full: the pre-launch hook prepends it"]
@@ -54,9 +54,9 @@ flowchart TD
 
     subgraph P0["Phase 0 - Discovery"]
         subgraph P0a["0.1 - Initialise the feature folder"]
-            scan["0.1.1 - Scan specs/ for the highest existing number"]
+            scan["0.1.1 - Scan .workflow/specs/ for the highest existing number"]
             slug["0.1.2 - Derive a short slug from the request"]
-            folder[/"0.1.3 - specs/NNN-slug/"/]
+            folder[/"0.1.3 - .workflow/specs/NNN-slug/"/]
             spec[/"0.1.4 - spec.md: frontmatter status + Why, Capabilities with stable IDs, Constraints, Non-goals, Success signal, links to support docs"/]
             gFromDef{"0.1.5 - Did this request come off the shelf?"}
             draft["0.1.6 - Draft the goal as understood from the request"]
@@ -119,35 +119,35 @@ flowchart TD
     end
 
     subgraph P1["Phase 1 - Verification setup"]
-        budgets["1.1 - Set measurable targets: performance, error, coverage"]
+        budgets["1.1 - Create spec branch spec/NNN-slug off main (baseline = its first commit); set measurable targets: performance, error, coverage"]
         harness["1.2 - Build automated test harness and CI checks"]
         browser["1.3 - Build the end-to-end browser suite from the named journeys"]
         gHarness{"1.4 - Do both suites fail a known-bad build?"}
-        harnessDoc[/"1.5 - Test harness, browser suite, CI pipeline"/]
+        harnessDoc[/"1.5 - Test harness, browser suite, CI pipeline; commit Phase 1 on the spec branch (red by design)"/]
         halt(["Halt: status blocked until a human resolves the blocking condition"])
     end
 
     subgraph P2["Phase 2 - Task breakdown"]
-        cut["2.1 - Split into vertical slices, each independently testable"]
+        cut["2.1 - Split into vertical slices, each independently testable, with predicted files, size S/M/L and mode afk/hitl; overlaps become edges unless approved parallel; quiz shows the waves table"]
         gSpecifiable{"2.2 - Discovery complete enough to specify the task?"}
         gSeams{"2.3 - Interfaces under test agreed?"}
         gCore{"2.4 - Modifies shared core code?"}
-        gTaskBudget{"2.6 - Task count within the size budget?"}
-        tasks[/"2.5 - tasks.md + dependency graph: tasks YAML array, each task carrying its own status and work type; every feature has one"/]
+        gTaskBudget{"2.6 - Task count and predicted files within the size budget?"}
+        tasks[/"2.5 - tasks.md index (tasks YAML array, waves table, dependency graph) + one tasks/Tnn-slug.md per task; every feature has one"/]
     end
 
     subgraph P3["Phase 3 - Implementation"]
-        orch["3.1 - Orchestrator: classify each task by work type; launch one sub-agent per task in dependency order; merge worktrees between waves"]
+        orch["3.1 - Orchestrator: classify each task by work type; record impl_base_revision; per wave create task branches and worktrees, launch one sub-agent per task in dependency order; merge between waves"]
         integrator["3.2 - Integration owner applies core changes between batches; one work type per batch"]
-        impl["3.3 - Sub-agent per module, in its own worktree: write failing test, then implementation, under the injected profile"]
+        impl["3.3 - Pause before hitl tasks; sub-agent per module, in its task worktree: write failing test, then implementation, under the injected profile"]
         selfreview["3.4 - Add negative and edge-case tests"]
         toolAudit["3.5 - On stop, run the profile's toolchain via run-toolchain.sh: lint with anti-slop rules, type-check, format, import-boundary check"]
         gTool{"3.6 - Tool audit clean?"}
         miniReview["3.7 - Sub-agent: mini-review against the checklist items no tool can express, given the tool output"]
         gMini{"3.8 - Mini-review passes?"}
         gSuites{"3.13 - Harness and browser suite both exist? Always yes on the full path"}
-        skipSuites["3.14 - Light path only: skip only the gate of each missing suite; record the gap in spec.md and deferred/"]
-        waveMerge["3.16 - Merge the wave's worktrees once every task in it has passed 3.8"]
+        skipSuites["3.14 - Light path only: skip only the gate of each missing suite; record the gap in spec.md and .workflow/deferred/"]
+        waveMerge["3.16 - Once every task in the wave has passed 3.8: task PR/MR per task_review, merge into the spec branch in id order, delete branch and worktree"]
         gWaveBudget{"3.15 - After each wave merge: changed files within the size budget?"}
         gGreen{"3.9 - Tests pass and CI green?"}
         e2e["3.10 - Run the browser suite against the running feature"]
@@ -175,7 +175,7 @@ flowchart TD
         reenter["5.6 - Read spec.md status; re-enter at the phase it names"]
         retro["5.7 - retrospective skill, run with stakeholder: judge the combined result against spec.md; agree process lessons"]
         backlogOffer{"5.9 - Before done: offer each open work-backlog item from this spec as the next feature"}
-        done(["5.8 - Merge and close"])
+        done(["5.8 - Merge the spec branch into main through a PR and close"])
     end
 
     %% Model selection: the pre-launch hook resolves through resolve-launch.sh and rewrites every launch; the map stays with the launcher
@@ -208,7 +208,7 @@ flowchart TD
     inject -.->|"test-harness / e2e-browser profile; work_type passed explicitly"| harness
     inject -.->|"test-harness / e2e-browser profile; work_type passed explicitly"| browser
     pFile -.->|"toolchain to run"| toolAudit
-    dRules -.->|"ownership YAML generates tools/boundaries/ config"| toolAudit
+    dRules -.->|"ownership YAML generates .workflow/tools/boundaries/ config"| toolAudit
     pFile -.->|"the checklist that runs here"| miniReview
     toolAudit -.->|"tool output; the lens does not re-lint"| aStd
     pFile -.->|"conformance baseline"| aStd
@@ -288,7 +288,7 @@ flowchart TD
     gOpen -->|"No"| settle
     settle -->|"final goal"| spec
     settle --> gLight
-    gLight -->|"Yes: light path; writes the one-task tasks.md and budget, status: ready-for-dev; no 2.6 check"| orch
+    gLight -->|"Yes: light path; creates the spec branch, writes the one-task tasks.md, its task file and budget, status: ready-for-dev; no 2.6 check"| orch
     gLight -->|"No: full path"| impact
     ask -.->|"appends the round and its answers"| dlog
     deepdive -.-> dlog
@@ -418,7 +418,7 @@ flowchart TD
     reenter -->|"status: draft"| answerable
     backlogOffer -->|"Every item started, kept open or moved; or no items"| retro
     retro -->|"status: done, from in-review"| done
-    backlogOffer -->|"Move to deferred/: moved-to-deferred"| defFile
+    backlogOffer -->|"Move to .workflow/deferred/: moved-to-deferred"| defFile
     backlogOffer -.->|"Start: hand off to a new spec seeded via 0.1; its 0.1.4 marks the item promoted"| intake
     dwItem -.->|"open items from this spec"| backlogOffer
 
@@ -448,7 +448,7 @@ flowchart TD
     dwResume -->|"status restored from blocked_from"| spec
     retro -->|"agreed lessons, pitfalls, action items"| dLog
     retro -->|"what this feature taught"| dlog
-    retro -.->|"model observations: map entry, or agent-overrides.yaml if the definition pins the model"| modelFile
+    retro -.->|"model observations: map entry, or .workflow/agent-overrides.yaml if the definition pins the model"| modelFile
     adrDoc --> dLog
     evidence -.->|"attached as evidence"| report
 

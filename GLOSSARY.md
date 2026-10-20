@@ -7,7 +7,7 @@ An agent-agnostic scaffold for coding-agent skills and hooks, living in `.agents
 ### Project knowledge
 
 **Tier A**:
-Authored project knowledge that cannot be derived from code: `GLOSSARY.md`, capabilities, rules, the decision log and the work profiles. The source of truth; agent-proposed, human-approved.
+Authored project knowledge that cannot be derived from code: `.workflow/GLOSSARY.md`, capabilities, rules, the decision log and the work profiles, all under the target's `.workflow/` folder. The source of truth; agent-proposed, human-approved.
 _Avoid_: Docs, wiki
 
 **Tier B**:
@@ -23,11 +23,11 @@ The decision record that says which module owns a change and why, written before
 _Avoid_: Placement note
 
 **Term gate**:
-A point in discovery where a new or ambiguous term must be agreed with the stakeholder and written to `GLOSSARY.md` before work continues.
+A point in discovery where a new or ambiguous term must be agreed with the stakeholder and written to `.workflow/GLOSSARY.md` before work continues.
 _Avoid_: Naming check
 
 **Deferred handoff**:
-Shelving an out-of-scope item as one file in `deferred/` with a back-link to its originating spec, so a later feature can pick it up.
+Shelving an out-of-scope item as one file in `.workflow/deferred/` with a back-link to its originating spec, so a later feature can pick it up.
 _Avoid_: Parking lot, TODO list
 
 ### Work classification
@@ -74,6 +74,24 @@ _Avoid_: Answerable set, question queue
 The gitignored per-spec file recording the workflow step the spec is currently at (and, while blocked, where it blocked from). Write guards read it to decide what may be written.
 _Avoid_: Progress file
 
+**Progress line**:
+The line that leads every orchestrator update to the stakeholder: the phase and the step's position in it, counted on the spec's path (`Phase 1 of 6 · step 23 of 47 — Discovery: Compute the frontier (0.3.8)`). Display only; derived from the **Step marker**, never stored (D84).
+_Avoid_: Status line (the host's context bar), progress bar
+
+### Branches and tasks
+
+**Spec branch**:
+The branch `spec/NNN-slug` that carries all of one spec's work, created off main at 1.1 (0.3.20 on the light path). Red by design from the Phase 1 commit until the last wave merges; reaches main only through the sign-off PR (D85).
+_Avoid_: Feature branch, integration branch
+
+**Task branch**:
+The short-lived branch `task/NNN-slug/Tnn-<slug>` one implementer works on, in its own worktree under `.workflow/.worktrees/`, forked from the **Spec branch** tip at wave start and deleted after it merges back (D85).
+_Avoid_: Worktree branch, feature branch
+
+**Task file**:
+The Markdown file `tasks/Tnn-<slug>.md` that holds one task's body (what to build, seam, acceptance criteria, predicted files, size, mode). The `tasks.md` index holds the task's record; the task file holds what the implementer reads (D85).
+_Avoid_: Ticket, task section
+
 ### Scope control
 
 **Discovered work**:
@@ -96,3 +114,4 @@ _Avoid_: Quota, cap
 - **Discovered work** that is not a blocker becomes an item in the **Work backlog**; out-of-scope items found during discovery go through a **Deferred handoff** instead.
 - A crossed **Size budget** is handled like **Discovered work**.
 - The **Deeper prompt** is the input from which the questioning loop computes its first **Frontier**.
+- Each task has one **Task file** and, on the full path, one **Task branch**; every **Task branch** forks from and merges into the spec's one **Spec branch**.

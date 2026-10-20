@@ -1,21 +1,29 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): the single writer for workflow status and the current-step marker.
-# Purpose: Write `status` (and `blocked_condition` while blocked) into specs/NNN-slug/spec.md frontmatter, or `status`/`work_type` into one task record of the tasks.md frontmatter `tasks:` array (YAML, via yq; D15). One writer, one place. Also writes the gitignored step marker specs/NNN-slug/.step that the write guards read through check-write.sh (D16).
+# Purpose: Write `status` (and `blocked_condition` while blocked) into .workflow/specs/NNN-slug/spec.md frontmatter, or `status`/`work_type` into one task record of the tasks.md frontmatter `tasks:` array (YAML, via yq; D15). One writer, one place. Also writes the gitignored step marker .workflow/specs/NNN-slug/.step that the write guards read through check-write.sh (D16).
 # Usage:
 #   status-transition.sh status <spec-dir> <new-status> [--step <node-id>] [--blocked <condition>] [--cwd <dir>]
 #       Spec status. Validates the transition against the table below, writes the frontmatter, then writes .step.
-#   status-transition.sh set-task <spec-dir> <task-id> [--status <status>] [--work-type <wt>] [--capability <id>] [--step <node-id>] [--cwd <dir>]
+#   status-transition.sh set-task <spec-dir> <task-id> [--status <status>] [--work-type <wt>] [--capability <id>] [--pr <url>|null] [--step <node-id>] [--cwd <dir>]
 #       The single writer for task records in tasks.md frontmatter (D45): task status (validated against the task table below),
 #       work_type (set once at 3.1; changing an existing value is refused) and capability (only with --step 5.3, rewriting a
-#       provisional CAP-NEW-<slug> to the assigned CAP-###; D44, D52). The result must pass the tasks.md schema
+#       provisional CAP-NEW-<slug> to the assigned CAP-###; D44, D52) and pr (the task PR/MR url the orchestrator opened at 3.16,
+#       or null to clear it; any step; D85). The other D85 record fields (file, branch, predicted_files, size, mode, parallel_with,
+#       tests) are fixed at 2.5 / 0.3.20 and have no flag. The result must pass the tasks.md schema
 #       validator from feature-workflow/assets/tasks.md, or nothing is written. Writes .step only when --step is given.
+#   status-transition.sh set-spec <spec-dir> [--spec-branch <spec/NNN-slug>] [--impl-base <sha>] [--step <node-id>] [--cwd <dir>]
+#       Writes the D85 spec.md frontmatter keys. spec_branch: must equal spec/<NNN-slug> of <spec-dir> and name an existing local
+#       branch; set at 1.1 (full path) or 0.3.20 (light path); an existing different value is refused. impl_base_revision: a commit
+#       (resolved to its full SHA) that must contain baseline_revision when that is set; set at 3.1 only; once set it is not
+#       overwritten (exit 2) unless the value is identical. --step names the node (required: 1.1 | 0.3.20 for --spec-branch,
+#       3.1 for --impl-base) and is written to .step. Refused (exit 2) while the spec is done.
 #   status-transition.sh step <spec-dir> <node-id> [--cwd <dir>]
 #       Step-only mode: set .step before a guarded write (spec.md: 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 4.8, 5.1, 5.3, 5.9, 00.29;
-#       tasks.md: 2.5, 0.3.20; specs/work-backlog/: 00.26, 5.9, 0.1.4; glossaries: 0.2.3, 0.3.15, 0.4.3, 5.3; other Tier A: 0.3.7, 5.3, 5.7; new profile: 00.19 — see check-write.sh).
+#       tasks.md: 2.5, 0.3.20; .workflow/specs/work-backlog/: 00.26, 5.9, 0.1.4; glossaries: 0.2.3, 0.3.15, 0.4.3, 5.3; other Tier A: 0.3.7, 5.3, 5.7; new profile: 00.19 — see check-write.sh).
 #       Any node id of the form N(.N)* is accepted, including 00.21-00.29, 2.6, 3.15, 3.16 and 5.9. `step <dir> 0.1.4` works before
 #       spec.md exists (the folder must exist), so 0.1.4 can create spec.md with Write.
 #       While blocked, step mode keeps blocked_from, so the D56 protocol can write at 00.26 / 00.29 and still resume at 00.28.
-#   <spec-dir> is `specs/NNN-slug` (relative to the project root, or an absolute path ending in it).
+#   <spec-dir> is `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it).
 # Worktrees (D18): spec.md, tasks.md and .step are always read and written in the MAIN checkout, found with
 #   `git rev-parse --git-common-dir` from --cwd (default: $PWD). Gitignored .step exists only there.
 #
@@ -70,10 +78,13 @@
 # Exit codes: 0 done; 1 usage or environment error (missing yq, not a git repo, missing file, schema failure); 2 illegal transition (deny), matching check-write.sh and resolve-launch.sh.
 # Called by: the phase modules (discovery, verification-setup, task-breakdown, implementation-orchestrator, review-triage, sign-off), domain-modeling and retrospective before guarded writes.
 # Plan refs: 0.1.4, 0.3.20, 0.6, 3.1, 3.9, 3.11, 3.14, 3.16, 4.7, 5.7, 00.21, 00.24, 00.28, 00.29 (in-review at 3.11, or 3.14 on a light path without suites, D29); reference "Helper scripts" (Status transition), "Status", "Discovered work"; assetlist D7, D15, D16, D18, D38, D44, D45, D47-D49, D52, D53, D56, D58, D59, D68.
-# Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; spec-single-writer-guard rejects status edits made by Write/Edit. The deny rule Edit(specs/*/.step) stops file tools forging the marker (D36). The marker is accident prevention, not security (D16). install.sh / project-setup add `specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place; D38).
+# Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; spec-single-writer-guard rejects status edits made by Write/Edit. The deny rule Edit(.workflow/specs/*/.step) stops file tools forging the marker (D36). The marker is accident prevention, not security (D16). install.sh / project-setup add `.workflow/specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place; D38).
 # Sources: first-party; PLAN/decision-flow-reference.md "Status", "Per-feature files", "Helper scripts", "Discovered work"; PLAN/decision-flow.mermaid status edges; assetlist D7, D15, D16, D18, D29, D36, D38, D44, D45, D47-D49, D52, D53, D56, D58, D59, D68; tasks.md validator from feature-workflow/assets/tasks.md. Pattern: skills/data-structure-audit/scripts/audit_scope.sh (sub-commands, git anchoring).
 
 set -euo pipefail
+
+# shellcheck source=../../../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
 PROG=status-transition.sh
 SPEC_STATUSES="draft ready-for-dev in-progress in-review done blocked"
@@ -86,7 +97,8 @@ usage() {
   cat >&2 <<'EOF'
 usage:
   status-transition.sh status <spec-dir> <new-status> [--step <node-id>] [--blocked <condition>] [--cwd <dir>]
-  status-transition.sh set-task <spec-dir> <task-id> [--status <status>] [--work-type <wt>] [--capability <id>] [--step <node-id>] [--cwd <dir>]
+  status-transition.sh set-task <spec-dir> <task-id> [--status <status>] [--work-type <wt>] [--capability <id>] [--pr <url>|null] [--step <node-id>] [--cwd <dir>]
+  status-transition.sh set-spec <spec-dir> [--spec-branch <spec/NNN-slug>] [--impl-base <sha>] --step <node-id> [--cwd <dir>]
   status-transition.sh step   <spec-dir> <node-id> [--cwd <dir>]
 EOF
   exit 1
@@ -119,16 +131,17 @@ main_root() {
   fi
 }
 
-# Normalise <spec-dir> to `specs/NNN-slug`.
+# Normalise <spec-dir> to `.workflow/specs/NNN-slug`.
 norm_spec_dir() {
   local d=$1
   d=${d%/}
   d=${d#./}
   if [[ "$d" == /* ]]; then
-    d="specs/$(basename "$d")"
-    [[ "$(basename "$(dirname "$1")")" == "specs" ]] || die "spec dir must be specs/NNN-slug: $1"
+    [[ "$(dirname "$d")" == */"$WF_SPECS" ]] || die "spec dir must be $WF_SPECS/NNN-slug: $1"
+    d="$WF_SPECS/$(basename "$d")"
   fi
-  [[ "$d" =~ ^specs/[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || die "spec dir must be specs/NNN-slug: $1"
+  [[ "$d" == "$WF_SPECS"/* && "${d#"$WF_SPECS"/}" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
+    || die "spec dir must be $WF_SPECS/NNN-slug: $1"
   printf '%s\n' "$d"
 }
 
@@ -154,26 +167,38 @@ write_marker() {
 }
 
 # Validator copied verbatim from feature-workflow/assets/tasks.md ("Read and validate with yq"; capability regex per D44); keep the two identical. Applied to the result of every set-task write.
+# D85 record fields (file, branch, predicted_files, size, mode, parallel_with, tests, pr) are optional for older task lists, but validated when present.
+# yq note: `as $n | ...` binds tighter than `and`, so the whole per-record body is parenthesised after the binding.
+# shellcheck disable=SC2016 # yq variables ($n), not shell expansions
 TASKS_VALIDATOR='
   (.tasks | tag) == "!!seq" and (.tasks | length) > 0 and
   ([.tasks[].id] | unique | length) == (.tasks | length) and
-  ([.tasks[] | select(
+  ([.tasks[] | select((.id | sub("^T"; "")) as $n | (
       (.id | test("^T[0-9]+$")) and
       (.status | test("^(pending|in-progress|done|blocked|split-out)$")) and
       ((.depends_on | tag) == "!!seq") and
       ((.touches_core | tag) == "!!bool") and
       (.capability | test("^CAP-([0-9]{3,}|NEW-[a-z0-9]+(-[a-z0-9]+)*)$")) and
-      ((.work_type | tag) == "!!null" or (.work_type | tag) == "!!str")
-    )] | length) == (.tasks | length)'
+      ((.work_type | tag) == "!!null" or (.work_type | tag) == "!!str") and
+      ([.file == null, ([(.file | tag) == "!!str", ((.file // "") | tostring | test("^tasks/T0*" + $n + "-[A-Za-z0-9][A-Za-z0-9._-]*[.]md$"))] | all)] | any) and
+      ([.branch == null, ([(.branch | tag) == "!!str", ((.branch // "") | tostring | test("^task/[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*/T0*" + $n + "-[A-Za-z0-9][A-Za-z0-9._-]*$"))] | all)] | any) and
+      ([.predicted_files == null, ([(.predicted_files | tag) == "!!seq", ([.predicted_files[] | select(tag == "!!str" and . != "")] | length) == (.predicted_files | length)] | all)] | any) and
+      ([.size == null, ([(.size | tag) == "!!map", (.size.files | tag) == "!!int", ((.size.files // "") | tostring | test("^[0-9]+$")), (.size.est_lines | tag) == "!!int", ((.size.est_lines // "") | tostring | test("^[0-9]+$")), ((.size.points // "") | test("^(S|M|L)$"))] | all)] | any) and
+      ([.mode == null, ((.mode | tag) == "!!str" and ((.mode // "") | tostring | test("^(afk|hitl)$")))] | any) and
+      ([.parallel_with == null, ([(.parallel_with | tag) == "!!seq", ([.parallel_with[] | select(tag == "!!str") | select(test("^T[0-9]+$"))] | length) == (.parallel_with | length)] | all)] | any) and
+      ([.tests == null, ([(.tests | tag) == "!!seq", ([.tests[] | select(tag == "!!str" and . != "")] | length) == (.tests | length)] | all)] | any) and
+      ([.pr == null, ((.pr | tag) == "!!str" and ((.pr // "") | tostring | test("^https?://[^[:space:]]+$")))] | any)
+    ))] | length) == (.tasks | length)
+'
 
 # ---------------------------------------------------------------- arguments
 [[ $# -ge 1 ]] || usage
 MODE=$1; shift
-case "$MODE" in status|step|set-task) ;; -h|--help) usage ;; *) die "unknown mode '$MODE' (status|step|set-task)";; esac
+case "$MODE" in status|step|set-task|set-spec) ;; -h|--help) usage ;; *) die "unknown mode '$MODE' (status|step|set-task|set-spec)";; esac
 
 POS=()
 OPT_STEP="" OPT_BLOCKED="" HAVE_BLOCKED=0 OPT_CWD=$PWD
-OPT_TSTATUS="" HAVE_WT=0 OPT_WT="" OPT_CAP=""
+OPT_TSTATUS="" HAVE_WT=0 OPT_WT="" OPT_CAP="" HAVE_PR=0 OPT_PR="" OPT_SBRANCH="" OPT_IBASE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --step)      [[ $# -ge 2 ]] || usage; OPT_STEP=$2; shift 2 ;;
@@ -182,14 +207,20 @@ while [[ $# -gt 0 ]]; do
     --status)    [[ $# -ge 2 ]] || usage; OPT_TSTATUS=$2; shift 2 ;;
     --work-type) [[ $# -ge 2 ]] || usage; OPT_WT=$2; HAVE_WT=1; shift 2 ;;
     --capability) [[ $# -ge 2 ]] || usage; OPT_CAP=$2; shift 2 ;;
+    --pr)        [[ $# -ge 2 ]] || usage; OPT_PR=$2; HAVE_PR=1; shift 2 ;;
+    --spec-branch) [[ $# -ge 2 ]] || usage; OPT_SBRANCH=$2; shift 2 ;;
+    --impl-base) [[ $# -ge 2 ]] || usage; OPT_IBASE=$2; shift 2 ;;
     --*)         die "unknown option: $1" ;;
     *)           POS+=("$1"); shift ;;
   esac
 done
-[[ ${#POS[@]} -eq 2 ]] || usage
+if [[ "$MODE" == "set-spec" ]]; then [[ ${#POS[@]} -eq 1 ]] || usage; else [[ ${#POS[@]} -eq 2 ]] || usage; fi
 [[ -d "$OPT_CWD" ]] || die "--cwd is not a directory: $OPT_CWD"
-if [[ "$MODE" != "set-task" && ( -n "$OPT_TSTATUS$OPT_CAP" || $HAVE_WT -eq 1 ) ]]; then
-  die "--status, --work-type and --capability belong to set-task mode"
+if [[ "$MODE" != "set-task" && ( -n "$OPT_TSTATUS$OPT_CAP" || $HAVE_WT -eq 1 || $HAVE_PR -eq 1 ) ]]; then
+  die "--status, --work-type, --capability and --pr belong to set-task mode"
+fi
+if [[ "$MODE" != "set-spec" && -n "$OPT_SBRANCH$OPT_IBASE" ]]; then
+  die "--spec-branch and --impl-base belong to set-spec mode"
 fi
 
 ROOT=$(main_root "$OPT_CWD")
@@ -236,7 +267,7 @@ fi
 if [[ "$MODE" == "set-task" ]]; then
   TASK_ID=${POS[1]}
   [[ $HAVE_BLOCKED -eq 0 ]] || die "--blocked applies to spec status only; task records have no blocked_condition"
-  [[ -n "$OPT_TSTATUS$OPT_CAP" || $HAVE_WT -eq 1 ]] || die "set-task needs --status, --work-type and/or --capability"
+  [[ -n "$OPT_TSTATUS$OPT_CAP" || $HAVE_WT -eq 1 || $HAVE_PR -eq 1 ]] || die "set-task needs --status, --work-type, --capability and/or --pr"
   [[ "$CUR" != "done" ]] || illegal "$SPEC_DIR is done; its task records cannot change"
   [[ "$TASK_ID" =~ ^T[0-9]+$ ]] || die "task id must look like T<n>: $TASK_ID"
   [[ -f "$TASKS" ]] || die "tasks.md not found in the main checkout: $TASKS"
@@ -272,12 +303,12 @@ if [[ "$MODE" == "set-task" ]]; then
     MSG="status $TCUR -> $OPT_TSTATUS"
   fi
   if [[ $HAVE_WT -eq 1 ]]; then
-    [[ "$OPT_WT" =~ ^[a-z0-9][a-z0-9._-]*$ ]] || die "work type must name profiles/<work-type>.md (lowercase, digits, . _ -): '$OPT_WT'"
+    [[ "$OPT_WT" =~ ^[a-z0-9][a-z0-9._-]*$ ]] || die "work type must name $WF_PROFILES/<work-type>.md (lowercase, digits, . _ -): '$OPT_WT'"
     if [[ -n "$WCUR" && "$WCUR" != "$OPT_WT" ]]; then
       illegal "task $TASK_ID in $SPEC_DIR is already classified as '$WCUR'; a work type is set once at 3.1 and not reclassified"
     fi
-    [[ -f "$ROOT/profiles/$OPT_WT.md" ]] \
-      || printf '%s: warning: profiles/%s.md does not exist yet; pre-launch will deny coding launches until it does (00.19)\n' "$PROG" "$OPT_WT" >&2
+    [[ -f "$ROOT/$WF_PROFILES/$OPT_WT.md" ]] \
+      || printf '%s: warning: %s/%s.md does not exist yet; pre-launch will deny coding launches until it does (00.19)\n' "$PROG" "$WF_PROFILES" "$OPT_WT" >&2
     export WTV=$OPT_WT
     EXPR="$EXPR | (.tasks[] | select(.id == strenv(TID)) | .work_type) = strenv(WTV)"
     MSG="${MSG:+$MSG, }work_type ${WCUR:-null} -> $OPT_WT"
@@ -294,6 +325,20 @@ if [[ "$MODE" == "set-task" ]]; then
     EXPR="$EXPR | (.tasks[] | select(.id == strenv(TID)) | .capability) = strenv(CAPV)"
     MSG="${MSG:+$MSG, }capability ${CCUR} -> $OPT_CAP"
   fi
+  if [[ $HAVE_PR -eq 1 ]]; then
+    PCUR=$(yq --front-matter=extract '.tasks[] | select(.id == strenv(TID)) | .pr // ""' "$TASKS")
+    if [[ "$OPT_PR" == "null" || -z "$OPT_PR" ]]; then
+      EXPR="$EXPR | (.tasks[] | select(.id == strenv(TID)) | .pr) = null"
+      MSG="${MSG:+$MSG, }pr ${PCUR:-null} -> null"
+    else
+      [[ "$OPT_PR" =~ ^https?://[^[:space:]]+$ ]] || die "--pr must be an http(s) URL of the task PR/MR, or null: '$OPT_PR'"
+      [[ -z "$PCUR" || "$PCUR" == "$OPT_PR" ]] \
+        || printf '%s: warning: task %s pr %s replaced by %s\n' "$PROG" "$TASK_ID" "$PCUR" "$OPT_PR" >&2
+      export PRV=$OPT_PR
+      EXPR="$EXPR | (.tasks[] | select(.id == strenv(TID)) | .pr) = strenv(PRV)"
+      MSG="${MSG:+$MSG, }pr ${PCUR:-null} -> $OPT_PR"
+    fi
+  fi
   TMP=$(mktemp "${TASKS}.XXXXXX")
   cp "$TASKS" "$TMP"
   yq --front-matter=process -i "$EXPR" "$TMP" || { rm -f "$TMP"; die "cannot update $TASKS"; }
@@ -308,6 +353,49 @@ if [[ "$MODE" == "set-task" ]]; then
     write_marker "$MARKER" "$OPT_STEP" "$from"
   fi
   printf '%s: %s task %s: %s%s\n' "$PROG" "$SPEC_DIR" "$TASK_ID" "$MSG" "${OPT_STEP:+ (step $OPT_STEP)}"
+  exit 0
+fi
+
+# ---------------------------------------------------------------- set-spec mode (D85)
+if [[ "$MODE" == "set-spec" ]]; then
+  [[ $HAVE_BLOCKED -eq 0 ]] || die "--blocked applies to spec status only"
+  [[ -n "$OPT_SBRANCH$OPT_IBASE" ]] || die "set-spec needs --spec-branch and/or --impl-base"
+  [[ -n "$OPT_STEP" ]] || die "set-spec needs --step (1.1 | 0.3.20 for --spec-branch, 3.1 for --impl-base)"
+  [[ "$CUR" != "done" ]] || illegal "$SPEC_DIR is done; its frontmatter cannot change"
+  EXPR="." MSG=""
+  if [[ -n "$OPT_SBRANCH" ]]; then
+    in_list "$OPT_STEP" "1.1 0.3.20" || illegal "$SPEC_DIR: spec_branch is set only at 1.1 (full path) or 0.3.20 (light path), not at $OPT_STEP (D85)"
+    want="spec/${SPEC_DIR#"$WF_SPECS"/}"
+    [[ "$OPT_SBRANCH" == "$want" ]] || die "spec_branch must be $want for $SPEC_DIR: '$OPT_SBRANCH'"
+    git -C "$ROOT" show-ref --verify --quiet "refs/heads/$OPT_SBRANCH" \
+      || die "spec_branch $OPT_SBRANCH is not a local branch in $ROOT; create it first (git switch -c $OPT_SBRANCH)"
+    SCUR=$(yq --front-matter=extract '.spec_branch // ""' "$SPEC")
+    [[ -z "$SCUR" || "$SCUR" == "$OPT_SBRANCH" ]] || illegal "$SPEC_DIR already names spec_branch '$SCUR'"
+    export SBV=$OPT_SBRANCH
+    EXPR="$EXPR | .spec_branch = strenv(SBV)"
+    MSG="spec_branch ${SCUR:-null} -> $OPT_SBRANCH"
+  fi
+  if [[ -n "$OPT_IBASE" ]]; then
+    [[ "$OPT_STEP" == "3.1" ]] || illegal "$SPEC_DIR: impl_base_revision is set only at 3.1, not at $OPT_STEP (D85)"
+    [[ "$OPT_IBASE" =~ ^[0-9a-fA-F]{7,40}$ || "$OPT_IBASE" =~ ^[A-Za-z0-9._/@^~-]+$ ]] || die "--impl-base must be a commit: '$OPT_IBASE'"
+    SHA=$(git -C "$ROOT" rev-parse --verify --quiet "${OPT_IBASE}^{commit}") || die "--impl-base $OPT_IBASE is not a commit in $ROOT"
+    BASEREV=$(yq --front-matter=extract '.baseline_revision // ""' "$SPEC")
+    if [[ -n "$BASEREV" && "$BASEREV" != "null" ]]; then
+      git -C "$ROOT" merge-base --is-ancestor "$BASEREV" "$SHA" 2>/dev/null \
+        || die "impl_base_revision $SHA does not contain baseline_revision $BASEREV; it must be the spec-branch tip after Phase 1"
+    fi
+    ICUR=$(yq --front-matter=extract '.impl_base_revision // ""' "$SPEC")
+    [[ "$ICUR" == "null" ]] && ICUR=""
+    [[ -z "$ICUR" || "$ICUR" == "$SHA" ]] || illegal "$SPEC_DIR already has impl_base_revision $ICUR; it is set once at 3.1 and never overwritten"
+    export IBV=$SHA
+    EXPR="$EXPR | .impl_base_revision = strenv(IBV)"
+    MSG="${MSG:+$MSG, }impl_base_revision ${ICUR:-null} -> $SHA"
+  fi
+  yq --front-matter=process -i "$EXPR" "$SPEC" || die "cannot update $SPEC"
+  from=""
+  [[ "$CUR" == "blocked" ]] && from=$MARK_FROM
+  write_marker "$MARKER" "$OPT_STEP" "$from"
+  printf '%s: %s %s (step %s)\n' "$PROG" "$SPEC_DIR" "$MSG" "$OPT_STEP"
   exit 0
 fi
 

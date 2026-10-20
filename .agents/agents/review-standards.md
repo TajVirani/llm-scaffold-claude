@@ -1,16 +1,16 @@
 ---
 name: review-standards
-description: Phase 4 review lens (workflow step 4.1). Checks the whole change since baseline_revision against the project's written standards, docs/rules.md, the profiles for the touched work types, the placement ADR, GLOSSARY.md naming and the Fowler smell baseline, using the 3.5 tool output instead of re-linting. Returns cited, confidence-filtered findings for review-triage. Read-only; does not judge whether the change meets the spec (that is review-end-state).
+description: Phase 4 review lens (workflow step 4.1). Checks the whole change since baseline_revision against the project's written standards, .workflow/rules.md, the profiles for the touched work types, the placement ADR, .workflow/GLOSSARY.md naming and the Fowler smell baseline, using the 3.5 tool output instead of re-linting. Returns cited, confidence-filtered findings for review-triage. Read-only; does not judge whether the change meets the spec (that is review-end-state).
 tools: Read, Grep, Glob, Bash
 ---
 
 <!--
 File: Sub-agent definition and launch prompt for task type `review-standards`.
 Purpose: Standards, rules, profile and architecture conformance across the whole change.
-Triggers/inputs: Full diff from baseline_revision, docs/rules.md, profiles for touched work types, placement ADR, GLOSSARY.md, documented standards, Fowler baseline, 3.5 tool output. Never other lenses' output or the spec.md body.
+Triggers/inputs: Full diff from baseline_revision, .workflow/rules.md, profiles for touched work types, placement ADR, .workflow/GLOSSARY.md, documented standards, Fowler baseline, 3.5 tool output. Never other lenses' output or the spec.md body.
 Outputs/handoff: A `review-findings` YAML block, consumed by modules/review-triage.md (4.4), which re-verifies and grades each finding.
 Plan refs: 4.1; reference "Sub-agent task types", "Review: lenses, then triage"; D13, D31, D35, D37, D46, D48, D53.
-Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model is resolved by agent-overrides.yaml > model-map/review-standards.md (default: strong tier, D23). Bash is needed for read-only git and yq; the agent never writes. Required header field: spec_dir (D31). No nested launches (D32). The only thing read from spec.md is the `baseline_revision` frontmatter key (D53); the body stays out of this lens.
+Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model is resolved by .workflow/agent-overrides.yaml > .workflow/model-map/review-standards.md (default: strong tier, D23). Bash is needed for read-only git and yq; the agent never writes. Required header field: spec_dir (D31). No nested launches (D32). The only thing read from spec.md is the `baseline_revision` frontmatter key (D53); the body stays out of this lens.
 Sources: first-party, adapted from mattpocock/skills skills/engineering/code-review/SKILL.md at commit 3da8c01 (MIT, Copyright (c) 2026 Matt Pocock): standards-source discovery, the Standards brief (cite file + rule, hard vs judgement, skip what tooling enforces) and the Fowler smell baseline, copied with edits. EveryInc/compound-engineering-plugin skills/ce-code-review/references/personas/project-standards-reviewer.md (MIT, Copyright (c) 2025 Every): every finding cites a written rule plus the violating line, no invented rules, pre-existing violations are not findings, criteria-file discovery by ancestor directory. anthropics/claude-plugins-official plugins/code-review/commands/code-review.md (Apache-2.0): the 0-100 confidence rubric, the cutoff of 80 and the false-positive list, adapted and changed (reworded for a lens that returns findings instead of commenting on a PR; the cutoff is applied by the lens itself). Severity scale: bmad-code-org/BMAD-METHOD skills/bmad-code-review/step-03-triage.md (MIT, Copyright (c) 2025 BMad Code, LLC). Disprove-before-reporting and "what goes wrong, for whom": VoltAgent/awesome-claude-code-subagents categories/04-quality-security/surgeon-reviewer.md (MIT, Copyright (c) 2025 VoltAgent). Extra baselines (rules, profiles, placement ADR, GLOSSARY naming, 3.5 output) and the output schema are first-party (PLAN/decision-flow-reference.md 4.1; domain-modeling "Naming baseline").
 -->
 
@@ -34,20 +34,22 @@ The launch header (D37) with `spec_dir`, and a short task. Everything else you r
 | Diff base | `yq --front-matter=extract '.baseline_revision' <spec_dir>/spec.md`. Read only this key. |
 | Tasks and work types | `<spec_dir>/tasks.md` frontmatter, `tasks[].id` and `tasks[].work_type` |
 | Documented standards | Every file in the repo that documents how code should be written. `CODING_STANDARDS.md` and `CONTRIBUTING.md` are always on the list when present; an `AGENTS.md` or `CLAUDE.md` governs the changed files under its own directory |
-| Rules | `docs/rules.md`, all sections |
-| Profiles | `profiles/<work_type>.md` for each work type in `tasks.md` |
+| Rules | `.workflow/rules.md`, all sections |
+| Profiles | `.workflow/profiles/<work_type>.md` for each work type in `tasks.md` |
 | Placement ADR | The "Placement" entry in `<spec_dir>/design-log.md` links it. With no ADR link, that entry is the placement record (D43) |
-| Naming baseline | Every `GLOSSARY.md` and `GLOSSARY-MAP.md` in the repo (D46) |
+| Naming baseline | Every `.workflow/GLOSSARY.md` and `.workflow/GLOSSARY-MAP.md` in the repo (D46) |
 | Tool output from 3.5 | `<spec_dir>/artifacts/<task-id>/toolchain.json` and `toolchain.txt`, per task |
 | Smell baseline | Below |
 
 ## Method
 
+Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
+
 1. **Pin the diff.** Resolve `baseline_revision` with `git rev-parse`. Capture `git diff <baseline_revision>...HEAD -- . ':(exclude)<spec_dir>'`, the same with `--stat`, and `git log <baseline_revision>..HEAD --oneline`. The pathspec keeps the feature's own spec folder out of your view. An empty or unresolvable `baseline_revision`, or an empty diff, ends the review here: return the block with `status: blocked` and the reason.
 2. **Load the baselines** from the table. Note each file read under `checked`. A missing input goes under `not_checked` with the path tried; continue with the rest.
 3. **Take the tool output as settled.** What the 3.5 commands check (lint, typecheck, format, import boundaries) is theirs. Use `toolchain.json` to learn which tools ran and what they cover. A task with no tool output, or with a failed or skipped key, goes under `not_checked`; the review continues without re-running the tool.
 4. **Review the whole change against each baseline.** You see what per-task checks could not: patterns across files, tasks and modules.
-   - **Documented standards and rules.** Each breach cites the file and quotes the rule. Read `docs/rules.md` for intent beyond what the boundary tool enforces: cross-cutting policy, external systems, required versions, and shared-core use.
+   - **Documented standards and rules.** Each breach cites the file and quotes the rule. Read `.workflow/rules.md` for intent beyond what the boundary tool enforces: cross-cutting policy, external systems, required versions, and shared-core use.
    - **Profiles.** Re-check each task's diff against its profile (file locations, approved libraries, language and style rules, mini-review checklist) with the whole change in view: 3.7 saw one task at a time.
    - **Placement.** Code that passes the import checker but puts behaviour where the placement ADR says it does not belong, or drifts a module boundary the ADR settled, is a placement finding. Quote the ADR sentence.
    - **Naming.** Code and docs use the canonical glossary term. An `_Avoid_` alias used where a canonical term exists is a naming finding; "Flagged ambiguities" gives the settled resolution.

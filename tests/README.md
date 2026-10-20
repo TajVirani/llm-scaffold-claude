@@ -43,7 +43,9 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 |---|---|
 | `scripts/status-transition-check-write` | `status-transition.sh`, `check-write.sh`, `budget-check.sh` |
 | `scripts/resolve-launch` | `resolve-launch.sh` |
+| `scripts/step-progress` | `step-progress.sh` (the D84 progress line: full and light totals, run-order positions, loop steps, 00.x with `--at`, intake, unknown ids, `--spec-dir` defaults) |
 | `scripts/run-toolchain` | `run-toolchain.sh` |
+| `scripts/task-breakdown-d85` | D85 helpers: `task-waves.sh` (overlaps, implied edges, `parallel_with`, cycles, waves, JSON), `rules-setting.sh` (`task_review`), `open-task-pr.sh` (gh/glab stubs, no network) and `run-toolchain.sh` test scoping (`tests`, `test_scoped`, `--exclude-unfinished`, `unscoped`) |
 | `scripts/cache-scripts` | `publish-cache.sh`, `cache-stamp-check.sh` |
 | `scripts/generate-boundary-config` | `generate-boundary-config.sh` |
 | `scripts/generate-codex-agents` | `hooks/generate-codex-agents.sh` |
@@ -55,8 +57,10 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | `hooks/block-destructive-git` | `block-destructive-git.sh` (blocked and allowed git forms, nested and wrapped commands, heredoc and quoted text not matched, Codex argv payload, fail closed without awk) |
 | `hooks/evidence-capture` | `evidence-capture.sh` (Playwright JSON report → `artifacts/` evidence) |
 | `hooks/write-guards` | `spec-single-writer-guard.sh`, `tier-a-write-guard.sh`, `tier-b-write-guard.sh`, `_guard-common.sh` |
+| `hooks/worktree-guard` | `worktree-write-guard.sh`, the worktree check in `codex-write-guard.sh` and `check-worktree-scope.sh` (D85: task sub-agents confined to `.workflow/.worktrees/s<NNN>_t<N>` or their isolation worktree; Bash needs a leading `cd <worktree> &&`; main session unaffected) |
 | `hooks/codex-adapters` | Codex adapters: `_codex-patch.sh` (apply_patch parser), `codex-write-guard.sh`, `codex-pre-spawn.sh`, `codex-rules-sync.sh` and their template wiring |
 | `lint/frontmatter` | `.agents/skills/*/SKILL.md` and `.agents/agents/*.md` frontmatter (parses with yq; `name` matches folder or file; `description`; agents have no `model:` (D35) and only `claude`/`codex` under `models:`; `disable-model-invocation` and STUB markers consistent with each other and with `PROVENANCE.md`) |
+| `lint/step-list` | `feature-workflow/references/steps.tsv` against the decision-flow reference and mermaid (same node ids, same ids per phase), the agreed per-phase counts, and every step id used by `status-transition.sh`, `check-write.sh` and the skills (D84) |
 | `lint/symlinks` | `.claude/{skills,agents,output-styles}` symlinks into `.agents/`, no `.claude/commands`, every hook command in `.claude/settings.json` and both hook templates names an executable `.agents/hooks/` script |
 | `lint/upstream-lineage` | `upstream-lineage.json` (schema per kind, enums, paths exist outside the vendored copies, no duplicates) and coverage: every upstream a first-party `Sources:` / `Adapted from` / `Copied from` line names has an entry, and no such line points at a missing `.agents/skills/<name>/` directory |
 | `hooks/codex-shim` | Codex path of `post-implementation-audit.sh`, `codex-hooks.template.json`, `codex-config.template.toml` (live `codex sandbox` check when codex is installed, skipped otherwise) |
