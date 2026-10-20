@@ -1,0 +1,141 @@
+# Ordered step list for the phase progress line, read by scripts/step-progress.sh. Display data only: guards,
+# status-transition.sh and the decision flow keep using the node ids; this file never changes what a step does.
+# Rows are in run order within each phase (0.3.22 before 0.3.8; 3.16 and 3.15 before 3.13 and 3.9), not id order.
+# Columns (tab-separated): id, phase, track, title.
+#   track  both | full | light   a counted step on both paths, the full path only, or the light path only
+#          phase                 a phase header: id P<n>, title is the phase name
+#          cross                 00.x cross-cutting node (persistent artifacts, model and profile lookup, discovered work);
+#                                not counted, shown after the linear step it was entered from (--at)
+#          intake                0.0.x sizing before a spec exists; no progress line
+#          side                  an artifact written alongside other steps, never a step of its own; not counted
+# Lines starting with # are comments. Keep in step with the workflow's node ids; the scaffold's tests/lint/step-list.sh checks this.
+id	phase	track	title
+P0	0	phase	Discovery
+P1	1	phase	Verification setup
+P2	2	phase	Task breakdown
+P3	3	phase	Implementation
+P4	4	phase	Review and triage
+P5	5	phase	Sign-off
+0.0	-	intake	Feature request
+0.0.1	-	intake	Trivial edit?
+0.0.2	-	intake	Edit directly
+0.1.1	0	both	Scan the specs folder
+0.1.2	0	both	Derive a slug
+0.1.3	0	both	Create the feature folder
+0.1.4	0	both	Write spec.md
+0.1.5	0	both	Came off the shelf?
+0.1.6	0	both	Draft the goal
+0.2.1	0	both	Identify the affected area
+0.2.2	0	both	Term gate
+0.2.3	0	both	Agree definition
+0.2.4	0	both	Retrieve context
+0.2.5	0	both	Evaluate libraries
+0.2.6	0	both	Write codebase-map.md
+0.2.7	0	both	Cache stamps match HEAD?
+0.2.8	0	both	Regenerate stale caches
+0.3.1	0	both	Capability already exists?
+0.3.2	0	both	Reframe
+0.3.3	0	both	Owning module clear?
+0.3.4	0	both	Resolve placement
+0.3.5	0	both	Conflicts with an ADR or rule?
+0.3.6	0	both	Conform or supersede
+0.3.7	0	both	ADR
+0.3.22	0	both	Deeper prompt
+0.3.8	0	both	Compute the frontier
+0.3.9	0	both	Any answerable?
+0.3.10	0	both	Look up facts
+0.3.11	0	both	Ask the round
+0.3.12	0	both	Any deferred to deep dive?
+0.3.13	0	both	Deep dive
+0.3.14	0	both	Term gate
+0.3.15	0	both	Agree definition
+0.3.16	0	both	Outside agreed scope?
+0.3.17	0	both	Write the deferred handoff
+0.3.18	0	both	Questions remaining?
+0.3.19	0	both	Confirm or revise the goal
+0.3.21	0	side	design-log.md
+0.3.20	0	both	Light-path test
+0.4.1	0	full	Map onto schema and interfaces
+0.4.2	0	full	Term gate
+0.4.3	0	full	Agree definition
+0.4.4	0	full	Classify the changes
+0.4.5	0	full	Write data-model.md
+0.4.6	0	full	Audit the owning module
+0.4.7	0	full	Conflicts with goal or placement?
+0.5.1	0	full	End state as testable objectives
+0.5.2	0	full	Name the journeys
+0.5.3	0	full	Fixtures and reference systems
+0.5.4	0	full	Write verification-plan.md
+0.6	0	full	Exit gate
+1.1	1	full	Measurable targets
+1.2	1	full	Harness and CI
+1.3	1	full	Browser suite
+1.4	1	full	Suites fail a known-bad build?
+1.5	1	full	Record the suites
+2.1	2	full	Split into vertical slices
+2.2	2	full	Specifiable?
+2.3	2	full	Interfaces under test agreed?
+2.4	2	full	Modifies shared core?
+2.5	2	full	Write tasks.md
+2.6	2	full	Within the size budget?
+3.1	3	both	Classify tasks and start
+3.2	3	both	Integration batches
+3.3	3	both	Launch the wave
+3.4	3	both	Negative and edge-case tests
+3.5	3	both	Run the toolchain
+3.6	3	both	Tool audit clean?
+3.7	3	both	Mini-review
+3.8	3	both	Mini-review passes?
+3.16	3	both	Merge the wave
+3.15	3	both	Within the size budget?
+3.13	3	both	Both suites exist?
+3.14	3	light	Record the suite gap
+3.9	3	both	Tests pass and CI green?
+3.10	3	both	Run the browser suite
+3.11	3	both	Journeys pass?
+3.12	3	side	Run artifacts
+4.1	4	both	Standards review
+4.2	4	both	End-state review
+4.3	4	both	Targets review
+4.4	4	both	Triage findings
+4.5	4	both	Route findings
+4.6	4	both	Third pass with findings?
+4.7	4	both	Rework attempts remaining?
+4.8	4	both	Deferred handoffs
+5.1	5	both	Reconcile spec.md
+5.2	5	both	Propose Tier A updates
+5.3	5	both	Approve the proposals
+5.4	5	both	Report
+5.5	5	both	Stakeholder approves?
+5.6	5	both	Re-enter on a change request
+5.9	5	both	Offer backlog items
+5.7	5	both	Retrospective
+5.8	5	both	Merge and close
+00.1	-	cross	Glossary
+00.2	-	cross	Capabilities index
+00.3	-	cross	Rules
+00.4	-	cross	Decision log
+00.5	-	cross	Module map
+00.6	-	cross	System flow diagrams
+00.7	-	cross	Architecture structure
+00.8	-	cross	Deferred handoff file
+00.9	-	cross	Archive a shelf item
+00.10	-	cross	Shelf archive
+00.11	-	cross	Model map
+00.12	-	cross	Pre-launch hook
+00.13	-	cross	Model assigned?
+00.14	-	cross	Assign a model
+00.16	-	cross	Profile template
+00.17	-	cross	Work profile
+00.18	-	cross	Task matches a profile?
+00.19	-	cross	Define the missing profile
+00.20	-	cross	Inject the profile
+00.21	-	cross	Discovered work: block
+00.22	-	cross	Discovered work: present
+00.23	-	cross	Discovered work: blocker?
+00.24	-	cross	Discovered work: back to discovery?
+00.25	-	cross	Discovered work: next feature?
+00.26	-	cross	Discovered work: write the backlog item
+00.27	-	cross	Discovered work: backlog item
+00.28	-	cross	Discovered work: resume
+00.29	-	cross	Size budget: split, re-scope or approve

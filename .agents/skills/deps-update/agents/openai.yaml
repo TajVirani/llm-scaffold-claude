@@ -1,0 +1,5 @@
+interface:
+  display_name: "Deps Update"
+  short_description: "Update bun dependencies with scaled regression checks"
+policy:
+  allow_implicit_invocation: false

@@ -11,29 +11,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-destructive-git.sh",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/inbox-stop.sh",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/recall-prompt.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/block-destructive-git.sh",
             "timeout": 10
           }
         ]
@@ -49,6 +27,10 @@
       "Bash(git diff:*)",
       "Bash(git fetch:*)",
       "Bash(git status:*)",
+      "Bash(tests/run-all.sh:*)",
+      "Bash(tests/hooks/*.sh:*)",
+      "Bash(tests/scripts/*.sh:*)",
+      "Bash(tests/lint/*.sh:*)",
       "WebSearch",
       "mcp__plugin_context7_context7__resolve-library-id",
       "mcp__plugin_context7_context7__query-docs"

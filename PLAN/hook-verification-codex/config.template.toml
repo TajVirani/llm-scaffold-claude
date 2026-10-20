@@ -1,0 +1,9 @@
+# Custom permissions profile. `extends = ":workspace"` is required: a profile that only lists
+# ":workspace_roots" entries gets no system read access and every sandboxed shell aborts (exit 134).
+default_permissions = "probe"
+
+[permissions.probe]
+extends = ":workspace"
+
+[permissions.probe.filesystem.":workspace_roots"]
+"docs/cache" = "read"

@@ -1,0 +1,91 @@
+---
+name: retrospective
+description: "Feature retrospective with the stakeholder: judges the combined result against spec.md, records process lessons and pitfalls, feature notes and model observations, and writes .workflow/decisions/retrospectives/NNN-slug.md. Use at sign-off (5.7), or when a stakeholder asks for a retrospective on a shipped feature."
+---
+
+# Retrospective
+
+Judge a finished feature against its spec with the stakeholder, and turn what the feature taught into records the next feature reads. Every finding and lesson carries a source reference (file:line, commit, test output, a `report.md` section). A claim you cannot point at is not a finding: drop it.
+
+## Inputs
+
+- **Spec folder** `.workflow/specs/NNN-slug/`. From `sign-off` at 5.7, the spec is `in-review`. Standalone, ask which spec, offering those with `status: done`.
+- **Output** `.workflow/decisions/retrospectives/NNN-slug.md`, with the same `NNN-slug` as the spec folder, from [assets/retrospective.md](assets/retrospective.md).
+
+## Writes and the step marker
+
+The retrospective writes these files, each with the stakeholder's agreement:
+
+| File | Tier | What |
+| --- | --- | --- |
+| `.workflow/decisions/retrospectives/NNN-slug.md` | A | The document |
+| `.workflow/decisions/pitfalls.md` | A | Observed failures only |
+| `.workflow/specs/NNN-slug/design-log.md` | — | One appended "Retrospective notes" section |
+| `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` | — | Model observations |
+
+At 5.7, set the step before the first Tier A write, so `tier-a-write-guard` allows it:
+
+```bash
+.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.7
+```
+
+Standalone with no spec in flight, the guard allows Tier A writes without a step. If another spec is in flight, the guard denies them: stop and report the denial with the agreed text, so the human can apply it once that spec is done.
+
+Write Tier A files with Write or Edit, never through Bash. The retrospective does not change `status`: `sign-off` sets `done` after it returns. It never edits `rules.md`, profiles, skills or `.agents/agents/*.md`: those changes become action items.
+
+## Steps
+
+### 1. Open or resume the document
+
+If `.workflow/decisions/retrospectives/NNN-slug.md` exists, read it, check what it records against the current evidence (the evidence wins), and resume at the first incomplete step. Otherwise, set the step (at 5.7), then copy the template with `spec`, `date` and the title filled in. Write each step's result into the document as you finish it: the document is the working state.
+
+Done when the document exists and you know which step to start from.
+
+### 2. Gather the evidence
+
+Read [modules/evidence.md](modules/evidence.md) and fill **Summary**. Then ask the stakeholder for their going-in concerns ("anything you want weighed: a task that felt rushed, a review finding that worried you?"). A concern directs the analysis, but it becomes a finding only once you can tie it to a source.
+
+Done when Summary lists every evidence source as available or missing.
+
+### 3. Judge the result against the spec
+
+Judge the combined result of all tasks against `spec.md`, not task by task. Give one row per Capability (`CAP-###`), constraint and success signal in `spec.md`, and per journey and target in `verification-plan.md`. Mark each met, partly or no, with its evidence. List anything built that the spec did not ask for. Fill **Behavior verification** from `report.md` and `artifacts/`, and when runtime behavior was not exercised, say so.
+
+Done when every spec item has a row with evidence.
+
+### 4. Findings and follow-through
+
+- **Findings.** Take the open findings from the triage entries in `design-log.md`, the known gaps in `report.md` and anything step 3 surfaced. Re-check each one against its source; drop any whose source does not hold up. Give each a disposition: `fix now` (it becomes an action item), `defer` (link the `.workflow/deferred/` file), or `accept` (with the reason).
+- **Previous retrospective.** Open the highest-numbered other file in `.workflow/decisions/retrospectives/`. For each of its action items, record whether it landed, with the commit, file or check that shows it. An item you cannot point at is "no evidence found", which is not the same as "not done". With no earlier file, write "No earlier retrospective."
+
+Done when every finding has a disposition, and every earlier action item has a line.
+
+### 5. Agree the lessons with the stakeholder
+
+Read [modules/routing.md](modules/routing.md). Present the candidate process lessons, pitfalls, feature notes and model observations together, each with its source and proposed destination. The stakeholder approves, changes or rejects each one. Write only the approved ones, each to its destination, and record where each went in the document.
+
+Done when every candidate is written, turned into an action item, or recorded as rejected.
+
+### 6. Verdict and action items
+
+Compile **Action items**: fix-now findings, and approved lessons whose destination this skill cannot write (rules, profiles, skills, tool rules). Give each one an owner, and mark it "awaiting human application".
+
+Then render the machine verdict:
+
+- `accepted`: the spec items are met, no blocking finding is open, and every task in `tasks.md` is `done` or `split-out`.
+- `accepted-with-open-items`: the spec items are met, but named findings or known gaps remain and are deferred or tracked.
+- `rejected`: a spec item is not met, a blocking finding is unresolved, or a task is neither `done` nor `split-out`. A `split-out` task never counts as unfinished.
+
+The stakeholder's decision overrides the machine verdict; record both when they differ. A spec that fails its items with no stakeholder decision is recorded as not accepted, never as accepted by default. Write the verdict to the frontmatter and to **Acceptance verdict**, keeping the two in sync.
+
+Done when the frontmatter `verdict` matches the section, and every action item has an owner.
+
+### 7. Finish
+
+Fill **Open questions** ("None." if empty), replace any placeholder left in the document, and delete the template comment. Return to the caller with the document path and the verdict. At 5.7 that caller is `sign-off`, which sets `done` and moves on to 5.8.
+
+## Done
+
+- `.workflow/decisions/retrospectives/NNN-slug.md` exists, every section is filled or says "None.", and it holds no placeholder.
+- Every approved pitfall is in `pitfalls.md`, every feature note is in `design-log.md`, and every model observation is in its one destination (the model map for that task type).
+- Every Tier A write happened with the 5.7 step set, or outside any in-flight feature.

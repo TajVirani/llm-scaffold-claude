@@ -1,0 +1,13 @@
+{
+  "hooks": {
+    "SessionStart": [{"hooks":[{"type":"command","command":"__HOOKTEST_DIR__/hooks/log.sh SessionStart"},{"type":"command","command":"\"$CLAUDE_PROJECT_DIR\"/../hooks/log.sh SessionStart cpd"}]}],
+    "PreToolUse": [
+      {"matcher":"*","hooks":[{"type":"command","command":"__HOOKTEST_DIR__/hooks/log.sh PreToolUse"},{"type":"command","command":"\"$CLAUDE_PROJECT_DIR\"/../hooks/log.sh PreToolUse cpd"}]},
+      {"matcher":"Agent|Task","hooks":[{"type":"command","command":"__HOOKTEST_DIR__/hooks/pre_agent_rewrite.sh"}]},
+      {"matcher":"Write|Edit","hooks":[{"type":"command","command":"__HOOKTEST_DIR__/hooks/pre_write_allow.sh"},{"type":"command","command":"__HOOKTEST_DIR__/hooks/pre_write_deny.sh"}]}
+    ],
+    "PostToolUse": [{"matcher":"*","hooks":[{"type":"command","command":"__HOOKTEST_DIR__/hooks/log.sh PostToolUse"}]}],
+    "SubagentStart": [{"hooks":[{"type":"command","command":"__HOOKTEST_DIR__/hooks/subagent_start.sh"}]}],
+    "SubagentStop": [{"hooks":[{"type":"command","command":"__HOOKTEST_DIR__/hooks/subagent_stop.sh"}]}]
+  }
+}

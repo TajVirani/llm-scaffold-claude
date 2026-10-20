@@ -1,0 +1,89 @@
+# Install payload for install.sh. First-party assets only; vendored skills never ship.
+# Format: one path per line, relative to .agents/. A directory means every file under it (recursively);
+# a line with * ? or [ is a shell glob matched against files. Blank lines and lines starting with # are ignored.
+# install.sh fails if a line matches nothing, so keep this file in step with .agents/ and PROVENANCE.md.
+# Every line here must be a first-party row in PROVENANCE.md. Add the row and the line in the same change.
+
+# This manifest itself (so the installed copy records what shipped).
+install-manifest.txt
+
+# --- Workflow 2.0 skills
+skills/feature-workflow
+skills/project-setup
+skills/regenerate-caches
+skills/domain-modeling
+skills/retrospective
+skills/deeper-prompt
+skills/handoff
+skills/project-standards
+
+# --- Agents (12)
+agents/cache-regeneration.md
+agents/fact-lookup.md
+agents/implementation.md
+agents/integration.md
+agents/library-evaluation.md
+agents/module-audit.md
+agents/profile-mini-review.md
+agents/retrieval.md
+agents/review-end-state.md
+agents/review-standards.md
+agents/review-targets.md
+agents/standards-discovery.md
+
+# --- Shared path helper: the workflow root and every path under it, sourced by hooks and skill scripts
+lib/workflow-paths.sh
+
+# --- Claude hooks (9 workflow hooks + shared helper) and the destructive-git guard (wired by both templates; also the Codex Bash guard)
+hooks/_guard-common.sh
+hooks/evidence-capture.sh
+hooks/post-implementation-audit.sh
+hooks/pre-launch.sh
+hooks/rules-boundary-config-sync.sh
+hooks/session-start-resume.sh
+hooks/spec-single-writer-guard.sh
+hooks/tier-a-write-guard.sh
+hooks/tier-b-write-guard.sh
+hooks/worktree-write-guard.sh
+hooks/block-destructive-git.sh
+
+# --- Codex adapters, parser and agent generator (generate-codex-agents.sh runs in the target)
+hooks/_codex-patch.sh
+hooks/codex-pre-spawn.sh
+hooks/codex-rules-sync.sh
+hooks/codex-write-guard.sh
+hooks/generate-codex-agents.sh
+
+# --- Installer inputs, shipped as reference copies only. install.sh always merges from the scaffold's own copies;
+# the installed ones document what was merged into .claude/settings.json and .codex/ (and the hook scripts cite them).
+# They are not skills and nothing in the target executes them.
+hooks/claude-settings.template.json
+hooks/claude-settings.template.md
+hooks/codex-hooks.template.json
+hooks/codex-config.template.toml
+
+# --- Output style
+output-styles/concise-technical.md
+
+# --- Other first-party skills
+skills/data-structure-audit
+skills/pr-review-data
+skills/deps-audit
+skills/deps-update
+skills/design-pattern-doc
+skills/glab
+skills/pr-quality
+skills/visual-change-report
+skills/writing-for-agents
+
+# --- Status line (first-party, user-written), wired as statusLine in hooks/claude-settings.template.json
+hooks/context-bridge.cjs
+
+# --- Excluded: vendored skills. None remain: handoff and writing-for-agents are first-party, the rest were
+# deleted. Vendored skills are never installed into target projects.
+# --- Excluded: .agents/README.md (scaffold-repo note about the data-structure-audit bundle).
+# --- Project-owned, never shipped and never touched on upgrade: .workflow/design-pattern-doc/conventions.md (from
+# skills/design-pattern-doc/CONVENTIONS-FORMAT.md) and .workflow/pr-quality/*.md project checks (from
+# skills/pr-quality/assets/project-check.template.md). Only the templates ship, inside the skill directories above.
+# --- Excluded, outside .agents/ (scaffold-only): PLAN/, tests/, assetlist.md, organization.md, checklist.md,
+# PROVENANCE.md, upstream-lineage.json, CHANGELOG.md, install.sh, .codex/README.md.
