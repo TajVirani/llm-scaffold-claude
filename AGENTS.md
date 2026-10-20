@@ -33,6 +33,7 @@ Edit the scaffold here; never edit an installed copy.
 - New skills, agents, hooks, and output styles go in `.agents/`, never directly in `.claude/`.
 - `.claude/` holds only Claude-specific wiring. Do not add content there that another agent would need.
 - Edit `AGENTS.md`, not `CLAUDE.md`.
+- Code comments in this repo follow [readable-code.md](./.agents/skills/feature-workflow/references/readable-code.md): a comment gives the reason in plain words. Decision IDs and doc paths go in `assetlist.md`, `upstream-lineage.json` or `PROVENANCE.md`, never in code comments.
 - Skill templates live in the skill's `assets/` folder.
 - Update [PROVENANCE.md](./PROVENANCE.md) whenever you add, vendor, or remove anything under `.agents/`.
 - Vendored skills are temporary references, removed once rewritten. None remain: `handoff` and `writing-for-agents` are now first-party and shipped, all others were deleted (D78). We ship a first-party version of anything that affects how agents work; delete the vendored skill once that version exists and its lineage is in [upstream-lineage.json](./upstream-lineage.json). Cite upstream (`<repo>/<path>@<commit>`) in `Sources:` lines, never a vendored path. Vendored skills are never installed into target projects, and first-party assets must not depend on them at runtime. Add-ons unrelated to how agents work (anti-slop Oxlint plugins) are installed from upstream at a pinned commit instead of rebuilt (D71, D77, D78).

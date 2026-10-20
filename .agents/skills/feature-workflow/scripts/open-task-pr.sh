@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File: Helper script (not a hook): push one task branch and open its PR/MR into the spec branch (3.16, D85). Never blocks the workflow.
+# File: Helper script (not a hook): push one task branch and open its PR/MR into the spec branch (3.16). Never blocks the workflow.
 # Purpose: The task review record of task_review `pr` / `pr-blocking`: push the spec branch and the task branch to `origin`, then open a
 #   pull request (GitHub, gh) or merge request (GitLab, glab) from the task branch into the spec branch, and print its URL. Anything that
 #   prevents it (setting `local`, light-path task without a branch, no origin, unknown host, CLI missing or not logged in, push or create
@@ -8,7 +8,7 @@
 #   open-task-pr.sh <spec-dir> <task-id> [--cwd <dir>] [--record] [--dry-run]
 #     <spec-dir>  `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it).
 #     <task-id>   T<n>; its tasks.md record gives `branch`, `title` and `file`.
-#     --cwd       any directory in the project or one of its worktrees (default $PWD); git runs in the MAIN checkout (D18).
+#     --cwd       any directory in the project or one of its worktrees (default $PWD); git runs in the MAIN checkout.
 #     --record    after a PR/MR is opened (or found), write its URL with status-transition.sh set-task <spec-dir> <task-id> --pr <url> --step 3.16.
 #     --dry-run   print the push and create commands instead of running them (still exits 0).
 # Host choice: `git remote get-url origin`; a host containing "github" -> gh (gh pr create --base <spec_branch> --head <branch>), a host
@@ -20,8 +20,7 @@
 # Exit codes: 0 always once the arguments are valid (opened, reused, skipped or dry run); 1 usage error (bad arguments, spec or task
 #   not found).
 # Called by: modules/implementation-orchestrator.md (3.16) when rules-setting.sh task_review prints pr or pr-blocking.
-# Plan refs: 3.16; assetlist D18, D38, D85.
-# Notes: Requires git, mikefarah yq v4 (D38); gh or glab only for the matching host. Pushing the two branches is covered by the
+# Notes: Requires git, mikefarah yq v4; gh or glab only for the matching host. Pushing the two branches is covered by the
 #   stakeholder's task_review setting (standing consent). Never force-pushes. bash 3.2 compatible.
 # Sources: first-party; host-to-CLI choice mirrors the glab skill and the sign-off PR step.
 
@@ -51,7 +50,7 @@ done
 TASK_ID=${POS[1]}
 [[ "$TASK_ID" =~ ^T[0-9]+$ ]] || die "task id must look like T<n>: $TASK_ID"
 [[ -d "$OPT_CWD" ]] || die "--cwd is not a directory: $OPT_CWD"
-if ! command -v yq >/dev/null 2>&1 || ! yq --version 2>/dev/null | grep -q mikefarah; then die "mikefarah yq v4 not found on PATH (D38)"; fi
+if ! command -v yq >/dev/null 2>&1 || ! yq --version 2>/dev/null | grep -q mikefarah; then die "mikefarah yq v4 not found on PATH"; fi
 
 common=$(git -C "$OPT_CWD" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
 if [[ "$(basename "$common")" == ".git" ]]; then ROOT=$(dirname "$common")
@@ -87,7 +86,7 @@ esac
 command -v "$CLI" >/dev/null 2>&1 || skip "$CLI not installed"
 
 PR_TITLE="$TASK_ID: ${TITLE:-$TASK_ID}"
-PR_BODY="Task $TASK_ID of $SPEC_DIR (review record, D85).
+PR_BODY="Task $TASK_ID of $SPEC_DIR (review record).
 
 Task file: $SPEC_DIR/${TFILE:-tasks.md}"
 [[ ! -f "$ROOT/$SPEC_DIR/artifacts/$TASK_ID/mini-review.yaml" ]] || PR_BODY="$PR_BODY

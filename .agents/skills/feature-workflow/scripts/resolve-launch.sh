@@ -1,42 +1,41 @@
 #!/usr/bin/env bash
 # File: Shared script (host-neutral, not a hook): resolve the model and profile text for one sub-agent launch.
-# Purpose: Parse and validate the D37 launch header (the fenced ```yaml launch-header block on the prompt's first line) against the per-task-type
-#   requirements table (D31, owned here), resolve the model for the host by D35 precedence, resolve the work type and the profile text, and return
-#   everything a launch needs: hooks/pre-launch.sh turns it into updatedInput (D33); on Codex the orchestrator places model and prompt itself (D9).
-# Triggers/inputs: hooks/pre-launch.sh on every Claude launch (D33); hooks/post-implementation-audit.sh (--parse-header, D39); on Codex the
-#   feature-workflow modules before every launch (advisory, D9).
-# Plan refs: 00.11-00.14, 00.18-00.20; reference "Model selection", "Sub-agent task types", "Work profiles"; assetlist D9, D12, D13, D14, D18, D23, D31, D32, D33, D35, D37, D38, D80.
-# Sources: first-party; PLAN/decision-flow-reference.md "Sub-agent task types" (D31 table), "Model selection", 00.11-00.20; assetlist D13, D14, D18, D31, D33, D35, D37, D38.
+# Purpose: Parse and validate the launch header (the fenced ```yaml launch-header block on the prompt's first line) against the per-task-type
+#   requirements table (owned here), resolve the model for the host by the precedence below, resolve the work type and the profile text, and return
+#   everything a launch needs: hooks/pre-launch.sh turns it into updatedInput; on Codex, which has no launch hook, the orchestrator places model and prompt itself.
+# Triggers/inputs: hooks/pre-launch.sh on every Claude launch; hooks/post-implementation-audit.sh (--parse-header); on Codex the
+#   feature-workflow modules before every launch (advisory there).
+# Sources: first-party.
 #
 # CLI:
 #   resolve-launch.sh --host claude|codex --task-type <type> [--project-dir <dir>] [--prompt-file <path>|-]
 #       Resolve mode (default). Reads the launch prompt (stdin by default). Pre-launch passes tool_input.subagent_type as --task-type;
-#       a header task_type that disagrees is denied (D37).
+#       a header task_type that disagrees is denied.
 #   resolve-launch.sh --host claude|codex --task-type <type> [--spec-dir <d>] [--task-id <id>] [--work-type <wt>] [--no-header] [--project-dir <dir>]
-#       Orchestrator mode (Codex, D9). Builds the header from the flags (task_type = --task-type) instead of reading it; stdin, when it is not a
+#       Orchestrator mode (Codex). Builds the header from the flags (task_type = --task-type) instead of reading it; stdin, when it is not a
 #       terminal, is the task body (it must not carry its own header). --no-header (header-optional types only: cache-regeneration bulk runs, standards-discovery) builds no header.
 #       Prints the same JSON; .prompt is the complete launch prompt to send.
 #   resolve-launch.sh --parse-header [--task-type <type>] [--prompt-file <path>|-]
-#       Extract and validate the header only (syntax, known task_type, D31 shape, field formats; no file lookups). With --task-type, also deny a
+#       Extract and validate the header only (syntax, known task_type, required-field shape, field formats; no file lookups). With --task-type, also deny a
 #       header whose task_type disagrees, and accept a header-less prompt when that type allows it (prints {}). stdout: the header as JSON.
 #   resolve-launch.sh --requirements [--task-type <type>]
-#       Print the D31 table (or one entry) as JSON.
+#       Print the requirements table (or one entry) as JSON.
 # Project root (--project-dir, else $CLAUDE_PROJECT_DIR, else the current directory): always normalised to the main checkout via
-#   `git rev-parse --git-common-dir`, so a worktree cwd works; .workflow/agent-overrides.yaml, .workflow/model-map/, .workflow/profiles/, .agents/agents/ and .workflow/specs/ are read there (D18).
-# Model (D35): <root>/agent-overrides.yaml [type][host] > <root>/.agents/agents/<type>.md frontmatter models.<host> > <root>/model-map/<type>.md
+#   `git rev-parse --git-common-dir`, so a worktree cwd works; .workflow/agent-overrides.yaml, .workflow/model-map/, .workflow/profiles/, .agents/agents/ and .workflow/specs/ are read there, because gitignored state exists only in the main checkout.
+# Model: <root>/agent-overrides.yaml [type][host] > <root>/.agents/agents/<type>.md frontmatter models.<host> > <root>/model-map/<type>.md
 #   frontmatter [host] > none: deny with 00.14. Empty values and unfilled template placeholders (`<...>`) count as unset. model-map `fallback` is not used.
 # Work type: header work_type; for implementation and profile-mini-review with task_id, the task record in <spec_dir>/tasks.md is authoritative:
-#   it fills a missing header work_type, and a header value that disagrees is denied. Phase 1 implementation (no task_id) carries it explicitly (D14).
+#   it fills a missing header work_type, and a header value that disagrees is denied. Phase 1 implementation (no task_id) carries it explicitly, since it has no task record yet.
 # Profile (coding types only): implementation, integration = whole .workflow/profiles/<work_type>.md; profile-mini-review = its "## Mini-review checklist"
 #   section (heading through the line before the next level-2 heading); other types = null. Missing profile or section: deny with 00.19.
 # stdout (resolve and orchestrator modes): one JSON object
 #   {task_type, host, model, model_source: "override"|"definition"|"map", header: {...}|null, header_block: "<fenced block>"|null,
 #    work_type: <string>|null, profile: <string>|null, profile_path: <relative path>|null, prompt: <launch prompt>}
-#   prompt = header block, blank line, profile, blank line, rest of the prompt (D37: the header stays first). Unchanged when there is no profile
+#   prompt = header block, blank line, profile, blank line, rest of the prompt (the header stays first). Unchanged when there is no profile
 #   (resolve mode). In orchestrator mode it is assembled from header block, profile and body.
-# Exit: 0 resolved / valid; 2 deny, reason on stderr (malformed or missing header, D31 violation, task_type mismatch, unreadable project file,
+# Exit: 0 resolved / valid; 2 deny, reason on stderr (malformed or missing header, missing required fields, task_type mismatch, unreadable project file,
 #   00.14, 00.19); 1 usage or environment error (bad flags, jq or mikefarah yq v4 missing).
-# Requires: bash, jq, mikefarah yq v4 (D38), git (optional; without a repo the root is used as given).
+# Requires: bash, jq, mikefarah yq v4, git (optional; without a repo the root is used as given).
 
 set -euo pipefail
 
@@ -46,8 +45,8 @@ set -euo pipefail
 usage_err() { echo "resolve-launch.sh: $*" >&2; exit 1; }
 deny() { echo "resolve-launch.sh: $*" >&2; exit 2; }
 
-# ── D31 requirements table (single source of truth; pre-launch.sh and post-implementation-audit.sh reuse it through this script) ──
-# Per type: d31_fields = the D31 row; shapes = header key sets accepted (keys other than task_type; first match wins);
+# ── Requirements table (single source of truth; pre-launch.sh and post-implementation-audit.sh reuse it through this script) ──
+# Per type: d31_fields = the header fields this type requires; shapes = header key sets accepted (keys other than task_type; first match wins);
 # header_optional = a header-less prompt is accepted; profile = whole | checklist | none.
 D31_TABLE=$(cat <<'JSON'
 {
@@ -55,13 +54,13 @@ D31_TABLE=$(cat <<'JSON'
     "d31_fields": ["spec_dir", "task_id", "work_type"],
     "shapes": [
       {"when": "task launch (3.3); work_type looked up from tasks.md by task_id", "required": ["spec_dir", "task_id"], "optional": ["work_type"]},
-      {"when": "Phase 1 launch (1.2, 1.3): no task record yet, explicit work_type (D14)", "required": ["spec_dir", "work_type"], "optional": []}
+      {"when": "Phase 1 launch (1.2, 1.3): no task record yet, explicit work_type", "required": ["spec_dir", "work_type"], "optional": []}
     ],
     "header_optional": false, "profile": "whole"
   },
   "integration": {
     "d31_fields": ["spec_dir", "work_type"],
-    "shapes": [{"when": "one batch of one work type (D28)", "required": ["spec_dir", "work_type"], "optional": []}],
+    "shapes": [{"when": "one batch of one work type, so each launch carries one profile", "required": ["spec_dir", "work_type"], "optional": []}],
     "header_optional": false, "profile": "whole"
   },
   "profile-mini-review": {
@@ -86,14 +85,14 @@ D31_TABLE=$(cat <<'JSON'
   },
   "standards-discovery": {
     "d31_fields": [],
-    "shapes": [{"when": "project-standards run outside any feature (D80): task_type only, or no header", "required": [], "optional": []}],
+    "shapes": [{"when": "project-standards run outside any feature: task_type only, or no header", "required": [], "optional": []}],
     "header_optional": true, "profile": "none"
   }
 }
 JSON
 )
 
-# Field formats (D37 values; task ids per the tasks.md schema; work_type names a file under .workflow/profiles/).
+# Field formats (task ids per the tasks.md schema; work_type names a file under .workflow/profiles/).
 SPECS_RE=$(printf '%s' "$WF_SPECS" | sed 's/\./[.]/g')   # literal dots, no JSON escaping needed
 FORMATS='{"spec_dir": "^'"$SPECS_RE"'/[0-9]+-[A-Za-z0-9._-]+/?$", "task_id": "^T[0-9]+$", "work_type": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}'
 FENCE_OPEN='```yaml launch-header'
@@ -129,8 +128,8 @@ if [ "$mode" = requirements ]; then
   exit 0
 fi
 
-command -v yq >/dev/null 2>&1 || usage_err "yq not found (mikefarah yq v4 required; D38)"
-yq --version 2>&1 | grep -q 'mikefarah' || usage_err "yq is not mikefarah yq v4 (D38)"
+command -v yq >/dev/null 2>&1 || usage_err "yq not found (mikefarah yq v4 required)"
+yq --version 2>&1 | grep -q 'mikefarah' || usage_err "yq is not mikefarah yq v4"
 
 if [ "$mode" = resolve ]; then
   case "$host" in claude|codex) ;; '') usage_err "missing --host (claude|codex)" ;; *) usage_err "--host must be claude or codex, got '$host'" ;; esac
@@ -151,7 +150,7 @@ else
 fi
 input=${input%x} # trailing newlines preserved
 
-# ── Header extraction (D37) ──
+# ── Header extraction ──
 # Sets: header_json (JSON object, or "null" when the prompt has no header), header_block (the fenced text), rest (prompt after the block).
 header_json=null header_block="" rest=$input
 extract_header() {
@@ -161,11 +160,11 @@ extract_header() {
   first=${first%"${first##*[![:space:]]}"}
   if [ "$first" != "$FENCE_OPEN" ]; then
     if grep -qF -- "$FENCE_OPEN" <<<"$text"; then
-      deny "malformed launch header: the \`\`\`yaml launch-header block must open on the prompt's first line (D37)"
+      deny "malformed launch header: the \`\`\`yaml launch-header block must open on the prompt's first line"
     fi
     return 0
   fi
-  [[ $text == *$'\n'* ]] || deny "malformed launch header: no closing \`\`\` fence (D37)"
+  [[ $text == *$'\n'* ]] || deny "malformed launch header: no closing \`\`\` fence"
   tail=${text#*$'\n'}
   while :; do
     if [[ $tail == *$'\n'* ]]; then line=${tail%%$'\n'*}; tail=${tail#*$'\n'}; else line=$tail; tail=""; fi
@@ -174,34 +173,34 @@ extract_header() {
     body+=$line$'\n'
     [ -n "$tail" ] || break
   done
-  [ "$closed" = 1 ] || deny "malformed launch header: no closing \`\`\` fence (D37)"
+  [ "$closed" = 1 ] || deny "malformed launch header: no closing \`\`\` fence"
   header_block=$FENCE_OPEN$'\n'$body'```'
   rest=$tail
-  [ -n "${body//[[:space:]]/}" ] || deny "malformed launch header: the block is empty; it must hold at least task_type (D37)"
+  [ -n "${body//[[:space:]]/}" ] || deny "malformed launch header: the block is empty; it must hold at least task_type"
   local parsed
-  parsed=$(printf '%s' "$body" | yq -o=json -I=0 '.' - 2>/dev/null) || deny "malformed launch header: not valid YAML (D37)"
-  jq -e 'type == "object"' <<<"$parsed" >/dev/null 2>&1 || deny "malformed launch header: expected a YAML mapping of fields (D37)"
+  parsed=$(printf '%s' "$body" | yq -o=json -I=0 '.' - 2>/dev/null) || deny "malformed launch header: not valid YAML"
+  jq -e 'type == "object"' <<<"$parsed" >/dev/null 2>&1 || deny "malformed launch header: expected a YAML mapping of fields"
   header_json=$parsed
 }
 
-# Validate header_json against the D31 table. $1 = expected task type ("" = use the header's own).
+# Validate header_json against the requirements table. $1 = expected task type ("" = use the header's own).
 # Prints the matched shape's "when" text.
 validate_header() {
   local expected=$1 err
   if [ "$header_json" = null ]; then
-    [ -n "$expected" ] || deny "no launch header: the prompt must start with a \`\`\`yaml launch-header block (D37)"
+    [ -n "$expected" ] || deny "no launch header: the prompt must start with a \`\`\`yaml launch-header block"
     if jq -e --arg t "$expected" '.[$t].header_optional' <<<"$D31_TABLE" >/dev/null; then
       jq -r --arg t "$expected" '.[$t].shapes[] | select(.required == []) | .when' <<<"$D31_TABLE" | head -n1
       return 0
     fi
-    deny "no launch header: task type '$expected' requires a \`\`\`yaml launch-header block first in the prompt with $(jq -r --arg t "$expected" '.[$t].d31_fields | join(", ")' <<<"$D31_TABLE") (D31, D37)"
+    deny "no launch header: task type '$expected' requires a \`\`\`yaml launch-header block first in the prompt with $(jq -r --arg t "$expected" '.[$t].d31_fields | join(", ")' <<<"$D31_TABLE")"
   fi
   err=$(jq -r --argjson tbl "$D31_TABLE" --argjson fmt "$FORMATS" --arg exp "$expected" '
     def shape_text: "{" + ((.required + (.optional | map(. + "?"))) | join(", ")) + "}";
     . as $h
-    | if ($h.task_type | type) != "string" or $h.task_type == "" then "header has no task_type (D37)"
+    | if ($h.task_type | type) != "string" or $h.task_type == "" then "header has no task_type"
       elif ($tbl | has($h.task_type) | not) then "unknown task_type \u0027\($h.task_type)\u0027 in header"
-      elif $exp != "" and $h.task_type != $exp then "header task_type \u0027\($h.task_type)\u0027 disagrees with the launched task type \u0027\($exp)\u0027 (D37)"
+      elif $exp != "" and $h.task_type != $exp then "header task_type \u0027\($h.task_type)\u0027 disagrees with the launched task type \u0027\($exp)\u0027"
       else
         ($h | del(.task_type)) as $f
         | ($f | keys) as $k
@@ -211,7 +210,7 @@ validate_header() {
         | ([$f | to_entries[] | .key as $kk | select(($fmt | has($kk)) and (.value | type) == "string" and (.value | test($fmt[$kk]) | not))
             | "\(.key)=\(.value) (expected \($fmt[.key]))"]) as $badfmt
         | if $m == null then
-            "header fields {\($k | join(", "))} do not match task type \u0027\($h.task_type)\u0027 (D31); accepted: \([$e.shapes[] | shape_text + " (" + .when + ")"] | join("; "))"
+            "header fields {\($k | join(", "))} do not match task type \u0027\($h.task_type)\u0027; accepted: \([$e.shapes[] | shape_text + " (" + .when + ")"] | join("; "))"
           elif ($bad | length) > 0 then "header field(s) \($bad | join(", ")) must be non-empty strings"
           elif ($badfmt | length) > 0 then "malformed header value(s): \($badfmt | join("; "))"
           else "" end
@@ -248,7 +247,7 @@ else
 fi
 validate_header "$task_type" >/dev/null
 
-# Project root: main checkout (D18).
+# Project root: main checkout, where gitignored state lives.
 root=${project_dir:-${CLAUDE_PROJECT_DIR:-$PWD}}
 [ -d "$root" ] || usage_err "project directory not found: $root"
 root=$(cd "$root" && pwd)
@@ -286,7 +285,7 @@ pick_model() { # $1 = json, then path keys
     --args "$@" <<<"$json" 2>/dev/null || true
 }
 
-# ── Model (D35) ──
+# ── Model ──
 model="" model_source=""
 if [ -f "$root/$WF_AGENT_OVERRIDES" ]; then
   doc=$(yaml_json "$root/$WF_AGENT_OVERRIDES")
@@ -304,13 +303,13 @@ if [ -z "$model" ] && [ -f "$root/$WF_MODEL_MAP/$task_type.md" ]; then
   [ -z "$model" ] || model_source=map
 fi
 if [ -z "$model" ]; then
-  deny "00.14: no model for task type '$task_type' on host '$host'. Checked, in precedence order (D35): $WF_AGENT_OVERRIDES [$task_type][$host], .agents/agents/$task_type.md models.$host, $WF_MODEL_MAP/$task_type.md [$host]. Assign one in $WF_MODEL_MAP/$task_type.md (or in $WF_AGENT_OVERRIDES when the definition pins a model for this host) before launching."
+  deny "00.14: no model for task type '$task_type' on host '$host'. Checked, in precedence order: $WF_AGENT_OVERRIDES [$task_type][$host], .agents/agents/$task_type.md models.$host, $WF_MODEL_MAP/$task_type.md [$host]. Assign one in $WF_MODEL_MAP/$task_type.md (or in $WF_AGENT_OVERRIDES when the definition pins a model for this host) before launching."
 fi
 
-# ── Work type (D14, D31) ──
+# ── Work type ──
 if [ -n "$task_id" ]; then
   tasks_file=$root/$spec_dir/tasks.md
-  [ -f "$tasks_file" ] || deny "task_id $task_id given but $spec_dir/tasks.md not found (D14)"
+  [ -f "$tasks_file" ] || deny "task_id $task_id given but $spec_dir/tasks.md not found"
   [ "$(head -n1 "$tasks_file" | tr -d '\r')" = --- ] || deny "$spec_dir/tasks.md has no YAML frontmatter"
   records=$(RL_TID=$task_id yq --front-matter=extract -o=json -I=0 '[(.tasks // [])[] | select(.id == strenv(RL_TID))]' "$tasks_file" 2>/dev/null) \
     || deny "cannot parse tasks.md frontmatter: $spec_dir/tasks.md"
@@ -345,7 +344,7 @@ if [ "$profile_kind" != none ]; then
   profile=$profile_text profile_path=$rel
 fi
 
-# ── Prompt assembly (D37: header first, profile right after it) ──
+# ── Prompt assembly (header first, profile right after it) ──
 strip_leading_newlines() { local s=$1; while [[ $s == $'\n'* || $s == $'\r\n'* ]]; do s=${s#$'\r'}; s=${s#$'\n'}; done; printf '%s' "$s"; }
 if [ "$flag_mode" = 0 ] && [ "$profile" = null ]; then
   prompt=$input

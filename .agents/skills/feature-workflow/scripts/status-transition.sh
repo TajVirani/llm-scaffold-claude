@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): the single writer for workflow status and the current-step marker.
-# Purpose: Write `status` (and `blocked_condition` while blocked) into .workflow/specs/NNN-slug/spec.md frontmatter, or `status`/`work_type` into one task record of the tasks.md frontmatter `tasks:` array (YAML, via yq; D15). One writer, one place. Also writes the gitignored step marker .workflow/specs/NNN-slug/.step that the write guards read through check-write.sh (D16).
+# Purpose: Write `status` (and `blocked_condition` while blocked) into .workflow/specs/NNN-slug/spec.md frontmatter, or `status`/`work_type` into one task record of the tasks.md frontmatter `tasks:` array (YAML, via yq). One writer, one place. Also writes the gitignored step marker .workflow/specs/NNN-slug/.step that the write guards read through check-write.sh.
 # Usage:
 #   status-transition.sh status <spec-dir> <new-status> [--step <node-id>] [--blocked <condition>] [--cwd <dir>]
 #       Spec status. Validates the transition against the table below, writes the frontmatter, then writes .step.
 #   status-transition.sh set-task <spec-dir> <task-id> [--status <status>] [--work-type <wt>] [--capability <id>] [--pr <url>|null] [--step <node-id>] [--cwd <dir>]
-#       The single writer for task records in tasks.md frontmatter (D45): task status (validated against the task table below),
+#       The single writer for task records in tasks.md frontmatter, so a resumed session never reclassifies a task: task status (validated against the task table below),
 #       work_type (set once at 3.1; changing an existing value is refused) and capability (only with --step 5.3, rewriting a
-#       provisional CAP-NEW-<slug> to the assigned CAP-###; D44, D52) and pr (the task PR/MR url the orchestrator opened at 3.16,
-#       or null to clear it; any step; D85). The other D85 record fields (file, branch, predicted_files, size, mode, parallel_with,
+#       provisional CAP-NEW-<slug> to the assigned CAP-###) and pr (the task PR/MR url the orchestrator opened at 3.16,
+#       or null to clear it; any step). The other record fields (file, branch, predicted_files, size, mode, parallel_with,
 #       tests) are fixed at 2.5 / 0.3.20 and have no flag. The result must pass the tasks.md schema
 #       validator from feature-workflow/assets/tasks.md, or nothing is written. Writes .step only when --step is given.
 #   status-transition.sh set-spec <spec-dir> [--spec-branch <spec/NNN-slug>] [--impl-base <sha>] [--step <node-id>] [--cwd <dir>]
-#       Writes the D85 spec.md frontmatter keys. spec_branch: must equal spec/<NNN-slug> of <spec-dir> and name an existing local
+#       Writes the spec-branch keys of the spec.md frontmatter. spec_branch: must equal spec/<NNN-slug> of <spec-dir> and name an existing local
 #       branch; set at 1.1 (full path) or 0.3.20 (light path); an existing different value is refused. impl_base_revision: a commit
 #       (resolved to its full SHA) that must contain baseline_revision when that is set; set at 3.1 only; once set it is not
 #       overwritten (exit 2) unless the value is identical. --step names the node (required: 1.1 | 0.3.20 for --spec-branch,
@@ -22,52 +22,52 @@
 #       tasks.md: 2.5, 0.3.20; .workflow/specs/work-backlog/: 00.26, 5.9, 0.1.4; glossaries: 0.2.3, 0.3.15, 0.4.3, 5.3; other Tier A: 0.3.7, 5.3, 5.7; new profile: 00.19 — see check-write.sh).
 #       Any node id of the form N(.N)* is accepted, including 00.21-00.29, 2.6, 3.15, 3.16 and 5.9. `step <dir> 0.1.4` works before
 #       spec.md exists (the folder must exist), so 0.1.4 can create spec.md with Write.
-#       While blocked, step mode keeps blocked_from, so the D56 protocol can write at 00.26 / 00.29 and still resume at 00.28.
+#       While blocked, step mode keeps blocked_from, so the discovered-work protocol can write at 00.26 / 00.29 and still resume at 00.28.
 #   <spec-dir> is `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it).
-# Worktrees (D18): spec.md, tasks.md and .step are always read and written in the MAIN checkout, found with
+# Worktrees: spec.md, tasks.md and .step are always read and written in the MAIN checkout, found with
 #   `git rev-parse --git-common-dir` from --cwd (default: $PWD). Gitignored .step exists only there.
 #
-# Spec status transitions (PLAN/decision-flow-reference.md "Status", the status edges of PLAN/decision-flow.mermaid, and D47, D49, D56, D58):
+# Spec status transitions:
 #   from                                      to             --step (node that sets it)   why
 #   (no status) | draft                       draft          0.1.4 (default)              spec.md created from the template at 0.1.4
-#   ready-for-dev                             draft          2.2 | 2.3 (required)         Phase 2 loops back to 0.3.8 (D49)
-#   in-review                                 draft          4.5 | 4.6 | 5.6 (required)   review or sign-off loops back to 0.3.8 (D49)
+#   ready-for-dev                             draft          2.2 | 2.3 (required)         Phase 2 loops back to 0.3.8
+#   in-review                                 draft          4.5 | 4.6 | 5.6 (required)   review or sign-off loops back to 0.3.8
 #   draft                                     ready-for-dev  0.6 | 0.3.20 (required)      exit gate, or light-path pass
 #   ready-for-dev | in-progress               in-progress    3.1 (default)                orchestrator starts; re-run of 3.1 on resume
-#   in-progress | in-review                   in-review      3.11 | 3.14 (required)       journeys pass, or light path without suites (D29);
+#   in-progress | in-review                   in-review      3.11 | 3.14 (required)       journeys pass, or light path without suites;
 #                                                                                         in-review again after a 4.7 rework loop
 #   in-review                                 done           5.7 (default)                retrospective recorded
 #   draft | ready-for-dev | in-progress |     blocked        any node (default: the       any halt; --blocked <condition> required; the prior
 #     in-review                                              current .step)               status is kept in .step as blocked_from. At 4.7 the
-#                                                                                         caller blocks only with high-severity findings open (D48).
-#                                                                                         At 00.21 (discovered work or a crossed size budget, D56,
-#                                                                                         D58) the condition must read "discovered work: <slug>"
+#                                                                                         caller blocks only with high-severity findings open.
+#                                                                                         At 00.21 (discovered work or a crossed size budget)
+#                                                                                         the condition must read "discovered work: <slug>"
 #                                                                                         or "size budget: <what>"
 #   blocked (any blocked_from)                draft          00.24 | 00.29 (required)     discovered-work blocker sent to discovery (00.24), or a
-#                                                                                         budget re-scope (00.29): back to 0.3.8 (D56, D58).
+#                                                                                         budget re-scope (00.29): back to 0.3.8.
 #                                                                                         00.24 needs blocked_condition "discovered work: ...",
 #                                                                                         00.29 needs "size budget: ..."; otherwise exit 2
-#   blocked (blocked_from in-review)          in-review      5.1 | 00.28 (required)       a spec blocked at 4.7 is unblocked at sign-off (D47);
-#                                                                                         00.28 resumes review after the D56 protocol, since
+#   blocked (blocked_from in-review)          in-review      5.1 | 00.28 (required)       a spec blocked at 4.7 is unblocked at sign-off;
+#                                                                                         00.28 resumes review after the discovered-work protocol, since
 #                                                                                         discovered work found during review can be resolved
 #   blocked (blocked_from draft |             <blocked_from> any node (default: the       leaving blocked returns to the status held before it;
-#     ready-for-dev | in-progress)                           current .step)               00.28 after the D56 protocol (D56)
+#     ready-for-dev | in-progress)                           current .step)               00.28 after the discovered-work protocol
 #   blocked (no blocked_from in .step,        draft | ready-for-dev | in-progress (any node), or in-review (5.1 or 00.28 only); a warning is printed
 #     e.g. a fresh clone)
 #   done                                      (none)                                      terminal
 #   Every other pair is illegal: exit 2 with the reason on stderr. Entering blocked adds blocked_condition; leaving removes it.
-#   Not allowed (no plan edge): ready-for-dev -> ready-for-dev, in-review -> ready-for-dev (both loops now pass through draft, D49);
-#   in-progress -> draft (Phase 3 reaches discovery only through blocked -> draft at 00.24, D56).
-#   baseline_revision is captured with a spec.md Write at step 1.1 (full path) or 3.1 (light path) (D53; see check-write.sh).
+#   Not allowed (no plan edge): ready-for-dev -> ready-for-dev, in-review -> ready-for-dev (both loops now pass through draft);
+#   in-progress -> draft (Phase 3 reaches discovery only through blocked -> draft at 00.24).
+#   baseline_revision is captured with a spec.md Write at step 1.1 (full path) or 3.1 (light path); see check-write.sh.
 #
 # Task status transitions (tasks.md `tasks[].status`; template feature-workflow/assets/tasks.md):
 #   pending -> in-progress; in-progress -> in-progress (relaunch after a failed gate); in-progress -> done;
 #   pending | in-progress -> blocked; blocked -> pending | in-progress; done -> in-progress only with --step 4.7 (rework after review),
-#   3.9 or 3.11 (a merged task that fails the harness or journey gate is reopened, D59); done -> blocked only with --step 3.9 or 3.11 (D59).
+#   3.9 or 3.11 (a merged task that fails the harness or journey gate is reopened); done -> blocked only with --step 3.9 or 3.11.
 #   Tasks become done after the wave merge at 3.16 (set-task ... --status done --step 3.16; --step stays optional).
-#   pending -> split-out only with --step 00.29: the task's work moved to a work-backlog item at a budget split (D68). split-out is terminal.
-#   set-task works while the spec is blocked (running tasks finish their gates mid-wave, D56); --step then keeps blocked_from in .step.
-#   Exception: `--status done --step 3.16` (the wave merge) is refused (exit 2) while the spec is blocked; merges wait until 00.28 (D69).
+#   pending -> split-out only with --step 00.29: the task's work moved to a work-backlog item at a budget split. split-out is terminal.
+#   set-task works while the spec is blocked (running tasks finish their gates mid-wave); --step then keeps blocked_from in .step.
+#   Exception: `--status done --step 3.16` (the wave merge) is refused (exit 2) while the spec is blocked; merges wait until 00.28.
 #   Task records carry no blocked_condition key, so --blocked is refused in set-task mode.
 #
 # .step format (YAML, written only here; read by check-write.sh):
@@ -77,9 +77,8 @@
 #
 # Exit codes: 0 done; 1 usage or environment error (missing yq, not a git repo, missing file, schema failure); 2 illegal transition (deny), matching check-write.sh and resolve-launch.sh.
 # Called by: the phase modules (discovery, verification-setup, task-breakdown, implementation-orchestrator, review-triage, sign-off), domain-modeling and retrospective before guarded writes.
-# Plan refs: 0.1.4, 0.3.20, 0.6, 3.1, 3.9, 3.11, 3.14, 3.16, 4.7, 5.7, 00.21, 00.24, 00.28, 00.29 (in-review at 3.11, or 3.14 on a light path without suites, D29); reference "Helper scripts" (Status transition), "Status", "Discovered work"; assetlist D7, D15, D16, D18, D38, D44, D45, D47-D49, D52, D53, D56, D58, D59, D68.
-# Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; spec-single-writer-guard rejects status edits made by Write/Edit. The deny rule Edit(.workflow/specs/*/.step) stops file tools forging the marker (D36). The marker is accident prevention, not security (D16). install.sh / project-setup add `.workflow/specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place; D38).
-# Sources: first-party; PLAN/decision-flow-reference.md "Status", "Per-feature files", "Helper scripts", "Discovered work"; PLAN/decision-flow.mermaid status edges; assetlist D7, D15, D16, D18, D29, D36, D38, D44, D45, D47-D49, D52, D53, D56, D58, D59, D68; tasks.md validator from feature-workflow/assets/tasks.md. Pattern: skills/data-structure-audit/scripts/audit_scope.sh (sub-commands, git anchoring).
+# Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; spec-single-writer-guard rejects status edits made by Write/Edit. The deny rule Edit(.workflow/specs/*/.step) stops file tools forging the marker. The marker is accident prevention, not security. install.sh / project-setup add `.workflow/specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place).
+# Sources: first-party; tasks.md validator from feature-workflow/assets/tasks.md. Pattern: skills/data-structure-audit/scripts/audit_scope.sh (sub-commands, git anchoring).
 
 set -euo pipefail
 
@@ -115,11 +114,11 @@ in_list() {
 valid_node() { [[ "$1" =~ ^[0-9]+(\.[0-9]+)*$ ]]; }
 
 require_yq() {
-  command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (D38)"
-  yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (D38): $(yq --version 2>&1 | head -1)"
+  command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (the Python yq has different flags)"
+  yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (the Python yq has different flags): $(yq --version 2>&1 | head -1)"
 }
 
-# Main checkout root from any directory inside the repo or one of its worktrees (D18).
+# Main checkout root from any directory inside the repo or one of its worktrees.
 main_root() {
   local common
   common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
@@ -151,7 +150,7 @@ utc_now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 marker_get() {
   local file=$1 key=$2
   [[ -f "$file" ]] || return 0
-  sed -n "s/^${key}:[[:space:]]*\"\{0,1\}\([^\"]*\)\"\{0,1\}[[:space:]]*$/\1/p" "$file" | head -1
+  head -1 <<<"$(sed -n "s/^${key}:[[:space:]]*\"\{0,1\}\([^\"]*\)\"\{0,1\}[[:space:]]*$/\1/p" "$file")"
 }
 
 # write_marker <file> <step> [blocked_from]; atomic replace.
@@ -166,8 +165,8 @@ write_marker() {
   mv -f "$tmp" "$file"
 }
 
-# Validator copied verbatim from feature-workflow/assets/tasks.md ("Read and validate with yq"; capability regex per D44); keep the two identical. Applied to the result of every set-task write.
-# D85 record fields (file, branch, predicted_files, size, mode, parallel_with, tests, pr) are optional for older task lists, but validated when present.
+# Validator copied verbatim from feature-workflow/assets/tasks.md ("Read and validate with yq"); keep the two identical. Applied to the result of every set-task write.
+# The task-breakdown record fields (file, branch, predicted_files, size, mode, parallel_with, tests, pr) are optional for older task lists, but validated when present.
 # yq note: `as $n | ...` binds tighter than `and`, so the whole per-record body is parenthesised after the binding.
 # shellcheck disable=SC2016 # yq variables ($n), not shell expansions
 TASKS_VALIDATOR='
@@ -263,7 +262,7 @@ fi
 
 [[ -z "$OPT_STEP" ]] || valid_node "$OPT_STEP" || die "not a plan node id: '$OPT_STEP'"
 
-# ---------------------------------------------------------------- set-task mode (D45)
+# ---------------------------------------------------------------- set-task mode
 if [[ "$MODE" == "set-task" ]]; then
   TASK_ID=${POS[1]}
   [[ $HAVE_BLOCKED -eq 0 ]] || die "--blocked applies to spec status only; task records have no blocked_condition"
@@ -286,17 +285,17 @@ if [[ "$MODE" == "set-task" ]]; then
       "pending>blocked"|"in-progress>blocked"|"blocked>pending"|"blocked>in-progress") ;;
       "done>in-progress")
         in_list "$OPT_STEP" "4.7 3.9 3.11" \
-          || illegal "task $TASK_ID in $SPEC_DIR: 'done' -> 'in-progress' is allowed only for rework at 4.7 or a failed gate at 3.9 / 3.11 (pass --step; D59)" ;;
+          || illegal "task $TASK_ID in $SPEC_DIR: 'done' -> 'in-progress' is allowed only for rework at 4.7 or a failed gate at 3.9 / 3.11 (pass --step)" ;;
       "pending>split-out")
         [[ "$OPT_STEP" == "00.29" ]] \
-          || illegal "task $TASK_ID in $SPEC_DIR: 'pending' -> 'split-out' is allowed only at a budget split (pass --step 00.29; D68)" ;;
+          || illegal "task $TASK_ID in $SPEC_DIR: 'pending' -> 'split-out' is allowed only at a budget split (pass --step 00.29)" ;;
       "done>blocked")
         in_list "$OPT_STEP" "3.9 3.11" \
-          || illegal "task $TASK_ID in $SPEC_DIR: 'done' -> 'blocked' is allowed only when a merged task fails gate 3.9 or 3.11 (pass --step; D59)" ;;
+          || illegal "task $TASK_ID in $SPEC_DIR: 'done' -> 'blocked' is allowed only when a merged task fails gate 3.9 or 3.11 (pass --step)" ;;
       *) illegal "task $TASK_ID in $SPEC_DIR: '${TCUR:-<none>}' -> '$OPT_TSTATUS' is not allowed (see the task table at the top of $PROG)" ;;
     esac
     if [[ "$CUR" == "blocked" && "$OPT_TSTATUS" == "done" && "$OPT_STEP" == "3.16" ]]; then
-      illegal "task $TASK_ID in $SPEC_DIR: the spec is blocked, so the 3.16 wave merge waits; mark the task done at 3.16 after the spec is unblocked (00.28) (D56, D69)"
+      illegal "task $TASK_ID in $SPEC_DIR: the spec is blocked, so the 3.16 wave merge waits; mark the task done at 3.16 after the spec is unblocked (00.28)"
     fi
     export NEWV=$OPT_TSTATUS
     EXPR="$EXPR | (.tasks[] | select(.id == strenv(TID)) | .status) = strenv(NEWV)"
@@ -314,12 +313,12 @@ if [[ "$MODE" == "set-task" ]]; then
     MSG="${MSG:+$MSG, }work_type ${WCUR:-null} -> $OPT_WT"
   fi
   if [[ -n "$OPT_CAP" ]]; then
-    [[ "$OPT_CAP" =~ ^CAP-([0-9]{3,}|NEW-[a-z0-9]+(-[a-z0-9]+)*)$ ]] || die "capability must match CAP-### or CAP-NEW-<slug> (D44): '$OPT_CAP'"
-    [[ "$OPT_STEP" == "5.3" ]] || illegal "task $TASK_ID in $SPEC_DIR: capability changes only at 5.3, when the provisional id gets its CAP-### (pass --step 5.3; D52)"
+    [[ "$OPT_CAP" =~ ^CAP-([0-9]{3,}|NEW-[a-z0-9]+(-[a-z0-9]+)*)$ ]] || die "capability must match CAP-### or CAP-NEW-<slug>: '$OPT_CAP'"
+    [[ "$OPT_STEP" == "5.3" ]] || illegal "task $TASK_ID in $SPEC_DIR: capability changes only at 5.3, when the provisional id gets its CAP-### (pass --step 5.3)"
     CCUR=$(yq --front-matter=extract '.tasks[] | select(.id == strenv(TID)) | .capability // ""' "$TASKS")
     if [[ "$CCUR" != "$OPT_CAP" ]]; then
       [[ "$CCUR" == CAP-NEW-* && "$OPT_CAP" =~ ^CAP-[0-9]{3,}$ ]] \
-        || illegal "task $TASK_ID in $SPEC_DIR: capability '$CCUR' -> '$OPT_CAP'; 5.3 only rewrites a provisional CAP-NEW-<slug> to an assigned CAP-### (D44, D52)"
+        || illegal "task $TASK_ID in $SPEC_DIR: capability '$CCUR' -> '$OPT_CAP'; 5.3 only rewrites a provisional CAP-NEW-<slug> to an assigned CAP-###"
     fi
     export CAPV=$OPT_CAP
     EXPR="$EXPR | (.tasks[] | select(.id == strenv(TID)) | .capability) = strenv(CAPV)"
@@ -356,7 +355,7 @@ if [[ "$MODE" == "set-task" ]]; then
   exit 0
 fi
 
-# ---------------------------------------------------------------- set-spec mode (D85)
+# ---------------------------------------------------------------- set-spec mode
 if [[ "$MODE" == "set-spec" ]]; then
   [[ $HAVE_BLOCKED -eq 0 ]] || die "--blocked applies to spec status only"
   [[ -n "$OPT_SBRANCH$OPT_IBASE" ]] || die "set-spec needs --spec-branch and/or --impl-base"
@@ -364,7 +363,7 @@ if [[ "$MODE" == "set-spec" ]]; then
   [[ "$CUR" != "done" ]] || illegal "$SPEC_DIR is done; its frontmatter cannot change"
   EXPR="." MSG=""
   if [[ -n "$OPT_SBRANCH" ]]; then
-    in_list "$OPT_STEP" "1.1 0.3.20" || illegal "$SPEC_DIR: spec_branch is set only at 1.1 (full path) or 0.3.20 (light path), not at $OPT_STEP (D85)"
+    in_list "$OPT_STEP" "1.1 0.3.20" || illegal "$SPEC_DIR: spec_branch is set only at 1.1 (full path) or 0.3.20 (light path), not at $OPT_STEP"
     want="spec/${SPEC_DIR#"$WF_SPECS"/}"
     [[ "$OPT_SBRANCH" == "$want" ]] || die "spec_branch must be $want for $SPEC_DIR: '$OPT_SBRANCH'"
     git -C "$ROOT" show-ref --verify --quiet "refs/heads/$OPT_SBRANCH" \
@@ -376,7 +375,7 @@ if [[ "$MODE" == "set-spec" ]]; then
     MSG="spec_branch ${SCUR:-null} -> $OPT_SBRANCH"
   fi
   if [[ -n "$OPT_IBASE" ]]; then
-    [[ "$OPT_STEP" == "3.1" ]] || illegal "$SPEC_DIR: impl_base_revision is set only at 3.1, not at $OPT_STEP (D85)"
+    [[ "$OPT_STEP" == "3.1" ]] || illegal "$SPEC_DIR: impl_base_revision is set only at 3.1, not at $OPT_STEP"
     [[ "$OPT_IBASE" =~ ^[0-9a-fA-F]{7,40}$ || "$OPT_IBASE" =~ ^[A-Za-z0-9._/@^~-]+$ ]] || die "--impl-base must be a commit: '$OPT_IBASE'"
     SHA=$(git -C "$ROOT" rev-parse --verify --quiet "${OPT_IBASE}^{commit}") || die "--impl-base $OPT_IBASE is not a commit in $ROOT"
     BASEREV=$(yq --front-matter=extract '.baseline_revision // ""' "$SPEC")
@@ -409,7 +408,7 @@ if [[ "$NEW" == "blocked" ]]; then
   if [[ "$OPT_STEP" == "00.21" ]]; then
     case "$OPT_BLOCKED" in
       "discovered work: "?*|"size budget: "?*) ;;
-      *) die "at 00.21 the condition must read \"discovered work: <slug>\" or \"size budget: <what>\" (D56, D58)" ;;
+      *) die "at 00.21 the condition must read \"discovered work: <slug>\" or \"size budget: <what>\"" ;;
     esac
   fi
 else
@@ -433,19 +432,19 @@ if [[ "$CUR" == "blocked" ]]; then
   [[ "$NEW" != "blocked" ]] || reject "already blocked"
   [[ "$NEW" != "done" ]] || reject "done is set only from in-review at 5.7"
   if [[ "$NEW" == "draft" && ( "$OPT_STEP" == "00.24" || "$OPT_STEP" == "00.29" ) ]]; then
-    # D56/D58: a discovered-work blocker goes to discovery (00.24), or a budget re-scope (00.29), whatever blocked_from is,
+    # A discovered-work blocker goes to discovery (00.24), or a budget re-scope (00.29), whatever blocked_from is,
     # but only when the blocked_condition was set by that protocol at 00.21.
     BCOND=$(yq --front-matter=extract '.blocked_condition // ""' "$SPEC") || die "cannot read blocked_condition of $SPEC"
     if [[ "$OPT_STEP" == "00.24" ]]; then want="discovered work: "; else want="size budget: "; fi
     [[ "$BCOND" == "$want"* ]] \
-      || reject "draft at $OPT_STEP needs a blocked_condition starting with '$want' (set at 00.21), but it is '${BCOND:-<none>}'. 00.24 sends discovered work to discovery and 00.29 re-scopes a crossed size budget (D56, D58)"
+      || reject "draft at $OPT_STEP needs a blocked_condition starting with '$want' (set at 00.21), but it is '${BCOND:-<none>}'. 00.24 sends discovered work to discovery and 00.29 re-scopes a crossed size budget"
   elif [[ -n "$MARK_FROM" ]]; then
     [[ "$NEW" == "$MARK_FROM" ]] \
-      || reject "leaving blocked returns to the status held before it ('$MARK_FROM'), or to draft at 00.24 / 00.29 (D56, D58)"
+      || reject "leaving blocked returns to the status held before it ('$MARK_FROM'), or to draft at 00.24 / 00.29"
   else
     printf '%s: warning: %s has no blocked_from in .step; accepting %s\n' "$PROG" "$SPEC_DIR" "$NEW" >&2
   fi
-  [[ "$NEW" != "in-review" ]] || need_step "5.1 00.28" ""    # D47: an in-review block is lifted at sign-off, or at 00.28 after D56
+  [[ "$NEW" != "in-review" ]] || need_step "5.1 00.28" ""    # an in-review block is lifted at sign-off, or at 00.28 after the discovered-work protocol
   [[ -n "$OPT_STEP" ]] || OPT_STEP=$MARK_STEP
   [[ -n "$OPT_STEP" ]] || die "no step marker to resume from; pass --step <node-id>"
 else

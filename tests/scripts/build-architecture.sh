@@ -223,6 +223,11 @@ grep -v '^- Used by' .workflow/.cache-staging/modules.md >"$WORK/m4.md"
 t chk-mod-missing-field 1 "$C" modules "$WORK/m4.md"
 printf '# Modules\n\n## src/a\n\n- Purpose: Built 2026-10-15T09:30:00Z.\n- Files:\n- Depends on: none\n- Used by: none\n- Public interface: none exported\n' >"$WORK/m5.md"
 t chk-mod-timestamp 1 "$C" modules "$WORK/m5.md"
+# A body bigger than a pipe buffer must not die of SIGPIPE (rc 141) under pipefail.
+{ printf '\n\n# Modules\n\n<!-- slot: purpose -->\n'; for i in $(seq 1 20000); do echo "padding line $i padding padding"; done; } >"$WORK/m6.md"
+out=$("$C" modules "$WORK/m6.md" 2>&1); rc=$?
+eq chk-big-body-rc "$rc" 1
+check chk-big-body-slot 'printf "%s" "$out" | grep -q "unfilled slot left: 1" && ! printf "%s" "$out" | grep -q "first line must be"'
 
 cat >.workflow/.cache-staging/flows.md <<'EOF'
 # Flows

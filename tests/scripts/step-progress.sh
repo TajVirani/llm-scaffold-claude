@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Suite: step-progress.sh (feature-workflow/scripts), the phase progress line (D84).
+# Suite: step-progress.sh (feature-workflow/scripts), the phase progress line.
 # Covers: full vs light totals and phase numbering, run-order positions (0.3.22 before 0.3.8, 3.16 before 3.9), ids that
 #   compare equal as numbers (3.1 / 3.10, 00.2 / 00.20), steps off the chosen path, cross-cutting 00.x with and without --at,
 #   intake (no line), side artifacts, unknown ids, --spec-dir defaults from spec.md light_path and .step, usage errors.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Suite: hooks/generate-codex-agents.sh (.agents/agents/*.md -> .codex/agents/<codex-name>.toml, hyphens mapped to _; D9, D67).
-# Covers: one toml per real definition with exactly name/description/developer_instructions and never `model` (D67), round-trip of
+# Suite: hooks/generate-codex-agents.sh (.agents/agents/*.md -> .codex/agents/<codex-name>.toml, hyphens mapped to _).
+# Covers: one toml per real definition with exactly name/description/developer_instructions and never `model`, round-trip of
 #   the values through a TOML parser (yq -p toml), determinism and --check drift detection, the basic-string fallback for bodies
 #   containing ''', the [a-z0-9_] Codex name (fact-lookup -> fact_lookup) for file and key, pruning of stale generated files (including
 #   the old hyphenated names) while user files are kept, and input rejections that write nothing (including a name collision).
@@ -44,7 +44,7 @@ check "Codex names: only [a-z0-9_] in file names and name keys" \
   '! ls "$OUT" | grep -v "^[a-z0-9_]*\\.toml\$" && ! grep -h "^name = " "$OUT"/*.toml | grep -v "^name = \"[a-z0-9_]*\"\$"'
 check "fact-lookup.md -> fact_lookup.toml with name fact_lookup, marker names the source" \
   'grep -qx "name = \"fact_lookup\"" "$OUT/fact_lookup.toml" && head -n 1 "$OUT/fact_lookup.toml" | grep -q "agents/fact-lookup.md"'
-check "no toml carries a model key (D67)" '! grep -Eq "^[[:space:]]*model[[:space:]]*=" "$OUT"/*.toml'
+check "no toml carries a model key" '! grep -Eq "^[[:space:]]*model[[:space:]]*=" "$OUT"/*.toml'
 
 sums() { (cd "$OUT" && cksum ./*.toml); }
 before=$(sums)

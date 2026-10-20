@@ -7,7 +7,7 @@
 #   array (Codex): a [bash|sh|zsh, -c|-lc|..., script] array is read as its script; any other array is joined with spaces, each element
 #   shell-quoted only when it holds characters outside [A-Za-z0-9_@%+=:,./-], so a plain argv still matches the prefixes below. A Bash call that exits non-zero fires only
 #   PostToolUseFailure on Claude Code 2.1.303 (payload: error, is_interrupt, duration_ms, no tool_response); a failing suite is the run whose
-#   evidence matters most (F-1), so both events are wired. The hook never reads tool_response or error: the JSON report is the source. Paths from the payload `cwd` (D18); .workflow/specs/ and the gitignored .step
+#   evidence matters most, so both events are wired. The hook never reads tool_response or error: the JSON report is the source. Paths from the payload `cwd` (a task worktree for a sub-agent); .workflow/specs/ and the gitignored .step
 #   markers are read in the main checkout (git rev-parse --git-common-dir), since a 1.4 run happens in a throwaway worktree.
 # Match (leading NAME=value env assignments are skipped first; E2E_INJECT_FAULT=1 among them marks the run fault-injected, 1.4):
 #   - the command starts with the `e2e` value of the e2e-browser profile's Toolchain block (.workflow/profiles/e2e-browser.md in cwd, then the main
@@ -29,21 +29,19 @@
 #   installed); after filing, {"hookSpecificOutput":{"hookEventName":"PostToolUse" (or "PostToolUseFailure", echoing the payload),"additionalContext":"..."}} naming the directory;
 #   a {"systemMessage":...} when a matching run could not be filed (no report, stale report, no in-flight spec, yq missing).
 #   Exit code always 0: neither event can undo the run, so this hook never blocks; any internal failure exits 0 silently (fail-safe).
-# Wiring: claude-settings.template.json (merged into <target>/.claude/settings.json by install.sh, D36): PostToolUse and PostToolUseFailure,
+# Wiring: claude-settings.template.json (merged into <target>/.claude/settings.json by install.sh): PostToolUse and PostToolUseFailure,
 #   matcher "Bash" each. codex-hooks.template.json (<target>/.codex/hooks.json): PostToolUse, matcher "Bash"; Codex fires it after non-zero
-#   exits too, with tool_response a plain string (PLAN/hook-verification-codex.md row 6), which this hook never reads.
-# Plan refs: 1.4, 3.10, 3.11, 3.12; assetlist D9, D15, D18, D38, D62, D63.
-# Notes: The hook never runs the suite. Where it is not installed, the orchestrator copies the evidence itself (D9).
-# Sources: first-party, from PLAN/gap-research.md G1 (match rule, JSON report parse, artifact layout; written from the Playwright docs,
-#   Apache-2.0, no text copied: https://playwright.dev/docs/test-reporters, https://playwright.dev/docs/api/class-testinfo, JSON shape from
-#   microsoft/playwright packages/playwright/src/reporters/json.ts); PLAN/hook-verification.md (PostToolUse payload, worktree cwd);
+#   exits too, with tool_response a plain string (verified on Codex 0.155.1), which this hook never reads.
+# Notes: The hook never runs the suite. Where it is not installed, the orchestrator copies the evidence itself.
+# Sources: first-party; match rule, JSON report parse and artifact layout written from the Playwright docs
+#   (Apache-2.0, no text copied: https://playwright.dev/docs/test-reporters, https://playwright.dev/docs/api/class-testinfo, JSON shape from
+#   microsoft/playwright packages/playwright/src/reporters/json.ts);
 #   hooks reference https://code.claude.com/docs/en/hooks (PostToolUse additionalContext, systemMessage); profile Toolchain extraction as in
 #   skills/feature-workflow/scripts/run-toolchain.sh; .step format in skills/feature-workflow/scripts/status-transition.sh.
-# Requires: bash 3.2+, jq, mikefarah yq v4 (D38), git (optional), base64 (optional; jq @base64d is the fallback for text bodies).
+# Requires: bash 3.2+, jq, mikefarah yq v4, git (optional), base64 (optional; jq @base64d is the fallback for text bodies).
 
 set -euo pipefail
 
-# Workflow paths (D81).
 # shellcheck source=../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
 
@@ -172,7 +170,7 @@ fi
 
 # From here the command was a browser-suite run: failures to file are reported, not silent.
 [ -d "$main_root/$WF_SPECS" ] || exit 0   # no workflow in this project
-[ "$have_yq" -eq 1 ] || note "mikefarah yq v4 not found; browser-suite evidence was not filed (D38)."
+[ "$have_yq" -eq 1 ] || note "mikefarah yq v4 not found; browser-suite evidence was not filed."
 
 case "$report_rel" in /*) report=$report_rel ;; *) report=$run_dir/$report_rel ;; esac
 [ -f "$report" ] || note "no JSON report at $report; check the json reporter outputFile in playwright.config.ts matches the profile's e2e_report. Evidence was not filed."

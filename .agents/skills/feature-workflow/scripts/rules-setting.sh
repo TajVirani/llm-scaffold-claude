@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# File: Helper script (not a hook): read one workflow setting from the optional `## Workflow settings` section of .workflow/rules.md (D85).
+# File: Helper script (not a hook): read one workflow setting from the optional `## Workflow settings` section of .workflow/rules.md.
 # Purpose: One reader for project-wide workflow switches, so modules never parse rules.md themselves. The section is optional: absent
 #   section, absent block or absent key prints the default. generate-boundary-config.sh reads only Ownership and Shared core and ignores it.
 # Usage:
 #   rules-setting.sh <key> [--cwd <dir>] [--rules <path>]
 #     <key>    a known setting (table below).
-#     --cwd    any directory in the project or one of its worktrees; rules.md is read from the MAIN checkout (git rev-parse --git-common-dir,
-#              D18). Default: $PWD.
+#     --cwd    any directory in the project or one of its worktrees; rules.md is read from the MAIN checkout (git rev-parse --git-common-dir).
+#              Default: $PWD.
 #     --rules  read this file instead (no git needed; tests and drafts).
 # Section format: the first fenced ```yaml block under the heading `## Workflow settings` (exact text, trailing spaces allowed); the
 #   block is a YAML map of setting -> scalar.
@@ -18,8 +18,7 @@
 # Exit codes: 0 value printed; 1 usage or environment error (unknown key, missing yq, not a git repo, unparsable block, value outside the
 #   allowed set).
 # Called by: modules/implementation-orchestrator.md (3.16), scripts/open-task-pr.sh.
-# Plan refs: 3.16; assetlist D15, D18, D38, D85.
-# Notes: Requires mikefarah yq v4 (D38). bash 3.2 compatible. Section parse pattern from budget-check.sh (Size budget block).
+# Notes: Requires mikefarah yq v4. bash 3.2 compatible. Section parse pattern from budget-check.sh (Size budget block).
 # Sources: first-party.
 
 set -euo pipefail
@@ -76,8 +75,8 @@ block=$(awk -v h="## $HEADING" '
 ' "$RULES")
 [[ -n "$block" ]] || default_out "no yaml block under '## $HEADING' in $RULES"
 
-command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (D38)"
-yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (D38)"
+command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (the Python yq has different flags)"
+yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (the Python yq has different flags)"
 tag=$(printf '%s\n' "$block" | yq 'tag' 2>/dev/null) || die "the yaml block under '## $HEADING' in $RULES does not parse"
 [[ "$tag" == "!!map" ]] || die "the yaml block under '## $HEADING' in $RULES must be a map of setting: value"
 val=$(printf '%s\n' "$block" | K=$KEY yq '.[strenv(K)] // "" | select(tag != "!!map" and tag != "!!seq")' 2>/dev/null) \

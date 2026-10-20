@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File: Test runner (scaffold-only; see tests/README.md).
+# File: Test runner (scaffold-only, never installed in a target project).
 # Usage:
 #   tests/run-all.sh                  run every suite under tests/scripts, tests/hooks and tests/lint, print a summary
 #   tests/run-all.sh --suite NAME     run one suite (basename without .sh, e.g. pre-launch; or scripts/NAME, hooks/NAME, lint/NAME)

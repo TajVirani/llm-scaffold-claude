@@ -1,7 +1,7 @@
 #!/bin/bash
 # Recreates the hook-verification scratch repo in a temp dir and runs the two headless runs.
 # Usage: ./run.sh [model]   (default: haiku). Requires: claude, jq, git. Costs ~$0.07 on haiku.
-# Scaffold-only harness; not part of the install payload (D30).
+# Scaffold-only harness; not part of the install payload.
 set -euo pipefail
 SRC="$(cd "$(dirname "$0")" && pwd)"
 MODEL="${1:-haiku}"

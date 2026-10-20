@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File: Helper script (not a hook): derive the implementation waves of one spec from tasks.md, with predicted-file overlaps (2.5, D85).
+# File: Helper script (not a hook): derive the implementation waves of one spec from tasks.md, with predicted-file overlaps (2.5).
 # Purpose: Read the tasks.md frontmatter `tasks:` array, find every pair of tasks whose `predicted_files` overlap, turn each overlap into an
 #   implied depends_on edge (later id depends on earlier id) unless the pair is already ordered by depends_on or both tasks list each other
 #   in `parallel_with`, reject cycles and unknown ids, and print the waves, the overlap table and the 2.1 quiz table. Read-only: it never
@@ -8,7 +8,7 @@
 #   task-waves.sh --spec-dir .workflow/specs/NNN-slug [--cwd <dir>] [--json]
 #   task-waves.sh --tasks-file <path to tasks.md> [--json]
 #     --spec-dir    `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it); tasks.md is read from the
-#                   MAIN checkout, found with `git rev-parse --git-common-dir` from --cwd (default $PWD) (D18).
+#                   MAIN checkout, found with `git rev-parse --git-common-dir` from --cwd (default $PWD).
 #     --tasks-file  read this file instead (no git needed); for drafts and tests.
 #     --json        print one JSON object instead of the text report (shape below).
 # Overlap rule (patterns compared after dropping a leading "./"; a pattern ending in "/" means "<dir>/**"). Two patterns overlap when some
@@ -26,7 +26,7 @@
 #   case-sensitively and without touching the file system (no symlink or rename detection); brace expansion `{a,b}` and negation `!` are
 #   not supported (written literally, they compare as plain characters).
 # Graph:
-#   - Records with status split-out are left out (their work left the spec, D68); a depends_on naming one is dropped with a warning.
+#   - Records with status split-out are left out (their work left the spec); a depends_on naming one is dropped with a warning.
 #   - Overlapping pair (A, B), A before B in id order:
 #       ordered        A and B are already ordered through depends_on (either direction, transitively): no new edge.
 #       parallel_with  both list each other in parallel_with: no edge; they may share a wave and are merged in id order at 3.16.
@@ -41,10 +41,9 @@
 # Exit codes: 0 waves derived; 2 invalid graph (cycle, unknown id in depends_on or parallel_with, duplicate id; reason on stderr);
 #   1 usage or environment error (missing jq/yq, not a git repo, missing or unreadable tasks.md).
 # Called by: modules/task-breakdown.md (2.5: derive waves and implied edges; 2.1 quiz table) and implementation-orchestrator (wave start).
-# Plan refs: 2.1, 2.5, 3.3, 3.16; assetlist D14, D18, D38, D68, D85.
-# Notes: Requires jq and mikefarah yq v4 (D38). bash 3.2 compatible. Replaces the inline jq wave snippet formerly in task-breakdown.md.
+# Notes: Requires jq and mikefarah yq v4. bash 3.2 compatible.
 # Sources: first-party; wave computation (longest path over depends_on) adapted from open-gsd/gsd-core agents/gsd-planner.md "assign_waves"
-#   (MIT; idea only) as already used in task-breakdown.md; overlap-implies-ordering from mattpocock/skills implement-spec@49dd158 (MIT; idea only).
+#   (MIT; idea only); overlap-implies-ordering from mattpocock/skills implement-spec@49dd158 (MIT; idea only).
 
 set -euo pipefail
 
@@ -90,8 +89,8 @@ done
 [[ -n "$SPEC_ARG" || -n "$TASKS_FILE" ]] || usage
 [[ -z "$SPEC_ARG" || -z "$TASKS_FILE" ]] || die "pass --spec-dir or --tasks-file, not both"
 command -v jq >/dev/null 2>&1 || die "jq not found on PATH"
-command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (D38)"
-yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (D38)"
+command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (the Python yq has different flags)"
+yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (the Python yq has different flags)"
 
 if [[ -n "$SPEC_ARG" ]]; then
   [[ -d "$OPT_CWD" ]] || die "--cwd is not a directory: $OPT_CWD"
@@ -188,7 +187,7 @@ def closure($d):
 ERR=$(mktemp "${TMPDIR:-/tmp}/task-waves.XXXXXX")
 trap 'rm -f "$ERR"' EXIT
 if ! RESULT=$(jq -c "$PROGRAM" <<<"$TASKS_JSON" 2>"$ERR"); then
-  msg=$(sed -e 's/^jq: error (at <stdin>:[0-9]*): //' -e 's/^jq: error: //' "$ERR" | head -3 | tr '\n' ' ')
+  msg=$(sed -e 's/^jq: error (at <stdin>:[0-9]*): //' -e 's/^jq: error: //' -e 3q "$ERR" | tr '\n' ' ')
   case "$msg" in
     *cycle*|*unknown\ id*|*duplicate*) die "invalid task graph in $TASKS_FILE: $msg" 2 ;;
     *) die "cannot evaluate $TASKS_FILE: $msg" ;;

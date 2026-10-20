@@ -111,32 +111,32 @@ HDR_P1=$'```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/s
 mk_transcript "$B/p1.jsonl" "$HDR_P1"
 out=$(stop_payload "$B/p1.jsonl" false | bash "$H/post-implementation-audit.sh" 2>/dev/null); rc=$?
 check "phase 1 header -> evidence under phase-1-harness, pass silent" '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r .status "$P/.workflow/specs/001-demo/artifacts/phase-1-harness/toolchain.json")" = pass ]' "$out"
-# D70: Phase 1 audits skip `test` (red by design); Phase 3 task audits run it
+# Phase 1 audits skip `test` (red by design); Phase 3 task audits run it
 sed 's/^lint: "true"/lint: "true"\ntest: "false"/' .workflow/profiles/harness.md > .workflow/profiles/redtest.md
 HDR_P1R=$'```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/001-demo\nwork_type: redtest\n```\nSet up.'
 mk_transcript "$B/p1r.jsonl" "$HDR_P1R"
 out=$(stop_payload "$B/p1r.jsonl" false | bash "$H/post-implementation-audit.sh" 2>/dev/null); rc=$?
-check "phase 1 with failing test key -> allowed, test skipped (D70)" '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r ".results[]|select(.key==\"test\")|.status+\":\"+.reason" "$P/.workflow/specs/001-demo/artifacts/phase-1-redtest/toolchain.json")" = "skipped:skipped by caller" ]' "$out"
+check "phase 1 with failing test key -> allowed, test skipped" '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r ".results[]|select(.key==\"test\")|.status+\":\"+.reason" "$P/.workflow/specs/001-demo/artifacts/phase-1-redtest/toolchain.json")" = "skipped:skipped by caller" ]' "$out"
 HDR_P3R=$'```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/001-demo\ntask_id: T9\nwork_type: redtest\n```\n\nImplement T9.'
 mk_transcript "$B/p3r.jsonl" "$HDR_P3R"
 out=$(stop_payload "$B/p3r.jsonl" false | bash "$H/post-implementation-audit.sh" 2>/dev/null)
-check "phase 3 task with failing test key -> test still runs, stop blocked (D70 skips only Phase 1)" '[ "$(jq -r .decision <<<"$out")" = block ] && [ "$(jq -r ".results[]|select(.key==\"test\")|.status" "$P/.workflow/specs/001-demo/artifacts/T9/toolchain.json")" = fail ]' "$out"
+check "phase 3 task with failing test key -> test still runs, stop blocked (only Phase 1 skips it)" '[ "$(jq -r .decision <<<"$out")" = block ] && [ "$(jq -r ".results[]|select(.key==\"test\")|.status" "$P/.workflow/specs/001-demo/artifacts/T9/toolchain.json")" = fail ]' "$out"
 
-# D85: Claude task launches run in the orchestrator-made worktree .workflow/.worktrees/s<NNN>_t<N>, not an isolation cwd
+# Claude task launches run in the orchestrator-made worktree .workflow/.worktrees/s<NNN>_t<N>, not an isolation cwd
 rm -f "$EV/audit-loop.json" "$EV/audit.json"
 out=$(stop_payload "$B/t1.jsonl" false implementation "$P" | bash "$H/post-implementation-audit.sh" 2>/dev/null)
-check "D85: main-checkout cwd, no task worktree -> allow + warning, toolchain not run" '[ -z "$(jq -r ".decision // empty" <<<"$out")" ] && jq -r .systemMessage <<<"$out" | grep -q "s001_t1" && [ "$(jq -r .outcome "$EV/audit.json")" = warning ]' "$out"
+check "main-checkout cwd, no task worktree -> allow + warning, toolchain not run" '[ -z "$(jq -r ".decision // empty" <<<"$out")" ] && jq -r .systemMessage <<<"$out" | grep -q "s001_t1" && [ "$(jq -r .outcome "$EV/audit.json")" = warning ]' "$out"
 rm -f "$EV/audit.json"
 git worktree add -q "$P/.workflow/.worktrees/s001_t1" -b task/001-demo/T01-a 2>/dev/null
 touch "$P/.workflow/.worktrees/s001_t1/lint-ok"
 out=$(stop_payload "$B/t1.jsonl" false implementation "$P" | bash "$H/post-implementation-audit.sh" 2>/dev/null); rc=$?
-check "D85: .workflow/.worktrees/s001_t1 audited (pass there)" '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r .cwd "$EV/toolchain.json")" = "$(cd "$P/.workflow/.worktrees/s001_t1" && pwd -P)" ]' "$out"
+check ".workflow/.worktrees/s001_t1 audited (pass there)" '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r .cwd "$EV/toolchain.json")" = "$(cd "$P/.workflow/.worktrees/s001_t1" && pwd -P)" ]' "$out"
 out=$(stop_payload "$B/t1.jsonl" false implementation "$WT" | bash "$H/post-implementation-audit.sh" 2>/dev/null)
-check "D85: task worktree preferred over an isolation cwd" '[ -z "$out" ] && [ "$(jq -r .cwd "$EV/toolchain.json")" = "$(cd "$P/.workflow/.worktrees/s001_t1" && pwd -P)" ]' "$out"
+check "task worktree preferred over an isolation cwd" '[ -z "$out" ] && [ "$(jq -r .cwd "$EV/toolchain.json")" = "$(cd "$P/.workflow/.worktrees/s001_t1" && pwd -P)" ]' "$out"
 git worktree remove --force "$P/.workflow/.worktrees/s001_t1"
 git branch -q -D task/001-demo/T01-a
 out=$(stop_payload "$B/t1.jsonl" false | bash "$H/post-implementation-audit.sh" 2>/dev/null)
-check "D85 fallback: isolation worktree cwd still audited" '[ "$(jq -r .decision <<<"$out")" = block ] && [ "$(jq -r .cwd "$EV/toolchain.json")" = "$(cd "$WT" && pwd -P)" ]' "$out"
+check "fallback: isolation worktree cwd still audited" '[ "$(jq -r .decision <<<"$out")" = block ] && [ "$(jq -r .cwd "$EV/toolchain.json")" = "$(cd "$WT" && pwd -P)" ]' "$out"
 rm -f "$EV/audit-loop.json"
 
 # array content form

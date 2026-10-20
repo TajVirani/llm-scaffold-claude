@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# File: Hook (Claude adapter): keep an implementation or integration sub-agent inside its task worktree (D85).
+# File: Hook (Claude adapter): keep an implementation or integration sub-agent inside its task worktree.
 # Goals:
-#   - Since D85 a Claude Phase 3 implementation agent is launched WITHOUT `isolation` (the Agent tool has no working-directory input) and works
+#   - A Claude Phase 3 implementation agent is launched WITHOUT `isolation` (the Agent tool has no working-directory input) and works
 #     in the worktree the orchestrator created, .workflow/.worktrees/s<NNN>_t<N>. Only the brief keeps it there, so parallel agents could edit the
 #     main checkout or each other's worktrees. This hook denies, for those agents, a Write/Edit/NotebookEdit outside the worktree and a Bash
 #     command that does not start with `cd <worktree> &&` (the brief's rule). Main-session calls are never affected.
 # Triggers/inputs: PreToolUse JSON for Write|Edit|NotebookEdit and Bash. Acts only when the payload carries agent_id (sub-agent calls only;
-#   verified 2.1.300, PLAN/hook-verification.md T2) and agent_type is implementation or integration.
-#   The task comes from the launch header (D37): PreToolUse carries no prompt and its transcript_path is the PARENT's transcript, so the
+#   verified 2.1.300) and agent_type is implementation or integration.
+#   The task comes from the launch header: PreToolUse carries no prompt and its transcript_path is the PARENT's transcript, so the
 #   sub-agent transcript is <transcript_path without .jsonl>/subagents/agent-<agent_id>.jsonl (the layout SubagentStop reports as
-#   agent_transcript_path, PLAN/hook-verification.md T2). Its first user message is parsed with resolve-launch.sh --parse-header, as
+#   agent_transcript_path, verified 2.1.300). Its first user message is parsed with resolve-launch.sh --parse-header, as
 #   post-implementation-audit.sh does; spec_dir .workflow/specs/<NNN>-<slug> and task_id T<N> give the worktree name s<NNN>_t<N>.
-# Behaviour (rule logic in skills/feature-workflow/scripts/check-worktree-scope.sh, D9):
+# Behaviour (rule logic in skills/feature-workflow/scripts/check-worktree-scope.sh):
 #   - Worktree .workflow/.worktrees/s<NNN>_t<N> exists: confine to it. Otherwise, a linked-worktree cwd (isolation launch, Phase 1, integration):
 #     confine to that worktree. Otherwise (no header, no task_id, no worktree, transcript not found): allow.
 #   - check-worktree-scope.sh exit 0: allow (no output); exit 2: deny with its reason; any other exit: deny, fail closed.
@@ -20,10 +20,9 @@
 # Wiring: claude-settings.template.json: PreToolUse, one group with matcher "Bash|Write|Edit|NotebookEdit" (install.sh merges hook commands
 #   per event, so the same command in two groups of one event would be installed only once). Codex: hooks/codex-write-guard.sh applies the
 #   same check to apply_patch paths, with the worktree named by the spawn task_name.
-# Plan refs: 3.3; assetlist D9, D16, D18, D37, D85.
 # Notes: Accident prevention only, like the other guards: a Bash command can still reach outside after its leading cd.
 # Sources: first-party; hooks/post-implementation-audit.sh (transcript header parse), hooks/_guard-common.sh (deny shape).
-# Requires: bash 3.2+, jq, git; resolve-launch.sh needs mikefarah yq v4 (D38).
+# Requires: bash 3.2+, jq, git; resolve-launch.sh needs mikefarah yq v4.
 
 set -euo pipefail
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Suite: lint of feature-workflow/references/steps.tsv (the ordered step list behind the progress line, D84) against the repo.
+# Suite: lint of feature-workflow/references/steps.tsv (the ordered step list behind the progress line) against the repo.
 # Covers: the file's shape (4 tab-separated columns, unique ids, known tracks, six phase rows, each id's phase matches its
 #   prefix); the id set equals the numbered nodes of PLAN/decision-flow-reference.md and of PLAN/decision-flow.mermaid (removed
 #   nodes such as ~~00.15~~ excluded); each "## Phase N" section of the reference lists exactly the ids the file puts in phase N;

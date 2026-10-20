@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): generate import-boundary tool config from .workflow/rules.md.
-# Purpose: Parse the tool-neutral fenced `yaml` blocks under the fixed Ownership and Shared core headings of .workflow/rules.md (module -> owned paths -> allowed dependencies; D15) and emit per-language config through adapters (D20). First adapter: dependency-cruiser for TS/JS. The rules are the source; the config is derived and never hand-edited.
-# Triggers/inputs: Path to the target project (.workflow/rules.md). Called by project-setup at setup, by the rules-boundary-config-sync hook after every approved write to .workflow/rules.md, and by sign-off at 5.3 on hosts without that hook (D9).
+# Purpose: Parse the tool-neutral fenced `yaml` blocks under the fixed Ownership and Shared core headings of .workflow/rules.md (module -> owned paths -> allowed dependencies) and emit per-language config through adapters, so the rules stay tool-neutral. First adapter: dependency-cruiser for TS/JS. The rules are the source; the config is derived and never hand-edited.
+# Triggers/inputs: Path to the target project (.workflow/rules.md). Called by project-setup at setup, by the rules-boundary-config-sync hook after every approved write to .workflow/rules.md, and by sign-off at 5.3 on hosts without that hook.
 # Outputs/handoff: Generated config under .workflow/tools/boundaries/ (.workflow/tools/boundaries/dependency-cruiser.cjs), run by the profile's `boundary` toolchain key at 3.5; non-zero exit when the blocks do not parse (the hook fails the write).
-# Plan refs: 00.3, 3.5; reference "Processes outside the flow" (Project setup), "Hooks" (Rules -> boundary config sync); assetlist D15, D20, D38.
-# Sources: first-party (D15, D20, D38). dependency-cruiser `forbidden` / `options.tsConfig` format from its rules-reference.md and options-reference.md (MIT). Script style after skills/data-structure-audit/scripts/audit_scope.sh.
-# Notes: Requires mikefarah yq v4 (D38) and jq.
+# Sources: first-party. dependency-cruiser `forbidden` / `options.tsConfig` format from its rules-reference.md and options-reference.md (MIT). Script style after skills/data-structure-audit/scripts/audit_scope.sh.
+# Notes: Requires mikefarah yq v4 and jq.
 #
 # Usage:
 #   generate-boundary-config.sh [--check] [--adapter NAME] [--print-intermediate] [PROJECT_DIR]
@@ -26,7 +25,6 @@
 
 set -euo pipefail
 
-# Workflow paths (D81).
 # shellcheck source=../../../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
@@ -44,9 +42,9 @@ die() { # die EXIT_CODE MESSAGE...
 
 require_tools() {
   command -v jq >/dev/null 2>&1 || die 3 "jq not found on PATH"
-  command -v yq >/dev/null 2>&1 || die 3 "yq not found on PATH (mikefarah yq v4 required, D38)"
-  yq --version 2>&1 | grep -q 'mikefarah' || die 3 "yq on PATH is not mikefarah yq (v4 required, D38)"
-  yq --version 2>&1 | grep -Eq 'version v?4\.' || die 3 "yq is not v4 (mikefarah yq v4 required, D38)"
+  command -v yq >/dev/null 2>&1 || die 3 "yq not found on PATH (mikefarah yq v4 required)"
+  yq --version 2>&1 | grep -q 'mikefarah' || die 3 "yq on PATH is not mikefarah yq (v4 required)"
+  yq --version 2>&1 | grep -Eq 'version v?4\.' || die 3 "yq is not v4 (mikefarah yq v4 required)"
 }
 
 # extract_block FILE HEADING -> prints the single fenced yaml block under "## HEADING".

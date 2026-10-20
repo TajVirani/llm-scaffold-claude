@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Suite: hooks/spec-single-writer-guard.sh, hooks/tier-a-write-guard.sh, hooks/tier-b-write-guard.sh (and the sourced
 #   _guard-common.sh): thin PreToolUse adapters over feature-workflow/scripts/check-write.sh.
-# Covers: main session vs sub-agent (agent_id, D16), Write / Edit / NotebookEdit payloads, status edits denied through the
-#   proposed-content check, Tier A steps and glossary / profile rules (D46, D50, D51), .workflow/cache always denied (D17),
-#   worktree cwd (D18), CLAUDE_PROJECT_DIR fallback, fail-closed on bad payload / no jq (static deny) / failure before a decision / no yq / non-repo cwd,
+# Covers: main session vs sub-agent (agent_id), Write / Edit / NotebookEdit payloads, status edits denied through the
+#   proposed-content check, Tier A steps and glossary / profile rules, .workflow/cache always denied,
+#   worktree cwd, CLAUDE_PROJECT_DIR fallback, fail-closed on bad payload / no jq (static deny) / failure before a decision / no yq / non-repo cwd,
 #   and silence in a project that does not have the workflow installed.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -119,8 +119,8 @@ expect ".workflow/rules.md at 0.3.7 allowed" allow $TIERA "$(payload Edit .workf
 expect ".workflow/decisions adr at 0.3.7 allowed" allow $TIERA "$(payload Write .workflow/decisions/adr/0001-x.md)"
 for s in 0.2.3 0.3.15 0.4.3; do
   at $s
-  expect ".workflow/rules.md at $s denied (D51)" deny $TIERA "$(payload Edit .workflow/rules.md)" "0\.3\.7 5\.3 5\.7"
-  expect ".workflow/decisions adr at $s denied (D51)" deny $TIERA "$(payload Write .workflow/decisions/adr/0001-x.md)"
+  expect ".workflow/rules.md at $s denied" deny $TIERA "$(payload Edit .workflow/rules.md)" "0\.3\.7 5\.3 5\.7"
+  expect ".workflow/decisions adr at $s denied" deny $TIERA "$(payload Write .workflow/decisions/adr/0001-x.md)"
 done
 for s in 5.3 5.7; do
   at $s
@@ -128,8 +128,8 @@ for s in 5.3 5.7; do
   expect ".workflow/decisions adr at $s allowed" allow $TIERA "$(payload Write .workflow/decisions/adr/0001-x.md)"
 done
 at 0.3.7
-expect ".workflow/GLOSSARY.md at 0.3.7 denied (D51)" deny $TIERA "$(payload Write .workflow/GLOSSARY.md)"
-expect "existing profile at 0.3.7 denied (D50)" deny $TIERA "$(payload Write .workflow/profiles/frontend.md)"
+expect ".workflow/GLOSSARY.md at 0.3.7 denied" deny $TIERA "$(payload Write .workflow/GLOSSARY.md)"
+expect "existing profile at 0.3.7 denied" deny $TIERA "$(payload Write .workflow/profiles/frontend.md)"
 at 5.3
 expect "existing profile at 5.3 allowed" allow $TIERA "$(payload Write .workflow/profiles/frontend.md)"
 expect "new profile at 5.3 allowed" allow $TIERA "$(payload Write .workflow/profiles/backend.md)"
@@ -164,7 +164,7 @@ expect "path outside repo allowed" allow $TIERB "$(payload Write /etc/hosts)"
 expect "no path (e.g. other tool input) allowed" allow $TIERB '{"cwd":"'"$P"'","tool_name":"Write","tool_input":{}}'
 expect "Tier B guard ignores Tier A path" allow $TIERB "$(payload Write .workflow/rules.md)"
 
-echo "== worktree cwd (D18)"
+echo "== worktree cwd"
 at 0.3.19
 expect "spec.md from worktree cwd, main session, step read from main checkout" allow $SPECG "$(payload Write "$WT/.workflow/specs/001-demo/spec.md" "$WT" | jq -c --rawfile c "$P/.workflow/specs/001-demo/spec.md" '.tool_input.content=$c')"
 expect "spec.md from worktree cwd, sub-agent" deny $SPECG "$(payload Write "$WT/.workflow/specs/001-demo/spec.md" "$WT" "$SUB")"

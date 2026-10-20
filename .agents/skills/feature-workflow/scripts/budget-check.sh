@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
-# File: Helper script (not a hook): check one spec against its soft size budget (D58).
+# File: Helper script (not a hook): check one spec against its soft size budget.
 # Purpose: Compare the task count and the predicted file count (2.6, --predicted) or the changed-file count (3.15, once per wave after the 3.16 merge) with the spec's
 #   `budget: {max_tasks, max_changed_files}`. Read-only: it never writes spec.md, tasks.md or .step.
 # Usage:
 #   budget-check.sh --spec-dir .workflow/specs/NNN-slug [--cwd <dir>] [--predicted]
 #     --predicted 2.6: changed_files is the sum of the records' predicted `size.files` (tasks not split-out) instead of a git diff, so the
-#                 budget is checked before any code is written (D58 amended, D85). Every counted record needs an integer size.files (exit 1).
+#                 budget is checked before any code is written. Every counted record needs an integer size.files (exit 1).
 #     --spec-dir  `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it). spec.md and tasks.md are read
-#                 from the MAIN checkout, found with `git rev-parse --git-common-dir` (D18).
+#                 from the MAIN checkout, found with `git rev-parse --git-common-dir`, where the main session writes them.
 #     --cwd       where the changed files are counted (a task worktree or feature branch). Default: the main checkout's HEAD.
 #                 The main checkout is located from --cwd, or from $PWD when --cwd is absent.
 # Budget source, first found wins (each source must give both keys as non-negative integers, or the script exits 1):
 #   spec     spec.md frontmatter `budget: {max_tasks, max_changed_files}` (written at 2.5 / 0.3.20, raised at 00.29)
 #   rules    .workflow/rules.md: the first fenced yaml block under `## Size budget`, key `size_budget: {max_tasks, max_changed_files}`
-#   default  max_tasks 10, max_changed_files 30 (D58, confirmed by the user)
+#   default  max_tasks 10, max_changed_files 30 (chosen by the user)
 # Counts:
 #   tasks          records in the tasks.md frontmatter `tasks:` array, excluding `split-out` ones (their work moved to the backlog at a
-#                  00.29 split, D68), so 2.6 does not trip again after a split.
+#                  00.29 split), so 2.6 does not trip again after a split.
 #   changed_files  `git diff --name-only <impl_base_revision>..HEAD` in the count directory, excluding the spec folder and .workflow/specs/work-backlog/.
-#                  impl_base_revision is the spec-branch tip when Phase 3 starts (3.1), so the Phase 1 harness and suite never count (D85).
+#                  impl_base_revision is the spec-branch tip when Phase 3 starts (3.1), so the Phase 1 harness and suite never count.
 #                  impl_base_revision unset: falls back to baseline_revision with a warning on stderr and in `note` (Phase 1 files then count).
 #                  Neither set: changed files are not counted; changed_files is null and `note` says why.
 #                  With --predicted: the sum of size.files instead (no git diff).
@@ -27,10 +27,8 @@
 # Exit codes: 0 within budget; 2 over budget (the caller runs 00.21 with blocked_condition "size budget: <what>", then 00.29);
 #   1 usage or environment error (missing yq/jq, not a git repo, missing file, malformed budget, unknown baseline commit).
 # Called by: modules task-breakdown (2.6) and implementation-orchestrator (3.15); discovered-work at 00.29 after an approved overrun.
-# Plan refs: 2.5, 2.6, 3.15, 3.16, 0.3.20, 00.21, 00.29; reference "Sizing", "Discovered work", "Per-feature files"; assetlist D18, D38, D56, D58, D68, D85.
-# Notes: Requires git, jq and mikefarah yq v4 (D38). bash 3.2 compatible.
-# Sources: first-party; PLAN/decision-flow-reference.md 2.6, 3.15, 3.16, "Sizing", "Discovered work: the scope-creep guardrail"; assetlist D18, D38, D56, D58;
-#   project-setup/assets/docs/rules.md "Size budget"; feature-workflow/assets/spec.md `budget`. Pattern: status-transition.sh (main-checkout resolution).
+# Notes: Requires git, jq and mikefarah yq v4. bash 3.2 compatible.
+# Sources: first-party; formats from project-setup/assets/docs/rules.md "Size budget"; feature-workflow/assets/spec.md `budget`. Pattern: status-transition.sh (main-checkout resolution).
 
 set -euo pipefail
 
@@ -109,8 +107,8 @@ done
 [[ -n "$SPEC_ARG" ]] || usage
 [[ $HAVE_CWD -eq 0 ]] || [[ -d "$OPT_CWD" ]] || die "--cwd is not a directory: $OPT_CWD"
 command -v jq >/dev/null 2>&1 || die "jq not found on PATH"
-command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (D38)"
-yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (D38)"
+command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (the Python yq has different flags)"
+yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (the Python yq has different flags)"
 
 ROOT=$(main_root "${OPT_CWD:-$PWD}")
 SPEC_DIR=$(norm_spec_dir "$SPEC_ARG")

@@ -33,6 +33,8 @@ Paradigm (layered, hexagonal, ...); starter (or none); data store; ID scheme; ti
 
 Files (components, modules, tests); types and interfaces; functions and variables; constants; services and error types; DB tables, columns, foreign keys, indexes, enums; API routes, route params, query params; JSON and wire field casing; event or message names.
 
+Comment style and descriptive naming are a fixed scaffold baseline, `.agents/skills/feature-workflow/references/readable-code.md` (D86): every coding agent follows it and 3.7 and 4.1 check it. Do not ask about it. Record only what a project adds, such as a required docstring on public functions, as a row here.
+
 ## C5. Boundaries and layering
 
 Module ownership and allowed dependencies; shared core paths; layering inside a module (for example handler → service → repository) and what each layer may import; type-only imports across workspaces; the one data access path; side-effect pipelines (sync or async, failure isolation).

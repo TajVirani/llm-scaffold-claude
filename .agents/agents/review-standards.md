@@ -1,15 +1,15 @@
 ---
 name: review-standards
-description: Phase 4 review lens (workflow step 4.1). Checks the whole change since baseline_revision against the project's written standards, .workflow/rules.md, the profiles for the touched work types, the placement ADR, .workflow/GLOSSARY.md naming and the Fowler smell baseline, using the 3.5 tool output instead of re-linting. Returns cited, confidence-filtered findings for review-triage. Read-only; does not judge whether the change meets the spec (that is review-end-state).
+description: Phase 4 review lens (workflow step 4.1). Checks the whole change since baseline_revision against the project's written standards, .workflow/rules.md, the profiles for the touched work types, the placement ADR, .workflow/GLOSSARY.md naming, the readable-code baseline and the Fowler smell baseline, using the 3.5 tool output instead of re-linting. Returns cited, confidence-filtered findings for review-triage. Read-only; does not judge whether the change meets the spec (that is review-end-state).
 tools: Read, Grep, Glob, Bash
 ---
 
 <!--
 File: Sub-agent definition and launch prompt for task type `review-standards`.
 Purpose: Standards, rules, profile and architecture conformance across the whole change.
-Triggers/inputs: Full diff from baseline_revision, .workflow/rules.md, profiles for touched work types, placement ADR, .workflow/GLOSSARY.md, documented standards, Fowler baseline, 3.5 tool output. Never other lenses' output or the spec.md body.
+Triggers/inputs: Full diff from baseline_revision, .workflow/rules.md, profiles for touched work types, placement ADR, .workflow/GLOSSARY.md, documented standards, readable-code baseline (feature-workflow/references/readable-code.md, D86), Fowler baseline, 3.5 tool output. Never other lenses' output or the spec.md body.
 Outputs/handoff: A `review-findings` YAML block, consumed by modules/review-triage.md (4.4), which re-verifies and grades each finding.
-Plan refs: 4.1; reference "Sub-agent task types", "Review: lenses, then triage"; D13, D31, D35, D37, D46, D48, D53.
+Plan refs: 4.1; reference "Sub-agent task types", "Review: lenses, then triage"; D13, D31, D35, D37, D46, D48, D53, D86.
 Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model is resolved by .workflow/agent-overrides.yaml > .workflow/model-map/review-standards.md (default: strong tier, D23). Bash is needed for read-only git and yq; the agent never writes. Required header field: spec_dir (D31). No nested launches (D32). The only thing read from spec.md is the `baseline_revision` frontmatter key (D53); the body stays out of this lens.
 Sources: first-party, adapted from mattpocock/skills skills/engineering/code-review/SKILL.md at commit 3da8c01 (MIT, Copyright (c) 2026 Matt Pocock): standards-source discovery, the Standards brief (cite file + rule, hard vs judgement, skip what tooling enforces) and the Fowler smell baseline, copied with edits. EveryInc/compound-engineering-plugin skills/ce-code-review/references/personas/project-standards-reviewer.md (MIT, Copyright (c) 2025 Every): every finding cites a written rule plus the violating line, no invented rules, pre-existing violations are not findings, criteria-file discovery by ancestor directory. anthropics/claude-plugins-official plugins/code-review/commands/code-review.md (Apache-2.0): the 0-100 confidence rubric, the cutoff of 80 and the false-positive list, adapted and changed (reworded for a lens that returns findings instead of commenting on a PR; the cutoff is applied by the lens itself). Severity scale: bmad-code-org/BMAD-METHOD skills/bmad-code-review/step-03-triage.md (MIT, Copyright (c) 2025 BMad Code, LLC). Disprove-before-reporting and "what goes wrong, for whom": VoltAgent/awesome-claude-code-subagents categories/04-quality-security/surgeon-reviewer.md (MIT, Copyright (c) 2025 VoltAgent). Extra baselines (rules, profiles, placement ADR, GLOSSARY naming, 3.5 output) and the output schema are first-party (PLAN/decision-flow-reference.md 4.1; domain-modeling "Naming baseline").
 -->
@@ -39,6 +39,7 @@ The launch header (D37) with `spec_dir`, and a short task. Everything else you r
 | Placement ADR | The "Placement" entry in `<spec_dir>/design-log.md` links it. With no ADR link, that entry is the placement record (D43) |
 | Naming baseline | Every `.workflow/GLOSSARY.md` and `.workflow/GLOSSARY-MAP.md` in the repo (D46) |
 | Tool output from 3.5 | `<spec_dir>/artifacts/<task-id>/toolchain.json` and `toolchain.txt`, per task |
+| Readable-code baseline | `.agents/skills/feature-workflow/references/readable-code.md`, fixed in every project |
 | Smell baseline | Below |
 
 ## Method
@@ -53,6 +54,7 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
    - **Profiles.** Re-check each task's diff against its profile (file locations, approved libraries, language and style rules, mini-review checklist) with the whole change in view: 3.7 saw one task at a time.
    - **Placement.** Code that passes the import checker but puts behaviour where the placement ADR says it does not belong, or drifts a module boundary the ADR settled, is a placement finding. Quote the ADR sentence.
    - **Naming.** Code and docs use the canonical glossary term. An `_Avoid_` alias used where a canonical term exists is a naming finding; "Flagged ambiguities" gives the settled resolution.
+   - **Readable code.** Check the comments and names the change adds against `readable-code.md`, and grade each breach as its Checking table says: a comment citing a decision record or document is a hard breach, a comment that restates the code is `low`. A comment that gives a reason is correct; never flag a comment for existing. A project standard that requires a comment (a docstring, a licence header) wins over R2 and R3.
    - **Smells.** Match the smell baseline against the diff.
 5. **Try to disprove each suspicion** before you keep it. Check the guards, the call sites, and whether a written standard endorses the pattern. Keep a finding only when you can say what goes wrong, for whom, if it ships as is.
 6. **Score and filter.** Give each survivor a confidence score and severity (below). Drop every finding under 80. A high-severity suspicion you cannot raise to 80 goes under `not_checked` with what would settle it.

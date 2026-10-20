@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Suite: Codex adapter hooks (D9, D40, D66, D67): hooks/_codex-patch.sh (apply_patch parser), hooks/codex-write-guard.sh (PreToolUse
+# Suite: Codex adapter hooks: hooks/_codex-patch.sh (apply_patch parser), hooks/codex-write-guard.sh (PreToolUse
 #   apply_patch), hooks/codex-pre-spawn.sh (PreToolUse .*spawn_agent) and hooks/codex-rules-sync.sh (PostToolUse apply_patch), plus
 #   their wiring in hooks/codex-hooks.template.json.
 # Covers: Add/Update/Delete/Move parsing, heredoc wrapper, CRLF, every parse error; write guard per path and class (spec, Tier A, Tier B),
-#   multi-file deny with all reasons, Move targets, sub-agent identity from agent_id (D16), spec.md status protection (Add proposed
+#   multi-file deny with all reasons, Move targets, sub-agent identity from agent_id, spec.md status protection (Add proposed
 #   content, Update status-line comparison), worktree cwd, fail closed on unparsable payload, missing patch text, parse errors and
 #   check-write.sh environment errors, static deny without jq, silence without the workflow; spawn validation of agent_type (both the
-#   definition and the Codex [a-z0-9_] form) and the D66 task_name forms per type, spec-folder and profile resolution, pass-through of
+#   definition and the Codex [a-z0-9_] form) and the task_name forms per type, spec-folder and profile resolution, pass-through of
 #   non-workflow agents; rules sync for .workflow/rules.md in Add/Update/Move (not Delete), block on a bad rules.md; template commands run
 #   from a sub-directory.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -115,9 +115,9 @@ expect "spec.md status line as unchanged -/+ pair -> allow" allow "$(wp $'*** Be
 expect "spec.md blocked_condition added -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: .workflow/specs/001-demo/spec.md\n@@\n status: draft\n+blocked_condition: x\n*** End Patch\n')" "blocked_condition"
 expect "spec.md sub-agent -> deny" deny "$(wp $'*** Begin Patch\n*** Update File: .workflow/specs/001-demo/spec.md\n@@\n-a\n+b\n*** End Patch\n' "$P" "$SUB")"
 for p in specs/001-demo/spec.md .workflow/specs-x/001-demo/spec.md xworkflow/specs/001-demo/spec.md; do
-  expect "status edit on look-alike $p -> allow (not a spec.md, D81)" allow "$(wp "*** Begin Patch${NL}*** Update File: $p${NL}@@${NL}-status: draft${NL}+status: done${NL}*** End Patch${NL}")"
+  expect "status edit on look-alike $p -> allow (not a spec.md)" allow "$(wp "*** Begin Patch${NL}*** Update File: $p${NL}@@${NL}-status: draft${NL}+status: done${NL}*** End Patch${NL}")"
 done
-expect "old root docs/cache -> allow (not Tier B, D81)" allow "$(wp $'*** Begin Patch\n*** Add File: docs/cache/a.md\n+x\n*** End Patch\n')"
+expect "old root docs/cache -> allow (not Tier B)" allow "$(wp $'*** Begin Patch\n*** Add File: docs/cache/a.md\n+x\n*** End Patch\n')"
 done_spec=$(sed -e 's/^status: draft/status: done/' -e 's/^/+/' "$P/.workflow/specs/001-demo/spec.md")
 same_spec=$(sed -e 's/^/+/' "$P/.workflow/specs/001-demo/spec.md")
 expect "spec.md Add with a changed status -> deny (--proposed)" deny "$(wp "*** Begin Patch${NL}*** Add File: .workflow/specs/001-demo/spec.md${NL}${done_spec}${NL}*** End Patch${NL}")" "status"
@@ -171,7 +171,7 @@ sexpect "implementation phase 1 s007_phase_1_test_harness -> allow" allow "$(sp 
 sexpect "implementation without task_name -> deny" deny "$(sp implementation -)" "missing"
 sexpect "implementation probe_agent -> deny" deny "$(sp implementation probe_agent)" "not in a workflow form"
 sexpect "uppercase task_name -> deny" deny "$(sp implementation S007_T3)" "lowercase"
-sexpect "slash form (old D66) -> deny" deny "$(sp implementation 007-checkout/T3)" "lowercase"
+sexpect "slash form (old format) -> deny" deny "$(sp implementation 007-checkout/T3)" "lowercase"
 sexpect "no spec folder s009 -> deny" deny "$(sp implementation s009_t1)" "0 folders"
 sexpect "two spec folders s008 -> deny" deny "$(sp implementation s008_t1)" "2 folders"
 sexpect "phase_1 matching two profiles (web-ui, web_ui) -> deny" deny "$(sp implementation s007_phase_1_web_ui)" "2 profiles"

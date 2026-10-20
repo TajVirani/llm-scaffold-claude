@@ -1,4 +1,4 @@
-# Ordered step list for the phase progress line (D84), read by scripts/step-progress.sh. Display data only: guards,
+# Ordered step list for the phase progress line, read by scripts/step-progress.sh. Display data only: guards,
 # status-transition.sh and the decision flow keep using the node ids; this file never changes what a step does.
 # Rows are in run order within each phase (0.3.22 before 0.3.8; 3.16 and 3.15 before 3.13 and 3.9), not id order.
 # Columns (tab-separated): id, phase, track, title.
@@ -8,7 +8,7 @@
 #                                not counted, shown after the linear step it was entered from (--at)
 #          intake                0.0.x sizing before a spec exists; no progress line
 #          side                  an artifact written alongside other steps, never a step of its own; not counted
-# Lines starting with # are comments. Keep in step with PLAN/decision-flow-reference.md (tests/lint/step-list.sh).
+# Lines starting with # are comments. Keep in step with the workflow's node ids; the scaffold's tests/lint/step-list.sh checks this.
 id	phase	track	title
 P0	0	phase	Discovery
 P1	1	phase	Verification setup

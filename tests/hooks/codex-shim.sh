@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Suite: Codex shim (D9, D66, D67): the Codex task_name path of hooks/post-implementation-audit.sh, hooks/codex-hooks.template.json
+# Suite: Codex shim: the Codex task_name path of hooks/post-implementation-audit.sh, hooks/codex-hooks.template.json
 #   and hooks/codex-config.template.toml.
 # Covers: task lookup from the session_meta agent_path of a Codex rollout (top-level and source.subagent fallback, nested paths),
 #   s<NNN>_t<N> and s<NNN>_phase_1_<wt> forms, the toolchain running in .workflow/.worktrees/<task_name> (warning when absent), block / pass
@@ -125,7 +125,7 @@ check "s007_phase_1_harness -> toolchain under artifacts/phase-1-harness" \
 sed 's/^lint: "true"/lint: "true"\ntest: "false"/' .workflow/profiles/harness.md > .workflow/profiles/redtest.md
 mk_rollout "$B/p1r.jsonl" /root/s007_phase_1_redtest
 out=$(stop "$B/p1r.jsonl" false); rc=$?
-check "Codex phase 1 with failing test key -> allowed, test skipped (D70)" \
+check "Codex phase 1 with failing test key -> allowed, test skipped" \
   '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(jq -r ".results[]|select(.key==\"test\")|.status" "$P/.workflow/specs/007-checkout/artifacts/phase-1-redtest/toolchain.json")" = skipped ]' "$out"
 
 echo "== Codex warnings (stop allowed)"

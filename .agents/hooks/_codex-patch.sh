@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # File: Sourced helper (not a hook) shared by codex-write-guard.sh and codex-rules-sync.sh.
-# Purpose: Parse the patch text Codex sends as `tool_input.command` for its `apply_patch` tool (verified 0.155.1,
-#   PLAN/hook-verification-codex.md row 5a) into the list of file paths it touches.
+# Purpose: Parse the patch text Codex sends as `tool_input.command` for its `apply_patch` tool (verified on
+#   Codex 0.155.1) into the list of file paths it touches.
 # Usage: source it, then
 #   codex_patch_paths <patch-file>          stdout: one `<index>\t<op>\t<path>` line per path, in patch order; exit 1 on a parse error
 #                                           (reason on stderr). op = add | update | delete | move (the `*** Move to:` target of the
@@ -17,8 +17,7 @@
 #   `*** End Patch`, then only blank lines or a bare heredoc terminator word.
 #   Errors: no Begin/End, unknown `*** ` line, empty path, a path with a tab, `*** Move to:` not right after an Update header, no file section.
 #   Paths are trimmed of surrounding whitespace, as Codex does; a trailing CR is dropped from every line.
-# Plan refs: assetlist D9, D40, D67; PLAN/hook-verification-codex.md rows 5a, 5b.
-# Sources: first-party; patch format from the Codex apply_patch tool description (codex-cli 0.155.1) and row 5a's observed payload.
+# Sources: first-party; patch format from the Codex apply_patch tool description (codex-cli 0.155.1) and a payload observed live.
 # Requires: bash 3.2+, awk, jq.
 
 codex_patch_text() {

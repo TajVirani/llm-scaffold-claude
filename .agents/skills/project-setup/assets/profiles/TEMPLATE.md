@@ -42,6 +42,6 @@ rule_set: ""    # name the rules in force, e.g. vendored anti-slop rules plus pr
 
 ## Mini-review checklist
 
-<!-- Only what the toolchain cannot express and a reader must judge. One line each. Delete a line once a tool rule covers it. -->
+<!-- Only what the toolchain cannot express and a reader must judge. One line each. Delete a line once a tool rule covers it. The comment and naming lines of feature-workflow/references/readable-code.md are added to every mini-review; do not repeat them here. -->
 
 - [ ] {Judgement item, e.g. error path matches how this domain reports failures}

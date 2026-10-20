@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File: Generator (not a hook): build Codex custom-agent files from the scaffold's agent definitions (D9, D67).
+# File: Generator (not a hook): build Codex custom-agent files from the scaffold's agent definitions.
 # Usage:
 #   generate-codex-agents.sh [--agents-dir DIR] [--out-dir DIR] [--check]
 #     --agents-dir  source definitions (default: the agents/ folder next to this hooks folder, i.e. <project>/.agents/agents)
@@ -16,7 +16,7 @@
 #       description            = frontmatter `description`
 #       developer_instructions = the body after the closing `---`, leading blank lines and trailing whitespace removed
 #     Every other frontmatter key (tools, models, model, ...) is ignored. `model` is NEVER written: a toml `model` overrides the
-#     spawn-time model on Codex 0.155.1, so writing one would defeat .workflow/agent-overrides.yaml (D35, D67). The orchestrator passes the
+#     spawn-time model on Codex 0.155.1, so writing one would defeat .workflow/agent-overrides.yaml. The orchestrator passes the
 #     resolve-launch.sh model at spawn instead.
 #   - developer_instructions is a TOML multi-line literal string ('''...''') when the body allows it (no ''' , no control
 #     characters other than tab and newline), closed on its own line, so the value ends with one newline; otherwise a basic
@@ -26,11 +26,10 @@
 #   - Deterministic: the same inputs give byte-identical output; unchanged files are not rewritten.
 #   - All definitions are validated before anything is written: on any error nothing is written.
 # Exit: 0 done (or --check clean); 1 --check found drift; 2 usage or input error (reason on stderr).
-# Called by: install.sh after copying .agents/ (D11). Re-run on every install or upgrade.
-# Plan refs: assetlist D9, D11, D35, D67; PLAN/hook-verification-codex.md rows 2a-2c (toml keys, model precedence).
-# Sources: first-party; Codex custom-agent keys from PLAN/hook-verification-codex/probe/agents/*.toml (verified 0.155.1);
+# Called by: install.sh after copying .agents/. Re-run on every install or upgrade.
+# Sources: first-party; Codex custom-agent keys verified live on Codex 0.155.1;
 #   prior art for md -> toml: EveryInc/compound-engineering-plugin src/converters/claude-to-codex.ts (MIT), github/spec-kit codex integration (MIT).
-# Requires: bash 3.2+, jq, mikefarah yq v4 (D38), awk.
+# Requires: bash 3.2+, jq, mikefarah yq v4, awk.
 
 set -euo pipefail
 export LC_ALL=C
@@ -78,7 +77,7 @@ for src in "$agents_dir"/*.md; do
   name=$(jq -r '.name | if type == "string" then . else "" end' <<<"$fm")
   [ -n "$name" ] || die "$src: frontmatter name missing or not a string"
   [ "$name" = "$base" ] || die "$src: frontmatter name '$name' does not match the file name '$base'"
-  printf '%s' "$name" | grep -Eq '^[a-z0-9][a-z0-9_-]*$' || die "$src: name '$name' must be lowercase letters, digits, - or _"
+  grep -Eq '^[a-z0-9][a-z0-9_-]*$' <<<"$name" || die "$src: name '$name' must be lowercase letters, digits, - or _"
   jq -e '.description | type == "string" and (gsub("\\s"; "") != "")' <<<"$fm" >/dev/null || die "$src: frontmatter description missing, blank or not a string"
   cname=${name//-/_}
   case " ${names[*]-} " in *" $cname "*) die "$src: Codex name '$cname' (hyphens mapped to _) collides with another definition" ;; esac
@@ -122,7 +121,7 @@ if [ -d "$out_dir" ]; then
     [ -f "$f" ] || continue
     n=$(basename "$f" .toml)
     case " ${names[*]} " in *" $n "*) continue ;; esac
-    head -n 1 "$f" | grep -qF "$MARKER" || continue
+    grep -qF "$MARKER" <<<"$(head -n 1 "$f")" || continue
     prune+=("$f")
     changes+=("remove $n.toml")
   done

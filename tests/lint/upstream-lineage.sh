@@ -9,7 +9,7 @@
 #   continuation lines) names an upstream, by one of its `aliases` or a `vendored_at` path, needs an entry for that
 #   upstream whose `path` is the file or a directory containing it. LICENSE and NOTICE files are skipped.
 #   No such line names a `.agents/skills/<name>/` directory that does not exist (deleted vendored skills are cited
-#   upstream instead, D78).
+#   upstream instead).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -122,7 +122,7 @@ eq "every upstream named in a first-party Sources line has a lineage entry" "${u
 }" ""
 check "the coverage scan found attribution lines (sanity)" '[ -s "$WORK/named" ]'
 
-# Deleted vendored skills (D77, D78) leave no needle behind, so a Sources line must cite upstream, not a local
+# Deleted vendored skills leave no needle behind, so a Sources line must cite upstream, not a local
 # .agents/skills/<name>/ path that no longer exists.
 dangling=""
 while IFS=$'\t' read -r f d; do

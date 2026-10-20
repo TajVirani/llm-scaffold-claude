@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Suite: resolve-launch.sh (feature-workflow/scripts).
-# Covers: --requirements table, model precedence (D35: override > definition > map), per-task-type launch-header
-#   requirements (D31), header parsing and malformed headers, --parse-header, flag (orchestrator) mode, worktree and
-#   CLAUDE_PROJECT_DIR project-root resolution (D18), usage errors.
+# Covers: --requirements table, model precedence (override > definition > map), per-task-type launch-header
+#   requirements, header parsing and malformed headers, --parse-header, flag (orchestrator) mode, worktree and
+#   CLAUDE_PROJECT_DIR project-root resolution, usage errors.
 # shellcheck disable=SC2016,SC2015  # jq programs use single quotes on purpose; A && B || C is deliberate in ok/ko lines
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -21,7 +21,7 @@ for t in implementation integration profile-mini-review retrieval library-evalua
   printf -- '---\nname: %s\ndescription: "x"\n---\nbody\n' "$t" > ".agents/agents/$t.md"
   printf -- '---\ntier: cheap\nclaude: haiku\ncodex: <alias>\n---\n# %s\n' "$t" > ".workflow/model-map/$t.md"
 done
-# implementation: definition pins claude sonnet (D35 level 2) and codex gpt-def
+# implementation: definition pins claude sonnet (precedence level 2) and codex gpt-def
 cat > .agents/agents/implementation.md <<'EOF'
 ---
 name: implementation
@@ -123,10 +123,10 @@ P=(--project-dir "$FX")
 # ── Requirements table ──
 IN=""
 run "requirements: all 12 types" 0 'keys|length==12' "" -- --requirements
-run "requirements: implementation D31 fields" 0 '.implementation.d31_fields==["spec_dir","task_id","work_type"]' "" -- --requirements --task-type implementation
+run "requirements: implementation required fields" 0 '.implementation.d31_fields==["spec_dir","task_id","work_type"]' "" -- --requirements --task-type implementation
 run "requirements: unknown type denied" 2 "" "unknown task type" -- --requirements --task-type nope
 
-# ── Model precedence (D35) ──
+# ── Model precedence ──
 IN=$(hdr task_type=integration spec_dir=.workflow/specs/007-checkout work_type=frontend)
 run "precedence 1: override wins (integration claude)" 0 '.model=="opus-override" and .model_source=="override"' "" -- --host claude --task-type integration "${P[@]}"
 run "precedence 3: map when no override for host (integration codex placeholder -> none)" 2 "" "00.14" -- --host codex --task-type integration "${P[@]}"
@@ -150,14 +150,14 @@ printf 'this: [is: broken\n' > "$FX/.workflow/agent-overrides.yaml"
 run "unparseable overrides -> deny" 2 "" "cannot parse YAML: .workflow/agent-overrides.yaml" -- --host claude --task-type implementation "${P[@]}"
 mv "$FX/ov.bak" "$FX/.workflow/agent-overrides.yaml"
 
-# ── Header requirements per task type (D31) ──
+# ── Header requirements per task type ──
 for t in retrieval library-evaluation fact-lookup module-audit review-standards review-end-state review-targets; do
   IN=$(hdr task_type=$t spec_dir=.workflow/specs/007-checkout)
   run "$t: spec_dir only accepted" 0 ".task_type==\"$t\" and .header.spec_dir==\".workflow/specs/007-checkout\"" "" -- --host claude --task-type $t "${P[@]}"
   IN=$(hdr task_type=$t)
   run "$t: missing spec_dir denied" 2 "" "do not match task type '$t'" -- --host claude --task-type $t "${P[@]}"
   IN=$(hdr task_type=$t spec_dir=.workflow/specs/007-checkout task_id=T1)
-  run "$t: extra task_id denied" 2 "" "D31" -- --host claude --task-type $t "${P[@]}"
+  run "$t: extra task_id denied" 2 "" "do not match task type" -- --host claude --task-type $t "${P[@]}"
 done
 IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout task_id=T1 work_type=frontend)
 run "implementation: full header, profile whole, header first" 0 '.work_type=="frontend" and .profile_path==".workflow/profiles/frontend.md" and (.profile|contains("## Trailing section")) and (.prompt|startswith("```yaml launch-header\ntask_type: implementation\n")) and (.prompt|test("```\n\n<!-- comment -->\n# Profile: frontend")) and (.prompt|endswith("- not in checklist\n\nDo the task."))' "" -- --host claude --task-type implementation "${P[@]}"
@@ -166,7 +166,7 @@ run "implementation: work_type looked up from tasks.md" 0 '.work_type=="frontend
 IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout task_id=T1 work_type=backend)
 run "implementation: header work_type disagrees with tasks.md" 2 "" "disagrees with task T1" -- --host claude --task-type implementation "${P[@]}"
 IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout work_type=frontend)
-run "implementation Phase 1: no task_id, explicit work_type (D14)" 0 '.work_type=="frontend" and .header.task_id==null and (.profile|length>0)' "" -- --host claude --task-type implementation "${P[@]}"
+run "implementation Phase 1: no task_id, explicit work_type" 0 '.work_type=="frontend" and .header.task_id==null and (.profile|length>0)' "" -- --host claude --task-type implementation "${P[@]}"
 IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout)
 run "implementation: spec_dir only denied" 2 "" "accepted: .*Phase 1" -- --host claude --task-type implementation "${P[@]}"
 IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout task_id=T2)
@@ -182,13 +182,13 @@ run "spec_dir that does not exist denied" 2 "" "does not exist" -- --host claude
 IN=$(hdr task_type=integration spec_dir=.workflow/specs/007-checkout work_type=frontend)
 run "integration: spec_dir+work_type, whole profile" 0 '.work_type=="frontend" and (.profile|contains("## File locations"))' "" -- --host claude --task-type integration "${P[@]}"
 IN=$(hdr task_type=integration spec_dir=.workflow/specs/007-checkout work_type=frontend task_id=T1)
-run "integration: task_id denied" 2 "" "D31" -- --host claude --task-type integration "${P[@]}"
+run "integration: task_id denied" 2 "" "do not match task type" -- --host claude --task-type integration "${P[@]}"
 IN=$(hdr task_type=integration spec_dir=.workflow/specs/007-checkout)
-run "integration: missing work_type denied" 2 "" "D31" -- --host claude --task-type integration "${P[@]}"
+run "integration: missing work_type denied" 2 "" "do not match task type" -- --host claude --task-type integration "${P[@]}"
 IN=$(hdr task_type=profile-mini-review spec_dir=.workflow/specs/007-checkout task_id=T1 work_type=frontend)
 run "profile-mini-review: checklist section only" 0 '(.profile|startswith("## Mini-review checklist")) and (.profile|contains("Names follow GLOSSARY")) and (.profile|contains("Trailing")|not) and (.profile|contains("not a heading")|not)' "" -- --host claude --task-type profile-mini-review "${P[@]}"
 IN=$(hdr task_type=profile-mini-review spec_dir=.workflow/specs/007-checkout work_type=frontend)
-run "profile-mini-review: missing task_id denied (no Phase 1 exception)" 2 "" "D31" -- --host claude --task-type profile-mini-review "${P[@]}"
+run "profile-mini-review: missing task_id denied (no Phase 1 exception)" 2 "" "do not match task type" -- --host claude --task-type profile-mini-review "${P[@]}"
 IN=$(hdr task_type=profile-mini-review spec_dir=.workflow/specs/007-checkout task_id=T4)
 run "profile-mini-review: profile lacks checklist -> 00.19" 2 "" "00.19: profile .workflow/profiles/nochecklist.md has no" -- --host claude --task-type profile-mini-review "${P[@]}"
 IN=$(hdr task_type=cache-regeneration spec_dir=.workflow/specs/007-checkout)
@@ -196,11 +196,11 @@ run "cache-regeneration: with spec_dir (0.2.8)" 0 '.header.spec_dir==".workflow/
 IN=$'Regenerate .workflow/cache/modules.md for src/.\n'
 run "cache-regeneration: header-less bulk run accepted, prompt unchanged" 0 '.header==null and .header_block==null and .prompt=="Regenerate .workflow/cache/modules.md for src/.\n"' "" -- --host claude --task-type cache-regeneration "${P[@]}"
 IN=$'Scan src/ for conventions.\n'
-run "standards-discovery: header-less run accepted (D80)" 0 '.header==null and .profile==null and .prompt=="Scan src/ for conventions.\n"' "" -- --host claude --task-type standards-discovery "${P[@]}"
+run "standards-discovery: header-less run accepted" 0 '.header==null and .profile==null and .prompt=="Scan src/ for conventions.\n"' "" -- --host claude --task-type standards-discovery "${P[@]}"
 IN=$(hdr task_type=standards-discovery)
 run "standards-discovery: task_type-only header accepted" 0 '.header=={task_type:"standards-discovery"} and .profile==null' "" -- --host claude --task-type standards-discovery "${P[@]}"
 IN=$(hdr task_type=standards-discovery spec_dir=.workflow/specs/007-checkout)
-run "standards-discovery: spec_dir denied (runs outside a feature)" 2 "" "D31" -- --host claude --task-type standards-discovery "${P[@]}"
+run "standards-discovery: spec_dir denied (runs outside a feature)" 2 "" "do not match task type" -- --host claude --task-type standards-discovery "${P[@]}"
 IN=$'Scan src/ for conventions.\n'
 run "header-less prompt for retrieval denied" 2 "" "no launch header: task type 'retrieval' requires" -- --host claude --task-type retrieval "${P[@]}"
 
@@ -228,7 +228,7 @@ run "task_id format enforced" 2 "" "task_id=task-1" -- --host claude --task-type
 IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout work_type=../x)
 run "work_type format enforced" 2 "" "work_type=../x" -- --host claude --task-type implementation "${P[@]}"
 IN=$(hdr task_type=retrieval spec_dir=.workflow/specs/007-checkout spec_dir_extra=1)
-run "unknown header key denied" 2 "" "D31" -- --host claude --task-type retrieval "${P[@]}"
+run "unknown header key denied" 2 "" "do not match task type" -- --host claude --task-type retrieval "${P[@]}"
 IN=$'```yaml launch-header  \r\ntask_type: retrieval\r\nspec_dir: .workflow/specs/007-checkout\r\n```\r\nDo it.\r\n'
 run "CRLF / trailing spaces tolerated" 0 '.header.spec_dir==".workflow/specs/007-checkout"' "" -- --host claude --task-type retrieval "${P[@]}"
 IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout task_id=null)
@@ -250,14 +250,14 @@ run "parse-header: --prompt-file" 0 '.task_type=="retrieval"' "" -- --parse-head
 IN=$'Implement T1.\n'
 run "flags: implementation T1 codex, prompt assembled" 0 '.model=="gpt-def" and .header=={task_type:"implementation",spec_dir:".workflow/specs/007-checkout",task_id:"T1"} and .header_block=="```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/007-checkout\ntask_id: T1\n```" and (. as $o | $o.prompt|startswith($o.header_block+"\n\n<!-- comment -->")) and (.prompt|endswith("Implement T1.\n"))' "" -- --host codex --task-type implementation --spec-dir .workflow/specs/007-checkout --task-id T1 "${P[@]}"
 run "flags: --no-header for bulk cache-regeneration" 0 '.header==null and .prompt=="Implement T1.\n"' "" -- --host claude --task-type cache-regeneration --no-header "${P[@]}"
-run "flags: --no-header for standards-discovery (D80)" 0 '.header==null and .prompt=="Implement T1.\n"' "" -- --host claude --task-type standards-discovery --no-header "${P[@]}"
+run "flags: --no-header for standards-discovery" 0 '.header==null and .prompt=="Implement T1.\n"' "" -- --host claude --task-type standards-discovery --no-header "${P[@]}"
 run "flags: --no-header for retrieval denied" 2 "" "requires" -- --host claude --task-type retrieval --no-header "${P[@]}"
 IN=$(hdr task_type=retrieval spec_dir=.workflow/specs/007-checkout)
 run "flags: body carrying its own header denied" 2 "" "must not carry" -- --host claude --task-type retrieval --spec-dir .workflow/specs/007-checkout "${P[@]}"
 IN=""
 run "flags: no stdin body -> header-only prompt" 0 '.prompt==.header_block' "" -- --host claude --task-type retrieval --spec-dir .workflow/specs/007-checkout "${P[@]}" 
 
-# ── Project root resolution (D18) ──
+# ── Project root resolution ──
 git -C "$FX" worktree add -q "$B2B/wt" -b wt-branch 2>/dev/null
 rm -f "$B2B/wt/profiles/frontend.md"   # worktree copy differs: script must read the main checkout
 IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout task_id=T1)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Suite: D85 task-breakdown helpers (feature-workflow/scripts): task-waves.sh (predicted-file overlap, implied edges, parallel_with,
+# Suite: task-breakdown helpers (feature-workflow/scripts): task-waves.sh (predicted-file overlap, implied edges, parallel_with,
 #   cycles, waves, JSON), rules-setting.sh (## Workflow settings, task_review), open-task-pr.sh (gh / glab stubs on PATH, skip paths,
 #   --record; never the network) and run-toolchain.sh test scoping (other unfinished tasks' Phase 1 tests excluded, test_scoped,
 #   --exclude-unfinished, unscoped warning).
@@ -188,7 +188,7 @@ check "dry run prints commands" 'grep -q "^gh pr create --base spec/007-shop" <<
 t "bad task id -> 1"               1 OTP $SPECD X2 --cwd "$P"
 t "unknown task -> 1"              1 OTP $SPECD T9 --cwd "$P"
 
-echo "== run-toolchain.sh test scoping (D85)"
+echo "== run-toolchain.sh test scoping"
 Q=$WORK/q
 git_init_repo "$Q"
 mkdir -p "$Q/.workflow/profiles" "$Q/.workflow/specs/002-q"
@@ -242,5 +242,5 @@ check "unscoped warning in json and stderr" 'jq -e ".warnings | length == 1" <<<
 out=$(RT --spec-dir .workflow/specs/002-q --task-id T3 --cwd "$Q" --skip test 2>/dev/null)
 eq "--skip test still wins" "$(jq -r '.results[] | select(.key=="test") | .status' <<<"$out")" skipped
 
-shellcheck_files "shellcheck: D85 scripts" "$S/task-waves.sh" "$S/rules-setting.sh" "$S/open-task-pr.sh" "$S/run-toolchain.sh"
+shellcheck_files "shellcheck: task-breakdown scripts" "$S/task-waves.sh" "$S/rules-setting.sh" "$S/open-task-pr.sh" "$S/run-toolchain.sh"
 finish

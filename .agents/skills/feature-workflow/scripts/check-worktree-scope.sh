@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # File: Shared script (host-neutral, not a hook): decide whether a sub-agent's file write or shell command stays inside its task worktree.
 # Purpose: One home for the worktree-confinement rule behind hooks/worktree-write-guard.sh (Claude) and hooks/codex-write-guard.sh (Codex)
-#   (D9, D18, D85). Since D85 the orchestrator creates each task worktree itself and, on Claude, launches the implementation agent without
+#   (shared so each host hook stays a thin adapter). The orchestrator creates each task worktree itself and, on Claude, launches the implementation agent without
 #   `isolation` (the Agent tool has no working-directory input), so only the brief keeps the agent in its worktree. This check backs the brief:
 #   parallel agents must not write into the main checkout or into each other's worktrees.
 # Usage:
@@ -22,7 +22,6 @@
 #            backtick cannot be checked and is denied. Accident prevention only: a command can still cd elsewhere later.
 # Outputs/handoff: exit 0 allow (reason on stdout); exit 2 deny (reason on stderr); exit 1 usage or environment error (adapters deny).
 # Called by: hooks/worktree-write-guard.sh (Claude, Write/Edit/NotebookEdit and Bash), hooks/codex-write-guard.sh (Codex apply_patch paths).
-# Plan refs: 3.3; assetlist D9, D16, D18, D85.
 # Sources: first-party.
 # Requires: bash 3.2+, git.
 
@@ -111,7 +110,7 @@ if [ "$have_cmd" -eq 0 ]; then
     if under "$c" "$main_root" && ! under "$c" "$root"; then bad+=("$p"); fi
   done
   if [ "${#bad[@]}" -gt 0 ]; then
-    echo "worktree guard (D85): this agent works only in its task worktree $root; denied write outside it: ${bad[*]}. Use an absolute path inside $root; the main checkout and other tasks' worktrees belong to the orchestrator and other agents." >&2
+    echo "worktree guard: this agent works only in its task worktree $root; denied write outside it: ${bad[*]}. Use an absolute path inside $root; the main checkout and other tasks' worktrees belong to the orchestrator and other agents." >&2
     exit 2
   fi
   echo "allow: inside $root or outside the main checkout"
@@ -131,7 +130,7 @@ if [[ "$command" =~ $re_dq ]] || [[ "$command" =~ $re_sq ]] || [[ "$command" =~ 
   target=${BASH_REMATCH[1]}
 fi
 deny_cmd() {
-  echo "worktree guard (D85): this agent works only in its task worktree $root, and this shell starts in $cwd. $1 Start the command with: cd $root && <command>" >&2
+  echo "worktree guard: this agent works only in its task worktree $root, and this shell starts in $cwd. $1 Start the command with: cd $root && <command>" >&2
   exit 2
 }
 [ -n "$target" ] || deny_cmd "The command does not start with \`cd <worktree> &&\`."

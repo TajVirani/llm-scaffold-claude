@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Install end-to-end check (Claude Code): install.sh into a sample target (twice), seed minimal workflow data by hand, then verify the
-# installed hooks and deny rules in two headless runs. Scaffold-only harness; not part of the install payload (D30).
+# installed hooks and deny rules in two headless runs. Scaffold-only harness; not part of the install payload.
 # Usage: PLAN/install-e2e/run.sh [model]          (default model: haiku; about $0.06 for all five runs: base about $0.015, follow-up about $0.045)
 #   E2E_BASE=<dir>     parent of the fresh temp work dir (default: ${TMPDIR:-/tmp})
 #   E2E_SKIP_CLAUDE=1  install + seed + idempotence + follow-up seed only, no headless runs (free)
 #   E2E_SKIP_BASE=1    skip the base runs run1/run2 (section 3) and run only the follow-up runs f1-f3 (section 5)
-# Follow-up (section 5, PLAN/install-e2e.md "Follow-up run"): model switch via model-map, spec single-writer guard, rules -> boundary
+# Follow-up (section 5): model switch via model-map, spec single-writer guard, rules -> boundary
 #   config sync, evidence-capture with a fake Playwright report, implementation sub-agent in a worktree (Tier A/B guards, SubagentStop audit).
 # Requires: claude, jq, git, mikefarah yq v4 on PATH. Headless runs use --permission-mode bypassPermissions inside the temp project only.
-# Results: printed at the end and kept in <work>/runs/ (stream-json transcripts, per-run tool-call summaries). Compare with PLAN/install-e2e.md.
+# Results: printed at the end and kept in <work>/runs/ (stream-json transcripts, per-run tool-call summaries).
 # The transcripts contain session ids and home paths: they stay in the temp dir and are not committed.
 set -euo pipefail
 REPO=$(cd "$(dirname "$0")/../.." && pwd -P)
@@ -206,7 +206,7 @@ jq -cn --arg c "$P" '{session_id:"x", cwd:$c, hook_event_name:"SessionStart", so
 fi  # base runs
 
 
-# ── 5. Follow-up (PLAN/install-e2e.md "Follow-up run") ──
+# ── 5. Follow-up ──
 # 5a. Seed: model switch, implementation model, task T1, stateful lint, e2e-browser profile + fake suite, logging hooks.
 sed -i.bak 's/^claude: haiku$/claude: sonnet/' "$P/model-map/fact-lookup.md" && rm -f "$P/model-map/fact-lookup.md.bak"
 sed 's/^claude: .*/claude: haiku/; s/^# fact-lookup/# implementation/' "$P/model-map/fact-lookup.md" > "$P/model-map/implementation.md"

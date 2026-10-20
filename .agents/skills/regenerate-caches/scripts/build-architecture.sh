@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): derive the generated parts of the Tier B caches from one dependency-cruiser run.
-# Purpose: Deterministic, sorted output for a given scope and commit (D4). `--cache architecture` prints the whole
+# Purpose: Deterministic, sorted output for a given scope and commit, so a cache can be checked against its stamp. `--cache architecture` prints the whole
 #   .workflow/cache/architecture.md body; `--cache modules` prints the modules.md skeleton with one `<!-- slot: purpose -->`
 #   per module for the cache-regeneration agent to fill; `--cache entries` prints the flows.md entry-point candidates
-#   (files nothing in scope imports) with what each reaches, as JSON, for the agent to choose from (D64).
+#   (files nothing in scope imports) with what each reaches, as JSON, for the agent to choose from (entry points are discovered each run; there is no config).
 #   Body shapes: assets/cache-frontmatter.md "Body shape per cache type".
 # Called by: the cache-regeneration agent (.agents/agents/cache-regeneration.md), launched at 0.2.8 or by regenerate-caches.
-# Plan refs: 00.5-00.7, 0.2.8; PLAN/gap-research.md G6; assetlist D4, D17, D18, D38, D64.
-# Sources: first-party. Canonicalisation (depcruise JSON -> jq `unique` -> Mermaid, self-edges dropped, id collisions
-#   fatal) from PLAN/gap-research.md G6. dependency-cruiser CLI flags (--no-config, --ts-config, --include-only, -T json)
+# Steps: 00.5-00.7, 0.2.8.
+# Sources: first-party, including the canonicalisation (depcruise JSON -> jq `unique` -> Mermaid, self-edges dropped, id
+#   collisions fatal). dependency-cruiser CLI flags (--no-config, --ts-config, --include-only, -T json)
 #   and JSON shape (modules[].source, dependencies[].resolved, summary.violations) from its doc/cli.md and
 #   doc/output-format.md (MIT; tool use only). Declarations via TypeScript --declaration --emitDeclarationOnly (Apache-2.0;
 #   tool use only). Script style after .agents/skills/regenerate-caches/scripts/publish-cache.sh.
@@ -22,7 +22,7 @@
 #                           through project-setup/scripts/generate-boundary-config.sh --print-intermediate. A file maps
 #                           to its longest module root; a file under none maps to <scope>/<first segment>.
 #     --out FILE            write here instead of stdout (refused under .workflow/cache/; use .workflow/.cache-staging/<type>.md)
-#     --root DIR            repo root override. Default (D18): the MAIN checkout (git --git-common-dir), as publish-cache.sh
+#     --root DIR            repo root override. Default: the MAIN checkout (git --git-common-dir), as publish-cache.sh
 #     --allow-dirty         skip the clean-tree check (output then is not tied to HEAD; for tests only)
 #     --from-json FILE      use this dependency-cruiser JSON (uncollapsed, -T json) instead of running depcruise
 #     --violations-json FILE  architecture only: boundary-check JSON instead of running depcruise --config
@@ -33,17 +33,16 @@
 # Determinism: every list is byte-sorted (LC_ALL=C); no timestamps or counts in the body; the scope paths must have no
 #   uncommitted or untracked changes, so the output is a function of HEAD (stamped by publish-cache.sh).
 # Exit codes: 0 = printed or written; 2 = usage error, dirty scope, missing depcruise, unparseable JSON, node-id collision.
-# Requires: git, jq, mikefarah yq v4 (only to read .workflow/rules.md, D38); node tooling as above.
+# Requires: git, jq, mikefarah yq v4 (only to read .workflow/rules.md); node tooling as above.
 set -euo pipefail
 
-# Workflow paths (D81).
 # shellcheck source=../../../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 export LC_ALL=C
 
 die() { echo "build-architecture: $*" >&2; exit 2; }
 
-resolve_root() { # main checkout (D18), same rule as publish-cache.sh
+resolve_root() { # main checkout, same rule as publish-cache.sh
   local common
   common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
   if [[ "$(basename "$common")" == ".git" ]]; then dirname "$common"; else git rev-parse --show-toplevel; fi
@@ -111,7 +110,7 @@ if [[ -n "$out" ]]; then
   out_dir="$(dirname "$out")"
   mkdir -p "$out_dir"
   out_abs="$(cd "$out_dir" && pwd -P)/$(basename "$out")"
-  [[ "$out_abs" != "$root/$WF_CACHE/"* ]] || die "--out must not be under $WF_CACHE/ (D17): write to $WF_CACHE_STAGING/ and publish with publish-cache.sh"
+  [[ "$out_abs" != "$root/$WF_CACHE/"* ]] || die "--out must not be under $WF_CACHE/: write to $WF_CACHE_STAGING/ and publish with publish-cache.sh"
 fi
 
 if [[ $allow_dirty -eq 0 ]]; then

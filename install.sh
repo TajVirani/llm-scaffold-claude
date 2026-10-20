@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File: Scaffold install script (scaffold-only; not part of the .agents/ payload). Lives at the repo root, next to the payload it copies (D11).
+# File: Scaffold install script (scaffold-only; not part of the .agents/ payload). Lives at the repo root, next to the payload it copies.
 # Usage:
 #   ./install.sh <target-dir> [--host claude|codex|all] [--force] [--dry-run]
 #     <target-dir>  top level of a git repository (the target project)
@@ -7,28 +7,28 @@
 #     --force       replace conflicting shim entries instead of refusing (see "Conflicts" below)
 #     --dry-run     print what would change and write nothing
 # What it does:
-#   1. Preflight: bash 3.2+, git, jq, mikefarah yq v4 (D15, D38); the target is the top level of a git work tree.
-#   2. Payload (D11, D71, D72): copies every file named by .agents/install-manifest.txt (first-party only; vendored skills,
+#   1. Preflight: bash 3.2+, git, jq, mikefarah yq v4; the target is the top level of a git work tree.
+#   2. Payload: copies every file named by .agents/install-manifest.txt (first-party only; vendored skills,
 #      kept only while being rewritten, never ship) into <target>/.agents/. .agents/ is scaffold-owned: changed files are overwritten, and files the previous
 #      install shipped (listed in <target>/.agents/VERSION) that are no longer in the manifest are removed. Files in
 #      <target>/.agents/ that no install shipped (for example the data-structure-audit state file) are left alone.
 #      Writes <target>/.agents/VERSION: scaffold version, commit, install date and the installed file list. The
 #      VERSION file is rewritten only when the version or file list changes, so a re-run changes nothing.
-#   3. Claude (D36), --host claude|all: <target>/.claude/{skills,agents,output-styles} symlinks to ../.agents/<dir>, and
-#      .agents/hooks/claude-settings.template.json merged into <target>/.claude/settings.json (rules in
-#      .agents/hooks/claude-settings.template.md): missing hook groups appended, permissions.deny unioned, user keys kept,
+#   3. Claude, --host claude|all: <target>/.claude/{skills,agents,output-styles} symlinks to ../.agents/<dir>, and
+#      .agents/hooks/claude-settings.template.json merged into <target>/.claude/settings.json:
+#      missing hook groups appended, permissions.deny unioned, user keys kept,
 #      a different user outputStyle or statusLine kept with a warning.
-#   4. Codex (D40, D66, D67), --host codex|all: runs generate-codex-agents.sh in the target (.codex/agents/*.toml),
+#   4. Codex, --host codex|all: runs generate-codex-agents.sh in the target (.codex/agents/*.toml),
 #      merges codex-hooks.template.json into .codex/hooks.json (same hook rules) and codex-config.template.toml into
-#      .codex/config.toml (rules in the scaffold's .codex/README.md). yq v4 reads TOML but cannot write tables, so the
+#      .codex/config.toml. yq v4 reads TOML but cannot write tables, so the
 #      config is edited through marker blocks that later runs refresh in place; user text outside them is never rewritten.
-#      The tui block sets the built-in Codex status line (D83); a [tui] table the user already has is kept with a warning.
+#      The tui block sets the built-in Codex status line; a [tui] table the user already has is kept with a warning.
 #   5. <target>/.gitignore: .workflow/specs/*/.step, .workflow/.cache-staging/, .workflow/.worktrees/, .workflow/.handoff/ and
-#      .workflow/.standards-staging/ in a marker block (D16, D17, D81). Paths come from .agents/lib/workflow-paths.sh.
-#   Never creates or touches .workflow/ (D81): every project-owned file (GLOSSARY.md, rules.md, agent-overrides.yaml, model-map/,
-#   profiles/, decisions/, deferred/, specs/, ...) lives there and is created by the project-setup skill; nor the project's own docs/ and e2e/ (D11, D35).
+#      .workflow/.standards-staging/ in a marker block, since they hold local, in-progress state. Paths come from .agents/lib/workflow-paths.sh.
+#   Never creates or touches .workflow/: every project-owned file (GLOSSARY.md, rules.md, agent-overrides.yaml, model-map/,
+#   profiles/, decisions/, deferred/, specs/, ...) lives there and is created by the project-setup skill; nor the project's own docs/ and e2e/.
 #   Scaffold-only files (PLAN/, tests/, assetlist.md, organization.md, checklist.md, PROVENANCE.md, CHANGELOG.md, upstream-lineage.json, scripts/, this script)
-#   are outside .agents/ and never copied (D30).
+#   are outside .agents/ and never copied.
 # Conflicts: every check runs before anything is written. Without --force, install.sh refuses (exit 1, nothing written) when
 #   .claude/{skills,agents,output-styles} is a real directory or a symlink elsewhere, a settings/hooks key has the wrong type or
 #   a different value, .codex/config.toml has a different [permissions.workflow], or a marker block is damaged. With --force
@@ -36,8 +36,7 @@
 #   template value, outputStyle, statusLine and default_permissions are overwritten, and a hand-written [permissions.workflow] that
 #   differs is left as is with a warning (it cannot be rewritten safely). Unparseable JSON or TOML always refuses.
 # Exit: 0 installed (or dry-run clean); 1 refused because of a conflict; 2 usage or preflight error.
-# Run it outside a Codex session (.codex/README.md). Plan refs: assetlist D9, D11, D15, D16, D17, D30, D35, D36, D38, D40,
-#   D66, D67, D71, D72, D83. Tests: tests/scripts/install.sh.
+# Run it outside a Codex session. Tests: tests/scripts/install.sh.
 
 set -euo pipefail
 export LC_ALL=C
@@ -99,7 +98,7 @@ if ! command -v yq >/dev/null 2>&1; then
 else
   case "$(yq --version 2>&1)" in
     *mikefarah*version\ v4.* | *mikefarah*version\ 4.*) ;;
-    *) echo "install.sh: yq is not mikefarah yq v4 (got: $(yq --version 2>&1 | head -n 1)); the Python yq is not supported (D38)" >&2; missing=1 ;;
+    *) echo "install.sh: yq is not mikefarah yq v4 (got: $(yq --version 2>&1 | head -n 1)); the Python yq is not supported" >&2; missing=1 ;;
   esac
 fi
 [ "$missing" -eq 0 ] || exit 2
@@ -418,7 +417,7 @@ if [ "$want_codex" -eq 1 ]; then
           fi
         fi
       fi
-      # [tui] status_line (D83). A [tui] table or tui.* key the user wrote is never rewritten, even with --force.
+      # [tui] status_line. A [tui] table or tui.* key the user wrote is never rewritten, even with --force.
       if [ "$st_tui" = present ]; then
         block_replace "$tmp/cfg.work" tui "$tmp/cfg.tui" >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
       else

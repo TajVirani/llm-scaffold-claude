@@ -7,9 +7,9 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 <!--
 File: Sub-agent definition and launch prompt for task type `integration`.
 Purpose: Single owner for shared-core changes, applied between batches.
-Triggers/inputs: Core-change requests for one work type (the orchestrator splits batches so each touches one work type, D28), that work type's whole profile (prepended after the header by hooks/pre-launch.sh, D33), the Shared core section of .workflow/rules.md. Never individual task context.
+Triggers/inputs: Core-change requests for one work type (the orchestrator splits batches so each touches one work type, D28), that work type's whole profile (prepended after the header by hooks/pre-launch.sh, D33), the Shared core section of .workflow/rules.md and the readable-code baseline (feature-workflow/references/readable-code.md, D86). Never individual task context.
 Outputs/handoff: A diff to shared core, committed, and the result block below; returns to the orchestrator, which merges it before the next wave (3.2).
-Plan refs: 3.2; gate 2.4; reference "Sub-agent task types", "Work profiles"; assetlist D5, D15, D16, D20, D28, D31, D33, D35, D37.
+Plan refs: 3.2; gate 2.4; reference "Sub-agent task types", "Work profiles"; assetlist D5, D15, D16, D20, D28, D31, D33, D35, D37, D86.
 Notes: Scaffold-owned, overwritten on reinstall (D11). No `model:` or `models:` here (D35): the model comes from .workflow/agent-overrides.yaml > .workflow/model-map/integration.md (default: strong tier, D23). No SubagentStop audit fires for this type (it is wired for implementation only), so the agent runs run-toolchain.sh itself. No Agent tool: sub-agents launch no sub-agents (D32). Required header fields (D31): spec_dir, work_type (no task_id: a batch).
 Sources: first-party, adapted from mattpocock/skills@49dd158 `skills/engineering/implement-spec/SKILL.md` step 5 (a dedicated merger sub-agent integrates finished work) and `skills/engineering/to-tickets/SKILL.md` (expand-contract for changes whose blast radius spans many callers) [MIT]; wshobson/agents `plugins/agent-teams/skills/parallel-feature-development/SKILL.md` (one owner per shared file; other implementers send change requests that the owner applies sequentially; interface contracts that consumers build against) [MIT, (c) 2024 Seth Hobson]; open-gsd/gsd-core `agents/gsd-integration-checker.md` ("existence is not integration": verify the connection a consumer needs, not just that the code exists) [MIT, (c) 2026 Open GSD]; EveryInc/compound-engineering-plugin `skills/ce-work/references/agents/implementation-worker.md` (inspect the full git delta; when two needs conflict and the packet leaves it open, build neither and report) [MIT, (c) 2025 Every]. Patterns and structure only; no substantial text copied.
 -->
@@ -41,6 +41,8 @@ awk '/^## /{f=($0 ~ /^## Shared core[[:space:]]*$/); next} f && /^```ya?ml/{y=1;
 
 **The profile is your operating instructions**, as for any coding agent: file locations, approved libraries, language and style rules, and the toolchain. Follow it; if it is wrong, report it (see Boundaries).
 
+**Write readable code.** Before writing code, read `<main checkout>/.agents/skills/feature-workflow/references/readable-code.md` (the main checkout is `dirname "$(git rev-parse --path-format=absolute --git-common-dir)"`). Follow it in every project, with the profile adding to it: names say what each thing is for, a comment gives only the why the code cannot, and a comment never cites a decision record or document. Integration output gets no 3.7 review, so 4.1 is its only check: get it right here.
+
 ## Method
 
 Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
@@ -66,7 +68,7 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 
 ## Before you stop
 
-1. **Review the full delta.** `git status` and `git diff <base>`, including untracked files. Every changed path is shared core or its tests and traces to an applied request. Remove disposable files your checks created.
+1. **Review the full delta.** `git status` and `git diff <base>`, including untracked files. Every changed path is shared core or its tests and traces to an applied request; names and comments follow `readable-code.md`. Remove disposable files your checks created.
 2. **Run the toolchain** (3.5) for this work type from the checkout root, and fix what it names until it exits 0:
 
    ```bash

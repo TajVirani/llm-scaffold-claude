@@ -2,7 +2,7 @@
 # Suite: hooks/pre-launch.sh (PreToolUse on Agent/Task).
 # Covers: non-Agent and non-workflow launches pass silently, valid launches get the full updatedInput rewrite
 #   (model, header, profile), legacy Task tool name, deny paths (missing header, task_type mismatch, unresolved model,
-#   env error with no yq, no jq, invalid payload), worktree cwd (D18), CLAUDE_PROJECT_DIR fallback, workflow absent / not set up.
+#   env error with no yq, no jq, invalid payload), worktree cwd, CLAUDE_PROJECT_DIR fallback, workflow absent / not set up.
 # shellcheck disable=SC2016,SC2015  # jq programs use single quotes; A && B || C is deliberate in ok/ko lines
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"

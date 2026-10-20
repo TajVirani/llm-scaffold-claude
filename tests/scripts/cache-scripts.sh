@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: regenerate-caches scripts (publish-cache.sh, cache-stamp-check.sh).
 # Covers: publishing and stamping Tier B caches, fresh/stale/missing/invalid classification, area filter, worktree use
-#   of the main checkout (D18), front-matter stripping, and input rejections.
+#   of the main checkout, front-matter stripping, and input rejections.
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 preflight

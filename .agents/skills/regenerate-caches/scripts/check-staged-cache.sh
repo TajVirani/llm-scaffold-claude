@@ -3,9 +3,9 @@
 # Purpose: Catch drift in the agent-written parts (modules.md Purpose slots, flows.md sections and diagrams) and any
 #   hand-built architecture.md, so only canonical bodies reach publish-cache.sh. Optionally wraps the body's ```mermaid
 #   fences into an HTML file that .agents/skills/visual-change-report/scripts/validate_mermaid.mjs can parse, since that
-#   validator reads only <pre class="mermaid"> blocks in HTML (PLAN/gap-research.md G6, "Mermaid validation").
+#   validator reads only <pre class="mermaid"> blocks in HTML.
 # Called by: the cache-regeneration agent before it returns, and regenerate-caches / discovery 0.2.8 before publishing.
-# Plan refs: 00.5-00.7, 0.2.8; PLAN/gap-research.md G6; assetlist D4, D17, D64.
+# Steps: 00.5-00.7, 0.2.8.
 # Sources: first-party. Shape rules: assets/cache-frontmatter.md "Body shape per cache type".
 #
 # Usage:
@@ -39,7 +39,7 @@ add() { problems+=("$1"); }
 
 [[ -n "$(printf '%s' "$body" | tr -d '[:space:]')" ]] || { echo "check-staged-cache: empty body" >&2; exit 1; }
 
-title="$(printf '%s\n' "$body" | sed '/^[[:space:]]*$/d' | head -1)"
+title="$(sed -n '/[^[:space:]]/{p;q;}' <<<"$body")"
 case "$type" in
   modules) want="# Modules" ;;
   flows) want="# Flows" ;;
@@ -47,8 +47,8 @@ case "$type" in
 esac
 [[ "$title" == "$want" ]] || add "first line must be '$want' (found '$title')"
 
-if printf '%s\n' "$body" | grep -q '<!-- slot:'; then add "unfilled slot left: $(printf '%s\n' "$body" | grep -c '<!-- slot:') '<!-- slot: ... -->' marker(s)"; fi
-if printf '%s\n' "$body" | grep -Eq '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}'; then add "body holds a timestamp; the stamp belongs in the frontmatter only"; fi
+if grep -q '<!-- slot:' <<<"$body"; then add "unfilled slot left: $(grep -c '<!-- slot:' <<<"$body") '<!-- slot: ... -->' marker(s)"; fi
+if grep -Eq '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}' <<<"$body"; then add "body holds a timestamp; the stamp belongs in the frontmatter only"; fi
 
 headings="$(printf '%s\n' "$body" | awk '/^```/ {f = !f; next} !f && /^## / {sub(/^## /, ""); print}')"
 fences_open="$(printf '%s\n' "$body" | grep -c '^```' || true)"
@@ -77,7 +77,7 @@ case "$type" in
       || add "sections must be exactly: Module graph, Edges, Boundary violations (in that order)"
     g="$(section "Module graph" | mermaid_blocks)"
     [[ "$(printf '%s\n' "$g" | grep -c '^%%END$' || true)" -eq 1 ]] || add "Module graph must hold exactly one mermaid block"
-    [[ "$(printf '%s\n' "$g" | head -1)" == "flowchart LR" ]] || add "Module graph block must start with 'flowchart LR'"
+    [[ "$(head -1 <<<"$g")" == "flowchart LR" ]] || add "Module graph block must start with 'flowchart LR'"
     e="$(section "Edges" | sed '/^[[:space:]]*$/d')"
     if [[ "$e" != "None." ]]; then printf '%s\n' "$e" | sorted_unique || add "Edges list is not byte-sorted and unique"; fi
     ;;
@@ -98,7 +98,7 @@ case "$type" in
     done <<<"$headings"
     ;;
   flows)
-    first="$(printf '%s\n' "$headings" | head -1)"
+    first="$(head -1 <<<"$headings")"
     [[ "$first" == "Entry points" ]] || add "first section must be 'Entry points'"
     rest="$(printf '%s\n' "$headings" | sed '1d')"
     entries="$(section "Entry points" | sed '/^[[:space:]]*$/d')"
@@ -124,7 +124,7 @@ case "$type" in
           { print h ": not canonical (participant, A->>B: name(), or alt/else/opt/loop/end only): " $0 }')"
         if [[ -n "$bad" ]]; then while IFS= read -r b; do add "$b"; done <<<"$bad"; fi
         after="$(section "$h" | awk '/^```/ {f = !f; seen = 1; next} seen && !f {print}' | sed '/^[[:space:]]*$/d')"
-        [[ "$(printf '%s\n' "$after" | head -1)" == "Error branches:" ]] || add "$h: an 'Error branches:' list must follow the diagram"
+        [[ "$(head -1 <<<"$after")" == "Error branches:" ]] || add "$h: an 'Error branches:' list must follow the diagram"
         eb="$(printf '%s\n' "$after" | sed '1d')"
         if [[ "$eb" != "- none" ]]; then printf '%s\n' "$eb" | sorted_unique || add "$h: Error branches are not byte-sorted and unique"; fi
       done <<<"$rest"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: run-toolchain.sh (feature-workflow/scripts).
 # Covers: toolchain key order and skipping, serve keys never run, --e2e, failure digest and --tail, evidence files,
-#   missing profile / unclassified work type / usage errors, worktree evidence location (D18), commands run in --cwd.
+#   missing profile / unclassified work type / usage errors, worktree evidence location, commands run in --cwd.
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 preflight
@@ -81,7 +81,7 @@ t runs-in-cwd 0 grep -q "$(cd "$T/wt" && pwd -P)" .workflow/specs/001-x/artifact
 grep -v '^test' .workflow/profiles/fake.md > .workflow/profiles/notest.md
 out=$("$RT" --spec-dir .workflow/specs/001-x --task-id T6 --work-type notest 2>/dev/null)
 eq missing-test-skipped "$(jq -r '.results[]|select(.key=="test")|.status' <<<"$out")" skipped
-# --skip (D70): repeatable, reported as skipped by caller; unknown key is a usage error
+# --skip: repeatable, reported as skipped by caller; unknown key is a usage error
 out=$("$RT" --spec-dir .workflow/specs/001-x --task-id T7 --work-type fake --skip test --skip lint 2>/dev/null)
 eq skip-ran "$(jq .ran <<<"$out")" 2
 eq skip-keys "$(jq -r '[.results[]|select(.status=="skipped")|.key]|join(",")' <<<"$out")" "lint,format,test"

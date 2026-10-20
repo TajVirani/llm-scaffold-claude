@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File: Shared test helpers (sourced by every suite; scaffold-only, see tests/README.md).
+# File: Shared test helpers (sourced by every suite; scaffold-only, never installed in a target project).
 # Provides: repo paths, tool preflight, a scratch-dir factory, a fixture-project builder that copies
 #   .agents/ from this repo, assertion helpers and a result footer. bash 3.2 compatible.
 # Usage in a suite:

@@ -3,7 +3,7 @@
 # Builds a scratch repo in a fresh temp dir, runs ONE headless codex exec, prints a jq summary.
 # Run OUTSIDE any outer sandbox (e.g. Claude Code Bash sandbox): Codex needs seatbelt for its shell.
 # Uses --dangerously-bypass-hook-trust and an in-memory project-trust override (-c projects={...});
-# ~/.codex/config.toml is never edited. Scaffold-only harness; not part of the install payload (D30).
+# ~/.codex/config.toml is never edited. Scaffold-only harness; not part of the install payload.
 set -euo pipefail
 SRC="$(cd "$(dirname "$0")" && pwd)"
 BASE="${1:-${TMPDIR:-/tmp}}"; mkdir -p "$BASE"

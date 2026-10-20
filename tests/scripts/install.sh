@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Suite: install.sh (repo root; D11, D30, D36, D38, D40, D66, D67, D71, D72).
+# Suite: install.sh (repo root).
 # Covers: preflight errors (not a git repo, sub-directory, bad --host, manifest line matching nothing); fresh installs for
 #   --host claude, codex and all (payload = manifest expansion exactly, VERSION stamp, .claude symlinks, settings.json =
 #   template, .codex/agents generated, hooks.json = template, config.toml parses to the template, .gitignore block);
-#   vendored and scaffold-only files absent from the target; executable hooks; context-bridge.cjs shipped and wired as statusLine (D79) and run in a "type": "module" target (D83); Codex [tui] status_line merge (D83); idempotent re-run (no
+#   vendored and scaffold-only files absent from the target; executable hooks; context-bridge.cjs shipped and wired as statusLine and run in a "type": "module" target; Codex [tui] status_line merge; idempotent re-run (no
 #   byte changes, VERSION kept); upgrade that overwrites a changed file and removes a file dropped from the manifest while
 #   keeping files no install shipped; settings merge over user settings (user keys, hooks and deny entries kept, deny
 #   unioned without duplicates, outputStyle and statusLine kept with a warning, --force replaces them); refusals that write nothing (real
 #   .claude/skills dir, wrong-type settings key, differing [permissions.workflow], invalid JSON) and their --force paths;
 #   Codex hooks.json and config.toml merges over user files; project-owned files untouched (incl. .workflow/design-pattern-doc/ and
-#   .workflow/pr-quality/, D75; their athena copies and modules not shipped); --dry-run writes nothing.
+#   .workflow/pr-quality/; their athena copies and modules not shipped); --dry-run writes nothing.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Env: TEST_BASH=<bash binary> runs install.sh under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -75,27 +75,27 @@ eq "one .codex/agents toml per agent definition" "$(find "$A/.codex/agents" -nam
 t "generated agents are current (--check)" 0 "$TEST_BASH" "$A/.agents/hooks/generate-codex-agents.sh" --check
 check "hooks.json equals the Codex template" '[ "$(jq -S . "$A/.codex/hooks.json")" = "$(jq -S . "$SC/.agents/hooks/codex-hooks.template.json")" ]'
 check "config.toml parses to the template values" '[ "$(yq -p toml -o json -I=0 . "$A/.codex/config.toml")" = "$(yq -p toml -o json -I=0 . "$SC/.agents/hooks/codex-config.template.toml")" ]'
-eq "config.toml sets the Codex context bar (D83)" "$(yq -p toml -o json -I=0 .tui.status_line "$A/.codex/config.toml")" '["model-with-reasoning","context-remaining","current-dir","git-branch"]'
+eq "config.toml sets the Codex context bar" "$(yq -p toml -o json -I=0 .tui.status_line "$A/.codex/config.toml")" '["model-with-reasoning","context-remaining","current-dir","git-branch"]'
 for p in '.workflow/specs/*/.step' '.workflow/.cache-staging/' '.workflow/.worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/'; do
   check ".gitignore has $p" 'grep -qxF -- "$p" "$A/.gitignore"'
 done
-check "install creates no .workflow/ (D81)" '[ ! -e "$A/.workflow" ]'
+check "install creates no .workflow/" '[ ! -e "$A/.workflow" ]'
 check "path helper installed" '[ -f "$A/.agents/lib/workflow-paths.sh" ]'
 check "hook scripts are executable" '[ -x "$A/.agents/hooks/pre-launch.sh" ] && [ -x "$A/.agents/hooks/block-destructive-git.sh" ] && [ -x "$A/.agents/skills/feature-workflow/scripts/status-transition.sh" ]'
 out=$(printf '{"tool_name":"Bash","tool_input":{"command":"git push --force"},"cwd":"%s"}' "$A" | "$A/.agents/hooks/block-destructive-git.sh" 2>&1)
 check "an installed hook runs from the target" 'printf "%s" "$out" | grep -qi "deny\|block"' "$out"
 
-echo "== vendored and scaffold-only files are absent (D30, D71, D72)"
+echo "== vendored and scaffold-only files are absent"
 eq "installed skills are exactly the first-party set" "$(cd "$A/.agents/skills" && find . -mindepth 1 -maxdepth 1 | sed 's|^\./||' | LC_ALL=C sort | tr '\n' ' ')" \
   "data-structure-audit deeper-prompt deps-audit deps-update design-pattern-doc domain-modeling feature-workflow glab handoff pr-quality pr-review-data project-setup project-standards regenerate-caches retrospective visual-change-report writing-for-agents "
 bad=""
-# No vendored skill remains (D78): handoff and writing-for-agents are first-party; the rest were deleted.
+# No vendored skill remains: handoff and writing-for-agents are first-party; the rest were deleted.
 for s in ask-matt clear-context code-review codebase-design diagnosing-bugs grill-me grill-with-docs grilling implement implement-spec improve-codebase-architecture install-anti-slop pr proof-of-work prototype research retro setup-matt-pocock-skills tdd to-questionnaire to-spec to-tickets triage wait-what wayfinder wizard wrap-up zoom-out; do
   [ ! -e "$A/.agents/skills/$s" ] || bad="$bad $s"
 done
 eq "no vendored skill installed" "$bad" ""
-check "context-bridge.cjs (first-party, D79) installed and executable" '[ -x "$A/.agents/hooks/context-bridge.cjs" ]'
-check "statusLine runs the shipped context-bridge.cjs (D79)" '[ "$(jq -r .statusLine.command "$A/.claude/settings.json")" = "node \"\${CLAUDE_PROJECT_DIR:-.}\"/.agents/hooks/context-bridge.cjs" ]'
+check "context-bridge.cjs (first-party) installed and executable" '[ -x "$A/.agents/hooks/context-bridge.cjs" ]'
+check "statusLine runs the shipped context-bridge.cjs" '[ "$(jq -r .statusLine.command "$A/.claude/settings.json")" = "node \"\${CLAUDE_PROJECT_DIR:-.}\"/.agents/hooks/context-bridge.cjs" ]'
 if command -v node >/dev/null 2>&1; then
   mkdir -p "$WORK/ctxtmp"
   out=$(printf '%s' '{"session_id":"s1","context_window":{"remaining_percentage":60}}' | TMPDIR=$WORK/ctxtmp node "$A/.agents/hooks/context-bridge.cjs")
@@ -103,26 +103,26 @@ if command -v node >/dev/null 2>&1; then
   eq "context-bridge writes the bridge file" "$(jq -c '[.session_id, .remaining_percentage]' "$WORK/ctxtmp/claude-ctx-s1.json" 2>/dev/null)" '["s1",60]'
   out=$(printf '%s' '{"session_id":"s2"}' | TMPDIR=$WORK/ctxtmp node "$A/.agents/hooks/context-bridge.cjs")
   check "context-bridge without context_window prints nothing and writes no file" '[ -z "$out" ] && [ ! -e "$WORK/ctxtmp/claude-ctx-s2.json" ]'
-  # A target whose package.json sets "type": "module" makes node treat .js as ESM; the .cjs name keeps the script CommonJS (D83).
+  # A target whose package.json sets "type": "module" makes node treat .js as ESM; the .cjs name keeps the script CommonJS.
   E=$WORK/esm
   new_target "$E"
   echo '{"type":"module"}' >"$E/package.json"
   INST "$E" --host claude >/dev/null 2>&1
   cmd=$(jq -r .statusLine.command "$E/.claude/settings.json")
   out=$(cd "$E" && printf '%s' '{"session_id":"s3","context_window":{"remaining_percentage":60}}' | TMPDIR=$WORK/ctxtmp CLAUDE_PROJECT_DIR=$E bash -c "$cmd" 2>&1)
-  check "statusLine command prints the bar in a \"type\": \"module\" target (D83)" 'printf "%s" "$out" | grep -q "50%" && ! printf "%s" "$out" | grep -q "require is not defined"' "$out"
+  check "statusLine command prints the bar in a \"type\": \"module\" target" 'printf "%s" "$out" | grep -q "50%" && ! printf "%s" "$out" | grep -q "require is not defined"' "$out"
 else
   skip "context-bridge.cjs behaviour" "node not installed"
 fi
 check ".agents/README.md (scaffold note) not installed" '[ ! -e "$A/.agents/README.md" ]'
-check "Mermaid validator and syntax rules for the caches ship (D72)" '[ -f "$A/.agents/skills/visual-change-report/scripts/validate_mermaid.mjs" ] && [ -f "$A/.agents/skills/visual-change-report/references/visual-library.md" ]'
-check "progress line script and its step list ship, executable (D84)" '[ -x "$A/.agents/skills/feature-workflow/scripts/step-progress.sh" ] && [ -f "$A/.agents/skills/feature-workflow/references/steps.tsv" ]'
-check "vendor copies ship with their consumer and LICENSE (D74)" '[ -f "$A/.agents/skills/pr-quality/references/codebase-design.md" ] && [ -f "$A/.agents/skills/pr-quality/references/LICENSE" ]'
-check "no shipped file points at a vendored skill path (D74)" '! grep -rqE "\.agents/skills/(improve-codebase-architecture|codebase-design)/|\.\./\.\./improve-codebase-architecture/" "$A/.agents/skills/pr-quality"'
-check "project-owned content is not shipped: no design-pattern-doc conventions, no athena pr-quality modules (D75)" '[ ! -e "$A/.agents/skills/design-pattern-doc/conventions.md" ] && [ ! -e "$A/.agents/skills/pr-quality/modules/legend-state-review.md" ] && [ ! -e "$A/.agents/skills/pr-quality/modules/project-pitfalls.md" ]'
-check "generic templates for project-owned files ship (D75)" '[ -f "$A/.agents/skills/design-pattern-doc/CONVENTIONS-FORMAT.md" ] && [ -f "$A/.agents/skills/pr-quality/assets/project-check.template.md" ]'
-check "install creates no docs/ in the target (D75)" '[ ! -e "$A/docs" ]'
-check "shipped glab and design-pattern-doc name no vendored skill (D71, D74)" '! grep -rhv "^Sources:" "$A/.agents/skills/glab" "$A/.agents/skills/design-pattern-doc" | grep -qE "(to-tickets|to-spec|setup-matt-pocock-skills|diagnosing-bugs|\`triage\`)"'
+check "Mermaid validator and syntax rules for the caches ship" '[ -f "$A/.agents/skills/visual-change-report/scripts/validate_mermaid.mjs" ] && [ -f "$A/.agents/skills/visual-change-report/references/visual-library.md" ]'
+check "progress line script and its step list ship, executable" '[ -x "$A/.agents/skills/feature-workflow/scripts/step-progress.sh" ] && [ -f "$A/.agents/skills/feature-workflow/references/steps.tsv" ]'
+check "vendor copies ship with their consumer and LICENSE" '[ -f "$A/.agents/skills/pr-quality/references/codebase-design.md" ] && [ -f "$A/.agents/skills/pr-quality/references/LICENSE" ]'
+check "no shipped file points at a vendored skill path" '! grep -rqE "\.agents/skills/(improve-codebase-architecture|codebase-design)/|\.\./\.\./improve-codebase-architecture/" "$A/.agents/skills/pr-quality"'
+check "project-owned content is not shipped: no design-pattern-doc conventions, no athena pr-quality modules" '[ ! -e "$A/.agents/skills/design-pattern-doc/conventions.md" ] && [ ! -e "$A/.agents/skills/pr-quality/modules/legend-state-review.md" ] && [ ! -e "$A/.agents/skills/pr-quality/modules/project-pitfalls.md" ]'
+check "generic templates for project-owned files ship" '[ -f "$A/.agents/skills/design-pattern-doc/CONVENTIONS-FORMAT.md" ] && [ -f "$A/.agents/skills/pr-quality/assets/project-check.template.md" ]'
+check "install creates no docs/ in the target" '[ ! -e "$A/docs" ]'
+check "shipped glab and design-pattern-doc name no vendored skill" '! grep -rhv "^Sources:" "$A/.agents/skills/glab" "$A/.agents/skills/design-pattern-doc" | grep -qE "(to-tickets|to-spec|setup-matt-pocock-skills|diagnosing-bugs|\`triage\`)"'
 bad=""
 for f in PLAN tests assetlist.md organization.md checklist.md PROVENANCE.md CHANGELOG.md install.sh upstream-lineage.json scripts; do
   [ ! -e "$A/$f" ] && [ ! -e "$A/.agents/$f" ] || bad="$bad $f"
@@ -294,7 +294,7 @@ eq "config.toml: user keys kept" "$(jq -c '[.model, .profiles.fast.model]' <<<"$
 eq "config.toml: default_permissions added" "$(jq -r .default_permissions <<<"$j")" workflow
 eq "config.toml: workflow profile added" "$(jq -c .permissions.workflow <<<"$j")" "$(yq -p toml -o json -I=0 .permissions.workflow "$SC/.agents/hooks/codex-config.template.toml")"
 check "config.toml: user text kept verbatim" 'grep -qx "# my config" "$K/.codex/config.toml" && grep -qxF "[profiles.fast]" "$K/.codex/config.toml"'
-eq "config.toml: tui.status_line added (D83)" "$(jq -c .tui.status_line <<<"$j")" '["model-with-reasoning","context-remaining","current-dir","git-branch"]'
+eq "config.toml: tui.status_line added" "$(jq -c .tui.status_line <<<"$j")" '["model-with-reasoning","context-remaining","current-dir","git-branch"]'
 check "user-written agent toml kept" '[ -f "$K/.codex/agents/mine.toml" ]'
 eq "hooks.json: user hook kept" "$(jq -r '.hooks.Stop[0].hooks[0].command' "$K/.codex/hooks.json")" my-stop.sh
 check "hooks.json: template events added" 'jq -e ".hooks.PreToolUse and .hooks.SubagentStop and .hooks.SessionStart" "$K/.codex/hooks.json" >/dev/null'
@@ -326,7 +326,7 @@ out=$(INST "$K3" --host codex 2>&1)
 eq "different default_permissions: exit 0" "$?" 0
 eq "...user value kept" "$(yq -p toml -oy '.default_permissions' "$K3/.codex/config.toml")" mine
 check "...with a warning" 'printf "%s" "$out" | grep -q "keeping your default_permissions"'
-# A [tui] table the user wrote is kept: no second table, a warning, and --force does not rewrite it (D83).
+# A [tui] table the user wrote is kept: no second table, a warning, and --force does not rewrite it.
 K4=$WORK/codextui
 new_target "$K4"
 mkdir -p "$K4/.codex"

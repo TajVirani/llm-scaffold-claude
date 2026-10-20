@@ -1,19 +1,19 @@
-# Codex project config fragment for the workflow 2.0 scaffold (D9, D67). install.sh merges it into <target>/.codex/config.toml.
+# Codex project config fragment for the workflow 2.0 scaffold. install.sh merges it into <target>/.codex/config.toml.
 # Hard write limits through a permissions profile: blocks both apply_patch and sandboxed shell writes (verified on codex-cli 0.155.1,
-# PLAN/hook-verification-codex.md rows 7a-7c; re-checked with `codex sandbox -P workflow` on 2026-10-16).
+# re-checked with `codex sandbox -P workflow` on 2026-10-16).
 #
 # - `extends = ":workspace"` is required. Without it the profile has no system read access and every sandboxed shell aborts (exit 134).
 #   The Codex docs say :workspace keeps .git, .agents and .codex read-only, but under `codex sandbox -P workflow` (0.155.1) all three
 #   were writable, so the scaffold does not rely on it.
-# - ".workflow/cache" = "read": Tier B caches (D17). A plain subpath, so it is portable.
+# - ".workflow/cache" = "read": Tier B caches are generated, so agents only read them. A plain subpath, so it is portable.
 # - .workflow/specs/*/.step is NOT listed: 0.155.1 rejects a glob with `read` ("filesystem glob path `.workflow/specs/*/.step` only supports `deny` access")
-#   and `deny` also blocks reads, which the workflow scripts need. .step stays guarded by check-write.sh only (G7, advisory).
+#   and `deny` also blocks reads, which the workflow scripts need. .step stays guarded by check-write.sh only (advisory).
 # - Consequence: scripts the agent runs in the sandbox cannot write .workflow/cache either, so publish-cache.sh (regenerate-caches) needs an
 #   approved escalation (an approval_policy that can ask, e.g. the default on-request) or a run outside Codex.
-# - [tui] status_line: the context bar (D83). Codex has no custom-command status line, only built-in item IDs
+# - [tui] status_line: the context bar, on by default. Codex has no custom-command status line, only built-in item IDs
 #   (openai/codex codex-rs/tui/src/bottom_pane/status_line_setup.rs). install.sh writes [tui] in its own marker block, and
 #   keeps a [tui] table the user already has (with a warning). Whether a project-level .codex/config.toml [tui] is honoured is
-#   unverified live (checklist.md).
+#   unverified live.
 default_permissions = "workflow"
 
 [permissions.workflow]

@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 # File: Sourced helper (not a hook) shared by spec-single-writer-guard.sh, tier-a-write-guard.sh and tier-b-write-guard.sh.
-# Purpose: Thin adapter body (D9): parse the PreToolUse payload, call skills/feature-workflow/scripts/check-write.sh with the guard's --only class, translate its exit code to Claude's deny JSON.
+# Purpose: Thin adapter body, so the rule logic stays in one host-neutral script: parse the PreToolUse payload, call skills/feature-workflow/scripts/check-write.sh with the guard's --only class, translate its exit code to Claude's deny JSON.
 # Usage: source it, then call `run_guard <spec|tier-a|tier-b> <with-proposed: 0|1>`.
 # Behaviour:
 #   - No skills/feature-workflow next to this hooks folder (project has no workflow): allow silently.
 #   - Path = tool_input.file_path or tool_input.notebook_path; none: allow.
-#   - --agent = agent_type (else agent_id) only when the payload carries agent_id (D16).
+#   - --agent = agent_type (else agent_id) only when the payload carries agent_id (only calls made inside a sub-agent carry it).
 #   - with-proposed=1: builds the post-write content for spec.md detection: Write = tool_input.content; Edit = old_string -> new_string applied to the current file (all occurrences with replace_all); NotebookEdit: none.
 #   - check-write.sh exit 0: allow (no output); exit 2: deny with its stderr; any other exit (usage/env error, unparsable payload): deny, fail closed.
 #   - jq missing, or any failure before a decision (a non-zero exit under set -e): a static, hand-written deny JSON and exit 0,
 #     as pre-launch.sh does, so the hook never fails open with a non-blocking error.
-# Plan refs: assetlist D9, D16, D17, D18, D36; PLAN/hook-verification.md.
-# Sources: first-party; deny JSON shape from PLAN/hook-verification/hooks/pre_write_deny.sh; static fallback pattern from hooks/pre-launch.sh (deny_raw).
+# Sources: first-party; static fallback pattern from hooks/pre-launch.sh (deny_raw).
 
 GUARD_DECIDED=0
 GUARD_TMPDIR=""
@@ -49,7 +48,7 @@ run_guard() {
   here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
   script="$here/../skills/feature-workflow/scripts/check-write.sh"
   [[ -f "$script" ]] || exit 0
-  # Workflow paths (D81), for guards that need them; sourced only once the workflow is known to be installed.
+  # Workflow paths, for guards that need them; sourced only once the workflow is known to be installed.
   # shellcheck source=../lib/workflow-paths.sh
   . "$(cd -P "$here" && pwd)/../lib/workflow-paths.sh"
 

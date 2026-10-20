@@ -1,37 +1,36 @@
 #!/usr/bin/env bash
 # File: Hook (Codex adapter): the three write guards (spec-single-writer, Tier A, Tier B) for Codex's `apply_patch` tool.
 # Goals:
-#   - Codex sends a file edit as `apply_patch` with the patch text in tool_input.command, not a file_path (verified 0.155.1, row 5a), so the
+#   - Codex sends a file edit as `apply_patch` with the patch text in tool_input.command, not a file_path (verified on 0.155.1), so the
 #     Claude guards (_guard-common.sh) would see no path and allow. This adapter splits the patch into its paths and runs, for each path,
 #     skills/feature-workflow/scripts/check-write.sh with --only spec, --only tier-a and --only tier-b: the same rules the three Claude
-#     guards apply (D9, D16, D17, D21).
-#   - Deny the whole patch when any path is denied. Codex applies a PreToolUse deny, and deny wins over an allow from another hook (row 5b).
+#     guards apply.
+#   - Deny the whole patch when any path is denied. Codex applies a PreToolUse deny, and deny wins over an allow from another hook (verified on 0.155.1).
 # Behaviour:
 #   - tool_name other than apply_patch: exit 0, no output. No skills/feature-workflow next to this hooks folder: exit 0 (workflow not installed).
 #   - Paths: `*** Add File:`, `*** Update File:`, `*** Delete File:` and `*** Move to:` (parsed by the sourced _codex-patch.sh). Each is checked
-#     as given; relative paths resolve against the payload `cwd` (Codex has no project-dir variable, row 8).
-#   - --agent = agent_type (else agent_id) only when the payload carries agent_id: Codex adds agent_id/agent_type only inside a sub-agent (row 5a, D16).
+#     as given; relative paths resolve against the payload `cwd` (Codex has no project-dir variable).
+#   - --agent = agent_type (else agent_id) only when the payload carries agent_id: Codex adds agent_id/agent_type only inside a sub-agent.
 #   - .workflow/specs/*/spec.md (status and blocked_condition change only through status-transition.sh):
 #       Add File: the `+` lines are the proposed content, passed as check-write.sh --proposed (a new spec.md must say status: draft).
 #       Update File: the hunks are not applied. Instead the `-` and `+` lines of top-level `status:` / `blocked_condition:` keys are compared;
 #       any difference denies. Conservative: a body line that starts with `status:` and is edited also denies.
-#   - Worktree confinement (D85), sub-agents only: the worktree is named by the spawn task_name, read from the session_meta agent_path on the
+#   - Worktree confinement, sub-agents only: the worktree is named by the spawn task_name, read from the session_meta agent_path on the
 #     first line of the payload transcript_path (as post-implementation-audit.sh reads it from agent_transcript_path). When the name is
 #     s<NNN>_... and .workflow/.worktrees/<task_name> exists, every path is also checked by
 #     skills/feature-workflow/scripts/check-worktree-scope.sh: a path inside the main checkout but outside that worktree is denied. No
-#     session_meta agent_path in the transcript (unverified on 0.155.1 for PreToolUse; row 4a shows SubagentStart's transcript_path is the
+#     session_meta agent_path in the transcript (unverified on 0.155.1 for PreToolUse; SubagentStart's transcript_path was seen to be the
 #     sub-agent's own rollout) or no such worktree: no confinement.
 #   - check-write.sh exit 0 for every path and class: allow (no output). Exit 2: deny with every denied path's reason. Any other exit, an
 #     unparsable payload, a missing or unparsable patch: deny, fail closed.
 #   - jq missing, or any failure before a decision: a static, hand-written deny JSON and exit 0 (as _guard-common.sh does).
-# Outputs/handoff: stdout is nothing or exactly one deny JSON (same shape as Claude's; verified on Codex, row 5b):
+# Outputs/handoff: stdout is nothing or exactly one deny JSON (same shape as Claude's; verified on Codex):
 #   {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"..."}}. Exit code always 0.
 # Wiring: codex-hooks.template.json (written to <target>/.codex/hooks.json by install.sh): PreToolUse, matcher "apply_patch".
-# Plan refs: assetlist D9, D16, D17, D21, D40, D67, D85; PLAN/hook-verification-codex.md rows 5a, 5b, 8.
 # Notes: Accident prevention only, as on Claude. Shell writes do not reach this hook; the hard limit for .workflow/cache is the permissions profile in
-#   codex-config.template.toml (rows 7a, 7b). .workflow/specs/*/.step has no Codex hard limit (G7), so this guard is its only file-tool protection.
-# Sources: first-party; check-write.sh CLI; _guard-common.sh (fail-closed pattern); PLAN/hook-verification-codex/hooks/pre_edit_deny.sh (deny shape).
-# Requires: bash 3.2+, jq, awk; check-write.sh needs mikefarah yq v4 for Tier A and --proposed (D38).
+#   codex-config.template.toml. .workflow/specs/*/.step has no Codex hard limit, so this guard is its only file-tool protection.
+# Sources: first-party; check-write.sh CLI; _guard-common.sh (fail-closed pattern).
+# Requires: bash 3.2+, jq, awk; check-write.sh needs mikefarah yq v4 for Tier A and --proposed.
 
 set -euo pipefail
 
@@ -97,7 +96,7 @@ is_spec_md() {
   backlog=$(printf '%s' "$WF_WORK_BACKLOG" | tr '[:upper:]' '[:lower:]')
   specs_re=$(printf '%s' "$WF_SPECS" | tr '[:upper:]' '[:lower:]' | sed 's/[.]/\\./g')
   case "$l" in */"$backlog"/* | "$backlog"/*) return 1 ;; esac
-  printf '%s' "$l" | grep -Eq "(^|/)$specs_re/[^/]+/spec\\.md\$"
+  grep -Eq "(^|/)$specs_re/[^/]+/spec\\.md\$" <<<"$l"
 }
 
 # status_keys <sign> : the top-level status/blocked_condition lines of one sign (- or +) in $TMP/body, sorted.
@@ -105,7 +104,7 @@ status_keys() {
   sed -nE "s/^[$1](status|blocked_condition)[[:space:]]*:/\\1:/p" "$TMP/body" | sed 's/[[:space:]]*$//' | LC_ALL=C sort
 }
 
-# Worktree name for a sub-agent (D85): the last segment of the session_meta agent_path, when it is an orchestrator name s<NNN>_...
+# Worktree name for a sub-agent: the last segment of the session_meta agent_path, when it is an orchestrator name s<NNN>_...
 wt_name=""
 if [ -n "$agent_id" ]; then
   transcript=$(jq -r '.transcript_path // "" | strings' <<<"$input")

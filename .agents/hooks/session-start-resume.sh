@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # File: Hook (Claude and Codex adapter): offer to resume in-flight work.
 # Goals:
-#   - If .workflow/specs/ exists, scan .workflow/specs/*/spec.md frontmatter for features that are not done (no .workflow/decisions/status.md; D22)
+#   - If .workflow/specs/ exists, scan .workflow/specs/*/spec.md frontmatter for features that are not done (spec.md frontmatter is the only status record)
 #   - Offer to resume at the recorded step via feature-workflow
 #   - List session handoffs in .workflow/.handoff/*.md (written by the handoff skill) so a fresh session can pick one up
 # Triggers/inputs: SessionStart JSON on stdin (any `source`: startup, resume, clear, compact; all get the offer, since a cleared or compacted
-#   context has lost it). Paths from the payload `cwd` (D18), normalised to the main checkout (git rev-parse --git-common-dir), where .workflow/specs/
+#   context has lost it). Paths from the payload `cwd`, normalised to the main checkout (git rev-parse --git-common-dir), where .workflow/specs/
 #   and the gitignored .step markers live.
 # Behaviour:
 #   - No spec.md with a status other than `done`, no open backlog item and no session handoff: exit 0, no output.
@@ -14,26 +14,24 @@
 #     A spec.md whose frontmatter cannot be read is listed as unreadable rather than skipped.
 #   - The text ends with the next action: load the feature-workflow skill for the chosen spec, which routes by spec.md status; a blocked spec
 #     needs its blocked_condition resolved by a human first.
-#   - A blocked spec whose blocked_condition starts with `discovered work:` or `size budget:` is flagged "discovered-work prompt pending" (D56).
+#   - A blocked spec whose blocked_condition starts with `discovered work:` or `size budget:` is flagged "discovered-work prompt pending".
 #   - .workflow/specs/work-backlog/ is not a spec folder and is skipped by the scan; its *.md items with `status: open` are summarised as a count plus
-#     up to 5 filenames (D57), and alone are enough to produce output.
+#     up to 5 filenames, and alone are enough to produce output.
 #   - Session handoffs (.workflow/.handoff/*.md at the main checkout, newest first by mtime): up to 3 listed with frontmatter created, spec and goal
 #     (or "frontmatter unreadable"), the rest counted; alone they are enough to produce output, and the text names the handoff skill's Resume.
 #   - The text is capped below the 10,000-character additionalContext limit: specs past the cap are counted, not listed.
 # Outputs/handoff: {"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"<resume offer>"}} or nothing; exit 0 always.
-# Wiring: claude-settings.template.json (merged into <target>/.claude/settings.json by install.sh, D36): SessionStart.
+# Wiring: claude-settings.template.json (merged into <target>/.claude/settings.json by install.sh): SessionStart.
 #   codex-hooks.template.json (<target>/.codex/hooks.json): SessionStart, no matcher; Codex also reads additionalContext.
-# Plan refs: 5.6; assetlist D16, D22.
-# Notes: feature-workflow also performs the same scan on entry (D9), for hosts where this hook is not installed. The list includes draft and ready-for-dev specs as well as the
-#   in-progress, in-review and blocked ones named in the plan's hooks row, so a feature paused in discovery is also offered.
-# Sources: first-party; PLAN/hook-verification.md (SessionStart payload with source); hooks reference https://code.claude.com/docs/en/hooks
+# Notes: feature-workflow also performs the same scan on entry, for hosts where this hook is not installed. The list includes draft and ready-for-dev specs as well as the
+#   in-progress, in-review and blocked ones, so a feature paused in discovery is also offered.
+# Sources: first-party; hooks reference https://code.claude.com/docs/en/hooks
 #   (SessionStart additionalContext); spec.md frontmatter contract in skills/feature-workflow/assets/spec.md; .step format in
-#   skills/feature-workflow/scripts/status-transition.sh; handoff frontmatter in skills/handoff/assets/handoff.md; assetlist D16, D22, D38, D77.
-# Requires: bash, jq, mikefarah yq v4 (D38), git (optional).
+#   skills/feature-workflow/scripts/status-transition.sh; handoff frontmatter in skills/handoff/assets/handoff.md.
+# Requires: bash, jq, mikefarah yq v4, git (optional).
 
 set -euo pipefail
 
-# Workflow paths (D81).
 # shellcheck source=../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
 
@@ -57,7 +55,7 @@ handoffs=("$root/$WF_HANDOFF"/*.md)
 command -v yq >/dev/null 2>&1 || exit 0
 
 # Fast prefilter (no yq): the raw `status:` value of the frontmatter, quotes and comment stripped. Used to skip `done` specs cheaply and
-# to count specs past the cap; every listed spec is read with yq (D38).
+# to count specs past the cap; every listed spec is read with yq.
 raw_status() {
   awk 'NR == 1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
        /^---[[:space:]]*$/ { exit }
@@ -94,7 +92,7 @@ fi
 
 list="" listed=0 omitted=0
 for spec in ${specs[@]+"${specs[@]}"}; do
-  [ "$(basename "$(dirname "$spec")")" != "work-backlog" ] || continue # the discovered-work backlog is not a spec (D57)
+  [ "$(basename "$(dirname "$spec")")" != "work-backlog" ] || continue # the discovered-work backlog is not a spec
   [ "$(raw_status "$spec")" != "done" ] || continue
   dir=$(dirname "$spec")
   slug=$WF_SPECS/$(basename "$dir")
@@ -121,7 +119,7 @@ for spec in ${specs[@]+"${specs[@]}"}; do
       entry+="; no .step marker"
     fi
     case "$bc" in
-      "discovered work:"* | "size budget:"*) entry+="; discovered-work prompt pending (D56: the user has not yet answered it)" ;;
+      "discovered work:"* | "size budget:"*) entry+="; discovered-work prompt pending (the user has not yet answered it)" ;;
     esac
     [ -z "$bc" ] || entry+="; blocked_condition: $bc"
   fi

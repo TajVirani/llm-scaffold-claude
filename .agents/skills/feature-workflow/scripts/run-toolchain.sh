@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 # File: Shared script (host-neutral, not a hook): run a work profile's toolchain against one task's diff (3.5).
-# Purpose: Execute the commands in the profile's Toolchain YAML block (command keys lint, typecheck, format, boundary, test, e2e, plus the optional test_scoped; D15, D61, D85) against the task diff in the task's worktree, and save the output as evidence.
-# Triggers/inputs: Args = --spec-dir .workflow/specs/NNN-slug, --task-id <id>, --cwd <task worktree> (D18). Reads work_type from tasks.md, .workflow/profiles/<work-type>.md Toolchain block (via mikefarah yq v4; D38), boundary config under .workflow/tools/boundaries/ (D20).
-# Outputs/handoff: Tool output saved to .workflow/specs/NNN-slug/artifacts/<task-id>/toolchain.txt; exit 0 = clean (orchestrator launches profile-mini-review), non-zero = failures printed for the implementer (D19).
-# Called by: post-implementation-audit.sh (Claude, SubagentStop adapter); the orchestrator directly on Codex or other hosts without that event (D9, D19).
-# Plan refs: 3.5, 3.6; reference "The four gates of Phase 3", "Work profiles"; assetlist D9, D15, D18, D19, D20, D61, D62, D85; 3.9 (gate run with --exclude-unfinished).
-# Sources: first-party; PLAN/decision-flow-reference.md 3.5-3.6, "Work profiles", "Per-feature files"; assetlist D9, D15, D18, D19, D20, D38, D61, D62.
+# Purpose: Execute the commands in the profile's Toolchain YAML block (command keys lint, typecheck, format, boundary, test, e2e, plus the optional test_scoped) against the task diff in the task's worktree, and save the output as evidence.
+# Triggers/inputs: Args = --spec-dir .workflow/specs/NNN-slug, --task-id <id>, --cwd <task worktree>. Reads work_type from tasks.md, .workflow/profiles/<work-type>.md Toolchain block (via mikefarah yq v4), boundary config under .workflow/tools/boundaries/.
+# Outputs/handoff: Tool output saved to .workflow/specs/NNN-slug/artifacts/<task-id>/toolchain.txt; exit 0 = clean (orchestrator launches profile-mini-review), non-zero = failures printed for the implementer, so the stop is blocked until they are fixed.
+# Called by: post-implementation-audit.sh (Claude, SubagentStop adapter); the orchestrator directly on Codex or other hosts without that event.
+# Steps: 3.5, 3.6; 3.9 (gate run with --exclude-unfinished).
+# Sources: first-party.
 #
 # CLI: run-toolchain.sh --spec-dir <.workflow/specs/NNN-slug> --task-id <id> [--cwd <dir>] [--work-type <name> | --profile <path>]
 #                       [--e2e] [--skip <key>]... [--exclude-unfinished] [--tail <N>] [-h]
-#   --spec-dir   feature directory; relative paths resolve against the main checkout (D18). Required.
+#   --spec-dir   feature directory; relative paths resolve against the main checkout. Required.
 #   --task-id    task id (T1, ...); names the evidence directory. Required.
 #   --cwd        directory the commands run in (the task worktree); default: current directory.
 #   --work-type  profile name. Without it and without --profile, work_type is read from <spec-dir>/tasks.md for the task id.
 #   --profile    explicit profile path (overrides --work-type). Otherwise .workflow/profiles/<work-type>.md is looked up in --cwd, then the main checkout.
 #   --e2e        also run the e2e key (last, after the other five). Without it e2e is skipped: 3.5 does not run the browser suite, evidence-capture does (3.10).
 #   --skip       skip one command key (repeatable; valid: lint, typecheck, format, boundary, test, e2e; anything else exits 2). The key appears in
-#                results as status skipped, reason "skipped by caller". Used for Phase 1 stop audits, which skip `test` because new tests are red by design (D70).
+#                results as status skipped, reason "skipped by caller". Used for Phase 1 stop audits, which skip `test` because new tests are red by design.
 #   --exclude-unfinished  scope `test` for a gate run whose --task-id is not a task record (e.g. the 3.9 harness gate, `--task-id gate-3.9-w2`):
 #                exclude the Phase 1 tests of every task whose status is not done (see Test scoping). A task-record --task-id scopes automatically.
 #   --tail       lines of output kept per failing command in the digest (default 40).
-# Test scoping (D85; Phase 1 tests are red by design until the task that owns them is merged):
+# Test scoping (Phase 1 tests are red by design until the task that owns them is merged):
 #   Each tasks.md record may list `tests: [<selector>...]`, the Phase 1 tests it turns green (paths, ids or name patterns the profile's runner
 #   understands; assigned at 2.5). When --task-id names a record, the excluded set is the `tests` of every OTHER record whose status is not
 #   done (pending, in-progress, blocked, split-out); with --exclude-unfinished it is the `tests` of every record not done. So the gate judges
@@ -35,15 +35,15 @@
 #     `warnings`), because red tests owned by other tasks cannot be told apart from real failures. Add `test_scoped` to the profile.
 #   toolchain.json results for test carry `scoped` (true|false) and `excluded` (count) when scoping applied.
 # Commands: keys lint, typecheck, format, boundary, test (then e2e) from the profile's Toolchain yaml block, run in that order with `bash -c` in --cwd.
-#   `test` is the harness command (D61) that 3.5 runs and the 3.9 gate reuses.
+#   `test` is the harness command that 3.5 runs and the 3.9 gate reuses.
 #   Empty or absent keys are skipped. All commands run even after a failure so one block reply lists every failure. Other keys are ignored,
-#   (test_scoped only replaces test, see Test scoping), including the non-command keys `serve` and `serve_ready` (D62; review-targets uses them at 4.3) and `config` / `rule_set`: never run.
-# Evidence (main checkout, never the worktree; D18): <spec-dir>/artifacts/<task-id>/toolchain.txt (combined output, one section per key),
+#   (test_scoped only replaces test, see Test scoping), including the non-command keys `serve` and `serve_ready` (review-targets uses them at 4.3) and `config` / `rule_set`: never run.
+# Evidence (main checkout, never the worktree, so it survives worktree removal): <spec-dir>/artifacts/<task-id>/toolchain.txt (combined output, one section per key),
 #   toolchain.json (the summary below) and toolchain-digest.txt (failure digest; present only on failure).
 # stdout: one JSON object {status: pass|fail, task_id, work_type, profile, cwd, evidence_dir, ran, results:[{key, command, status: pass|fail|skipped|unscoped, exit_code, reason?, scoped?, excluded?}], digest, warnings?}.
 #   digest is "" on pass; on failure it is bounded text suitable as a SubagentStop block reason. The digest is also printed to stderr on failure.
 # Exit: 0 all run commands passed; 1 at least one failed; 2 usage or config error (message on stderr, no JSON).
-# Requires: bash, jq, mikefarah yq v4 (D38), git (optional; without a repo the main checkout is --cwd).
+# Requires: bash, jq, mikefarah yq v4, git (optional; without a repo the main checkout is --cwd).
 
 set -euo pipefail
 
@@ -76,12 +76,12 @@ done
 [ -n "$task_id" ] || die "missing --task-id"
 case "$tail_n" in ''|*[!0-9]*) die "--tail must be a non-negative integer" ;; esac
 command -v jq >/dev/null 2>&1 || die "jq not found"
-command -v yq >/dev/null 2>&1 || die "yq not found (mikefarah yq v4 required; D38)"
-yq --version 2>&1 | grep -q 'mikefarah' || die "yq is not mikefarah yq v4 (D38)"
+command -v yq >/dev/null 2>&1 || die "yq not found (mikefarah yq v4 required)"
+yq --version 2>&1 | grep -q 'mikefarah' || die "yq is not mikefarah yq v4"
 [ -d "$cwd" ] || die "--cwd is not a directory: $cwd"
 cwd=$(cd "$cwd" && pwd)
 
-# Main checkout: gitignored state and evidence live there, not in a worktree (D18).
+# Main checkout: gitignored state and evidence live there, not in a worktree.
 main_root=$cwd
 if common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
   main_root=$(dirname "$common")
@@ -120,7 +120,7 @@ block=$(awk '
 [ -n "$block" ] || die "no yaml block under '## Toolchain' in $profile"
 printf '%s\n' "$block" | yq '.' >/dev/null 2>&1 || die "Toolchain yaml block does not parse in $profile"
 
-# Test scoping (D85): selectors of Phase 1 tests owned by unfinished tasks are excluded from `test`.
+# Test scoping: selectors of Phase 1 tests owned by unfinished tasks are excluded from `test`.
 excl_list="" own_list="" impl_base=""
 scope_tasks=$spec_abs/tasks.md
 if [ -f "$scope_tasks" ]; then
@@ -139,7 +139,7 @@ evidence_dir=$spec_abs/artifacts/$task_id
 mkdir -p "$evidence_dir" || die "cannot create $evidence_dir"
 : > "$evidence_dir/toolchain.txt"
 
-keys=(lint typecheck format boundary test)   # serve, serve_ready, config, rule_set are never run (D62)
+keys=(lint typecheck format boundary test)   # serve, serve_ready, config, rule_set are never run
 [ "$want_e2e" -eq 1 ] && keys+=(e2e)
 
 results='[]' digest="" ran=0 failed=0
@@ -183,7 +183,7 @@ for key in "${keys[@]}"; do
   if [ "$rc" -eq 0 ]; then st=pass
   elif [ "$unscoped" -eq 1 ]; then
     st=unscoped
-    warnings=$(jq -c --arg m "test failed (exit $rc) but could not be scoped: $n_excl Phase 1 test selector(s) belong to unfinished tasks and the profile has no test_scoped key; not counted as a failure (D85). Add test_scoped to $profile." '. + [$m]' <<<"$warnings")
+    warnings=$(jq -c --arg m "test failed (exit $rc) but could not be scoped: $n_excl Phase 1 test selector(s) belong to unfinished tasks and the profile has no test_scoped key; not counted as a failure. Add test_scoped to $profile." '. + [$m]' <<<"$warnings")
     printf 'run-toolchain.sh: warning: %s\n' "$(jq -r '.[-1]' <<<"$warnings")" >&2
   else
     st=fail; failed=$((failed + 1))

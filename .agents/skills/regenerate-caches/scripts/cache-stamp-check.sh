@@ -2,7 +2,6 @@
 # File: Helper script (not a hook): detect stale Tier B caches before retrieval runs.
 # Purpose: For each Tier B cache (.workflow/cache/modules.md, flows.md, architecture.md), read the frontmatter, validate it against assets/cache-frontmatter.md, and decide fresh or stale. A cache is stale when any commit in generated_at_commit..HEAD touched a path under `scope`.
 # Triggers/inputs: Called by feature-workflow modules/discovery.md at 0.2.7 before launching `retrieval`, and by regenerate-caches for stale-only runs.
-# Plan refs: 0.2.7; reference "Helper scripts" (Cache stamp check); assetlist D7, D38.
 # Sources: first-party; changed-since-commit idea from skills/data-structure-audit/scripts/audit_scope.sh.
 #
 # Usage:
@@ -11,7 +10,7 @@
 #                      scope intersects an area (one path is the other, or a parent of it) are
 #                      checked for staleness. Without --area, every scope path counts.
 #     --cache-dir DIR  default: <root>/.workflow/cache
-#     --root DIR       repo root override. Default (D18): the MAIN checkout, found through
+#     --root DIR       repo root override. Default: the MAIN checkout, found through
 #                      `git rev-parse --git-common-dir`, even when run from a worktree. Caches
 #                      are read from, and HEAD is taken from, that checkout.
 #
@@ -28,14 +27,13 @@
 #
 # Exit codes: 0 = all caches fresh; 1 = at least one stale or missing (and none invalid);
 #             2 = at least one invalid, or a usage or tooling error (message on stderr).
-# Requires: git, jq, mikefarah yq v4 on PATH (D38).
+# Requires: git, jq, mikefarah yq v4 on PATH.
 set -euo pipefail
 
-# Workflow paths (D81).
 # shellcheck source=../../../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
-resolve_root() { # main checkout (D18): the parent of the common git dir, so worktrees share one root
+resolve_root() { # main checkout: the parent of the common git dir, so worktrees share one root
   local common
   common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
   if [[ "$(basename "$common")" == ".git" ]]; then dirname "$common"; else git rev-parse --show-toplevel; fi
@@ -59,7 +57,7 @@ done
 for tool in git jq yq; do
   command -v "$tool" >/dev/null 2>&1 || die "$tool not found on PATH"
 done
-yq --version 2>&1 | grep -q 'mikefarah' || die "yq must be mikefarah yq v4 (D38)"
+yq --version 2>&1 | grep -q 'mikefarah' || die "yq must be mikefarah yq v4"
 
 [[ -n "$root" ]] || root="$(resolve_root)" || die "not in a git repository (use --root)"
 cd "$root"

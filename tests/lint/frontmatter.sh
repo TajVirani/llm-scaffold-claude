@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: lint of YAML frontmatter in .agents/skills/*/SKILL.md and .agents/agents/*.md (reads the repo, writes nothing).
 # Covers: frontmatter is the first thing in the file and parses with yq v4; non-empty `name` (matches folder / file name)
-#   and `description`; agents carry no `model:` (D35) and only `claude` / `codex` keys under `models:`;
+#   and `description`; agents carry no `model:` and only `claude` / `codex` keys under `models:`;
 #   `disable-model-invocation` only on first-party skills whose body has a STUB marker; no implemented file has a STUB marker;
 #   every STUB-marked file is listed as a stub in PROVENANCE.md.
 # A STUB marker is a line in the body that starts with `STUB:` (optionally inside an HTML comment opener).
@@ -52,7 +52,7 @@ lint_file() {
   [ -z "$got" ] || [ "$got" = "$name" ] || echo "name '$got' does not match '$name'"
   [ -n "$desc" ] || echo "description is missing or empty"
   if [ "$kind" = agent ]; then
-    [ "$(yq e 'has("model")' "$fm")" = false ] || echo "agent has a model: key (D35)"
+    [ "$(yq e 'has("model")' "$fm")" = false ] || echo "agent has a model: key"
     if [ "$(yq e 'has("models")' "$fm")" = true ]; then
       for k in $(yq e '.models | keys | .[]' "$fm" 2>/dev/null); do
         case "$k" in claude | codex) ;; *) echo "models: has unsupported key '$k' (only claude, codex)" ;; esac

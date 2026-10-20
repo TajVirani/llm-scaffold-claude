@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# File: Hook (Codex adapter): validate the plaintext fields of every workflow sub-agent spawn (D9, D40, D66, D67).
+# File: Hook (Codex adapter): validate the plaintext fields of every workflow sub-agent spawn.
 # Goals:
-#   - Codex encrypts the spawn `message` (rows 3b, 3d), so the D37 launch header cannot be read or rewritten as pre-launch.sh does on
+#   - Codex encrypts the spawn `message` (verified on 0.155.1), so the launch header cannot be read or rewritten as pre-launch.sh does on
 #     Claude. What is plaintext is `agent_type` and `task_name` (and `model`); this hook checks those and denies a malformed workflow spawn.
 #   - The orchestrator still builds the message and model with resolve-launch.sh (orchestrator mode); this hook is the backstop for the
-#     D66 task_name, which the Codex stop audit (post-implementation-audit.sh) relies on to find the task.
+#     task_name, which the Codex stop audit (post-implementation-audit.sh) relies on to find the task.
 # Behaviour:
-#   - tool_name not ending in spawn_agent (Codex reports `collaborationspawn_agent`, row 3a): exit 0, no output.
+#   - tool_name not ending in spawn_agent (Codex reports `collaborationspawn_agent`): exit 0, no output.
 #   - agent_type empty, or not a workflow task type: exit 0 (built-in and user agents pass through). Workflow types are the keys of
 #     resolve-launch.sh --requirements; a Codex agent_type matches a type either as written or in its Codex form enc(type) (fact-lookup ->
 #     fact_lookup), which is the name generate-codex-agents.sh writes.
 #   - No .agents/skills/feature-workflow in the project root: exit 0 (workflow not installed).
-#   - task_name (D66; Codex accepts only [a-z0-9_], no `/`; enc = lowercase, every character outside [a-z0-9] -> _):
+#   - task_name (Codex accepts only [a-z0-9_], no `/`; enc = lowercase, every character outside [a-z0-9] -> _):
 #       implementation        s<NNN>_t<N> (task, 3.3) or s<NNN>_phase_1_<enc(work_type)> (Phase 1, 1.2/1.3); required
 #       integration           s<NNN>_integration_<enc(work_type)>; required
 #       profile-mini-review   s<NNN>_t<N>_r<round> (3.7 review round; the bare s<NNN>_t<N> is the implementer's name); required
@@ -23,12 +23,11 @@
 #   {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"codex-pre-spawn: ..."}}
 #   Exit code always 0.
 # Triggers/inputs: PreToolUse payload for the spawn tool: tool_input {agent_type, message (encrypted), task_name, fork_turns?, model?}.
-#   Project root from the payload `cwd` (no project-dir variable on Codex, row 8), normalised to the main checkout (git --git-common-dir).
-# Wiring: codex-hooks.template.json: PreToolUse, matcher ".*spawn_agent" (full-match regex; `spawn_agent` alone does not fire, row 3a).
-# Plan refs: assetlist D9, D31, D37, D40, D66, D67; PLAN/hook-verification-codex.md rows 3a-3d, 8.
-# Notes: The model is not validated here: a toml without `model` takes the spawn value (row 3c), and the orchestrator passes the
+#   Project root from the payload `cwd` (no project-dir variable on Codex), normalised to the main checkout (git --git-common-dir).
+# Wiring: codex-hooks.template.json: PreToolUse, matcher ".*spawn_agent" (full-match regex; `spawn_agent` alone does not fire).
+# Notes: The model is not validated here: a toml without `model` takes the spawn value, and the orchestrator passes the
 #   resolve-launch.sh model. It is unverified whether Codex loads hyphenated agent names, hence the enc() form that generate-codex-agents.sh writes.
-# Sources: first-party; pre-launch.sh (task-type table, deny shape, root normalisation); post-implementation-audit.sh (codex_enc, D66 parse).
+# Sources: first-party; pre-launch.sh (task-type table, deny shape, root normalisation); post-implementation-audit.sh (codex_enc, task_name parse).
 # Requires: bash 3.2+, jq, git (optional); resolve-launch.sh --requirements (jq only).
 
 set -euo pipefail
@@ -60,7 +59,7 @@ if common=$(git -C "$root" rev-parse --path-format=absolute --git-common-dir 2>/
   root=$(dirname "$common")
 fi
 [ -d "$root/.agents/skills/feature-workflow" ] || exit 0
-# Workflow paths (D81); sourced once the workflow is known to be installed.
+# Workflow paths; sourced once the workflow is known to be installed.
 # shellcheck source=../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
 resolver=$root/.agents/skills/feature-workflow/scripts/resolve-launch.sh
@@ -78,7 +77,7 @@ done <<<"$types"
 [ -n "$type" ] || exit 0
 
 FORMS="implementation: s<NNN>_t<N> or s<NNN>_phase_1_<work_type>; integration: s<NNN>_integration_<work_type>; profile-mini-review: s<NNN>_t<N>_r<round>"
-bad() { deny "spawn of '$agent_type' refused: task_name '$task_name' $1 (D66; $FORMS; enc: lowercase, non [a-z0-9] -> _)"; }
+bad() { deny "spawn of '$agent_type' refused: task_name '$task_name' $1 ($FORMS; enc: lowercase, non [a-z0-9] -> _)"; }
 
 if [ -z "$task_name" ]; then
   case "$type" in
@@ -86,7 +85,7 @@ if [ -z "$task_name" ]; then
     *) exit 0 ;;
   esac
 fi
-printf '%s' "$task_name" | grep -Eq '^[a-z0-9_]+$' || bad "must use only lowercase letters, digits and underscores (Codex rejects anything else)"
+grep -Eq '^[a-z0-9_]+$' <<<"$task_name" || bad "must use only lowercase letters, digits and underscores (Codex rejects anything else)"
 
 # spec_folder NNN : exactly one .workflow/specs/<NNN>-* in the main checkout.
 spec_folder() {

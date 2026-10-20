@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): stamp a regenerated Tier B cache and publish it into .workflow/cache/.
-# Purpose: The cache-regeneration agent writes the body to the staging path; this script writes the stamp frontmatter (assets/cache-frontmatter.md), validates it, and atomically moves the file into .workflow/cache/<type>.md (D17).
-# Plan refs: 0.2.8, `regen` node, Tier B; assetlist D17, D36, D38.
+# Purpose: The cache-regeneration agent writes the body to the staging path; this script writes the stamp frontmatter (assets/cache-frontmatter.md), validates it, and atomically moves the file into .workflow/cache/<type>.md. The tier-b guard denies every file-tool write there, so this script is the only way in.
 # Called by: regenerate-caches skill and feature-workflow modules/discovery.md after a 0.2.8 cache-regeneration launch returns.
 # Sources: first-party.
 #
@@ -13,7 +12,7 @@
 #     staged-file   must live under <root>/.workflow/.cache-staging/; any frontmatter it has is discarded
 #     scope-path    repo-relative file or directory, no globs, at least one
 #     --generator   default: cache-regeneration
-#     --root        override. Default (D18): the MAIN checkout, found through
+#     --root        override. Default: the MAIN checkout, found through
 #                   `git rev-parse --git-common-dir`, even when run from a worktree. The stamp is
 #                   that checkout's HEAD; .workflow/cache/ and .workflow/.cache-staging/ are that checkout's too.
 #                   Pass the staged file as an absolute path when running from a worktree.
@@ -23,20 +22,19 @@
 # Output: prints the published path. Exit 0 = published; 1 = staged file missing, empty or outside
 #   the staging dir, or the stamped result fails validation; 2 = usage or tooling error.
 #
-# SANDBOX (D36): the deny rule Edit(.workflow/cache/**) does not see this script's move. A project that
+# SANDBOX: the deny rule Edit(.workflow/cache/**) does not see this script's move. A project that
 # enables the Claude Code sandbox merges that rule into OS-level write denies and would block the
 # move. Such a project must add this exact command line to `sandbox.excludedCommands`, and the
 # skills must always call the script with exactly this prefix:
 #   .agents/skills/regenerate-caches/scripts/publish-cache.sh
 # Runs through Bash, never Write/Edit, so tier-b-write-guard does not apply to it.
-# Requires: git, jq, mikefarah yq v4 on PATH (D38).
+# Requires: git, jq, mikefarah yq v4 on PATH.
 set -euo pipefail
 
-# Workflow paths (D81).
 # shellcheck source=../../../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
-resolve_root() { # main checkout (D18): the parent of the common git dir, so worktrees share one root
+resolve_root() { # main checkout: the parent of the common git dir, so worktrees share one root
   local common
   common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
   if [[ "$(basename "$common")" == ".git" ]]; then dirname "$common"; else git rev-parse --show-toplevel; fi
@@ -64,7 +62,7 @@ scope=("${pos[@]:2}")
 for tool in git jq yq; do
   command -v "$tool" >/dev/null 2>&1 || die "$tool not found on PATH"
 done
-yq --version 2>&1 | grep -q 'mikefarah' || die "yq must be mikefarah yq v4 (D38)"
+yq --version 2>&1 | grep -q 'mikefarah' || die "yq must be mikefarah yq v4"
 
 case "$type" in modules|flows|architecture) ;; *) die "cache type must be modules, flows or architecture" ;; esac
 [[ -n "$generator" ]] || die "--generator must not be empty"

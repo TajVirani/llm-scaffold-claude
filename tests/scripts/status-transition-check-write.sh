@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Suite: status-transition.sh, check-write.sh and budget-check.sh (feature-workflow/scripts).
-# Covers: spec/task status transitions and the .step marker, blocked/discovered-work paths (D47, D49, D56, D59, D68),
-#   blocked -> draft at 00.24 / 00.29 only for the matching blocked_condition, no 3.16 merge while blocked (D69),
-#   worktree resolution (D18), check-write rules per path class (Tier A/B incl. D51 steps, spec.md, tasks.md, work-backlog), size budget (D58).
+# Covers: spec/task status transitions and the .step marker, blocked/discovered-work paths,
+#   blocked -> draft at 00.24 / 00.29 only for the matching blocked_condition, no 3.16 merge while blocked,
+#   worktree resolution, check-write rules per path class (Tier A/B incl. the glossary and Tier A steps, spec.md, tasks.md, work-backlog), size budget.
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures
 # shellcheck source=../lib/common.sh
@@ -28,7 +28,7 @@ mkdir -p .workflow/specs/001-alpha .workflow/specs/002-beta .workflow/cache .wor
 cp "$SRC/assets/spec.md" .workflow/specs/001-alpha/spec.md
 cp "$SRC/assets/spec.md" .workflow/specs/002-beta/spec.md
 cp "$SRC/assets/tasks.md" .workflow/specs/001-alpha/tasks.md
-# Fill the template placeholders the D85 validator checks (file, branch).
+# Fill the template placeholders the validator checks (file, branch).
 sed -i.bak -e 's/<slug>/demo/g' -e 's#task/NNN-slug/#task/001-alpha/#' .workflow/specs/001-alpha/tasks.md && rm -f .workflow/specs/001-alpha/tasks.md.bak
 yq --front-matter=process -i '.tasks += [{"id":"T2","title":"x","status":"pending","capability":"CAP-001","depends_on":["T1"],"touches_core":false,"work_type":null,"module":"m","seam":"s"}]' .workflow/specs/001-alpha/tasks.md
 echo '.workflow/specs/*/.step' > .gitignore
@@ -51,12 +51,12 @@ t "draft->done illegal"                     2 ST status $A done
 t "draft->ready-for-dev without --step"     1 ST status $A ready-for-dev
 t "draft->ready-for-dev at 3.1 illegal"     2 ST status $A ready-for-dev --step 3.1
 t "draft->ready-for-dev at 0.6"             0 ST status $A ready-for-dev --step 0.6
-t "ready->ready now illegal (D49)"          2 ST status $A ready-for-dev --step 0.3.20
-t "ready->draft without --step (D49)"       1 ST status $A draft
+t "ready->ready now illegal"          2 ST status $A ready-for-dev --step 0.3.20
+t "ready->draft without --step"       1 ST status $A draft
 t "ready->draft at 0.1.4 illegal"           2 ST status $A draft --step 0.1.4
-t "ready->draft at 2.2 (D49)"               0 ST status $A draft --step 2.2
+t "ready->draft at 2.2"               0 ST status $A draft --step 2.2
 t "draft->ready again at 0.3.20"            0 ST status $A ready-for-dev --step 0.3.20
-t "ready->draft at 2.3 (D49)"               0 ST status $A draft --step 2.3
+t "ready->draft at 2.3"               0 ST status $A draft --step 2.3
 t "draft->ready again at 0.6"               0 ST status $A ready-for-dev --step 0.6
 t "ready->in-review illegal"                2 ST status $A in-review --step 3.11
 t "ready->in-progress (default 3.1)"        0 ST status $A in-progress
@@ -78,10 +78,10 @@ eq "blocked_condition removed" "$(yq --front-matter=extract 'has("blocked_condit
 if grep -q blocked_from "$R/$A/.step"; then eq "blocked_from cleared" bad ok; else eq "blocked_from cleared" ok ok; fi
 t "in-progress->in-review at 3.14"          0 ST status $A in-review --step 3.14
 t "in-review->in-review at 3.11 (rework)"   0 ST status $A in-review --step 3.11
-t "in-review->ready now illegal (D49)"      2 ST status $A ready-for-dev --step 0.6
+t "in-review->ready now illegal"      2 ST status $A ready-for-dev --step 0.6
 t "in-review->draft at 2.2 illegal"         2 ST status $A draft --step 2.2
 for n in 4.5 4.6 5.6; do
-  t "in-review->draft at $n (D49)"          0 ST status $A draft --step $n
+  t "in-review->draft at $n"          0 ST status $A draft --step $n
   t "draft->ready-for-dev at 0.6"           0 ST status $A ready-for-dev --step 0.6
   t "ready->in-progress"                    0 ST status $A in-progress
   t "in-progress->in-review at 3.11"        0 ST status $A in-review --step 3.11
@@ -93,9 +93,9 @@ t "in-progress->in-progress (resume 3.1)"   0 ST status $A in-progress
 t "in-progress->in-review at 3.11"          0 ST status $A in-review --step 3.11
 t "in-review->done at 5.6 illegal"          2 ST status $A done --step 5.6
 t "in-review->blocked (4.7 ceiling)"        0 ST status $A blocked --blocked "rework ceiling" --step 4.7
-t "blocked->in-review without step (D47)"   1 ST status $A in-review
-t "blocked->in-review at 4.7 illegal (D47)" 2 ST status $A in-review --step 4.7
-t "blocked->in-review at 5.1 (D47)"         0 ST status $A in-review --step 5.1
+t "blocked->in-review without step"   1 ST status $A in-review
+t "blocked->in-review at 4.7 illegal" 2 ST status $A in-review --step 4.7
+t "blocked->in-review at 5.1"         0 ST status $A in-review --step 5.1
 eq ".step = 5.1 after unblock" "$(step 001-alpha)" 5.1
 t "in-review->done (default 5.7)"           0 ST status $A done
 t "template validator passes when done"     0 yq --front-matter=extract -e '(.status == "blocked") == ((.blocked_condition // "") != "")' "$R/$A/spec.md"
@@ -133,7 +133,7 @@ t "absolute spec dir (worktree path)"       0 ST step "$WT/$B" 0.3.19 --cwd "$WT
 eq "abs path maps to main" "$(step 002-beta)" 0.3.19
 t "not a git repo"                          1 ST step $B 0.1.6 --cwd /
 
-echo "== status-transition: set-task (D45)"
+echo "== status-transition: set-task"
 mkdir -p "$R/.workflow/specs/003-gamma"; cp "$SRC/assets/spec.md" "$R/.workflow/specs/003-gamma/spec.md"; cp "$R/$A/tasks.md" "$R/.workflow/specs/003-gamma/tasks.md"
 G=.workflow/specs/003-gamma
 yq --front-matter=process -i '.status="in-progress"' "$R/$G/spec.md"
@@ -160,12 +160,12 @@ eq "rework sets .step 4.7" "$(step 003-gamma)" 4.7
 t "T1 back to done"                         0 ST set-task $G T1 --status done
 t "T2 pending->done still illegal at 4.7"   2 ST set-task $G T2 --status done --step 4.7
 eq "T1 capability is provisional" "$(yq --front-matter=extract '.tasks[0].capability' "$R/$G/tasks.md")" CAP-NEW-example
-t "capability without --step (D52)"         2 ST set-task $G T1 --capability CAP-042
-t "capability at 5.1 illegal (D52)"         2 ST set-task $G T1 --capability CAP-042 --step 5.1
+t "capability without --step"         2 ST set-task $G T1 --capability CAP-042
+t "capability at 5.1 illegal"         2 ST set-task $G T1 --capability CAP-042 --step 5.1
 t "capability bad id CAP-12"                1 ST set-task $G T1 --capability CAP-12 --step 5.3
 t "capability bad id CAP-NEW-Bad"           1 ST set-task $G T1 --capability CAP-NEW-Bad --step 5.3
 t "provisional -> provisional illegal"      2 ST set-task $G T1 --capability CAP-NEW-other --step 5.3
-t "provisional -> CAP-042 at 5.3 (D52)"     0 ST set-task $G T1 --capability CAP-042 --step 5.3
+t "provisional -> CAP-042 at 5.3"     0 ST set-task $G T1 --capability CAP-042 --step 5.3
 eq "T1 capability rewritten" "$(yq --front-matter=extract '.tasks[0].capability' "$R/$G/tasks.md")" CAP-042
 eq ".step = 5.3" "$(step 003-gamma)" 5.3
 t "same capability again ok"                0 ST set-task $G T1 --capability CAP-042 --step 5.3
@@ -183,11 +183,11 @@ eq "tasks.md unchanged after refusal" "$(shasum "$R/$G/tasks.md")" "$before"
 yq --front-matter=process -i '.tasks[1].capability="CAP-001"' "$R/$G/tasks.md"
 for c in CAP-007 CAP-NEW-guest-checkout CAP-1234 CAP-NEW-x; do
   yq --front-matter=process -i ".tasks[1].capability=\"$c\"" "$R/$G/tasks.md"
-  t "D44 capability $c passes validator"     0 ST set-task $G T2 --work-type backend
+  t "capability $c passes validator"     0 ST set-task $G T2 --work-type backend
 done
 for c in CAP-12 CAP-NEW-Bad CAP-NEW- CAP-NEW-a--b cap-001; do
   yq --front-matter=process -i ".tasks[1].capability=\"$c\"" "$R/$G/tasks.md"
-  t "D44 capability $c fails validator"      1 ST set-task $G T2 --work-type backend
+  t "capability $c fails validator"      1 ST set-task $G T2 --work-type backend
 done
 yq --front-matter=process -i '.tasks[1].capability="CAP-001"' "$R/$G/tasks.md"
 t "set-task from worktree"                  0 ST set-task $G T2 --status in-progress --cwd "$WT"
@@ -213,7 +213,7 @@ t "outside repo"                            0 CW --cwd "$R" --path /etc/hosts
 t "missing --path"                          1 CW --cwd "$R"
 t "bad --only"                              1 CW --cwd "$R" --path x --only foo
 
-echo "== check-write: .workflow/ prefixes (D81)"
+echo "== check-write: .workflow/ prefixes"
 # A sub-agent write is denied on every guarded path before any step check, so --agent isolates classification.
 for p in .workflow/rules.md .workflow/capabilities.md .workflow/decisions .workflow/decisions/adr/0001-x.md \
   .workflow/profiles/web.md .workflow/GLOSSARY.md .workflow/GLOSSARY-MAP.md .workflow/cache .workflow/cache/modules.md \
@@ -270,7 +270,7 @@ cp "$SRC/assets/spec.md" "$R/.workflow/specs/005-new/spec.md"
 t "status draft after creation"             0 ST status .workflow/specs/005-new draft
 yq --front-matter=process -i '.status="done"' "$R/.workflow/specs/005-new/spec.md"
 
-echo "== check-write: tasks.md (D45 guard)"
+echo "== check-write: tasks.md (set-task is the only record writer)"
 for s in 2.5 0.3.20; do ST step $B $s >/dev/null; t "tasks.md at $s allow" 0 CW --cwd "$R" --path .workflow/specs/002-beta/tasks.md; t "tasks.md at $s sub-agent deny" 2 CW --cwd "$WT" --path "$WT/.workflow/specs/002-beta/tasks.md" --agent impl; done
 t "tasks.md --only spec covers it"          0 CW --cwd "$R" --path .workflow/specs/002-beta/tasks.md --only spec
 for s in 3.1 0.6 2.4 4.7 0.1.6; do ST step $B $s >/dev/null; t "tasks.md at $s deny" 2 CW --cwd "$R" --path .workflow/specs/002-beta/tasks.md; done
@@ -285,20 +285,20 @@ echo "== check-write: Tier A"
 sleep 1; ST step $B 5.1 >/dev/null
 t "GLOSSARY at 5.1 deny (newest marker)"    2 CW --cwd "$R" --path .workflow/GLOSSARY.md
 for s in 0.2.3 0.3.15 0.4.3 5.3; do ST step $B $s >/dev/null; t ".workflow/GLOSSARY.md at $s allow" 0 CW --cwd "$R" --path .workflow/GLOSSARY.md; t "deep .workflow/GLOSSARY-MAP.md at $s allow" 0 CW --cwd "$R" --path a/GLOSSARY-MAP.md; done
-for s in 0.3.7 5.7; do ST step $B $s >/dev/null; t ".workflow/GLOSSARY.md at $s deny (D51)" 2 CW --cwd "$R" --path .workflow/GLOSSARY.md; t "src/x/GLOSSARY.md at $s deny (D51)" 2 CW --cwd "$R" --path src/x/GLOSSARY.md; t ".workflow/rules.md at $s allow" 0 CW --cwd "$R" --path .workflow/rules.md; t "adr at $s allow" 0 CW --cwd "$R" --path .workflow/decisions/adr/0002-y.md; t "existing profile edit at $s deny (D50)" 2 CW --cwd "$R" --path .workflow/profiles/frontend.md; t "new profile at $s deny (D50)" 2 CW --cwd "$R" --path .workflow/profiles/new.md; done
-for s in 0.2.3 0.3.15 0.4.3; do ST step $B $s >/dev/null; t "existing profile edit at $s deny (D50)" 2 CW --cwd "$R" --path .workflow/profiles/frontend.md; t "new profile at $s deny (D50)" 2 CW --cwd "$R" --path .workflow/profiles/new.md; done
+for s in 0.3.7 5.7; do ST step $B $s >/dev/null; t ".workflow/GLOSSARY.md at $s deny" 2 CW --cwd "$R" --path .workflow/GLOSSARY.md; t "src/x/GLOSSARY.md at $s deny" 2 CW --cwd "$R" --path src/x/GLOSSARY.md; t ".workflow/rules.md at $s allow" 0 CW --cwd "$R" --path .workflow/rules.md; t "adr at $s allow" 0 CW --cwd "$R" --path .workflow/decisions/adr/0002-y.md; t "existing profile edit at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/frontend.md; t "new profile at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/new.md; done
+for s in 0.2.3 0.3.15 0.4.3; do ST step $B $s >/dev/null; t "existing profile edit at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/frontend.md; t "new profile at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/new.md; done
 ST step $B 5.3 >/dev/null
-t "existing profile edit at 5.3 allow (D50)" 0 CW --cwd "$R" --path .workflow/profiles/frontend.md
-t "new profile at 5.3 allow (D50)"          0 CW --cwd "$R" --path .workflow/profiles/new.md
+t "existing profile edit at 5.3 allow" 0 CW --cwd "$R" --path .workflow/profiles/frontend.md
+t "new profile at 5.3 allow"          0 CW --cwd "$R" --path .workflow/profiles/new.md
 t "existing profile at 5.3 sub-agent deny"  2 CW --cwd "$WT" --path "$WT/.workflow/profiles/frontend.md" --agent impl
 for s in 0.2.3 0.3.15 0.4.3; do
   ST step $B $s >/dev/null
-  for p in .workflow/capabilities.md .workflow/rules.md .workflow/decisions/adr/0002-y.md; do t "$p at $s deny (D51)" 2 CW --cwd "$R" --path $p; done
+  for p in .workflow/capabilities.md .workflow/rules.md .workflow/decisions/adr/0002-y.md; do t "$p at $s deny" 2 CW --cwd "$R" --path $p; done
 done
-t "D51 deny message lists 0.3.7 5.3 5.7"    0 bash -c "CW --cwd '$R' --path .workflow/rules.md 2>&1 | grep -q '0.3.7 5.3 5.7'"
+t "deny message lists 0.3.7 5.3 5.7"    0 bash -c "CW --cwd '$R' --path .workflow/rules.md 2>&1 | grep -q '0.3.7 5.3 5.7'"
 for s in 0.3.7 5.3 5.7; do
   ST step $B $s >/dev/null
-  for p in .workflow/capabilities.md .workflow/rules.md .workflow/decisions/adr/0002-y.md; do t "$p at $s allow (D51)" 0 CW --cwd "$R" --path $p; done
+  for p in .workflow/capabilities.md .workflow/rules.md .workflow/decisions/adr/0002-y.md; do t "$p at $s allow" 0 CW --cwd "$R" --path $p; done
 done
 for s in 0.2.2 0.3.14 0.4.2 3.1 5.2 00.19; do ST step $B $s >/dev/null; t ".workflow/GLOSSARY.md at $s deny" 2 CW --cwd "$R" --path .workflow/GLOSSARY.md; done
 ST step $B 5.3 >/dev/null
@@ -308,17 +308,17 @@ for p in .workflow/capabilities.md .workflow/rules.md .workflow/decisions/adr/00
 done
 ST step $B 3.1 >/dev/null
 ST step $B 00.19 >/dev/null
-t "new profile at 00.19 allow (D50)"        0 CW --cwd "$R" --path .workflow/profiles/backend.md
+t "new profile at 00.19 allow"        0 CW --cwd "$R" --path .workflow/profiles/backend.md
 t "new nested profile at 00.19 allow"       0 CW --cwd "$WT" --path "$WT/.workflow/profiles/sub/new.md"
-t "existing profile at 00.19 deny (D50)"    2 CW --cwd "$R" --path .workflow/profiles/frontend.md
+t "existing profile at 00.19 deny"    2 CW --cwd "$R" --path .workflow/profiles/frontend.md
 t "deny message names 5.3"                  0 bash -c "CW --cwd '$R' --path .workflow/profiles/frontend.md 2>&1 | grep -q '5.3'"
 t "new profile at 00.19 sub-agent deny"     2 CW --cwd "$WT" --path "$WT/.workflow/profiles/backend.md" --agent impl
 t "rules.md at 00.19 deny"                  2 CW --cwd "$R" --path .workflow/rules.md
 t ".workflow/GLOSSARY.md at 00.19 deny"               2 CW --cwd "$R" --path .workflow/GLOSSARY.md
 ST step $B 3.1 >/dev/null
 t "new profile at 3.1 deny"                 2 CW --cwd "$R" --path .workflow/profiles/backend.md
-t "deep .workflow/GLOSSARY.md at 3.1 deny (D46)"      2 CW --cwd "$R" --path src/billing/GLOSSARY.md
-t "deep .workflow/GLOSSARY-MAP.md at 3.1 deny (D46)"  2 CW --cwd "$R" --path a/b/c/GLOSSARY-MAP.md
+t "deep .workflow/GLOSSARY.md at 3.1 deny"      2 CW --cwd "$R" --path src/billing/GLOSSARY.md
+t "deep .workflow/GLOSSARY-MAP.md at 3.1 deny"  2 CW --cwd "$R" --path a/b/c/GLOSSARY-MAP.md
 t "deny message points at proposals.md"     0 bash -c "CW --cwd '$R' --path .workflow/rules.md 2>&1 | grep -q '.workflow/specs/002-beta/proposals.md'"
 t "--only tier-a ignores spec.md"           0 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md --only tier-a
 t "--only spec ignores GLOSSARY"            0 CW --cwd "$R" --path .workflow/GLOSSARY.md --only spec
@@ -336,13 +336,13 @@ t "yq missing -> clear error (check-write)" 1 env PATH=/usr/bin:/bin /bin/bash "
 t "yq missing -> clear error (status-tr.)"  1 env PATH=/usr/bin:/bin /bin/bash "$SRC/scripts/status-transition.sh" step $B 0.1.6
 
 
-echo "== status-transition: discovered work and size budget (D56, D58)"
+echo "== status-transition: discovered work and size budget"
 D=.workflow/specs/006-delta
 mkdir -p "$R/$D"; cp "$SRC/assets/spec.md" "$R/$D/spec.md"; cp "$R/$A/tasks.md" "$R/$D/tasks.md"
 t "delta init"                              0 ST status $D draft
 t "delta ready at 0.6"                      0 ST status $D ready-for-dev --step 0.6
 t "delta in-progress"                       0 ST status $D in-progress
-for n in 00.24 00.29 0.3.8 2.2 4.5; do t "in-progress->draft at $n illegal (D56)" 2 ST status $D draft --step $n; done
+for n in 00.24 00.29 0.3.8 2.2 4.5; do t "in-progress->draft at $n illegal" 2 ST status $D draft --step $n; done
 t "00.21 free-text condition refused"       1 ST status $D blocked --step 00.21 --blocked "found a bug"
 t "00.21 empty slug refused"                1 ST status $D blocked --step 00.21 --blocked "discovered work: "
 t "00.21 discovered work"                   0 ST status $D blocked --step 00.21 --blocked "discovered work: csv-export"
@@ -397,14 +397,14 @@ t "fresh clone: in-review at 00.28 (warn)"  0 ST status $D in-review --step 00.2
 yq --front-matter=process -i '.status="in-progress"' "$R/$D/spec.md"
 t "status on .workflow/specs/work-backlog refused"    1 ST step .workflow/specs/work-backlog 00.26
 
-echo "== status-transition: set-task D59 and 3.16"
+echo "== status-transition: set-task reopening a merged task, and 3.16"
 t "T1 pending->in-progress"                 0 ST set-task $D T1 --status in-progress --step 3.1
 t "T1 done at 3.16 (wave merge)"            0 ST set-task $D T1 --status done --step 3.16
 eq ".step = 3.16" "$(step 006-delta)" 3.16
 for g in 3.9 3.11; do
-  t "T1 done->in-progress at $g (D59)"      0 ST set-task $D T1 --status in-progress --step $g
+  t "T1 done->in-progress at $g"      0 ST set-task $D T1 --status in-progress --step $g
   t "T1 back to done"                       0 ST set-task $D T1 --status done
-  t "T1 done->blocked at $g (D59)"          0 ST set-task $D T1 --status blocked --step $g
+  t "T1 done->blocked at $g"          0 ST set-task $D T1 --status blocked --step $g
   t "T1 blocked->in-progress"               0 ST set-task $D T1 --status in-progress
   t "T1 done again"                         0 ST set-task $D T1 --status done --step 3.16
 done
@@ -415,7 +415,7 @@ t "T1 done->blocked without step illegal"   2 ST set-task $D T1 --status blocked
 t "T1 done->in-progress at 3.10 illegal"    2 ST set-task $D T1 --status in-progress --step 3.10
 t "T1 done->pending illegal"                2 ST set-task $D T1 --status pending --step 3.9
 
-echo "== check-write: .workflow/specs/work-backlog (D57)"
+echo "== check-write: .workflow/specs/work-backlog"
 WB=.workflow/specs/work-backlog/006-delta-disc-001.md
 ST step $D 00.26 >/dev/null
 t "backlog item at 00.26 allow"             0 CW --cwd "$R" --path $WB
@@ -443,7 +443,7 @@ t "in-flight scan ignores work-backlog"     0 bash -c "CW --cwd '$R' --path .wor
 rm -f "$R/.workflow/specs/work-backlog/spec.md"
 yq --front-matter=process -i '.status="in-progress"' "$R/$D/spec.md"
 
-echo "== budget-check.sh (D58)"
+echo "== budget-check.sh"
 E=.workflow/specs/007-eps
 mkdir -p "$R/$E"; cp "$SRC/assets/spec.md" "$R/$E/spec.md"; cp "$R/$A/tasks.md" "$R/$E/tasks.md"
 jb() { BC "$@" 2>/dev/null; }
@@ -480,7 +480,7 @@ yq --front-matter=process -i '.budget = {"max_tasks": 5, "max_changed_files": 2}
 BASE_SHA=$(git -C "$R" rev-parse HEAD)
 yq --front-matter=process -i ".baseline_revision = \"$BASE_SHA\"" "$R/$E/spec.md"
 out=$(jb --spec-dir $E); eq "baseline=HEAD: 0 changed" "$(jq -r .changed_files <<<"$out")" 0
-eq "baseline only: fallback note (D85)" "$(jq -r '.note' <<<"$out" | grep -c 'impl_base_revision is not set')" 1
+eq "baseline only: fallback note" "$(jq -r '.note' <<<"$out" | grep -c 'impl_base_revision is not set')" 1
 eq "baseline only: basis" "$(jq -r .basis <<<"$out")" baseline_revision
 yq --front-matter=process -i ".impl_base_revision = \"$BASE_SHA\"" "$R/$E/spec.md"
 out=$(jb --spec-dir $E); eq "impl_base=HEAD: 0 changed" "$(jq -r .changed_files <<<"$out")" 0
@@ -517,13 +517,13 @@ t "yq missing -> 1 (budget-check)"          1 env PATH=/usr/bin:/bin /bin/bash "
 t "read-only: spec.md unchanged by check"   0 bash -c "a=\$(shasum '$R/$E/spec.md'); BC --spec-dir $E >/dev/null 2>&1; [ \"\$a\" = \"\$(shasum '$R/$E/spec.md')\" ]"
 
 
-echo "== coordinator contract: blocked mid-wave (D56)"
+echo "== coordinator contract: blocked mid-wave"
 H=.workflow/specs/008-eta
 mkdir -p "$R/$H"; cp "$SRC/assets/spec.md" "$R/$H/spec.md"; cp "$R/$A/tasks.md" "$R/$H/tasks.md"
 ST status $H draft >/dev/null; ST status $H ready-for-dev --step 0.6 >/dev/null; ST status $H in-progress >/dev/null
 t "eta T1 in-progress"                      0 ST set-task $H T1 --status in-progress --step 3.1
 t "eta 00.21 mid-wave"                      0 ST status $H blocked --step 00.21 --blocked "discovered work: mid-wave"
-t "set-task done at 3.16 while blocked refused (D69)" 2 ST set-task $H T1 --status done --step 3.16
+t "set-task done at 3.16 while blocked refused" 2 ST set-task $H T1 --status done --step 3.16
 t "3.16 refusal says the merge waits"       0 bash -c "ST set-task $H T1 --status done --step 3.16 2>&1 | grep -q 'merge waits'"
 eq "T1 not marked done" "$(yq --front-matter=extract '.tasks[0].status' "$R/$H/tasks.md")" in-progress
 eq ".step left at 00.21" "$(step 008-eta)" 00.21
@@ -545,7 +545,7 @@ t "eta budget block at 3.15"                0 ST status $H blocked --step 00.21 
 t "re-scope via draft --step 00.29 (3.15)"  0 ST status $H draft --step 00.29
 eq "eta draft" "$(status 008-eta)" draft
 
-echo "== D68 split-out and D69 backlog seeding"
+echo "== split-out and backlog seeding"
 K=.workflow/specs/009-kappa
 mkdir -p "$R/$K"; cp "$SRC/assets/spec.md" "$R/$K/spec.md"; cp "$R/$A/tasks.md" "$R/$K/tasks.md"
 ST status $K draft >/dev/null; ST status $K ready-for-dev --step 0.6 >/dev/null
@@ -557,7 +557,7 @@ t "template tasks.md passes validator w/ split-out" 0 yq --front-matter=extract 
 t "kappa budget block"                      0 ST status $K blocked --step 00.21 --blocked "size budget: 12 tasks > 10"
 t "T2 pending->split-out without step"      2 ST set-task $K T2 --status split-out
 t "T2 pending->split-out at 2.6 illegal"    2 ST set-task $K T2 --status split-out --step 2.6
-t "T2 pending->split-out at 00.29 (D68)"    0 ST set-task $K T2 --status split-out --step 00.29
+t "T2 pending->split-out at 00.29"    0 ST set-task $K T2 --status split-out --step 00.29
 eq "T2 split-out written" "$(yq --front-matter=extract '.tasks[1].status' "$R/$K/tasks.md")" split-out
 if grep -q '^blocked_from: "ready-for-dev"$' "$R/$K/.step"; then eq "blocked_from kept by split" ok ok; else eq "blocked_from kept by split" bad ok; fi
 t "split-out terminal (->pending)"          2 ST set-task $K T2 --status pending --step 00.29
@@ -576,14 +576,14 @@ t "origin: key in spec.md accepted"         0 bash -c "yq --front-matter=process
 ST step $D 3.4 >/dev/null
 t "backlog at origin 3.4 deny (pre-seed)"   2 CW --cwd "$R" --path $WB
 sleep 1; mkdir -p "$R/.workflow/specs/010-seeded"; ST step .workflow/specs/010-seeded 0.1.4 >/dev/null
-t "backlog at new spec 0.1.4 allow (D69)"   0 CW --cwd "$R" --path $WB
+t "backlog at new spec 0.1.4 allow"   0 CW --cwd "$R" --path $WB
 t "backlog at 0.1.4 sub-agent deny"         2 CW --cwd "$R" --path $WB --agent impl
 sleep 1; ST step $D 3.4 >/dev/null
 t "backlog: 0.1.4 no longer newest deny"    2 CW --cwd "$R" --path $WB
 ST step $D 5.9 >/dev/null
-t "spec.md at 5.9 allow (D69 deferred[])"   0 CW --cwd "$R" --path $D/spec.md
+t "spec.md at 5.9 allow (deferred[])"   0 CW --cwd "$R" --path $D/spec.md
 
-echo "== D85: task bodies, record fields, set-task --pr, set-spec, budget --predicted"
+echo "== task bodies, record fields, set-task --pr, set-spec, budget --predicted"
 M=.workflow/specs/011-mu
 mkdir -p "$R/$M/tasks"; cp "$SRC/assets/spec.md" "$R/$M/spec.md"; cp "$R/$A/tasks.md" "$R/$M/tasks.md"
 ST status $M draft >/dev/null
@@ -642,7 +642,7 @@ good_field "branch null (light path)" '.tasks[0].branch = null'
 good_field "branch unpadded T1"       '.tasks[0].branch = "task/011-mu/T1-demo"'
 good_field "mode hitl"                '.tasks[0].mode = "hitl"'
 good_field "tests list"               '.tasks[0].tests = ["src/a.test.ts"]'
-good_field "legacy record (no D85 keys)" 'del(.tasks[0].file, .tasks[0].branch, .tasks[0].predicted_files, .tasks[0].size, .tasks[0].mode, .tasks[0].parallel_with, .tasks[0].pr)'
+good_field "legacy record (no task-breakdown keys)" 'del(.tasks[0].file, .tasks[0].branch, .tasks[0].predicted_files, .tasks[0].size, .tasks[0].mode, .tasks[0].parallel_with, .tasks[0].pr)'
 cp "$F/mu-tasks.md" "$R/$M/tasks.md"
 
 # set-spec

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# File: Hook (Codex adapter): keep the import-boundary config in step with .workflow/rules.md after an `apply_patch` (D9, D15, D20, D40).
+# File: Hook (Codex adapter): keep the import-boundary config in step with .workflow/rules.md after an `apply_patch`.
 # Goals:
-#   - Codex edits files through `apply_patch` (patch text in tool_input.command, row 5a), which rules-boundary-config-sync.sh does not read.
+#   - Codex edits files through `apply_patch` (patch text in tool_input.command), which rules-boundary-config-sync.sh does not read.
 #     This adapter finds the patch's paths and, when one of them ends in .workflow/rules.md, hands rules-boundary-config-sync.sh an equivalent
 #     Write payload for that path, so the generator call, the project-root checks and the outputs stay in one place.
 # Behaviour:
@@ -13,15 +13,13 @@
 #   - Output is rules-boundary-config-sync.sh's: nothing, {"decision":"block","reason":...} (rules.md does not parse; the reason goes back
 #     to the model), or {"systemMessage":...} (environment error). Exit code always 0.
 # Wiring: codex-hooks.template.json: PostToolUse, matcher "apply_patch".
-# Plan refs: 00.3, 3.5; assetlist D9, D15, D20, D40, D67; PLAN/hook-verification-codex.md row 5a.
 # Notes: Not verified live on Codex: that PostToolUse {"decision":"block"} feeds the reason back and that systemMessage is shown (the hooks
 #   doc says both work). Sign-off 5.3 also runs generate-boundary-config.sh directly, which covers both.
 # Sources: first-party; rules-boundary-config-sync.sh; _codex-patch.sh.
-# Requires: bash 3.2+, jq, awk; the generator needs mikefarah yq v4 (D38).
+# Requires: bash 3.2+, jq, awk; the generator needs mikefarah yq v4.
 
 set -euo pipefail
 
-# Workflow paths (D81).
 # shellcheck source=../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
 

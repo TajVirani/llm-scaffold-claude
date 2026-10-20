@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Suite: hooks/worktree-write-guard.sh (Claude PreToolUse, Write/Edit/NotebookEdit and Bash), the worktree check in hooks/codex-write-guard.sh,
-#   and their rule script feature-workflow/scripts/check-worktree-scope.sh (D85).
+#   and their rule script feature-workflow/scripts/check-worktree-scope.sh.
 # Covers: task identified from the sub-agent transcript (<parent transcript>/subagents/agent-<id>.jsonl) launch header -> confined to
 #   .workflow/.worktrees/s<NNN>_t<N>; writes to the main checkout or another task's worktree denied; temp-dir writes allowed; `..` escapes;
 #   relative paths; Bash needs a leading `cd <worktree> &&`; main session, other agent types, missing transcript or worktree unaffected;

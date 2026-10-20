@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File: Helper script (not a hook): print the phase progress line that leads every orchestrator update to the user (D84).
+# File: Helper script (not a hook): print the phase progress line that leads every orchestrator update to the user.
 # Purpose: Turn a node id into "Phase 1 of 6 · step 23 of 47 — Discovery: Compute the frontier (0.3.8)". Display only:
 #   it reads references/steps.tsv and never writes spec.md, tasks.md or .step. Phase numbers are 1-based; a step's number is its
 #   position in its phase's run order, so a repeated step (a questioning round, a wave, a fix loop) keeps its number.
@@ -15,8 +15,7 @@
 # stdout: one line; nothing for an intake id (0.0.x: no progress line before a spec exists).
 # Exit codes: 0 printed (or intake); 2 unknown id, an id not on the chosen path, a side artifact id (0.3.21, 3.12), or a 00.x id
 #   without --at; 1 usage or environment error (missing steps.tsv, spec.md or .step, missing yq).
-# Called by: the feature-workflow orchestrator before each phase or step update it writes to the user (SKILL.md "Progress line").
-# Plan refs: assetlist D84; reference "How to read the diagram" (node ids), "Sizing" (light path).
+# Called by: the feature-workflow orchestrator before each phase or step update it writes to the user.
 # Notes: bash 3.2 compatible; yq (mikefarah v4) only for --spec-dir.
 # Sources: first-party.
 

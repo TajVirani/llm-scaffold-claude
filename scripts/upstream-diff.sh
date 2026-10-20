@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File: Upstream diff for upstream-lineage.json (scaffold-only; never installed, D30).
+# File: Upstream diff for upstream-lineage.json (scaffold-only; never installed).
 # Purpose: for each lineage entry, show what changed upstream since the commit we based our file on, so each change can
 #   be accepted or rejected by hand (procedure in upstream-lineage.json "_about").
 # Usage:
@@ -72,7 +72,7 @@ selected=$(jq -r --argjson repos "$repos_json" --arg prefix "$prefix" '
 
 # Every --repo must name at least one entry, so a typo is not a silent no-op.
 for r in $(jq -r '.[]' <<<"$repos_json"); do
-  printf '%s\n' "$selected" | cut -f3 | grep -qxF "$r" || die "no entry for --repo $r"
+  awk -F'\t' -v r="$r" '$3 == r { f = 1 } END { exit !f }' <<<"$selected" || die "no entry for --repo $r"
 done
 [ -n "$selected" ] || die "no entries selected"
 

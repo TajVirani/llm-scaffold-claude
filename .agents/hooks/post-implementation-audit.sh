@@ -1,41 +1,41 @@
 #!/usr/bin/env bash
 # File: Hook (Claude and Codex adapter): run the profile toolchain when an implementation agent tries to stop.
 # Goals:
-#   - Call skills/feature-workflow/scripts/run-toolchain.sh for the task (lint, typecheck, format, boundary, test per the profile's Toolchain YAML block; D15)
-#   - Failure: block the stop and return the tool output, so the implementer keeps fixing in the same context (D19)
+#   - Call skills/feature-workflow/scripts/run-toolchain.sh for the task (lint, typecheck, format, boundary, test per the profile's Toolchain YAML block)
+#   - Failure: block the stop and return the tool output, so the implementer keeps fixing in the same context
 #   - Success: let the stop through; evidence is saved to .workflow/specs/NNN-slug/artifacts/<task-id>/ and the orchestrator then launches `profile-mini-review` (a hook cannot launch an agent)
 #   - Neither step skippable
 # Triggers/inputs: SubagentStop JSON on stdin; act only for agent_type `implementation`. Task identified from the launch header: the payload carries
 #   no prompt, so read agent_transcript_path (JSONL), take the first user message (first entry with type "user", message.role "user", not isMeta,
 #   with text content: a string, or the joined text blocks of an array) and parse its ```yaml launch-header block with
-#   resolve-launch.sh --parse-header --task-type implementation (D37, D39). The worktree is the payload `cwd` (D18); scripts and evidence are
+#   resolve-launch.sh --parse-header --task-type implementation. The worktree is the payload `cwd`; scripts and evidence are
 #   found in the main checkout (git rev-parse --git-common-dir), like pre-launch.sh.
-#   Codex (D66): the spawn message is encrypted, so the task comes from the plaintext spawn task_name instead. A Codex transcript starts with a
+#   Codex: the spawn message is encrypted, so the task comes from the plaintext spawn task_name instead. A Codex transcript starts with a
 #   session_meta record whose payload.agent_path is /root/<task_name> (payload.source.subagent.thread_spawn.agent_path as fallback); its last
 #   segment is parsed. Codex accepts only [a-z0-9_] in a task_name, so the orchestrator encodes:
 #     s<NNN>_t<N>                  task T<N> of the one spec folder .workflow/specs/<NNN>-*  (e.g. .workflow/specs/007-checkout + T3 -> s007_t3)
 #     s<NNN>_phase_1_<enc(wt)>     Phase 1 launch; work_type = the one .workflow/profiles/<wt>.md whose enc(name) matches (enc: lowercase, non [a-z0-9] -> _)
 #     s<NNN>_integration_<enc(wt)> integration batch (agent type integration, which this hook skips; on an implementation agent: warning)
-#   Anything else, or no single matching spec folder or profile: allowed with a warning (D55), like a missing Claude header.
+#   Anything else, or no single matching spec folder or profile: allowed with a warning, like a missing Claude header.
 #   Codex has no worktree sub-agents: the payload cwd is the main checkout. The orchestrator creates the worktree as
-#   <main checkout>/.workflow/.worktrees/<task_name> (a Phase 3 task: branch task/<NNN-slug>/T<nn>-<slug> from the tasks.md record, D85;
+#   <main checkout>/.workflow/.worktrees/<task_name> (a Phase 3 task: branch task/<NNN-slug>/T<nn>-<slug> from the tasks.md record;
 #   Phase 1: wf/<NNN-slug>/<task_name>), so the toolchain runs there; evidence stays in the main checkout. No such directory: allowed with a
-#   warning (D55), since auditing the main checkout would test the wrong tree.
-#   Claude Phase 3 task launches (D85): the orchestrator also creates the worktree itself, at .workflow/.worktrees/s<NNN>_t<N> (the same name
+#   warning, since auditing the main checkout would test the wrong tree.
+#   Claude Phase 3 task launches: the orchestrator also creates the worktree itself, at .workflow/.worktrees/s<NNN>_t<N> (the same name
 #   Codex uses), and launches the agent without isolation, because the Agent tool has no working-directory input (Claude Code docs,
 #   sub-agents and worktrees pages, checked 2026-10-19). The audit runs the toolchain in that directory when it exists. Fallback: the launch
 #   used isolation: "worktree" (payload cwd is a linked worktree, e.g. .claude/worktrees/agent-<id>), so that cwd is audited, as before.
-#   Neither (no .workflow/.worktrees/s<NNN>_t<N> and the payload cwd is the main checkout): allowed with a warning (D55).
+#   Neither (no .workflow/.worktrees/s<NNN>_t<N> and the payload cwd is the main checkout): allowed with a warning.
 #   Claude Phase 1 launches keep the isolation worktree (payload cwd).
 # Behaviour:
 #   - agent_type other than implementation, or no .agents/skills/feature-workflow in the main checkout: exit 0, no output.
 #   - Task launch header (spec_dir, task_id[, work_type]): run-toolchain.sh --spec-dir --task-id --cwd <worktree> [--work-type] (Claude:
 #     .workflow/.worktrees/s<NNN>_t<N>, else the isolation-worktree payload cwd; Codex: .workflow/.worktrees/<task_name>). run-toolchain.sh
-#     scopes `test` to the task (other unfinished tasks' Phase 1 tests excluded; D85). Without a
+#     scopes `test` to the task (other unfinished tasks' Phase 1 tests excluded). Without a
 #     header work_type, run-toolchain.sh reads it from tasks.md (pre-launch.sh already denied a disagreeing header value).
-#   - Phase 1 header (spec_dir, work_type, no task_id; D14): run-toolchain.sh with --work-type and the evidence id `phase-1-<work_type>`, so the
+#   - Phase 1 header (spec_dir, work_type, no task_id): run-toolchain.sh with --work-type and the evidence id `phase-1-<work_type>`, so the
 #     two Phase 1 launches (1.2 harness, 1.3 browser suite) keep separate evidence under artifacts/phase-1-<work_type>/.
-#     D70: the Phase 1 stop audit (Claude header and Codex s<NNN>_phase_1_<wt> alike) passes `--skip test`: the new tests written at 1.2/1.3 are red by
+#     The Phase 1 stop audit (Claude header and Codex s<NNN>_phase_1_<wt> alike) passes `--skip test`: the new tests written at 1.2/1.3 are red by
 #     design (step 1.4 proves the failure), so only lint, typecheck, format and boundary gate those stops. Phase 3 task audits still run `test`.
 #   - run-toolchain.sh exit 0: exit 0, no output (evidence already saved by the script); the loop counter is cleared.
 #   - exit 1: {"decision":"block","reason":<digest>}. Loop guard: <spec>/artifacts/<task-id>/audit-loop.json (main checkout) holds the sha256
@@ -45,24 +45,21 @@
 #   - Missing or malformed header (resolve-launch.sh exit 2), unreadable transcript, run-toolchain.sh config error (exit 2: no profile, no
 #     Toolchain block, ...) or any environment error: the implementer cannot fix its own launch or the project setup, so the stop is ALLOWED
 #     with a warning for the orchestrator: a `systemMessage` in the output, the reason on stderr, and, when the spec dir is known, audit.json
-#     under artifacts/<task-id>/ (or artifacts/audit-warnings.jsonl when no task id is known). This deliberately departs from D39's
-#     "block with a reason" (decided by the Batch 3C coordinator): blocking would loop on something the agent cannot change.
+#     under artifacts/<task-id>/ (or artifacts/audit-warnings.jsonl when no task id is known). It deliberately does not block
+#     with a reason here: blocking would loop on something the agent cannot change.
 # Outputs/handoff: stdout is nothing, {"decision":"block","reason":...}, or {"systemMessage":...}; exit code always 0. Tool output feeds 3.7 and 4.1.
 #   audit.json: {outcome: "gave-up"|"warning", reason, task_id, spec_dir, repeats?, digest_sha256?, at}.
-# Wiring: claude-settings.template.json (merged into <target>/.claude/settings.json by install.sh, D36): SubagentStop, matcher "implementation" (matches agent type); the script also filters on agent_type.
+# Wiring: claude-settings.template.json (merged into <target>/.claude/settings.json by install.sh): SubagentStop, matcher "implementation" (matches agent type); the script also filters on agent_type.
 #   codex-hooks.template.json (<target>/.codex/hooks.json): SubagentStop with no matcher; the agent_type filter does the work.
-# Plan refs: 3.5-3.8; reference "The four gates of Phase 3"; assetlist D9, D14, D18, D19, D37, D39, D55, D66, D67, D85.
-# Notes: Codex SubagentStop block-with-reason and stop_hook_active verified on 0.155.1 (PLAN/hook-verification-codex.md 4c, 4d); agent_path in the
+# Notes: Codex SubagentStop block-with-reason and stop_hook_active verified on 0.155.1; agent_path in the
 #   transcript checked against the 0.155.1 run-3 rollouts. Codex has no worktree sub-agents, so the payload cwd is the main checkout and the
 #   worktree is found from the task_name (.workflow/.worktrees/<task_name>, see above).
 #   The loop guard compares exact digests: tool output that embeds timings or other varying text resets the count, so such a loop ends only when the agent stops changing nothing.
-# Sources: first-party; PLAN/hook-verification/hooks/subagent_stop.sh (block + reason, agent_type filter), PLAN/hook-verification.md T2/T3/T7
-#   (SubagentStop fields, stop_hook_active, worktree cwd); hooks/pre-launch.sh (main-checkout resolution); assetlist D19, D39.
-# Requires: bash, jq, mikefarah yq v4 (D38, through the shared scripts), git (optional), shasum or sha256sum.
+# Sources: first-party; hooks/pre-launch.sh (main-checkout resolution).
+# Requires: bash, jq, mikefarah yq v4 (through the shared scripts), git (optional), shasum or sha256sum.
 
 set -euo pipefail
 
-# Workflow paths (D81).
 # shellcheck source=../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
 
@@ -119,7 +116,7 @@ warn_allow() {
 
 [ -n "$transcript" ] && [ -f "$transcript" ] || warn_allow "agent_transcript_path missing or unreadable ('$transcript'); cannot identify the task"
 
-# ── Codex (D66): the task comes from the spawn task_name ──
+# ── Codex: the task comes from the spawn task_name ──
 # A Codex rollout starts with a session_meta record whose payload.agent_path is /root/[<parent>/]<task_name> (verified 0.155.1).
 agent_path=$(head -n 1 "$transcript" | jq -r 'select(type == "object" and .type == "session_meta") | .payload
   | (.agent_path // .source.subagent.thread_spawn.agent_path // "") | strings' 2>/dev/null || true)
@@ -132,7 +129,7 @@ codex_task() {
   if [[ "$name" =~ ^s([0-9]+)_(.+)$ ]]; then
     num=${BASH_REMATCH[1]} rest=${BASH_REMATCH[2]}
   else
-    warn_allow "Codex task_name '$name' (agent_path $agent_path) is not s<NNN>_t<N> or s<NNN>_phase_1_<work_type> (D66); cannot identify the task"
+    warn_allow "Codex task_name '$name' (agent_path $agent_path) is not s<NNN>_t<N> or s<NNN>_phase_1_<work_type>; cannot identify the task"
   fi
   for d in "$main_root/$WF_SPECS/$num"-*/; do [ -d "$d" ] && matches+=("$d"); done
   [ "${#matches[@]}" -eq 1 ] || warn_allow "Codex task_name '$name': ${#matches[@]} spec folders match $WF_SPECS/$num-* (need exactly one)"
@@ -155,7 +152,7 @@ codex_task() {
   elif [[ "$rest" =~ ^integration_ ]]; then
     warn_allow "Codex task_name '$name' names an integration batch, but the agent is implementation"
   else
-    warn_allow "Codex task_name '$name' is not s<NNN>_t<N> or s<NNN>_phase_1_<work_type> (D66); cannot identify the task"
+    warn_allow "Codex task_name '$name' is not s<NNN>_t<N> or s<NNN>_phase_1_<work_type>; cannot identify the task"
   fi
   header=$(jq -cn --arg s "$spec_dir" --arg t "$task_id" --arg w "$wt" \
     '{spec_dir: $s} + (if $t != "" then {task_id: $t} else {} end) + (if $w != "" then {work_type: $w} else {} end)')
@@ -176,7 +173,7 @@ lenient_spec_dir() {
     | grep -E "^$(printf '%s' "$WF_SPECS" | sed 's/[.]/\\./g')/[0-9]+-[A-Za-z0-9._-]+/?\$" | head -n1 || true
 }
 
-# ── Claude: launch prompt = first user message of the sub-agent transcript (D39) ──
+# ── Claude: launch prompt = first user message of the sub-agent transcript ──
 claude_task() {
   jq -rs '
     [ .[] | select(type == "object" and .type == "user" and (.isMeta != true) and (.message.role // "user") == "user")
@@ -194,7 +191,7 @@ claude_task() {
   if [ "$rc" -ne 0 ]; then
     spec_dir=$(lenient_spec_dir)
     case "$rc" in
-      2) warn_allow "launch header missing or malformed (D37): $(tr '\n' ' ' < "$tmp/err")" ;;
+      2) warn_allow "launch header missing or malformed: $(tr '\n' ' ' < "$tmp/err")" ;;
       *) warn_allow "resolve-launch.sh --parse-header failed (exit $rc): $(tr '\n' ' ' < "$tmp/err")" ;;
     esac
   fi
@@ -209,7 +206,7 @@ task_id=$(jq -r '.task_id // ""' <<<"$header")
 work_type=$(jq -r '.work_type // ""' <<<"$header")
 [ -n "$spec_dir" ] || warn_allow "launch header has no spec_dir"
 
-# Claude Phase 3 task (D85): prefer the orchestrator-made worktree .workflow/.worktrees/s<NNN>_t<N>; fall back to an isolation worktree cwd.
+# Claude Phase 3 task: prefer the orchestrator-made worktree .workflow/.worktrees/s<NNN>_t<N>; fall back to an isolation worktree cwd.
 if [ -z "$agent_path" ] && [ -n "$task_id" ]; then
   spec_num=${spec_dir##*/}; spec_num=${spec_num%%-*}
   wt_name=s${spec_num}_t${task_id#T}
@@ -228,10 +225,10 @@ args=(--spec-dir "$spec_dir" --cwd "$cwd")
 if [ -n "$task_id" ]; then
   args+=(--task-id "$task_id")
 else
-  # Phase 1 launch (D14): no task record yet.
+  # Phase 1 launch: no task record yet.
   [ -n "$work_type" ] || warn_allow "Phase 1 launch header has no work_type"
   task_id=phase-1-$work_type
-  args+=(--task-id "$task_id" --skip test)   # D70: Phase 1 tests are red by design
+  args+=(--task-id "$task_id" --skip test)   # Phase 1 tests are red by design
 fi
 [ -z "$work_type" ] || args+=(--work-type "$work_type")
 

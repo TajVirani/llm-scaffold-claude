@@ -255,6 +255,10 @@ Target-project wiring lives in `.agents/hooks/claude-settings.template.json`, wh
   - `verification-plan.md`: `## Suites` section added to the template (done); the TODO(suite-commands) marker is gone (replaced by filling `## Suites` from the profile `test`/`e2e` keys).
   - Phase 1 (1.2, 1.3) stop audit skips `test` (D70): `run-toolchain.sh --skip <key>` and `post-implementation-audit.sh` passing `--skip test` for Phase 1 headers (I2); docs updated in `verification-setup.md`, `implementation.md`, `PLAN/decision-flow-reference.md` 1.2/1.3 and 3.5, `assetlist.md` D70.
 
+### 4k. Readable-code baseline (D86; done)
+- [x] Deterministic check for `readable-code.md` R4: declined by the user (2026-10-20). The ban is enforced by review only (`profile-mini-review` at 3.7, `review-standards` at 4.1); no script is built.
+- [x] D86 applies to the scaffold repo's own code (decided 2026-10-20). Done: comments in `.agents/hooks/`, `.agents/lib/`, `install.sh`, `scripts/` and the `PLAN/` harnesses give reasons instead of D-numbers and doc paths; the convention is in AGENTS.md. `.agents/skills/` and `tests/` are rewritten in a parallel pass.
+
 ## 5. Docs & plan reconciliation
 
 - [x] `AGENTS.md`: explain the two trees (scaffold repo vs target project); add `.agents/agents/` and `.claude/agents` to Layout; add `install.sh`, `.codex/`, and the scaffold-only docs (`PLAN/`, `assetlist.md`, `organization.md`, `checklist.md`; D30).
