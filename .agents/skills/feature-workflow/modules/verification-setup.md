@@ -26,7 +26,7 @@ Everything here runs in the main session at spec status `ready-for-dev`. Phase 1
 
    ```bash
    .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 1.1
-   git switch -c spec/NNN-slug main      # "main" = the project's main branch
+   git switch -c spec/NNN-slug "$(.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch)"   # the project's main branch, the PR/MR target
    git add .workflow/specs/NNN-slug && git commit -m "Spec NNN-slug"
    git rev-parse HEAD                    # the value for baseline_revision
    ```
@@ -132,6 +132,6 @@ git status --short                    # only spec-folder files may remain; anyth
 git add .workflow/specs/NNN-slug && git commit -m "Phase 1 for NNN-slug: suites red by design"
 ```
 
-From here the spec branch is **red by design**: the new harness tests and journeys fail until the tasks that make them pass are merged. It stays red through Phase 3 and goes green only when the last wave is merged and the full suite passes (3.9 after the last wave, 3.11, then Phase 4). Task branches fork from this state; 3.1 records the spec-branch tip as `impl_base_revision`, so Phase 1 files never count toward a task's diff or the 3.15 size budget.
+From here the spec branch is **red by design**: the new harness tests and journeys fail until the tasks that make them pass are merged. It stays red through Phase 3 and goes green only when the last wave is merged and the full suite passes (3.9 after the last wave, 3.11, then Phase 4). Task branches fork from this state; 3.1 records the spec-branch tip as `impl_base_revision`, so Phase 1 files never count toward a task's diff, and count toward the 3.15 size budget only when a task changes them again.
 
 **Done when:** `## Suites` is filled and `git status --short` shows nothing under the spec folder. Then load `modules/task-breakdown.md`.

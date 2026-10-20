@@ -52,22 +52,24 @@ shared_core:
 
 ## Size budget
 
-Soft per-spec limits (D58), copied into each spec's `budget` frontmatter when `tasks.md` is written (2.5, or 0.3.20 on the light path). Crossing either one pauses the work for a human decision (split, re-scope or approve the overrun). Changed only at 5.3.
+Soft per-spec limits (D58), copied into each spec's `budget` frontmatter when `tasks.md` is written (2.5, or 0.3.20 on the light path). Crossing either one pauses the work for a human decision (split, re-scope or approve the overrun). `max_changed_files` limits the review load on whoever approves the feature's PR/MR, so it counts only what that reviewer sees, minus tests (D87): changes merged in from `main_branch` drop out by the merge-base, the Phase 1 harness and suite count only when Phase 3 changes them again, and test files (each profile's `test_patterns`) are reported apart. Changed only at 5.3.
 
 ```yaml
 size_budget:
   max_tasks: 10
-  max_changed_files: 30   # files in `git diff --name-only <impl_base_revision>..HEAD`, excluding the spec folder; 2.6 also checks the predicted sum
+  max_changed_files: 30   # files a reviewer sees in the feature's PR/MR (diff from the merge-base with main_branch), changed since impl_base_revision, excluding tests, the spec folder and the work-backlog; 2.6 also checks the predicted sum less predicted tests
 ```
 
 ## Workflow settings
 
-Optional (D85). How the orchestrator reviews each task branch before merging it into the spec branch at 3.16. Delete the section to keep the default. Changed only at 5.3.
+Optional (D85, D87). How the orchestrator reviews each task branch before merging it into the spec branch at 3.16, and the branch each feature's PR/MR targets. Delete the section, or a key, to keep the default. Changed only at 5.3.
 
 ```yaml
 task_review: pr   # pr (default): open a PR/MR into the spec branch as a non-blocking review record, merge locally and continue
                   # pr-blocking: open it and wait for approval before merging
                   # local: no push, no PR
+# main_branch: main   # the branch spec branches fork from and merge into at sign-off (the PR/MR target; the size budget counts from
+                      # its merge-base). Default: the branch origin/HEAD names, else main. Read with rules-setting.sh main_branch.
 ```
 
 ## Cross-cutting policy

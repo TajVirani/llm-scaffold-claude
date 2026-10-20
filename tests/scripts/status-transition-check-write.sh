@@ -2,7 +2,7 @@
 # Suite: status-transition.sh, check-write.sh and budget-check.sh (feature-workflow/scripts).
 # Covers: spec/task status transitions and the .step marker, blocked/discovered-work paths,
 #   blocked -> draft at 00.24 / 00.29 only for the matching blocked_condition, no 3.16 merge while blocked,
-#   worktree resolution, check-write rules per path class (Tier A/B incl. the glossary and Tier A steps, spec.md, tasks.md, work-backlog), size budget.
+#   worktree resolution, check-write rules per path class (Tier A/B incl. the glossary and Tier A steps, spec.md, tasks.md, work-backlog), size budget (PR/MR file set, merge-base, harness and test exclusion, predicted).
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures
 # shellcheck source=../lib/common.sh
@@ -459,7 +459,8 @@ eq "no baseline: source spec" "$(jq -r .source <<<"$out")" spec
 eq "no baseline: tasks 2" "$(jq -r .tasks <<<"$out")" 2
 eq "no baseline: changed_files null" "$(jq -r .changed_files <<<"$out")" null
 eq "no baseline: note present" "$(jq -r 'has("note")' <<<"$out")" true
-eq "no baseline: keys" "$(jq -r 'keys|sort|join(",")' <<<"$out")" "basis,changed_files,max_changed_files,max_tasks,note,over,source,tasks"
+eq "no baseline: keys" "$(jq -r 'keys|sort|join(",")' <<<"$out")" "basis,changed_files,excluded,files,max_changed_files,max_tasks,merge_base,note,over,source,target,tasks,test_files"
+eq "no baseline: breakdown null" "$(jq -c '[.target,.merge_base,.excluded,.files,.test_files]' <<<"$out")" "[null,null,null,null,null]"
 eq "no baseline: over empty" "$(jq -c .over <<<"$out")" "[]"
 yq --front-matter=process -i 'del(.budget)' "$R/$E/spec.md"
 out=$(jb --spec-dir $E); eq "no budget, no rules: default" "$(jq -r '[.source,.max_tasks,.max_changed_files]|join(",")' <<<"$out")" "default,10,30"
@@ -478,6 +479,8 @@ yq --front-matter=process -i '.budget = {"max_tasks": "ten", "max_changed_files"
 t "malformed spec budget -> 1"              1 BC --spec-dir $E
 yq --front-matter=process -i '.budget = {"max_tasks": 5, "max_changed_files": 2}' "$R/$E/spec.md"
 BASE_SHA=$(git -C "$R" rev-parse HEAD)
+# The feature works on its spec branch; main stays at the baseline as the PR/MR target.
+git -C "$R" switch -q -c spec/007-eps
 yq --front-matter=process -i ".baseline_revision = \"$BASE_SHA\"" "$R/$E/spec.md"
 out=$(jb --spec-dir $E); eq "baseline=HEAD: 0 changed" "$(jq -r .changed_files <<<"$out")" 0
 eq "baseline only: fallback note" "$(jq -r '.note' <<<"$out" | grep -c 'impl_base_revision is not set')" 1
@@ -504,6 +507,64 @@ yq --front-matter=process -i '.budget.max_tasks = 1' "$R/$E/spec.md"
 out=$(jb --spec-dir $E); eq "both over" "$(jq -c .over <<<"$out")" '["tasks","changed_files"]'
 yq --front-matter=process -i '.budget = {"max_tasks": 2, "max_changed_files": 3}' "$R/$E/spec.md"
 t "equal to max is within budget"           0 BC --spec-dir $E
+out=$(jb --spec-dir $E)
+eq "target defaults to main" "$(jq -r .target <<<"$out")" main
+eq "merge_base is main" "$(jq -r .merge_base <<<"$out")" "$BASE_SHA"
+eq "counted files listed" "$(jq -r '.files|join(",")' <<<"$out")" "src/a.ts,src/b.ts,src/c.ts"
+eq "spec folder + backlog reported" "$(jq -r .excluded.spec_backlog <<<"$out")" 2
+git -C "$R" switch -q main
+echo m > "$R/main-only.ts"; git -C "$R" add main-only.ts; git -C "$R" commit -qm "main moves on"
+MAIN_SHA=$(git -C "$R" rev-parse HEAD)
+git -C "$R" switch -q spec/007-eps
+git -C "$R" merge -q --no-edit main
+out=$(jb --spec-dir $E)
+eq "merging main in: count unchanged" "$(jq -r .changed_files <<<"$out")" 3
+eq "merging main in: dropped by merge-base" "$(jq -r .excluded.merge_base <<<"$out")" 1
+eq "merging main in: merge_base moves to main" "$(jq -r .merge_base <<<"$out")" "$MAIN_SHA"
+t "merging main in: still within budget"    0 BC --spec-dir $E
+printf '## Workflow settings\n\n```yaml\nmain_branch: trunk\n```\n' > "$R/.workflow/rules.md"
+out=$(jb --spec-dir $E)
+eq "missing target: falls back to impl_base..HEAD" "$(jq -r .changed_files <<<"$out")" 4
+eq "missing target: merge_base null" "$(jq -c '[.target,.merge_base,.excluded.merge_base]' <<<"$out")" '["trunk",null,null]'
+eq "missing target: note names it" "$(jq -r .note <<<"$out" | grep -c 'target branch trunk not found')" 1
+t "missing target: warning on stderr"       0 bash -c "BC --spec-dir $E 2>&1 >/dev/null | grep -q 'warning: target branch trunk not found'"
+git -C "$R" update-ref refs/remotes/origin/trunk "$MAIN_SHA"
+out=$(jb --spec-dir $E)
+eq "origin/<target> alone is used" "$(jq -r '[.changed_files,.merge_base]|join(",")' <<<"$out")" "3,$MAIN_SHA"
+eq "origin/<target>: no note" "$(jq -r 'has("note")' <<<"$out")" false
+git -C "$R" update-ref -d refs/remotes/origin/trunk
+printf '## Workflow settings\n\n```yaml\nmain_branch: "bad..name"\n```\n' > "$R/.workflow/rules.md"
+t "invalid main_branch -> 1"                1 BC --spec-dir $E
+rm -f "$R/.workflow/rules.md"
+mkdir -p "$R/tests" "$R/harness"
+echo t > "$R/src/a.test.ts"; echo u > "$R/tests/unit.ts"
+git -C "$R" add src tests; git -C "$R" commit -qm "wave2 tests"
+out=$(jb --spec-dir $E)
+eq "tests excluded from the count" "$(jq -r .changed_files <<<"$out")" 3
+eq "tests reported separately" "$(jq -r '[.excluded.tests, (.test_files|join(","))]|join(" ")' <<<"$out")" "2 src/a.test.ts,tests/unit.ts"
+echo h > "$R/harness/setup.ts"; git -C "$R" add harness; git -C "$R" commit -qm "phase 1 harness"
+yq --front-matter=process -i ".impl_base_revision = \"$(git -C "$R" rev-parse HEAD)\"" "$R/$E/spec.md"
+out=$(jb --spec-dir $E)
+eq "harness-only: nothing counts" "$(jq -r .changed_files <<<"$out")" 0
+eq "harness-only: reported" "$(jq -r .excluded.harness_only <<<"$out")" 6
+echo h2 >> "$R/harness/setup.ts"; echo u2 >> "$R/tests/unit.ts"
+git -C "$R" add harness tests; git -C "$R" commit -qm "phase 3 touches the harness"
+out=$(jb --spec-dir $E)
+eq "harness changed again in Phase 3 counts" "$(jq -r '.files|join(",")' <<<"$out")" "harness/setup.ts"
+eq "harness test changed again stays excluded" "$(jq -r '[.excluded.tests,.excluded.harness_only]|join(",")' <<<"$out")" "1,4"
+yq --front-matter=process -i '.tasks[0].size = {"files": 4, "est_lines": 50, "points": "S"} | .tasks[0].predicted_files = ["src/x.ts", "src/x.test.ts", "tests/**", "src/y.ts"] | .tasks[1].size = {"files": 2, "est_lines": 20, "points": "S"} | .tasks[1].predicted_files = ["e2e/j.spec.ts", "src/z.ts"]' "$R/$E/tasks.md"
+out=$(jb --spec-dir $E --predicted)
+eq "predicted: tests excluded" "$(jq -r .changed_files <<<"$out")" 3
+eq "predicted: tests reported" "$(jq -r '[.excluded.tests, (.test_files|join(","))]|join(" ")' <<<"$out")" "3 e2e/j.spec.ts,src/x.test.ts,tests/**"
+eq "predicted: no git breakdown" "$(jq -c '[.excluded.merge_base,.files,.target]' <<<"$out")" "[null,null,null]"
+printf '## Toolchain\n\n```yaml\ntest: "x"\ntest_patterns: ["*.check.ts"]\n```\n' > "$R/.workflow/profiles/frontend.md"
+yq --front-matter=process -i '.tasks[1].predicted_files = ["src/z.check.ts", "src/z.ts"]' "$R/$E/tasks.md"
+out=$(jb --spec-dir $E --predicted)
+eq "profile test_patterns replace its defaults" "$(jq -r '.test_files|join(",")' <<<"$out")" "src/z.check.ts"
+printf '## Toolchain\n\n```yaml\ntest: "x"\ntest_patterns: "*.check.ts"\n```\n' > "$R/.workflow/profiles/frontend.md"
+t "malformed test_patterns -> 1"            1 BC --spec-dir $E --predicted
+: > "$R/.workflow/profiles/frontend.md"
+yq --front-matter=process -i 'del(.tasks[].size) | del(.tasks[].predicted_files)' "$R/$E/tasks.md"
 yq --front-matter=process -i '.impl_base_revision = "deadbeef"' "$R/$E/spec.md"
 t "unknown impl_base -> 1"                  1 BC --spec-dir $E
 yq --front-matter=process -i 'del(.impl_base_revision) | .baseline_revision = "deadbeef"' "$R/$E/spec.md"

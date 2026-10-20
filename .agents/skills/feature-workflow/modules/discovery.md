@@ -151,7 +151,7 @@ The three facts (all must be clean for the light path):
   ```bash
   ST step .workflow/specs/NNN-slug 0.3.20
   # Spec branch (D85; the light path has no task branch): off the main branch, carrying the uncommitted spec folder with it.
-  git switch -c spec/NNN-slug main      # "main" = the project's main branch; already on spec/NNN-slug (a loop-back): skip
+  git switch -c spec/NNN-slug "$(.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch)"   # already on spec/NNN-slug (a loop-back): skip
   # Edit the spec.md frontmatter line to `spec_branch: spec/NNN-slug`.
   # Read the project defaults from .workflow/rules.md "## Size budget":
   awk '/^## /{f=($0 ~ /^## Size budget[[:space:]]*$/); next} f && /^```ya?ml/{y=1; next} y && /^```/{exit} y' .workflow/rules.md | yq -o=json '.size_budget'

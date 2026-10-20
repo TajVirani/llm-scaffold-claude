@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Suite: task-breakdown helpers (feature-workflow/scripts): task-waves.sh (predicted-file overlap, implied edges, parallel_with,
-#   cycles, waves, JSON), rules-setting.sh (## Workflow settings, task_review), open-task-pr.sh (gh / glab stubs on PATH, skip paths,
+#   cycles, waves, JSON), rules-setting.sh (## Workflow settings, task_review, main_branch), open-task-pr.sh (gh / glab stubs on PATH, skip paths,
 #   --record; never the network) and run-toolchain.sh test scoping (other unfinished tasks' Phase 1 tests excluded, test_scoped,
 #   --exclude-unfinished, unscoped warning).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -107,6 +107,15 @@ t "bad value -> 1"                 1 RS task_review --rules "$WORK/r.md"
 printf '## Workflow settings\n\n```yaml\n- a\n```\n' > "$WORK/r.md"
 t "not a map -> 1"                 1 RS task_review --rules "$WORK/r.md"
 t "unknown key -> 1"               1 RS nope --rules "$WORK/r.md"
+eq "main_branch default main (no git)" "$(RS main_branch --rules "$WORK/nope.md" 2>/dev/null)" main
+printf '## Workflow settings\n\n```yaml\nmain_branch: release/2.x\n```\n' > "$WORK/r.md"
+eq "main_branch read" "$(RS main_branch --rules "$WORK/r.md")" release/2.x
+printf '## Workflow settings\n\n```yaml\nmain_branch: "-x"\n```\n' > "$WORK/r.md"
+t "main_branch invalid -> 1"       1 RS main_branch --rules "$WORK/r.md"
+MB=$WORK/mb; git_init_repo "$MB"; git_commit_all "$MB" init
+eq "main_branch default main without origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" main
+git -C "$MB" update-ref refs/remotes/origin/develop HEAD; git -C "$MB" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/develop
+eq "main_branch default from origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" develop
 mkdir -p "$WORK/p/.workflow"; printf '## Workflow settings\n\n```yaml\ntask_review: local\n```\n' > "$WORK/p/.workflow/rules.md"
 eq "main checkout rules from worktree cwd" "$(RS task_review --cwd "$WORK/p-wt")" local
 # generate-boundary-config ignores the section (reads Ownership and Shared core only)

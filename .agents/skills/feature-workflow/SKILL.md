@@ -132,11 +132,11 @@ Every loop back to 0.3.8 sets `draft` (D49). The module that owns the gate makes
   status-transition.sh status   <spec-dir> <new-status> [--step <node>] [--blocked "<condition>"]
   status-transition.sh step     <spec-dir> <node>
   status-transition.sh set-task <spec-dir> <T<n>> [--status <s>] [--work-type <wt>] [--capability <id>] [--step <node>]
-  budget-check.sh --spec-dir <spec-dir> [--cwd <dir>]
+  budget-check.sh --spec-dir <spec-dir> [--cwd <dir>] [--predicted]
   ```
 
   `<spec-dir>` is `.workflow/specs/NNN-slug`. Exit 0 done; 1 environment error (missing `yq`, file or repo); 2 illegal transition, reason on stderr. On 1 or 2 stop and report; never retry with a different `--step` to get past it.
-- **Size budget (D58).** `budget-check.sh` prints `{max_tasks, tasks, max_changed_files, changed_files, over[], source}` and exits 0 within budget, 2 over, 1 environment error. It runs at 2.6 (task count) and 3.15 (changed files after each wave merge); a crossing goes to [discovered-work](modules/discovered-work.md) 00.29.
+- **Size budget (D58, D87).** `budget-check.sh` prints `{max_tasks, tasks, max_changed_files, changed_files, over[], source, basis, target, merge_base, excluded, files, test_files}` and exits 0 within budget, 2 over, 1 environment error. `changed_files` counts what a reviewer sees in the feature's PR/MR against `main_branch`, changed since `impl_base_revision`, minus tests (reported in `test_files`). It runs at 2.6 (task count, predicted files with `--predicted`) and 3.15 (changed files after each wave merge); a crossing goes to [discovered-work](modules/discovered-work.md) 00.29.
 - **Set the step, then write.** These files are written only from the main session, only at these steps. Run `status-transition.sh step .workflow/specs/NNN-slug <node>` immediately before the write.
 
   | File | Allowed steps |

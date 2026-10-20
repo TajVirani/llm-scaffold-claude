@@ -103,7 +103,7 @@ The project-level folder of small work items created from discovered work that i
 _Avoid_: Deferred shelf, issue tracker
 
 **Size budget**:
-The soft limit on a spec's task count and changed-file count. Crossing it stops the work for a ruling: split, re-scope or approve the overrun.
+The soft limit on a spec's task count and changed-file count. The changed-file count is the review load of the feature's PR/MR: files a reviewer sees against the main branch that changed since Phase 3 began, minus tests. Crossing it stops the work for a ruling: split, re-scope or approve the overrun.
 _Avoid_: Quota, cap
 
 ## Relationships

@@ -14,10 +14,15 @@
 #   key           values                    default   used by
 #   task_review   pr | pr-blocking | local  pr        implementation-orchestrator 3.16 (task PR/MR as a non-blocking review record, a
 #                                                     blocking review, or no PR); scripts/open-task-pr.sh
+#   main_branch   a branch name             see below the branch spec branches fork from (1.1, 0.3.20) and merge into at sign-off (5.8):
+#                                                     the target of the feature's PR/MR; scripts/budget-check.sh (3.15 count)
+#   main_branch default: the branch `origin/HEAD` points at (`git symbolic-ref refs/remotes/origin/HEAD`, `origin/` dropped), else main.
+#     With --rules (no git) the default is main.
 # stdout: the value, one line. stderr: a note when the default is used because rules.md, the section or the key is absent.
 # Exit codes: 0 value printed; 1 usage or environment error (unknown key, missing yq, not a git repo, unparsable block, value outside the
 #   allowed set).
-# Called by: modules/implementation-orchestrator.md (3.16), scripts/open-task-pr.sh.
+# Called by: modules/implementation-orchestrator.md (3.16), modules/verification-setup.md (1.1), modules/discovery.md (0.3.20),
+#   modules/sign-off.md (5.8), scripts/open-task-pr.sh, scripts/budget-check.sh.
 # Notes: Requires mikefarah yq v4. bash 3.2 compatible. Section parse pattern from budget-check.sh (Size budget block).
 # Sources: first-party.
 
@@ -29,14 +34,19 @@ set -euo pipefail
 PROG=rules-setting.sh
 HEADING="Workflow settings"
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 1; }
-usage() { echo "usage: rules-setting.sh <key> [--cwd <dir>] [--rules <path>]   (keys: task_review)" >&2; exit 1; }
+usage() { echo "usage: rules-setting.sh <key> [--cwd <dir>] [--rules <path>]   (keys: task_review, main_branch)" >&2; exit 1; }
 
-# setting_spec <key> -> "<default> <allowed values...>"
+# setting_spec <key> -> "<default> <allowed values...>"; the allowed value "@branch" accepts any valid branch name.
 setting_spec() {
   case "$1" in
     task_review) echo "pr pr pr-blocking local" ;;
+    main_branch) echo "main @branch" ;;
     *) return 1 ;;
   esac
+}
+
+valid_branch_name() {
+  [[ "$1" =~ ^[A-Za-z0-9._/-]+$ && "$1" != *..* && "$1" != /* && "$1" != */ && "$1" != -* && "$1" != *.lock ]]
 }
 
 KEY="" OPT_CWD=$PWD RULES=""
@@ -50,7 +60,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 [[ -n "$KEY" ]] || usage
-SPEC=$(setting_spec "$KEY") || die "unknown setting '$KEY' (known: task_review)"
+SPEC=$(setting_spec "$KEY") || die "unknown setting '$KEY' (known: task_review, main_branch)"
 # shellcheck disable=SC2086 # split the spec on purpose
 set -- $SPEC
 DEFAULT=$1; shift
@@ -62,6 +72,10 @@ if [[ -z "$RULES" ]]; then
   if [[ "$(basename "$common")" == ".git" ]]; then ROOT=$(dirname "$common")
   else ROOT=$(git -C "$OPT_CWD" worktree list --porcelain | sed -n '1s/^worktree //p'); fi
   RULES="$ROOT/$WF_RULES"
+  if [[ "$KEY" == main_branch ]]; then
+    origin_head=$(git -C "$ROOT" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)
+    [[ -z "$origin_head" ]] || DEFAULT=${origin_head#origin/}
+  fi
 fi
 
 default_out() { printf '%s: %s; using the default %s=%s\n' "$PROG" "$1" "$KEY" "$DEFAULT" >&2; printf '%s\n' "$DEFAULT"; exit 0; }
@@ -83,6 +97,7 @@ val=$(printf '%s\n' "$block" | K=$KEY yq '.[strenv(K)] // "" | select(tag != "!!
   || die "cannot read $KEY from '## $HEADING' in $RULES"
 [[ -n "$val" ]] || default_out "$KEY is not set under '## $HEADING' in $RULES"
 for a in $ALLOWED; do
-  if [[ "$a" == "$val" ]]; then printf '%s\n' "$val"; exit 0; fi
+  if [[ "$a" == "$val" ]] || { [[ "$a" == "@branch" ]] && valid_branch_name "$val"; }; then printf '%s\n' "$val"; exit 0; fi
 done
+[[ "$ALLOWED" != "@branch" ]] || die "$KEY in '## $HEADING' of $RULES is '$val'; expected a branch name, e.g. main"
 die "$KEY in '## $HEADING' of $RULES is '$val'; expected one of: $ALLOWED"

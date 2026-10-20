@@ -114,7 +114,7 @@ After a 00.29 split the tasks that left are `split-out` in `tasks.md` (set by di
 
 ## 2.6 Within the size budget (task count and predicted files)?
 
-Two checks before any code is written (D58, D85): the task count, and the sum of the predicted `size.files` of the tasks that are not `split-out` against `max_changed_files`.
+Two checks before any code is written (D58, D85, D87): the task count, and the sum of the predicted `size.files` of the tasks that are not `split-out`, less each task's `predicted_files` entries that are tests (the profiles' `test_patterns`), against `max_changed_files`.
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 2.6
@@ -122,7 +122,7 @@ Two checks before any code is written (D58, D85): the task count, and the sum of
 .agents/skills/feature-workflow/scripts/budget-check.sh --spec-dir .workflow/specs/NNN-slug --predicted
 ```
 
-Each prints `{max_tasks, tasks, max_changed_files, changed_files, over[], source, basis}`; with `--predicted`, `changed_files` is the predicted sum (`basis: "predicted"`). Act on the worse exit of the two.
+Each prints `{max_tasks, tasks, max_changed_files, changed_files, over[], source, basis, target, merge_base, excluded, files, test_files}`; with `--predicted`, `changed_files` is the predicted sum less predicted tests (`basis: "predicted"`, `excluded.tests` the files subtracted, `test_files` the test entries). Act on the worse exit of the two.
 
 - **Exit 0 (within):** commit the breakdown on the spec branch so every task branch forks with its task file: `git add .workflow/specs/NNN-slug && git commit -m "Tasks for NNN-slug"` (only spec-folder files; the size budget never counts them). Then load `modules/implementation-orchestrator.md`.
 - **Exit 2 (over):** load [discovered-work.md](discovered-work.md) at 00.21 with origin node `2.6`, condition `size budget: <tasks> tasks, max_tasks <max_tasks>` or `size budget: <n> predicted files, max_changed_files <max>` (name each entry in `over`), and the JSON as evidence. It runs 00.29: Split marks the tasks that leave `split-out` and returns here, Re-scope goes to discovery, Approve raises the budget and returns here; run 2.6 again, then commit and load the orchestrator.

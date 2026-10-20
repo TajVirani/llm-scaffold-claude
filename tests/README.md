@@ -41,11 +41,11 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 
 | Suite | Component |
 |---|---|
-| `scripts/status-transition-check-write` | `status-transition.sh`, `check-write.sh`, `budget-check.sh` |
+| `scripts/status-transition-check-write` | `status-transition.sh`, `check-write.sh`, `budget-check.sh` (PR/MR file set, test exclusion) |
 | `scripts/resolve-launch` | `resolve-launch.sh` |
 | `scripts/step-progress` | `step-progress.sh` (the D84 progress line: full and light totals, run-order positions, loop steps, 00.x with `--at`, intake, unknown ids, `--spec-dir` defaults) |
 | `scripts/run-toolchain` | `run-toolchain.sh` |
-| `scripts/task-breakdown` | Task-breakdown helpers: `task-waves.sh` (overlaps, implied edges, `parallel_with`, cycles, waves, JSON), `rules-setting.sh` (`task_review`), `open-task-pr.sh` (gh/glab stubs, no network) and `run-toolchain.sh` test scoping (`tests`, `test_scoped`, `--exclude-unfinished`, `unscoped`) |
+| `scripts/task-breakdown` | Task-breakdown helpers: `task-waves.sh` (overlaps, implied edges, `parallel_with`, cycles, waves, JSON), `rules-setting.sh` (`task_review`, `main_branch`), `open-task-pr.sh` (gh/glab stubs, no network) and `run-toolchain.sh` test scoping (`tests`, `test_scoped`, `--exclude-unfinished`, `unscoped`) |
 | `scripts/cache-scripts` | `publish-cache.sh`, `cache-stamp-check.sh` |
 | `scripts/generate-boundary-config` | `generate-boundary-config.sh` |
 | `scripts/generate-codex-agents` | `hooks/generate-codex-agents.sh` |
