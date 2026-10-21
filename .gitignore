@@ -4,3 +4,11 @@
 # macOS Finder metadata
 .DS_Store
 **/.DS_Store
+
+# >>> workflow-2.0 scaffold: gitignore (managed by install.sh; edits inside are replaced) >>>
+.workflow/specs/*/.step
+.workflow/.cache-staging/
+.workflow/.worktrees/
+.workflow/.handoff/
+.workflow/.standards-staging/
+# <<< workflow-2.0 scaffold: gitignore <<<

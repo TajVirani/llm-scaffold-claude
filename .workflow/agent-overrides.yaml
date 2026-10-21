@@ -1,0 +1,10 @@
+# File: Template for <project>/.workflow/agent-overrides.yaml. Copied by project-setup as an empty, commented file.
+# Purpose: Project-owned model overrides per agent type per host. Models only; no other fields.
+# Precedence in skills/feature-workflow/scripts/resolve-launch.sh:
+#   .workflow/agent-overrides.yaml[type][host] > agent definition `models.<host>` (.agents/agents/<type>.md) > .workflow/model-map/<type>.md [host] > none (00.14 blocks the launch)
+# Written by: a human, or at 5.7 when the retrospective's proposal is approved for an agent whose definition pins a model for that host.
+# Never touched by install.sh; agent definitions are scaffold-owned and overwritten on upgrade, so project choices live here.
+# Format (aliases, never dated version IDs). Keys: agent type, then host (claude, codex):
+#   implementation:
+#     claude: <alias>
+#     codex: <model>

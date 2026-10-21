@@ -1,4 +1,4 @@
-# llm-code-wiki
+# llm-scaffold
 
 An agent-agnostic scaffold for coding-agent skills and hooks, living in `.agents/`. This glossary holds the workflow 2.0 vocabulary.
 
@@ -60,7 +60,15 @@ _Avoid_: Fast track, quick mode
 
 **Full path**:
 The complete route for any request that does not qualify for the **light path**: discovery, verification setup, task breakdown, implementation, review and sign-off.
-_Avoid_: Heavy path
+_Avoid_: Heavy path, medium path
+
+**Large path**:
+The planning route for a request whose route is unknown at intake, or that discovery finds is several features: it explores and settles the subject across sessions and emits several ordered specs, each of which then takes the **light path** or the **full path**. It plans; it never builds. A large but well-understood change stays on the full path.
+_Avoid_: Epic mode, roadmap mode, planning mode
+
+**Initiative**:
+The planning unit a **large path** creates: the subject's goal, its exploration record (what is known, unknown and decided) and the ordered specs it emits. An initiative plans; its specs build.
+_Avoid_: Epic, map, program, roadmap, theme
 
 **Deeper prompt**:
 The stakeholder-agreed rewrite of a feature request (the ask one level up, its goals, downstream work, tools and gotchas, scope unchanged) that the questioning loop takes as its input. Produced at step 0.3.22.
@@ -115,3 +123,10 @@ _Avoid_: Quota, cap
 - A crossed **Size budget** is handled like **Discovered work**.
 - The **Deeper prompt** is the input from which the questioning loop computes its first **Frontier**.
 - Each task has one **Task file** and, on the full path, one **Task branch**; every **Task branch** forks from and merges into the spec's one **Spec branch**.
+- A **Large path** runs on exactly one **Initiative** and emits one or more specs; each emitted spec takes the **Light path** or the **Full path**.
+- A spec whose discovery finds several features converts into an **Initiative**; a **Deferred handoff** item that grows large or unclear seeds one.
+
+## Flagged ambiguities
+
+- "medium path" was used for the **Full path**: resolved, the full path keeps its name; the **Large path** is a planning route, not a larger build route.
+- "map" was proposed for the **Initiative**: resolved, "map" already names the codebase map, the **Model map** and the glossary map, so the planning unit is an **Initiative**.
