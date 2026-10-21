@@ -36,7 +36,7 @@
 - **PostToolUse(Agent)**: the PreToolUse fields plus `tool_response, duration_ms`. Inside a subagent, `agent_id` and `agent_type` are added
   - `tool_response` keys: `status, prompt, agentId, agentType, content, resolvedModel, totalDurationMs, totalTokens, totalToolUseCount, usage, toolStats, harnessNoteCount, harnessTailCount, harnessSectionHash`, plus `worktreePath, worktreeBranch, canContinueAgent` for worktree launches
   - `tool_input` shows the input after any `updatedInput` rewrite
-  - Fires at launch, not at completion, for a background launch: `tool_response.status` is `"async_launched"` and the sub-agent has not run yet. In `-p` mode Claude Code 2.1.300 backgrounds Agent launches by default, even with no `run_in_background` (`PLAN/install-e2e.md` issue 3). Do not use PostToolUse(Agent) as a completion signal; SubagentStop is the one that fires after the sub-agent finishes
+  - Fires at launch, not at completion, for a background launch: `tool_response.status` is `"async_launched"` and the sub-agent has not run yet. In `-p` mode Claude Code 2.1.300 backgrounds Agent launches by default, even with no `run_in_background` (found in the install e2e run, whose record was removed on 2026-10-21; see git history). Do not use PostToolUse(Agent) as a completion signal; SubagentStop is the one that fires after the sub-agent finishes
 - **SessionStart**: `session_id, transcript_path, cwd, hook_event_name, source`
 
 - **PostToolUse(Bash) skips non-zero exits (verified 2.1.303)**: a Bash call that exits non-zero is a tool error, and only `PostToolUseFailure` fires; `PostToolUse` does not. Throwaway repo, `claude -p --model haiku`, both events logged with matcher `Bash`, command `echo hi; exit 1`: one `PostToolUseFailure` entry, no `PostToolUse` entry.

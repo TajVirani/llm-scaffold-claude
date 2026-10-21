@@ -1,4 +1,4 @@
-# llm-code-wiki
+# llm-scaffold
 
 An agent-agnostic scaffold for workflow 2.0. The distribution unit lives in `.agents/` (skills, agents, hooks, output styles). Claude Code reaches it through a thin `.claude/` shim; other agents read `.agents/` directly.
 
@@ -6,34 +6,59 @@ An agent-agnostic scaffold for workflow 2.0. The distribution unit lives in `.ag
 
 This repo is the **scaffold repo**: it builds and tests the workflow. A **target project** is any repo that runs `install.sh` against it.
 
-- Scaffold repo: holds everything, including the scaffold-only docs (`PLAN/`, `assetlist.md`, `checklist.md`, `upstream-lineage.json`), which are never installed.
+- Scaffold repo: holds everything, including the scaffold-only files (`PLAN/`, `assetlist.md`, `checklist.md`, `upstream-lineage.json`, `wayfinder-comparison.html`, `testprompt.md` and this repo's own `.workflow/`), which are never installed.
 - Target project: gets only the first-party payload listed in `.agents/install-manifest.txt`, copied into its own `.agents/`, plus the host shims. All its workflow data lives in one committed folder, `.workflow/`, created by the `project-setup` skill and owned by that project. Only `e2e/` and the project's own `docs/` stay outside it.
 
 Edit the scaffold here; never edit an installed copy.
 
+### This repo also runs the workflow on itself
+
+The scaffold repo is its own target project, so work on it goes through `feature-workflow` like any other project.
+
+- Its `.workflow/` is set up by `project-setup` (`install.sh` refuses to target its own repo). It is committed, owned by this repo, and never installed: it is not in `.agents/install-manifest.txt`.
+- `.workflow/GLOSSARY.md` is the shared vocabulary; there is no root `GLOSSARY.md`.
+- Keep the two roles apart: a change to how the workflow behaves goes in `.agents/`; a fact about this repo (its rules, profiles, decisions) goes in `.workflow/`.
+- Run `.agents/` straight from source; there is no installed copy to sync.
+
 ## Layout (non-obvious parts)
 
 - `.claude/` is Claude-specific wiring only: `settings.json` plus `skills`, `agents` and `output-styles` symlinks into `.agents/`. Do not add content there that another agent would need.
-- `.agents/lib/workflow-paths.sh` is the one home for target-project paths under `.workflow/`; hooks and skill scripts build paths from it.
+- `.agents/lib/workflow-paths.sh` is the one home for paths under `.workflow/` (in target projects and in this repo); hooks and skill scripts build paths from it.
+- The `.gitignore` block for local workflow state (`.workflow/specs/*/.step`, `.cache-staging/`, `.worktrees/`, `.handoff/`, `.standards-staging/`) is written by `install.sh` in target projects. In this repo it was added by hand and must be kept in step with `GI_ENTRIES` in `install.sh`.
 - `.agents/agents/` holds host-neutral sub-agent definitions; Codex tomls are generated from them.
 - `.codex/` holds shim docs only; `install.sh` creates the Codex config and agent tomls in target projects.
 - `CLAUDE.md` is a one-line `@AGENTS.md` import. Edit `AGENTS.md`, not `CLAUDE.md`.
-
-## Conventions
-
-- New skills, agents, hooks and output styles go in `.agents/`, never directly in `.claude/`.
-- Code comments follow [readable-code.md](./.agents/skills/feature-workflow/references/readable-code.md): a comment gives the reason in plain words. Decision IDs and doc paths go in `assetlist.md`, `upstream-lineage.json` or `PROVENANCE.md`, never in code comments.
-- Skill templates live in the skill's `assets/` folder.
-- Update [PROVENANCE.md](./PROVENANCE.md) whenever you add, vendor or remove anything under `.agents/`.
-- When you add a first-party asset that target projects need, add it to `.agents/install-manifest.txt` and PROVENANCE.md in the same change. `install.sh` ships only what the manifest lists.
-- Vendored skills are temporary references and are never installed into target projects; first-party assets must not depend on them at runtime. We ship a first-party version of anything that affects how agents work; delete the vendored skill once that version exists and its lineage is in [upstream-lineage.json](./upstream-lineage.json). Cite upstream (`<repo>/<path>@<commit>`) in `Sources:` lines, never a vendored path. Add-ons unrelated to how agents work (anti-slop Oxlint plugins) are installed from upstream at a pinned commit instead of rebuilt.
-- Every first-party asset derived from upstream (skill, module, reference, agent, hook, script, template) gets an `upstream-lineage.json` entry: `kind` `copy`, `derived` or `pinned-addon`, upstream repo, path and commit, `changes`, `why`, `reviewed_at`. To pick up a vendor update, diff each `upstream_path` from its pinned commit, review with the user, bring in what we want, then update the entry.
-- If a first-party asset needs an upstream file at runtime, copy it into the consuming skill's `references/` folder with a `Copied from … @ <commit> (<license>). Local edits: …` header and a vendor LICENSE beside it, point every reference at the copy, and add a `kind: copy` entry to `upstream-lineage.json`. On an upstream update, apply the accepted changes to the copy (keep its local edits), then update the commit and sha256 in the entry and the copy's header.
 
 ## Verifying
 
 - Run `tests/run-all.sh` before reporting work done, and show its result.
 
+<!-- project-standards:begin -->
+<!-- verified_at_commit: 0a662df5d1046bd2984be858e813992a7fb36eb7 · 2026-10-21 · Managed by project-standards: text between these markers is replaced on refresh; keep your own lines outside them. -->
+
+## llm-scaffold standards
+
+The scaffold is bash 3.2 scripts plus markdown skills and agent definitions, tested by a homegrown bash harness under `tests/`. Plan changes to it through the `feature-workflow` skill; specs live in `.workflow/specs/`.
+
+## Where the standards are
+
+- Writing or changing anything: follow `.workflow/rules.md` (ownership, shared core, cross-cutting policy including comments, vendoring, PROVENANCE, manifest, lineage and commits; required versions).
+- Code under `.agents/hooks/`, `.agents/lib/`, `.agents/skills/*/scripts/`, `install.sh`, `scripts/`: follow `.workflow/profiles/shell-scripts.md`.
+- Markdown under `.agents/`, `AGENTS.md`, `README.md`: follow `.workflow/profiles/agent-docs.md`.
+- Anything under `tests/`: follow `.workflow/profiles/test-harness.md`.
+- Naming a workflow concept: use the term in `.workflow/GLOSSARY.md`.
+- Changing the core/shim split, the distribution model or a deferred item: read `.workflow/decisions/adr/0001-project-baseline.md` first.
+- Before merging: run the `pr-quality` skill; project checks are in `.workflow/pr-quality/`.
+- Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
+
+## Running and verifying
+
+- shell-scripts: lint `git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR` · test `tests/run-all.sh`.
+- agent-docs: lint `tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage` · test `tests/run-all.sh`.
+- test-harness: lint `git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR` · test `tests/run-all.sh`.
+- No CI: `tests/run-all.sh` run by hand is the whole gate. `--suite <name>` runs one suite; `--list` names them.
+
 ## Compaction
 
-- When compacting, keep the files modified so far, the failing or pending test output, and the current task and its status.
+- When compacting, keep the active spec path under `.workflow/specs/`, its current step and status, the files modified so far, the failing or pending test output, and the current task and its status.
+<!-- project-standards:end -->

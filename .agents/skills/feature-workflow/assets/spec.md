@@ -96,7 +96,7 @@ Validate the frontmatter (prints true, exits non-zero otherwise):
 - Tasks: [tasks.md](tasks.md)
 - Proposals: [proposals.md](proposals.md)
 - Report: [report.md](report.md)
-- Placement ADR: [.workflow/decisions/adr/NNNN-slug.md](../../docs/decisions/adr/NNNN-slug.md)
+- Placement ADR: [.workflow/decisions/adr/NNNN-slug.md](../../decisions/adr/NNNN-slug.md)
 
 ## Known gaps
 

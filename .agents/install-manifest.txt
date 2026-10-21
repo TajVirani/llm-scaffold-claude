@@ -85,5 +85,6 @@ hooks/context-bridge.cjs
 # --- Project-owned, never shipped and never touched on upgrade: .workflow/design-pattern-doc/conventions.md (from
 # skills/design-pattern-doc/CONVENTIONS-FORMAT.md) and .workflow/pr-quality/*.md project checks (from
 # skills/pr-quality/assets/project-check.template.md). Only the templates ship, inside the skill directories above.
-# --- Excluded, outside .agents/ (scaffold-only): PLAN/, tests/, assetlist.md, organization.md, checklist.md,
-# PROVENANCE.md, upstream-lineage.json, CHANGELOG.md, install.sh, .codex/README.md.
+# --- Excluded, outside .agents/ (scaffold-only): PLAN/, tests/, assetlist.md, checklist.md,
+# PROVENANCE.md, upstream-lineage.json, CHANGELOG.md, install.sh, .codex/README.md, wayfinder-comparison.html,
+# testprompt.md and the scaffold repo's own .workflow/.

@@ -46,7 +46,7 @@ Writing rules:
 
 ## Decisions already made
 
-- <decision> (design-log D<n> in [.workflow/specs/NNN-slug/design-log.md](../specs/NNN-slug/design-log.md), or [ADR-NNNN](../docs/decisions/adr/NNNN-slug.md))
+- <decision> (design-log D<n> in [.workflow/specs/NNN-slug/design-log.md](../specs/NNN-slug/design-log.md), or [ADR-NNNN](../decisions/adr/NNNN-slug.md))
 
 ## Evidence
 

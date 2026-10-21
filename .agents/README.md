@@ -1,31 +1,12 @@
 # .agents
 
-The distribution unit of the scaffold. See the repo [README.md](../README.md) for the index of workflow skills, agents, hooks and helper scripts, [../PROVENANCE.md](../PROVENANCE.md) for what is first-party and where each asset came from, and `install-manifest.txt` for what `install.sh` ships to target projects. Run the tests with `tests/run-all.sh` from the repo root.
+The distribution unit of the scaffold, and the source of truth for every agent host. `.claude/` is a thin shim of symlinks into this folder.
 
-# data-structure-audit bundle
+- `skills/`: workflow and utility skills, each self-contained in its own folder.
+- `agents/`: host-neutral sub-agent definitions; Codex tomls are generated from them.
+- `hooks/`: guard and lifecycle hook scripts.
+- `lib/`: shared shell helpers, including `workflow-paths.sh`, the one home for paths under `.workflow/`.
+- `output-styles/`: output styles.
+- `install-manifest.txt`: the list of what `install.sh` ships to a target project.
 
-Incremental, git-anchored audit of data structures: invalid representable
-states, unnecessary complexity, and (evidence-gated) performance. Only
-re-checks code that changed since the last recorded run.
-
-## Install (per project)
-
-Run `install.sh` from the scaffold repo root against the target project. It ships the first-party payload named in `install-manifest.txt`, which includes `data-structure-audit` and `pr-review-data`:
-
-    ./install.sh <target-project>
-
-See the repo [README.md](../README.md) for options and what it creates.
-
-## Invoking
-
-- /pr-review-data            — alias skill (optionally: /pr-review-data internal/models)
-- /data-structure-audit      — the skill's native slash name
-- Auto-triggers on natural-language requests matching its description
-  (audit/review types, structs, models, schemas, impossible states, etc.)
-
-## State
-
-The skill records audited commits in .workflow/data-structure-audit-state.jsonl
-(commit it with your changes) and adds a `merge=union` .gitattributes rule so
-parallel branches merge cleanly. Delete the state file to force a full re-audit.
-See skills/data-structure-audit/references/incremental.md for mechanics.
+`install.sh` ships only what the manifest lists; vendored skills never ship. For the hooks and scripts, read the folders: each script carries a `# File:` header. [../PROVENANCE.md](../PROVENANCE.md) is the full inventory and says what is first-party and where each asset came from. Run the tests with `tests/run-all.sh` from the repo root.

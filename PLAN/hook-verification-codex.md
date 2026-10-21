@@ -2,6 +2,8 @@
 
 > Scaffold-only evidence for this repo. It is not part of the install payload (D30). The harness is in `PLAN/hook-verification-codex/`. Claude Code results: `PLAN/hook-verification.md`.
 
+> Paths in this record are pre-D81: `docs/cache` now lives at `.workflow/cache`, and the real permissions profile protects that path. The harness still runs as written because it is self-contained.
+
 ## Tested version
 
 - `codex-cli 0.155.1` (npm, macOS arm64), tested 2026-10-16, logged in with ChatGPT.

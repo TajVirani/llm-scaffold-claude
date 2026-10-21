@@ -121,7 +121,9 @@ eq "main checkout rules from worktree cwd" "$(RS task_review --cwd "$WORK/p-wt")
 # generate-boundary-config ignores the section (reads Ownership and Shared core only)
 GB=$WORK/gb; mkdir -p "$GB/.workflow"; cp "$RULES_T" "$GB/.workflow/rules.md"
 printf '\n## Workflow settings\n\n```yaml\ntask_review: pr-blocking\n```\n' >> "$GB/.workflow/rules.md"
-gb_out=$(bash "$WORK/scaffold/.agents/skills/project-setup/scripts/generate-boundary-config.sh" --print-intermediate "$GB" 2>&1); gb_rc=$?
+gb_out=$(bash "$WORK/scaffold/.agents/skills/project-setup/scripts/generate-boundary-config.sh" --print-intermediate "$GB" 2>&1)
+# shellcheck disable=SC2034  # gb_rc is read inside the eval-ed check string below
+gb_rc=$?
 check "boundary generator ignores ## Workflow settings" '[ $gb_rc -eq 0 ] && ! grep -q task_review <<<"$gb_out"' "$gb_out"
 
 echo "== open-task-pr.sh (stubbed gh / glab, no network)"

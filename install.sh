@@ -27,8 +27,8 @@
 #      .workflow/.standards-staging/ in a marker block, since they hold local, in-progress state. Paths come from .agents/lib/workflow-paths.sh.
 #   Never creates or touches .workflow/: every project-owned file (GLOSSARY.md, rules.md, agent-overrides.yaml, model-map/,
 #   profiles/, decisions/, deferred/, specs/, ...) lives there and is created by the project-setup skill; nor the project's own docs/ and e2e/.
-#   Scaffold-only files (PLAN/, tests/, assetlist.md, organization.md, checklist.md, PROVENANCE.md, CHANGELOG.md, upstream-lineage.json, scripts/, this script)
-#   are outside .agents/ and never copied.
+#   Scaffold-only files (PLAN/, tests/, assetlist.md, checklist.md, PROVENANCE.md, CHANGELOG.md, upstream-lineage.json, scripts/,
+#   wayfinder-comparison.html, testprompt.md, the scaffold repo's own .workflow/, this script) are outside .agents/ and never copied.
 # Conflicts: every check runs before anything is written. Without --force, install.sh refuses (exit 1, nothing written) when
 #   .claude/{skills,agents,output-styles} is a real directory or a symlink elsewhere, a settings/hooks key has the wrong type or
 #   a different value, .codex/config.toml has a different [permissions.workflow], or a marker block is damaged. With --force

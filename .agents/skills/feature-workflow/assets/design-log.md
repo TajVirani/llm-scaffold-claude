@@ -78,7 +78,7 @@ Facts looked up instead of asked (0.3.10): <fact>: <answer> (source `<path:line>
 - Owning module: <module from .workflow/rules.md Ownership>
 - Alternatives considered: <module: why not>
 - Conflict with an ADR or rule: <none | conformed | superseded ADR-NNNN | proposed rule change, see proposals.md>
-- Decision: **D<n>** <placement>. ADR: [.workflow/decisions/adr/NNNN-slug.md](../../docs/decisions/adr/NNNN-slug.md)
+- Decision: **D<n>** <placement>. ADR: [.workflow/decisions/adr/NNNN-slug.md](../../decisions/adr/NNNN-slug.md)
 
 ## YYYY-MM-DD Scope decision: <item>
 

@@ -144,6 +144,7 @@ out=$(jq -cn --arg p "$(add src/a.ts)" --arg c "$P" --arg tp "$WORK/rollout-t3.j
 check "Codex main session (no agent_id) unaffected" '[ $rc -eq 0 ] && [ -z "$out" ]' "rc=$rc out=$out"
 
 echo "== wiring"
+# shellcheck disable=SC2034  # TPL is read inside the eval-ed check strings below
 TPL=$P/.agents/hooks/claude-settings.template.json
 check "template: PreToolUse Bash|Write|Edit|NotebookEdit runs worktree-write-guard.sh" \
   'jq -e "[.hooks.PreToolUse[] | select(.matcher == \"Bash|Write|Edit|NotebookEdit\") | .hooks[].command] | any(test(\"hooks/worktree-write-guard.sh\"))" "$TPL" >/dev/null'

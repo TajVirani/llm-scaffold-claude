@@ -124,7 +124,7 @@ check "generic templates for project-owned files ship" '[ -f "$A/.agents/skills/
 check "install creates no docs/ in the target" '[ ! -e "$A/docs" ]'
 check "shipped glab and design-pattern-doc name no vendored skill" '! grep -rhv "^Sources:" "$A/.agents/skills/glab" "$A/.agents/skills/design-pattern-doc" | grep -qE "(to-tickets|to-spec|setup-matt-pocock-skills|diagnosing-bugs|\`triage\`)"'
 bad=""
-for f in PLAN tests assetlist.md organization.md checklist.md PROVENANCE.md CHANGELOG.md install.sh upstream-lineage.json scripts; do
+for f in PLAN tests assetlist.md checklist.md PROVENANCE.md CHANGELOG.md install.sh upstream-lineage.json scripts wayfinder-comparison.html testprompt.md .workflow; do
   [ ! -e "$A/$f" ] && [ ! -e "$A/.agents/$f" ] || bad="$bad $f"
 done
 eq "no scaffold-only file in the target" "$bad" ""

@@ -19,11 +19,11 @@ Single markdown file. H2 sections in this order. Skill reads each section by hea
 - diagrams: docs/diagrams/
 
 ## Anchor files
-- CLAUDE.md
+- AGENTS.md
 - docs/architecture/README.md
 
 ## Drift scan globs
-- CLAUDE.md
+- AGENTS.md
 - docs/**/*.md
 - .workflow/specs/**/*.md
 - README.md
@@ -62,11 +62,11 @@ A bullet list mapping doc-type to directory. Three buckets:
 
 ### Anchor files
 
-Files the skill must read before launching exploration agents. The first item is the most-load-bearing file (typically `CLAUDE.md` or the architecture README). Order matters — earlier entries weighted more heavily in style matching.
+Files the skill must read before launching exploration agents. The first item is the most-load-bearing file (typically `AGENTS.md` or the architecture README). Order matters — earlier entries weighted more heavily in style matching.
 
 ### Drift scan globs
 
-Glob patterns the skill scans for drift candidates. Greedy by default (`docs/**/*.md`, `.workflow/specs/**/*.md`, `CLAUDE.md`, `README.md`). User can narrow if scans are too expensive (e.g., exclude `.workflow/specs/_archive/**`).
+Glob patterns the skill scans for drift candidates. Greedy by default (`docs/**/*.md`, `.workflow/specs/**/*.md`, `AGENTS.md`, `README.md`). User can narrow if scans are too expensive (e.g., exclude `.workflow/specs/_archive/**`).
 
 ### Naming conventions
 

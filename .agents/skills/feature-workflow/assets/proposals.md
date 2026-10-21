@@ -23,7 +23,7 @@ Status values: `proposed` · `approved` · `modified` · `rejected`
 
 | Id | Target | Proposed text | Why removing it would change agent behaviour | Origin | Status | Decision |
 | --- | --- | --- | --- | --- | --- | --- |
-| P1 | `.workflow/capabilities.md` | CAP-### \| <description> \| [.workflow/specs/NNN-slug](../specs/NNN-slug/spec.md) | <e.g. without it, 0.3.1 would not detect a duplicate request> | spec.md § Capabilities | proposed | |
+| P1 | `.workflow/capabilities.md` | CAP-### \| <description> \| [.workflow/specs/NNN-slug](specs/NNN-slug/spec.md) | <e.g. without it, 0.3.1 would not detect a duplicate request> | spec.md § Capabilities | proposed | |
 
 ## Rules
 

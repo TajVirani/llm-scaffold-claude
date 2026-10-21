@@ -21,7 +21,7 @@ Phase 5 — parallel exploration. Launch the slices in a single message as paral
 
 Phase 6 — scope clarification (optional). After agent findings come back, if there are 1–3 genuinely ambiguous deliverable decisions (where docs go, what to flag as drift, how to handle gaps), ask them in a *single* `AskUserQuestion` batch. Skip this step entirely if the defaults from `conventions.md` resolve the question. NEVER ask more than 3 clarification questions per invocation.
 
-Phase 7 — drift scan. Greedy scan: read every `.md` under `docs/`, `.workflow/specs/`, plus `CLAUDE.md` and `README.md`. For each file, check whether it makes claims that contradict the agent findings. Build a structured drift list: `{ file, line, current_text, reality, suggested_fix }`. **This is non-negotiable** — drift detection is the differentiator vs. "just write a doc".
+Phase 7 — drift scan. Greedy scan: read every `.md` under `docs/`, `.workflow/specs/`, plus `AGENTS.md` and `README.md`. For each file, check whether it makes claims that contradict the agent findings. Build a structured drift list: `{ file, line, current_text, reality, suggested_fix }`. **This is non-negotiable** — drift detection is the differentiator vs. "just write a doc".
 
 Phase 8 — plan-preview. In normal (non-auto) mode, write a heavy plan: full ground-truth tables from agent findings, deliverables (new doc filename + path), files-to-touch (drift candidates with suggested fixes), verification approach, out-of-scope. Wait for approval. In auto mode, skip the wait — proceed with the plan as-is. In plan mode (harness-imposed), write to the plan file and `ExitPlanMode`.
 
@@ -46,7 +46,7 @@ Phase 12 — completion report. Post a structured summary in chat: deliverables,
 Don't ask the user to fill out a form. Auto-detect, write a draft, tell the user it's there and they can edit.
 
 1. Look for `docs/architecture/`, `docs/design/`, `docs/architecture-decisions/`, `docs/adr/`, `.workflow/decisions/`, `docs/diagrams/`. Map each to the right doc-type bucket (design patterns, decisions, diagrams). If none exist, default to `docs/`.
-2. Look for `CLAUDE.md`, `README.md`, `docs/architecture/README.md`, `docs/README.md`. The first one or two of those become "anchor files".
+2. Look for `AGENTS.md`, `README.md`, `docs/architecture/README.md`, `docs/README.md`. The first one or two of those become "anchor files".
 3. Sample 3–5 existing `.md` files in the design-patterns location. Extract: kebab-case? Suffix conventions (`-pattern`, `-design`, `-architecture`)? Mermaid usage? Heavy tables? Short paragraphs? Emoji?
 4. Look for build/lint commands: `package.json` scripts (`build`, `lint`, `docs:build`), `Taskfile.yml` targets, `Makefile` targets.
 5. Write `.workflow/design-pattern-doc/conventions.md` (create the folder) using the format in [CONVENTIONS-FORMAT.md](./CONVENTIONS-FORMAT.md). Never write it inside `.agents/`: that folder is replaced on upgrade. Tell the user: *"First run — wrote `.workflow/design-pattern-doc/conventions.md`. Edit it if I got anything wrong, then re-invoke."* Then stop.

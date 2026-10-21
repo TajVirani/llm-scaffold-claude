@@ -64,7 +64,7 @@ Ordered by dependency: each section unblocks the next. Plan refs: node IDs (`0.3
 - [x] Default models (N7). Decided: tiered cheap/strong aliases per host, seeded by `project-setup` (D23).
 - [x] Integration batches across work types. Decided: split so each batch touches one work type (D28).
 - [x] Light path without suites. Decided: skip 3.9/3.10, record gap in spec + `deferred/`, flag at sign-off (D29).
-- [x] Home of `PLAN/`, `assetlist.md`, `organization.md`. Decided: scaffold-only, excluded from install payload; `organization.md` marked superseded (D30).
+- [x] Home of `PLAN/`, `assetlist.md`. Decided: scaffold-only, excluded from install payload; `organization.md` marked superseded (D30). (2026-10-21: organization.md removed; content stays in git history.)
 
 
 ### Batch 1 open questions (need a user decision)
@@ -91,7 +91,7 @@ Ordered by dependency: each section unblocks the next. Plan refs: node IDs (`0.3
 
 ## 3. Wire hooks (target-project settings template, D36)
 
-Target-project wiring lives in `.agents/hooks/claude-settings.template.json`, which `install.sh` merges into `<target>/.claude/settings.json`; rationale and merge rules are in `claude-settings.template.md`. This repo's own `.claude/settings.json` keeps only `block-destructive-git.sh` (D36). Guard matchers use `Write|Edit|NotebookEdit` (no `MultiEdit` tool; verified 2.1.300). There is no SubagentStart hook (D33). All wired scripts are stubs that exit 0 with no output, so the wiring is safe before they are built.
+Target-project wiring lives in `.agents/hooks/claude-settings.template.json`, which `install.sh` merges into `<target>/.claude/settings.json`; rationale and merge rules are in `claude-settings.template.md`. This repo's own `.claude/settings.json` keeps only `block-destructive-git.sh` (D36). Guard matchers use `Write|Edit|NotebookEdit` (no `MultiEdit` tool; verified 2.1.300). There is no SubagentStart hook (D33). Every hook script is implemented; this repo's own `.claude/settings.json` wires only `block-destructive-git.sh`.
 
 - [x] Keep `PreToolUse` `Bash` → `block-destructive-git.sh`. Done in this repo's settings and in the template (D36).
 - [x] `PreToolUse` `Agent` → `pre-launch.sh` (00.11–00.14, 00.18–00.20; D13, D33). Done in template (D36), timeout 30.
@@ -108,7 +108,7 @@ Target-project wiring lives in `.agents/hooks/claude-settings.template.json`, wh
 ## 4. Build the stubs
 
 - [x] Until implemented, add `disable-model-invocation: true` to stub skills (`feature-workflow`, `project-setup`, `regenerate-caches`, `domain-modeling`, `retrospective`) so they don't auto-trigger. Done; each skill's builder removes the line when implementing it.
-- Per-item sources, build conventions and the batch plan for this section: `PLAN/sourcing.md`.
+- Per-item sources are in the per-file `Sources:` lines of `PROVENANCE.md` and in `upstream-lineage.json`. (2026-10-21: PLAN/sourcing.md removed; content stays in git history.)
 
 ### 4a. Templates — project-setup (D8)
 - [x] `.agents/skills/project-setup/assets/GLOSSARY.md`
@@ -257,12 +257,12 @@ Target-project wiring lives in `.agents/hooks/claude-settings.template.json`, wh
 
 ### 4k. Readable-code baseline (D86; done)
 - [x] Deterministic check for `readable-code.md` R4: declined by the user (2026-10-20). The ban is enforced by review only (`profile-mini-review` at 3.7, `review-standards` at 4.1); no script is built.
-- [x] D86 applies to the scaffold repo's own code (decided 2026-10-20). Done: comments in `.agents/hooks/`, `.agents/lib/`, `install.sh`, `scripts/` and the `PLAN/` harnesses give reasons instead of D-numbers and doc paths; the convention is in AGENTS.md. `.agents/skills/` and `tests/` are rewritten in a parallel pass.
+- [x] D86 applies to the scaffold repo's own code (decided 2026-10-20). Done: comments in `.agents/hooks/`, `.agents/lib/`, `install.sh`, `scripts/` and the `PLAN/` harnesses give reasons instead of D-numbers and doc paths; the convention is in `.workflow/rules.md` ("Cross-cutting policy"; AGENTS.md points there). `.agents/skills/` and `tests/` are rewritten in a parallel pass.
 
 ## 5. Docs & plan reconciliation
 
-- [x] `AGENTS.md`: explain the two trees (scaffold repo vs target project); add `.agents/agents/` and `.claude/agents` to Layout; add `install.sh`, `.codex/`, and the scaffold-only docs (`PLAN/`, `assetlist.md`, `organization.md`, `checklist.md`; D30).
-- [x] `GLOSSARY.md`: define Tier A, Tier B, work profile, work type, task type, model map, light path, full path, answerable set, placement ADR, term gate, deferred handoff, cache stamp, launch header, discovered work, work backlog, size budget, step marker. Done; definitions taken from the reference doc, user to confirm.
+- [x] `AGENTS.md`: explain the two trees (scaffold repo vs target project); add `.agents/agents/` and `.claude/agents` to Layout; add `install.sh`, `.codex/`, and the scaffold-only docs (`PLAN/`, `assetlist.md`, `checklist.md`; D30). (2026-10-21: list extended with `upstream-lineage.json`, `wayfinder-comparison.html`, `testprompt.md` and this repo's own `.workflow/`.)
+- [x] `.workflow/GLOSSARY.md` (was root `GLOSSARY.md`): define Tier A, Tier B, work profile, work type, task type, model map, light path, full path, answerable set, placement ADR, term gate, deferred handoff, cache stamp, launch header, discovered work, work backlog, size budget, step marker. Done; definitions taken from the reference doc, user to confirm.
 - [x] `README.md` + `.agents/README.md`: index of workflow skills, agents, hooks, scripts. Done: index and test instructions in `README.md`; `.agents/README.md` points to it.
 - [x] `PLAN/decision-flow-reference.md`: "ten launches"/"ten dotted edges" → eleven, adding `integration` (D5). Decided: done in the reference doc.
 - [x] `PLAN/decision-flow.mermaid`: add `integration` as a purple launch node with an eleventh dotted edge (D5); reflect D12 (`model-map/`), D13 (00.15 unused), D22 (no status.md), D25 (retrospective skill). Done: `integration` is purple with the eleventh dotted edge; `model-map/`, resolve-launch + pre-launch-validate, 00.15 always no (map pass-through edge removed; node since removed by D32), no status in 00.4, retrospective skill at 5.7, `regenerate-caches`/publish-cache, worktrees, block-and-fix at 3.6, one-work-type integration batches (D28), light path writes a one-task `tasks.md` (D14), new 3.13/3.14 suite-gap nodes (D29), proposals.md/report.md (D21). Parses with mermaid 11 (`validate_mermaid.mjs`).
@@ -287,15 +287,15 @@ Target-project wiring lives in `.agents/hooks/claude-settings.template.json`, wh
 - [x] `assetlist.md`: fix Tier B schema contradiction in Templates (D8 says `regenerate-caches/assets/`, not `project-setup/assets/`). Decided: fixed with the D9–D30 update.
 - [x] `assetlist.md`: add templates row to Counts table. (`generate-boundary-config.sh` and the capabilities/pitfalls/`GLOSSARY.md` templates are now listed; status.md dropped, D22.)
 - [x] `assetlist.md`: refresh "Existing assets" list for renamed/added skills (`to-issues`→`to-tickets`, `diagnose`→`diagnosing-bugs`, new upstream skills).
-- [x] `organization.md`: mark superseded by `assetlist.md` (uses `.agents/subagents/`, `.agents/templates/`, `.agents/lib/`) or reconcile. Decided: superseded banner added (D30).
+- [x] `organization.md`: mark superseded by `assetlist.md` (uses `.agents/subagents/`, `.agents/templates/`, `.agents/lib/`) or reconcile. Decided: superseded banner added (D30). (2026-10-21: organization.md removed; content stays in git history.)
 - [x] `CHANGELOG.md`: entry for 2.0 work (stubs, vendored skill update, command→skill migration, `PROVENANCE.md`).
 
 ## 6. Housekeeping
 
 - [ ] Keep `PROVENANCE.md` (root; first-party vs vendored inventory) current whenever adding, vendoring or removing a skill/agent/hook.
 - [ ] Re-run the Pocock pull periodically with `scripts/upstream-diff.sh` against the commits in `upstream-lineage.json` (`skills-lock.json` deleted, D79).
-- [ ] Pre-update skill backup lives only in the session scratchpad (temporary) — copy it out if needed before it is cleaned up.
-- [ ] Review and commit staged `.claude/`→`.agents/` renames plus untracked files (`git status`).
+- [x] Pre-update skill backup lives only in the session scratchpad (temporary) — copy it out if needed before it is cleaned up. (Done 2026-10-21: obsolete, the workflow-2.0 rename is merged.)
+- [x] Review and commit staged `.claude/`→`.agents/` renames plus untracked files (`git status`). (Done 2026-10-21: merged, see `git log`.)
 - [ ] Decide whether to drop `CLAUDE.md` once min Claude Code ≥ v2.1.281 and no Bedrock/Vertex users (`AGENTS.md` read natively since v2.1.277).
 
 ## 7. Testing & validation
@@ -307,9 +307,9 @@ Target-project wiring lives in `.agents/hooks/claude-settings.template.json`, wh
 - [x] Symlink check: `.claude/{skills,agents,output-styles}` resolve into `.agents/`; `.claude/commands` must not exist. Done: `tests/lint/symlinks.sh` (also checks every hook command in `.claude/settings.json` and both hook templates).
 - [ ] Dry-run `install.sh` then `project-setup` on a sample target project (Claude and Codex).
 - [ ] Run `project-standards` end to end on a sample brownfield repo (D80): `standards-discovery` return, baseline and ledger, written rules/profiles/ADR-0001/pr-quality checks/lint config/AGENTS.md block, boundary config regenerated and `verified_at_commit` stamped; then a refresh run with `since_commit`.
-- [x] Install into a sample target project and verify the template's hooks fire and the `Edit(docs/cache/**)` and `Edit(specs/*/.step)` denies hold (re-use the `PLAN/hook-verification/` approach: logging hooks, headless runs). Include the `SubagentStop` `implementation` matcher and a settings merge over an existing `settings.json`. Done: `PLAN/install-e2e.md` (re-run with `PLAN/install-e2e/run.sh`): settings merge over an existing `settings.json`, SessionStart resume, Tier A guard deny and allow, both deny rules (Write tool and Bash redirect), pre-launch deny and model rewrite, and `block-destructive-git` all pass. The `SubagentStop` matcher was not exercised; see the coverage item below.
-- [x] Prove a real model switch in the installed project: set `claude: sonnet` in `model-map/fact-lookup.md`, re-run `PLAN/install-e2e/run.sh`, and expect `resolvedModel: claude-sonnet-*` (`PLAN/install-e2e.md` issue 2; the E2E session and the map both used haiku). Done: `PLAN/install-e2e.md` "Follow-up run" F1. The session ran on haiku, and PostToolUse(Agent) showed `model:"sonnet"`, `resolvedModel:"claude-sonnet-5-5"`.
-- [x] Close the E2E coverage gaps in `PLAN/install-e2e.md` issue 7, Claude side. Done: `PLAN/install-e2e.md` "Follow-up run" F2-F6a.
+- [x] Install into a sample target project and verify the template's hooks fire and the `Edit(docs/cache/**)` and `Edit(specs/*/.step)` denies hold (re-use the `PLAN/hook-verification/` approach: logging hooks, headless runs). Include the `SubagentStop` `implementation` matcher and a settings merge over an existing `settings.json`. Done: `PLAN/install-e2e.md` (re-run with `PLAN/install-e2e/run.sh`): settings merge over an existing `settings.json`, SessionStart resume, Tier A guard deny and allow, both deny rules (Write tool and Bash redirect), pre-launch deny and model rewrite, and `block-destructive-git` all pass. The `SubagentStop` matcher was not exercised; see the coverage item below. (2026-10-21: the install-e2e harness was removed; install mechanics are covered by `tests/scripts/install.sh`.)
+- [x] Prove a real model switch in the installed project: set `claude: sonnet` in `model-map/fact-lookup.md`, re-run `PLAN/install-e2e/run.sh`, and expect `resolvedModel: claude-sonnet-*` (`PLAN/install-e2e.md` issue 2; the E2E session and the map both used haiku). Done: `PLAN/install-e2e.md` "Follow-up run" F1. The session ran on haiku, and PostToolUse(Agent) showed `model:"sonnet"`, `resolvedModel:"claude-sonnet-5-5"`. (2026-10-21: the install-e2e harness was removed; install mechanics are covered by `tests/scripts/install.sh`.)
+- [x] Close the E2E coverage gaps in `PLAN/install-e2e.md` issue 7, Claude side. Done: `PLAN/install-e2e.md` "Follow-up run" F2-F6a. (2026-10-21: the install-e2e harness was removed; install mechanics are covered by `tests/scripts/install.sh`.)
   - The `SubagentStop` `implementation` audit, in an `isolation:"worktree"` launch, blocked the stop with a digest and then passed, with evidence under `artifacts/T1/`.
   - `rules-boundary-config-sync.sh` regenerated the config on valid yaml and blocked with a reason on malformed yaml.
   - `evidence-capture.sh` filed artifacts and an index from a fake Playwright report when the suite exited 0.

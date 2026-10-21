@@ -1,8 +1,8 @@
-# llm-code-wiki
+# llm-scaffold
 
 An agent-agnostic scaffold for coding-agent skills and hooks, living in `.agents/`. Claude Code uses a thin `.claude/` shim to reach it; other agents read `.agents/` directly.
 
-**Status:** workflow 2.0 is in progress on this branch. 1.x — the wiki scaffold — has been removed; see [CHANGELOG.md](./CHANGELOG.md).
+**Status:** workflow 2.0 is on `main` and unreleased. 1.x — the wiki scaffold — has been removed; see [CHANGELOG.md](./CHANGELOG.md).
 
 ## Layout
 
@@ -10,7 +10,7 @@ An agent-agnostic scaffold for coding-agent skills and hooks, living in `.agents
 - `.claude/` — Claude Code shim: `settings.json` (hooks, permissions, plugins, output style) plus `skills`, `agents`, and `output-styles` symlinks into `.agents/` (Claude Code still requires these under `.claude/`)
 - `AGENTS.md` — project instructions
 - `CLAUDE.md` — one-line `@AGENTS.md` import. Claude Code reads `AGENTS.md` natively since v2.1.277; kept for older versions, Bedrock and Vertex
-- `GLOSSARY.md` — shared vocabulary
+- `.workflow/` — this repo's own workflow data (dogfooding; never installed). `.workflow/GLOSSARY.md` is the shared vocabulary
 - `CHANGELOG.md` — release history
 - `PROVENANCE.md` — first-party vs vendored inventory of `.agents/`
 - `install.sh` — installs the scaffold into a target project (scaffold-only; see below)
@@ -24,7 +24,7 @@ Workflow skills (`.agents/skills/`):
 - `project-setup` — sets up a target project's `.workflow/` folder: glossary, rules, profiles, model map, then the standards interview, toolchain and boundary config
 - `project-standards` — drafts, approves and writes a project's standards: rules, work profiles, ADRs, pr-quality checks, lint config
 - `regenerate-caches` — regenerates and publishes the Tier B caches
-- `domain-modeling` — agrees terms and writes `GLOSSARY.md` and ADRs
+- `domain-modeling` — agrees terms and writes `.workflow/GLOSSARY.md` and ADRs
 - `retrospective` — post-feature retrospective at sign-off
 - `deeper-prompt` — rewrites a feature request into a deeper prompt the stakeholder agrees to, before the questioning loop (step 0.3.22)
 
@@ -41,23 +41,13 @@ Agents (`.agents/agents/`, one line each):
 - `review-standards`, `review-end-state`, `review-targets` — Phase 4 review lenses (standards, spec conformance, measured targets)
 - `standards-discovery` — read-only brownfield standards scan for `project-standards`
 
-Hooks (`.agents/hooks/`; wiring in `claude-settings.template.json`, `codex-hooks.template.json`, `codex-config.template.toml`):
-
-- `pre-launch.sh` — validates and rewrites sub-agent launches (profile, model)
-- `post-implementation-audit.sh` — runs the toolchain when an `implementation` agent stops
-- `spec-single-writer-guard.sh`, `tier-a-write-guard.sh`, `tier-b-write-guard.sh` (with `_guard-common.sh`) — write guards
-- `rules-boundary-config-sync.sh` — regenerates the boundary config when rules change
-- `evidence-capture.sh` — saves browser-suite evidence
-- `session-start-resume.sh` — offers to resume in-flight specs and the work backlog
-- `block-destructive-git.sh` — blocks destructive git commands
-- `context-bridge.cjs` — Claude status line: context-usage bar, plus a `<tmpdir>/claude-ctx-<session_id>.json` bridge file (D79)
-- `_codex-patch.sh`, `codex-pre-spawn.sh`, `codex-rules-sync.sh`, `codex-write-guard.sh`, `generate-codex-agents.sh` — Codex adapters and agent generator
+Hooks live in `.agents/hooks/`, wired by `claude-settings.template.json`, `codex-hooks.template.json` and `codex-config.template.toml`. Each script carries a `# File:` header describing it; `PROVENANCE.md` is the full inventory.
 
 Helper scripts:
 
-- `feature-workflow/scripts/`: `status-transition.sh` (status, tasks, step marker), `resolve-launch.sh` (launch validation, profile and model), `run-toolchain.sh` (profile toolchain), `check-write.sh` (write guard logic), `budget-check.sh` (size budget)
-- `regenerate-caches/scripts/`: `cache-stamp-check.sh`, `publish-cache.sh`, `build-architecture.sh`, `check-staged-cache.sh`
-- `project-setup/scripts/`: `generate-boundary-config.sh`
+- `feature-workflow/scripts/`: each script carries a `# File:` header describing it; `PROVENANCE.md` is the full inventory.
+- `regenerate-caches/scripts/`: see the folder.
+- `project-setup/scripts/`: see the folder.
 
 Other first-party skills: `data-structure-audit`, `pr-review-data`, `deps-audit`, `deps-update`, `design-pattern-doc`, `glab`, `pr-quality`, `visual-change-report`. `handoff` and `writing-for-agents` (first-party rewrites, D78) ship too. Nothing vendored remains in `.agents/skills/`; `PROVENANCE.md` has the full inventory.
 
@@ -103,6 +93,6 @@ In target projects, used by the workflow at runtime:
 
 To upgrade, pull this repo and run the same command again. Changed payload files are overwritten. Files the previous install shipped that the manifest no longer lists are removed. A re-run with nothing new changes nothing.
 
-Upgrade note (D75): `design-pattern-doc` conventions and `pr-quality`'s project-specific modules are now project-owned. If an earlier install gave your project `.agents/skills/design-pattern-doc/conventions.md`, or pr-quality's `modules/legend-state-review.md` or `modules/project-pitfalls.md`, the upgrade prunes them. Before upgrading, copy them to `.workflow/design-pattern-doc/conventions.md` and `.workflow/pr-quality/` (or take athena's originals from `PLAN/archive/` in this repo).
+Upgrade note (D75): `design-pattern-doc` conventions and `pr-quality`'s project-specific modules are now project-owned. If an earlier install gave your project `.agents/skills/design-pattern-doc/conventions.md`, or pr-quality's `modules/legend-state-review.md` or `modules/project-pitfalls.md`, the upgrade prunes them. Before upgrading, copy them to `.workflow/design-pattern-doc/conventions.md` and `.workflow/pr-quality/`. The athena originals were removed from this repo (its git history has them).
 
 After the first install, run the `project-setup` skill in the target project. It creates the `.workflow/` folder, where every piece of workflow data lives (glossary, rules, capabilities, decisions, caches, profiles, model map, specs, deferred items, tools and handoffs), and only `e2e/` (the app's browser tests) stays at the project root. It then runs the standards interview (`project-standards`) before offering example profiles or installing any toolchain. Installs made before this layout are not migrated (workflow 2.0 is unreleased); re-run `project-setup` on a clean project.

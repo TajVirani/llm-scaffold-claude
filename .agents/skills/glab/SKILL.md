@@ -17,6 +17,11 @@ For **MR reviewing** (turn a `/review` or `/security-review` pass into line-anch
 - `feature-workflow` — plans the work (discovery writes `spec.md`, task breakdown writes `tasks.md`); `glab` files and updates the matching tracker items (`glab issue create`, label changes).
 - `pr-quality` — first-party PR review; `glab` posts the resulting findings to the MR (see [REVIEW.md](./REVIEW.md)).
 
+## Prerequisites
+
+- `glab` installed (`brew install glab`, `sudo apt install glab`, or a binary from the glab releases page) and authenticated with `glab auth login` (add `--hostname=<host>` for self-hosted).
+- A GitLab `origin` remote, or `--repo <group>/<project>` per command. Check with `glab repo view`.
+
 ## Quick start
 
 ```sh
@@ -99,7 +104,7 @@ glab mr close 104
 
 `glab` is generic; each project layers conventions on top (title suffixes that map to board columns, label vocabularies, MR template sections, branch naming, attribution trailers). Before the first issue/MR on a new project:
 
-1. Read `CLAUDE.md` / `AGENTS.md` for project rules, including any issue-tracker conventions.
+1. Read `AGENTS.md` for project rules, including any issue-tracker conventions.
 2. Skim recent items: `glab issue list --per-page=5` and `glab mr list --per-page=5`, then `view` one or two to pick up title shape, label set, description sections.
 3. Check `~/.claude` memory if the user has worked with the project before.
 4. If still unsure, ask before creating.
