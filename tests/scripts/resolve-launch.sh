@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Suite: resolve-launch.sh (feature-workflow/scripts).
-# Covers: --requirements table, model precedence (override > definition > map), per-task-type launch-header
+# Covers: --requirements table (including the review-lessons lens row), model precedence (override > definition > map), per-task-type launch-header
 #   requirements, header parsing and malformed headers, --parse-header, flag (orchestrator) mode, worktree and
 #   CLAUDE_PROJECT_DIR project-root resolution, usage errors.
 # shellcheck disable=SC2016,SC2015  # jq programs use single quotes on purpose; A && B || C is deliberate in ok/ko lines
@@ -122,8 +122,12 @@ P=(--project-dir "$FX")
 
 # ── Requirements table ──
 IN=""
-run "requirements: all 13 types" 0 'keys|length==13' "" -- --requirements
+run "requirements: all 14 types" 0 'keys|length==14' "" -- --requirements
 run "requirements: implementation required fields" 0 '.implementation.d31_fields==["spec_dir","task_id","work_type"]' "" -- --requirements --task-type implementation
+run "requirements: review-lessons is listed" 0 'has("review-lessons")' "" -- --requirements
+run "requirements: review-lessons is a Phase 4 lens row" 0 \
+  '."review-lessons" == {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"}' \
+  "" -- --requirements --task-type review-lessons
 run "requirements: unknown type denied" 2 "" "unknown task type" -- --requirements --task-type nope
 
 # ── Model precedence ──

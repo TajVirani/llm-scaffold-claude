@@ -2,7 +2,8 @@
 # Suite: hooks/spec-single-writer-guard.sh, hooks/tier-a-write-guard.sh, hooks/tier-b-write-guard.sh (and the sourced
 #   _guard-common.sh): thin PreToolUse adapters over feature-workflow/scripts/check-write.sh.
 # Covers: main session vs sub-agent (agent_id), Write / Edit / NotebookEdit payloads, status edits denied through the
-#   proposed-content check, Tier A steps and glossary / profile rules, .workflow/cache always denied,
+#   proposed-content check, Tier A steps and glossary / profile rules, the review-lessons file at 5.7 only (JRN-004),
+#   .workflow/cache always denied,
 #   worktree cwd, CLAUDE_PROJECT_DIR fallback, fail-closed on bad payload / no jq (static deny) / failure before a decision / no yq / non-repo cwd,
 #   and silence in a project that does not have the workflow installed.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -142,6 +143,14 @@ expect "Tier A guard ignores .workflow/cache" allow $TIERA "$(payload Write .wor
 expect "NotebookEdit on Tier A path follows the same rule" deny $TIERA "$(payload NotebookEdit .workflow/rules.md)"
 at 0.3.7
 expect "NotebookEdit on .workflow/rules.md at 0.3.7 allowed" allow $TIERA "$(payload NotebookEdit .workflow/rules.md)"
+
+echo "== Tier A guard: JRN-004, the review-lessons file"
+at 5.7
+expect "JRN-004 review-lessons.md at 5.7 allowed" allow $TIERA "$(payload Write .workflow/review-lessons.md)"
+for s in 0.3.7 5.3; do
+  at $s
+  expect "JRN-004 review-lessons.md at $s denied" deny $TIERA "$(payload Write .workflow/review-lessons.md)" "5\.7"
+done
 
 echo "== Tier A guard: no feature in flight"
 yq --front-matter=process -i '.status="done"' "$P/.workflow/specs/001-demo/spec.md"
