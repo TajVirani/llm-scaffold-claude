@@ -29,7 +29,7 @@
 #   Claude Phase 1 launches keep the isolation worktree (payload cwd).
 # Behaviour:
 #   - agent_type other than implementation, or no .agents/skills/feature-workflow in the main checkout: exit 0, no output.
-#   - Task launch header (spec_dir, task_id[, work_type]): run-toolchain.sh --spec-dir --task-id --cwd <worktree> [--work-type] (Claude:
+#   - Task launch header (spec_dir, task_id[, work_type]): run-toolchain.sh --spec-dir --task-id --cwd <worktree> --reuse [--work-type] (Claude:
 #     .workflow/.worktrees/s<NNN>_t<N>, else the isolation-worktree payload cwd; Codex: .workflow/.worktrees/<task_name>). run-toolchain.sh
 #     scopes `test` to the task (other unfinished tasks' Phase 1 tests excluded). Without a
 #     header work_type, run-toolchain.sh reads it from tasks.md (pre-launch.sh already denied a disagreeing header value).
@@ -221,7 +221,7 @@ if [ -z "$agent_path" ] && [ -n "$task_id" ]; then
   fi
 fi
 
-args=(--spec-dir "$spec_dir" --cwd "$cwd")
+args=(--spec-dir "$spec_dir" --cwd "$cwd" --reuse)   # an unchanged tree with a passing record from the implementer's own run is not run again
 if [ -n "$task_id" ]; then
   args+=(--task-id "$task_id")
 else

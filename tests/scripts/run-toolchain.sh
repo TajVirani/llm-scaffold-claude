@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Suite: run-toolchain.sh (feature-workflow/scripts).
 # Covers: toolchain key order and skipping, serve keys never run, --e2e, failure digest and --tail, evidence files,
-#   missing profile / unclassified work type / usage errors, worktree evidence location, commands run in --cwd.
+#   missing profile / unclassified work type / usage errors, worktree evidence location, commands run in --cwd,
+#   the tree hash (recorded, --tree-hash, untracked files, workflow data ignored), --reuse hits and misses, test_scoped on the own list alone.
+# shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 preflight
@@ -92,6 +94,101 @@ out=$("$RT" --spec-dir .workflow/specs/001-x --task-id T7 --work-type fake --e2e
 eq skip-e2e "$(jq -r '.results[-1]|.key+":"+.reason' <<<"$out")" "e2e:skipped by caller"
 t skip-unknown-rc 2 "$RT" --spec-dir .workflow/specs/001-x --task-id T7 --work-type fake --skip serve
 t skip-novalue-rc 2 "$RT" --spec-dir .workflow/specs/001-x --task-id T7 --work-type fake --skip
+
+# tree hash: recorded in toolchain.json, stable, changed by an untracked file, not by workflow data
+check tree-recorded 'jq -r .tree .workflow/specs/001-x/artifacts/T7/toolchain.json | grep -Eqx "[0-9a-f]{40}"'
+h1=$("$RT" --tree-hash --cwd "$T/repo"); h2=$("$RT" --tree-hash --cwd "$T/repo")
+check tree-hash-stable 'grep -Eqx "[0-9a-f]{40}" <<<"$h1" && [ "$h1" = "$h2" ]' "$h1 $h2"
+eq tree-hash-matches-record "$(jq -r .tree .workflow/specs/001-x/artifacts/T7/toolchain.json)" "$h1"
+mkdir -p .workflow/specs/001-x/notes && echo x > .workflow/specs/001-x/notes/new.md
+eq tree-hash-ignores-specs "$("$RT" --tree-hash --cwd "$T/repo")" "$h1"
+echo x > untracked.txt
+check tree-hash-untracked '[ "$("$RT" --tree-hash --cwd "$T/repo")" != "$h1" ]'
+rm -f untracked.txt
+h3=$("$RT" --tree-hash --cwd "$T/wt")
+echo y > "$T/wt/untracked.txt"
+check tree-hash-worktree 'grep -Eqx "[0-9a-f]{40}" <<<"$h3" && [ "$("$RT" --tree-hash --cwd "$T/wt")" != "$h3" ]' "$h3"
+rm -f "$T/wt/untracked.txt"
+mkdir -p "$T/nogit"
+t tree-hash-no-repo-rc 2 "$RT" --tree-hash --cwd "$T/nogit"
+t run-no-repo-rc 2 "$RT" --spec-dir .workflow/specs/001-x --task-id T1 --work-type fake --cwd "$T/nogit"
+
+# --reuse: a passing record of the same tree, profile and keys is copied instead of running anything
+M=$T/marker
+cat > .workflow/profiles/mark.md <<P
+## Toolchain
+\`\`\`yaml
+lint: "true"
+test: "echo run >> '$M'"
+\`\`\`
+P
+sed 's/lint: "true"/lint: "echo other"/' .workflow/profiles/mark.md > .workflow/profiles/mark2.md
+printf 'echo run >> %s; exit 1\n' "'$M'" > "$T/fail.sh"
+sed "s|test: .*|test: \"bash '$T/fail.sh'\"|" .workflow/profiles/mark.md > .workflow/profiles/markfail.md
+git_commit_all "$T/repo" mark
+EVR=.workflow/specs/001-x/artifacts
+# lines : how many test commands have appended to the marker so far
+lines() { if [ -f "$M" ]; then wc -l < "$M" | tr -d ' '; else echo 0; fi; }
+"$RT" --spec-dir .workflow/specs/001-x --task-id R1 --work-type mark --reuse >/dev/null 2>&1
+eq reuse-first-runs "$(lines)" 1
+check reuse-first-no-reused-from '[ "$(jq -r ".reused_from // \"none\"" $EVR/R1/toolchain.json)" = none ]'
+out=$("$RT" --spec-dir .workflow/specs/001-x --task-id R1 --work-type mark --reuse 2>/dev/null); rc=$?
+eq reuse-hit-rc "$rc" 0
+eq reuse-hit-ran-nothing "$(lines)" 1
+eq reuse-hit-self "$(jq -r .reused_from $EVR/R1/toolchain.json)" R1
+eq reuse-hit-stdout "$(jq -r '.status + ":" + .reused_from' <<<"$out")" pass:R1
+out=$("$RT" --spec-dir .workflow/specs/001-x --task-id R2 --work-type mark --reuse 2>/dev/null); rc=$?
+eq reuse-copy-rc "$rc" 0
+eq reuse-copy-ran-nothing "$(lines)" 1
+check reuse-copy-files 'cmp -s $EVR/R1/toolchain.txt $EVR/R2/toolchain.txt && [ "$(jq -r ".reused_from + \":\" + .task_id" $EVR/R2/toolchain.json)" = R1:R2 ]'
+"$RT" --spec-dir .workflow/specs/001-x --task-id R3 --work-type mark >/dev/null 2>&1
+eq reuse-off-runs "$(lines)" 2
+# misses: changed tree, other profile, failing candidate, skipped key, scoped record of another task
+echo change > changed.txt
+"$RT" --spec-dir .workflow/specs/001-x --task-id R4 --work-type mark --reuse >/dev/null 2>&1
+eq reuse-miss-tree "$(lines)" 3
+check reuse-miss-tree-no-stamp '[ "$(jq -r ".reused_from // \"none\"" $EVR/R4/toolchain.json)" = none ]'
+rm -f changed.txt
+"$RT" --spec-dir .workflow/specs/001-x --task-id R5 --work-type mark2 --reuse >/dev/null 2>&1
+eq reuse-miss-profile "$(lines)" 4
+rm -rf "$EVR"
+"$RT" --spec-dir .workflow/specs/001-x --task-id F1 --work-type markfail --reuse >/dev/null 2>&1
+eq reuse-fail-first "$(lines)" 5
+"$RT" --spec-dir .workflow/specs/001-x --task-id F1 --work-type markfail --reuse >/dev/null 2>&1
+eq reuse-miss-failing "$(lines)" 6
+t reuse-miss-failing-digest 0 test -f $EVR/F1/toolchain-digest.txt
+rm -rf "$EVR"
+"$RT" --spec-dir .workflow/specs/001-x --task-id S1 --work-type mark --skip test >/dev/null 2>&1
+eq reuse-skip-first "$(lines)" 6
+"$RT" --spec-dir .workflow/specs/001-x --task-id S2 --work-type mark --reuse >/dev/null 2>&1
+eq reuse-miss-skipped "$(lines)" 7
+"$RT" --spec-dir .workflow/specs/001-x --task-id S3 --work-type mark --skip test --reuse >/dev/null 2>&1
+eq reuse-skipped-key-not-needed "$(jq -r .reused_from $EVR/S3/toolchain.json)" S1
+rm -rf "$EVR"
+"$RT" --spec-dir .workflow/specs/001-x --task-id P1 --work-type mark >/dev/null 2>&1
+jq '(.results[] | select(.key == "test")) += {scoped: true, own: 1, excluded: 0}' $EVR/P1/toolchain.json > "$T/p1.json"
+mv "$T/p1.json" $EVR/P1/toolchain.json
+"$RT" --spec-dir .workflow/specs/001-x --task-id P2 --work-type mark --reuse >/dev/null 2>&1
+eq reuse-miss-scoped-other-task "$(lines)" 9
+rm -rf "$EVR"
+
+# scoping: the task's own selectors alone switch to test_scoped; neither list runs test
+cat > .workflow/profiles/scope.md <<P
+## Toolchain
+\`\`\`yaml
+test: "echo full >> '$M'"
+test_scoped: "echo scoped >> '$M'; cat \"\$WF_TASK_TESTS_FILE\" > '$T/own.txt'"
+\`\`\`
+P
+printf -- '---\ntasks:\n  - {id: T1, status: done, work_type: scope, tests: [tests/scripts/a.sh, tests/scripts/b.sh]}\n  - {id: T2, status: in-progress, work_type: scope}\n  - {id: T3, status: done, work_type: scope, tests: [tests/scripts/c.sh]}\n---\n' > .workflow/specs/001-x/tasks.md
+: > "$M"
+out=$("$RT" --spec-dir .workflow/specs/001-x --task-id T1 2>/dev/null)
+eq scope-own-only-scoped "$(tail -n 1 "$M")" scoped
+eq scope-own-only-flags "$(jq -c '.results[] | select(.key=="test") | [.scoped, .own, .excluded]' <<<"$out")" '[true,2,0]'
+eq scope-own-file "$(tr '\n' ' ' < "$T/own.txt")" "tests/scripts/a.sh tests/scripts/b.sh "
+out=$("$RT" --spec-dir .workflow/specs/001-x --task-id T2 2>/dev/null)
+eq scope-none-full "$(tail -n 1 "$M")" full
+eq scope-none-no-flags "$(jq -c '.results[] | select(.key=="test") | has("scoped")' <<<"$out")" false
 
 shellcheck_files "shellcheck: run-toolchain.sh" "$RT"
 finish
