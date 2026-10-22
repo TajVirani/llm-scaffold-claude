@@ -60,7 +60,7 @@ tasks:
     pr: null
   - id: T3
     title: "The review-lessons lens definition"
-    status: in-progress
+    status: done
     capability: CAP-NEW-review-lessons-lens
     depends_on: []
     touches_core: false
@@ -101,7 +101,7 @@ tasks:
     pr: null
   - id: T5
     title: "Retrospective writes and retires review lessons"
-    status: pending
+    status: in-progress
     capability: CAP-NEW-review-lessons-record
     depends_on: [T1]
     touches_core: false
