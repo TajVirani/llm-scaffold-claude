@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # File: Hook (Claude adapter): protect Tier A authored context.
 # Goals:
-#   - Guard .workflow/GLOSSARY.md, .workflow/capabilities.md, .workflow/rules.md, .workflow/decisions/, .workflow/profiles/
-#   - Allow only at the step marker's gates: .workflow/GLOSSARY.md at 0.2.3, 0.3.15, 0.4.3 or 5.3; other Tier A (capabilities.md, rules.md, decisions/) at 0.3.7, 5.3 or 5.7; .workflow/profiles/ created at 00.19 or 5.3, edited only at 5.3; deny when the payload carries agent_id, which only sub-agent calls carry (verified 2.1.300)
+#   - Guard .workflow/GLOSSARY.md, .workflow/capabilities.md, .workflow/rules.md, .workflow/decisions/, .workflow/profiles/, .workflow/review-lessons.md
+#   - Allow only at the step marker's gates: .workflow/GLOSSARY.md at 0.2.3, 0.3.15, 0.4.3 or 5.3; other Tier A (capabilities.md, rules.md, decisions/) at 0.3.7, 5.3 or 5.7; .workflow/profiles/ created at 00.19 or 5.3, edited only at 5.3; .workflow/review-lessons.md at 5.7 only (denied when no feature is in flight); deny when the payload carries agent_id, which only sub-agent calls carry (verified 2.1.300)
 #   - Redirect anything else to a 5.2 proposal in .workflow/specs/NNN-slug/proposals.md
 # Triggers/inputs: PreToolUse JSON for Write/Edit/NotebookEdit. Rule logic in skills/feature-workflow/scripts/check-write.sh, which reads .workflow/specs/NNN-slug/.step. Paths from the payload `cwd`.
 # Outputs/handoff: Allow, or deny.
