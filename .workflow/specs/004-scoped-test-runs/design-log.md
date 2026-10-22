@@ -60,3 +60,21 @@ Spec: [spec.md](spec.md)
 
 - D10 (supersedes D2): 001-large-path merged to main before this spec branched ("001 is merged. Continue"), so nothing is merged into `spec/001-large-path`; the fix reaches later specs through main.
 - Light path: intent gaps none (Open Questions empty); no irreversible action; footprint one module (`tests`), one capability, three files. `spec/004-scoped-test-runs` created off main; budget 10 tasks / 30 files from `.workflow/rules.md`.
+
+## 2026-10-22 Discovered work: codex-adapters-parallel-flake
+
+- Found at 3.4 by the T1 implementation agent (`artifacts/T1/implementation.yaml`). Kind: bug.
+- Problem: `hooks/codex-adapters` "workflow not installed -> silent allow" failed once in a parallel full run; passed alone, in a second parallel run and at `-j 1`. Evidence: `tests/hooks/codex-adapters.sh:146` or `:203`.
+- Assessment: can be solved later (CAP-NEW-scoped-test-runs' success line is met). Ruling: "Next feature (Recommended)". Item: [../work-backlog/004-scoped-test-runs-disc-001.md](../work-backlog/004-scoped-test-runs-disc-001.md).
+
+## 2026-10-22 Discovered work: interrupted-run-orphans
+
+- Found at 3.7 by the T1 profile-mini-review (`artifacts/T1/mini-review.yaml`). Kind: bug.
+- Problem: an interrupted `tests/run-all.sh` removes its results directory while background suites keep running. Evidence: `tests/run-all.sh:157`, `:167-176`.
+- Assessment: can be solved later. Ruling: "Next feature (Recommended)". Item: [../work-backlog/004-scoped-test-runs-disc-002.md](../work-backlog/004-scoped-test-runs-disc-002.md).
+
+## 2026-10-22 Discovered work: timing-check-thresholds
+
+- Found at 3.7 by the T1 profile-mini-review. Kind: refactor.
+- Problem: the suite's concurrency checks use fixed wall-clock limits. Evidence: `tests/scripts/run-all-selection.sh:413`, `:419`.
+- Assessment: can be solved later. Ruling: "Next feature (Recommended)". Item: [../work-backlog/004-scoped-test-runs-disc-003.md](../work-backlog/004-scoped-test-runs-disc-003.md).

@@ -2,11 +2,11 @@
 tasks:
   - id: T1
     title: "Scoped and parallel harness runs"
-    status: pending
+    status: done
     capability: CAP-NEW-scoped-test-runs
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: test-harness
     module: "tests"
     seam: "tests/run-all.sh CLI: --only-file, --exclude-file, -j; summary lines and exit codes 0/1/2"
     file: tasks/T01-scoped-parallel-runner.md

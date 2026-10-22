@@ -1,0 +1,23 @@
+status: done
+summary: tests/run-all.sh now takes --only-file F and --exclude-file G (each selector a repo-relative path like tests/scripts/x.sh, or a label like scripts/x), and -j N. Suites run in parallel by default. Each suite's output is buffered and printed in glob order, so the report matches a -j 1 run apart from timings. The new suite scripts/run-all-selection tests all of this against stub suites in a new_workdir fixture; tests/README.md documents the flags and the new suite. Full harness timings: default parallel run 137s and 138s (2347/2347 passed on the second run), -j 1 run 425s (2347/2347 passed, exit 0). The first parallel run had one intermittent failure in hooks/codex-adapters, described under discovered_work.
+task_id: T1
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s004_t1
+branch: null
+base_commit: f8ea802e8efa7f56499a2743930887986e1ec020
+head_commit: f786aa3a7692c3bd9bae8b31ff489f4b3cccc781   # after fix round 1 (R2 comment)
+files_changed: [tests/run-all.sh, tests/scripts/run-all-selection.sh, tests/README.md]
+tests_added: 17 checks in tests/scripts/run-all-selection.sh (behaviour, edge, negative)
+evidence:
+  red: "bash tests/scripts/run-all-selection.sh against the old runner; RESULT passed=11 failed=20"
+  green: "bash tests/scripts/run-all-selection.sh; RESULT passed=31 failed=0 skipped=0 xfail=0 (about 16s)"
+  suite: "default -j: run 1 rc=1 137s (hooks/codex-adapters 1 intermittent failure); run 2 rc=0 138s 2347/2347. -j 1: rc=0 425s 2347/2347"
+  toolchain: .workflow/specs/004-scoped-test-runs/artifacts/T1/toolchain.txt (pass)
+considered_not_built:
+  - Killing running background suites on Ctrl-C
+  - Bare suite names in selector files (labels scripts/x accepted)
+  - Exit 2 when only minus exclude leaves no suites (reports 0 suites, exit 0)
+discovered_work:
+  - kind: bug
+    summary: "hooks/codex-adapters check 'workflow not installed -> silent allow' failed once in a parallel full-harness run (rc non-zero, empty output); passed alone and in the next parallel and -j 1 runs."
+    evidence: "tests/hooks/codex-adapters.sh:146 or :203; 'FAIL hooks/codex-adapters passed=98 failed=1'"
+    blocker_assessment: can-wait
