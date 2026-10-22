@@ -101,6 +101,18 @@ yq --front-matter=process -i '.slices[1].depends_on = ["S1"]' "$P/$INI/initiativ
 echo "== JRN-002 emitted slices, planned and reopen"
 IT set-question "$INI" IQ2 --state settled --settled "Adopt the surveyed format." >/dev/null 2>&1
 IT set-question "$INI" IQ3 --state settled --settled "The platform team owns the core flow." >/dev/null 2>&1
+# A yq that fails only when asked for a slice's question ids, so the emit path's read of them fails after the earlier reads pass.
+mkdir -p "$WORK/failing-yq"
+cat >"$WORK/failing-yq/yq" <<EOF
+#!/usr/bin/env bash
+case "\$*" in *'.questions[]'*initiative.md*) echo "yq: simulated read failure" >&2; exit 1 ;; esac
+exec "$(command -v yq)" "\$@"
+EOF
+chmod +x "$WORK/failing-yq/yq"
+err=$(cd "$P" && PATH="$WORK/failing-yq:$PATH" bash "$P/$IT_REL" set-slice "$INI" S1 --status emitted --spec 002-core-flow 2>&1 >/dev/null); rc=$?
+eq "JRN-002 an unreadable slice question list is an environment error" "$rc" 1
+check "JRN-002 the error names initiative.md" 'grep -q "^initiative-transition.sh: .*initiative\.md" <<<"$err"' "$err"
+eq "JRN-002 the slice stays planned" "$(fm "$P/$INI/initiative.md" '.slices[] | select(.id == "S1") | .status')" planned
 t "JRN-002 S1 is emitted once its questions settle" 0 IT set-slice "$INI" S1 --status emitted --spec 002-core-flow
 refused "JRN-002 an emitted slice keeps the spec it was emitted as" IT set-slice "$INI" S1 --spec 003-other
 eq "JRN-002 S1 still names its first spec" "$(fm "$P/$INI/initiative.md" '.slices[] | select(.id == "S1") | .spec')" 002-core-flow

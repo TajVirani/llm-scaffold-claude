@@ -246,7 +246,6 @@ fi
 require_yq
 
 CUR=$(yq --front-matter=extract '.status // ""' "$INITIATIVE") || die "cannot read frontmatter of $INITIATIVE"
-[[ "$CUR" == "null" ]] && CUR=""
 if [[ -n "$CUR" ]] && ! in_list "$CUR" "$INITIATIVE_STATUSES"; then
   die "initiative.md has an unknown status '$CUR' (expected one of: $INITIATIVE_STATUSES)"
 fi
@@ -354,8 +353,10 @@ if [[ "$MODE" == "set-slice" ]]; then
     "planned>emitted")
       [[ -n "$OPT_SPEC" ]] || reject_slice "pass --spec naming the spec the slice was emitted as"
       [[ -f "$QUESTIONS" ]] || die "questions.md not found in the main checkout: $QUESTIONS"
-      # shellcheck disable=SC2046 # one id per word on purpose
-      unsettled=$(unsettled_questions $(yq --front-matter=extract ".slices[] | select(.id == strenv(SID)) | .questions[]" "$INITIATIVE"))
+      slice_question_ids=$(yq --front-matter=extract '.slices[] | select(.id == strenv(SID)) | .questions[]' "$INITIATIVE") \
+        || die "cannot read the questions of $SID in $INITIATIVE"
+      # shellcheck disable=SC2086 # one id per word on purpose
+      unsettled=$(unsettled_questions $slice_question_ids)
       [[ -z "$unsettled" ]] || reject_slice "its questions are not all settled: ${unsettled% }"
       export SPEC_NAME=$OPT_SPEC
       EXPR="($RECORD) |= (.status = \"emitted\" | .spec = strenv(SPEC_NAME))"
