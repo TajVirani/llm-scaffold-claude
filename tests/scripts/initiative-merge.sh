@@ -3,7 +3,8 @@
 # Covers: initiative-transition.sh status planned with every slice emitted; the merge step per rules-setting.sh task_review
 #   (local: --no-ff merge on main, branch deleted, nothing pushed; pr: the generic mode of open-task-pr.sh printing the gh or glab
 #   command with head initiative/NNN-slug and base main, and --record writing merge_pr); the resume check reading each emitted
-#   spec from main; the sign-off hand-off leaving an initiative still exploring untouched; the done flip on a re-created branch,
+#   spec from main; the sign-off hand-off (6.13) leaving untouched an initiative still exploring and a planned initiative reopened
+#   at 6.12 whose branch exists locally or only on origin; the done flip on a re-created branch,
 #   merged the same way; done being terminal (every subcommand exits 2); the generic mode's usage errors (exit 2), its skip
 #   paths (missing head, unknown host, no remote) and its reuse of an open PR.
 #   gh and glab are stubs on PATH; the origin remote is a local bare repo; no network.
@@ -165,10 +166,13 @@ check "generic mode pushes only the head branch" \
   'git -C "$R.origin.git" show-ref --verify --quiet "refs/heads/$BR" && [ "$(git -C "$R.origin.git" for-each-ref --format=x refs/heads | grep -c .)" -eq 2 ]'
 
 echo "== JRN-005 sign-off hand-off on an initiative still exploring"
-# close_check DIR : replays 6.13 from sign-off: the initiative's status on main, then the emitted specs, then the done flip.
+# close_check DIR : replays 6.13 from sign-off: the initiative's status on main, then whether its branch still exists (a reopened
+#   initiative, still exploring), then the emitted specs, then the done flip.
 close_check() {
   local p=$1 spec pending="" slice
   [ "$(on_main "$p" .status)" = planned ] || return 0
+  git -C "$p" show-ref --verify --quiet "refs/heads/$BR" && return 0
+  git -C "$p" show-ref --verify --quiet "refs/remotes/origin/$BR" && return 0
   for spec in $(on_main "$p" '.slices[].spec'); do
     [ "$(git -C "$p" show "main:.workflow/specs/$spec/spec.md" 2>/dev/null | yq --front-matter=extract .status)" = "done" ] || pending="$pending $spec"
   done
@@ -191,6 +195,36 @@ before=$(repo_state "$E")
 close_check "$E"; rc=$?
 check "JRN-005 the 6.13 hand-off on an exploring initiative re-creates no branch and changes nothing" \
   '[ $rc -eq 0 ] && [ "$(repo_state "$E")" = "$before" ]' "rc=$rc"
+
+echo "== JRN-005 sign-off hand-off on a planned initiative reopened on its branch"
+O=$WORK/reopened
+large_path_repo "$O"
+seed_initiative "$O" 001 storage-overhaul
+every_slice_emitted "$O"
+initiative_transition "$O" status "$INI" planned >/dev/null 2>&1
+commit_initiative "$O" "initiative 001-storage-overhaul: planned"
+merge_locally "$O" "Merge initiative 001-storage-overhaul (planned)"
+for spec in 002-core-flow 003-reports; do
+  mkdir -p "$O/.workflow/specs/$spec"
+  sed '1,/^---$/s/^status: draft /status: done /' "$O/$FW_ASSETS_REL/spec.md" >"$O/.workflow/specs/$spec/spec.md"
+done
+git -C "$O" add .workflow/specs && git -C "$O" commit -q -m "specs 002 and 003: done"
+git -C "$O" switch -q --no-track -c "$BR" main
+initiative_transition "$O" status "$INI" exploring --step 6.12 >/dev/null 2>&1
+commit_initiative "$O" "initiative 001-storage-overhaul: reopened"
+git -C "$O" switch -q main
+eq "JRN-005 reopened: main still carries the initiative at planned" "$(on_main "$O" .status)" planned
+eq "JRN-005 reopened: the branch carries it at exploring" "$(git -C "$O" show "$BR:$INI/initiative.md" | yq --front-matter=extract .status)" exploring
+before=$(repo_state "$O")
+close_check "$O"; rc=$?
+check "JRN-005 the 6.13 hand-off on a reopened initiative with a local branch re-creates nothing and flips nothing" \
+  '[ $rc -eq 0 ] && [ "$(repo_state "$O")" = "$before" ]' "rc=$rc"
+git -C "$O" push -q origin "$BR" 2>/dev/null
+git -C "$O" branch -q -D "$BR"
+before=$(repo_state "$O" 2>/dev/null)
+close_check "$O"; rc=$?
+check "JRN-005 the 6.13 hand-off on a reopened initiative only on origin re-creates nothing and flips nothing" \
+  '[ $rc -eq 0 ] && [ "$(repo_state "$O" 2>/dev/null)" = "$before" ]' "rc=$rc"
 
 shellcheck_files "JRN-005 shellcheck merge components" "$P/$IT_REL" "$P/$SCRIPTS_REL/open-task-pr.sh" "$P/$SCRIPTS_REL/rules-setting.sh"
 finish
