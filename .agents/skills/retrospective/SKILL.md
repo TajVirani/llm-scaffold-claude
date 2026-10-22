@@ -1,6 +1,6 @@
 ---
 name: retrospective
-description: "Feature retrospective with the stakeholder: judges the combined result against spec.md, records process lessons and pitfalls, feature notes and model observations, and writes .workflow/decisions/retrospectives/NNN-slug.md. Use at sign-off (5.7), or when a stakeholder asks for a retrospective on a shipped feature."
+description: "Feature retrospective with the stakeholder: judges the combined result against spec.md, records process lessons, pitfalls, review lessons, feature notes and model observations, and writes .workflow/decisions/retrospectives/NNN-slug.md. Use at sign-off (5.7), or when a stakeholder asks for a retrospective on a shipped feature."
 ---
 
 # Retrospective
@@ -20,6 +20,7 @@ The retrospective writes these files, each with the stakeholder's agreement:
 | --- | --- | --- |
 | `.workflow/decisions/retrospectives/NNN-slug.md` | A | The document |
 | `.workflow/decisions/pitfalls.md` | A | Observed failures only |
+| `.workflow/review-lessons.md` | A | Review lessons: new entries, and retirements of enforced ones |
 | `.workflow/specs/NNN-slug/design-log.md` | — | One appended "Retrospective notes" section |
 | `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` | — | Model observations |
 
@@ -29,7 +30,7 @@ At 5.7, set the step before the first Tier A write, so `tier-a-write-guard` allo
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.7
 ```
 
-Standalone with no spec in flight, the guard allows Tier A writes without a step. If another spec is in flight, the guard denies them: stop and report the denial with the agreed text, so the human can apply it once that spec is done.
+Standalone with no spec in flight, the guard allows Tier A writes without a step. If another spec is in flight, the guard denies them: stop and report the denial with the agreed text, so the human can apply it once that spec is done. `.workflow/review-lessons.md` is the exception: it is written only at 5.7, so a standalone run leaves an approved review lesson as an action item.
 
 Write Tier A files with Write or Edit, never through Bash. The retrospective does not change `status`: `sign-off` sets `done` after it returns. It never edits `rules.md`, profiles, skills or `.agents/agents/*.md`: those changes become action items.
 
@@ -62,13 +63,13 @@ Done when every finding has a disposition, and every earlier action item has a l
 
 ### 5. Agree the lessons with the stakeholder
 
-Read [modules/routing.md](modules/routing.md). Present the candidate process lessons, pitfalls, feature notes and model observations together, each with its source and proposed destination. The stakeholder approves, changes or rejects each one. Write only the approved ones, each to its destination, and record where each went in the document.
+Read [modules/routing.md](modules/routing.md). Present the candidate process lessons, pitfalls, review lessons (new ones, and recorded ones to retire), feature notes and model observations together, each with its source and proposed destination. The stakeholder approves, changes or rejects each one. Write only the approved ones, each to its destination, and record where each went in the document; for a review lesson, "Recorded in" names the file and the id (`.workflow/review-lessons.md RL-003`).
 
-Done when every candidate is written, turned into an action item, or recorded as rejected.
+Done when every candidate is written (or retired), turned into an action item, or recorded as rejected.
 
 ### 6. Verdict and action items
 
-Compile **Action items**: fix-now findings, and approved lessons whose destination this skill cannot write (rules, profiles, skills, tool rules). Give each one an owner, and mark it "awaiting human application".
+Compile **Action items**: fix-now findings, and approved lessons whose destination this skill cannot write (rules, profiles, skills, tool rules). A review lesson written to `.workflow/review-lessons.md` is not an action item; one a standalone run could not write is. Give each one an owner, and mark it "awaiting human application".
 
 Then render the machine verdict:
 
@@ -88,4 +89,5 @@ Fill **Open questions** ("None." if empty), replace any placeholder left in the 
 
 - `.workflow/decisions/retrospectives/NNN-slug.md` exists, every section is filled or says "None.", and it holds no placeholder.
 - Every approved pitfall is in `pitfalls.md`, every feature note is in `design-log.md`, and every model observation is in its one destination (the model map for that task type).
+- Every approved review lesson is an entry in `.workflow/review-lessons.md` or marked "already present", every approved retirement carries `retired` and `enforced_by`, and the file passes its `validate:` command.
 - Every Tier A write happened with the 5.7 step set, or outside any in-flight feature.
