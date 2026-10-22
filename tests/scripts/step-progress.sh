@@ -112,6 +112,7 @@ t "large: a 6.x id on --path light exits 2" 2 "$TEST_BASH" "$SP" 6.13 --path lig
 err=$("$TEST_BASH" "$SP" 6.3 --path full 2>&1 >/dev/null)
 check "large: the refusal names the large path" '[[ "$err" == *"on the large path"* ]]' "$err"
 t "large: a 6.x id with --spec-dir exits 2" 2 "$TEST_BASH" "$SP" --spec-dir .workflow/specs/001-alpha 6.2
+eq "large: a 00.x id with --at a 6.x step shows the large form, then the 00.x step" "$(sp 00.19 --at 6.4)" "Large path · step 4 of 13 — Launch research and fact lookups (6.4) · Define the missing profile (00.19)"
 eq "the conversion node runs after 0.3.19, before 0.3.20" "$(sp 0.3.23)" "Phase 1 of 6 · step 35 of 48 — Discovery: Convert a spec into an initiative (0.3.23)"
 
 finish

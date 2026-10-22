@@ -13,6 +13,7 @@
 #                 takes no --path, since the large path plans an initiative, not a spec.
 #     --at        for a cross-cutting 00.x id: the linear step it was entered from (discovered work's origin node, 3.1 for 00.19).
 #                 The line shows that step, then the 00.x step after it.
+#                 It may name a large-path step (6.x): the line then shows the large form, then the 00.x step.
 #     Run from the project root (main checkout), where .step lives.
 # stdout: one line; nothing for an intake id (0.0.x: no progress line before a spec exists).
 # Exit codes: 0 printed (or intake); 2 unknown id, an id not on the chosen path (a 6.x id with --path or --spec-dir), a side artifact id (0.3.21, 3.12), or a 00.x id
@@ -63,6 +64,7 @@ if [[ -n "$SPEC_DIR" ]]; then
   fi
 fi
 [[ -n "$ID" ]] || usage
+# Keep the asked-for path apart from the default: a 6.x id refuses a path given by --path or the spec, but accepts the default.
 PATH_ASKED=$PATH_OPT
 PATH_OPT=${PATH_OPT:-full}
 
