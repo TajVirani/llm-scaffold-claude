@@ -1,0 +1,49 @@
+{
+  "status": "fail",
+  "task_id": "gate-3.9-w1b",
+  "work_type": "test-harness",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/profiles/test-harness.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/002-review-lessons/artifacts/gate-3.9-w1b",
+  "tree": "7f0d0bdf295ef90f756cc16b8fb592241c198bbb",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\"",
+      "status": "fail",
+      "exit_code": 1,
+      "scoped": true,
+      "own": 0,
+      "excluded": 1
+    }
+  ],
+  "digest": "Toolchain failed for task gate-3.9-w1b (1 of 2 commands). Fix these in the same context, then stop again.\nFull output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/002-review-lessons/artifacts/gate-3.9-w1b/toolchain.txt\n\n[test] tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\" exited 1. Last 40 lines:\nPASS scripts/check-write-tier-a             passed=116  failed=0   skipped=0   xfail=0   55s\nPASS scripts/commit-workflow-data           passed=26   failed=0   skipped=0   xfail=0   5s\nPASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   8s\nPASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   24s\nPASS scripts/initiative-conversion          passed=28   failed=0   skipped=0   xfail=0   5s\nPASS scripts/initiative-emission            passed=22   failed=0   skipped=0   xfail=0   4s\nPASS scripts/initiative-merge               passed=63   failed=0   skipped=0   xfail=0   21s\nPASS scripts/initiative-transition          passed=65   failed=0   skipped=0   xfail=0   9s\nPASS scripts/install-claude-settings        passed=31   failed=0   skipped=0   xfail=0   43s\nPASS scripts/install-codex-config           passed=20   failed=0   skipped=0   xfail=0   46s\nPASS scripts/install-codex-tui              passed=8    failed=0   skipped=0   xfail=0   36s\nPASS scripts/install-hosts                  passed=17   failed=0   skipped=0   xfail=0   49s\nPASS scripts/install-payload                passed=55   failed=0   skipped=0   xfail=0   45s\nPASS scripts/install-upgrade                passed=12   failed=0   skipped=0   xfail=0   45s\nPASS scripts/resolve-launch-initiative      passed=19   failed=0   skipped=0   xfail=0   5s\nPASS scripts/resolve-launch                 passed=95   failed=0   skipped=0   xfail=0   27s\nFAIL scripts/run-all-selection              passed=37   failed=1   skipped=0   xfail=0   26s\nPASS scripts/run-toolchain                  passed=69   failed=0   skipped=0   xfail=0   28s\nPASS scripts/status-transition-specs        passed=220  failed=0   skipped=0   xfail=0   34s\nPASS scripts/status-transition-tasks        passed=143  failed=0   skipped=0   xfail=0   37s\nPASS scripts/step-progress                  passed=66   failed=0   skipped=0   xfail=0   5s\nPASS scripts/task-breakdown                 passed=91   failed=0   skipped=0   xfail=0   19s\nPASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   6s\nPASS hooks/audit-sync-resume                passed=56   failed=0   skipped=0   xfail=0   60s\nPASS hooks/block-destructive-git            passed=144  failed=0   skipped=0   xfail=0   13s\nPASS hooks/codex-adapters                   passed=99   failed=0   skipped=0   xfail=0   46s\nPASS hooks/codex-pre-spawn-initiative       passed=17   failed=0   skipped=0   xfail=0   7s\nPASS hooks/codex-shim                       passed=38   failed=0   skipped=0   xfail=0   19s\nPASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   19s\nPASS hooks/initiative-write-guards          passed=21   failed=0   skipped=0   xfail=0   18s\nPASS hooks/pre-launch                       passed=20   failed=0   skipped=0   xfail=0   11s\nPASS hooks/session-start-initiatives        passed=26   failed=0   skipped=0   xfail=0   11s\nPASS hooks/worktree-guard                   passed=42   failed=0   skipped=0   xfail=0   18s\nPASS hooks/write-guards                     passed=101  failed=0   skipped=0   xfail=0   53s\nPASS lint/frontmatter                       passed=40   failed=0   skipped=0   xfail=0   5s\nPASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   15s\nPASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   1s\nPASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   2s\nTOTAL passed=2554 failed=1 skipped=0 xfail=0 (43 suites)\nFAILED suites: scripts/run-all-selection\n"
+}

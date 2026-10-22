@@ -178,3 +178,14 @@ Facts looked up instead of asked (0.3.10): None.
 - T1 reported discovered work (origin 3.4, kind requirement, can-wait): the new asset `.agents/skills/feature-workflow/assets/review-lessons.md` has no `PROVENANCE.md` line, which `spec.md` Constraints and `.workflow/rules.md:142` require; `PROVENANCE.md` was granted to T3. Presented with the T3 stop; ruling: pending.
 - Rulings (2026-10-22): T3 resumes on the merged spec branch (merge `spec/002-review-lessons`, now holding T2's `4.9` row, into its task branch and re-run the toolchain; the profile is unchanged) and the lint-key gap is recorded as proposal P3 for 5.3. Stakeholder: "Resume T3 on the merged branch + 5.3 proposal (Recommended)". The template's `PROVENANCE.md` line is added in T3's resume under its 2.1 PROVENANCE grant; no backlog item. Stakeholder: "In T3's resume (Recommended)". Spec back to `in-progress`, T3 `in-progress`.
 - T3 merged (`ad8deac`) after the resume: mini-review pass under the agent-docs checklist (its reviewer noted the body keeps the sibling lenses' Receives / Method / Scoring / Return headings rather than the agent template's Input / Steps / Return; not failed). Task PR skipped (`gh` not installed).
+
+## 2026-10-22 Discovered work: flaky-parallel-timing-test
+
+- Found at: step 3.9 by the orchestrator (gate `gate-3.9-w1b` after T3's merge). Kind: bug
+- Problem and evidence: `tests/scripts/run-all-selection.sh` proves concurrency by wall time (four one-second stubs under four seconds) and fails under load; the gate overlapped T5's full-harness toolchain run (`artifacts/gate-3.9-w1b/toolchain.txt:27-28`); the same assertion passed in `gate-3.9-w1` and in the re-run `gate-3.9-w1c` without concurrent load, and T3's five non-script files cannot affect the runner.
+- Assessment and ruling: can be solved later; backlog item. Stakeholder: "Not a blocker, next feature (Recommended)". Lesson for the orchestrator: do not overlap a 3.9 gate with an agent's full-harness toolchain run.
+- Backlog item: [work-backlog/002-review-lessons-disc-002.md](../work-backlog/002-review-lessons-disc-002.md)
+
+## 2026-10-22 Implementation wave 2, part 1 (T5)
+
+- T5 launched as the frontier after wave 1's gate (it depends on T1 only), merged after a clean toolchain and a passing mini-review. Its agent found that the guard T1 added denies the lessons file when no feature is in flight, so the skill now turns an approved review lesson into an action item in a standalone retrospective (no spec in flight) and writes it only at a feature's 5.7. Not a decision taken here: the end-state lens judges it against `spec.md` at 4.2 (CAP-NEW-review-lessons-record says "at 5.7 and nowhere else", which this satisfies). Task PR skipped (`gh` not installed).

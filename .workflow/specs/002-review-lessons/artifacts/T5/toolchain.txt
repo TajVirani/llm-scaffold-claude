@@ -21,3 +21,95 @@ PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   x
 TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
 == lint exit 0
 
+== test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
+== scripts/budget-check
+== scripts/build-architecture
+== scripts/cache-scripts
+== scripts/check-review-findings
+== scripts/check-write-paths
+== scripts/check-write-tier-a
+== scripts/commit-workflow-data
+== scripts/generate-boundary-config
+== scripts/generate-codex-agents
+== scripts/initiative-conversion
+== scripts/initiative-emission
+== scripts/initiative-merge
+== scripts/initiative-transition
+== scripts/install-claude-settings
+== scripts/install-codex-config
+== scripts/install-codex-tui
+== scripts/install-hosts
+== scripts/install-payload
+== scripts/install-upgrade
+== scripts/resolve-launch-initiative
+== scripts/resolve-launch
+== scripts/run-all-selection
+== scripts/run-toolchain
+== scripts/status-transition-specs
+== scripts/status-transition-tasks
+== scripts/step-progress
+== scripts/task-breakdown
+== scripts/upstream-diff
+== hooks/audit-sync-resume
+== hooks/block-destructive-git
+== hooks/codex-adapters
+== hooks/codex-pre-spawn-initiative
+== hooks/codex-shim
+== hooks/evidence-capture
+== hooks/initiative-write-guards
+== hooks/pre-launch
+== hooks/session-start-initiatives
+== hooks/worktree-guard
+== hooks/write-guards
+== lint/frontmatter
+== lint/step-list
+== lint/symlinks
+== lint/upstream-lineage
+
+== summary
+PASS scripts/budget-check                   passed=69   failed=0   skipped=0   xfail=0   23s
+PASS scripts/build-architecture             passed=74   failed=0   skipped=0   xfail=0   18s
+PASS scripts/cache-scripts                  passed=36   failed=0   skipped=0   xfail=0   7s
+PASS scripts/check-review-findings          passed=119  failed=0   skipped=0   xfail=0   8s
+PASS scripts/check-write-paths              passed=153  failed=0   skipped=0   xfail=0   52s
+PASS scripts/check-write-tier-a             passed=116  failed=0   skipped=0   xfail=0   43s
+PASS scripts/commit-workflow-data           passed=26   failed=0   skipped=0   xfail=0   4s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   7s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   18s
+PASS scripts/initiative-conversion          passed=28   failed=0   skipped=0   xfail=0   5s
+PASS scripts/initiative-emission            passed=22   failed=0   skipped=0   xfail=0   4s
+PASS scripts/initiative-merge               passed=63   failed=0   skipped=0   xfail=0   20s
+PASS scripts/initiative-transition          passed=65   failed=0   skipped=0   xfail=0   8s
+PASS scripts/install-claude-settings        passed=31   failed=0   skipped=0   xfail=0   28s
+PASS scripts/install-codex-config           passed=20   failed=0   skipped=0   xfail=0   30s
+PASS scripts/install-codex-tui              passed=8    failed=0   skipped=0   xfail=0   22s
+PASS scripts/install-hosts                  passed=17   failed=0   skipped=0   xfail=0   38s
+PASS scripts/install-payload                passed=55   failed=0   skipped=0   xfail=0   37s
+PASS scripts/install-upgrade                passed=12   failed=0   skipped=0   xfail=0   29s
+PASS scripts/resolve-launch-initiative      passed=19   failed=0   skipped=0   xfail=0   4s
+PASS scripts/resolve-launch                 passed=95   failed=0   skipped=0   xfail=0   26s
+PASS scripts/run-all-selection              passed=38   failed=0   skipped=0   xfail=0   25s
+PASS scripts/run-toolchain                  passed=69   failed=0   skipped=0   xfail=0   27s
+PASS scripts/status-transition-specs        passed=220  failed=0   skipped=0   xfail=0   33s
+PASS scripts/status-transition-tasks        passed=143  failed=0   skipped=0   xfail=0   36s
+PASS scripts/step-progress                  passed=66   failed=0   skipped=0   xfail=0   6s
+PASS scripts/task-breakdown                 passed=91   failed=0   skipped=0   xfail=0   18s
+PASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   5s
+PASS hooks/audit-sync-resume                passed=56   failed=0   skipped=0   xfail=0   53s
+PASS hooks/block-destructive-git            passed=144  failed=0   skipped=0   xfail=0   12s
+PASS hooks/codex-adapters                   passed=99   failed=0   skipped=0   xfail=0   43s
+PASS hooks/codex-pre-spawn-initiative       passed=17   failed=0   skipped=0   xfail=0   6s
+PASS hooks/codex-shim                       passed=38   failed=0   skipped=0   xfail=0   19s
+PASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   19s
+PASS hooks/initiative-write-guards          passed=21   failed=0   skipped=0   xfail=0   15s
+PASS hooks/pre-launch                       passed=20   failed=0   skipped=0   xfail=0   11s
+PASS hooks/session-start-initiatives        passed=26   failed=0   skipped=0   xfail=0   10s
+PASS hooks/worktree-guard                   passed=42   failed=0   skipped=0   xfail=0   18s
+PASS hooks/write-guards                     passed=101  failed=0   skipped=0   xfail=0   49s
+PASS lint/frontmatter                       passed=39   failed=0   skipped=0   xfail=0   4s
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   14s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   0s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   3s
+TOTAL passed=2554 failed=0 skipped=0 xfail=0 (43 suites)
+== test exit 0
+
