@@ -152,3 +152,17 @@ Facts looked up instead of asked (0.3.10): None.
 ## 2026-10-22 Discovered work at 1.2
 
 - Dismissed discovered work: lint-skips-untracked-tests: the test-harness profile's `lint` key shellchecks `git ls-files` only, so a suite file written but not yet committed is skipped by a toolchain run and the stop audit reuses that run after the commit (`.workflow/profiles/test-harness.md` § Toolchain, `lint`), not a blocker, user chose not to pursue. Recorded as proposal P1 (and P2 for the shell-scripts profile, the same shape) in `proposals.md` for 5.3.
+
+## 2026-10-22 Discovered work: research-missing-from-model-map
+
+- Found at: step 2.1 by the orchestrator while sizing T6. Kind: bug
+- Problem and evidence: project-setup's model-map tier table and counts omit the `research` task type added by spec 001, so a new project gets no `.workflow/model-map/research.md` and a research launch is denied at 00.14 (`.agents/skills/project-setup/modules/model-map.md:10, 18, 50`; `.agents/skills/project-setup/SKILL.md:49`; `.workflow/model-map/` holds 12 files, none for research)
+- Assessment and ruling: can be solved later; backlog item. Stakeholder: "Not a blocker, next feature (Recommended)". T6 writes the count that matches the types its table lists.
+- Backlog item: [work-backlog/002-review-lessons-disc-001.md](../work-backlog/002-review-lessons-disc-001.md)
+
+## 2026-10-22 Task breakdown approved (2.1-2.5)
+
+- Six tasks in two waves, approved as proposed: T1 template and guard class, T2 launch row, lens table and step 4.9, T3 the lens definition (wave 1); T4 triage launches four lenses, T5 retrospective writes and retires lessons, T6 project-setup row and the asset-set lint (wave 2). Seams agreed as listed in the task files (2.3). Cross-module files granted to ride with their task: the manifest, PROVENANCE, assetlist and README with T3; the hook header line with T1; the PLAN docs with T2. Stakeholder: "Approve as proposed", "Agree all six", "Grant all three".
+- Decision: **D11** Size budget for this spec is the project default, `max_tasks: 10`, `max_changed_files: 30` (26 non-test files predicted). Stakeholder: "Keep 10 / 30 (Recommended)".
+- Shared core: T1 requests `WF_REVIEW_LESSONS` in `.agents/lib/workflow-paths.sh` (2.4); no other task touches shared core.
+- This repo's own `.workflow/model-map/review-lessons.md` is written by the 00.14 flow at the first real lens launch, as spec 001 did for `research`, not by a task.
