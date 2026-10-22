@@ -28,6 +28,7 @@ The Claude Code settings fragment that `install.sh` merges into `<target>/.claud
 | --- | --- | --- |
 | `Edit(.workflow/cache/**)` | Tier B caches | Added. Nothing may write there through Write, Edit or NotebookEdit (D17). `publish-cache.sh` moves files in from a script, which the rule does not see. |
 | `Edit(.workflow/specs/*/.step)` | The step marker the guards read (D16) | Added. Only `status-transition.sh` writes it, from a script the rule does not see. The rule stops the model forging a step through Write, Edit, NotebookEdit or a Bash redirect. The pattern has two segments, so it is anchored at the project root, which is where `.step` lives (D18: gitignored state exists only in the main checkout). |
+| `Edit(.workflow/initiatives/*/.step)` | An initiative's step marker, which the guards read like a spec's | Added, for the same reasons as the spec marker. Only `initiative-transition.sh` writes it, from a script the rule does not see. Two segments, so it is anchored at the project root, where the gitignored marker lives (D18). |
 | (none) | Tier A docs (`.workflow/GLOSSARY.md`, `.workflow/capabilities.md`, `.workflow/rules.md`, `.workflow/decisions/`, `.workflow/profiles/`) | Not added. The main session writes them at approved steps (D16), so only the step-aware guard can decide. |
 | (none) | `.workflow/specs/*/spec.md` | Not added, for the same reason (writes at 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 4.8, 5.1, 5.3, 5.9, 00.29). |
 

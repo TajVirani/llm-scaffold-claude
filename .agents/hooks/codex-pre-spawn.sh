@@ -15,9 +15,11 @@
 #       implementation        s<NNN>_t<N> (task, 3.3) or s<NNN>_phase_1_<enc(work_type)> (Phase 1, 1.2/1.3); required
 #       integration           s<NNN>_integration_<enc(work_type)>; required
 #       profile-mini-review   s<NNN>_t<N>_r<round> (3.7 review round; the bare s<NNN>_t<N> is the implementer's name); required
-#       other workflow types  optional: when it starts with s<NNN>_ the spec folder is checked; any other valid name passes (a repeated
-#                             Phase 0/4 launch adds _r<round>, e.g. s007_fact_lookup_r2)
-#     s<NNN> must resolve to exactly one folder .workflow/specs/<NNN>-*; a <enc(work_type)> must equal enc() of exactly one .workflow/profiles/<wt>.md.
+#       other workflow types  optional: when it starts with s<NNN>_ the spec folder is checked, when it starts with i<NNN>_ (a launch
+#                             from an initiative, e.g. i004_research) the initiative is checked; any other valid name passes (a
+#                             repeated Phase 0/4 launch adds _r<round>, e.g. s007_fact_lookup_r2, i004_research_r2)
+#     s<NNN> must resolve to exactly one folder .workflow/specs/<NNN>-*; i<NNN> to exactly one initiative, either a folder
+#     .workflow/initiatives/<NNN>-* in the main checkout or a branch initiative/<NNN>-* (local or origin); a <enc(work_type)> must equal enc() of exactly one .workflow/profiles/<wt>.md.
 #   - Any failed check: deny with the reason. jq missing, unreadable payload, or the task-type table not readable: deny, fail closed.
 # Outputs/handoff: stdout is nothing (allow) or exactly one deny JSON:
 #   {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"codex-pre-spawn: ..."}}
@@ -28,7 +30,7 @@
 # Notes: The model is not validated here: a toml without `model` takes the spawn value, and the orchestrator passes the
 #   resolve-launch.sh model. It is unverified whether Codex loads hyphenated agent names, hence the enc() form that generate-codex-agents.sh writes.
 # Sources: first-party; pre-launch.sh (task-type table, deny shape, root normalisation); post-implementation-audit.sh (codex_enc, task_name parse).
-# Requires: bash 3.2+, jq, git (optional); resolve-launch.sh --requirements (jq only).
+# Requires: bash 3.2+, jq, git (optional; needed to find an initiative that exists only on its branch); resolve-launch.sh --requirements (jq only).
 
 set -euo pipefail
 
@@ -76,7 +78,7 @@ while IFS= read -r t; do
 done <<<"$types"
 [ -n "$type" ] || exit 0
 
-FORMS="implementation: s<NNN>_t<N> or s<NNN>_phase_1_<work_type>; integration: s<NNN>_integration_<work_type>; profile-mini-review: s<NNN>_t<N>_r<round>"
+FORMS="implementation: s<NNN>_t<N> or s<NNN>_phase_1_<work_type>; integration: s<NNN>_integration_<work_type>; profile-mini-review: s<NNN>_t<N>_r<round>; a launch from an initiative: i<NNN>_<task_type>[_r<round>]"
 bad() { deny "spawn of '$agent_type' refused: task_name '$task_name' $1 ($FORMS; enc: lowercase, non [a-z0-9] -> _)"; }
 
 if [ -z "$task_name" ]; then
@@ -93,6 +95,19 @@ spec_folder() {
   for d in "$root/$WF_SPECS/$1"-*/; do [ -d "$d" ] && n=$((n + 1)); done
   [ "$n" -eq 1 ] || bad "names spec s$1, but $n folders match $WF_SPECS/$1-* (need exactly one)"
 }
+# initiative_folder NNN : exactly one initiative <NNN>-*, as a folder in the main checkout or as an initiative/<NNN>-* branch (local or
+# origin); an initiative still in exploration exists only on its branch until it merges.
+initiative_folder() {
+  local d n
+  n=$(
+    {
+      for d in "$root/$WF_INITIATIVES/$1"-*/; do [ -d "$d" ] && basename "$d"; done
+      { git -C "$root" for-each-ref --format='%(refname:lstrip=2)' "refs/heads/initiative/$1-*" "refs/remotes/origin/initiative/$1-*" 2>/dev/null || true; } \
+        | sed -e 's|^origin/||' -e 's|^initiative/||'
+    } | sort -u | grep -c .
+  ) || true
+  [ "${n:-0}" -eq 1 ] || bad "names initiative i$1, but ${n:-0} initiatives match $WF_INITIATIVES/$1-* or initiative/$1-* (need exactly one)"
+}
 # work_type ENC : exactly one .workflow/profiles/<wt>.md with enc(wt) = ENC.
 work_type() {
   local p n=0
@@ -103,9 +118,11 @@ work_type() {
   [ "$n" -eq 1 ] || bad "names work type '$1', but $n profiles under $WF_PROFILES/ encode to it (need exactly one)"
 }
 
-num="" rest=""
+num="" rest="" initiative_num=""
 if [[ "$task_name" =~ ^s([0-9]+)_(.+)$ ]]; then
   num=${BASH_REMATCH[1]} rest=${BASH_REMATCH[2]}
+elif [[ "$task_name" =~ ^i([0-9]+)_.+$ ]]; then
+  initiative_num=${BASH_REMATCH[1]}
 fi
 
 case "$type" in
@@ -133,6 +150,7 @@ case "$type" in
     ;;
   *)
     [ -z "$num" ] || spec_folder "$num"
+    [ -z "$initiative_num" ] || initiative_folder "$initiative_num"
     ;;
 esac
 exit 0
