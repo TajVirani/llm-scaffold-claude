@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Suite: hooks/post-implementation-audit.sh (SubagentStop), hooks/rules-boundary-config-sync.sh (PostToolUse) and
 #   hooks/session-start-resume.sh (SessionStart).
-# Covers: audit block / loop counter / give-up / evidence in the main checkout, phase-1 and malformed headers;
+# Covers: audit block / loop counter / give-up / evidence in the main checkout, phase-1 and malformed headers,
+#   a passing self-run reused by the stop audit;
 #   rules.md -> boundary config sync (block on parse error, missing yq, worktree); resume offer listing,
 #   discovered-work and size-budget prompts, work-backlog count, output cap.
 # The three share one fixture project, so the sections run in order.
@@ -162,6 +163,19 @@ mk_transcript "$B/t9.jsonl" "$HDR_T9"
 out=$(stop_payload "$B/t9.jsonl" false | bash "$H/post-implementation-audit.sh" 2>/dev/null)
 check "run-toolchain config error (no profile) -> allow + audit.json warning" '[ -z "$(jq -r ".decision // empty" <<<"$out")" ] && [ "$(jq -r .outcome "$EV/audit.json")" = warning ]' "$out"
 rm -f "$EV/audit.json"
+
+# The stop audit passes --reuse: after the implementer's own passing run on the same tree, nothing runs again
+MK=$B/marker
+printf '## Toolchain\n\n```yaml\nlint: "true"\ntest: "echo run >> %s"\n```\n' "'$MK'" > "$WT/.workflow/profiles/marked.md"
+HDR_T2=$'```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/001-demo\ntask_id: T2\nwork_type: marked\n```\n\nImplement T2.'
+mk_transcript "$B/t2.jsonl" "$HDR_T2"
+bash "$P/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir .workflow/specs/001-demo --task-id T2 --work-type marked --cwd "$WT" >/dev/null 2>&1
+out=$(stop_payload "$B/t2.jsonl" false | bash "$H/post-implementation-audit.sh" 2>/dev/null); rc=$?
+check "stop after a passing self-run on the same tree -> allowed, nothing re-run" '[ $rc -eq 0 ] && [ -z "$out" ] && [ "$(wc -l < "$MK" | tr -d " ")" = 1 ] && [ "$(jq -r .reused_from "$P/.workflow/specs/001-demo/artifacts/T2/toolchain.json")" = T2 ]' "$out $(cat "$MK")"
+echo edit > "$WT/edited.txt"
+out=$(stop_payload "$B/t2.jsonl" false | bash "$H/post-implementation-audit.sh" 2>/dev/null)
+check "stop after an edit -> toolchain runs again" '[ -z "$out" ] && [ "$(wc -l < "$MK" | tr -d " ")" = 2 ]' "$out"
+rm -f "$WT/edited.txt" "$WT/.workflow/profiles/marked.md"
 
 echo "== rules-boundary-config-sync"
 post_payload() { jq -cn --arg tool "$1" --arg f "$2" --arg c "${3:-$P}" '{session_id:"s",cwd:$c,hook_event_name:"PostToolUse",tool_name:$tool,tool_input:{file_path:$f},tool_response:{}}'; }
