@@ -327,3 +327,8 @@ Rows that change against the earlier classifications; every other row stands.
 | `check-write.sh` | extend | Also scans `.workflow/initiatives/*/.step`; large-path term-gate nodes join the glossary step list (D30) |
 | `modules/discovery.md` 0.1.1 | extend | Next spec number also counts spec branches and initiative slice records (D31) |
 | `initiative.md` `merge_pr` | create | URL of the `planned` PR/MR, or null (D32) |
+
+## 2026-10-22 Discovered work (Phase 1)
+
+- Dismissed discovered work: no-e2e-work-type: verification-setup 1.3 and 1.4 step 2 assume an e2e-browser work type and this project has none, every journey being a harness suite (`.agents/skills/feature-workflow/modules/verification-setup.md` § 1.3, § 1.4), not a blocker, user chose not to pursue; this spec records the Browser suite as `none` and 1.4 step 2 as not applicable.
+- Dismissed discovered work: spec-number-origin: D31's next-number count omits a converted spec that left no folder and no branch, while the end state says its number is not reused (`.workflow/specs/001-large-path/design-log.md:316`, `tests/fixtures/initiative.sh` `next_spec_number`), not a blocker, user chose not to pursue a loop-back; clarification recorded: D31's count also includes each initiative's `origin`, as JRN-001 pins.

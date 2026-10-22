@@ -1,0 +1,2526 @@
+== scripts/build-architecture
+ok   arch-rc
+ok   arch-golden
+ok   arch-order-independent
+ok   arch-scope-dot-slash
+ok   arch-module-override-one-node
+ok   arch-fallback-first-segment
+ok   viol-sorted-unique
+ok   viol-none
+ok   viol-bad-json
+ok   mod-rc
+ok   mod-headings
+ok   mod-slots
+ok   mod-a-files
+ok   mod-a-interface
+ok   mod-a-deps
+ok   mod-a-usedby
+ok   mod-main-default
+ok   mod-b-no-entry
+ok   mod-sub-depends-none
+ok   mod-no-tsconfig
+ok   mod-deterministic
+ok   ent-rc
+ok   ent-candidates
+ok   ent-reaches-modules
+ok   ent-reaches-files
+ok   out-staging
+ok   out-same-as-stdout
+ok   out-under-cache
+ok   out-under-cache-nothing-written
+ok   dirty-refused
+ok   dirty-allowed
+ok   dirty-outside-scope-ok
+ok   untracked-refused
+ok   scope-boundaries-ignored
+ok   scope-boundaries-warns
+ok   scope-only-boundaries
+ok   rej-no-scope
+ok   rej-glob
+ok   rej-dotdot
+ok   rej-missing-scope
+ok   rej-bad-cache
+ok   rej-bad-json
+ok   rej-no-files
+ok   rej-depcruise-fails
+ok   rej-rules-unparseable
+ok   collision-rc
+ok   collision-names
+ok   chk-arch-ok
+ok   chk-mod-slot
+ok   chk-mod-ok
+ok   chk-mod-frontmatter-ignored
+ok   chk-mod-two-sentences
+ok   chk-mod-unsorted
+ok   chk-mod-missing-field
+ok   chk-mod-timestamp
+ok   chk-big-body-rc
+ok   chk-big-body-slot
+ok   chk-flows-ok
+ok   chk-html-blocks
+ok   chk-html-escaped
+ok   chk-flows-note
+ok   chk-flows-late-participant
+ok   chk-flows-args
+ok   chk-flows-unsorted-list
+ok   chk-flows-list-mismatch
+ok   chk-flows-no-error-branches
+ok   chk-flows-none-ok
+ok   chk-flows-none-with-sections
+ok   chk-arch-sections
+ok   chk-empty
+ok   chk-wrong-title
+ok   chk-bad-type
+ok   chk-missing-file
+ok   shellcheck: build-architecture.sh, check-staged-cache.sh
+
+RESULT passed=74 failed=0 skipped=0 xfail=0
+== scripts/cache-scripts
+ok   pub-modules
+ok   pub-flows
+ok   pub-arch
+ok   pub-removed-staged
+ok   pub-sha
+ok   fresh-rc
+ok   fresh-status
+ok   stamps-sha
+ok   stale-rc
+ok   stale-status
+ok   stale-paths
+ok   area-rc
+ok   unrelated-fresh
+ok   wt-check-head
+ok   wt-check-reads-main
+ok   wt-pub-rc
+ok   wt-pub-sha
+ok   wt-no-local-write
+ok   invalid-rc
+ok   invalid-status
+ok   invalid-stamp-null
+ok   unknown-sha-rc
+ok   unknown-sha-status
+ok   unknown-sha-reason
+ok   missing-status
+ok   missing-stamp-null
+ok   rej-empty
+ok   rej-missing
+ok   rej-outside
+ok   rej-glob
+ok   rej-type
+ok   fm-strip
+ok   fm-strip-body
+ok   fm-no-foo
+ok   no-tmp-left
+ok   shellcheck: cache scripts
+
+RESULT passed=36 failed=0 skipped=0 xfail=0
+== scripts/generate-boundary-config
+== generation and idempotence
+ok   first run rc
+ok   first run reports write
+ok   config file created
+ok   second run rc
+ok   second run unchanged
+ok   file byte-identical after rerun
+find: /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.f79BpL/good/tools: No such file or directory
+ok   no temp files left
+ok   header marks file generated
+ok   default PROJECT_DIR is cwd
+ok   --adapter dependency-cruiser accepted
+== --check
+ok   --check up to date
+ok   --check stale file
+ok   --check did not rewrite stale file
+ok   regeneration repairs stale file
+ok   --check missing file
+ok   --check writes nothing
+ok   --check names the file
+== intermediate JSON
+ok   print-intermediate rc
+ok   modules sorted
+ok   owns kept
+ok   shared core paths
+ok   forbidden pairs: allowed deps omitted
+ok   forbidden pairs: ui may not use ledger
+ok   forbidden pairs: shared core rule per module
+ok   forbidden total (module pairs 4 + core 3)
+ok   forbidden sorted by name
+ok   print-intermediate writes no files
+== determinism
+ok   key/list order in rules.md does not change output
+== glob conversion
+ok   config body is valid JSON
+ok   options.tsConfig
+ok   ** -> .*
+ok   literal dot escaped, array when several owns
+ok   **/ and * and escaped dot
+ok   severity error
+ok   comment names the rule
+ok   shared core comment
+ok   shared core from path
+ok   ? -> [^/], ./ stripped, + escaped
+ok   empty shared core emits no core rules
+== malformed rules.md
+ok   malformed: no-block
+ok   malformed: bad-yaml
+ok   malformed: unknown-dep
+ok   malformed: two-blocks
+ok   malformed: empty-owns
+ok   malformed: missing-owns
+ok   malformed: brace-glob
+ok   malformed: bang-glob
+ok   malformed: self-dep
+ok   malformed: bad-name
+ok   malformed: non-string-owns
+ok   malformed: modules-not-map
+ok   malformed: module-not-map
+ok   malformed: core-missing-paths
+ok   malformed: core-bad-glob
+ok   malformed: no-core-section
+ok   malformed: block-outside-heading
+ok   missing rules.md
+ok   --check on malformed rules
+== tolerated input
+ok   CRLF rules.md renders the same config
+ok   shipped rules.md template parses (no modules)
+ok   template yields no forbidden rules
+ok   yaml blocks under other headings ignored
+== usage and environment
+ok   unknown option
+ok   unknown adapter
+ok   --adapter needs a name
+ok   two project dirs
+ok   missing project dir
+ok   --help
+ok   --help prints usage
+ok   missing yq -> exit 3
+ok   missing jq -> exit 3
+ok   shellcheck: generate-boundary-config.sh
+
+RESULT passed=72 failed=0 skipped=0 xfail=0
+== scripts/generate-codex-agents
+== real definitions
+ok   default run (project = parent of .agents)
+ok   one toml per definition
+ok   every toml parses, has exactly 3 keys, values round-trip
+ok   Codex names: only [a-z0-9_] in file names and name keys
+ok   fact-lookup.md -> fact_lookup.toml with name fact_lookup, marker names the source
+ok   no toml carries a model key
+ok   second run
+ok   deterministic: byte-identical output
+ok   --check clean
+ok   --check detects a changed file
+ok   --check wrote nothing
+ok   regeneration restores the file
+== fixture definitions
+ok   fixture run
+ok   alpha: model/models/tools dropped
+ok   alpha: description with quotes
+ok   alpha: body verbatim, blank lines trimmed
+ok   alpha: literal multi-line string
+ok   beta: ''' body round-trips through the basic-string fallback
+ok   both string forms end the value with exactly one newline
+ok   beta: basic string used
+== pruning
+ok   --check reports a stale generated file
+ok   run prunes
+ok   stale generated file removed
+ok   user-written toml kept
+ok   --check reports an old hyphenated generated file
+ok   regeneration
+ok   old hyphenated generated file pruned
+== rejections (nothing written)
+ok   name mismatch -> exit 2
+ok   name mismatch -> no output dir
+ok   missing description -> exit 2
+ok   missing description -> no output dir
+ok   non-string name -> exit 2
+ok   non-string name -> no output dir
+ok   empty body -> exit 2
+ok   empty body -> no output dir
+ok   no frontmatter -> exit 2
+ok   no frontmatter -> no output dir
+ok   uppercase name -> exit 2
+ok   uppercase name -> no output dir
+ok   a-b.md and a_b.md collide as a_b -> exit 2
+ok   collision -> no output dir
+ok   no definitions -> exit 2
+ok   unknown flag -> exit 2
+ok   shellcheck: generate-codex-agents.sh
+
+RESULT passed=44 failed=0 skipped=0 xfail=0
+== scripts/initiative-conversion
+ok   JRN-001 fixture: the draft spec sits at the conversion node
+ok   JRN-001 fixture: the offer lists the draft spec before conversion
+== JRN-001 conversion, replayed
+ok   JRN-001 the working tree is clean before switching
+ok   JRN-001 task_review is pr, so the commit point pushes
+== JRN-001 end state
+ok   JRN-001 the initiative branch exists
+ok   JRN-001 the checkout is on the initiative branch
+ok   JRN-001 the initiative branch is on origin
+ok   JRN-001 initiative.md status is exploring
+ok   JRN-001 initiative.md origin names the spec
+ok   JRN-001 initiative.md branch
+ok   JRN-001 initiative.md merge_pr is null
+ok   JRN-001 initiative.md slices is empty
+FAIL JRN-001 the initiative marker names the entry step
+       got= want=6.1
+ok   JRN-001 questions.md is in the initiative
+ok   JRN-001 the design log moved in with its Deeper prompt entry
+ok   JRN-001 the codebase map moved in
+ok   JRN-001 the design log has an Origin entry naming the spec
+ok   JRN-001 the design log no longer links the deleted spec.md
+ok   JRN-001 the spec folder is gone
+ok   JRN-001 the shelf item points at the initiative
+ok   JRN-001 the work item points at the initiative
+ok   JRN-001 the conversion commit holds only the initiative folder
+== JRN-001 session start after conversion
+FAIL JRN-001 the offer lists the initiative once
+       got=0 want=1
+FAIL JRN-001 the offer shows the initiative exploring at the entry step
+ok   JRN-001 the offer no longer names the spec
+== JRN-001 numbering after conversion
+ok   JRN-001 the next spec number skips the converted one
+ok   JRN-001 from main the next spec number still skips it (read from the initiative branch)
+ok   JRN-001 shellcheck conversion components
+
+RESULT passed=25 failed=3 skipped=0 xfail=0
+== scripts/initiative-emission
+== JRN-003 settle every question of S1
+FAIL JRN-003 every question of S1 is settled
+       got=open open want=settled settled
+== JRN-003 emission, replayed
+ok   JRN-003 the emitted spec takes the next spec number
+== JRN-003 the new spec
+ok   JRN-003 the spec folder exists
+ok   JRN-003 spec.md carries its initiative
+ok   JRN-003 the spec is a draft
+ok   JRN-003 the Why is drafted from the slice
+ok   JRN-003 the design log opens with an Origin entry naming the initiative and slice
+FAIL JRN-003 the Origin entry carries the binding decisions
+       # Design log: Core flow
+
+Spec: [spec.md](spec.md)
+
+## 2026-10-21 Origin: initiative 001-storage-overhaul, slice S1
+
+- Initiative: .workflow/initiatives/001-storage-overhaul
+- Binding decisions:
+  - IQ1: 
+  - IQ3: 
+ok   JRN-003 the spec validator accepts the new spec
+FAIL JRN-003 the spec validator names the initiative key
+           (.status | test("^(draft|ready-for-dev|in-progress|in-review|done|blocked)$")) and
+    ((.baseline_revision | tag) == "!!str") and
+    (((.spec_branch // "") | tag) == "!!str") and
+    (((.impl_base_revision // "") | tag) == "!!str") and
+    ((.light_path | tag) == "!!bool") and
+    ((.followup_review_recommended | tag) == "!!bool") and
+    ((.deferred | tag) == "!!seq") and
+    (((.origin // "") | tag) == "!!str") and
+    (((.budget // null) == null) or (((.budget.max_tasks | tag) == "!!int") and ((.budget.max_changed_files | tag) == "!!int"))) and
+    ((.status == "blocked") == ((.blocke
+FAIL JRN-003 the spec validator rejects an initiative that is not a string
+FAIL JRN-003 the spec template documents the initiative key
+== JRN-003 the initiative after emission
+FAIL JRN-003 S1 is emitted
+       got=planned want=emitted
+FAIL JRN-003 S1 names its spec
+       got=null want=002-core-flow
+ok   JRN-003 S2 is still planned
+ok   JRN-003 the reference table links the spec
+ok   JRN-003 the emission commit holds only initiative files
+ok   JRN-003 the emission commit lists initiative.md
+ok   JRN-003 the spec folder stays uncommitted in the working tree
+ok   JRN-003 the session stays on the initiative branch
+ok   JRN-003 the next spec number counts the emitted slice
+ok   JRN-003 shellcheck emission components
+
+RESULT passed=15 failed=7 skipped=0 xfail=0
+== scripts/initiative-merge
+== JRN-005 planned under task_review local
+ok   JRN-005 planned is accepted once every slice is emitted
+FAIL JRN-005 the initiative is planned
+       got=exploring want=planned
+ok   JRN-005 task_review reads local
+ok   JRN-005 local: one merge commit on main
+ok   JRN-005 local: the merge commit has two parents
+ok   JRN-005 local: the local initiative branch is deleted
+ok   JRN-005 local: nothing is pushed
+FAIL JRN-005 local: main carries the planned initiative
+       got=exploring want=planned
+ok   JRN-005 local: merge_pr stays null
+== JRN-005 emitted specs done on main, resume
+ok   JRN-005 resume reads every emitted spec as done on main
+FAIL JRN-005 done is refused while a slice is not done
+       rc=0 want=2 with a reason on stderr: 
+ok   JRN-005 S1 moves to done
+ok   JRN-005 S2 moves to done
+ok   JRN-005 done is accepted once every slice is done
+ok   JRN-005 done: a second merge commit on main
+ok   JRN-005 done: the re-created branch is deleted
+FAIL JRN-005 done: main carries the done initiative
+       got=exploring want=done
+FAIL JRN-005 done: every slice on main is done
+       got=emitted emitted want=done done
+== JRN-005 done is terminal
+FAIL JRN-005 after done, status exploring exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, status planned exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, step exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, set-slice exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, set-question exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, set-pr exits 2
+       rc=0 want=2 with a reason on stderr: 
+== JRN-005 planned under task_review pr (stubbed gh / glab)
+ok   JRN-005 task_review reads pr
+ok   JRN-005 the PR base is the main branch
+FAIL JRN-005 pr dry run exits 0
+       got=1 want=0
+FAIL JRN-005 pr dry run prints the gh command with head and base
+        open-task-pr.sh: unknown option: --head
+FAIL JRN-005 pr dry run prints the title
+ok   JRN-005 pr dry run creates nothing
+FAIL JRN-005 pr: the PR URL is printed
+       got= want=https://github.com/o/r/pull/21
+FAIL JRN-005 pr: the initiative branch is pushed
+FAIL JRN-005 pr: --record writes merge_pr
+       got=null want=https://github.com/o/r/pull/21
+FAIL JRN-005 pr dry run on GitLab prints the glab command with source and target
+        open-task-pr.sh: unknown option: --head
+ok   JRN-005 shellcheck merge components
+
+RESULT passed=17 failed=18 skipped=0 xfail=0
+== scripts/initiative-transition
+== JRN-002 first round
+ok   JRN-002 frontier 1 is IQ1 and IQ3
+FAIL JRN-002 a decision question cannot be researching
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a question cannot be settled without a settled line
+       rc=0 want=2 with a reason on stderr: 
+== JRN-002 launch research, end the session
+ok   JRN-002 launching IQ1 is accepted
+FAIL JRN-002 IQ1 is researching
+       got=open want=researching
+FAIL JRN-002 IQ1 launched names the research task type
+       got=null want=research
+FAIL JRN-002 IQ1 launched records when
+       null
+FAIL JRN-002 the next session's offer lists the initiative once
+       got=0 want=1
+FAIL JRN-002 the offer shows one pending research question
+FAIL JRN-002 a researching question cannot be launched again
+       rc=0 want=2 with a reason on stderr: 
+== JRN-002 resume finds no result, relaunch
+ok   JRN-002 a researching question returns to open with launched cleared
+ok   JRN-002 IQ1 is open again
+ok   JRN-002 IQ1 launched is cleared
+== JRN-002 answer written back, second round
+ok   JRN-002 settling IQ1 with its source is accepted
+FAIL JRN-002 IQ1 is settled
+       got=open want=settled
+FAIL JRN-002 IQ1 settled line is the source
+       got=null want=https://example.org/storage-survey#formats
+FAIL JRN-002 frontier 2 is IQ2 and IQ3
+       got=IQ1 IQ3 want=IQ2 IQ3
+FAIL JRN-002 after the write-back no research is pending
+FAIL JRN-002 a settled question cannot be launched
+       rc=0 want=2 with a reason on stderr: 
+== JRN-002 slice and status transitions
+FAIL JRN-002 a slice cannot be emitted without its spec
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a slice cannot be emitted while its questions are open
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a planned slice cannot carry a spec
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a planned slice cannot jump to done
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 planned is refused while questions are open
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 done is refused from exploring
+       rc=0 want=2 with a reason on stderr: 
+ok   JRN-002 the initiative is still exploring
+== JRN-002 step and set-pr
+ok   JRN-002 step is accepted
+FAIL JRN-002 step writes the initiative marker
+       got=6.1 want=6.2
+ok   JRN-002 the marker records when
+ok   JRN-002 set-pr with a URL is accepted
+FAIL JRN-002 set-pr records merge_pr
+       got=null want=https://github.com/o/r/pull/7
+ok   JRN-002 set-pr null is accepted
+ok   JRN-002 set-pr null clears merge_pr
+== JRN-002 usage and environment errors
+FAIL JRN-002 an unknown subcommand is a usage error
+       rc=0 want=1: 
+FAIL JRN-002 a missing initiative folder is an environment error
+       rc=0 want=1: 
+FAIL JRN-002 a folder outside .workflow/initiatives is a usage error
+       rc=0 want=1: 
+FAIL JRN-002 an unknown question id is a usage error
+       rc=0 want=1: 
+FAIL JRN-002 set-pr with a value that is not a URL is a usage error
+       rc=0 want=1: 
+ok   JRN-002 shellcheck initiative-transition.sh
+
+RESULT passed=13 failed=26 skipped=0 xfail=0
+== scripts/install
+== preflight
+ok   target that is not a git repo: exit 2
+ok   target that is a sub-directory of a repo: exit 2
+ok   bad --host: exit 2
+ok   no target: exit 2
+ok   unknown option is named
+ok   manifest line that matches nothing: exit 2
+ok   ...and nothing was written
+ok   yq preflight names mikefarah v4
+== fresh install, --host all
+ok   install --host all
+ok   payload is exactly the manifest expansion
+ok   VERSION lists the same files
+ok   VERSION has version, commit and date
+ok   .claude/skills -> ../.agents/skills
+ok   .claude/agents -> ../.agents/agents
+ok   .claude/output-styles -> ../.agents/output-styles
+ok   settings.json equals the template
+ok   one .codex/agents toml per agent definition
+ok   generated agents are current (--check)
+ok   hooks.json equals the Codex template
+ok   config.toml parses to the template values
+ok   config.toml sets the Codex context bar
+ok   .gitignore has .workflow/specs/*/.step
+ok   .gitignore has .workflow/.cache-staging/
+ok   .gitignore has .workflow/.worktrees/
+ok   .gitignore has .workflow/.handoff/
+ok   .gitignore has .workflow/.standards-staging/
+ok   install creates no .workflow/
+ok   path helper installed
+ok   hook scripts are executable
+ok   an installed hook runs from the target
+== vendored and scaffold-only files are absent
+ok   installed skills are exactly the first-party set
+ok   no vendored skill installed
+ok   context-bridge.cjs (first-party) installed and executable
+ok   statusLine runs the shipped context-bridge.cjs
+ok   context-bridge prints the scaled usage bar (40% real = 50%)
+ok   context-bridge writes the bridge file
+ok   context-bridge without context_window prints nothing and writes no file
+ok   statusLine command prints the bar in a "type": "module" target
+ok   .agents/README.md (scaffold note) not installed
+ok   Mermaid validator and syntax rules for the caches ship
+ok   progress line script and its step list ship, executable
+ok   vendor copies ship with their consumer and LICENSE
+ok   no shipped file points at a vendored skill path
+ok   project-owned content is not shipped: no design-pattern-doc conventions, no athena pr-quality modules
+ok   generic templates for project-owned files ship
+ok   install creates no docs/ in the target
+ok   shipped glab and design-pattern-doc name no vendored skill
+ok   no scaffold-only file in the target
+== idempotent re-run
+ok   re-run --host all
+ok   re-run changes nothing (VERSION included)
+ok   re-run reports up to date
+== fresh install, --host claude and --host codex
+ok   install --host claude
+ok   claude: .claude shim present, no .codex
+ok   claude: .gitignore block still written
+ok   claude: next steps name .claude/ but not .codex/
+ok   claude: re-run changes nothing
+ok   install --host codex
+ok   codex: .codex shim present, no .claude
+ok   codex: next steps print the trust and /hooks steps
+ok   next steps point at project-setup
+ok   codex: next steps name .codex/ but not .claude/
+ok   codex: re-run changes nothing
+== dry run
+ok   dry run on a fresh target exits 0
+ok   dry run on a fresh target writes nothing
+ok   dry run lists actions
+ok   dry run on an install with drift writes nothing
+ok   ...and reports the update
+== upgrade: overwrite changed files, remove files dropped from the manifest
+ok   upgrade exits 0
+ok   dropped skill removed (dir gone)
+ok   dropped skill files removed, user file in it kept
+ok   removal reported
+ok   locally edited scaffold file overwritten
+ok   file no install shipped is kept
+ok   VERSION no longer lists the dropped skill
+ok   upgrade re-run changes nothing
+== Claude settings merge over user settings
+ok   merge exits 0
+ok   outputStyle kept
+ok   outputStyle warning printed
+ok   statusLine kept
+ok   statusLine warning printed
+ok   unrelated user keys kept
+ok   user allow rule kept first, template allow rules appended
+ok   deny unioned, user first, no duplicates
+ok   user hooks kept
+ok   block-destructive-git not duplicated
+ok   every template hook command present
+ok   PostToolUseFailure event added with its Bash group
+ok   merge re-run changes nothing
+ok   --force run
+ok   --force replaces outputStyle
+ok   --force replaces statusLine
+ok   --force keeps user keys
+== refusals write nothing
+ok   real .claude/skills dir: exit 1
+ok   ...names the directory and --force
+ok   ...and nothing was written
+ok   real .claude/skills dir with --force
+ok   --force: .claude/skills is now the symlink
+ok   --force: old dir kept as a backup
+ok   symlink pointing elsewhere: exit 1
+ok   symlink pointing elsewhere with --force
+ok   --force: symlink replaced
+ok   settings key of the wrong type: exit 1
+ok   ...and nothing was written
+ok   invalid settings JSON: exit 1
+ok   invalid settings JSON: exit 1 even with --force
+== Codex merges over user files
+ok   codex merge
+ok   config.toml: user keys kept
+ok   config.toml: default_permissions added
+ok   config.toml: workflow profile added
+ok   config.toml: user text kept verbatim
+ok   config.toml: tui.status_line added
+ok   user-written agent toml kept
+ok   hooks.json: user hook kept
+ok   hooks.json: template events added
+ok   codex merge re-run changes nothing
+ok   managed block refreshed from the template
+ok   differing [permissions.workflow]: exit 1
+ok   ...and nothing was written
+ok   differing [permissions.workflow] with --force: exit 0
+ok   --force: hand-written profile left as is, with a warning
+ok   --force: default_permissions overwritten
+ok   different default_permissions: exit 0
+ok   ...user value kept
+ok   ...with a warning
+ok   user [tui]: exit 0
+ok   user [tui]: warning names status_line
+ok   user [tui]: one [tui] table, user key kept, no status_line added
+ok   user [tui] with --force: left as is, with a warning
+ok   user [tui]: config.toml still parses
+ok   user tui.status_line key: kept, warned, still parses
+ok   user [tui] already matching: no warning, one table
+== project-owned files untouched; .gitignore user lines kept
+ok   project-owned files byte-identical after install, --force and upgrade
+ok   project-owned .workflow/ gained no files
+ok   .gitignore user lines kept, block added once
+== lint
+ok   shellcheck: install.sh
+ok   shellcheck: this suite
+
+RESULT passed=136 failed=0 skipped=0 xfail=0
+== scripts/resolve-launch-initiative
+== JRN-008 requirements
+FAIL JRN-008 --requirements lists research
+       cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery
+FAIL JRN-008 research requires spec_dir
+       got=null want=["spec_dir"]
+FAIL JRN-008 research carries no profile
+       got=null want=none
+FAIL JRN-008 --requirements --task-type research exits 0
+       rc=2 want=0: resolve-launch.sh: unknown task type 'research' (known: cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery)
+== JRN-008 research launch from an initiative folder
+FAIL JRN-008 the research launch resolves
+       got=2 want=0
+FAIL JRN-008 the research launch returns a model
+        resolve-launch.sh: unknown task type 'research' (known: cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery)
+FAIL JRN-008 the research prompt keeps the header first and the body
+        resolve-launch.sh: unknown task type 'research' (known: cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery)
+FAIL JRN-008 the resolved header names the initiative folder
+       got= want=.workflow/initiatives/001-storage-overhaul
+== JRN-008 other Phase 0 types from an initiative folder
+FAIL JRN-008 a fact-lookup launch from an initiative folder resolves
+       got=2 want=0
+== JRN-008 refusals and unchanged spec launches
+ok   JRN-008 a missing initiative folder is denied
+ok   JRN-008 a spec_dir that is not an initiative folder is denied
+ok   JRN-008 a spec folder launch still resolves
+ok   JRN-008 shellcheck resolve-launch.sh
+
+RESULT passed=4 failed=9 skipped=0 xfail=0
+== scripts/resolve-launch
+ok   requirements: all 12 types
+ok   requirements: implementation required fields
+ok   requirements: unknown type denied
+ok   precedence 1: override wins (integration claude)
+ok   precedence 3: map when no override for host (integration codex placeholder -> none)
+ok   precedence 2: definition beats map (implementation claude)
+ok   precedence 2: definition codex
+ok   precedence 3: map (retrieval claude)
+ok   missing model: map codex placeholder -> 00.14
+ok   override placeholder skipped, falls to map
+ok   missing model: no file at any level -> 00.14
+ok   precedence 1 over 2: override beats definition
+ok   unparseable overrides -> deny
+ok   retrieval: spec_dir only accepted
+ok   retrieval: missing spec_dir denied
+ok   retrieval: extra task_id denied
+ok   library-evaluation: spec_dir only accepted
+ok   library-evaluation: missing spec_dir denied
+ok   library-evaluation: extra task_id denied
+ok   fact-lookup: spec_dir only accepted
+ok   fact-lookup: missing spec_dir denied
+ok   fact-lookup: extra task_id denied
+ok   module-audit: spec_dir only accepted
+ok   module-audit: missing spec_dir denied
+ok   module-audit: extra task_id denied
+ok   review-standards: spec_dir only accepted
+ok   review-standards: missing spec_dir denied
+ok   review-standards: extra task_id denied
+ok   review-end-state: spec_dir only accepted
+ok   review-end-state: missing spec_dir denied
+ok   review-end-state: extra task_id denied
+ok   review-targets: spec_dir only accepted
+ok   review-targets: missing spec_dir denied
+ok   review-targets: extra task_id denied
+ok   implementation: full header, profile whole, header first
+ok   implementation: work_type looked up from tasks.md
+ok   implementation: header work_type disagrees with tasks.md
+ok   implementation Phase 1: no task_id, explicit work_type
+ok   implementation: spec_dir only denied
+ok   implementation: unclassified task (work_type null) denied
+ok   implementation: unknown task id denied
+ok   implementation: missing profile -> 00.19
+ok   implementation: no tasks.md in spec_dir denied
+ok   spec_dir that does not exist denied
+ok   integration: spec_dir+work_type, whole profile
+ok   integration: task_id denied
+ok   integration: missing work_type denied
+ok   profile-mini-review: checklist section only
+ok   profile-mini-review: missing task_id denied (no Phase 1 exception)
+ok   profile-mini-review: profile lacks checklist -> 00.19
+ok   cache-regeneration: with spec_dir (0.2.8)
+ok   cache-regeneration: header-less bulk run accepted, prompt unchanged
+ok   standards-discovery: header-less run accepted
+ok   standards-discovery: task_type-only header accepted
+ok   standards-discovery: spec_dir denied (runs outside a feature)
+ok   header-less prompt for retrieval denied
+ok   task_type != subagent_type denied
+ok   header without task_type denied
+ok   unclosed fence denied
+ok   invalid YAML denied
+ok   non-mapping YAML denied
+ok   empty header denied
+ok   header not on first line denied
+ok   spec_dir format enforced
+ok   task_id YAML number denied
+ok   task_id format enforced
+ok   work_type format enforced
+ok   unknown header key denied
+ok   CRLF / trailing spaces tolerated
+ok   null value denied
+ok   parse-header: prints header JSON
+ok   parse-header: matching --task-type
+ok   parse-header: mismatch denied
+ok   parse-header: missing header denied
+ok   parse-header: header-less cache-regeneration -> {}
+ok   parse-header: --prompt-file
+ok   flags: implementation T1 codex, prompt assembled
+ok   flags: --no-header for bulk cache-regeneration
+ok   flags: --no-header for standards-discovery
+ok   flags: --no-header for retrieval denied
+ok   flags: body carrying its own header denied
+ok   flags: no stdin body -> header-only prompt
+ok   worktree --project-dir resolves to main checkout
+ok   CLAUDE_PROJECT_DIR default
+ok   cwd default inside worktree -> main checkout
+ok   usage: missing --host
+ok   usage: bad --host
+ok   usage: missing --task-type
+ok   usage: missing yq/jq is exit 1
+ok   shellcheck: resolve-launch.sh
+
+RESULT passed=90 failed=0 skipped=0 xfail=0
+== scripts/run-toolchain
+ok   allpass-rc
+ok   allpass-status
+ok   skipped
+ok   ran
+ok   order
+ok   test-key-ran
+ok   serve-never-run
+ok   evidence
+ok   e2e-ran
+ok   e2e-last
+ok   serve-never-run-e2e
+ok   fail-rc
+ok   fail-status
+ok   fail-others-ran
+ok   digest-tail
+ok   stderr-digest
+ok   digest-file
+ok   missing-key
+ok   noprofile-rc
+ok   null-worktype-rc
+ok   usage-rc
+ok   wt-rc
+ok   wt-evidence-main
+ok   wt-no-local
+ok   runs-in-cwd
+ok   missing-test-skipped
+ok   skip-ran
+ok   skip-keys
+ok   skip-reason
+ok   skip-not-run
+ok   skip-test-absent
+ok   skip-e2e
+ok   skip-unknown-rc
+ok   skip-novalue-rc
+ok   shellcheck: run-toolchain.sh
+
+RESULT passed=35 failed=0 skipped=0 xfail=0
+== scripts/status-transition-check-write
+== status-transition: spec transitions
+ok   draft->draft at 0.1.4 (init)
+ok   .step after init
+ok   timestamp UTC format
+ok   draft->in-progress illegal
+ok   draft->done illegal
+ok   draft->ready-for-dev without --step
+ok   draft->ready-for-dev at 3.1 illegal
+ok   draft->ready-for-dev at 0.6
+ok   ready->ready now illegal
+ok   ready->draft without --step
+ok   ready->draft at 0.1.4 illegal
+ok   ready->draft at 2.2
+ok   draft->ready again at 0.3.20
+ok   ready->draft at 2.3
+ok   draft->ready again at 0.6
+ok   ready->in-review illegal
+ok   ready->in-progress (default 3.1)
+ok   .step = 3.1
+ok   in-progress->ready illegal
+ok   blocked without --blocked
+ok   --blocked with non-blocked status
+ok   in-progress->blocked
+ok   blocked_condition written
+ok   blocked_from recorded
+ok   template validator passes while blocked
+ok   step-only while blocked
+ok   blocked_from kept by step mode
+ok   blocked->blocked illegal
+ok   blocked->in-review (not prior) illegal
+ok   blocked->done illegal
+ok   blocked->in-progress (prior)
+ok   blocked_condition removed
+ok   blocked_from cleared
+ok   in-progress->in-review at 3.14
+ok   in-review->in-review at 3.11 (rework)
+ok   in-review->ready now illegal
+ok   in-review->draft at 2.2 illegal
+ok   in-review->draft at 4.5
+ok   draft->ready-for-dev at 0.6
+ok   ready->in-progress
+ok   in-progress->in-review at 3.11
+ok   in-review->draft at 4.6
+ok   draft->ready-for-dev at 0.6
+ok   ready->in-progress
+ok   in-progress->in-review at 3.11
+ok   in-review->draft at 5.6
+ok   draft->ready-for-dev at 0.6
+ok   ready->in-progress
+ok   in-progress->in-review at 3.11
+ok   in-review->draft at 5.6 (5.5 change requested)
+ok   draft->ready-for-dev at 0.3.20
+ok   ready->in-progress
+ok   in-progress->in-progress (resume 3.1)
+ok   in-progress->in-review at 3.11
+ok   in-review->done at 5.6 illegal
+ok   in-review->blocked (4.7 ceiling)
+ok   blocked->in-review without step
+ok   blocked->in-review at 4.7 illegal
+ok   blocked->in-review at 5.1
+ok   .step = 5.1 after unblock
+ok   in-review->done (default 5.7)
+ok   template validator passes when done
+ok   done->in-review illegal (terminal)
+ok   done->blocked illegal
+ok   step on done spec illegal
+ok   unknown status
+ok   bad spec dir
+ok   bad node id
+ok   missing spec dir
+ok   unknown mode
+ok   body preserved after edits
+== status-transition: fresh clone (no blocked_from)
+ok   beta draft
+ok   beta blocked
+ok   blocked, no marker, no --step
+ok   blocked, no marker, --step -> draft
+ok   beta blocked again
+ok   unknown from -> in-review at 3.11 illegal
+ok   unknown from -> in-review at 5.1 (warn)
+== status-transition: worktree resolution
+ok   step from worktree cwd
+ok   marker written in main checkout
+ok   no marker in worktree
+ok   status from worktree (cd)
+ok   main spec.md updated
+ok   worktree spec.md untouched
+ok   absolute spec dir (worktree path)
+ok   abs path maps to main
+ok   not a git repo
+== status-transition: set-task
+ok   set-task needs a field
+ok   T1 pending->done illegal
+ok   T1 pending->in-progress + work_type
+ok   T1 status
+ok   T1 work_type
+ok   T2 untouched
+ok   .step set by --step
+ok   T1 reclassify illegal
+ok   T1 same work_type ok
+ok   work_type bad name
+ok   work_type missing profile (warn, ok)
+ok   T1 in-progress->in-progress
+ok   T1 in-progress->blocked
+ok   T1 blocked->done illegal
+ok   T1 blocked->in-progress
+ok   T1 in-progress->done
+ok   T1 done->in-progress illegal
+ok   T1 done->in-progress at 3.3 illegal
+ok   T1 done->in-progress at 4.7 (rework)
+ok   rework sets .step 4.7
+ok   T1 back to done
+ok   T2 pending->done still illegal at 4.7
+ok   T1 capability is provisional
+ok   capability without --step
+ok   capability at 5.1 illegal
+ok   capability bad id CAP-12
+ok   capability bad id CAP-NEW-Bad
+ok   provisional -> provisional illegal
+ok   provisional -> CAP-042 at 5.3
+ok   T1 capability rewritten
+ok   .step = 5.3
+ok   same capability again ok
+ok   assigned -> other assigned illegal
+ok   --capability refused in status mode
+ok   unknown task status
+ok   unknown task id
+ok   bad task id
+ok   --blocked refused in set-task
+ok   --status refused in status mode
+ok   invalid tasks.md -> write refused
+ok   tasks.md unchanged after refusal
+ok   capability CAP-007 passes validator
+ok   capability CAP-NEW-guest-checkout passes validator
+ok   capability CAP-1234 passes validator
+ok   capability CAP-NEW-x passes validator
+ok   capability CAP-12 fails validator
+ok   capability CAP-NEW-Bad fails validator
+ok   capability CAP-NEW- fails validator
+ok   capability CAP-NEW-a--b fails validator
+ok   capability cap-001 fails validator
+ok   set-task from worktree
+ok   worktree set-task wrote main
+ok   set-task on done spec illegal
+ok   tasks.md body preserved
+ok   no temp files left
+== check-write: Tier B and marker
+ok   .workflow/cache main deny
+ok   .workflow/cache abs deny
+ok   .workflow/cache via .. deny
+ok   .Workflow/Cache case deny
+ok   .workflow/cache in worktree deny
+ok   .workflow/cache via /tmp symlink path
+ok   --only spec ignores tier-b
+ok   --only tier-b denies tier-b
+ok   docs/cachex not tier-b
+ok   .step deny (main)
+ok   unguarded src file
+ok   unguarded, sub-agent
+ok   outside repo
+ok   missing --path
+ok   bad --only
+== check-write: .workflow/ prefixes
+ok   guarded: .workflow/rules.md (sub-agent)
+ok   guarded: .workflow/capabilities.md (sub-agent)
+ok   guarded: .workflow/decisions (sub-agent)
+ok   guarded: .workflow/decisions/adr/0001-x.md (sub-agent)
+ok   guarded: .workflow/profiles/web.md (sub-agent)
+ok   guarded: .workflow/GLOSSARY.md (sub-agent)
+ok   guarded: .workflow/GLOSSARY-MAP.md (sub-agent)
+ok   guarded: .workflow/cache (sub-agent)
+ok   guarded: .workflow/cache/modules.md (sub-agent)
+ok   guarded: .workflow/specs/001-alpha/spec.md (sub-agent)
+ok   guarded: .workflow/specs/001-alpha/tasks.md (sub-agent)
+ok   guarded: .workflow/specs/work-backlog/001-alpha-disc-001.md (sub-agent)
+ok   guarded: .WORKFLOW/Rules.md (sub-agent)
+ok   guarded: .workflow/Profiles/Web.md (sub-agent)
+ok   guarded: .workflow/specs/*/.step (main)
+ok   look-alike not guarded: .workflow/specs-x/001-alpha/spec.md
+ok   look-alike not guarded: .workflow/specsx/001-alpha/tasks.md
+ok   look-alike not guarded: .workflow/cache2/a.md
+ok   look-alike not guarded: .workflow/cache.md
+ok   look-alike not guarded: .workflow/profiles-old/web.md
+ok   look-alike not guarded: .workflow/profilesx.md
+ok   look-alike not guarded: .workflow/decisions-old/a.md
+ok   look-alike not guarded: .workflow/rules.md.bak
+ok   look-alike not guarded: .workflow/rules.mdx
+ok   look-alike not guarded: .workflow/sub/rules.md
+ok   look-alike not guarded: .workflow/capabilities.md.orig
+ok   look-alike not guarded: .workflow/specs/001-alpha/sub/spec.md
+ok   look-alike not guarded: .workflow/specs/work-backlog-x/a.md
+ok   look-alike not guarded: .workflow/.cache-staging/modules.md
+ok   look-alike not guarded: .workflow/.handoff/001-alpha.md
+ok   look-alike not guarded: .workflow/.standards-staging/baseline.md
+ok   look-alike not guarded: workflow/specs/001-alpha/spec.md
+ok   look-alike not guarded: x.workflow/cache/a.md
+ok   look-alike not guarded: pkg/.workflow/cache/a.md
+ok   look-alike not guarded: pkg/.workflow/rules.md
+ok   look-alike .step not guarded
+ok   old root path not special: docs/cache/modules.md
+ok   old root path not special: docs/rules.md
+ok   old root path not special: docs/capabilities.md
+ok   old root path not special: docs/decisions/adr/0001-x.md
+ok   old root path not special: profiles/web.md
+ok   old root path not special: specs/001-alpha/spec.md
+ok   old root path not special: specs/001-alpha/tasks.md
+ok   old root path not special: specs/work-backlog/001-alpha-disc-001.md
+ok   old root .step not special
+== check-write: spec.md
+ok   spec.md at 0.3.19 allow
+ok   spec.md sub-agent deny
+ok   spec.md from worktree, main session
+ok   spec.md worktree sub-agent deny
+ok   spec.md at 0.3.7 deny
+ok   spec.md at 1.2 deny
+ok   spec.md at 2.6 deny
+ok   spec.md at 3.3 deny
+ok   spec.md at 3.11 deny
+ok   spec.md at 3.15 deny
+ok   spec.md at 3.16 deny
+ok   spec.md at 4.5 deny
+ok   spec.md at 4.7 deny
+ok   spec.md at 5.7 deny
+ok   spec.md at 00.19 deny
+ok   spec.md at 00.21 deny
+ok   spec.md at 00.26 deny
+ok   spec.md at 00.28 deny
+ok   spec.md at 0.1.4 allow (widened)
+ok   spec.md at 0.3.17 allow (widened)
+ok   spec.md at 0.3.20 allow (widened)
+ok   spec.md at 1.1 allow (widened)
+ok   spec.md at 2.5 allow (widened)
+ok   spec.md at 3.1 allow (widened)
+ok   spec.md at 3.14 allow (widened)
+ok   spec.md at 4.6 allow (widened)
+ok   spec.md at 4.8 allow (widened)
+ok   spec.md at 5.3 allow (widened)
+ok   spec.md at 5.9 allow (widened)
+ok   spec.md at 00.29 allow (widened)
+ok   spec.md at 0.1.6 allow
+ok   spec.md at 0.5.1 allow
+ok   spec.md at 5.1 allow
+ok   spec.md of feature without marker deny
+ok   --proposed body edit allow
+ok   --proposed status edit deny
+ok   --proposed blocked_condition edit deny
+== spec.md creation at 0.1.4
+ok   step 0.1.6 before spec.md exists refused
+ok   step 0.1.4 before spec.md exists
+ok   marker 0.1.4 written
+ok   step 0.1.4 needs the 0.1.3 folder
+ok   create spec.md at 0.1.4 (Write)
+ok   create spec.md with non-draft status deny
+ok   create spec.md sub-agent deny
+ok   status draft after creation
+== check-write: tasks.md (set-task is the only record writer)
+ok   tasks.md at 2.5 allow
+ok   tasks.md at 2.5 sub-agent deny
+ok   tasks.md at 0.3.20 allow
+ok   tasks.md at 0.3.20 sub-agent deny
+ok   tasks.md --only spec covers it
+ok   tasks.md at 3.1 deny
+ok   tasks.md at 0.6 deny
+ok   tasks.md at 2.4 deny
+ok   tasks.md at 4.7 deny
+ok   tasks.md at 0.1.6 deny
+ok   tasks.md --only spec denies at 3.1
+ok   tasks.md --only tier-a ignores it
+ok   tasks.md deny points at set-task
+ok   tasks.md no marker deny
+ok   tasks.md from worktree, main, at 3.1 deny
+ok   set-task (Bash) unaffected by guard
+== check-write: Tier A
+ok   GLOSSARY at 5.1 deny (newest marker)
+ok   .workflow/GLOSSARY.md at 0.2.3 allow
+ok   deep .workflow/GLOSSARY-MAP.md at 0.2.3 allow
+ok   .workflow/GLOSSARY.md at 0.3.15 allow
+ok   deep .workflow/GLOSSARY-MAP.md at 0.3.15 allow
+ok   .workflow/GLOSSARY.md at 0.4.3 allow
+ok   deep .workflow/GLOSSARY-MAP.md at 0.4.3 allow
+ok   .workflow/GLOSSARY.md at 5.3 allow
+ok   deep .workflow/GLOSSARY-MAP.md at 5.3 allow
+ok   .workflow/GLOSSARY.md at 0.3.7 deny
+ok   src/x/GLOSSARY.md at 0.3.7 deny
+ok   .workflow/rules.md at 0.3.7 allow
+ok   adr at 0.3.7 allow
+ok   existing profile edit at 0.3.7 deny
+ok   new profile at 0.3.7 deny
+ok   .workflow/GLOSSARY.md at 5.7 deny
+ok   src/x/GLOSSARY.md at 5.7 deny
+ok   .workflow/rules.md at 5.7 allow
+ok   adr at 5.7 allow
+ok   existing profile edit at 5.7 deny
+ok   new profile at 5.7 deny
+ok   existing profile edit at 0.2.3 deny
+ok   new profile at 0.2.3 deny
+ok   existing profile edit at 0.3.15 deny
+ok   new profile at 0.3.15 deny
+ok   existing profile edit at 0.4.3 deny
+ok   new profile at 0.4.3 deny
+ok   existing profile edit at 5.3 allow
+ok   new profile at 5.3 allow
+ok   existing profile at 5.3 sub-agent deny
+ok   .workflow/capabilities.md at 0.2.3 deny
+ok   .workflow/rules.md at 0.2.3 deny
+ok   .workflow/decisions/adr/0002-y.md at 0.2.3 deny
+ok   .workflow/capabilities.md at 0.3.15 deny
+ok   .workflow/rules.md at 0.3.15 deny
+ok   .workflow/decisions/adr/0002-y.md at 0.3.15 deny
+ok   .workflow/capabilities.md at 0.4.3 deny
+ok   .workflow/rules.md at 0.4.3 deny
+ok   .workflow/decisions/adr/0002-y.md at 0.4.3 deny
+ok   deny message lists 0.3.7 5.3 5.7
+ok   .workflow/capabilities.md at 0.3.7 allow
+ok   .workflow/rules.md at 0.3.7 allow
+ok   .workflow/decisions/adr/0002-y.md at 0.3.7 allow
+ok   .workflow/capabilities.md at 5.3 allow
+ok   .workflow/rules.md at 5.3 allow
+ok   .workflow/decisions/adr/0002-y.md at 5.3 allow
+ok   .workflow/capabilities.md at 5.7 allow
+ok   .workflow/rules.md at 5.7 allow
+ok   .workflow/decisions/adr/0002-y.md at 5.7 allow
+ok   .workflow/GLOSSARY.md at 0.2.2 deny
+ok   .workflow/GLOSSARY.md at 0.3.14 deny
+ok   .workflow/GLOSSARY.md at 0.4.2 deny
+ok   .workflow/GLOSSARY.md at 3.1 deny
+ok   .workflow/GLOSSARY.md at 5.2 deny
+ok   .workflow/GLOSSARY.md at 00.19 deny
+ok   Tier A .workflow/capabilities.md sub-agent deny
+ok   Tier A .workflow/capabilities.md main at 5.3 allow
+ok   Tier A .workflow/rules.md sub-agent deny
+ok   Tier A .workflow/rules.md main at 5.3 allow
+ok   Tier A .workflow/decisions/adr/0001-x.md sub-agent deny
+ok   Tier A .workflow/decisions/adr/0001-x.md main at 5.3 allow
+ok   Tier A .workflow/decisions/pitfalls.md sub-agent deny
+ok   Tier A .workflow/decisions/pitfalls.md main at 5.3 allow
+ok   Tier A .workflow/profiles/frontend.md sub-agent deny
+ok   Tier A .workflow/profiles/frontend.md main at 5.3 allow
+ok   Tier A .workflow/GLOSSARY-MAP.md sub-agent deny
+ok   Tier A .workflow/GLOSSARY-MAP.md main at 5.3 allow
+ok   Tier A src/billing/GLOSSARY.md sub-agent deny
+ok   Tier A src/billing/GLOSSARY.md main at 5.3 allow
+ok   Tier A src/billing/GLOSSARY-MAP.md sub-agent deny
+ok   Tier A src/billing/GLOSSARY-MAP.md main at 5.3 allow
+ok   Tier A .agents/skills/project-setup/assets/GLOSSARY.md sub-agent deny
+ok   Tier A .agents/skills/project-setup/assets/GLOSSARY.md main at 5.3 allow
+ok   new profile at 00.19 allow
+ok   new nested profile at 00.19 allow
+ok   existing profile at 00.19 deny
+ok   deny message names 5.3
+ok   new profile at 00.19 sub-agent deny
+ok   rules.md at 00.19 deny
+ok   .workflow/GLOSSARY.md at 00.19 deny
+ok   new profile at 3.1 deny
+ok   deep .workflow/GLOSSARY.md at 3.1 deny
+ok   deep .workflow/GLOSSARY-MAP.md at 3.1 deny
+ok   deny message points at proposals.md
+ok   --only tier-a ignores spec.md
+ok   --only spec ignores GLOSSARY
+ok   newest marker (gamma 0.3.15) wins
+ok   in flight but no markers deny
+ok   no feature in flight, main allow
+ok   no feature in flight, profile edit allow
+ok   no feature in flight, new profile allow
+ok   no feature in flight, sub-agent deny
+ok   empty --agent still counts as sub-agent
+ok   yq missing -> clear error (check-write)
+ok   yq missing -> clear error (status-tr.)
+== status-transition: discovered work and size budget
+ok   delta init
+ok   delta ready at 0.6
+ok   delta in-progress
+ok   in-progress->draft at 00.24 illegal
+ok   in-progress->draft at 00.29 illegal
+ok   in-progress->draft at 0.3.8 illegal
+ok   in-progress->draft at 2.2 illegal
+ok   in-progress->draft at 4.5 illegal
+ok   00.21 free-text condition refused
+ok   00.21 empty slug refused
+ok   00.21 discovered work
+ok   00.21 condition
+ok   .step = 00.21
+ok   00.21 blocked_from
+ok   step-only 00.22 while blocked
+ok   step-only 00.23 while blocked
+ok   step-only 00.25 while blocked
+ok   step-only 00.26 while blocked
+ok   step-only 00.27 while blocked
+ok   blocked_from kept through 00.22-00.27
+ok   blocked->draft at 3.3 illegal (from in-progress)
+ok   blocked->ready at 00.28 illegal
+ok   blocked->in-progress at 00.28 (resume)
+ok   .step = 00.28
+ok   condition removed at 00.28
+ok   00.21 size budget
+ok   step 00.29 while blocked
+ok   spec.md write at 00.29 allow (budget)
+ok   blocked(size budget)->draft at 00.24 refused
+ok   00.24 refusal names the condition
+ok   still blocked after refused 00.24
+ok   blocked->draft at 00.29 (re-scope)
+ok   status draft after re-scope
+ok   draft->draft at 00.24 illegal (not blocked)
+ok   delta ready again
+ok   ready->blocked at 2.6 budget
+ok   blocked_from ready-for-dev
+ok   blocked->ready at 00.28 (approve)
+ok   delta in-progress
+ok   00.21 again
+ok   blocked(discovered work)->draft at 00.29 refused
+ok   00.29 refusal names the condition
+ok   blocked->draft at 00.24 (to discovery)
+ok   .step = 00.24
+ok   blocked_from cleared at 00.24
+ok   delta ready
+ok   delta in-progress
+ok   delta in-review
+ok   in-review->blocked at 00.21
+ok   blocked(in-review)->in-progress 00.28 illegal
+ok   blocked(in-review)->in-review at 4.7 illegal
+ok   blocked(in-review)->in-review at 00.28
+ok   in-review->blocked (4.7 ceiling)
+ok   blocked(rework ceiling)->draft at 00.24 refused
+ok   blocked(rework ceiling)->draft at 00.29 refused
+ok   blocked(in-review)->in-review at 5.1
+ok   in-review->blocked 00.21
+ok   blocked(in-review)->draft at 00.24
+ok   delta ready
+ok   delta in-progress
+ok   step-only accepts 00.21
+ok   marker 00.21
+ok   step-only accepts 00.22
+ok   marker 00.22
+ok   step-only accepts 00.23
+ok   marker 00.23
+ok   step-only accepts 00.24
+ok   marker 00.24
+ok   step-only accepts 00.25
+ok   marker 00.25
+ok   step-only accepts 00.26
+ok   marker 00.26
+ok   step-only accepts 00.27
+ok   marker 00.27
+ok   step-only accepts 00.28
+ok   marker 00.28
+ok   step-only accepts 00.29
+ok   marker 00.29
+ok   step-only accepts 2.6
+ok   marker 2.6
+ok   step-only accepts 3.15
+ok   marker 3.15
+ok   step-only accepts 3.16
+ok   marker 3.16
+ok   step-only accepts 5.9
+ok   marker 5.9
+ok   fresh clone: blocked
+ok   fresh clone: in-review at 00.28 (warn)
+ok   status on .workflow/specs/work-backlog refused
+== status-transition: set-task reopening a merged task, and 3.16
+ok   T1 pending->in-progress
+ok   T1 done at 3.16 (wave merge)
+ok   .step = 3.16
+ok   T1 done->in-progress at 3.9
+ok   T1 back to done
+ok   T1 done->blocked at 3.9
+ok   T1 blocked->in-progress
+ok   T1 done again
+ok   T1 done->in-progress at 3.11
+ok   T1 back to done
+ok   T1 done->blocked at 3.11
+ok   T1 blocked->in-progress
+ok   T1 done again
+ok   T1 done->in-progress at 4.7 still ok
+ok   T1 done (no --step)
+ok   T1 done->blocked at 4.7 illegal
+ok   T1 done->blocked without step illegal
+ok   T1 done->in-progress at 3.10 illegal
+ok   T1 done->pending illegal
+== check-write: .workflow/specs/work-backlog
+ok   backlog item at 00.26 allow
+ok   backlog item --only spec at 00.26 allow
+ok   backlog --only tier-a ignores it
+ok   backlog item sub-agent deny
+ok   backlog item worktree sub-agent deny
+ok   backlog item from worktree, main allow
+ok   backlog case-insensitive class
+ok   backlog item at 5.9 allow
+ok   backlog item at 3.1 deny
+ok   backlog --only spec at 3.1 deny
+ok   backlog item at 3.4 deny
+ok   backlog --only spec at 3.4 deny
+ok   backlog item at 4.4 deny
+ok   backlog --only spec at 4.4 deny
+ok   backlog item at 00.21 deny
+ok   backlog --only spec at 00.21 deny
+ok   backlog item at 00.25 deny
+ok   backlog --only spec at 00.25 deny
+ok   backlog item at 00.27 deny
+ok   backlog --only spec at 00.27 deny
+ok   backlog item at 5.7 deny
+ok   backlog --only spec at 5.7 deny
+ok   backlog deny message names 00.26
+ok   backlog misnamed item deny
+ok   backlog nested path deny
+ok   backlog spec.md is not a spec file
+ok   backlog tasks.md is not a spec file
+ok   backlog .step is not a marker (named msg)
+ok   backlog origin without marker deny
+ok   backlog other origin's step not used
+ok   in-flight scan ignores work-backlog
+== budget-check.sh
+ok   usage: no args
+ok   bad spec dir
+ok   work-backlog is not a spec dir
+ok   missing spec
+ok   no baseline: within budget
+ok   no baseline: source spec
+ok   no baseline: tasks 2
+ok   no baseline: changed_files null
+ok   no baseline: note present
+ok   no baseline: keys
+ok   no baseline: breakdown null
+ok   no baseline: over empty
+ok   no budget, no rules: default
+ok   rules budget: tasks over -> 2
+ok   rules source + values
+ok   over tasks
+ok   malformed rules block -> 1
+ok   rules block missing key -> 1
+ok   heading without block: default
+ok   malformed spec budget -> 1
+ok   baseline=HEAD: 0 changed
+ok   baseline only: fallback note
+ok   baseline only: basis
+ok   impl_base=HEAD: 0 changed
+ok   impl_base: no note
+ok   impl_base: basis
+ok   3 changed > 2 -> 2
+ok   changed excludes spec folder + backlog
+ok   over changed_files
+ok   source spec
+ok   from worktree cwd (its HEAD: 0 changed)
+ok   worktree count 1
+ok   abs spec dir from worktree
+ok   no --cwd from worktree PWD counts main HEAD
+ok   both over
+ok   equal to max is within budget
+ok   target defaults to main
+ok   merge_base is main
+ok   counted files listed
+ok   spec folder + backlog reported
+ok   merging main in: count unchanged
+ok   merging main in: dropped by merge-base
+ok   merging main in: merge_base moves to main
+ok   merging main in: still within budget
+ok   missing target: falls back to impl_base..HEAD
+ok   missing target: merge_base null
+ok   missing target: note names it
+ok   missing target: warning on stderr
+ok   origin/<target> alone is used
+ok   origin/<target>: no note
+ok   invalid main_branch -> 1
+ok   tests excluded from the count
+ok   tests reported separately
+ok   harness-only: nothing counts
+ok   harness-only: reported
+ok   harness changed again in Phase 3 counts
+ok   harness test changed again stays excluded
+ok   predicted: tests excluded
+ok   predicted: tests reported
+ok   predicted: no git breakdown
+ok   profile test_patterns replace its defaults
+ok   malformed test_patterns -> 1
+ok   unknown impl_base -> 1
+ok   unknown baseline (fallback) -> 1
+ok   missing tasks.md -> 1
+ok   not a git repo -> 1
+ok   yq missing -> 1 (budget-check)
+ok   read-only: spec.md unchanged by check
+== coordinator contract: blocked mid-wave
+ok   eta T1 in-progress
+ok   eta 00.21 mid-wave
+ok   set-task done at 3.16 while blocked refused
+ok   3.16 refusal says the merge waits
+ok   T1 not marked done
+ok   .step left at 00.21
+ok   spec still blocked
+ok   set-task gate relaunch while blocked
+ok   blocked_from kept by set-task --step
+ok   step 00.26 while blocked
+ok   blocked_from kept at 00.26
+ok   step 00.29 while blocked
+ok   blocked_from kept at 00.29
+ok   eta resume 00.28
+ok   set-task done at 3.16 after unblock
+ok   eta in-review
+ok   eta 00.21 at 4.4 (review)
+ok   eta in-review at 00.28
+ok   eta budget block from ready (2.6)
+ok   size budget re-scope via 00.24 refused
+ok   re-scope via draft --step 00.29 (2.6)
+ok   eta budget block at 3.15
+ok   re-scope via draft --step 00.29 (3.15)
+ok   eta draft
+== split-out and backlog seeding
+ok   validator: assets/tasks.md == status-transition.sh
+ok   template tasks.md passes validator w/ split-out
+ok   kappa budget block
+ok   T2 pending->split-out without step
+ok   T2 pending->split-out at 2.6 illegal
+ok   T2 pending->split-out at 00.29
+ok   T2 split-out written
+ok   blocked_from kept by split
+ok   split-out terminal (->pending)
+ok   split-out terminal (->in-progress)
+ok   kappa T1 pending->in-progress
+ok   in-progress->split-out at 00.29 illegal
+ok   kappa resume 00.28
+ok   budget: split-out tasks not counted
+ok   task count excludes split-out
+ok   budget: pending counted -> over
+ok   origin: key in spec.md accepted
+ok   backlog at origin 3.4 deny (pre-seed)
+ok   backlog at new spec 0.1.4 allow
+ok   backlog at 0.1.4 sub-agent deny
+ok   backlog: 0.1.4 no longer newest deny
+ok   spec.md at 5.9 allow (deferred[])
+== task bodies, record fields, set-task --pr, set-spec, budget --predicted
+ok   tasks/T01-x.md at 2.5 allow
+ok   tasks/ nested at 2.5 allow
+ok   tasks/ at 2.5 sub-agent deny
+ok   tasks/ at 0.3.20 allow
+ok   tasks/ at 3.3 deny
+ok   TASKS/ upper-case at 3.3 deny
+ok   tasks/ only spec class
+ok   tasks/ not tier-a
+ok   look-alike tasks-x/ allow
+ok   look-alike tasks.md.bak allow
+ok   look-alike src/tasks/ allow
+ok   look-alike specs-x/<s>/tasks/ allow
+ok   tasks dir itself at 3.3 allow (no file)
+ok   dotdot into tasks/ deny
+ok   tasks/ deny names set-task
+ok   --pr https url
+ok   pr written
+ok   --pr --step writes .step
+ok   --pr not a url
+ok   --pr in status mode refused
+ok   --pr replace warns, ok
+ok   --pr null clears
+ok   pr cleared
+ok   validator rejects mode auto
+ok   validator rejects size.points XL
+ok   validator rejects size.files negative
+ok   validator rejects size.files string
+ok   validator rejects branch pattern
+ok   validator rejects branch other task id
+ok   validator rejects file other task id
+ok   validator rejects parallel_with id
+ok   validator rejects predicted_files int
+ok   validator rejects tests empty string
+ok   validator rejects pr not url
+ok   validator accepts branch null (light path)
+ok   validator accepts branch unpadded T1
+ok   validator accepts mode hitl
+ok   validator accepts tests list
+ok   validator accepts legacy record (no task-breakdown keys)
+ok   set-spec needs a key
+ok   set-spec needs --step
+ok   spec_branch missing branch
+ok   spec_branch wrong name
+ok   spec_branch at 3.1 illegal
+ok   spec_branch at 1.1
+ok   spec_branch written
+ok   status untouched by set-spec
+ok   spec_branch at 0.3.20 (same value)
+ok   spec_branch differs from existing
+ok   impl_base at 1.1 illegal
+ok   impl_base not a commit
+ok   impl_base before baseline refused
+ok   impl_base HEAD at 3.1
+ok   impl_base full sha
+ok   set-spec .step 3.1
+ok   impl_base same value ok
+ok   impl_base never overwritten
+ok   --impl-base in set-task refused
+ok   predicted sum 9
+ok   predicted basis
+ok   predicted within budget
+ok   predicted 11 > 10 -> 2
+ok   predicted over
+ok   predicted skips split-out
+ok   predicted: record without size -> 1
+ok   shellcheck: scripts under test
+
+RESULT passed=677 failed=0 skipped=0 xfail=0
+== scripts/step-progress
+ok   shellcheck step-progress.sh
+ok   step-progress.sh is executable
+ok   full: first step
+ok   full: 0.3.22 runs before 0.3.8
+ok   full: 0.3.8
+ok   full: Phase 0 exit gate is its last step
+ok   full: 1.1 is Phase 2
+ok   full: 2.6 after 2.5
+ok   full: 3.1 is not 3.10
+ok   full: 3.16 merges before 3.9
+ok   full: 3.10
+ok   full: 4.7
+ok   full: 5.8 is the last step
+ok   full: 5.9 runs before 5.7
+ok   light: 0.3.8 keeps its position, smaller total
+ok   light: 0.3.20 ends Phase 0
+ok   light: 3.1 is Phase 2 of 4
+ok   light: 3.14 is counted
+ok   light: 4.1
+ok   light: 5.8
+ok   loop: a second questioning round prints the same line
+ok   loop: a later wave's 3.3 has the same number
+ok   full-only step on the light path exits 2
+ok   Phase 1 step on the light path exits 2
+ok   light-only 3.14 on the full path exits 2
+ok   side artifact 0.3.21 exits 2
+ok   side artifact 3.12 exits 2
+ok   intake 0.0.1 exits 0
+ok   intake prints nothing
+ok   unknown id exits 2
+ok   unknown id names the id on stderr
+ok   00.x without --at exits 2
+ok   00.x with --at shows the linear step, then the 00.x step
+ok   00.2 is not 00.20
+ok   --at another 00.x exits 2
+ok   --at on a linear step is a usage error
+ok   bad --path is a usage error
+ok   no id is a usage error
+ok   --spec-dir: unsized spec counts the full path, step from .step
+ok   --spec-dir: light_path true counts the light path
+ok   --spec-dir: an explicit id wins over .step
+ok   --spec-dir: --path overrides light_path
+ok   --spec-dir: a 00.x marker needs --at
+ok   --spec-dir: a 00.x marker with --at
+ok   --spec-dir: no marker and no id exits 1
+ok   --spec-dir: missing spec.md exits 1
+FAIL JRN-007 steps.tsv has large-track rows
+FAIL JRN-007 the first large row prints the large form
+       got= want=Large path · step 1 of 0 —  (6.1)
+FAIL JRN-007 the last large row prints the large form
+       got= want=Large path · step 0 of 0 —  (6.1)
+ok   JRN-007 a phase 0 row still prints Phase 1 of 6
+FAIL JRN-007 the conversion node prints as a Discovery step on the full path
+FAIL JRN-007 the conversion node prints as a Discovery step on the light path
+
+RESULT passed=47 failed=5 skipped=0 xfail=0
+== scripts/task-breakdown
+== task-waves.sh: overlap rule
+ok   overlap src/a.ts ~ src/a.ts
+ok   overlap src/a.ts ~ ./src/a.ts
+ok   overlap src/a.ts ~ src/b.ts
+ok   overlap src/*.ts ~ src/a.ts
+ok   overlap src/*.ts ~ src/x/a.ts
+ok   overlap src/** ~ src/x/a.ts
+ok   overlap src/**/a.ts ~ src/a.ts
+ok   overlap src/ ~ src/x/y.ts
+ok   overlap src/?.ts ~ src/a.ts
+ok   overlap src/?.ts ~ src/ab.ts
+ok   overlap src/[ab].ts ~ src/c.ts
+ok   overlap src/lib/** ~ src/lib/**/*.ts
+ok   overlap src/lib/** ~ src/*.css
+ok   overlap src/*.ts ~ src/*.css
+ok   overlap src/a* ~ src/*b
+ok   overlap a/** ~ b/**
+ok   overlap src/a.ts ~ src/a.ts.bak
+== task-waves.sh: graph
+ok   graph rc
+ok   waves
+ok   implied edge T2<-T1
+ok   T1/T3 parallel_with
+ok   T2/T4 ordered
+ok   split-out left out
+ok   T2 overlaps
+ok   no warnings
+ok   text: wave lines
+ok   text: dashed implied edge
+ok   text: quiz table row
+ok   text: overlap row
+ok   one-sided parallel_with -> edge
+ok   one-sided parallel_with warns
+ok   cycle -> 2
+ok   unknown depends_on -> 2
+ok   unknown parallel_with -> 2
+ok   duplicate id -> 2
+ok   numeric id order
+ok   usage: no args -> 1
+ok   missing file -> 1
+ok   --spec-dir from main
+ok   --spec-dir from a worktree
+ok   bad spec dir -> 1
+== rules-setting.sh
+ok   template default pr
+ok   local read
+ok   pr-blocking read
+ok   no block -> default
+ok   no key -> default
+ok   missing rules.md -> default
+ok   bad value -> 1
+ok   not a map -> 1
+ok   unknown key -> 1
+ok   main_branch default main (no git)
+ok   main_branch read
+ok   main_branch invalid -> 1
+ok   main_branch default main without origin/HEAD
+ok   main_branch default from origin/HEAD
+ok   main checkout rules from worktree cwd
+ok   boundary generator ignores ## Workflow settings
+== open-task-pr.sh (stubbed gh / glab, no network)
+ok   no origin -> skipped
+ok   light-path task (branch null) -> skipped, rc 0
+ok   gh: url printed
+ok   gh: rc 0
+ok   gh: create args
+ok   gh: body names task file and mini-review
+ok   pushed both branches to origin
+ok   --record wrote pr
+ok   gh: existing PR reused
+ok   gh not logged in -> skipped rc 0
+ok   gh missing -> skipped
+ok   glab: url printed
+ok   glab: create args
+ok   unknown host -> skipped
+ok   task_review local -> skipped
+ok   dry run prints commands
+ok   bad task id -> 1
+ok   unknown task -> 1
+== run-toolchain.sh test scoping
+ok   scoped: rc 0 (test_scoped used)
+ok   scoped: result flags
+ok   scoped: env passed
+ok   scoped: exclude file one per line
+ok   scoped: own tests file
+ok   gate: excludes all unfinished (T2,T3,T4)
+ok   gate without flag: full test runs, fails
+ok   gate without flag: not scoped
+ok   nothing unfinished: full test runs (whole suite must pass)
+ok   no test_scoped + red unfinished tests: rc 0
+ok   unscoped status
+ok   unscoped warning in json and stderr
+ok   --skip test still wins
+ok   shellcheck: task-breakdown scripts
+
+RESULT passed=89 failed=0 skipped=0 xfail=0
+== scripts/upstream-diff
+== arguments
+ok   --help exits 0
+ok   --help prints usage
+ok   unknown flag exits 2
+ok   --repo without a value exits 2
+ok   --repo not OWNER/REPO exits 2
+ok   --ref without a value exits 2
+ok   missing lineage file exits 2
+ok   lineage without entries exits 2
+ok   --repo with no entry exits 2
+ok   --path matching nothing exits 2
+== selection (dry run, no clones)
+ok   dry run lists every entry
+ok   --repo selects only that upstream
+ok   --repo o/alpha names no beta entry
+ok   --repo is repeatable
+ok   --path selects by prefix
+ok   unknown commit warns on stderr
+ok   unknown commit is listed as skipped
+ok   dry run clones nothing (no cache dir created)
+== real run against local upstreams
+ok   real run exits 0
+ok   changed entry is reported
+ok   unchanged entry is reported
+ok   beta entry unchanged
+ok   unknown commit skipped in a real run
+ok   diff header printed for the changed entry
+ok   diff shows the upstream change to HEAD
+ok   summary counts changed entries
+ok   --summary-only prints no diff
+ok   --summary-only still prints the summary
+ok   --ref compares against that ref
+ok   commit missing upstream exits 3
+ok   commit missing upstream is skipped with a reason
+ok   --cache run exits 0
+ok   --cache keeps the clone
+ok   --cache re-run fetches into the kept clone
+ok   lineage file not modified
+ok   shellcheck scripts/upstream-diff.sh tests/scripts/upstream-diff.sh
+
+RESULT passed=36 failed=0 skipped=0 xfail=0
+== hooks/audit-sync-resume
+== post-implementation-audit
+ok   non-implementation agent ignored
+ok   failing toolchain blocks
+ok   evidence in main checkout, not worktree
+ok   counter=1
+ok   same digest, active -> still block, count 2
+ok   3rd identical -> give up, allow with systemMessage
+ok   inactive stop resets counter to 1
+ok   changed digest while active resets to 1
+ok   passing toolchain -> silent allow, counter cleared
+ok   phase 1 header -> evidence under phase-1-harness, pass silent
+ok   phase 1 with failing test key -> allowed, test skipped
+ok   phase 3 task with failing test key -> test still runs, stop blocked (only Phase 1 skips it)
+ok   main-checkout cwd, no task worktree -> allow + warning, toolchain not run
+ok   .workflow/.worktrees/s001_t1 audited (pass there)
+ok   task worktree preferred over an isolation cwd
+ok   fallback: isolation worktree cwd still audited
+ok   array-content first user message parsed
+ok   missing header -> allow with systemMessage
+ok   malformed header -> allow + warning filed under spec artifacts
+ok   missing transcript -> allow + systemMessage
+ok   run-toolchain config error (no profile) -> allow + audit.json warning
+== rules-boundary-config-sync
+ok   other path ignored
+ok   other tool ignored
+ok   valid rules.md (relative path) -> silent, config generated
+ok   parse error -> block with reason, config untouched
+ok   NotebookEdit notebook_path handled
+ok   nested .workflow/rules.md elsewhere ignored
+ok   missing yq -> systemMessage, no block
+ok   worktree rules.md -> generated in worktree
+== session-start-resume
+ok   no .workflow/specs/ -> nothing
+ok   SessionStart output shape
+ok   in-progress listed with step
+ok   blocked listed with blocked_from + condition
+ok   done omitted
+ok   broken frontmatter flagged
+ok   points at feature-workflow
+ok   only done specs -> nothing
+ok   no .step marker noted
+ok   cap: additionalContext < 10000 chars with omitted count (took 4s)
+ok   cap holds with handoffs listed (entries cut at 300 chars)
+== session-start-resume: discovered work and backlog
+ok   discovered work blocked -> prompt pending
+ok   size budget blocked -> prompt pending
+ok   other blocked condition -> no pending note
+ok   backlog: 7 open counted, 5 names, promoted skipped, not scanned as a spec
+ok   work-backlog/spec.md never scanned as a spec
+ok   backlog only (no in-flight spec) still offers
+ok   no open backlog and no specs -> nothing
+== session-start-resume: session handoffs (.workflow/.handoff/)
+ok   handoff only (empty .workflow/specs/), worktree cwd -> listed from main checkout
+ok   no .workflow/specs/ directory, handoff present -> still offered
+ok   handoff naming a spec listed with the spec list; footer names both skills
+ok   newest handoff first
+ok   unreadable handoff flagged; 5 handoffs -> 3 listed, 2 counted
+ok   no handoffs and no specs -> nothing
+ok   shellcheck: audit/sync/resume hooks
+
+RESULT passed=54 failed=0 skipped=0 xfail=0
+== hooks/block-destructive-git
+== blocked forms
+ok   blocked: git stash
+ok   blocked: git stash pop
+ok   blocked: git stash drop stash@{0}
+ok   blocked: git stash push -m wip
+ok   blocked: git stash apply
+ok   blocked: git stash clear
+ok   blocked: git reset --hard
+ok   blocked: git reset --hard HEAD~1
+ok   blocked: git reset -q --hard origin/main
+ok   blocked: git checkout .
+ok   blocked: git checkout -- .
+ok   blocked: git checkout -- src/a.ts
+ok   blocked: git checkout HEAD -- src/a.ts
+ok   blocked: git checkout ./src
+ok   blocked: git checkout -f main
+ok   blocked: git checkout --force main
+ok   blocked: git switch --discard-changes main
+ok   blocked: git switch -f main
+ok   blocked: git restore .
+ok   blocked: git restore --staged a.txt
+ok   blocked: git restore --source=HEAD~1 a.txt
+ok   blocked: git clean -f
+ok   blocked: git clean -fd
+ok   blocked: git clean -fdx
+ok   blocked: git clean -xdf
+ok   blocked: git clean --force -d
+ok   blocked: git -c clean.requireForce=false clean
+ok   blocked: git push --force
+ok   blocked: git push -f origin main
+ok   blocked: git push origin main --force
+ok   blocked: git push -uf origin main
+ok   blocked: git push --force-with-lease
+ok   blocked: git push --force-with-lease=main:abc123 origin main
+ok   blocked: git push --force-if-includes --force-with-lease
+ok   blocked: git push origin +main
+ok   blocked: git push origin +HEAD:refs/heads/main
+ok   blocked: git push origin :old-branch
+ok   blocked: git push --delete origin old-branch
+ok   blocked: git push -d origin old-branch
+ok   blocked: git push --mirror backup
+ok   blocked: git push --prune origin
+ok   blocked: git branch -D feature
+ok   blocked: git branch -d -f feature
+ok   blocked: git branch --delete --force feature
+ok   blocked: git branch -df feature
+ok   blocked: git branch -fd feature
+ok   blocked: git rebase main
+ok   blocked: git rebase -i HEAD~3
+ok   blocked: git rebase --continue
+ok   blocked: git pull --rebase=false && git rebase origin/main
+ok   blocked: git filter-branch --tree-filter "rm x" HEAD
+ok   blocked: git filter-repo --path secrets --invert-paths
+ok   blocked: git reflog expire --expire=now --all
+ok   blocked: git reflog delete HEAD@{1}
+== found inside compound and nested commands
+ok   blocked: git status && git reset --hard
+ok   blocked: git fetch; git reset --hard origin/main
+ok   blocked: false || git push -f
+ok   blocked: git log | head; git clean -fd
+ok   blocked: echo start & git stash
+ok   blocked: (cd sub && git reset --hard)
+ok   blocked: git status|git reset --hard
+ok   blocked: git status \|  && git reset --hard
+ok   blocked: if true; then git rebase main; fi
+ok   blocked: { git stash; }
+ok   blocked: ! git push --force
+ok   blocked: sudo git reset --hard
+ok   blocked: sudo -u deploy git push -f
+ok   blocked: env -u FOO GIT_DIR=.git git reset --hard
+ok   blocked: GIT_TRACE=1 git push --force
+ok   blocked: command git clean -fd
+ok   blocked: nohup git stash &
+ok   blocked: timeout 30 git push --force
+ok   blocked: ls | xargs git branch -D
+ok   blocked: xargs -n 1 git branch -D < branches.txt
+ok   blocked: /usr/bin/git reset --hard
+ok   blocked: git -C ../other reset --hard
+ok   blocked: git -c user.name=x --no-pager reset --hard
+ok   blocked: git --git-dir=.git --work-tree=. clean -fd
+ok   blocked: echo $(git reset --hard)
+ok   blocked: x="$(git stash pop)"
+ok   blocked: echo `git clean -fd`
+ok   blocked: bash -c 'git rebase -i HEAD~2'
+ok   blocked: sh -c "cd x && git push --force"
+ok   blocked: bash -lc 'git reset --hard'
+ok   blocked: eval git clean -fdx
+ok   blocked: eval 'git reset --hard'
+ok   blocked: bash <<'EOF'|git stash|EOF
+ok   blocked: sh <<-EOF|	git reset --hard|	EOF
+ok   blocked: bash <<< "git reset --hard"
+== allowed
+ok   allowed: git status
+ok   allowed: git log --oneline -n 5
+ok   allowed: git diff HEAD~1
+ok   allowed: git -c core.pager=cat --no-pager show HEAD
+ok   allowed: git stash list
+ok   allowed: git stash show -p stash@{0}
+ok   allowed: git reset HEAD a.txt
+ok   allowed: git reset --soft HEAD~1
+ok   allowed: git checkout main
+ok   allowed: git checkout -b feature/x
+ok   allowed: git switch -c feature/x
+ok   allowed: git switch main
+ok   allowed: git clean -n
+ok   allowed: git clean -nd
+ok   allowed: git clean --dry-run -x
+ok   allowed: git push
+ok   allowed: git push -u origin feature/x
+ok   allowed: git push origin HEAD:refs/heads/feature/x
+ok   allowed: git push --tags
+ok   allowed: git branch -d merged-branch
+ok   allowed: git branch -m old new
+ok   allowed: git branch --list
+ok   allowed: git reflog
+ok   allowed: git reflog show
+ok   allowed: git commit -m "revert: git reset --hard was a mistake"
+ok   allowed: git commit -m 'never git push --force'
+ok   allowed: echo "git reset --hard"
+ok   allowed: printf '%s\n' 'git clean -fd' 'git rebase main'
+ok   allowed: grep -rn "git stash pop" docs/
+ok   allowed: # git reset --hard
+ok   allowed: git status # then git reset --hard
+ok   allowed: cat <<'EOF' > notes.md|git reset --hard|git push --force|EOF
+ok   allowed: cat > run.sh <<EOF|git rebase main|git stash pop|EOF|echo written
+ok   allowed: cat <<-EOF|	git clean -fd|	EOF
+ok   allowed: cat <<A <<B|git reset --hard|A|git push -f|B|git status
+ok   allowed: git checkout main > .out 2>&1
+ok   allowed: git log 2> .err
+ok   allowed: bash ./scripts/build.sh
+ok   allowed: npm run rebase-docs
+ok   allowed: echo stash; echo reset --hard
+ok   allowed: ls -la
+ok   allowed: command -v git
+== heredoc bodies are skipped but the commands after them are checked
+ok   blocked: cat <<EOF > x|git status|EOF|git reset --hard
+== output shape and payloads
+ok   hookEventName
+ok   reason names the command and the safe alternative
+ok   output is a single JSON object
+ok   Codex argv-array command is checked
+ok   Codex argv-array read-only command allowed
+ok   no command: silent exit 0
+ok   empty stdin: silent exit 0
+ok   invalid JSON: silent exit 0
+== fail closed when the tokenizer cannot run
+ok   no awk + mentions git -> deny
+ok   no awk + no git -> allowed
+== large heredoc
+ok   allowed: cat > big.txt <<EOF|line 0: git reset --hard is only text here|line 1: git reset --hard is only text here|line 2: git reset --hard is only text here|line 3: git reset --hard is only text here|line 4: git reset --hard is only text here|line 5: git reset --hard is only text here|line 6: git reset --hard is only text here|line 7: git reset --hard is only text here|line 8: git reset --hard is only text here|line 9: git reset --hard is only text here|line 10: git reset --hard is only text here|line 11: git reset --hard is only text here|line 12: git reset --hard is only text here|line 13: git reset --hard is only text here|line 14: git reset --hard is only text here|line 15: git reset --hard is only text here|line 16: git reset --hard is only text here|line 17: git reset --hard is only text here|line 18: git reset --hard is only text here|line 19: git reset --hard is only text here|line 20: git reset --hard is only text here|line 21: git reset --hard is only text here|line 22: git reset --hard is only text here|line 23: git reset --hard is only text here|line 24: git reset --hard is only text here|line 25: git reset --hard is only text here|line 26: git reset --hard is only text here|line 27: git reset --hard is only text here|line 28: git reset --hard is only text here|line 29: git reset --hard is only text here|line 30: git reset --hard is only text here|line 31: git reset --hard is only text here|line 32: git reset --hard is only text here|line 33: git reset --hard is only text here|line 34: git reset --hard is only text here|line 35: git reset --hard is only text here|line 36: git reset --hard is only text here|line 37: git reset --hard is only text here|line 38: git reset --hard is only text here|line 39: git reset --hard is only text here|line 40: git reset --hard is only text here|line 41: git reset --hard is only text here|line 42: git reset --hard is only text here|line 43: git reset --hard is only text here|line 44: git reset --hard is only text here|line 45: git reset --hard is only text here|line 46: git reset --hard is only text here|line 47: git reset --hard is only text here|line 48: git reset --hard is only text here|line 49: git reset --hard is only text here|line 50: git reset --hard is only text here|line 51: git reset --hard is only text here|line 52: git reset --hard is only text here|line 53: git reset --hard is only text here|line 54: git reset --hard is only text here|line 55: git reset --hard is only text here|line 56: git reset --hard is only text here|line 57: git reset --hard is only text here|line 58: git reset --hard is only text here|line 59: git reset --hard is only text here|line 60: git reset --hard is only text here|line 61: git reset --hard is only text here|line 62: git reset --hard is only text here|line 63: git reset --hard is only text here|line 64: git reset --hard is only text here|line 65: git reset --hard is only text here|line 66: git reset --hard is only text here|line 67: git reset --hard is only text here|line 68: git reset --hard is only text here|line 69: git reset --hard is only text here|line 70: git reset --hard is only text here|line 71: git reset --hard is only text here|line 72: git reset --hard is only text here|line 73: git reset --hard is only text here|line 74: git reset --hard is only text here|line 75: git reset --hard is only text here|line 76: git reset --hard is only text here|line 77: git reset --hard is only text here|line 78: git reset --hard is only text here|line 79: git reset --hard is only text here|line 80: git reset --hard is only text here|line 81: git reset --hard is only text here|line 82: git reset --hard is only text here|line 83: git reset --hard is only text here|line 84: git reset --hard is only text here|line 85: git reset --hard is only text here|line 86: git reset --hard is only text here|line 87: git reset --hard is only text here|line 88: git reset --hard is only text here|line 89: git reset --hard is only text here|line 90: git reset --hard is only text here|line 91: git reset --hard is only text here|line 92: git reset --hard is only text here|line 93: git reset --hard is only text here|line 94: git reset --hard is only text here|line 95: git reset --hard is only text here|line 96: git reset --hard is only text here|line 97: git reset --hard is only text here|line 98: git reset --hard is only text here|line 99: git reset --hard is only text here|line 100: git reset --hard is only text here|line 101: git reset --hard is only text here|line 102: git reset --hard is only text here|line 103: git reset --hard is only text here|line 104: git reset --hard is only text here|line 105: git reset --hard is only text here|line 106: git reset --hard is only text here|line 107: git reset --hard is only text here|line 108: git reset --hard is only text here|line 109: git reset --hard is only text here|line 110: git reset --hard is only text here|line 111: git reset --hard is only text here|line 112: git reset --hard is only text here|line 113: git reset --hard is only text here|line 114: git reset --hard is only text here|line 115: git reset --hard is only text here|line 116: git reset --hard is only text here|line 117: git reset --hard is only text here|line 118: git reset --hard is only text here|line 119: git reset --hard is only text here|line 120: git reset --hard is only text here|line 121: git reset --hard is only text here|line 122: git reset --hard is only text here|line 123: git reset --hard is only text here|line 124: git reset --hard is only text here|line 125: git reset --hard is only text here|line 126: git reset --hard is only text here|line 127: git reset --hard is only text here|line 128: git reset --hard is only text here|line 129: git reset --hard is only text here|line 130: git reset --hard is only text here|line 131: git reset --hard is only text here|line 132: git reset --hard is only text here|line 133: git reset --hard is only text here|line 134: git reset --hard is only text here|line 135: git reset --hard is only text here|line 136: git reset --hard is only text here|line 137: git reset --hard is only text here|line 138: git reset --hard is only text here|line 139: git reset --hard is only text here|line 140: git reset --hard is only text here|line 141: git reset --hard is only text here|line 142: git reset --hard is only text here|line 143: git reset --hard is only text here|line 144: git reset --hard is only text here|line 145: git reset --hard is only text here|line 146: git reset --hard is only text here|line 147: git reset --hard is only text here|line 148: git reset --hard is only text here|line 149: git reset --hard is only text here|line 150: git reset --hard is only text here|line 151: git reset --hard is only text here|line 152: git reset --hard is only text here|line 153: git reset --hard is only text here|line 154: git reset --hard is only text here|line 155: git reset --hard is only text here|line 156: git reset --hard is only text here|line 157: git reset --hard is only text here|line 158: git reset --hard is only text here|line 159: git reset --hard is only text here|line 160: git reset --hard is only text here|line 161: git reset --hard is only text here|line 162: git reset --hard is only text here|line 163: git reset --hard is only text here|line 164: git reset --hard is only text here|line 165: git reset --hard is only text here|line 166: git reset --hard is only text here|line 167: git reset --hard is only text here|line 168: git reset --hard is only text here|line 169: git reset --hard is only text here|line 170: git reset --hard is only text here|line 171: git reset --hard is only text here|line 172: git reset --hard is only text here|line 173: git reset --hard is only text here|line 174: git reset --hard is only text here|line 175: git reset --hard is only text here|line 176: git reset --hard is only text here|line 177: git reset --hard is only text here|line 178: git reset --hard is only text here|line 179: git reset --hard is only text here|line 180: git reset --hard is only text here|line 181: git reset --hard is only text here|line 182: git reset --hard is only text here|line 183: git reset --hard is only text here|line 184: git reset --hard is only text here|line 185: git reset --hard is only text here|line 186: git reset --hard is only text here|line 187: git reset --hard is only text here|line 188: git reset --hard is only text here|line 189: git reset --hard is only text here|line 190: git reset --hard is only text here|line 191: git reset --hard is only text here|line 192: git reset --hard is only text here|line 193: git reset --hard is only text here|line 194: git reset --hard is only text here|line 195: git reset --hard is only text here|line 196: git reset --hard is only text here|line 197: git reset --hard is only text here|line 198: git reset --hard is only text here|line 199: git reset --hard is only text here|line 200: git reset --hard is only text here|line 201: git reset --hard is only text here|line 202: git reset --hard is only text here|line 203: git reset --hard is only text here|line 204: git reset --hard is only text here|line 205: git reset --hard is only text here|line 206: git reset --hard is only text here|line 207: git reset --hard is only text here|line 208: git reset --hard is only text here|line 209: git reset --hard is only text here|line 210: git reset --hard is only text here|line 211: git reset --hard is only text here|line 212: git reset --hard is only text here|line 213: git reset --hard is only text here|line 214: git reset --hard is only text here|line 215: git reset --hard is only text here|line 216: git reset --hard is only text here|line 217: git reset --hard is only text here|line 218: git reset --hard is only text here|line 219: git reset --hard is only text here|line 220: git reset --hard is only text here|line 221: git reset --hard is only text here|line 222: git reset --hard is only text here|line 223: git reset --hard is only text here|line 224: git reset --hard is only text here|line 225: git reset --hard is only text here|line 226: git reset --hard is only text here|line 227: git reset --hard is only text here|line 228: git reset --hard is only text here|line 229: git reset --hard is only text here|line 230: git reset --hard is only text here|line 231: git reset --hard is only text here|line 232: git reset --hard is only text here|line 233: git reset --hard is only text here|line 234: git reset --hard is only text here|line 235: git reset --hard is only text here|line 236: git reset --hard is only text here|line 237: git reset --hard is only text here|line 238: git reset --hard is only text here|line 239: git reset --hard is only text here|line 240: git reset --hard is only text here|line 241: git reset --hard is only text here|line 242: git reset --hard is only text here|line 243: git reset --hard is only text here|line 244: git reset --hard is only text here|line 245: git reset --hard is only text here|line 246: git reset --hard is only text here|line 247: git reset --hard is only text here|line 248: git reset --hard is only text here|line 249: git reset --hard is only text here|line 250: git reset --hard is only text here|line 251: git reset --hard is only text here|line 252: git reset --hard is only text here|line 253: git reset --hard is only text here|line 254: git reset --hard is only text here|line 255: git reset --hard is only text here|line 256: git reset --hard is only text here|line 257: git reset --hard is only text here|line 258: git reset --hard is only text here|line 259: git reset --hard is only text here|line 260: git reset --hard is only text here|line 261: git reset --hard is only text here|line 262: git reset --hard is only text here|line 263: git reset --hard is only text here|line 264: git reset --hard is only text here|line 265: git reset --hard is only text here|line 266: git reset --hard is only text here|line 267: git reset --hard is only text here|line 268: git reset --hard is only text here|line 269: git reset --hard is only text here|line 270: git reset --hard is only text here|line 271: git reset --hard is only text here|line 272: git reset --hard is only text here|line 273: git reset --hard is only text here|line 274: git reset --hard is only text here|line 275: git reset --hard is only text here|line 276: git reset --hard is only text here|line 277: git reset --hard is only text here|line 278: git reset --hard is only text here|line 279: git reset --hard is only text here|line 280: git reset --hard is only text here|line 281: git reset --hard is only text here|line 282: git reset --hard is only text here|line 283: git reset --hard is only text here|line 284: git reset --hard is only text here|line 285: git reset --hard is only text here|line 286: git reset --hard is only text here|line 287: git reset --hard is only text here|line 288: git reset --hard is only text here|line 289: git reset --hard is only text here|line 290: git reset --hard is only text here|line 291: git reset --hard is only text here|line 292: git reset --hard is only text here|line 293: git reset --hard is only text here|line 294: git reset --hard is only text here|line 295: git reset --hard is only text here|line 296: git reset --hard is only text here|line 297: git reset --hard is only text here|line 298: git reset --hard is only text here|line 299: git reset --hard is only text here|line 300: git reset --hard is only text here|line 301: git reset --hard is only text here|line 302: git reset --hard is only text here|line 303: git reset --hard is only text here|line 304: git reset --hard is only text here|line 305: git reset --hard is only text here|line 306: git reset --hard is only text here|line 307: git reset --hard is only text here|line 308: git reset --hard is only text here|line 309: git reset --hard is only text here|line 310: git reset --hard is only text here|line 311: git reset --hard is only text here|line 312: git reset --hard is only text here|line 313: git reset --hard is only text here|line 314: git reset --hard is only text here|line 315: git reset --hard is only text here|line 316: git reset --hard is only text here|line 317: git reset --hard is only text here|line 318: git reset --hard is only text here|line 319: git reset --hard is only text here|line 320: git reset --hard is only text here|line 321: git reset --hard is only text here|line 322: git reset --hard is only text here|line 323: git reset --hard is only text here|line 324: git reset --hard is only text here|line 325: git reset --hard is only text here|line 326: git reset --hard is only text here|line 327: git reset --hard is only text here|line 328: git reset --hard is only text here|line 329: git reset --hard is only text here|line 330: git reset --hard is only text here|line 331: git reset --hard is only text here|line 332: git reset --hard is only text here|line 333: git reset --hard is only text here|line 334: git reset --hard is only text here|line 335: git reset --hard is only text here|line 336: git reset --hard is only text here|line 337: git reset --hard is only text here|line 338: git reset --hard is only text here|line 339: git reset --hard is only text here|line 340: git reset --hard is only text here|line 341: git reset --hard is only text here|line 342: git reset --hard is only text here|line 343: git reset --hard is only text here|line 344: git reset --hard is only text here|line 345: git reset --hard is only text here|line 346: git reset --hard is only text here|line 347: git reset --hard is only text here|line 348: git reset --hard is only text here|line 349: git reset --hard is only text here|line 350: git reset --hard is only text here|line 351: git reset --hard is only text here|line 352: git reset --hard is only text here|line 353: git reset --hard is only text here|line 354: git reset --hard is only text here|line 355: git reset --hard is only text here|line 356: git reset --hard is only text here|line 357: git reset --hard is only text here|line 358: git reset --hard is only text here|line 359: git reset --hard is only text here|line 360: git reset --hard is only text here|line 361: git reset --hard is only text here|line 362: git reset --hard is only text here|line 363: git reset --hard is only text here|line 364: git reset --hard is only text here|line 365: git reset --hard is only text here|line 366: git reset --hard is only text here|line 367: git reset --hard is only text here|line 368: git reset --hard is only text here|line 369: git reset --hard is only text here|line 370: git reset --hard is only text here|line 371: git reset --hard is only text here|line 372: git reset --hard is only text here|line 373: git reset --hard is only text here|line 374: git reset --hard is only text here|line 375: git reset --hard is only text here|line 376: git reset --hard is only text here|line 377: git reset --hard is only text here|line 378: git reset --hard is only text here|line 379: git reset --hard is only text here|line 380: git reset --hard is only text here|line 381: git reset --hard is only text here|line 382: git reset --hard is only text here|line 383: git reset --hard is only text here|line 384: git reset --hard is only text here|line 385: git reset --hard is only text here|line 386: git reset --hard is only text here|line 387: git reset --hard is only text here|line 388: git reset --hard is only text here|line 389: git reset --hard is only text here|line 390: git reset --hard is only text here|line 391: git reset --hard is only text here|line 392: git reset --hard is only text here|line 393: git reset --hard is only text here|line 394: git reset --hard is only text here|line 395: git reset --hard is only text here|line 396: git reset --hard is only text here|line 397: git reset --hard is only text here|line 398: git reset --hard is only text here|line 399: git reset --hard is only text here|line 400: git reset --hard is only text here|line 401: git reset --hard is only text here|line 402: git reset --hard is only text here|line 403: git reset --hard is only text here|line 404: git reset --hard is only text here|line 405: git reset --hard is only text here|line 406: git reset --hard is only text here|line 407: git reset --hard is only text here|line 408: git reset --hard is only text here|line 409: git reset --hard is only text here|line 410: git reset --hard is only text here|line 411: git reset --hard is only text here|line 412: git reset --hard is only text here|line 413: git reset --hard is only text here|line 414: git reset --hard is only text here|line 415: git reset --hard is only text here|line 416: git reset --hard is only text here|line 417: git reset --hard is only text here|line 418: git reset --hard is only text here|line 419: git reset --hard is only text here|line 420: git reset --hard is only text here|line 421: git reset --hard is only text here|line 422: git reset --hard is only text here|line 423: git reset --hard is only text here|line 424: git reset --hard is only text here|line 425: git reset --hard is only text here|line 426: git reset --hard is only text here|line 427: git reset --hard is only text here|line 428: git reset --hard is only text here|line 429: git reset --hard is only text here|line 430: git reset --hard is only text here|line 431: git reset --hard is only text here|line 432: git reset --hard is only text here|line 433: git reset --hard is only text here|line 434: git reset --hard is only text here|line 435: git reset --hard is only text here|line 436: git reset --hard is only text here|line 437: git reset --hard is only text here|line 438: git reset --hard is only text here|line 439: git reset --hard is only text here|line 440: git reset --hard is only text here|line 441: git reset --hard is only text here|line 442: git reset --hard is only text here|line 443: git reset --hard is only text here|line 444: git reset --hard is only text here|line 445: git reset --hard is only text here|line 446: git reset --hard is only text here|line 447: git reset --hard is only text here|line 448: git reset --hard is only text here|line 449: git reset --hard is only text here|line 450: git reset --hard is only text here|line 451: git reset --hard is only text here|line 452: git reset --hard is only text here|line 453: git reset --hard is only text here|line 454: git reset --hard is only text here|line 455: git reset --hard is only text here|line 456: git reset --hard is only text here|line 457: git reset --hard is only text here|line 458: git reset --hard is only text here|line 459: git reset --hard is only text here|line 460: git reset --hard is only text here|line 461: git reset --hard is only text here|line 462: git reset --hard is only text here|line 463: git reset --hard is only text here|line 464: git reset --hard is only text here|line 465: git reset --hard is only text here|line 466: git reset --hard is only text here|line 467: git reset --hard is only text here|line 468: git reset --hard is only text here|line 469: git reset --hard is only text here|line 470: git reset --hard is only text here|line 471: git reset --hard is only text here|line 472: git reset --hard is only text here|line 473: git reset --hard is only text here|line 474: git reset --hard is only text here|line 475: git reset --hard is only text here|line 476: git reset --hard is only text here|line 477: git reset --hard is only text here|line 478: git reset --hard is only text here|line 479: git reset --hard is only text here|line 480: git reset --hard is only text here|line 481: git reset --hard is only text here|line 482: git reset --hard is only text here|line 483: git reset --hard is only text here|line 484: git reset --hard is only text here|line 485: git reset --hard is only text here|line 486: git reset --hard is only text here|line 487: git reset --hard is only text here|line 488: git reset --hard is only text here|line 489: git reset --hard is only text here|line 490: git reset --hard is only text here|line 491: git reset --hard is only text here|line 492: git reset --hard is only text here|line 493: git reset --hard is only text here|line 494: git reset --hard is only text here|line 495: git reset --hard is only text here|line 496: git reset --hard is only text here|line 497: git reset --hard is only text here|line 498: git reset --hard is only text here|line 499: git reset --hard is only text here|line 500: git reset --hard is only text here|line 501: git reset --hard is only text here|line 502: git reset --hard is only text here|line 503: git reset --hard is only text here|line 504: git reset --hard is only text here|line 505: git reset --hard is only text here|line 506: git reset --hard is only text here|line 507: git reset --hard is only text here|line 508: git reset --hard is only text here|line 509: git reset --hard is only text here|line 510: git reset --hard is only text here|line 511: git reset --hard is only text here|line 512: git reset --hard is only text here|line 513: git reset --hard is only text here|line 514: git reset --hard is only text here|line 515: git reset --hard is only text here|line 516: git reset --hard is only text here|line 517: git reset --hard is only text here|line 518: git reset --hard is only text here|line 519: git reset --hard is only text here|line 520: git reset --hard is only text here|line 521: git reset --hard is only text here|line 522: git reset --hard is only text here|line 523: git reset --hard is only text here|line 524: git reset --hard is only text here|line 525: git reset --hard is only text here|line 526: git reset --hard is only text here|line 527: git reset --hard is only text here|line 528: git reset --hard is only text here|line 529: git reset --hard is only text here|line 530: git reset --hard is only text here|line 531: git reset --hard is only text here|line 532: git reset --hard is only text here|line 533: git reset --hard is only text here|line 534: git reset --hard is only text here|line 535: git reset --hard is only text here|line 536: git reset --hard is only text here|line 537: git reset --hard is only text here|line 538: git reset --hard is only text here|line 539: git reset --hard is only text here|line 540: git reset --hard is only text here|line 541: git reset --hard is only text here|line 542: git reset --hard is only text here|line 543: git reset --hard is only text here|line 544: git reset --hard is only text here|line 545: git reset --hard is only text here|line 546: git reset --hard is only text here|line 547: git reset --hard is only text here|line 548: git reset --hard is only text here|line 549: git reset --hard is only text here|line 550: git reset --hard is only text here|line 551: git reset --hard is only text here|line 552: git reset --hard is only text here|line 553: git reset --hard is only text here|line 554: git reset --hard is only text here|line 555: git reset --hard is only text here|line 556: git reset --hard is only text here|line 557: git reset --hard is only text here|line 558: git reset --hard is only text here|line 559: git reset --hard is only text here|line 560: git reset --hard is only text here|line 561: git reset --hard is only text here|line 562: git reset --hard is only text here|line 563: git reset --hard is only text here|line 564: git reset --hard is only text here|line 565: git reset --hard is only text here|line 566: git reset --hard is only text here|line 567: git reset --hard is only text here|line 568: git reset --hard is only text here|line 569: git reset --hard is only text here|line 570: git reset --hard is only text here|line 571: git reset --hard is only text here|line 572: git reset --hard is only text here|line 573: git reset --hard is only text here|line 574: git reset --hard is only text here|line 575: git reset --hard is only text here|line 576: git reset --hard is only text here|line 577: git reset --hard is only text here|line 578: git reset --hard is only text here|line 579: git reset --hard is only text here|line 580: git reset --hard is only text here|line 581: git reset --hard is only text here|line 582: git reset --hard is only text here|line 583: git reset --hard is only text here|line 584: git reset --hard is only text here|line 585: git reset --hard is only text here|line 586: git reset --hard is only text here|line 587: git reset --hard is only text here|line 588: git reset --hard is only text here|line 589: git reset --hard is only text here|line 590: git reset --hard is only text here|line 591: git reset --hard is only text here|line 592: git reset --hard is only text here|line 593: git reset --hard is only text here|line 594: git reset --hard is only text here|line 595: git reset --hard is only text here|line 596: git reset --hard is only text here|line 597: git reset --hard is only text here|line 598: git reset --hard is only text here|line 599: git reset --hard is only text here|line 600: git reset --hard is only text here|line 601: git reset --hard is only text here|line 602: git reset --hard is only text here|line 603: git reset --hard is only text here|line 604: git reset --hard is only text here|line 605: git reset --hard is only text here|line 606: git reset --hard is only text here|line 607: git reset --hard is only text here|line 608: git reset --hard is only text here|line 609: git reset --hard is only text here|line 610: git reset --hard is only text here|line 611: git reset --hard is only text here|line 612: git reset --hard is only text here|line 613: git reset --hard is only text here|line 614: git reset --hard is only text here|line 615: git reset --hard is only text here|line 616: git reset --hard is only text here|line 617: git reset --hard is only text here|line 618: git reset --hard is only text here|line 619: git reset --hard is only text here|line 620: git reset --hard is only text here|line 621: git reset --hard is only text here|line 622: git reset --hard is only text here|line 623: git reset --hard is only text here|line 624: git reset --hard is only text here|line 625: git reset --hard is only text here|line 626: git reset --hard is only text here|line 627: git reset --hard is only text here|line 628: git reset --hard is only text here|line 629: git reset --hard is only text here|line 630: git reset --hard is only text here|line 631: git reset --hard is only text here|line 632: git reset --hard is only text here|line 633: git reset --hard is only text here|line 634: git reset --hard is only text here|line 635: git reset --hard is only text here|line 636: git reset --hard is only text here|line 637: git reset --hard is only text here|line 638: git reset --hard is only text here|line 639: git reset --hard is only text here|line 640: git reset --hard is only text here|line 641: git reset --hard is only text here|line 642: git reset --hard is only text here|line 643: git reset --hard is only text here|line 644: git reset --hard is only text here|line 645: git reset --hard is only text here|line 646: git reset --hard is only text here|line 647: git reset --hard is only text here|line 648: git reset --hard is only text here|line 649: git reset --hard is only text here|line 650: git reset --hard is only text here|line 651: git reset --hard is only text here|line 652: git reset --hard is only text here|line 653: git reset --hard is only text here|line 654: git reset --hard is only text here|line 655: git reset --hard is only text here|line 656: git reset --hard is only text here|line 657: git reset --hard is only text here|line 658: git reset --hard is only text here|line 659: git reset --hard is only text here|line 660: git reset --hard is only text here|line 661: git reset --hard is only text here|line 662: git reset --hard is only text here|line 663: git reset --hard is only text here|line 664: git reset --hard is only text here|line 665: git reset --hard is only text here|line 666: git reset --hard is only text here|line 667: git reset --hard is only text here|line 668: git reset --hard is only text here|line 669: git reset --hard is only text here|line 670: git reset --hard is only text here|line 671: git reset --hard is only text here|line 672: git reset --hard is only text here|line 673: git reset --hard is only text here|line 674: git reset --hard is only text here|line 675: git reset --hard is only text here|line 676: git reset --hard is only text here|line 677: git reset --hard is only text here|line 678: git reset --hard is only text here|line 679: git reset --hard is only text here|line 680: git reset --hard is only text here|line 681: git reset --hard is only text here|line 682: git reset --hard is only text here|line 683: git reset --hard is only text here|line 684: git reset --hard is only text here|line 685: git reset --hard is only text here|line 686: git reset --hard is only text here|line 687: git reset --hard is only text here|line 688: git reset --hard is only text here|line 689: git reset --hard is only text here|line 690: git reset --hard is only text here|line 691: git reset --hard is only text here|line 692: git reset --hard is only text here|line 693: git reset --hard is only text here|line 694: git reset --hard is only text here|line 695: git reset --hard is only text here|line 696: git reset --hard is only text here|line 697: git reset --hard is only text here|line 698: git reset --hard is only text here|line 699: git reset --hard is only text here|line 700: git reset --hard is only text here|line 701: git reset --hard is only text here|line 702: git reset --hard is only text here|line 703: git reset --hard is only text here|line 704: git reset --hard is only text here|line 705: git reset --hard is only text here|line 706: git reset --hard is only text here|line 707: git reset --hard is only text here|line 708: git reset --hard is only text here|line 709: git reset --hard is only text here|line 710: git reset --hard is only text here|line 711: git reset --hard is only text here|line 712: git reset --hard is only text here|line 713: git reset --hard is only text here|line 714: git reset --hard is only text here|line 715: git reset --hard is only text here|line 716: git reset --hard is only text here|line 717: git reset --hard is only text here|line 718: git reset --hard is only text here|line 719: git reset --hard is only text here|line 720: git reset --hard is only text here|line 721: git reset --hard is only text here|line 722: git reset --hard is only text here|line 723: git reset --hard is only text here|line 724: git reset --hard is only text here|line 725: git reset --hard is only text here|line 726: git reset --hard is only text here|line 727: git reset --hard is only text here|line 728: git reset --hard is only text here|line 729: git reset --hard is only text here|line 730: git reset --hard is only text here|line 731: git reset --hard is only text here|line 732: git reset --hard is only text here|line 733: git reset --hard is only text here|line 734: git reset --hard is only text here|line 735: git reset --hard is only text here|line 736: git reset --hard is only text here|line 737: git reset --hard is only text here|line 738: git reset --hard is only text here|line 739: git reset --hard is only text here|line 740: git reset --hard is only text here|line 741: git reset --hard is only text here|line 742: git reset --hard is only text here|line 743: git reset --hard is only text here|line 744: git reset --hard is only text here|line 745: git reset --hard is only text here|line 746: git reset --hard is only text here|line 747: git reset --hard is only text here|line 748: git reset --hard is only text here|line 749: git reset --hard is only text here|line 750: git reset --hard is only text here|line 751: git reset --hard is only text here|line 752: git reset --hard is only text here|line 753: git reset --hard is only text here|line 754: git reset --hard is only text here|line 755: git reset --hard is only text here|line 756: git reset --hard is only text here|line 757: git reset --hard is only text here|line 758: git reset --hard is only text here|line 759: git reset --hard is only text here|line 760: git reset --hard is only text here|line 761: git reset --hard is only text here|line 762: git reset --hard is only text here|line 763: git reset --hard is only text here|line 764: git reset --hard is only text here|line 765: git reset --hard is only text here|line 766: git reset --hard is only text here|line 767: git reset --hard is only text here|line 768: git reset --hard is only text here|line 769: git reset --hard is only text here|line 770: git reset --hard is only text here|line 771: git reset --hard is only text here|line 772: git reset --hard is only text here|line 773: git reset --hard is only text here|line 774: git reset --hard is only text here|line 775: git reset --hard is only text here|line 776: git reset --hard is only text here|line 777: git reset --hard is only text here|line 778: git reset --hard is only text here|line 779: git reset --hard is only text here|line 780: git reset --hard is only text here|line 781: git reset --hard is only text here|line 782: git reset --hard is only text here|line 783: git reset --hard is only text here|line 784: git reset --hard is only text here|line 785: git reset --hard is only text here|line 786: git reset --hard is only text here|line 787: git reset --hard is only text here|line 788: git reset --hard is only text here|line 789: git reset --hard is only text here|line 790: git reset --hard is only text here|line 791: git reset --hard is only text here|line 792: git reset --hard is only text here|line 793: git reset --hard is only text here|line 794: git reset --hard is only text here|line 795: git reset --hard is only text here|line 796: git reset --hard is only text here|line 797: git reset --hard is only text here|line 798: git reset --hard is only text here|line 799: git reset --hard is only text here|line 800: git reset --hard is only text here|line 801: git reset --hard is only text here|line 802: git reset --hard is only text here|line 803: git reset --hard is only text here|line 804: git reset --hard is only text here|line 805: git reset --hard is only text here|line 806: git reset --hard is only text here|line 807: git reset --hard is only text here|line 808: git reset --hard is only text here|line 809: git reset --hard is only text here|line 810: git reset --hard is only text here|line 811: git reset --hard is only text here|line 812: git reset --hard is only text here|line 813: git reset --hard is only text here|line 814: git reset --hard is only text here|line 815: git reset --hard is only text here|line 816: git reset --hard is only text here|line 817: git reset --hard is only text here|line 818: git reset --hard is only text here|line 819: git reset --hard is only text here|line 820: git reset --hard is only text here|line 821: git reset --hard is only text here|line 822: git reset --hard is only text here|line 823: git reset --hard is only text here|line 824: git reset --hard is only text here|line 825: git reset --hard is only text here|line 826: git reset --hard is only text here|line 827: git reset --hard is only text here|line 828: git reset --hard is only text here|line 829: git reset --hard is only text here|line 830: git reset --hard is only text here|line 831: git reset --hard is only text here|line 832: git reset --hard is only text here|line 833: git reset --hard is only text here|line 834: git reset --hard is only text here|line 835: git reset --hard is only text here|line 836: git reset --hard is only text here|line 837: git reset --hard is only text here|line 838: git reset --hard is only text here|line 839: git reset --hard is only text here|line 840: git reset --hard is only text here|line 841: git reset --hard is only text here|line 842: git reset --hard is only text here|line 843: git reset --hard is only text here|line 844: git reset --hard is only text here|line 845: git reset --hard is only text here|line 846: git reset --hard is only text here|line 847: git reset --hard is only text here|line 848: git reset --hard is only text here|line 849: git reset --hard is only text here|line 850: git reset --hard is only text here|line 851: git reset --hard is only text here|line 852: git reset --hard is only text here|line 853: git reset --hard is only text here|line 854: git reset --hard is only text here|line 855: git reset --hard is only text here|line 856: git reset --hard is only text here|line 857: git reset --hard is only text here|line 858: git reset --hard is only text here|line 859: git reset --hard is only text here|line 860: git reset --hard is only text here|line 861: git reset --hard is only text here|line 862: git reset --hard is only text here|line 863: git reset --hard is only text here|line 864: git reset --hard is only text here|line 865: git reset --hard is only text here|line 866: git reset --hard is only text here|line 867: git reset --hard is only text here|line 868: git reset --hard is only text here|line 869: git reset --hard is only text here|line 870: git reset --hard is only text here|line 871: git reset --hard is only text here|line 872: git reset --hard is only text here|line 873: git reset --hard is only text here|line 874: git reset --hard is only text here|line 875: git reset --hard is only text here|line 876: git reset --hard is only text here|line 877: git reset --hard is only text here|line 878: git reset --hard is only text here|line 879: git reset --hard is only text here|line 880: git reset --hard is only text here|line 881: git reset --hard is only text here|line 882: git reset --hard is only text here|line 883: git reset --hard is only text here|line 884: git reset --hard is only text here|line 885: git reset --hard is only text here|line 886: git reset --hard is only text here|line 887: git reset --hard is only text here|line 888: git reset --hard is only text here|line 889: git reset --hard is only text here|line 890: git reset --hard is only text here|line 891: git reset --hard is only text here|line 892: git reset --hard is only text here|line 893: git reset --hard is only text here|line 894: git reset --hard is only text here|line 895: git reset --hard is only text here|line 896: git reset --hard is only text here|line 897: git reset --hard is only text here|line 898: git reset --hard is only text here|line 899: git reset --hard is only text here|line 900: git reset --hard is only text here|line 901: git reset --hard is only text here|line 902: git reset --hard is only text here|line 903: git reset --hard is only text here|line 904: git reset --hard is only text here|line 905: git reset --hard is only text here|line 906: git reset --hard is only text here|line 907: git reset --hard is only text here|line 908: git reset --hard is only text here|line 909: git reset --hard is only text here|line 910: git reset --hard is only text here|line 911: git reset --hard is only text here|line 912: git reset --hard is only text here|line 913: git reset --hard is only text here|line 914: git reset --hard is only text here|line 915: git reset --hard is only text here|line 916: git reset --hard is only text here|line 917: git reset --hard is only text here|line 918: git reset --hard is only text here|line 919: git reset --hard is only text here|line 920: git reset --hard is only text here|line 921: git reset --hard is only text here|line 922: git reset --hard is only text here|line 923: git reset --hard is only text here|line 924: git reset --hard is only text here|line 925: git reset --hard is only text here|line 926: git reset --hard is only text here|line 927: git reset --hard is only text here|line 928: git reset --hard is only text here|line 929: git reset --hard is only text here|line 930: git reset --hard is only text here|line 931: git reset --hard is only text here|line 932: git reset --hard is only text here|line 933: git reset --hard is only text here|line 934: git reset --hard is only text here|line 935: git reset --hard is only text here|line 936: git reset --hard is only text here|line 937: git reset --hard is only text here|line 938: git reset --hard is only text here|line 939: git reset --hard is only text here|line 940: git reset --hard is only text here|line 941: git reset --hard is only text here|line 942: git reset --hard is only text here|line 943: git reset --hard is only text here|line 944: git reset --hard is only text here|line 945: git reset --hard is only text here|line 946: git reset --hard is only text here|line 947: git reset --hard is only text here|line 948: git reset --hard is only text here|line 949: git reset --hard is only text here|line 950: git reset --hard is only text here|line 951: git reset --hard is only text here|line 952: git reset --hard is only text here|line 953: git reset --hard is only text here|line 954: git reset --hard is only text here|line 955: git reset --hard is only text here|line 956: git reset --hard is only text here|line 957: git reset --hard is only text here|line 958: git reset --hard is only text here|line 959: git reset --hard is only text here|line 960: git reset --hard is only text here|line 961: git reset --hard is only text here|line 962: git reset --hard is only text here|line 963: git reset --hard is only text here|line 964: git reset --hard is only text here|line 965: git reset --hard is only text here|line 966: git reset --hard is only text here|line 967: git reset --hard is only text here|line 968: git reset --hard is only text here|line 969: git reset --hard is only text here|line 970: git reset --hard is only text here|line 971: git reset --hard is only text here|line 972: git reset --hard is only text here|line 973: git reset --hard is only text here|line 974: git reset --hard is only text here|line 975: git reset --hard is only text here|line 976: git reset --hard is only text here|line 977: git reset --hard is only text here|line 978: git reset --hard is only text here|line 979: git reset --hard is only text here|line 980: git reset --hard is only text here|line 981: git reset --hard is only text here|line 982: git reset --hard is only text here|line 983: git reset --hard is only text here|line 984: git reset --hard is only text here|line 985: git reset --hard is only text here|line 986: git reset --hard is only text here|line 987: git reset --hard is only text here|line 988: git reset --hard is only text here|line 989: git reset --hard is only text here|line 990: git reset --hard is only text here|line 991: git reset --hard is only text here|line 992: git reset --hard is only text here|line 993: git reset --hard is only text here|line 994: git reset --hard is only text here|line 995: git reset --hard is only text here|line 996: git reset --hard is only text here|line 997: git reset --hard is only text here|line 998: git reset --hard is only text here|line 999: git reset --hard is only text here|line 1000: git reset --hard is only text here|line 1001: git reset --hard is only text here|line 1002: git reset --hard is only text here|line 1003: git reset --hard is only text here|line 1004: git reset --hard is only text here|line 1005: git reset --hard is only text here|line 1006: git reset --hard is only text here|line 1007: git reset --hard is only text here|line 1008: git reset --hard is only text here|line 1009: git reset --hard is only text here|line 1010: git reset --hard is only text here|line 1011: git reset --hard is only text here|line 1012: git reset --hard is only text here|line 1013: git reset --hard is only text here|line 1014: git reset --hard is only text here|line 1015: git reset --hard is only text here|line 1016: git reset --hard is only text here|line 1017: git reset --hard is only text here|line 1018: git reset --hard is only text here|line 1019: git reset --hard is only text here|line 1020: git reset --hard is only text here|line 1021: git reset --hard is only text here|line 1022: git reset --hard is only text here|line 1023: git reset --hard is only text here|line 1024: git reset --hard is only text here|line 1025: git reset --hard is only text here|line 1026: git reset --hard is only text here|line 1027: git reset --hard is only text here|line 1028: git reset --hard is only text here|line 1029: git reset --hard is only text here|line 1030: git reset --hard is only text here|line 1031: git reset --hard is only text here|line 1032: git reset --hard is only text here|line 1033: git reset --hard is only text here|line 1034: git reset --hard is only text here|line 1035: git reset --hard is only text here|line 1036: git reset --hard is only text here|line 1037: git reset --hard is only text here|line 1038: git reset --hard is only text here|line 1039: git reset --hard is only text here|line 1040: git reset --hard is only text here|line 1041: git reset --hard is only text here|line 1042: git reset --hard is only text here|line 1043: git reset --hard is only text here|line 1044: git reset --hard is only text here|line 1045: git reset --hard is only text here|line 1046: git reset --hard is only text here|line 1047: git reset --hard is only text here|line 1048: git reset --hard is only text here|line 1049: git reset --hard is only text here|line 1050: git reset --hard is only text here|line 1051: git reset --hard is only text here|line 1052: git reset --hard is only text here|line 1053: git reset --hard is only text here|line 1054: git reset --hard is only text here|line 1055: git reset --hard is only text here|line 1056: git reset --hard is only text here|line 1057: git reset --hard is only text here|line 1058: git reset --hard is only text here|line 1059: git reset --hard is only text here|line 1060: git reset --hard is only text here|line 1061: git reset --hard is only text here|line 1062: git reset --hard is only text here|line 1063: git reset --hard is only text here|line 1064: git reset --hard is only text here|line 1065: git reset --hard is only text here|line 1066: git reset --hard is only text here|line 1067: git reset --hard is only text here|line 1068: git reset --hard is only text here|line 1069: git reset --hard is only text here|line 1070: git reset --hard is only text here|line 1071: git reset --hard is only text here|line 1072: git reset --hard is only text here|line 1073: git reset --hard is only text here|line 1074: git reset --hard is only text here|line 1075: git reset --hard is only text here|line 1076: git reset --hard is only text here|line 1077: git reset --hard is only text here|line 1078: git reset --hard is only text here|line 1079: git reset --hard is only text here|line 1080: git reset --hard is only text here|line 1081: git reset --hard is only text here|line 1082: git reset --hard is only text here|line 1083: git reset --hard is only text here|line 1084: git reset --hard is only text here|line 1085: git reset --hard is only text here|line 1086: git reset --hard is only text here|line 1087: git reset --hard is only text here|line 1088: git reset --hard is only text here|line 1089: git reset --hard is only text here|line 1090: git reset --hard is only text here|line 1091: git reset --hard is only text here|line 1092: git reset --hard is only text here|line 1093: git reset --hard is only text here|line 1094: git reset --hard is only text here|line 1095: git reset --hard is only text here|line 1096: git reset --hard is only text here|line 1097: git reset --hard is only text here|line 1098: git reset --hard is only text here|line 1099: git reset --hard is only text here|line 1100: git reset --hard is only text here|line 1101: git reset --hard is only text here|line 1102: git reset --hard is only text here|line 1103: git reset --hard is only text here|line 1104: git reset --hard is only text here|line 1105: git reset --hard is only text here|line 1106: git reset --hard is only text here|line 1107: git reset --hard is only text here|line 1108: git reset --hard is only text here|line 1109: git reset --hard is only text here|line 1110: git reset --hard is only text here|line 1111: git reset --hard is only text here|line 1112: git reset --hard is only text here|line 1113: git reset --hard is only text here|line 1114: git reset --hard is only text here|line 1115: git reset --hard is only text here|line 1116: git reset --hard is only text here|line 1117: git reset --hard is only text here|line 1118: git reset --hard is only text here|line 1119: git reset --hard is only text here|line 1120: git reset --hard is only text here|line 1121: git reset --hard is only text here|line 1122: git reset --hard is only text here|line 1123: git reset --hard is only text here|line 1124: git reset --hard is only text here|line 1125: git reset --hard is only text here|line 1126: git reset --hard is only text here|line 1127: git reset --hard is only text here|line 1128: git reset --hard is only text here|line 1129: git reset --hard is only text here|line 1130: git reset --hard is only text here|line 1131: git reset --hard is only text here|line 1132: git reset --hard is only text here|line 1133: git reset --hard is only text here|line 1134: git reset --hard is only text here|line 1135: git reset --hard is only text here|line 1136: git reset --hard is only text here|line 1137: git reset --hard is only text here|line 1138: git reset --hard is only text here|line 1139: git reset --hard is only text here|line 1140: git reset --hard is only text here|line 1141: git reset --hard is only text here|line 1142: git reset --hard is only text here|line 1143: git reset --hard is only text here|line 1144: git reset --hard is only text here|line 1145: git reset --hard is only text here|line 1146: git reset --hard is only text here|line 1147: git reset --hard is only text here|line 1148: git reset --hard is only text here|line 1149: git reset --hard is only text here|line 1150: git reset --hard is only text here|line 1151: git reset --hard is only text here|line 1152: git reset --hard is only text here|line 1153: git reset --hard is only text here|line 1154: git reset --hard is only text here|line 1155: git reset --hard is only text here|line 1156: git reset --hard is only text here|line 1157: git reset --hard is only text here|line 1158: git reset --hard is only text here|line 1159: git reset --hard is only text here|line 1160: git reset --hard is only text here|line 1161: git reset --hard is only text here|line 1162: git reset --hard is only text here|line 1163: git reset --hard is only text here|line 1164: git reset --hard is only text here|line 1165: git reset --hard is only text here|line 1166: git reset --hard is only text here|line 1167: git reset --hard is only text here|line 1168: git reset --hard is only text here|line 1169: git reset --hard is only text here|line 1170: git reset --hard is only text here|line 1171: git reset --hard is only text here|line 1172: git reset --hard is only text here|line 1173: git reset --hard is only text here|line 1174: git reset --hard is only text here|line 1175: git reset --hard is only text here|line 1176: git reset --hard is only text here|line 1177: git reset --hard is only text here|line 1178: git reset --hard is only text here|line 1179: git reset --hard is only text here|line 1180: git reset --hard is only text here|line 1181: git reset --hard is only text here|line 1182: git reset --hard is only text here|line 1183: git reset --hard is only text here|line 1184: git reset --hard is only text here|line 1185: git reset --hard is only text here|line 1186: git reset --hard is only text here|line 1187: git reset --hard is only text here|line 1188: git reset --hard is only text here|line 1189: git reset --hard is only text here|line 1190: git reset --hard is only text here|line 1191: git reset --hard is only text here|line 1192: git reset --hard is only text here|line 1193: git reset --hard is only text here|line 1194: git reset --hard is only text here|line 1195: git reset --hard is only text here|line 1196: git reset --hard is only text here|line 1197: git reset --hard is only text here|line 1198: git reset --hard is only text here|line 1199: git reset --hard is only text here|line 1200: git reset --hard is only text here|line 1201: git reset --hard is only text here|line 1202: git reset --hard is only text here|line 1203: git reset --hard is only text here|line 1204: git reset --hard is only text here|line 1205: git reset --hard is only text here|line 1206: git reset --hard is only text here|line 1207: git reset --hard is only text here|line 1208: git reset --hard is only text here|line 1209: git reset --hard is only text here|line 1210: git reset --hard is only text here|line 1211: git reset --hard is only text here|line 1212: git reset --hard is only text here|line 1213: git reset --hard is only text here|line 1214: git reset --hard is only text here|line 1215: git reset --hard is only text here|line 1216: git reset --hard is only text here|line 1217: git reset --hard is only text here|line 1218: git reset --hard is only text here|line 1219: git reset --hard is only text here|line 1220: git reset --hard is only text here|line 1221: git reset --hard is only text here|line 1222: git reset --hard is only text here|line 1223: git reset --hard is only text here|line 1224: git reset --hard is only text here|line 1225: git reset --hard is only text here|line 1226: git reset --hard is only text here|line 1227: git reset --hard is only text here|line 1228: git reset --hard is only text here|line 1229: git reset --hard is only text here|line 1230: git reset --hard is only text here|line 1231: git reset --hard is only text here|line 1232: git reset --hard is only text here|line 1233: git reset --hard is only text here|line 1234: git reset --hard is only text here|line 1235: git reset --hard is only text here|line 1236: git reset --hard is only text here|line 1237: git reset --hard is only text here|line 1238: git reset --hard is only text here|line 1239: git reset --hard is only text here|line 1240: git reset --hard is only text here|line 1241: git reset --hard is only text here|line 1242: git reset --hard is only text here|line 1243: git reset --hard is only text here|line 1244: git reset --hard is only text here|line 1245: git reset --hard is only text here|line 1246: git reset --hard is only text here|line 1247: git reset --hard is only text here|line 1248: git reset --hard is only text here|line 1249: git reset --hard is only text here|line 1250: git reset --hard is only text here|line 1251: git reset --hard is only text here|line 1252: git reset --hard is only text here|line 1253: git reset --hard is only text here|line 1254: git reset --hard is only text here|line 1255: git reset --hard is only text here|line 1256: git reset --hard is only text here|line 1257: git reset --hard is only text here|line 1258: git reset --hard is only text here|line 1259: git reset --hard is only text here|line 1260: git reset --hard is only text here|line 1261: git reset --hard is only text here|line 1262: git reset --hard is only text here|line 1263: git reset --hard is only text here|line 1264: git reset --hard is only text here|line 1265: git reset --hard is only text here|line 1266: git reset --hard is only text here|line 1267: git reset --hard is only text here|line 1268: git reset --hard is only text here|line 1269: git reset --hard is only text here|line 1270: git reset --hard is only text here|line 1271: git reset --hard is only text here|line 1272: git reset --hard is only text here|line 1273: git reset --hard is only text here|line 1274: git reset --hard is only text here|line 1275: git reset --hard is only text here|line 1276: git reset --hard is only text here|line 1277: git reset --hard is only text here|line 1278: git reset --hard is only text here|line 1279: git reset --hard is only text here|line 1280: git reset --hard is only text here|line 1281: git reset --hard is only text here|line 1282: git reset --hard is only text here|line 1283: git reset --hard is only text here|line 1284: git reset --hard is only text here|line 1285: git reset --hard is only text here|line 1286: git reset --hard is only text here|line 1287: git reset --hard is only text here|line 1288: git reset --hard is only text here|line 1289: git reset --hard is only text here|line 1290: git reset --hard is only text here|line 1291: git reset --hard is only text here|line 1292: git reset --hard is only text here|line 1293: git reset --hard is only text here|line 1294: git reset --hard is only text here|line 1295: git reset --hard is only text here|line 1296: git reset --hard is only text here|line 1297: git reset --hard is only text here|line 1298: git reset --hard is only text here|line 1299: git reset --hard is only text here|line 1300: git reset --hard is only text here|line 1301: git reset --hard is only text here|line 1302: git reset --hard is only text here|line 1303: git reset --hard is only text here|line 1304: git reset --hard is only text here|line 1305: git reset --hard is only text here|line 1306: git reset --hard is only text here|line 1307: git reset --hard is only text here|line 1308: git reset --hard is only text here|line 1309: git reset --hard is only text here|line 1310: git reset --hard is only text here|line 1311: git reset --hard is only text here|line 1312: git reset --hard is only text here|line 1313: git reset --hard is only text here|line 1314: git reset --hard is only text here|line 1315: git reset --hard is only text here|line 1316: git reset --hard is only text here|line 1317: git reset --hard is only text here|line 1318: git reset --hard is only text here|line 1319: git reset --hard is only text here|line 1320: git reset --hard is only text here|line 1321: git reset --hard is only text here|line 1322: git reset --hard is only text here|line 1323: git reset --hard is only text here|line 1324: git reset --hard is only text here|line 1325: git reset --hard is only text here|line 1326: git reset --hard is only text here|line 1327: git reset --hard is only text here|line 1328: git reset --hard is only text here|line 1329: git reset --hard is only text here|line 1330: git reset --hard is only text here|line 1331: git reset --hard is only text here|line 1332: git reset --hard is only text here|line 1333: git reset --hard is only text here|line 1334: git reset --hard is only text here|line 1335: git reset --hard is only text here|line 1336: git reset --hard is only text here|line 1337: git reset --hard is only text here|line 1338: git reset --hard is only text here|line 1339: git reset --hard is only text here|line 1340: git reset --hard is only text here|line 1341: git reset --hard is only text here|line 1342: git reset --hard is only text here|line 1343: git reset --hard is only text here|line 1344: git reset --hard is only text here|line 1345: git reset --hard is only text here|line 1346: git reset --hard is only text here|line 1347: git reset --hard is only text here|line 1348: git reset --hard is only text here|line 1349: git reset --hard is only text here|line 1350: git reset --hard is only text here|line 1351: git reset --hard is only text here|line 1352: git reset --hard is only text here|line 1353: git reset --hard is only text here|line 1354: git reset --hard is only text here|line 1355: git reset --hard is only text here|line 1356: git reset --hard is only text here|line 1357: git reset --hard is only text here|line 1358: git reset --hard is only text here|line 1359: git reset --hard is only text here|line 1360: git reset --hard is only text here|line 1361: git reset --hard is only text here|line 1362: git reset --hard is only text here|line 1363: git reset --hard is only text here|line 1364: git reset --hard is only text here|line 1365: git reset --hard is only text here|line 1366: git reset --hard is only text here|line 1367: git reset --hard is only text here|line 1368: git reset --hard is only text here|line 1369: git reset --hard is only text here|line 1370: git reset --hard is only text here|line 1371: git reset --hard is only text here|line 1372: git reset --hard is only text here|line 1373: git reset --hard is only text here|line 1374: git reset --hard is only text here|line 1375: git reset --hard is only text here|line 1376: git reset --hard is only text here|line 1377: git reset --hard is only text here|line 1378: git reset --hard is only text here|line 1379: git reset --hard is only text here|line 1380: git reset --hard is only text here|line 1381: git reset --hard is only text here|line 1382: git reset --hard is only text here|line 1383: git reset --hard is only text here|line 1384: git reset --hard is only text here|line 1385: git reset --hard is only text here|line 1386: git reset --hard is only text here|line 1387: git reset --hard is only text here|line 1388: git reset --hard is only text here|line 1389: git reset --hard is only text here|line 1390: git reset --hard is only text here|line 1391: git reset --hard is only text here|line 1392: git reset --hard is only text here|line 1393: git reset --hard is only text here|line 1394: git reset --hard is only text here|line 1395: git reset --hard is only text here|line 1396: git reset --hard is only text here|line 1397: git reset --hard is only text here|line 1398: git reset --hard is only text here|line 1399: git reset --hard is only text here|line 1400: git reset --hard is only text here|line 1401: git reset --hard is only text here|line 1402: git reset --hard is only text here|line 1403: git reset --hard is only text here|line 1404: git reset --hard is only text here|line 1405: git reset --hard is only text here|line 1406: git reset --hard is only text here|line 1407: git reset --hard is only text here|line 1408: git reset --hard is only text here|line 1409: git reset --hard is only text here|line 1410: git reset --hard is only text here|line 1411: git reset --hard is only text here|line 1412: git reset --hard is only text here|line 1413: git reset --hard is only text here|line 1414: git reset --hard is only text here|line 1415: git reset --hard is only text here|line 1416: git reset --hard is only text here|line 1417: git reset --hard is only text here|line 1418: git reset --hard is only text here|line 1419: git reset --hard is only text here|line 1420: git reset --hard is only text here|line 1421: git reset --hard is only text here|line 1422: git reset --hard is only text here|line 1423: git reset --hard is only text here|line 1424: git reset --hard is only text here|line 1425: git reset --hard is only text here|line 1426: git reset --hard is only text here|line 1427: git reset --hard is only text here|line 1428: git reset --hard is only text here|line 1429: git reset --hard is only text here|line 1430: git reset --hard is only text here|line 1431: git reset --hard is only text here|line 1432: git reset --hard is only text here|line 1433: git reset --hard is only text here|line 1434: git reset --hard is only text here|line 1435: git reset --hard is only text here|line 1436: git reset --hard is only text here|line 1437: git reset --hard is only text here|line 1438: git reset --hard is only text here|line 1439: git reset --hard is only text here|line 1440: git reset --hard is only text here|line 1441: git reset --hard is only text here|line 1442: git reset --hard is only text here|line 1443: git reset --hard is only text here|line 1444: git reset --hard is only text here|line 1445: git reset --hard is only text here|line 1446: git reset --hard is only text here|line 1447: git reset --hard is only text here|line 1448: git reset --hard is only text here|line 1449: git reset --hard is only text here|line 1450: git reset --hard is only text here|line 1451: git reset --hard is only text here|line 1452: git reset --hard is only text here|line 1453: git reset --hard is only text here|line 1454: git reset --hard is only text here|line 1455: git reset --hard is only text here|line 1456: git reset --hard is only text here|line 1457: git reset --hard is only text here|line 1458: git reset --hard is only text here|line 1459: git reset --hard is only text here|line 1460: git reset --hard is only text here|line 1461: git reset --hard is only text here|line 1462: git reset --hard is only text here|line 1463: git reset --hard is only text here|line 1464: git reset --hard is only text here|line 1465: git reset --hard is only text here|line 1466: git reset --hard is only text here|line 1467: git reset --hard is only text here|line 1468: git reset --hard is only text here|line 1469: git reset --hard is only text here|line 1470: git reset --hard is only text here|line 1471: git reset --hard is only text here|line 1472: git reset --hard is only text here|line 1473: git reset --hard is only text here|line 1474: git reset --hard is only text here|line 1475: git reset --hard is only text here|line 1476: git reset --hard is only text here|line 1477: git reset --hard is only text here|line 1478: git reset --hard is only text here|line 1479: git reset --hard is only text here|line 1480: git reset --hard is only text here|line 1481: git reset --hard is only text here|line 1482: git reset --hard is only text here|line 1483: git reset --hard is only text here|line 1484: git reset --hard is only text here|line 1485: git reset --hard is only text here|line 1486: git reset --hard is only text here|line 1487: git reset --hard is only text here|line 1488: git reset --hard is only text here|line 1489: git reset --hard is only text here|line 1490: git reset --hard is only text here|line 1491: git reset --hard is only text here|line 1492: git reset --hard is only text here|line 1493: git reset --hard is only text here|line 1494: git reset --hard is only text here|line 1495: git reset --hard is only text here|line 1496: git reset --hard is only text here|line 1497: git reset --hard is only text here|line 1498: git reset --hard is only text here|line 1499: git reset --hard is only text here|line 1500: git reset --hard is only text here|line 1501: git reset --hard is only text here|line 1502: git reset --hard is only text here|line 1503: git reset --hard is only text here|line 1504: git reset --hard is only text here|line 1505: git reset --hard is only text here|line 1506: git reset --hard is only text here|line 1507: git reset --hard is only text here|line 1508: git reset --hard is only text here|line 1509: git reset --hard is only text here|line 1510: git reset --hard is only text here|line 1511: git reset --hard is only text here|line 1512: git reset --hard is only text here|line 1513: git reset --hard is only text here|line 1514: git reset --hard is only text here|line 1515: git reset --hard is only text here|line 1516: git reset --hard is only text here|line 1517: git reset --hard is only text here|line 1518: git reset --hard is only text here|line 1519: git reset --hard is only text here|line 1520: git reset --hard is only text here|line 1521: git reset --hard is only text here|line 1522: git reset --hard is only text here|line 1523: git reset --hard is only text here|line 1524: git reset --hard is only text here|line 1525: git reset --hard is only text here|line 1526: git reset --hard is only text here|line 1527: git reset --hard is only text here|line 1528: git reset --hard is only text here|line 1529: git reset --hard is only text here|line 1530: git reset --hard is only text here|line 1531: git reset --hard is only text here|line 1532: git reset --hard is only text here|line 1533: git reset --hard is only text here|line 1534: git reset --hard is only text here|line 1535: git reset --hard is only text here|line 1536: git reset --hard is only text here|line 1537: git reset --hard is only text here|line 1538: git reset --hard is only text here|line 1539: git reset --hard is only text here|line 1540: git reset --hard is only text here|line 1541: git reset --hard is only text here|line 1542: git reset --hard is only text here|line 1543: git reset --hard is only text here|line 1544: git reset --hard is only text here|line 1545: git reset --hard is only text here|line 1546: git reset --hard is only text here|line 1547: git reset --hard is only text here|line 1548: git reset --hard is only text here|line 1549: git reset --hard is only text here|line 1550: git reset --hard is only text here|line 1551: git reset --hard is only text here|line 1552: git reset --hard is only text here|line 1553: git reset --hard is only text here|line 1554: git reset --hard is only text here|line 1555: git reset --hard is only text here|line 1556: git reset --hard is only text here|line 1557: git reset --hard is only text here|line 1558: git reset --hard is only text here|line 1559: git reset --hard is only text here|line 1560: git reset --hard is only text here|line 1561: git reset --hard is only text here|line 1562: git reset --hard is only text here|line 1563: git reset --hard is only text here|line 1564: git reset --hard is only text here|line 1565: git reset --hard is only text here|line 1566: git reset --hard is only text here|line 1567: git reset --hard is only text here|line 1568: git reset --hard is only text here|line 1569: git reset --hard is only text here|line 1570: git reset --hard is only text here|line 1571: git reset --hard is only text here|line 1572: git reset --hard is only text here|line 1573: git reset --hard is only text here|line 1574: git reset --hard is only text here|line 1575: git reset --hard is only text here|line 1576: git reset --hard is only text here|line 1577: git reset --hard is only text here|line 1578: git reset --hard is only text here|line 1579: git reset --hard is only text here|line 1580: git reset --hard is only text here|line 1581: git reset --hard is only text here|line 1582: git reset --hard is only text here|line 1583: git reset --hard is only text here|line 1584: git reset --hard is only text here|line 1585: git reset --hard is only text here|line 1586: git reset --hard is only text here|line 1587: git reset --hard is only text here|line 1588: git reset --hard is only text here|line 1589: git reset --hard is only text here|line 1590: git reset --hard is only text here|line 1591: git reset --hard is only text here|line 1592: git reset --hard is only text here|line 1593: git reset --hard is only text here|line 1594: git reset --hard is only text here|line 1595: git reset --hard is only text here|line 1596: git reset --hard is only text here|line 1597: git reset --hard is only text here|line 1598: git reset --hard is only text here|line 1599: git reset --hard is only text here|line 1600: git reset --hard is only text here|line 1601: git reset --hard is only text here|line 1602: git reset --hard is only text here|line 1603: git reset --hard is only text here|line 1604: git reset --hard is only text here|line 1605: git reset --hard is only text here|line 1606: git reset --hard is only text here|line 1607: git reset --hard is only text here|line 1608: git reset --hard is only text here|line 1609: git reset --hard is only text here|line 1610: git reset --hard is only text here|line 1611: git reset --hard is only text here|line 1612: git reset --hard is only text here|line 1613: git reset --hard is only text here|line 1614: git reset --hard is only text here|line 1615: git reset --hard is only text here|line 1616: git reset --hard is only text here|line 1617: git reset --hard is only text here|line 1618: git reset --hard is only text here|line 1619: git reset --hard is only text here|line 1620: git reset --hard is only text here|line 1621: git reset --hard is only text here|line 1622: git reset --hard is only text here|line 1623: git reset --hard is only text here|line 1624: git reset --hard is only text here|line 1625: git reset --hard is only text here|line 1626: git reset --hard is only text here|line 1627: git reset --hard is only text here|line 1628: git reset --hard is only text here|line 1629: git reset --hard is only text here|line 1630: git reset --hard is only text here|line 1631: git reset --hard is only text here|line 1632: git reset --hard is only text here|line 1633: git reset --hard is only text here|line 1634: git reset --hard is only text here|line 1635: git reset --hard is only text here|line 1636: git reset --hard is only text here|line 1637: git reset --hard is only text here|line 1638: git reset --hard is only text here|line 1639: git reset --hard is only text here|line 1640: git reset --hard is only text here|line 1641: git reset --hard is only text here|line 1642: git reset --hard is only text here|line 1643: git reset --hard is only text here|line 1644: git reset --hard is only text here|line 1645: git reset --hard is only text here|line 1646: git reset --hard is only text here|line 1647: git reset --hard is only text here|line 1648: git reset --hard is only text here|line 1649: git reset --hard is only text here|line 1650: git reset --hard is only text here|line 1651: git reset --hard is only text here|line 1652: git reset --hard is only text here|line 1653: git reset --hard is only text here|line 1654: git reset --hard is only text here|line 1655: git reset --hard is only text here|line 1656: git reset --hard is only text here|line 1657: git reset --hard is only text here|line 1658: git reset --hard is only text here|line 1659: git reset --hard is only text here|line 1660: git reset --hard is only text here|line 1661: git reset --hard is only text here|line 1662: git reset --hard is only text here|line 1663: git reset --hard is only text here|line 1664: git reset --hard is only text here|line 1665: git reset --hard is only text here|line 1666: git reset --hard is only text here|line 1667: git reset --hard is only text here|line 1668: git reset --hard is only text here|line 1669: git reset --hard is only text here|line 1670: git reset --hard is only text here|line 1671: git reset --hard is only text here|line 1672: git reset --hard is only text here|line 1673: git reset --hard is only text here|line 1674: git reset --hard is only text here|line 1675: git reset --hard is only text here|line 1676: git reset --hard is only text here|line 1677: git reset --hard is only text here|line 1678: git reset --hard is only text here|line 1679: git reset --hard is only text here|line 1680: git reset --hard is only text here|line 1681: git reset --hard is only text here|line 1682: git reset --hard is only text here|line 1683: git reset --hard is only text here|line 1684: git reset --hard is only text here|line 1685: git reset --hard is only text here|line 1686: git reset --hard is only text here|line 1687: git reset --hard is only text here|line 1688: git reset --hard is only text here|line 1689: git reset --hard is only text here|line 1690: git reset --hard is only text here|line 1691: git reset --hard is only text here|line 1692: git reset --hard is only text here|line 1693: git reset --hard is only text here|line 1694: git reset --hard is only text here|line 1695: git reset --hard is only text here|line 1696: git reset --hard is only text here|line 1697: git reset --hard is only text here|line 1698: git reset --hard is only text here|line 1699: git reset --hard is only text here|line 1700: git reset --hard is only text here|line 1701: git reset --hard is only text here|line 1702: git reset --hard is only text here|line 1703: git reset --hard is only text here|line 1704: git reset --hard is only text here|line 1705: git reset --hard is only text here|line 1706: git reset --hard is only text here|line 1707: git reset --hard is only text here|line 1708: git reset --hard is only text here|line 1709: git reset --hard is only text here|line 1710: git reset --hard is only text here|line 1711: git reset --hard is only text here|line 1712: git reset --hard is only text here|line 1713: git reset --hard is only text here|line 1714: git reset --hard is only text here|line 1715: git reset --hard is only text here|line 1716: git reset --hard is only text here|line 1717: git reset --hard is only text here|line 1718: git reset --hard is only text here|line 1719: git reset --hard is only text here|line 1720: git reset --hard is only text here|line 1721: git reset --hard is only text here|line 1722: git reset --hard is only text here|line 1723: git reset --hard is only text here|line 1724: git reset --hard is only text here|line 1725: git reset --hard is only text here|line 1726: git reset --hard is only text here|line 1727: git reset --hard is only text here|line 1728: git reset --hard is only text here|line 1729: git reset --hard is only text here|line 1730: git reset --hard is only text here|line 1731: git reset --hard is only text here|line 1732: git reset --hard is only text here|line 1733: git reset --hard is only text here|line 1734: git reset --hard is only text here|line 1735: git reset --hard is only text here|line 1736: git reset --hard is only text here|line 1737: git reset --hard is only text here|line 1738: git reset --hard is only text here|line 1739: git reset --hard is only text here|line 1740: git reset --hard is only text here|line 1741: git reset --hard is only text here|line 1742: git reset --hard is only text here|line 1743: git reset --hard is only text here|line 1744: git reset --hard is only text here|line 1745: git reset --hard is only text here|line 1746: git reset --hard is only text here|line 1747: git reset --hard is only text here|line 1748: git reset --hard is only text here|line 1749: git reset --hard is only text here|line 1750: git reset --hard is only text here|line 1751: git reset --hard is only text here|line 1752: git reset --hard is only text here|line 1753: git reset --hard is only text here|line 1754: git reset --hard is only text here|line 1755: git reset --hard is only text here|line 1756: git reset --hard is only text here|line 1757: git reset --hard is only text here|line 1758: git reset --hard is only text here|line 1759: git reset --hard is only text here|line 1760: git reset --hard is only text here|line 1761: git reset --hard is only text here|line 1762: git reset --hard is only text here|line 1763: git reset --hard is only text here|line 1764: git reset --hard is only text here|line 1765: git reset --hard is only text here|line 1766: git reset --hard is only text here|line 1767: git reset --hard is only text here|line 1768: git reset --hard is only text here|line 1769: git reset --hard is only text here|line 1770: git reset --hard is only text here|line 1771: git reset --hard is only text here|line 1772: git reset --hard is only text here|line 1773: git reset --hard is only text here|line 1774: git reset --hard is only text here|line 1775: git reset --hard is only text here|line 1776: git reset --hard is only text here|line 1777: git reset --hard is only text here|line 1778: git reset --hard is only text here|line 1779: git reset --hard is only text here|line 1780: git reset --hard is only text here|line 1781: git reset --hard is only text here|line 1782: git reset --hard is only text here|line 1783: git reset --hard is only text here|line 1784: git reset --hard is only text here|line 1785: git reset --hard is only text here|line 1786: git reset --hard is only text here|line 1787: git reset --hard is only text here|line 1788: git reset --hard is only text here|line 1789: git reset --hard is only text here|line 1790: git reset --hard is only text here|line 1791: git reset --hard is only text here|line 1792: git reset --hard is only text here|line 1793: git reset --hard is only text here|line 1794: git reset --hard is only text here|line 1795: git reset --hard is only text here|line 1796: git reset --hard is only text here|line 1797: git reset --hard is only text here|line 1798: git reset --hard is only text here|line 1799: git reset --hard is only text here|line 1800: git reset --hard is only text here|line 1801: git reset --hard is only text here|line 1802: git reset --hard is only text here|line 1803: git reset --hard is only text here|line 1804: git reset --hard is only text here|line 1805: git reset --hard is only text here|line 1806: git reset --hard is only text here|line 1807: git reset --hard is only text here|line 1808: git reset --hard is only text here|line 1809: git reset --hard is only text here|line 1810: git reset --hard is only text here|line 1811: git reset --hard is only text here|line 1812: git reset --hard is only text here|line 1813: git reset --hard is only text here|line 1814: git reset --hard is only text here|line 1815: git reset --hard is only text here|line 1816: git reset --hard is only text here|line 1817: git reset --hard is only text here|line 1818: git reset --hard is only text here|line 1819: git reset --hard is only text here|line 1820: git reset --hard is only text here|line 1821: git reset --hard is only text here|line 1822: git reset --hard is only text here|line 1823: git reset --hard is only text here|line 1824: git reset --hard is only text here|line 1825: git reset --hard is only text here|line 1826: git reset --hard is only text here|line 1827: git reset --hard is only text here|line 1828: git reset --hard is only text here|line 1829: git reset --hard is only text here|line 1830: git reset --hard is only text here|line 1831: git reset --hard is only text here|line 1832: git reset --hard is only text here|line 1833: git reset --hard is only text here|line 1834: git reset --hard is only text here|line 1835: git reset --hard is only text here|line 1836: git reset --hard is only text here|line 1837: git reset --hard is only text here|line 1838: git reset --hard is only text here|line 1839: git reset --hard is only text here|line 1840: git reset --hard is only text here|line 1841: git reset --hard is only text here|line 1842: git reset --hard is only text here|line 1843: git reset --hard is only text here|line 1844: git reset --hard is only text here|line 1845: git reset --hard is only text here|line 1846: git reset --hard is only text here|line 1847: git reset --hard is only text here|line 1848: git reset --hard is only text here|line 1849: git reset --hard is only text here|line 1850: git reset --hard is only text here|line 1851: git reset --hard is only text here|line 1852: git reset --hard is only text here|line 1853: git reset --hard is only text here|line 1854: git reset --hard is only text here|line 1855: git reset --hard is only text here|line 1856: git reset --hard is only text here|line 1857: git reset --hard is only text here|line 1858: git reset --hard is only text here|line 1859: git reset --hard is only text here|line 1860: git reset --hard is only text here|line 1861: git reset --hard is only text here|line 1862: git reset --hard is only text here|line 1863: git reset --hard is only text here|line 1864: git reset --hard is only text here|line 1865: git reset --hard is only text here|line 1866: git reset --hard is only text here|line 1867: git reset --hard is only text here|line 1868: git reset --hard is only text here|line 1869: git reset --hard is only text here|line 1870: git reset --hard is only text here|line 1871: git reset --hard is only text here|line 1872: git reset --hard is only text here|line 1873: git reset --hard is only text here|line 1874: git reset --hard is only text here|line 1875: git reset --hard is only text here|line 1876: git reset --hard is only text here|line 1877: git reset --hard is only text here|line 1878: git reset --hard is only text here|line 1879: git reset --hard is only text here|line 1880: git reset --hard is only text here|line 1881: git reset --hard is only text here|line 1882: git reset --hard is only text here|line 1883: git reset --hard is only text here|line 1884: git reset --hard is only text here|line 1885: git reset --hard is only text here|line 1886: git reset --hard is only text here|line 1887: git reset --hard is only text here|line 1888: git reset --hard is only text here|line 1889: git reset --hard is only text here|line 1890: git reset --hard is only text here|line 1891: git reset --hard is only text here|line 1892: git reset --hard is only text here|line 1893: git reset --hard is only text here|line 1894: git reset --hard is only text here|line 1895: git reset --hard is only text here|line 1896: git reset --hard is only text here|line 1897: git reset --hard is only text here|line 1898: git reset --hard is only text here|line 1899: git reset --hard is only text here|line 1900: git reset --hard is only text here|line 1901: git reset --hard is only text here|line 1902: git reset --hard is only text here|line 1903: git reset --hard is only text here|line 1904: git reset --hard is only text here|line 1905: git reset --hard is only text here|line 1906: git reset --hard is only text here|line 1907: git reset --hard is only text here|line 1908: git reset --hard is only text here|line 1909: git reset --hard is only text here|line 1910: git reset --hard is only text here|line 1911: git reset --hard is only text here|line 1912: git reset --hard is only text here|line 1913: git reset --hard is only text here|line 1914: git reset --hard is only text here|line 1915: git reset --hard is only text here|line 1916: git reset --hard is only text here|line 1917: git reset --hard is only text here|line 1918: git reset --hard is only text here|line 1919: git reset --hard is only text here|line 1920: git reset --hard is only text here|line 1921: git reset --hard is only text here|line 1922: git reset --hard is only text here|line 1923: git reset --hard is only text here|line 1924: git reset --hard is only text here|line 1925: git reset --hard is only text here|line 1926: git reset --hard is only text here|line 1927: git reset --hard is only text here|line 1928: git reset --hard is only text here|line 1929: git reset --hard is only text here|line 1930: git reset --hard is only text here|line 1931: git reset --hard is only text here|line 1932: git reset --hard is only text here|line 1933: git reset --hard is only text here|line 1934: git reset --hard is only text here|line 1935: git reset --hard is only text here|line 1936: git reset --hard is only text here|line 1937: git reset --hard is only text here|line 1938: git reset --hard is only text here|line 1939: git reset --hard is only text here|line 1940: git reset --hard is only text here|line 1941: git reset --hard is only text here|line 1942: git reset --hard is only text here|line 1943: git reset --hard is only text here|line 1944: git reset --hard is only text here|line 1945: git reset --hard is only text here|line 1946: git reset --hard is only text here|line 1947: git reset --hard is only text here|line 1948: git reset --hard is only text here|line 1949: git reset --hard is only text here|line 1950: git reset --hard is only text here|line 1951: git reset --hard is only text here|line 1952: git reset --hard is only text here|line 1953: git reset --hard is only text here|line 1954: git reset --hard is only text here|line 1955: git reset --hard is only text here|line 1956: git reset --hard is only text here|line 1957: git reset --hard is only text here|line 1958: git reset --hard is only text here|line 1959: git reset --hard is only text here|line 1960: git reset --hard is only text here|line 1961: git reset --hard is only text here|line 1962: git reset --hard is only text here|line 1963: git reset --hard is only text here|line 1964: git reset --hard is only text here|line 1965: git reset --hard is only text here|line 1966: git reset --hard is only text here|line 1967: git reset --hard is only text here|line 1968: git reset --hard is only text here|line 1969: git reset --hard is only text here|line 1970: git reset --hard is only text here|line 1971: git reset --hard is only text here|line 1972: git reset --hard is only text here|line 1973: git reset --hard is only text here|line 1974: git reset --hard is only text here|line 1975: git reset --hard is only text here|line 1976: git reset --hard is only text here|line 1977: git reset --hard is only text here|line 1978: git reset --hard is only text here|line 1979: git reset --hard is only text here|line 1980: git reset --hard is only text here|line 1981: git reset --hard is only text here|line 1982: git reset --hard is only text here|line 1983: git reset --hard is only text here|line 1984: git reset --hard is only text here|line 1985: git reset --hard is only text here|line 1986: git reset --hard is only text here|line 1987: git reset --hard is only text here|line 1988: git reset --hard is only text here|line 1989: git reset --hard is only text here|line 1990: git reset --hard is only text here|line 1991: git reset --hard is only text here|line 1992: git reset --hard is only text here|line 1993: git reset --hard is only text here|line 1994: git reset --hard is only text here|line 1995: git reset --hard is only text here|line 1996: git reset --hard is only text here|line 1997: git reset --hard is only text here|line 1998: git reset --hard is only text here|line 1999: git reset --hard is only text here|EOF
+ok   shellcheck hook and suite
+
+RESULT passed=144 failed=0 skipped=0 xfail=0
+== hooks/codex-adapters
+== _codex-patch.sh
+ok   Add / Update+Move / Delete, in order, trimmed
+ok   body of section 2 (Move line excluded)
+ok   body of section 1
+ok   heredoc wrapper accepted
+ok   CRLF and *** End of File
+ok   parse error: no Begin
+ok   parse error: no End
+ok   parse error: unknown header
+ok   parse error: empty path
+ok   parse error: Move to without Update
+ok   parse error: no file section
+ok   parse error: text after End
+ok   parse error: hunk line before a header
+ok   parse error: tab in path
+ok   patch text from a string command
+ok   patch text from an argv command (last element)
+ok   no command -> error
+== codex-write-guard.sh
+ok   other tool (Bash) ignored
+ok   src file -> allow
+ok   .workflow/cache (Tier B) -> deny
+ok   multi-file: one bad path denies the patch, all reasons listed
+ok   allowed path not named in the reason
+ok   Move to .workflow/cache -> deny
+ok   Move between plain paths -> allow
+ok   Delete .workflow/specs/*/.step -> deny
+ok   .workflow/GLOSSARY.md at 0.3.19 -> deny (Tier A)
+ok   .workflow/GLOSSARY.md at 0.2.3, main -> allow
+ok   .workflow/GLOSSARY.md at 0.2.3, sub-agent (agent_id) -> deny
+ok   src file from a sub-agent -> allow
+ok   spec.md body edit at 0.3.19 -> allow
+ok   spec.md status edit -> deny
+ok   spec.md status line as unchanged -/+ pair -> allow
+ok   spec.md blocked_condition added -> deny
+ok   spec.md sub-agent -> deny
+ok   status edit on look-alike specs/001-demo/spec.md -> allow (not a spec.md)
+ok   status edit on look-alike .workflow/specs-x/001-demo/spec.md -> allow (not a spec.md)
+ok   status edit on look-alike xworkflow/specs/001-demo/spec.md -> allow (not a spec.md)
+ok   old root docs/cache -> allow (not Tier B)
+ok   spec.md Add with a changed status -> deny (--proposed)
+ok   spec.md Add with the same content -> allow
+ok   spec.md at 0.3.7 -> deny (step)
+ok   worktree cwd, relative .workflow/cache -> deny
+ok   worktree cwd, src -> allow
+ok   parse error -> deny (fail closed)
+ok   no patch text -> deny
+ok   unparsable payload -> deny
+ok   write guard, no jq -> static deny JSON
+ok   Tier A without yq -> deny, fail closed
+ok   workflow not installed -> silent allow
+== codex-pre-spawn.sh
+ok   other tool ignored
+ok   non-workflow agent passes
+ok   no agent_type passes
+ok   implementation s007_t3 -> allow
+ok   implementation from a worktree cwd -> allow (main checkout specs)
+ok   implementation phase 1 s007_phase_1_test_harness -> allow
+ok   implementation without task_name -> deny
+ok   implementation probe_agent -> deny
+ok   uppercase task_name -> deny
+ok   slash form (old format) -> deny
+ok   no spec folder s009 -> deny
+ok   two spec folders s008 -> deny
+ok   phase_1 matching two profiles (web-ui, web_ui) -> deny
+ok   phase_1 unknown profile -> deny
+ok   integration name on an implementation -> deny
+ok   integration s007_integration_web -> allow
+ok   integration s007_t3 -> deny
+ok   integration without task_name -> deny
+ok   profile_mini_review bare s007_t3 (the implementer's name) -> deny
+ok   profile_mini_review (Codex form) s007_t3_r1 -> allow
+ok   profile_mini_review free suffix s007_t3_x -> deny
+ok   profile-mini-review (definition form) s007_t3_r2 -> allow
+ok   profile_mini_review phase-1 form -> deny
+ok   fact_lookup without task_name -> allow
+ok   retrieval s007_retrieval -> allow
+ok   review_standards s007_review_standards -> allow
+ok   review_standards s009_review_standards (no spec folder) -> deny
+ok   fact_lookup free name -> allow
+ok   fact_lookup s007_q1 -> allow
+ok   fact_lookup repeated launch s007_fact_lookup_r2 -> allow
+ok   review_end_state repeated launch s007_review_end_state_r3 -> allow
+ok   fact_lookup s009_q1 (no spec) -> deny
+ok   cache_regeneration bulk (no task_name) -> allow
+ok   pre-spawn, no jq -> static deny JSON
+ok   unparsable payload -> deny
+ok   workflow not installed -> silent allow
+== codex-rules-sync.sh
+ok   patch without rules.md -> silent, nothing generated
+ok   other tool ignored
+ok   Delete of rules.md ignored
+ok   Update of .workflow/rules.md (second file) -> config generated
+ok   Move to .workflow/rules.md -> config generated
+ok   bad rules.md (absolute path) -> block with reason, config untouched
+ok   unparsable patch -> silent
+== template wiring
+ok   PreToolUse apply_patch -> codex-write-guard.sh
+ok   PreToolUse .*spawn_agent -> codex-pre-spawn.sh
+ok   PostToolUse apply_patch -> codex-rules-sync.sh
+ok   write guard via template command, .workflow/cache/z.md relative to cwd sub/dir (not Tier B) -> allow
+ok   write guard via template command, ../../.workflow/cache from sub/dir -> deny
+ok   spawn check via template command from a sub-directory
+ok   shellcheck: Codex adapters
+
+RESULT passed=99 failed=0 skipped=0 xfail=0
+== hooks/codex-pre-spawn-initiative
+FAIL JRN-008 research is a workflow task type
+ok   JRN-008 research i001_research is accepted
+FAIL JRN-008 research s001_research is denied with a reason
+       rc=0 out=
+FAIL JRN-008 research i002_research (no such initiative) is denied
+       rc=0 out=
+ok   JRN-008 research in a repeated round i001_research_r2 is accepted
+ok   JRN-008 fact_lookup i001_fact_lookup is accepted
+FAIL JRN-008 fact_lookup i009_fact_lookup (no such initiative) is denied
+       rc=0 out=
+ok   JRN-008 research s007_research for a spec folder is accepted
+ok   JRN-008 implementation s007_t3 is unchanged
+ok   JRN-008 shellcheck codex-pre-spawn.sh
+
+RESULT passed=6 failed=4 skipped=0 xfail=0
+== hooks/codex-shim
+== Codex task_name -> task
+ok   s007_t3, failing lint -> block with digest
+ok   evidence under .workflow/specs/007-checkout/artifacts/T3 (task from task_name, not the forked header)
+ok   loop counter works on Codex (stop_hook_active)
+ok   lint-ok only in the main checkout -> still fails (toolchain runs in the worktree)
+ok   passing toolchain in .workflow/.worktrees/s007_t3 -> silent allow
+ok   toolchain.json cwd is the worktree; evidence stays in the main checkout
+ok   no evidence written inside the worktree
+ok   agent_path from payload.source.subagent.thread_spawn
+ok   nested agent_path: last segment is the task_name
+ok   s007_phase_1_harness -> toolchain under artifacts/phase-1-harness
+ok   Codex phase 1 with failing test key -> allowed, test skipped
+== Codex warnings (stop allowed)
+ok   no .workflow/.worktrees/s007_t4 -> warning, toolchain not run, audit.json filed
+ok   Phase 1 without a worktree -> warning filed under artifacts/phase-1-web
+ok   phase_1 name matching two profiles (web-ui, web_ui) -> warning
+ok   unparseable task_name -> warning, no block
+ok   no spec folder for s009 -> warning
+ok   two spec folders for s008 -> warning
+ok   integration name on an implementation agent -> warning filed under the spec
+ok   unknown suffix -> warning filed under the spec
+ok   integration agent type is skipped
+== Claude path unchanged
+ok   Claude transcript (no session_meta) -> header path, block
+== codex-hooks.template.json
+ok   valid JSON object with hooks
+ok   events
+ok   matchers only from the verified full-match set
+ok   no CLAUDE_PROJECT_DIR in commands (Codex sets no project-dir variable)
+ok   every referenced script exists and is executable
+ok   timeouts set on every hook
+ok   SessionStart command via sh -c from a sub-directory finds the project hooks
+ok   same command without a shell (argv split)
+ok   PreToolUse Bash -> block-destructive-git denies on a Codex payload
+== codex-config.template.toml
+ok   parses as TOML
+ok   default_permissions
+ok   extends :workspace (else every sandboxed shell aborts)
+ok   .workflow/cache read-only
+ok   no glob entries (0.155.1 allows only deny on globs)
+ok   no model key anywhere
+ok   codex sandbox: workspace write ok, .workflow/cache write blocked
+ok   shellcheck: post-implementation-audit.sh, generate-codex-agents.sh
+
+RESULT passed=38 failed=0 skipped=0 xfail=0
+== hooks/evidence-capture
+ok   non-Bash tool: silent, exit 0
+ok   unrelated command: silent, nothing filed
+ok   prefix must end at a word boundary
+ok   --list (collect only) is not a suite run
+ok   run-toolchain.sh without --e2e: silent
+ok   unparsable payload: silent, exit 0
+ok   empty payload: silent, exit 0
+ok   direct run: exit 0 with additionalContext
+ok   filed into the in-flight spec with the latest .step
+ok   run dir named e2e-<UTC timestamp>-<short sha>
+ok   failing journey: screenshot copied
+ok   name clash gets a counter
+ok   retry suffix
+ok   trace copied with its extension
+ok   console body decoded from base64
+ok   network body decoded
+ok   passing journey: evidence copied too (5.4)
+ok   failing untagged test: filed under untagged/
+ok   passing untagged test: not filed
+ok   report copied
+ok   index: valid JSON with run fields
+ok   index: selected tests (2 journeys + 1 failing untagged)
+ok   index: JRN-001 files
+ok   index: status, outcome and retries recorded
+ok   index: tags kept, journeys filtered to JRN ids
+ok   index: stats from the report
+ok   context names counts
+ok   argv array joined: filed, command recorded
+ok   argv [bash, -lc, script]: the script is matched
+ok   argv array with --list: silent
+ok   argv array, unrelated: silent
+ok   env assignments skipped; fault run recorded
+ok   other env prefix: not fault-injected
+ok   profile e2e value matched; report read from e2e_report
+ok   run-toolchain --e2e: filed under --spec-dir/artifacts/<task-id>/
+ok   re-run replaces this hook's output, keeps toolchain.txt
+ok   unexpanded --cwd ignored: payload cwd used
+ok   worktree run: evidence in the main checkout
+ok   worktree run: report read from the worktree
+ok   missing report: systemMessage, nothing filed
+ok   stale report: systemMessage, nothing filed
+ok   non-Playwright JSON: systemMessage
+ok   single in-flight spec without .step is chosen
+ok   no in-flight spec: systemMessage, nothing filed
+ok   latest .step wins across ready-for-dev and blocked (1.4 runs at ready-for-dev)
+ok   failure event: filed, exit 0, hookEventName echoed
+ok   failure event, unrelated command: silent, exit 0
+ok   failure event, non-Bash tool: silent, exit 0
+ok   project without .workflow/specs/: silent
+ok   shellcheck evidence-capture.sh
+
+RESULT passed=50 failed=0 skipped=0 xfail=0
+== hooks/initiative-write-guards
+== JRN-006 initiative.md and questions.md
+FAIL JRN-006 the initiative marker is at the read-only step
+       got=6.1 want=6.2
+FAIL JRN-006 initiative.md at a 6.x step that does not write it is denied
+       decision=allow want=deny reason=
+ok   JRN-006 questions.md at that step is allowed
+ok   JRN-006 the initiative marker is at the writer step
+ok   JRN-006 initiative.md at a writer step is allowed
+ok   JRN-006 questions.md at the writer step is allowed
+FAIL JRN-006 initiative.md from a sub-agent is denied
+       decision=allow want=deny reason=
+FAIL JRN-006 the initiative .step is never written by Write
+       decision=allow want=deny reason=
+== JRN-006 glossary writes from an initiative, no spec in flight
+ok   JRN-006 fixture: no spec is in flight
+ok   JRN-006 glossary at a 6.x term-gate step is allowed
+FAIL JRN-006 glossary at another 6.x step is denied
+       decision=allow want=deny reason=
+ok   JRN-006 shellcheck guard components
+
+RESULT passed=7 failed=5 skipped=0 xfail=0
+== hooks/pre-launch
+ok   non-Agent tool silent
+ok   non-workflow Explore silent
+ok   non-workflow general-purpose silent
+ok   valid implementation launch -> allow + full updatedInput
+ok   single-line stdout
+ok   legacy Task + retrieval: prompt unchanged, model set
+ok   missing header -> deny
+ok   task_type mismatch -> deny
+ok   model unresolved -> deny 00.14
+ok   resolve env error (no yq) -> deny fail closed
+ok   jq missing -> valid deny JSON
+ok   invalid payload -> deny
+ok   worktree cwd resolves to main checkout
+ok   no cwd -> CLAUDE_PROJECT_DIR fallback
+ok   workflow absent -> silent
+ok   workflow not set up -> deny 00.14
+INFO 3 allow runs took 1s
+ok   shellcheck: pre-launch.sh
+
+RESULT passed=17 failed=0 skipped=0 xfail=0
+== hooks/session-start-initiatives
+== JRN-004 initiative only on its branch, checkout on main
+ok   JRN-004 fixture: initiative.md is not in the main working tree
+FAIL JRN-004 the offer lists the branch-only initiative once
+       got=0 want=1
+FAIL JRN-004 the branch-only line shows status exploring
+FAIL JRN-004 the branch-only line shows the current step
+FAIL JRN-004 the branch-only line shows one pending research question
+FAIL JRN-004 the offer names the large path for resuming
+== JRN-004 planned initiative merged into main (task_review local)
+FAIL JRN-004 after the merge the offer lists the initiative once, from main
+       got=0 want=1
+FAIL JRN-004 the main line shows status planned
+       In-flight features in this project (from .workflow/specs/*/spec.md frontmatter; status and .step are written only by status-transition.sh):
+- .workflow/specs/002-core-flow: status draft; no .step marker
+Offer the user to resume one of these. To resume, load the feature-workflow skill for that spec: it reads the spec.md status and loads the module for that phase, continuing from the current step. A blocked spec needs its blocked_condition resolved by a human first; for a discovered work or size budget condition, the pending prompt is answered in the feature-workflow discovered-work module. Do n
+FAIL JRN-004 the main line shows the current step
+       In-flight features in this project (from .workflow/specs/*/spec.md frontmatter; status and .step are written only by status-transition.sh):
+- .workflow/specs/002-core-flow: status draft; no .step marker
+Offer the user to resume one of these. To resume, load the feature-workflow skill for that spec: it reads the spec.md status and loads the module for that phase, continuing from the current step. A blocked spec needs its blocked_condition resolved by a human first; for a discovered work or size budget condition, the pending prompt is answered in the feature-workflow discovered-work module. Do n
+FAIL JRN-004 the main line shows no pending research
+       In-flight features in this project (from .workflow/specs/*/spec.md frontmatter; status and .step are written only by status-transition.sh):
+- .workflow/specs/002-core-flow: status draft; no .step marker
+Offer the user to resume one of these. To resume, load the feature-workflow skill for that spec: it reads the spec.md status and loads the module for that phase, continuing from the current step. A blocked spec needs its blocked_condition resolved by a human first; for a discovered work or size budget condition, the pending prompt is answered in the feature-workflow discovered-work module. Do n
+== JRN-004 initiative on main and on a re-created branch
+FAIL JRN-004 an initiative on main and on its branch is listed once
+       got=0 want=1
+== JRN-004 done initiative
+ok   JRN-004 a done initiative is not offered
+ok   JRN-004 the draft spec is still offered beside it
+ok   JRN-004 shellcheck session-start-resume.sh
+
+RESULT passed=4 failed=10 skipped=0 xfail=0
+== hooks/worktree-guard
+== Claude: file tools
+ok   main session write to the main checkout -> allow
+ok   main session Bash without cd -> allow
+ok   task agent write inside its worktree -> allow
+ok   task agent Edit in a new subdir of its worktree -> allow
+ok   task agent write to the main checkout -> deny
+ok   task agent write to another task's worktree -> deny
+ok   task agent '..' escape from its worktree -> deny
+ok   task agent relative path (resolves to the main checkout) -> deny
+ok   task agent NotebookEdit outside -> deny
+ok   task agent write to a temp dir outside the repo -> allow
+ok   task without a worktree on disk -> allow (nothing to confine to)
+ok   sub-agent transcript missing -> allow
+ok   other agent type (fact-lookup) -> allow
+ok   agent_transcript_path in the payload is used when present
+== Claude: isolation and integration (linked-worktree cwd)
+ok   isolation agent (no named worktree) write in its cwd worktree -> allow
+ok   isolation agent write to the main checkout -> deny
+ok   integration agent write to the main checkout -> deny
+ok   integration agent write in its worktree -> allow
+== Claude: Bash
+ok   task agent Bash with cd <worktree> && -> allow
+ok   task agent Bash with quoted cd into a subdir -> allow
+ok   task agent Bash without cd -> deny
+ok   task agent Bash cd to the main checkout -> deny
+ok   task agent Bash cd to another worktree -> deny
+ok   task agent Bash cd $VAR -> deny (not literal)
+ok   task agent Bash 'cd dir; cmd' -> deny (needs &&)
+ok   task agent Bash whose cwd is already its worktree -> allow
+ok   task agent without a worktree: Bash -> allow
+== fail closed
+ok   unparsable payload -> allow silently (main-session safe)
+ok   no workflow installed -> silent
+== check-worktree-scope.sh CLI
+ok   no --path or --command -> exit 1
+ok   worktree name with a slash -> exit 1
+ok   cwd outside any repo -> allow
+== Codex: codex-write-guard.sh worktree check
+ok   Codex task agent: patch inside its worktree (relative) -> allow
+ok   Codex task agent: patch in the main checkout -> deny
+ok   Codex task agent: patch in another worktree -> deny
+ok   Codex task agent without a worktree -> allow
+ok   Codex transcript without session_meta -> allow
+ok   Codex main session (no agent_id) unaffected
+== wiring
+ok   template: PreToolUse Bash|Write|Edit|NotebookEdit runs worktree-write-guard.sh
+ok   manifest ships the hook and the feature-workflow skill (rule script)
+ok   hook and script are executable
+ok   shellcheck: worktree guard
+
+RESULT passed=42 failed=0 skipped=0 xfail=0
+== hooks/write-guards
+== main session vs sub-agent: spec.md
+ok   spec.md at 0.3.19, main (Write, status unchanged)
+ok   spec.md at 0.3.19, main, relative path in cwd
+ok   spec.md at 0.3.19, absolute path (Edit of a body line)
+ok   spec.md at 0.3.19, sub-agent
+ok   spec.md at 0.3.19, sub-agent with agent_id only
+ok   spec.md at 0.3.7, main
+== spec.md: status edits
+ok   Write that changes status denied
+ok   Write that keeps status allowed
+ok   Edit status line draft -> done denied
+ok   Edit body line allowed
+ok   Edit replace_all touching status denied
+ok   Edit blocked_condition added denied
+ok   NotebookEdit on spec.md at 0.3.19 (no proposed check)
+ok   NotebookEdit on spec.md at 0.3.7 denied
+== spec guard: other spec-class paths
+ok   .step Write denied for main
+ok   .step Edit denied for sub-agent
+ok   tasks.md at 2.5, main
+ok   tasks.md at 2.5, sub-agent
+ok   tasks.md at 3.1 denied with set-task pointer
+ok   work-backlog item at 00.26, main
+ok   work-backlog item at 00.26, sub-agent
+ok   work-backlog misnamed item denied
+ok   work-backlog item at 3.1 denied
+ok   spec guard ignores Tier A path
+ok   spec guard ignores Tier B path
+ok   spec guard ignores source file
+ok   spec guard: feature without marker denied
+== Tier A guard
+ok   .workflow/GLOSSARY.md at 0.2.3, main
+ok   .workflow/GLOSSARY.md at 0.2.3, sub-agent
+ok   nested .workflow/GLOSSARY-MAP.md at 0.2.3, main
+ok   .workflow/GLOSSARY.md at 3.1 denied with proposals.md pointer
+ok   .workflow/rules.md at 3.1 denied
+ok   .workflow/decisions adr at 3.1 denied
+ok   .workflow/rules.md at 0.3.7 allowed
+ok   .workflow/decisions adr at 0.3.7 allowed
+ok   .workflow/rules.md at 0.2.3 denied
+ok   .workflow/decisions adr at 0.2.3 denied
+ok   .workflow/rules.md at 0.3.15 denied
+ok   .workflow/decisions adr at 0.3.15 denied
+ok   .workflow/rules.md at 0.4.3 denied
+ok   .workflow/decisions adr at 0.4.3 denied
+ok   .workflow/rules.md at 5.3 allowed
+ok   .workflow/decisions adr at 5.3 allowed
+ok   .workflow/rules.md at 5.7 allowed
+ok   .workflow/decisions adr at 5.7 allowed
+ok   .workflow/GLOSSARY.md at 0.3.7 denied
+ok   existing profile at 0.3.7 denied
+ok   existing profile at 5.3 allowed
+ok   new profile at 5.3 allowed
+ok   existing profile at 5.3, sub-agent denied
+ok   new profile at 00.19 allowed
+ok   existing profile at 00.19 denied
+ok   Tier A guard ignores spec.md
+ok   Tier A guard ignores .workflow/cache
+ok   NotebookEdit on Tier A path follows the same rule
+ok   NotebookEdit on .workflow/rules.md at 0.3.7 allowed
+== Tier A guard: no feature in flight
+ok   no feature in flight: main allowed
+ok   no feature in flight: sub-agent denied
+== Tier B guard
+ok   .workflow/cache denied for main
+ok   .workflow/cache denied for sub-agent
+ok   .workflow/cache nested path denied
+ok   .workflow/cache via .. denied
+ok   .workflow/cache absolute path denied
+ok   .workflow/cache NotebookEdit denied
+ok   .workflow/cache case-insensitive
+ok   docs/cachex is not Tier B
+ok   source file allowed
+ok   path outside repo allowed
+ok   no path (e.g. other tool input) allowed
+ok   Tier B guard ignores Tier A path
+== worktree cwd
+ok   spec.md from worktree cwd, main session, step read from main checkout
+ok   spec.md from worktree cwd, sub-agent
+ok   relative spec.md path resolves against worktree cwd (Edit)
+ok   spec.md from worktree at 3.1 denied
+ok   .workflow/cache in worktree denied
+ok   Tier A path in worktree, sub-agent denied
+ok   no cwd in payload: CLAUDE_PROJECT_DIR fallback
+== fail closed
+ok   spec-single-writer-guard: invalid payload denied
+ok   spec-single-writer-guard: empty payload denied
+ok   tier-a-write-guard: invalid payload denied
+ok   tier-a-write-guard: empty payload denied
+ok   tier-b-write-guard: invalid payload denied
+ok   tier-b-write-guard: empty payload denied
+ok   no jq: static deny (fail closed)
+ok   spec-single-writer-guard: no jq, static deny
+ok   tier-a-write-guard: no jq, static deny
+ok   failure before a decision (mktemp): static deny
+ok   Tier A check without yq: denied (fail closed)
+ok   cwd outside any git repo: path is not in a workflow project, allowed
+== project without the workflow installed
+ok   spec-single-writer-guard: no feature-workflow skill -> silent allow
+ok   tier-a-write-guard: no feature-workflow skill -> silent allow
+ok   tier-b-write-guard: no feature-workflow skill -> silent allow
+ok   shellcheck: write guards, workflow-paths.sh
+
+RESULT passed=93 failed=0 skipped=0 xfail=0
+== lint/frontmatter
+ok   PROVENANCE.md exists
+ok   skill data-structure-audit
+ok   skill deeper-prompt
+ok   skill deps-audit
+ok   skill deps-update
+ok   skill design-pattern-doc
+ok   skill domain-modeling
+ok   skill feature-workflow
+ok   skill glab
+ok   skill handoff
+ok   skill pr-quality
+ok   skill pr-review-data
+ok   skill project-setup
+ok   skill project-standards
+ok   skill regenerate-caches
+ok   skill retrospective
+ok   skill visual-change-report
+ok   skill writing-for-agents
+ok   found skills
+ok   agent cache-regeneration
+ok   agent fact-lookup
+ok   agent implementation
+ok   agent integration
+ok   agent library-evaluation
+ok   agent module-audit
+ok   agent profile-mini-review
+ok   agent retrieval
+ok   agent review-end-state
+ok   agent review-standards
+ok   agent review-targets
+ok   agent standards-discovery
+ok   found agents
+ok   lint flags missing frontmatter
+ok   lint flags unparseable frontmatter
+ok   lint flags name mismatch, model and bad models key
+ok   lint flags disable-model-invocation without STUB
+ok   lint flags a user-invoked skill without the flag or the Codex policy
+ok   shellcheck tests/lint/frontmatter.sh
+
+RESULT passed=38 failed=0 skipped=0 xfail=0
+== lint/step-list
+ok   steps.tsv exists
+ok   header row
+ok   every row has 4 tab-separated columns
+ok   ids are unique
+ok   tracks are known
+ok   six phase rows P0-P5
+ok   each id's phase column matches its prefix (00.x and 0.0.x: -)
+ok   00.x rows are cross, 0.0.x rows are intake
+ok   reference node ids == steps.tsv ids
+ok   mermaid node ids == steps.tsv ids
+ok   reference Phase 0 ids == steps.tsv phase 0 ids
+ok   reference Phase 1 ids == steps.tsv phase 1 ids
+ok   reference Phase 2 ids == steps.tsv phase 2 ids
+ok   reference Phase 3 ids == steps.tsv phase 3 ids
+ok   reference Phase 4 ids == steps.tsv phase 4 ids
+ok   reference Phase 5 ids == steps.tsv phase 5 ids
+ok   full path step counts per phase
+ok   light path step counts per phase
+ok   found step ids in the scripts and skills
+ok   every step id used by status-transition.sh, check-write.sh and the skills is in steps.tsv
+ok   step-progress.sh prints every counted step
+FAIL JRN-007 phase row P6 is phase 6
+       got= want=6/phase
+FAIL JRN-007 steps.tsv has large-track rows
+ok   JRN-007 every large row is a 6.x id in phase 6
+ok   JRN-007 every 6.x row is on the large track
+FAIL JRN-007 the conversion node is a phase 0 step on both paths
+       got= want=0/both
+FAIL JRN-007 the reference names the conversion node
+ok   JRN-007 reference 6.x node ids == steps.tsv large ids
+ok   JRN-007 mermaid 6.x node ids == steps.tsv large ids
+FAIL JRN-007 the reference has a Phase 6 section
+ok   JRN-007 reference Phase 6 ids == steps.tsv large ids
+FAIL JRN-007 check-write.sh step lists name 6.x steps
+ok   JRN-007 every 6.x id used by the scripts and skills is in steps.tsv
+ok   JRN-007 step-progress.sh prints the large form for every large row
+
+RESULT passed=28 failed=6 skipped=0 xfail=0
+== lint/symlinks
+ok   .claude/skills is a symlink
+ok   .claude/skills resolves into .agents/
+ok   .claude/skills resolves to .agents/skills
+ok   .claude/agents is a symlink
+ok   .claude/agents resolves into .agents/
+ok   .claude/agents resolves to .agents/agents
+ok   .claude/output-styles is a symlink
+ok   .claude/output-styles resolves into .agents/
+ok   .claude/output-styles resolves to .agents/output-styles
+ok   .claude/commands does not exist
+ok   settings.json: .agents/hooks/block-destructive-git.sh exists and is executable
+ok   settings.json: .agents/hooks/pre-launch.sh exists and is executable
+ok   settings.json: .agents/hooks/spec-single-writer-guard.sh exists and is executable
+ok   settings.json: .agents/hooks/tier-a-write-guard.sh exists and is executable
+ok   settings.json: .agents/hooks/tier-b-write-guard.sh exists and is executable
+ok   settings.json: .agents/hooks/worktree-write-guard.sh exists and is executable
+ok   settings.json: .agents/hooks/session-start-resume.sh exists and is executable
+ok   settings.json: .agents/hooks/rules-boundary-config-sync.sh exists and is executable
+ok   settings.json: .agents/hooks/evidence-capture.sh exists and is executable
+ok   settings.json: .agents/hooks/evidence-capture.sh exists and is executable
+ok   settings.json: .agents/hooks/post-implementation-audit.sh exists and is executable
+ok   settings.json: .agents/hooks/context-bridge.cjs exists and is executable
+ok   settings.json: every hook command names a .agents/hooks script
+ok   claude-settings.template.json: .agents/hooks/context-bridge.cjs exists and is executable
+ok   claude-settings.template.json: .agents/hooks/session-start-resume.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/block-destructive-git.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/pre-launch.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/spec-single-writer-guard.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/tier-a-write-guard.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/tier-b-write-guard.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/worktree-write-guard.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/rules-boundary-config-sync.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/evidence-capture.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/evidence-capture.sh exists and is executable
+ok   claude-settings.template.json: .agents/hooks/post-implementation-audit.sh exists and is executable
+ok   claude-settings.template.json: every hook command names a .agents/hooks script
+ok   codex-hooks.template.json: .agents/hooks/session-start-resume.sh exists and is executable
+ok   codex-hooks.template.json: .agents/hooks/block-destructive-git.sh exists and is executable
+ok   codex-hooks.template.json: .agents/hooks/codex-write-guard.sh exists and is executable
+ok   codex-hooks.template.json: .agents/hooks/codex-pre-spawn.sh exists and is executable
+ok   codex-hooks.template.json: .agents/hooks/evidence-capture.sh exists and is executable
+ok   codex-hooks.template.json: .agents/hooks/codex-rules-sync.sh exists and is executable
+ok   codex-hooks.template.json: .agents/hooks/post-implementation-audit.sh exists and is executable
+ok   codex-hooks.template.json: every hook command names a .agents/hooks script
+ok   shellcheck tests/lint/symlinks.sh
+
+RESULT passed=45 failed=0 skipped=0 xfail=0
+== lint/upstream-lineage
+ok   upstream-lineage.json exists
+ok   upstream-lineage.json parses as JSON
+ok   version is 1
+ok   entries is a non-empty array
+ok   upstreams is an object
+ok   every upstream and entry has a valid shape
+ok   no duplicate (path, upstream_repo, upstream_path)
+ok   every declared upstream is used by an entry
+ok   every entry path, license_path and consumer exists outside the vendored copies
+ok   every upstream named in a first-party Sources line has a lineage entry
+ok   the coverage scan found attribution lines (sanity)
+ok   no Sources line points at a missing .agents/skills/<name>/ directory
+ok   shellcheck tests/lint/upstream-lineage.sh
+
+RESULT passed=13 failed=0 skipped=0 xfail=0
+
+== summary
+PASS scripts/build-architecture             passed=74   failed=0   skipped=0   xfail=0   8s
+PASS scripts/cache-scripts                  passed=36   failed=0   skipped=0   xfail=0   4s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   4s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   10s
+FAIL scripts/initiative-conversion          passed=25   failed=3   skipped=0   xfail=0   2s
+FAIL scripts/initiative-emission            passed=15   failed=7   skipped=0   xfail=0   1s
+FAIL scripts/initiative-merge               passed=17   failed=18  skipped=0   xfail=0   3s
+FAIL scripts/initiative-transition          passed=13   failed=26  skipped=0   xfail=0   1s
+PASS scripts/install                        passed=136  failed=0   skipped=0   xfail=0   125s
+FAIL scripts/resolve-launch-initiative      passed=4    failed=9   skipped=0   xfail=0   1s
+PASS scripts/resolve-launch                 passed=90   failed=0   skipped=0   xfail=0   13s
+PASS scripts/run-toolchain                  passed=35   failed=0   skipped=0   xfail=0   3s
+PASS scripts/status-transition-check-write  passed=677  failed=0   skipped=0   xfail=0   87s
+FAIL scripts/step-progress                  passed=47   failed=5   skipped=0   xfail=0   1s
+PASS scripts/task-breakdown                 passed=89   failed=0   skipped=0   xfail=0   8s
+PASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   3s
+PASS hooks/audit-sync-resume                passed=54   failed=0   skipped=0   xfail=0   20s
+PASS hooks/block-destructive-git            passed=144  failed=0   skipped=0   xfail=0   7s
+PASS hooks/codex-adapters                   passed=99   failed=0   skipped=0   xfail=0   15s
+FAIL hooks/codex-pre-spawn-initiative       passed=6    failed=4   skipped=0   xfail=0   2s
+PASS hooks/codex-shim                       passed=38   failed=0   skipped=0   xfail=0   6s
+PASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   8s
+FAIL hooks/initiative-write-guards          passed=7    failed=5   skipped=0   xfail=0   5s
+PASS hooks/pre-launch                       passed=17   failed=0   skipped=0   xfail=0   4s
+FAIL hooks/session-start-initiatives        passed=4    failed=10  skipped=0   xfail=0   1s
+PASS hooks/worktree-guard                   passed=42   failed=0   skipped=0   xfail=0   9s
+PASS hooks/write-guards                     passed=93   failed=0   skipped=0   xfail=0   19s
+PASS lint/frontmatter                       passed=38   failed=0   skipped=0   xfail=0   2s
+FAIL lint/step-list                         passed=28   failed=6   skipped=0   xfail=0   6s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   0s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+TOTAL passed=2088 failed=93 skipped=0 xfail=0 (31 suites)
+FAILED suites: scripts/initiative-conversion scripts/initiative-emission scripts/initiative-merge scripts/initiative-transition scripts/resolve-launch-initiative scripts/step-progress hooks/codex-pre-spawn-initiative hooks/initiative-write-guards hooks/session-start-initiatives lint/step-list
+exit=1

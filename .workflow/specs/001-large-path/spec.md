@@ -1,7 +1,7 @@
 ---
 status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
-baseline_revision: "" # full SHA of the commit the work starts from; "" until captured, then never overwritten
-spec_branch: "" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd" # full SHA of the commit the work starts from; "" until captured, then never overwritten
+spec_branch: "spec/001-large-path" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
