@@ -1,8 +1,9 @@
 # Ordered step list for the phase progress line, read by scripts/step-progress.sh. Display data only: guards,
 # status-transition.sh and the decision flow keep using the node ids; this file never changes what a step does.
-# Rows are in run order within each phase (0.3.22 before 0.3.8; 3.16 and 3.15 before 3.13 and 3.9), not id order.
+# Rows are in run order within each phase (0.3.22 before 0.3.8; 0.3.23 before 0.3.20; 3.16 and 3.15 before 3.13 and 3.9), not id order.
 # Columns (tab-separated): id, phase, track, title.
 #   track  both | full | light   a counted step on both paths, the full path only, or the light path only
+#          large                 a step of the large path (6.x), which plans an initiative; counted on its own, not as a phase
 #          phase                 a phase header: id P<n>, title is the phase name
 #          cross                 00.x cross-cutting node (persistent artifacts, model and profile lookup, discovered work);
 #                                not counted, shown after the linear step it was entered from (--at)
@@ -16,6 +17,7 @@ P2	2	phase	Task breakdown
 P3	3	phase	Implementation
 P4	4	phase	Review and triage
 P5	5	phase	Sign-off
+P6	6	phase	Large path
 0.0	-	intake	Feature request
 0.0.1	-	intake	Trivial edit?
 0.0.2	-	intake	Edit directly
@@ -53,6 +55,7 @@ P5	5	phase	Sign-off
 0.3.17	0	both	Write the deferred handoff
 0.3.18	0	both	Questions remaining?
 0.3.19	0	both	Confirm or revise the goal
+0.3.23	0	both	Convert a spec into an initiative
 0.3.21	0	side	design-log.md
 0.3.20	0	both	Light-path test
 0.4.1	0	full	Map onto schema and interfaces
@@ -111,6 +114,19 @@ P5	5	phase	Sign-off
 5.9	5	both	Offer backlog items
 5.7	5	both	Retrospective
 5.8	5	both	Merge and close
+6.1	6	large	Enter the initiative
+6.2	6	large	Write back research
+6.3	6	large	Compute the frontier
+6.4	6	large	Launch research and fact lookups
+6.5	6	large	Ask the round
+6.6	6	large	Term gate
+6.7	6	large	Plan the slices
+6.8	6	large	Log and commit the round
+6.9	6	large	Emit a settled slice
+6.10	6	large	Mark the initiative planned
+6.11	6	large	Merge into main
+6.12	6	large	Reopen exploration
+6.13	6	large	Close when every spec is done
 00.1	-	cross	Glossary
 00.2	-	cross	Capabilities index
 00.3	-	cross	Rules

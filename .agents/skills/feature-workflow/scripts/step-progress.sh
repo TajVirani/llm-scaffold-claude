@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): print the phase progress line that leads every orchestrator update to the user.
-# Purpose: Turn a node id into "Phase 1 of 6 · step 23 of 47 — Discovery: Compute the frontier (0.3.8)". Display only:
+# Purpose: Turn a node id into "Phase 1 of 6 · step 23 of 48 — Discovery: Compute the frontier (0.3.8)". Display only:
 #   it reads references/steps.tsv and never writes spec.md, tasks.md or .step. Phase numbers are 1-based; a step's number is its
 #   position in its phase's run order, so a repeated step (a questioning round, a wave, a fix loop) keeps its number.
 # Usage:
@@ -9,11 +9,13 @@
 #     <step-id>   the node id; with --spec-dir it defaults to `step` in <spec-dir>/.step
 #     --path      which path to count; default: `light_path` in <spec-dir>/spec.md (true = light), else full. The light path runs
 #                 Phases 0, 3, 4 and 5 (0.1-0.3.20, then 3.1 on), so it shows "of 4"; before 0.3.20 sizes it, the count is full.
+#                 A large-path id (6.x) prints "Large path · step n of m — <title> (6.x)", counted over the large rows only; it
+#                 takes no --path, since the large path plans an initiative, not a spec.
 #     --at        for a cross-cutting 00.x id: the linear step it was entered from (discovered work's origin node, 3.1 for 00.19).
 #                 The line shows that step, then the 00.x step after it.
 #     Run from the project root (main checkout), where .step lives.
 # stdout: one line; nothing for an intake id (0.0.x: no progress line before a spec exists).
-# Exit codes: 0 printed (or intake); 2 unknown id, an id not on the chosen path, a side artifact id (0.3.21, 3.12), or a 00.x id
+# Exit codes: 0 printed (or intake); 2 unknown id, an id not on the chosen path (a 6.x id with --path or --spec-dir), a side artifact id (0.3.21, 3.12), or a 00.x id
 #   without --at; 1 usage or environment error (missing steps.tsv, spec.md or .step, missing yq).
 # Called by: the feature-workflow orchestrator before each phase or step update it writes to the user.
 # Notes: bash 3.2 compatible; yq (mikefarah v4) only for --spec-dir.
@@ -61,10 +63,19 @@ if [[ -n "$SPEC_DIR" ]]; then
   fi
 fi
 [[ -n "$ID" ]] || usage
+PATH_ASKED=$PATH_OPT
 PATH_OPT=${PATH_OPT:-full}
 
 # lookup <id>: prints "<phase>\t<track>\t<title>" or nothing.
 lookup() { awk -F'\t' -v id="$1" '!/^#/ && ($1 "") == (id "") { print $2 "\t" $3 "\t" $4; exit }' "$STEPS"; }
+
+# large_line <id>: the progress line for a large-path step; the large path has no phases, so it counts its own rows only.
+large_line() {
+  awk -F'\t' -v id="$1" '
+    /^#/ || $1 == "id" { next }
+    $3 == "large" { n++; if (($1 "") == (id "")) { pos = n; title = $4 } }
+    END { printf "Large path · step %d of %d — %s (%s)", pos, n, title, id }' "$STEPS"
+}
 
 # linear <id>: the progress line for a counted step on PATH_OPT.
 linear() {
@@ -75,6 +86,10 @@ linear() {
   case "$track" in
     intake|cross) refuse "'$1' is not a linear step (--at takes a phase step)" ;;
     side) refuse "'$1' is an artifact written alongside other steps, not a step; report the step it is written at" ;;
+    large)
+      [[ -z "$PATH_ASKED" ]] || refuse "step $1 is on the large path, not the $PATH_ASKED path"
+      large_line "$1"
+      return ;;
     both|"$PATH_OPT") ;;
     *) refuse "step $1 is not on the $PATH_OPT path" ;;
   esac

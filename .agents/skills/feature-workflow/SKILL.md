@@ -161,7 +161,7 @@ Lead every phase or step update you write to the stakeholder (a phase transition
 .agents/skills/feature-workflow/scripts/step-progress.sh --spec-dir .workflow/specs/NNN-slug [<step-id>] [--at <origin node>]
 ```
 
-It reads the step from `.step` and the path from `light_path` unless you pass them, e.g. `Phase 1 of 6 · step 23 of 47 — Discovery: Compute the frontier (0.3.8)`. For a 00.x step pass `--at` with the linear step it was entered from (discovered work's origin node, 3.1 for 00.19). Intake (0.0.x) prints nothing: no line. On exit 2, report the step id without a line. The line is display only; status, guards and step ids are unchanged.
+It reads the step from `.step` and the path from `light_path` unless you pass them, e.g. `Phase 1 of 6 · step 23 of 48 — Discovery: Compute the frontier (0.3.8)`. For a 00.x step pass `--at` with the linear step it was entered from (discovered work's origin node, 3.1 for 00.19). Intake (0.0.x) prints nothing: no line. On exit 2, report the step id without a line. The line is display only; status, guards and step ids are unchanged.
 
 ### Launching a sub-agent
 

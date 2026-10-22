@@ -20,13 +20,12 @@
 #   refused NAME CMD...    assertion: CMD exits 2 with a reason on stderr
 # shellcheck disable=SC2034,SC2016  # the node ids are read by the suites that source this file; yq programs are single-quoted on purpose
 
-# Node ids. The large path fixes 6.1 as the step conversion leaves an initiative at; the others are not fixed yet. Each placeholder is
-# defined once here so the implementer sets it in one place when the step list gains the large track.
-CONVERSION_STEP="0.3.23"           # placeholder: the phase 0 node the questioning loop converts a spec at
+# Node ids from the large-path step list. Each is defined once here so the suites follow a renumbering from one place.
+CONVERSION_STEP="0.3.23"           # the phase 0 node the questioning loop converts a spec at
 LARGE_ENTRY_STEP="6.1"             # the step a new initiative starts at
 INITIATIVE_WRITER_STEP="6.1"       # initiative.md is written at conversion, so the entry step is a writer step
-INITIATIVE_READONLY_STEP="6.2"     # placeholder: a 6.x step that neither writes initiative.md nor is a term gate
-LARGE_TERM_GATE_STEP="6.3"         # placeholder: a 6.x term-gate step, where glossary writes are allowed
+INITIATIVE_READONLY_STEP="6.2"     # a 6.x step that neither writes initiative.md nor is a term gate
+LARGE_TERM_GATE_STEP="6.6"         # the 6.x term-gate step, where glossary writes are allowed
 
 IT_REL=.agents/skills/feature-workflow/scripts/initiative-transition.sh
 ST_REL=.agents/skills/feature-workflow/scripts/status-transition.sh

@@ -4,7 +4,7 @@
 #   compare equal as numbers (3.1 / 3.10, 00.2 / 00.20), steps off the chosen path, cross-cutting 00.x with and without --at,
 #   intake (no line), side artifacts, unknown ids, --spec-dir defaults from spec.md light_path and .step, usage errors;
 #   JRN-007: the large form for the first and last large-track rows, the conversion node and a phase 0 row still in the
-#   "Phase 1 of 6" form.
+#   "Phase 1 of 6" form; large-track numbering (6.10 vs 6.1) and a 6.x id refused on --path full, light or --spec-dir.
 # Env: TEST_BASH=<bash binary> runs the script under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -22,10 +22,10 @@ shellcheck_files "shellcheck step-progress.sh" "$SP"
 check "step-progress.sh is executable" '[ -x "$SP" ]'
 
 # Full path: 6 phases.
-eq "full: first step" "$(sp 0.1.1)" "Phase 1 of 6 · step 1 of 47 — Discovery: Scan the specs folder (0.1.1)"
-eq "full: 0.3.22 runs before 0.3.8" "$(sp 0.3.22)" "Phase 1 of 6 · step 22 of 47 — Discovery: Deeper prompt (0.3.22)"
-eq "full: 0.3.8" "$(sp 0.3.8)" "Phase 1 of 6 · step 23 of 47 — Discovery: Compute the frontier (0.3.8)"
-eq "full: Phase 0 exit gate is its last step" "$(sp 0.6)" "Phase 1 of 6 · step 47 of 47 — Discovery: Exit gate (0.6)"
+eq "full: first step" "$(sp 0.1.1)" "Phase 1 of 6 · step 1 of 48 — Discovery: Scan the specs folder (0.1.1)"
+eq "full: 0.3.22 runs before 0.3.8" "$(sp 0.3.22)" "Phase 1 of 6 · step 22 of 48 — Discovery: Deeper prompt (0.3.22)"
+eq "full: 0.3.8" "$(sp 0.3.8)" "Phase 1 of 6 · step 23 of 48 — Discovery: Compute the frontier (0.3.8)"
+eq "full: Phase 0 exit gate is its last step" "$(sp 0.6)" "Phase 1 of 6 · step 48 of 48 — Discovery: Exit gate (0.6)"
 eq "full: 1.1 is Phase 2" "$(sp 1.1)" "Phase 2 of 6 · step 1 of 5 — Verification setup: Measurable targets (1.1)"
 eq "full: 2.6 after 2.5" "$(sp 2.6)" "Phase 3 of 6 · step 6 of 6 — Task breakdown: Within the size budget? (2.6)"
 eq "full: 3.1 is not 3.10" "$(sp 3.1)" "Phase 4 of 6 · step 1 of 14 — Implementation: Classify tasks and start (3.1)"
@@ -36,8 +36,8 @@ eq "full: 5.8 is the last step" "$(sp 5.8)" "Phase 6 of 6 · step 9 of 9 — Sig
 eq "full: 5.9 runs before 5.7" "$(sp 5.9)" "Phase 6 of 6 · step 7 of 9 — Sign-off: Offer backlog items (5.9)"
 
 # Light path: 4 phases (0, 3, 4, 5).
-eq "light: 0.3.8 keeps its position, smaller total" "$(sp 0.3.8 --path light)" "Phase 1 of 4 · step 23 of 35 — Discovery: Compute the frontier (0.3.8)"
-eq "light: 0.3.20 ends Phase 0" "$(sp 0.3.20 --path light)" "Phase 1 of 4 · step 35 of 35 — Discovery: Light-path test (0.3.20)"
+eq "light: 0.3.8 keeps its position, smaller total" "$(sp 0.3.8 --path light)" "Phase 1 of 4 · step 23 of 36 — Discovery: Compute the frontier (0.3.8)"
+eq "light: 0.3.20 ends Phase 0" "$(sp 0.3.20 --path light)" "Phase 1 of 4 · step 36 of 36 — Discovery: Light-path test (0.3.20)"
 eq "light: 3.1 is Phase 2 of 4" "$(sp 3.1 --path light)" "Phase 2 of 4 · step 1 of 15 — Implementation: Classify tasks and start (3.1)"
 eq "light: 3.14 is counted" "$(sp 3.14 --path light)" "Phase 2 of 4 · step 12 of 15 — Implementation: Record the suite gap (3.14)"
 eq "light: 4.1" "$(sp 4.1 --path light)" "Phase 3 of 4 · step 1 of 8 — Review and triage: Standards review (4.1)"
@@ -72,7 +72,7 @@ mkdir -p "$D"
 cp "$FW_SKILL/assets/spec.md" "$D/spec.md"
 printf 'step: "0.3.8"\nupdated_at: "2026-10-19T00:00:00Z"\n' >"$D/.step"
 cd "$WORK" || exit 1
-eq "--spec-dir: unsized spec counts the full path, step from .step" "$(sp --spec-dir .workflow/specs/001-alpha)" "Phase 1 of 6 · step 23 of 47 — Discovery: Compute the frontier (0.3.8)"
+eq "--spec-dir: unsized spec counts the full path, step from .step" "$(sp --spec-dir .workflow/specs/001-alpha)" "Phase 1 of 6 · step 23 of 48 — Discovery: Compute the frontier (0.3.8)"
 yq --front-matter=process -i '.light_path = true' "$D/spec.md"
 printf 'step: "3.9"\n' >"$D/.step"
 eq "--spec-dir: light_path true counts the light path" "$(sp --spec-dir .workflow/specs/001-alpha/)" "Phase 2 of 4 · step 13 of 15 — Implementation: Tests pass and CI green? (3.9)"
@@ -103,5 +103,15 @@ check "JRN-007 the conversion node prints as a Discovery step on the full path" 
   '[[ "$(sp "$CONVERSION_STEP")" == "Phase 1 of 6 · step "*" — Discovery: "*"($CONVERSION_STEP)" ]]' "$(sp "$CONVERSION_STEP")"
 check "JRN-007 the conversion node prints as a Discovery step on the light path" \
   '[[ "$(sp "$CONVERSION_STEP" --path light)" == "Phase 1 of 4 · step "*"($CONVERSION_STEP)" ]]' "$(sp "$CONVERSION_STEP" --path light)"
+
+# The large track: numbering over its own rows, ids that compare equal as numbers, and no spec path for a 6.x id.
+eq "large: 6.10 is not 6.1" "$(sp 6.10)" "Large path · step 10 of 13 — Mark the initiative planned (6.10)"
+eq "large: the term gate is step 6" "$(sp 6.6)" "Large path · step 6 of 13 — Term gate (6.6)"
+t "large: a 6.x id on --path full exits 2" 2 "$TEST_BASH" "$SP" 6.1 --path full
+t "large: a 6.x id on --path light exits 2" 2 "$TEST_BASH" "$SP" 6.13 --path light
+err=$("$TEST_BASH" "$SP" 6.3 --path full 2>&1 >/dev/null)
+check "large: the refusal names the large path" '[[ "$err" == *"on the large path"* ]]' "$err"
+t "large: a 6.x id with --spec-dir exits 2" 2 "$TEST_BASH" "$SP" --spec-dir .workflow/specs/001-alpha 6.2
+eq "the conversion node runs after 0.3.19, before 0.3.20" "$(sp 0.3.23)" "Phase 1 of 6 · step 35 of 48 — Discovery: Convert a spec into an initiative (0.3.23)"
 
 finish
