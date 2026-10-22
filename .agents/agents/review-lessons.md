@@ -62,7 +62,7 @@ Report only findings scored 80 or above. These score below 80:
 - Anything a linter, typechecker, formatter or the boundary tool catches.
 - A general quality point no recorded lesson names: that is the standards lens.
 
-These score 75 or above:
+These score 80 or above:
 
 - A hunk that makes the lesson's mistake in one of its `paths` with no guard, whether or not the diff shows the consequence.
 
