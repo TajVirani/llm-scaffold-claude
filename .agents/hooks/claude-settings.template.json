@@ -144,7 +144,8 @@
     ],
     "deny": [
       "Edit(.workflow/cache/**)",
-      "Edit(.workflow/specs/*/.step)"
+      "Edit(.workflow/specs/*/.step)",
+      "Edit(.workflow/initiatives/*/.step)"
     ]
   }
 }

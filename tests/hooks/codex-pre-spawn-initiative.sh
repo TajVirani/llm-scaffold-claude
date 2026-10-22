@@ -47,5 +47,18 @@ expect "JRN-008 fact_lookup i009_fact_lookup (no such initiative) is denied" den
 expect "JRN-008 research s007_research for a spec folder is accepted" allow research s007_research
 expect "JRN-008 implementation s007_t3 is unchanged" allow implementation s007_t3
 
+echo "== JRN-008 edge and negative cases"
+expect "JRN-008 fact_lookup i001_fact_lookup_r2 in a repeated round is accepted" allow fact_lookup i001_fact_lookup_r2
+expect "JRN-008 fact_lookup i001_fact-lookup (a hyphen) is denied" deny fact_lookup i001_fact-lookup "lowercase letters, digits and underscores"
+expect "JRN-008 fact_lookup I001_fact_lookup (upper case) is denied" deny fact_lookup I001_fact_lookup "lowercase letters, digits and underscores"
+mkdir -p "$P/.workflow/initiatives/001-duplicate"
+expect "JRN-008 fact_lookup i001_fact_lookup with two initiatives numbered 001 is denied" deny fact_lookup i001_fact_lookup "i001.*2 initiatives"
+rmdir "$P/.workflow/initiatives/001-duplicate"
+git -C "$P" switch -q main
+check "JRN-008 fixture: the initiative is only on its branch" '[ ! -d "$P/.workflow/initiatives/001-storage-overhaul" ] || [ ! -f "$P/.workflow/initiatives/001-storage-overhaul/initiative.md" ]'
+expect "JRN-008 fact_lookup i001_fact_lookup for an initiative only on its branch is accepted" allow fact_lookup i001_fact_lookup
+git -C "$P" branch -q initiative/001-rival main
+expect "JRN-008 fact_lookup i001_fact_lookup with two initiative/001-* branches is denied" deny fact_lookup i001_fact_lookup "i001.*2 initiatives"
+
 shellcheck_files "JRN-008 shellcheck codex-pre-spawn.sh" "$H/codex-pre-spawn.sh"
 finish
