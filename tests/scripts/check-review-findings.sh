@@ -186,7 +186,7 @@ cp "$P1/review-standards.yaml" "$P1/review-end-state.yaml" "$P_BASE/"
 cp "$P2/review-targets.yaml" "$P_BASE/"
 
 bad lens-missing review-standards 'del(.lens)' "lens: missing"
-bad lens-unknown review-standards '.lens = "review-style"' "lens: 'review-style' is not review-standards, review-end-state or review-targets"
+bad lens-unknown review-standards '.lens = "review-style"' "lens: 'review-style' is not review-standards, review-end-state, review-targets or review-lessons"
 bad lens-not-file-name review-standards '.lens = "review-end-state" | .findings = []' "lens: 'review-end-state' does not match the file name review-standards.yaml"
 bad pass-not-integer review-standards '.pass = "one"' "pass: 'one' is not a positive integer"
 bad pass-not-directory review-standards '.pass = 2' "pass: 2 does not match the directory pass-1"

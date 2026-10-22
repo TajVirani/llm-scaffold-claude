@@ -147,6 +147,7 @@ Every loop back to 0.3.8 sets `draft`. The module that owns the gate makes the c
   | `.workflow/GLOSSARY.md`, `.workflow/GLOSSARY-MAP.md` (any depth) | 0.2.3, 0.3.15, 0.4.3, 5.3; 6.6 from an initiative |
   | Other Tier A: `.workflow/capabilities.md`, `.workflow/rules.md`, `.workflow/decisions/**` | 0.3.7, 5.3, 5.7 only |
   | `.workflow/profiles/**` | new file 00.19 or 5.3; existing file 5.3 only |
+  | `.workflow/review-lessons.md` | 5.7 only |
   | `.workflow/cache/**`, `.step` | never by Write/Edit (`publish-cache.sh`, `status-transition.sh`, `initiative-transition.sh`) |
 
   A spec.md write never changes `status` or `blocked_condition`. Everything else in the spec folder (`codebase-map.md`, `design-log.md`, `data-model.md`, `verification-plan.md`) is unguarded.

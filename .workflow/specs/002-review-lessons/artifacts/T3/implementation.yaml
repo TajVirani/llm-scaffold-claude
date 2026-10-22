@@ -1,0 +1,25 @@
+status: profile-wrong
+summary: T3 is built and committed. The review-lessons lens definition and its housekeeping (manifest, PROVENANCE, assetlist, README) are in place, and every suite the task names passes, including all the agent, manifest, PROVENANCE, README and toml checks in tests/lint/review-lessons.sh. The toolchain still exits 1 for a reason the code cannot fix: the profile's lint key runs lint/step-list unscoped, and that suite holds T2's Phase 1 pins (4:9 steps in Phase 4), red until T2 merges. The scoped test key already leaves it out for that reason.
+task_id: T3
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t3
+branch: task/002-review-lessons/T03-review-lessons-lens
+base_commit: 917842de2713814d80ef67f2cce56284279c78a7
+head_commit: 3c21f85d919c1fba8620a4f6bec43366076a827f
+files_changed: [.agents/agents/review-lessons.md, .agents/install-manifest.txt, PROVENANCE.md, README.md, assetlist.md]
+tests_added: []   # owns no Phase 1 tests; seam is the existing frontmatter/codex/install suites and T6's review-lessons.sh
+evidence:
+  red: "bash tests/lint/review-lessons.sh at base: the agent/manifest/PROVENANCE/README/toml assertions fail (file absent)"
+  green: "bash tests/lint/review-lessons.sh: the 12 agent, manifest, PROVENANCE, README and toml checks ok; still red as expected: the JRN-008/JRN-006 template checks (T1/T6) and the steps.tsv 4.9 rows (T2); passed=13 failed=20. tests/lint/frontmatter.sh 40/40, tests/scripts/generate-codex-agents.sh 44/44, tests/scripts/install-payload.sh 55/55, tests/lint/upstream-lineage.sh 13/13, lint/symlinks 45/45"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/002-review-lessons --task-id T3 --cwd $PWD; test (scoped, own 0, excluded 8): pass; lint: fail on lint/step-list only"
+  toolchain: .workflow/specs/002-review-lessons/artifacts/T3/toolchain.txt (fail)
+considered_not_built:
+  - "a low severity grade for lessons: the spec fixes only high (review lesson) and medium (pitfall/retrospective); the summary block keeps low: 0 to match the other lenses' count shape"
+  - ".workflow/model-map/review-lessons.md: the orchestrator writes it at the first launch"
+profile_wrong:
+  section: Toolchain
+  line: "lint: \"tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage\""
+  problem: "lint/step-list is T2's Phase 1 test, red by design until T2 merges (full and light path counts want 4:9). run-toolchain.sh lists tests/lint/step-list.sh in excluded-tests.txt for the scoped test key, but the lint key runs it with no scoping, so no agent-docs task in this wave can pass 3.5 or the stop audit before T2 merges. Because the commands are joined with &&, lint/symlinks and lint/upstream-lineage never ran inside the toolchain; run by hand both pass (45/45, 13/13)."
+  needed: "Either drop lint/step-list from the agent-docs lint key (test already covers it, scoped), or have run-toolchain apply the exclusion list to lint suites too. Or accept T3's toolchain record as passing apart from this known Phase 1 red, or re-run after T2 merges."
+scope_expansion: null
+blocked: null
+discovered_work: []
