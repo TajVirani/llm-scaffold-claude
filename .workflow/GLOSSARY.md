@@ -7,7 +7,7 @@ An agent-agnostic scaffold for coding-agent skills and hooks, living in `.agents
 ### Project knowledge
 
 **Tier A**:
-Authored project knowledge that cannot be derived from code: `.workflow/GLOSSARY.md`, capabilities, rules, the decision log and the work profiles, all under the target's `.workflow/` folder. The source of truth; agent-proposed, human-approved.
+Authored project knowledge that cannot be derived from code: `.workflow/GLOSSARY.md`, capabilities, rules, the decision log, the review lessons and the work profiles, all under the target's `.workflow/` folder. The source of truth; agent-proposed, human-approved.
 _Avoid_: Docs, wiki
 
 **Tier B**:
@@ -17,6 +17,10 @@ _Avoid_: Generated docs, index
 **Cache stamp**:
 The commit a **Tier B** cache was derived from, plus the paths it covers. A cache is stale when any covered path changed since that commit.
 _Avoid_: Cache timestamp, cache version
+
+**Graph extractor**:
+The per-language tool that reads a scope's source files and outputs the file graph (files, their import or `source` edges, and candidate entry points) that the **Tier B** caches are built from. Each **work profile** names one; dependency-cruiser is the JS/TS one. Not the boundary-config adapter, which generates lint config from `.workflow/rules.md`.
+_Avoid_: Extractor, parser, cache adapter
 
 **Placement ADR**:
 The decision record that says which module owns a change and why, written before requirements are settled.
@@ -30,6 +34,10 @@ _Avoid_: Naming check
 Shelving an out-of-scope item as one file in `.workflow/deferred/` with a back-link to its originating spec, so a later feature can pick it up.
 _Avoid_: Parking lot, TODO list
 
+**Review lesson**:
+A lesson a retrospective recorded for the Phase 4 review: a symptom to look for in a set of paths, with the spec it came from and the date, one entry per lesson in the project's review-lessons file (**Tier A**). The review-lessons lens checks every change against them. A lesson a rule, a lint or a profile checklist line already enforces is not one.
+_Avoid_: Pitfall, watch item, recurrence check, review rule
+
 ### Work classification
 
 **Work type**:
@@ -41,7 +49,7 @@ The per-work-type file of operating instructions for coding agents: file locatio
 _Avoid_: Persona, config
 
 **Task type**:
-The kind of sub-agent a launch runs, one per agent definition: retrieval, library-evaluation, cache-regeneration, fact-lookup, module-audit, implementation, integration, profile-mini-review, review-standards, review-end-state, review-targets, standards-discovery. Not the same as **work type**.
+The kind of sub-agent a launch runs, one per agent definition: retrieval, library-evaluation, cache-regeneration, fact-lookup, module-audit, implementation, integration, profile-mini-review, review-standards, review-end-state, review-targets, review-lessons, standards-discovery. Not the same as **work type**.
 _Avoid_: Agent role
 
 **Model map**:
@@ -125,6 +133,7 @@ _Avoid_: Quota, cap
 - Each task has one **Task file** and, on the full path, one **Task branch**; every **Task branch** forks from and merges into the spec's one **Spec branch**.
 - A **Large path** runs on exactly one **Initiative** and emits one or more specs; each emitted spec takes the **Light path** or the **Full path**.
 - A spec whose discovery finds several features converts into an **Initiative**; a **Deferred handoff** item that grows large or unclear seeds one.
+- A **Review lesson** is written by the retrospective of exactly one spec and checked by the review-lessons **Task type** on every later spec's review.
 
 ## Flagged ambiguities
 

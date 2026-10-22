@@ -1,6 +1,6 @@
 # claude-settings.template.json
 
-The Claude Code settings fragment that `install.sh` merges into `<target>/.claude/settings.json` (D36). It holds the hook wiring, the permission deny rules for hard write limits, the output style and the status line. JSON allows no comments, so the rationale lives here. The scaffold repo's own `.claude/settings.json` does not use this template: it wires only `block-destructive-git.sh` (D36).
+The Claude Code settings fragment that `install.sh` merges into `<target>/.claude/settings.json` (D36). It holds the hook wiring, the permission deny rules for hard write limits, the output style and the status line. JSON allows no comments, so the rationale lives here. The scaffold repo's own `.claude/settings.json` carries the same wiring, because the repo runs its own workflow on itself (D36).
 
 ## Entries
 

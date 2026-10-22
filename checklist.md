@@ -91,7 +91,7 @@ Ordered by dependency: each section unblocks the next. Plan refs: node IDs (`0.3
 
 ## 3. Wire hooks (target-project settings template, D36)
 
-Target-project wiring lives in `.agents/hooks/claude-settings.template.json`, which `install.sh` merges into `<target>/.claude/settings.json`; rationale and merge rules are in `claude-settings.template.md`. This repo's own `.claude/settings.json` keeps only `block-destructive-git.sh` (D36). Guard matchers use `Write|Edit|NotebookEdit` (no `MultiEdit` tool; verified 2.1.300). There is no SubagentStart hook (D33). Every hook script is implemented; this repo's own `.claude/settings.json` wires only `block-destructive-git.sh`.
+Target-project wiring lives in `.agents/hooks/claude-settings.template.json`, which `install.sh` merges into `<target>/.claude/settings.json`; rationale and merge rules are in `claude-settings.template.md`. This repo's own `.claude/settings.json` carries the full template wiring (D36). Guard matchers use `Write|Edit|NotebookEdit` (no `MultiEdit` tool; verified 2.1.300). There is no SubagentStart hook (D33). Every hook script is implemented; this repo's own `.claude/settings.json` wires them all.
 
 - [x] Keep `PreToolUse` `Bash` → `block-destructive-git.sh`. Done in this repo's settings and in the template (D36).
 - [x] `PreToolUse` `Agent` → `pre-launch.sh` (00.11–00.14, 00.18–00.20; D13, D33). Done in template (D36), timeout 30.

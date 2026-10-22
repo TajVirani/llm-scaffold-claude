@@ -15,6 +15,103 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/pre-launch.sh",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/spec-single-writer-guard.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/tier-a-write-guard.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/tier-b-write-guard.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/worktree-write-guard.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/session-start-resume.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/rules-boundary-config-sync.sh",
+            "timeout": 60
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/evidence-capture.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/evidence-capture.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "implementation",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/post-implementation-audit.sh",
+            "timeout": 600
+          }
+        ]
       }
     ]
   },
@@ -33,7 +130,36 @@
       "Bash(tests/lint/*.sh:*)",
       "WebSearch",
       "mcp__plugin_context7_context7__resolve-library-id",
-      "mcp__plugin_context7_context7__query-docs"
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(git show:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git merge-base:*)",
+      "Bash(git branch --show-current)",
+      "Bash(git worktree list:*)",
+      "Bash(git worktree add:*)",
+      "Bash(yq --version)",
+      "Bash(yq --front-matter=extract:*)",
+      "Bash(yq -o=tsv:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/status-transition.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/step-progress.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/check-write.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/check-worktree-scope.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/budget-check.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/task-waves.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/resolve-launch.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/rules-setting.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/run-toolchain.sh:*)",
+      "Bash(.agents/skills/regenerate-caches/scripts/cache-stamp-check.sh:*)",
+      "Bash(.agents/skills/regenerate-caches/scripts/check-staged-cache.sh:*)",
+      "Bash(.agents/skills/regenerate-caches/scripts/publish-cache.sh:*)"
+    ],
+    "deny": [
+      "Edit(.workflow/cache/**)",
+      "Edit(.workflow/specs/*/.step)"
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node \"${CLAUDE_PROJECT_DIR:-.}\"/.agents/hooks/context-bridge.cjs"
   }
 }
