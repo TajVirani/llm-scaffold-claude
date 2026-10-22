@@ -65,5 +65,40 @@ git -C "$P" commit -q -am "initiative 001-storage-overhaul: done"
 check "JRN-004 a done initiative is not offered" '! offer_lines "$(resume_offer "$P")" "$INI" >/dev/null'
 check "JRN-004 the draft spec is still offered beside it" 'offer_lines "$(resume_offer "$P")" "$SPEC" >/dev/null'
 
+echo "== JRN-004 edge and negative cases"
+Q=$WORK/edge
+large_path_repo "$Q"
+SHIPPED=.workflow/specs/005-shipped
+FINISHED=.workflow/initiatives/006-finished
+mkdir -p "$Q/$SHIPPED" "$Q/$FINISHED"
+cp "$Q/$FW_ASSETS_REL/spec.md" "$Q/$SHIPPED/spec.md"
+yq --front-matter=process -i '.status = "done"' "$Q/$SHIPPED/spec.md"
+cp "$Q/$FW_ASSETS_REL/initiative.md" "$Q/$FW_ASSETS_REL/questions.md" "$Q/$FINISHED/"
+yq --front-matter=process -i '.status = "planned" | .slices = [{"id": "S1", "title": "Shipped", "status": "emitted", "questions": [], "depends_on": [], "spec": "005-shipped"}]' \
+  "$Q/$FINISHED/initiative.md"
+git -C "$Q" add .workflow && git -C "$Q" commit -q -m "spec 005-shipped done; initiative 006-finished planned"
+check "JRN-004 a planned initiative whose spec is done only on local main is still offered (origin/main is the main ref)" \
+  'offer_lines "$(resume_offer "$Q")" "$FINISHED" >/dev/null'
+git -C "$Q" push -q origin main 2>/dev/null
+check "JRN-004 a planned initiative whose emitted specs are all done on main is not offered" \
+  '! offer_lines "$(resume_offer "$Q")" "$FINISHED" >/dev/null'
+git -C "$Q" branch -q initiative/004-empty main
+seed_initiative "$Q" 001 alpha
+mkdir -p "$Q/.workflow/initiatives/002-broken" "$Q/.workflow/initiatives/003-nostatus"
+printf -- '---\nstatus: [unclosed\n---\n# Broken\n' >"$Q/.workflow/initiatives/002-broken/initiative.md"
+printf -- '---\norigin: 001-nostatus\n---\n# No status\n' >"$Q/.workflow/initiatives/003-nostatus/initiative.md"
+ctx=$(resume_offer "$Q")
+line=$(offer_lines "$ctx" .workflow/initiatives/001-alpha)
+eq "JRN-004 an initiative on disk and on its checked-out branch is listed once" "$(printf '%s' "$line" | grep -c .)" 1
+check "JRN-004 an initiative on its checked-out branch is read from the working tree" '[ -n "$line" ] && ! grep -q "read from branch" <<<"$line"' "$ctx"
+check "JRN-004 an initiative.md with unparseable frontmatter is listed as unreadable" \
+  'offer_lines "$ctx" .workflow/initiatives/002-broken | grep -q unreadable' "$ctx"
+check "JRN-004 an initiative.md without a status is listed with no status" \
+  'offer_lines "$ctx" .workflow/initiatives/003-nostatus | grep -qF "status (none)"' "$ctx"
+check "JRN-004 a branch whose tip has no initiative.md is listed as unreadable" \
+  'offer_lines "$ctx" .workflow/initiatives/004-empty | grep -q unreadable' "$ctx"
+check "JRN-004 a broken initiative does not stop the offer listing the others" \
+  'offer_lines "$ctx" .workflow/initiatives/001-alpha | grep -q "status exploring"' "$ctx"
+
 shellcheck_files "JRN-004 shellcheck session-start-resume.sh" "$P/.agents/hooks/session-start-resume.sh"
 finish

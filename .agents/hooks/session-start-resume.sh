@@ -159,9 +159,9 @@ while IFS= read -r name; do
   [ -n "$name" ] || continue
   ref=$(initiative_ref "$name") || continue
   entry="- $WF_INITIATIVES/$name:"
+  # Only a failed read is unreadable: a frontmatter with no status also leaves fm empty, and is listed as status (none).
   if ! fm=$(initiative_file "$name" initiative.md "$ref" 2>/dev/null \
-    | yq --front-matter=extract -o=json -I=0 '[.status, ([.slices // [] | .[] | select(.spec != null) | .spec] | join(" "))]' 2>/dev/null | lines) \
-    || [ -z "$fm" ]; then
+    | yq --front-matter=extract -o=json -I=0 '[.status, ([.slices // [] | .[] | select(.spec != null) | .spec] | join(" "))]' 2>/dev/null | lines); then
     entry+=" initiative.md frontmatter unreadable; open it to check its status."
   else
     { IFS= read -r status; IFS= read -r emitted; } <<<"$fm" || true
