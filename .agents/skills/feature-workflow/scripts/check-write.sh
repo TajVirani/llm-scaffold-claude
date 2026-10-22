@@ -7,7 +7,8 @@
 #     --path      the file the tool would write (absolute or relative).
 #     --agent     pass it when the payload carries agent_id (only sub-agent calls do; verified on Claude Code 2.1.300). Its value is used in the message only.
 #     --only      evaluate only that path class and allow everything else, so each guard hook handles only its own paths.
-#                 `spec` covers .workflow/specs/*/spec.md, .workflow/specs/*/tasks.md, .workflow/specs/*/tasks/**, .workflow/specs/*/.step and .workflow/specs/work-backlog/** (all handled by spec-single-writer-guard).
+#                 `spec` covers .workflow/specs/*/spec.md, .workflow/specs/*/tasks.md, .workflow/specs/*/tasks/**, .workflow/specs/*/.step, .workflow/specs/work-backlog/**,
+#                 .workflow/initiatives/*/initiative.md and .workflow/initiatives/*/.step (all handled by spec-single-writer-guard).
 #     --proposed  file holding the full content the write would produce (spec.md only): denied if it changes `status`
 #                 or `blocked_condition`, which only status-transition.sh may change.
 # Rules, in order (path classes compared case-insensitively, repo-relative to the worktree that holds the path):
@@ -28,23 +29,28 @@
 #   spec     .workflow/specs/*/tasks.md,                      deny sub-agents. Main session: allow only when that spec's .step names 2.5 or 0.3.20
 #            .workflow/specs/*/tasks/** (per-task bodies,    (creating or replacing the file); otherwise point at status-transition.sh set-task,
 #            tasks/Tnn-<slug>.md)                            the only writer of task records. Bodies follow the same rule as the index.
+#   spec     .workflow/initiatives/*/.step                    deny always. Only initiative-transition.sh writes the marker.
+#   spec     .workflow/initiatives/*/initiative.md            deny sub-agents. Main session: allow only when that initiative's .step names 6.1, 6.7
+#                                                   or 6.9; status, slice records and merge_pr change only through initiative-transition.sh.
+#                                                   questions.md, design-log.md and codebase-map.md beside it are not guarded.
 #   tier-a   .workflow/GLOSSARY.md, .workflow/GLOSSARY-MAP.md at any   deny sub-agents. Main session: allow when no feature is in flight (no .workflow/specs/*/spec.md
-#            depth (per-context glossaries),         with a status other than done: project-setup and standalone domain-modeling);
-#            .workflow/capabilities.md, .workflow/rules.md,   otherwise allow only when the newest .step among in-flight specs names an allowed step:
-#            .workflow/decisions/**, .workflow/profiles/**           glossary files: 0.2.3, 0.3.15, 0.4.3, 5.3
+#            depth (per-context glossaries),         with a status other than done and no .workflow/initiatives/*/.step whose initiative.md is
+#                                                   missing or not done: project-setup and standalone domain-modeling);
+#            .workflow/capabilities.md, .workflow/rules.md,   otherwise allow only when the newest .step among in-flight specs and initiatives names an allowed step:
+#            .workflow/decisions/**, .workflow/profiles/**           glossary files: 0.2.3, 0.3.15, 0.4.3, 5.3, 6.6 (the initiative term gate)
 #                                                     .workflow/profiles/**: editing an existing file 5.3 only; creating a new file 00.19 or 5.3
 #                                                     other Tier A (rules.md, capabilities.md, decisions/**): 0.3.7, 5.3, 5.7
 #                                                   else redirect to a 5.2 proposal.
 #   other    everything else                        allow.
 #   (The in-flight scan skips .workflow/specs/work-backlog/.)
-# Triggers/inputs: Reads the gitignored step marker .workflow/specs/NNN-slug/.step (format owned by status-transition.sh: `step: "<node>"`, `updated_at: "<UTC>"`,
-#   optional `blocked_from`) and the spec.md frontmatter `status`, both from the MAIN checkout found with `git rev-parse --git-common-dir`,
+# Triggers/inputs: Reads the gitignored step markers .workflow/specs/NNN-slug/.step and .workflow/initiatives/NNN-slug/.step (formats owned by status-transition.sh and initiative-transition.sh: `step: "<node>"`, `updated_at: "<UTC>"`,
+#   optional `blocked_from`) and the spec.md and initiative.md frontmatter `status`, all from the MAIN checkout found with `git rev-parse --git-common-dir`,
 #   because gitignored state exists only there, not in task worktrees. Needs mikefarah yq v4 only for Tier A checks and --proposed.
 # Outputs/handoff: exit 0 allow (reason on stdout); exit 2 deny (reason on stderr); exit 1 usage or environment error (adapters should treat it as deny).
 #   Host adapters translate this to their decision format.
 # Called by: hooks/spec-single-writer-guard.sh (--only spec), tier-a-write-guard.sh (--only tier-a), tier-b-write-guard.sh (--only tier-b);
 #   phase modules call it directly before writing on hosts without write hooks (advisory there).
-# Notes: Accident prevention only. Bash writes bypass Write/Edit hooks; hard limits come from the permission deny rules Edit(.workflow/cache/**) and Edit(.workflow/specs/*/.step).
+# Notes: Accident prevention only. Bash writes bypass Write/Edit hooks; hard limits come from the permission deny rules Edit(.workflow/cache/**), Edit(.workflow/specs/*/.step) and Edit(.workflow/initiatives/*/.step).
 # Sources: first-party.
 
 set -euo pipefail
@@ -62,7 +68,8 @@ SPEC_STEPS="0.1.4 0.1.6 0.3.17 0.3.19 0.3.20 0.5.1 1.1 2.5 3.1 3.14 4.6 4.8 5.1 
 TASKS_STEPS="2.5 0.3.20"
 BACKLOG_STEPS="00.26 5.9"                         # .workflow/specs/work-backlog/** items (origin spec's .step)
 BACKLOG_SEED_STEP="0.1.4"                         # newest .step of any spec (new spec seeded from an item)
-GLOSSARY_STEPS="0.2.3 0.3.15 0.4.3 5.3"           # the term gates and sign-off
+INITIATIVE_STEPS="6.1 6.7 6.9"                    # initiative.md: entry, slice planning, slice emission (the initiative's own .step)
+GLOSSARY_STEPS="0.2.3 0.3.15 0.4.3 5.3 6.6"       # the term gates (6.6 is the initiative one) and sign-off
 TIER_A_STEPS="0.3.7 5.3 5.7"                     # every other Tier A path (rules.md, capabilities.md, decisions/**)
 PROFILE_EDIT_STEPS="5.3"                          # an existing .workflow/profiles/** file
 PROFILE_CREATE_STEPS="00.19 5.3"                  # a new .workflow/profiles/** file (00.19 in-flow, 5.3 approved proposal)
@@ -184,9 +191,10 @@ CLASS=other KIND=""
 # look-alike such as .workflow/specs-x/ or .workflow/cache2/ is not matched.
 P_CACHE=$(lower "$WF_CACHE") P_SPECS=$(lower "$WF_SPECS") P_BACKLOG=$(lower "$WF_WORK_BACKLOG")
 P_PROFILES=$(lower "$WF_PROFILES") P_DECISIONS=$(lower "$WF_DECISIONS")
-P_RULES=$(lower "$WF_RULES") P_CAPABILITIES=$(lower "$WF_CAPABILITIES")
-SPEC_REST=""
+P_RULES=$(lower "$WF_RULES") P_CAPABILITIES=$(lower "$WF_CAPABILITIES") P_INITIATIVES=$(lower "$WF_INITIATIVES")
+SPEC_REST="" INITIATIVE_REST=""
 [[ "$LC" != "$P_SPECS"/* ]] || SPEC_REST=${LC#"$P_SPECS"/}
+[[ "$LC" != "$P_INITIATIVES"/* ]] || INITIATIVE_REST=${LC#"$P_INITIATIVES"/}
 if [[ "$LC" == "$P_CACHE" || "$LC" == "$P_CACHE"/* ]]; then
   CLASS=tier-b
 elif [[ "$LC" == "$P_BACKLOG" || "$LC" == "$P_BACKLOG"/* ]]; then
@@ -199,6 +207,10 @@ elif [[ "$SPEC_REST" =~ ^[^/]+/tasks\.md$ ]]; then
   CLASS=spec KIND=tasks
 elif [[ "$SPEC_REST" =~ ^[^/]+/tasks/.+ ]]; then
   CLASS=spec KIND=tasks                      # per-task bodies tasks/Tnn-<slug>.md, same writer rule as tasks.md
+elif [[ "$INITIATIVE_REST" =~ ^[^/]+/\.step$ ]]; then
+  CLASS=spec KIND=initiative-marker
+elif [[ "$INITIATIVE_REST" =~ ^[^/]+/initiative\.md$ ]]; then
+  CLASS=spec KIND=initiative
 elif [[ "$LC" == "glossary.md" || "$LC" == */glossary.md || "$LC" == "glossary-map.md" || "$LC" == */glossary-map.md ]]; then
   CLASS=tier-a KIND=glossary                 # any depth, so .workflow/GLOSSARY.md and per-context glossaries
 elif [[ "$LC" == "$P_PROFILES" || "$LC" == "$P_PROFILES"/* ]]; then
@@ -223,9 +235,13 @@ if [[ "$KIND" == "marker" ]]; then
   deny "$REL is the step marker; only skills/feature-workflow/scripts/status-transition.sh writes it (run: status-transition.sh step $WF_SPECS/<NNN-slug> <node-id>)."
 fi
 
+if [[ "$KIND" == "initiative-marker" ]]; then
+  deny "$REL is the initiative step marker; only skills/feature-workflow/scripts/initiative-transition.sh writes it (run: initiative-transition.sh step $WF_INITIATIVES/<NNN-slug> <6.x>)."
+fi
+
 # ---------------------------------------------------------------- sub-agents
 if [[ $HAVE_AGENT -eq 1 ]]; then
-  deny "$REL is protected ($CLASS) and the write comes from a $WHO. Only the main session writes spec.md, tasks.md, $WF_WORK_BACKLOG/ and Tier A, at approved steps. Return the proposed change (or the discovered-work report) in your output instead."
+  deny "$REL is protected ($CLASS) and the write comes from a $WHO. Only the main session writes spec.md, tasks.md, $WF_WORK_BACKLOG/, initiative.md and Tier A, at approved steps. Return the proposed change (or the discovered-work report) in your output instead."
 fi
 
 ROOT=$(main_root "$TOP") || die "cannot locate the main checkout from $TOP"
@@ -295,9 +311,22 @@ if [[ "$KIND" == "spec" ]]; then
   allow "$REL: main session at step $STEP"
 fi
 
+# ---------------------------------------------------------------- initiative.md
+if [[ "$KIND" == "initiative" ]]; then
+  INITIATIVE_NAME=${REL:${#WF_INITIATIVES}+1}
+  INITIATIVE_NAME=${INITIATIVE_NAME%%/*}
+  INITIATIVE_DIR="$WF_INITIATIVES/$INITIATIVE_NAME"
+  STEP=$(marker_get "$ROOT/$INITIATIVE_DIR/.step" step)
+  if [[ -n "$STEP" ]] && in_list "$STEP" "$INITIATIVE_STEPS"; then
+    allow "$REL: main session at step $STEP"
+  fi
+  deny "$REL: the initiative is at step ${STEP:-<none>}; initiative.md is written only at $INITIATIVE_STEPS. Set the step first with initiative-transition.sh step $INITIATIVE_DIR <6.x>; status, slice records and merge_pr change only through initiative-transition.sh, never Write/Edit."
+fi
+
 # ---------------------------------------------------------------- Tier A
 require_yq
-IN_FLIGHT=0 BEST_AT="" BEST_STEP="" BEST_SPEC=""
+# A feature is in flight while a spec is not done or an initiative is not done; the newest step marker among them decides.
+IN_FLIGHT=0 BEST_AT="" BEST_STEP="" BEST_DIR=""
 for spec in "$ROOT/$WF_SPECS"/*/spec.md; do
   [[ -f "$spec" ]] || continue
   [[ "$(lower "$(basename "$(dirname "$spec")")")" != "work-backlog" ]] || continue   # not a spec folder
@@ -309,7 +338,24 @@ for spec in "$ROOT/$WF_SPECS"/*/spec.md; do
   st=$(marker_get "$dir/.step" step)
   [[ -n "$st" ]] || continue
   if [[ -z "$BEST_STEP" || "$at" > "$BEST_AT" ]]; then
-    BEST_AT=$at BEST_STEP=$st BEST_SPEC="$WF_SPECS/$(basename "$dir")"
+    BEST_AT=$at BEST_STEP=$st BEST_DIR="$WF_SPECS/$(basename "$dir")"
+  fi
+done
+# The marker, not initiative.md, marks an initiative in flight: initiative.md lives on the initiative branch, while the
+# gitignored marker stays in the main checkout whichever branch is checked out.
+for mk in "$ROOT/$WF_INITIATIVES"/*/.step; do
+  [[ -f "$mk" ]] || continue
+  dir=$(dirname "$mk")
+  if [[ -f "$dir/initiative.md" ]]; then
+    status=$(yq --front-matter=extract '.status // ""' "$dir/initiative.md" 2>/dev/null) || status="unreadable"
+    [[ "$status" == "done" ]] && continue
+  fi
+  IN_FLIGHT=1
+  at=$(marker_get "$mk" updated_at)
+  st=$(marker_get "$mk" step)
+  [[ -n "$st" ]] || continue
+  if [[ -z "$BEST_STEP" || "$at" > "$BEST_AT" ]]; then
+    BEST_AT=$at BEST_STEP=$st BEST_DIR="$WF_INITIATIVES/$(basename "$dir")"
   fi
 done
 
@@ -326,6 +372,14 @@ if [[ -z "$BEST_STEP" ]]; then
   deny "$REL is Tier A and a feature is in flight, but no in-flight spec has a step marker. $WHAT written only at $STEPS: set the step with status-transition.sh step $WF_SPECS/<NNN-slug> <node-id>, or propose the change in $WF_SPECS/<NNN-slug>/proposals.md for approval at 5.3."
 fi
 if in_list "$BEST_STEP" "$STEPS"; then
-  allow "$REL: Tier A ($KIND), main session at step $BEST_STEP ($BEST_SPEC)"
+  allow "$REL: Tier A ($KIND), main session at step $BEST_STEP ($BEST_DIR)"
 fi
-deny "$REL is Tier A; current step is $BEST_STEP ($BEST_SPEC). $WHAT written only at $STEPS. Record the change as a 5.2 proposal in $BEST_SPEC/proposals.md for approval at 5.3 instead."
+REDIRECT="Record the change as a 5.2 proposal in $BEST_DIR/proposals.md for approval at 5.3 instead."
+if [[ "$BEST_DIR" == "$WF_INITIATIVES"/* ]]; then
+  if [[ "$KIND" == "glossary" ]]; then
+    REDIRECT="A new or conflicting term waits for the initiative's term gate: initiative-transition.sh step $BEST_DIR 6.6, then the domain-modeling skill."
+  else
+    REDIRECT="Record the change as a 5.2 proposal in the proposals.md of a spec for approval at 5.3 instead."
+  fi
+fi
+deny "$REL is Tier A; current step is $BEST_STEP ($BEST_DIR). $WHAT written only at $STEPS. $REDIRECT"
