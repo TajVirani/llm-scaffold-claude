@@ -56,7 +56,7 @@ set_task_review() {
 initiative_transition() {
   local p=$1
   shift
-  (cd "$p" && bash "$p/$IT_REL" "$@")
+  (cd "$p" && "$p/$IT_REL" "$@")
 }
 
 spec_transition() {
