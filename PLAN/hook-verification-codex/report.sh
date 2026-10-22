@@ -18,7 +18,7 @@ echo "== SubagentStart / SubagentStop"
 jq -c 'select(.event=="SubagentStart")|.input|del(.session_id)' "$L" | s
 jq -c 'select(.event=="SubagentStop")|.input|{agent_type,stop_hook_active,agent_transcript_path,msg:(.last_assistant_message//""|.[0:150])}' "$L" | s
 for t in $(jq -r 'select(.event=="SubagentStop")|.input.agent_transcript_path//empty' "$L" | sort -u); do
-  printf 'transcript %s exists=%s SECRET=%s BANANA=%s\n' "$(echo $t|s)" "$([ -f "$t" ] && echo y || echo n)" "$(grep -c SECRET-TOKEN-42 "$t" 2>/dev/null)" "$(grep -c BANANA "$t" 2>/dev/null)"; done
+  printf 'transcript %s exists=%s SECRET=%s BANANA=%s\n' "$(echo "$t"|s)" "$([ -f "$t" ] && echo y || echo n)" "$(grep -c SECRET-TOKEN-42 "$t" 2>/dev/null)" "$(grep -c BANANA "$t" 2>/dev/null)"; done
 echo "== matcher probes (M-* spawn matchers, ShellMatcher)"; jq -c 'select(.event|test("^M-|ShellMatcher"))|[.event,.input.tool_name]' "$L"
 echo "== edit-matcher hits"; jq -c 'select(.event=="PreToolUse-EditMatcher")|[.input.tool_name,(.input.agent_type//"main"),(.input.tool_input|tostring|.[0:120])]' "$L"
 echo "== PostToolUse shell"; jq -c 'select(.event=="PostToolUse" and (.input.tool_name|test("Bash|shell|exec")))|{tool:.input.tool_name, ti:.input.tool_input, tr:(.input.tool_response|tostring|.[0:300])}' "$L" | s
