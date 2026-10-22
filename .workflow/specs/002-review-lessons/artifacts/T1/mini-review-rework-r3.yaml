@@ -1,0 +1,28 @@
+verdict: fail
+task_id: T1
+work_type: shell-scripts
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t1@be7638e87ae5146fcf2d85f2d059d079d85ae628..HEAD (rework 1, round 3)
+tool_output: .workflow/specs/002-review-lessons/artifacts/T1/toolchain.json
+items:
+  - {n: 1, verdict: pass, location: "review-lessons.sh:1-121", note: ""}
+  - {n: 2, verdict: not-applicable, location: "", note: ""}
+  - {n: 3, verdict: pass, location: "review-lessons.sh:49-50, :93, :105, :108-116", note: ""}
+  - {n: 4, verdict: pass, location: "review-lessons.sh:13-14 against :25, :28, :33, :119-120", note: ""}
+  - {n: 5, verdict: pass, location: "no sibling path in the script; the suite resolves siblings like its siblings (test-harness scope)", note: ""}
+  - {n: 6, verdict: pass, location: "review-lessons.sh:1-18", note: ""}
+  - {n: 7, verdict: pass, location: "review-lessons.sh:20, :93-94, :108, :115; suite :30, :38", note: ""}
+  - {n: 8, verdict: pass, location: "function lines and directive reasons in both files", note: ""}
+  - {n: R1, verdict: pass, location: "review-lessons.sh:54-87, :97-105; suite :18", note: ""}
+  - {n: R2, verdict: fail, location: "review-lessons.sh:49", note: "2>/dev/null drops yq's parse message with no reason; a reader may delete it and break the one-reason-line stderr contract (:13-14); add a one-line comment saying it is dropped on purpose."}
+  - {n: R3, verdict: pass, location: "review-lessons.sh:54", note: ""}
+  - {n: R4, verdict: pass, location: "body comments; header paths under the 3.8 ruling", note: ""}
+  - {n: R5, verdict: pass, location: "review-lessons.sh:54-55; suite :8, :10", note: ""}
+read_outside_diff:
+  - "check-review-findings.sh (header shape); tests/scripts/budget-check.sh, tests/scripts/check-review-findings.sh, scripts/budget-check.sh (sibling conventions)"
+out_of_scope_noticed:
+  - kind: decision
+    summary: "No suite case for a fenced block that fails to parse as YAML; the one-reason-line promise for that path is untested."
+    evidence: "tests/scripts/review-lessons.sh:51-66"
+    blocker_assessment: can-wait
+    reason: "Test coverage, outside the checklist."
+# Orchestrator: R2 is a wording-only fix round (round 4 next); the coverage note is folded into the same round as one added assertion (no behaviour change). Round 2 had passed R2 at :49; the reviewers differ on a one-line comment.

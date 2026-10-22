@@ -214,3 +214,9 @@ Not checked, informational: typecheck, format and boundary keys skipped (no comm
 
 Failed lenses: none
 Outcome: rework 1 of 5
+
+## 2026-10-22 Rework 1 (review pass 1: F1, F2)
+
+- T1 rework merged: the validation and next-id logic moved from the template's header lines into `.agents/skills/feature-workflow/scripts/review-lessons.sh` (`validate FILE`, `next-id FILE`; exit 0/1/2), the template lines call it through `git rev-parse --show-toplevel`, a new suite `tests/scripts/review-lessons.sh` (26 assertions) and its README row, a PROVENANCE line. Four mini-review rounds: item 7 (`[[ ]]`), item 8 (directive reasons), R2 (a reason for dropping yq's message, plus an unparsable-block case), then pass. R4 header-path items ruled compliant each round under the project's `# File:` header rule; the reviewers' rule candidates (a grep lint for single-bracket tests and for path tokens in comments; make the header exemption explicit in readable-code R4) go to 5.2. The round-3 reviewer's note that `next-id` on a file with no fenced block prints RL-001 silently stays as built: `validate` refuses that file on the same retrospective pass; recorded for the retrospective.
+- T2 rework merged: the three body comments no longer carry journey ids; `# Covers:` header lines and test-name strings unchanged (ruled at triage). Mini-review pass in one round.
+- Task PRs skipped (`gh` not installed). No patch was a verified high, so no new review pass follows; after the gates and the live journeys the spec returns to `in-review` and goes to sign-off.

@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t1/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t1",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/002-review-lessons/artifacts/T1",
-  "tree": "aefb1e81e8f5657fa6bd9433852d604205b57f2d",
+  "tree": "c49d3b905cd60aef4bcc7a4e7daea0acec5e9aaa",
   "ran": 2,
   "results": [
     {
@@ -42,7 +42,7 @@
       "exit_code": 0,
       "scoped": true,
       "own": 2,
-      "excluded": 6
+      "excluded": 5
     }
   ],
   "digest": "",
