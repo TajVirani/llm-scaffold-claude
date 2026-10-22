@@ -47,7 +47,7 @@
 #   step: "<6.x>"
 #   updated_at: "<UTC ISO-8601, e.g. 2026-10-21T12:00:00Z>"
 #
-# Exit codes: 0 done; 1 usage or environment error (missing yq, not a git repo, missing folder or file, unknown slice or question
+# Exit: 0 done; 1 usage or environment error (missing yq, not a git repo, missing folder or file, unknown slice or question
 #   id, malformed value); 2 illegal transition or a result the template validator rejects, with the reason on stderr.
 # Called by: the large-path module, at each step that changes initiative state; open-task-pr.sh --record (set-pr).
 # Notes: Never calls status-transition.sh and is never called by it. Requires git and mikefarah yq v4.
@@ -384,7 +384,8 @@ case "$CUR>$NEW" in
     pending_slices=$(yq --front-matter=extract '.slices[] | select(.status == "planned") | .id' "$INITIATIVE" | tr '\n' ' ')
     [[ -z "$pending_slices" ]] || reject_status "slices not yet emitted: ${pending_slices% }"
     [[ -f "$QUESTIONS" ]] || die "questions.md not found in the main checkout: $QUESTIONS"
-    open_questions=$(yq --front-matter=extract '.questions[] | select(.state == "open" or .state == "researching") | .id' "$QUESTIONS" | tr '\n' ' ')
+    open_questions=$(yq --front-matter=extract '.questions[] | select(.state == "open" or .state == "researching") | .id' "$QUESTIONS" | tr '\n' ' ') \
+      || die "cannot read the questions: array in $QUESTIONS"
     [[ -z "$open_questions" ]] || reject_status "questions still open or researching: ${open_questions% }"
     ;;
   "planned>done")

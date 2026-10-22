@@ -110,6 +110,15 @@ eq "JRN-002 the initiative is planned" "$(fm "$P/$INI/initiative.md" .status)" p
 t "JRN-002 a planned initiative can be reopened" 0 IT status "$INI" exploring
 eq "JRN-002 the reopened initiative is exploring" "$(fm "$P/$INI/initiative.md" .status)" exploring
 
+echo "== JRN-002 a malformed questions.md"
+cp "$P/$INI/questions.md" "$WORK/questions.md.good"
+printf -- '---\nquestions: [unclosed\n---\n# Questions\n' >"$P/$INI/questions.md"
+err=$(IT status "$INI" planned 2>&1 >/dev/null); rc=$?
+eq "JRN-002 planned with an unreadable questions.md is an environment error" "$rc" 1
+check "JRN-002 the error names questions.md" 'grep -q "^initiative-transition.sh: .*questions\.md" <<<"$err"' "$err"
+eq "JRN-002 the initiative stays exploring" "$(fm "$P/$INI/initiative.md" .status)" exploring
+cp "$WORK/questions.md.good" "$P/$INI/questions.md"
+
 echo "== JRN-002 replacing merge_pr"
 IT set-pr "$INI" https://github.com/o/r/pull/7 >/dev/null 2>&1
 err=$(IT set-pr "$INI" https://github.com/o/r/pull/9 2>&1 >/dev/null)
