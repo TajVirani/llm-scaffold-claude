@@ -241,6 +241,7 @@ echo "== workflow-paths.sh constants"
 lib_eval() { bash -c '. "$1"; eval "printf %s \"$2\""' _ "$H/../lib/workflow-paths.sh" "$1"; }
 eq "WF_SPECS is the repo-relative specs root" "$(lib_eval '$WF_SPECS')" ".workflow/specs"
 eq "WF_INITIATIVES is the repo-relative initiatives root" "$(lib_eval '$WF_INITIATIVES')" ".workflow/initiatives"
+eq "WF_REVIEW_LESSONS is the repo-relative review-lessons file" "$(lib_eval '$WF_REVIEW_LESSONS')" ".workflow/review-lessons.md"
 eq "wf_path joins the project root and WF_INITIATIVES" "$(lib_eval "\$(wf_path $P/ \"\$WF_INITIATIVES\")")" "$P/.workflow/initiatives"
 eq "an initiative's .step pattern builds from WF_INITIATIVES" "$(lib_eval '$WF_INITIATIVES/*/.step')" ".workflow/initiatives/*/.step"
 
