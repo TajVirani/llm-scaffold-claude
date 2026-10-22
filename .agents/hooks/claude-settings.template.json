@@ -130,6 +130,7 @@
       "Bash(yq --front-matter=extract:*)",
       "Bash(yq -o=tsv:*)",
       "Bash(.agents/skills/feature-workflow/scripts/status-transition.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/initiative-transition.sh:*)",
       "Bash(.agents/skills/feature-workflow/scripts/step-progress.sh:*)",
       "Bash(.agents/skills/feature-workflow/scripts/check-write.sh:*)",
       "Bash(.agents/skills/feature-workflow/scripts/check-worktree-scope.sh:*)",
