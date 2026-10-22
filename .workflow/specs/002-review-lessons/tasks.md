@@ -81,7 +81,7 @@ tasks:
     pr: null
   - id: T4
     title: "Triage launches four lenses; sign-off names the lessons write"
-    status: pending
+    status: done
     capability: CAP-NEW-review-lessons-lens
     depends_on: [T1, T2, T3]
     touches_core: false
@@ -121,7 +121,7 @@ tasks:
     pr: null
   - id: T6
     title: "New projects get the lessons file; the asset-set lint goes green"
-    status: pending
+    status: done
     capability: CAP-NEW-review-lessons-record
     depends_on: [T1, T2, T3]
     touches_core: false

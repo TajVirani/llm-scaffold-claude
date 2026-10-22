@@ -189,3 +189,7 @@ Facts looked up instead of asked (0.3.10): None.
 ## 2026-10-22 Implementation wave 2, part 1 (T5)
 
 - T5 launched as the frontier after wave 1's gate (it depends on T1 only), merged after a clean toolchain and a passing mini-review. Its agent found that the guard T1 added denies the lessons file when no feature is in flight, so the skill now turns an approved review lesson into an action item in a standalone retrospective (no spec in flight) and writes it only at a feature's 5.7. Not a decision taken here: the end-state lens judges it against `spec.md` at 4.2 (CAP-NEW-review-lessons-record says "at 5.7 and nowhere else", which this satisfies). Task PR skipped (`gh` not installed).
+
+## 2026-10-22 Implementation wave 2, part 2 (T4, T6)
+
+- T4 merged (triage launches four lenses at 4.9, SKILL.md module row 4.1–4.9, design-log lens column, sign-off 5.7 names the lessons write), T6 merged (project-setup file row, `review-lessons` in the cheap tier, task-type count 13 matching the table; `tests/lint/review-lessons.sh` 33/33). Both mini-reviews pass; task PRs skipped (`gh` not installed). Every task is `done`.
