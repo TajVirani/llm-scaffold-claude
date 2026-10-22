@@ -19,6 +19,7 @@
 #     `planned` while an emitted slice spec is not `done` on origin/<main_branch> (else <main_branch>; rules-setting.sh main_branch).
 #     Omitted: `done`, and `planned` with every emitted spec done. Read from the local initiative/NNN-slug branch with `git show` when it
 #     exists and is not checked out, else from the working tree, else from origin/initiative/NNN-slug; never by switching branches.
+#     An initiative.md that cannot be read is listed as unreadable, and one found in none of those places as missing; neither is skipped.
 #   - The text ends with the next action: load the feature-workflow skill for the chosen spec, which routes by spec.md status; a blocked spec
 #     needs its blocked_condition resolved by a human first; an initiative resumes through feature-workflow's large path.
 #   - A blocked spec whose blocked_condition starts with `discovered work:` or `size budget:` is flagged "discovered-work prompt pending".
@@ -63,6 +64,7 @@ handoffs=("$root/$WF_HANDOFF"/*.md)
 initiative_names=$(
   {
     for d in "$root/$WF_INITIATIVES"/*/initiative.md; do basename "$(dirname "$d")"; done
+    # git is optional: outside a repository there are no branch names, and the folder scan above still counts.
     { git -C "$root" for-each-ref --format='%(refname:lstrip=2)' refs/heads/initiative refs/remotes/origin/initiative 2>/dev/null || true; } \
       | sed -n 's|^initiative/\([^/]*\)$|\1|p; s|^origin/initiative/\([^/]*\)$|\1|p'
   } | sort -u
@@ -157,8 +159,12 @@ spec_done_on_main() {
 itext="" i_n=0
 while IFS= read -r name; do
   [ -n "$name" ] || continue
-  ref=$(initiative_ref "$name") || continue
   entry="- $WF_INITIATIVES/$name:"
+  if ! ref=$(initiative_ref "$name"); then
+    itext+="$entry no initiative.md on disk or on its branch; open the branch to check."$'\n'
+    i_n=$((i_n + 1))
+    continue
+  fi
   # Only a failed read is unreadable: a frontmatter with no status also leaves fm empty, and is listed as status (none).
   if ! fm=$(initiative_file "$name" initiative.md "$ref" 2>/dev/null \
     | yq --front-matter=extract -o=json -I=0 '[.status, ([.slices // [] | .[] | select(.spec != null) | .spec] | join(" "))]' 2>/dev/null | lines); then

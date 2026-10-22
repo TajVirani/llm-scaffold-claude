@@ -102,6 +102,7 @@ initiative_folder() {
   n=$(
     {
       for d in "$root/$WF_INITIATIVES/$1"-*/; do [ -d "$d" ] && basename "$d"; done
+      # git is optional: outside a repository there are no branch names, and the folder scan above still counts.
       { git -C "$root" for-each-ref --format='%(refname:lstrip=2)' "refs/heads/initiative/$1-*" "refs/remotes/origin/initiative/$1-*" 2>/dev/null || true; } \
         | sed -e 's|^origin/||' -e 's|^initiative/||'
     } | sort -u | grep -c .

@@ -100,5 +100,10 @@ check "JRN-004 a branch whose tip has no initiative.md is listed as unreadable" 
 check "JRN-004 a broken initiative does not stop the offer listing the others" \
   'offer_lines "$ctx" .workflow/initiatives/001-alpha | grep -q "status exploring"' "$ctx"
 
+git -C "$Q" switch -q initiative/004-empty
+ctx=$(resume_offer "$Q")
+check "JRN-004 a checked-out branch with no initiative.md is still listed, as missing" \
+  'offer_lines "$ctx" .workflow/initiatives/004-empty | grep -q "no initiative.md"' "$ctx"
+
 shellcheck_files "JRN-004 shellcheck session-start-resume.sh" "$P/.agents/hooks/session-start-resume.sh"
 finish
