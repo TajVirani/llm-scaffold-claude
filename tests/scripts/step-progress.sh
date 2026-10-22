@@ -86,7 +86,7 @@ t "--spec-dir: no marker and no id exits 1" 1 "$TEST_BASH" "$SP" --spec-dir .wor
 t "--spec-dir: missing spec.md exits 1" 1 "$TEST_BASH" "$SP" --spec-dir .workflow/specs/404-none 3.3
 
 
-# JRN-007: the large track. The expected lines are built from the large-track rows of steps.tsv.
+# The large track. The expected lines are built from the large-track rows of steps.tsv.
 large_rows() { grep -v '^#' "$FW_SKILL/references/steps.tsv" | awk -F'\t' '$3 == "large"'; }
 LARGE_COUNT=$(large_rows | grep -c .)
 FIRST_LARGE_ID=$(large_rows | head -n1 | cut -f1)
