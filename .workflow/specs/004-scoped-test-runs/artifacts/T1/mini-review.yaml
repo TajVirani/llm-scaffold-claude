@@ -1,0 +1,15 @@
+round: 1
+verdict: fail
+failed:
+  - item: "readable-code R2"
+    location: tests/run-all.sh:243
+    finding: "bash 3.2 empty-array guard `${rows[@]+\"${rows[@]}\"}` under set -u has no comment"
+    fix: "one-line comment naming the bash 3.2 set -u reason; keep the expansion"
+passed: [stubs, shellcheck_files, fixtures in new_workdir, R1, R3, R4, R5]
+out_of_scope_noticed:
+  - {kind: bug, summary: "interrupted run: EXIT trap removes results dir while background suites keep running", evidence: "tests/run-all.sh:157, :167-176", blocker_assessment: can-wait}
+  - {kind: refactor, summary: "parallel/serial timing checks use fixed wall-clock thresholds; may flake under load", evidence: "tests/scripts/run-all-selection.sh:413, :419", blocker_assessment: can-wait}
+round: 2
+verdict: pass
+failed: []
+out_of_scope_noticed: []

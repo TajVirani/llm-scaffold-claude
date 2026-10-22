@@ -14,6 +14,18 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Edit frontmatter with Edit or `yq --front-matter=process`, never `--front-matter=extract -i`
+- What happened: `yq --front-matter=extract -i` rewrote two work-backlog items as their frontmatter alone, deleting the body; one was restored from git, the other from the session.
+- Where: main-session status edits of `.workflow/specs/work-backlog/*.md` (00.26, 5.9)
+- Spec: .workflow/specs/004-scoped-test-runs
+- Prevented by: none yet
+
+## Quote heredocs that write markdown (`<<'EOF'`), or use Write
+- What happened: an unquoted `<<EOF` holding markdown ran its backticked code spans as shell commands and hung the shell, leaving an empty `.workflow/deferred/` file.
+- Where: main-session Bash writes of `.workflow/` markdown (3.14)
+- Spec: .workflow/specs/004-scoped-test-runs
+- Prevented by: none yet
+
 ## Point at a folder instead of restating its tree in the README
 - What happened: the README's hooks and helper-script lists drifted from the tree; `worktree-write-guard.sh` and five helper scripts are missing.
 - Where: `README.md` (hooks and helper lists)

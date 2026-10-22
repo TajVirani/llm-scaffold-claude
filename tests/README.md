@@ -17,12 +17,17 @@ Scaffold-only. This folder tests the scripts and hooks in `.agents/`, the root `
 ```sh
 tests/run-all.sh                       # every suite, then a summary; exit 1 if any suite failed
 tests/run-all.sh --suite pre-launch    # one suite (name without .sh; --list shows them)
-tests/run-all.sh -v                    # stream full output instead of failures only
+tests/run-all.sh -v                    # print each suite's full output instead of failures only
+tests/run-all.sh --only-file F         # only the suites F names, one per line (tests/scripts/NAME.sh or scripts/NAME)
+tests/run-all.sh --exclude-file G      # every suite except those G names; with --only-file, F minus G
+tests/run-all.sh -j 1                  # one suite at a time (default: as many at once as there are CPUs, else 4)
 bash tests/hooks/write-guards.sh       # a suite directly
 TEST_BASH=/bin/bash tests/run-all.sh --suite status-transition-check-write   # run the scripts under another bash
 ```
 
 The status-transition suite makes many `yq` calls and takes a few minutes; the rest take under a minute each.
+
+Suites run in parallel, but each suite's output is held until it finishes and printed in `--list` order, so the report reads the same as a `-j 1` run apart from timings. An empty or missing `--only-file` selects every suite. A selector that names no suite, `--suite` combined with either file, or a `-j` value that is not a positive whole number exits 2.
 
 ## CI
 
@@ -37,7 +42,7 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | `scripts/*.sh` | One suite per shared script |
 | `lint/*.sh` | Static checks over the repo itself (frontmatter, step list, symlinks, upstream lineage); read-only, never writing to the repo (step-list and upstream-lineage use a scratch dir from `new_workdir`) |
 | `hooks/*.sh` | One suite per hook (the three write guards share a suite; so do the audit, sync and resume hooks, which share one fixture) |
-| `run-all.sh` | Runs everything or one suite |
+| `run-all.sh` | Runs everything, one suite, or a chosen set of suites, several at once |
 | `.shellcheckrc` | Lets `shellcheck tests/**/*.sh` follow `source` lines |
 
 | Suite | Component |
@@ -53,6 +58,7 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | `scripts/generate-codex-agents` | `hooks/generate-codex-agents.sh` |
 | `scripts/install` | `install.sh` at the repo root (payload from `install-manifest.txt`, VERSION stamp, Claude and Codex shims, settings and config merges, `.gitignore`, refusals, `--dry-run`); runs against a copy of the scaffold inside the fixture |
 | `scripts/build-architecture` | regenerate-caches `build-architecture.sh`, `check-staged-cache.sh` (dependency-cruiser and tsc output are fixtures; no node needed) |
+| `scripts/run-all-selection` | `tests/run-all.sh` itself, run on stub suites in a fixture tree: `--only-file` and `--exclude-file` selection, unknown selectors and flag conflicts, `-j` validation, parallel by default and serial with `-j 1`, output in glob order matching a serial run, `-v`, exit codes |
 | `scripts/upstream-diff` | `scripts/upstream-diff.sh` at the repo root (scaffold-only lineage diff): arguments, entry selection, `unknown`-commit skip, and a diff run against local `file://` upstreams; no network |
 | `scripts/initiative-transition` | JRN-002: `initiative-transition.sh` (frontier before and after a research question settles, set-question launch, reset and settle, illegal question, slice and status transitions exit 2, step and set-pr, usage errors) and the pending research count in `session-start-resume.sh` |
 | `scripts/initiative-conversion` | JRN-001: conversion of a draft spec into an initiative, replayed (branch off origin/main, `initiative-transition.sh`, moved design log and codebase map, re-pointed shelf and work items, folder-scoped commit), the resume offer naming the initiative, the next spec number skipping the converted one |

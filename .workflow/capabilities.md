@@ -10,3 +10,4 @@ Rules:
 
 | ID | Description | Introduced by |
 | --- | --- | --- |
+| CAP-001 | Scoped and parallel harness runs: `tests/run-all.sh` runs the suites a selector file names, or every suite minus an exclude file, in parallel by default with the same report as a serial run | [.workflow/specs/004-scoped-test-runs](specs/004-scoped-test-runs/spec.md) |

@@ -1,0 +1,26 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "f8ea802e8efa7f56499a2743930887986e1ec020"
+head: "9fe4e82d5435bd769bfe58f9e39b65d63ae3b662"
+findings:
+  - id: RS-1
+    category: rule
+    severity: low
+    confidence: 95
+    location: "commits 91407dc, f786aa3"
+    claim: "The two T1 code commits use a 'T1:' subject prefix instead of a Conventional Commits type."
+    consequence: "These subjects reach main when the spec merges, breaking the convention earlier implementation commits follow, so filtering or changelogging history by type misses this change."
+    evidence:
+      basis: ".workflow/rules.md, Cross-cutting policy: Commit subjects are Conventional Commits (feat:, fix:, docs:, chore:, test:, refactor:)."
+      diff: "91407dc T1: scoped and parallel harness runs in tests/run-all.sh / f786aa3 T1: explain the empty-array guard in the run-all summary loop"
+    suggested_fix: "Reword before merge: 'feat(tests): scoped and parallel harness runs in run-all.sh (T1)' and 'docs(tests): explain the empty-array guard in the run-all summary loop (T1)'."
+  - id: RS-2
+    category: discovered-work
+    kind: decision
+    summary: "commit-workflow-data.sh stages everything under .workflow/ except other spec folders, so 004's branch carries other specs' Tier A files: accepted ADR 0002 (spec 002) and deferred items from specs 002 and 003, whose folders are still untracked drafts. On merge, main gets an accepted placement ADR for a lens that does not exist yet."
+    evidence: "af43dbe adds .workflow/decisions/adr/0002-review-lessons-placement.md, .workflow/deferred/boundary-check-wording.md, .workflow/deferred/retrospective-template-drift.md and 001-large-path-disc-00{2,3,4}.md; staging scope at .agents/skills/feature-workflow/scripts/commit-workflow-data.sh:6-7."
+    blocker_assessment: can-wait
+    reason: "None of these files touches 004's code or tests; a stakeholder must decide whether cross-spec Tier A files ride on whichever spec branch commits next."
+checked: ["diff f8ea802...HEAD", "rules.md", "profiles/test-harness.md", "GLOSSARY.md", "readable-code.md", "T1 toolchain evidence", "smell baseline"]
+not_checked: ["CODING_STANDARDS.md, CONTRIBUTING.md: absent", "GLOSSARY-MAP.md: absent", "Placement ADR: none (light path, one module)", "typecheck/format/boundary: no command in profile"]
