@@ -6,7 +6,7 @@
 #   spec from main; the sign-off hand-off leaving an initiative still exploring untouched; the done flip on a re-created branch,
 #   merged the same way; done being terminal (every subcommand exits 2); the generic mode's usage errors (exit 2), its skip
 #   paths (missing head, unknown host, no remote) and its reuse of an open PR.
-#   gh and glab are stubs on PATH; the origin remote is a local bare repo; no network.
+# shellcheck disable=SC2016,SC2034,SC2329  # check expressions are single-quoted and eval'd on purpose, read variables and call helpers shellcheck cannot see
 # shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose, and call helpers shellcheck cannot see
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -174,8 +174,8 @@ close_check() {
   done
   [ -z "$pending" ] || return 0
   git -C "$p" switch -q --no-track -c "$BR" main 2>/dev/null || return 1
-  for slice in $(fm "$p/$INI/initiative.md" '.slices[].id'); do initiative_transition "$p" set-slice "$INI" "$slice" --status done >/dev/null 2>&1; done
-  initiative_transition "$p" status "$INI" done >/dev/null 2>&1
+  for slice in $(fm "$p/$INI/initiative.md" '.slices[].id'); do initiative_transition "$p" set-slice "$INI" "$slice" --status 'done' >/dev/null 2>&1; done
+  initiative_transition "$p" status "$INI" 'done' >/dev/null 2>&1
 }
 repo_state() { git -C "$1" for-each-ref --format='%(refname) %(objectname)'; git -C "$1" status --porcelain; git -C "$1" show "$BR:$INI/initiative.md"; }
 E=$WORK/exploring
