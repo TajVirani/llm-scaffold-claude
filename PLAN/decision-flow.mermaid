@@ -94,6 +94,7 @@ flowchart TD
             shelve["0.3.17 - Write a self-contained handoff for the deferred work: deferred-handoff module"]
             gOpen{"0.3.18 - Questions still unanswered or newly surfaced?"}
             settle["0.3.19 - Confirm or revise the goal; unchanged if no questions arose"]
+            convert["0.3.23 - Convert a spec into an initiative: several features; the draft spec's design log moves to a new initiative branch and the spec folder is deleted"]
             gLight{"0.3.20 - Light-path test: no intent gaps, no irreversible actions, small footprint?"}
             dlog[/"0.3.21 - design-log.md: questions, answers, decisions, references"/]
         end
@@ -176,6 +177,22 @@ flowchart TD
         retro["5.7 - retrospective skill, run with stakeholder: judge the combined result against spec.md; agree process lessons"]
         backlogOffer{"5.9 - Before done: offer each open work-backlog item from this spec as the next feature"}
         done(["5.8 - Merge the spec branch into main through a PR and close"])
+    end
+
+    subgraph P6["Phase 6 - Large path: plans an initiative and emits each settled slice as a spec; never builds"]
+        lgEnter["6.1 - Enter the initiative: read its status, switch to initiative/NNN-slug"]
+        lgWriteBack["6.2 - Write back research: settle returned questions, reopen the rest"]
+        lgFrontier["6.3 - Compute the frontier: open questions whose dependencies are settled or done on main"]
+        lgLaunch["6.4 - Launch research and fact lookups"]
+        lgAsk["6.5 - Ask the round: every decision question on the frontier, with a recommended answer and a defer option"]
+        lgTerm["6.6 - Term gate: agree each new or conflicting term"]
+        lgSlices["6.7 - Plan the slices: slice records in initiative.md"]
+        lgLog["6.8 - Log and commit the round on the initiative branch"]
+        lgEmit["6.9 - Emit a settled slice as a new draft spec"]
+        lgPlanned["6.10 - Mark the initiative planned"]
+        lgMerge["6.11 - Merge the initiative into main"]
+        lgReopen["6.12 - Reopen exploration on a fresh branch"]
+        lgClose(["6.13 - Close when every emitted spec is done on main"])
     end
 
     %% Model selection: the pre-launch hook resolves through resolve-launch.sh and rewrites every launch; the map stays with the launcher
@@ -288,6 +305,9 @@ flowchart TD
     gOpen -->|"No"| settle
     settle -->|"final goal"| spec
     settle --> gLight
+    settle -->|"several features: stakeholder agrees to convert"| convert
+    ask -->|"conversion question answered yes"| convert
+    convert -->|"initiative: exploring"| lgEnter
     gLight -->|"Yes: light path; creates the spec branch, writes the one-task tasks.md, its task file and budget, status: ready-for-dev; no 2.6 check"| orch
     gLight -->|"No: full path"| impact
     ask -.->|"appends the round and its answers"| dlog
@@ -422,6 +442,23 @@ flowchart TD
     backlogOffer -.->|"Start: hand off to a new spec seeded via 0.1; its 0.1.4 marks the item promoted"| intake
     dwItem -.->|"open items from this spec"| backlogOffer
 
+    %% Phase 6: the large path
+    lgEnter -->|"exploring"| lgWriteBack
+    lgEnter -->|"planned, not merged"| lgMerge
+    lgEnter -->|"planned and merged"| lgClose
+    lgWriteBack --> lgFrontier --> lgLaunch --> lgAsk
+    lgFrontier -->|"empty frontier"| lgLog
+    lgAsk -->|"new term"| lgTerm --> lgSlices
+    lgAsk --> lgSlices --> lgLog
+    lgLog -->|"a slice's questions all settled"| lgEmit
+    lgLog -->|"questions still open: next round"| lgWriteBack
+    lgLog -->|"nothing open, every slice emitted"| lgPlanned
+    lgEmit -->|"seeds a new spec through 0.1, status: draft"| intake
+    lgEmit --> lgLog
+    lgPlanned --> lgMerge
+    lgMerge -.->|"stakeholder reopens"| lgReopen --> lgWriteBack
+    done -.->|"a spec carrying initiative: merged"| lgClose
+    lgClose -->|"done: merged as at 6.11"| lgMerge
     %% Discovered-work protocol: detection points in Phases 1-4, then one HITL
     harness -->|"discovered work"| dwBlock
     cut -->|"discovered work"| dwBlock
@@ -470,4 +507,8 @@ flowchart TD
     class regen,setup external
     class gTrivial,gModel,gProfile,gFromDef,gTerm0,gSufficient,gDup,gPlace,gADR,gAny,gDefer,gTerm1,gScope,gOpen,gLight,gTerm2,gConflict,gReady,gHarness,gSpecifiable,gSeams,gCore,gTool,gMini,gSuites,gGreen,gE2E,gRoute,gThird,gRounds,gApproveDocs,gApprove,gDwBlocker,gDwDiscovery,gDwNext,gDwBudget,gTaskBudget,gWaveBudget,backlogOffer gate
     class spec index
+    class convert,lgEnter,lgWriteBack,lgFrontier,lgAsk,lgSlices,lgLog,lgEmit,lgPlanned,lgMerge,lgReopen stage
+    class lgLaunch agent
+    class lgTerm step
+    class lgClose terminal
     class intake,direct,done,halt terminal

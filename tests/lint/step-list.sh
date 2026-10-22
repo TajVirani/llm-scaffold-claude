@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Suite: lint of feature-workflow/references/steps.tsv (the ordered step list behind the progress line) against the repo.
-# Covers: the file's shape (4 tab-separated columns, unique ids, known tracks, six phase rows, each id's phase matches its
+# Covers: the file's shape (4 tab-separated columns, unique ids, known tracks, seven phase rows, each id's phase matches its
 #   prefix); the id set equals the numbered nodes of PLAN/decision-flow-reference.md and of PLAN/decision-flow.mermaid (removed
 #   nodes such as ~~00.15~~ excluded); each "## Phase N" section of the reference lists exactly the ids the file puts in phase N;
-#   per-phase step counts on the full and light paths are the agreed ones; every step id named by status-transition.sh, the
+#   per-phase step counts on the full and light paths, and the large-path count, are the agreed ones; every step id named by status-transition.sh, the
 #   check-write.sh step lists and every `--step` / `step <spec-dir> <id>` call under .agents/ is in the file; and
 #   step-progress.sh prints a line for every counted step on each of its paths. JRN-007: the large track (phase row P6, 6.x ids
 #   on track large, the conversion node in phase 0 on both paths), its ids in the reference and the mermaid, the 6.x ids the
@@ -20,7 +20,7 @@ TSV=$FW_SKILL/references/steps.tsv
 REF=$REPO_ROOT/PLAN/decision-flow-reference.md
 MMD=$REPO_ROOT/PLAN/decision-flow.mermaid
 SP=$FW_SKILL/scripts/step-progress.sh
-ID_RE='(00|[0-5])(\.[0-9]+)+'
+ID_RE='(00|[0-6])(\.[0-9]+)+'
 
 check "steps.tsv exists" '[ -f "$TSV" ]'
 rows() { grep -v '^#' "$TSV" | sed 1d; }
@@ -28,8 +28,8 @@ rows() { grep -v '^#' "$TSV" | sed 1d; }
 eq "header row" "$(grep -v '^#' "$TSV" | head -1)" "$(printf 'id\tphase\ttrack\ttitle')"
 eq "every row has 4 tab-separated columns" "$(rows | awk -F'\t' 'NF != 4 { print NR ": " $0 }')" ""
 eq "ids are unique" "$(rows | cut -f1 | sort | uniq -d)" ""
-eq "tracks are known" "$(rows | awk -F'\t' '$3 !~ /^(both|full|light|phase|cross|intake|side)$/ { print $1 ": " $3 }')" ""
-eq "six phase rows P0-P5" "$(rows | awk -F'\t' '$3 == "phase" { printf "%s=%s ", $1, $2 }')" "P0=0 P1=1 P2=2 P3=3 P4=4 P5=5 "
+eq "tracks are known" "$(rows | awk -F'\t' '$3 !~ /^(both|full|light|large|phase|cross|intake|side)$/ { print $1 ": " $3 }')" ""
+eq "seven phase rows P0-P6" "$(rows | awk -F'\t' '$3 == "phase" { printf "%s=%s ", $1, $2 }')" "P0=0 P1=1 P2=2 P3=3 P4=4 P5=5 P6=6 "
 bad_phase=$(rows | awk -F'\t' '
   $3 == "phase" { next }
   { split($1, p, ".") }
@@ -49,16 +49,17 @@ grep -v '^\s*subgraph' "$MMD" | grep -oE "[\[{(/]\"$ID_RE - " | grep -oE "$ID_RE
 eq "mermaid node ids == steps.tsv ids" "$(comm -3 "$WORK/mmd" "$WORK/tsv" | tr -s '\t ' ' ')" ""
 
 # Each "## Phase N" section of the reference names exactly the ids the file puts in phase N.
-for n in 0 1 2 3 4 5; do
+for n in 0 1 2 3 4 5 6; do
   awk -v n="$n" '/^## / { on = ($0 ~ ("^## Phase " n " ")) } on' "$REF" \
     | grep -v '^~~' | grep -oE "\*\*$ID_RE —" | grep -oE "$ID_RE" | sort -u >"$WORK/ref$n"
   rows | awk -F'\t' -v n="$n" '$2 == n && $3 != "phase" { print $1 }' | sort -u >"$WORK/tsv$n"
   eq "reference Phase $n ids == steps.tsv phase $n ids" "$(comm -3 "$WORK/ref$n" "$WORK/tsv$n" | tr -s '\t ' ' ')" ""
 done
 
-counts() { rows | awk -F'\t' -v p="$1" '($3 == "both" || $3 == p) { n[$2]++ } END { for (i = 0; i <= 5; i++) if (i in n) printf "%d:%d ", i, n[i] }'; }
-eq "full path step counts per phase" "$(counts full)" "0:47 1:5 2:6 3:14 4:8 5:9 "
-eq "light path step counts per phase" "$(counts light)" "0:35 3:15 4:8 5:9 "
+counts() { rows | awk -F'\t' -v p="$1" '($3 == "both" || $3 == p) { n[$2]++ } END { for (i = 0; i <= 6; i++) if (i in n) printf "%d:%d ", i, n[i] }'; }
+eq "full path step counts per phase" "$(counts full)" "0:48 1:5 2:6 3:14 4:8 5:9 "
+eq "light path step counts per phase" "$(counts light)" "0:36 3:15 4:8 5:9 "
+eq "large path step count, apart from both paths" "$(rows | awk -F'\t' '$3 == "large" { n++ } END { print n + 0 }')" "13"
 
 # Step ids the scripts and skills use must be in the file.
 ST=$FW_SKILL/scripts/status-transition.sh
