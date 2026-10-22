@@ -83,7 +83,7 @@ while IFS=$'\t' read -r id _ track _; do
 done < <(rows | awk -F'\t' '$3 == "both" || $3 == "full" || $3 == "light"')
 eq "step-progress.sh prints every counted step" "$miss" ""
 
-# JRN-007: the large track. Its ids are 6.x, so they sit outside ID_RE and are checked here on their own.
+# The large track. Its ids are 6.x, so they sit outside ID_RE and are checked here on their own.
 LARGE_RE='6(\.[0-9]+)+'
 eq "JRN-007 phase row P6 is phase 6" "$(rows | awk -F'\t' '$1 == "P6" { print $2 "/" $3 }')" "6/phase"
 rows | awk -F'\t' '$3 == "large" { print $1 }' | sort -u >"$WORK/large"
