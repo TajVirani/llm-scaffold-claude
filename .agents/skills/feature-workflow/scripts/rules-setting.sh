@@ -13,7 +13,8 @@
 # Settings:
 #   key           values                    default   used by
 #   task_review   pr | pr-blocking | local  pr        implementation-orchestrator 3.16 (task PR/MR as a non-blocking review record, a
-#                                                     blocking review, or no PR); scripts/open-task-pr.sh
+#                                                     blocking review, or no PR); large-path 6.11 and 6.13 (the initiative
+#                                                     PR/MR into main, or a local merge); scripts/open-task-pr.sh
 #   main_branch   a branch name             see below the branch spec branches fork from (1.1, 0.3.20) and merge into at sign-off (5.8):
 #                                                     the target of the feature's PR/MR; scripts/budget-check.sh (3.15 count)
 #   main_branch default: the branch `origin/HEAD` points at (`git symbolic-ref refs/remotes/origin/HEAD`, `origin/` dropped), else main.
@@ -21,7 +22,8 @@
 # stdout: the value, one line. stderr: a note when the default is used because rules.md, the section or the key is absent.
 # Exit codes: 0 value printed; 1 usage or environment error (unknown key, missing yq, not a git repo, unparsable block, value outside the
 #   allowed set).
-# Called by: modules/implementation-orchestrator.md (3.16), modules/verification-setup.md (1.1), modules/discovery.md (0.3.20),
+# Called by: modules/implementation-orchestrator.md (3.16), modules/large-path.md (main_branch for the main ref; task_review for the
+#   initiative branch push and the 6.11 / 6.13 merge into main), modules/verification-setup.md (1.1), modules/discovery.md (0.3.20),
 #   modules/sign-off.md (5.8), scripts/open-task-pr.sh, scripts/budget-check.sh.
 # Notes: Requires mikefarah yq v4. bash 3.2 compatible. Section parse pattern from budget-check.sh (Size budget block).
 # Sources: first-party.
