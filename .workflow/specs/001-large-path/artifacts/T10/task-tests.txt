@@ -1,0 +1,1 @@
+tests/scripts/initiative-merge.sh (the five checks labelled 'JRN-005 under pr')

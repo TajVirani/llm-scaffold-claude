@@ -1,0 +1,25 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "ddc4bcefd89ba55c472da6e584aee7c3a15291ff"
+findings: []
+checked:
+  - "git diff f7a4b23...ddc4bce with .workflow/specs/001-large-path excluded (50 files, +2844/-175), the --stat output and the log. The change since pass 3's head (782c9ae...ddc4bce) was read line by line: modules/large-path.md 6.13, modules/sign-off.md 'Close the initiative', and tests/scripts/initiative-merge.sh (close_check and the five new 'JRN-005 under pr' checks)"
+  - "AGENTS.md at the root. CLAUDE.md is only a one-line @AGENTS.md import"
+  - "CODING_STANDARDS.md and CONTRIBUTING.md: neither exists in the repo"
+  - ".workflow/rules.md, all sections. The delta adds no new asset, script, source edge, bash 4 construct or manifest entry"
+  - ".workflow/profiles/shell-scripts.md (T1, T2, T4, T5, T6, T7)"
+  - ".workflow/profiles/agent-docs.md (T3, T8, T9, T10)"
+  - ".workflow/profiles/test-harness.md (the tests/** files in the diff, including T10's checks in tests/scripts/initiative-merge.sh)"
+  - ".workflow/specs/001-large-path/design-log.md Placement entry (2026-10-21, D1). There is no ADR link, so the entry is the placement record. T10 edits only feature-workflow module files and the tests, which matches D1"
+  - ".workflow/GLOSSARY.md: no _Avoid_ alias in added lines. The only hit is the glossary's own _Avoid_ line"
+  - ".agents/skills/project-setup/assets/GLOSSARY.md: a template, not a naming baseline for this repo. No GLOSSARY-MAP.md exists"
+  - ".agents/skills/feature-workflow/references/readable-code.md, rules R1-R5. The new test comments give reasons ('A merged PR leaves its head branch on origin; only the local branch goes.'; the close_check header). Added .sh comments contain no decision, task or spec IDs. The two JRN-007 mentions are in suite header blocks, which the pass-1 triage allowed and did not reopen"
+  - "Triage records for passes 1-3 in design-log.md. These were not raised again because they are already ruled: F16/F17 (initiative listing and branch scan duplicated across the hooks) went to work-backlog disc-003; F18/F3 (initiative-transition.sh exit codes) were deferred under proposal P5; F6 (journey-named suites, tests/fixtures/) was deferred under proposal P6"
+  - "toolchain.json for T1-T10 under .workflow/specs/001-large-path/artifacts/<task>/"
+not_checked:
+  - "T3 toolchain: lint=fail in .workflow/specs/001-large-path/artifacts/T3/toolchain.json. The failures are lint/step-list JRN-007 checks that later tasks were meant to make pass. test=unscoped. Not re-run"
+  - "T5 and T7 toolchain: test=unscoped. Not re-run"
+  - "T1-T10 toolchain: typecheck, format and boundary skipped, because no profile defines a command for them. rules.md says no boundary tool reads bash, so module boundaries were checked by reading the code only"
+  - "Test-harness lint (shellcheck over tests/*.sh) is not a key in any task's toolchain, because every task is shell-scripts or agent-docs work. The design log reports exit 0 for shellcheck over tests/ on T10's run. That artifact was not re-read here"

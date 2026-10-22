@@ -1,0 +1,37 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "ddc4bcefd89ba55c472da6e584aee7c3a15291ff"
+findings:
+  - id: RE-1
+    category: missing
+    severity: medium
+    confidence: 85
+    location: ".workflow/specs/001-large-path/artifacts/T10/toolchain.txt"
+    claim: "The filed evidence for the one run that turns JRN-005 step 5 green (the done flip under pr with a stale remote branch) holds no harness output. toolchain.txt stops after the lint key, so the 2290/31-suite result that the design log cites from this file is not in it."
+    consequence: "The design log's gate 3.9 entry rests on this file because the stakeholder asked for no separate gate run. Whoever signs off (the orchestrator at 4.7 or 5.x, and the stakeholder reading report.md) has no tool output showing that tests/scripts/initiative-merge.sh passes at HEAD. That leaves the F15 fix (CAP-NEW-initiative-close under pr) proven only by the agent's own report in implementation.yaml."
+    evidence:
+      basis: "verification-plan.md JRN-005 step 5: 'the stale remote branch does not stop the close (the flip to `done` proceeds)'. Design log 'T10 merged (3.16) and gate 3.9': 'The T10 toolchain run at 1e6618d (artifacts/T10/toolchain.txt) is the evidence: ... harness 2290 passed, 0 failed, 31 suites'."
+      diff: "artifacts/T10/toolchain.txt has 23 lines. They cover lint/frontmatter, lint/step-list, lint/symlinks and lint/upstream-lineage only, and end at '== lint exit 0', with no '== test' section and no TOTAL over 31 suites. The file's mtime (10:33) is later than toolchain.json (10:32). toolchain.json records test 'pass' with exit_code 0 but carries no counts. grep for 'passed=2290' and 'initiative-merge.*passed=63' across the spec folder matches only T10/implementation.yaml (the agent's self-report). By contrast, T9/toolchain.txt and gate-3.9-rework2/toolchain.txt both contain the full test section. artifacts/review/pass-4/targets/harness-green-with-the-large-track.txt was still being written while I reviewed (suite headers only, no results yet)."
+    suggested_fix: "Settle it with the pass-4 targets harness run once it finishes (check that scripts/initiative-merge reports 63/63 and that TOTAL failed=0), and cite that file at gate 3.9 and in report.md. Or re-run the T10 toolchain so its toolchain.txt keeps the test section."
+checked:
+  - "Diff pinned f7a4b23..ddc4bce: 65 commits, 50 files outside the spec folder. Since pass 3's head 782c9ae only three files changed: b61fccd/1a2718a (Phase 1 JRN-005 step 5 checks) and 1e6618d/ddc4bce (T10). I read both in full. Everything else was framed by artifacts/review/pass-3/review-end-state.yaml and the design-log entries for triage pass 3, questioning round 6 (D33), Phase 1 re-entry, task breakdown re-entry and T10 merged."
+  - "F15 / D33 (pass-3 RE-1): fixed. large-path.md 6.13 now reads initiative.md at the branch tip (local first, then origin/). An 'exploring' tip means reopened, so nothing is written. Any other tip status falls through to the planned listing and the done flip. The module states: 'Whether the branch exists decides nothing: under `pr` the merged PR leaves the `planned` tip on `origin`.' This matches the spec Constraint word for word."
+  - "Re-checked the 6.13 done flip under pr after D33. The re-created branch starts at main_ref, and main_ref contains the planned merge (6.11 merges --no-ff locally and pushes main). So a later `git push -u origin initiative/NNN-slug` fast-forwards over the stale planned tip. 6.12's reopen over a stale remote fast-forwards the same way."
+  - "sign-off.md 'Close the initiative' now describes the branch-tip rule. The pass-3 below-threshold note about sign-off.md:133 is resolved."
+  - "tests/scripts/initiative-merge.sh: close_check replays the new order. Fixture S (task_review pr, branch pushed, merged locally, local branch absent, origin tip planned, every spec done) asserts that the flip proceeds and that every slice is done. Fixture O keeps the reopened cases (exploring tip locally and only on origin), which leave the repo unchanged. Fixture E keeps exploring-on-main."
+  - "CAP-NEW-initiative-conversion (JRN-001), CAP-NEW-initiative-exploration (JRN-002, JRN-006), CAP-NEW-slice-emission (JRN-003), CAP-NEW-initiative-close (JRN-004, JRN-005), Constraint step ids (JRN-007), Constraint launches (JRN-008): unchanged since pass 3 apart from the close fix, and met in the code. JRN-005 evidence: see RE-1."
+  - "Constraints (same stack, single writer, spec-side admission of initiative:, plans only, initiative-branch-only commits, task_review routing through the generic open-task-pr.sh, reopen recognised by branch-tip status): met. Non-goals and deferred items: none implemented by the T10 delta."
+  - "Artifacts read: artifacts/T10/{toolchain.json, toolchain.txt, implementation.yaml, mini-review.yaml, task-tests.txt, excluded-tests.txt (empty)}; artifacts/T9/toolchain.txt and gate-3.9-rework2/toolchain.txt (for comparison); artifacts/review/pass-3/review-end-state.yaml; artifacts/review/pass-4/targets/harness-green-with-the-large-track.txt (in progress)."
+not_verifiable:
+  - "Whether tests/scripts/initiative-merge.sh passes at HEAD ddc4bce: no completed run in artifacts/ shows it (RE-1). The orchestrator should read the finished pass-4 targets harness file."
+  - "The journeys replay the module's markdown inside harness suites. Only a live run shows that an orchestrator following large-path.md behaves the same way. This is shelved in .workflow/deferred/large-path-live-run.md."
+  - "Writing the research answer back across a session end depends on the host keeping sub-agent results. That is outside the repo and shelved in research-across-sessions.md."
+  - ".workflow/model-map/research.md (a spec Assumption) is still absent and is shelved in research-model-map.md. The orchestrator should confirm that the deferral is accepted."
+  - "Squash-merge edge: if a protected main means the planned PR is merged on the host by squash, the stale origin tip is not an ancestor of main. The push at the done flip would then be refused as non-fast-forward. This depends on host merge settings outside the repo and is below threshold. Note it if the stakeholder uses squash merges."
+  - "The design log records the stakeholder saying 'the tests are not working right' and asking for no further test runs. The orchestrator should confirm what they meant before sign-off."
+  - "The working tree still holds other sessions' uncommitted and untracked files (implementation-orchestrator.md, PROVENANCE.md, tests/README.md, the commit-workflow-data.sh pair, ADR 0002, specs 002-004, work-backlog, several deferred files). Keep them out of this spec's sign-off commit. Commit only the deferred files this spec lists under `deferred:`, plus artifacts/T10."
+not_checked:
+  - "Shell style and the numeric targets are left to the standards and targets lenses. artifacts/review/pass-4/targets/ was still being written and was not judged."
+  - "JRN-005 step 5's second half ('re-create the branch and set it exploring as 6.12 does, and resume once more') runs in fixture O rather than in the stale-remote fixture S. The logic is the same, so this was not raised."

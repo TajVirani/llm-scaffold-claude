@@ -201,11 +201,11 @@ tasks:
     pr: null
   - id: T10
     title: "Close recognises a reopened initiative by its branch status"
-    status: pending
+    status: done
     capability: CAP-NEW-initiative-close
     depends_on: [T9]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "prose: the JRN-005 replay (close_check) in tests/scripts/initiative-merge.sh and the Phase 4 review lenses against 6.13"
     file: tasks/T10-close-by-branch-status.md

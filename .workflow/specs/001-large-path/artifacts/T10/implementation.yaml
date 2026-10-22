@@ -1,0 +1,20 @@
+status: done
+summary: "6.13 decides whether an initiative was reopened by reading initiative.md at the branch tip (local first, then origin/): exploring means still exploring, nothing written; any other tip status (the planned tip a merged PR leaves on origin) falls through to the planned listing and the done flip. The sign-off hand-off sentence and close_check in the merge suite follow the same order; the five JRN-005 under pr checks pass and the reopened and exploring-on-main checks still pass."
+task_id: T10
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t10
+branch: task/001-large-path/T10-close-by-branch-status
+base_commit: cd94c1a1f3e631282c18dd9aa7963c8036c85970
+head_commit: 1e6618d8396073d9c31adcf5ca1be2ec7ca6afe0
+files_changed: [.agents/skills/feature-workflow/modules/large-path.md, .agents/skills/feature-workflow/modules/sign-off.md, tests/scripts/initiative-merge.sh]
+tests_added: []   # the five Phase 1 "JRN-005 under pr" checks (edge cases of the close) are what this task turns green
+evidence:
+  red: "scripts/initiative-merge at base: 61/63 (the two flip checks fail on assertions)"
+  green: "scripts/initiative-merge after: 63/63"
+  suite: "tests/run-all.sh TOTAL passed=2290 failed=0 (31 suites); lint/step-list 36/36; shellcheck over tests exit 0"
+  toolchain: ".workflow/specs/001-large-path/artifacts/T10/toolchain.txt (pass)"
+considered_not_built:
+  - "A 'reopened, tip planned' case: the agreed rule treats any non-exploring tip as not a reopen"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
