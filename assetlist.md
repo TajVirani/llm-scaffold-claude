@@ -34,6 +34,7 @@ Paths are relative to `.agents/`. See [Decisions](#decisions) for why things liv
 | `review-standards` | agent | New (adapt from `code-review` Standards prompt) | `agents/review-standards.md` | 4.1 |
 | `review-end-state` | agent | New (adapt from `code-review` Spec prompt) | `agents/review-end-state.md` | 4.2 |
 | `review-targets` | agent | New | `agents/review-targets.md` | 4.3 |
+| `review-lessons` | agent | New (modelled on `review-standards`) | `agents/review-lessons.md` | 4.9 |
 | `standards-discovery` | agent | New (D80) | `agents/standards-discovery.md` | outside the flow; launched by `project-standards` |
 | `pre-launch` | hook | New (D13, D33; replaces the model-selection, profile-injection, `pre-launch-validate` and `subagent-start-profile` hooks) | `hooks/pre-launch.sh` | 00.11–00.14, 00.18–00.20 | `PreToolUse`, matcher `Agent` |
 | `post-implementation-audit` | hook | New (D91: calls `run-toolchain.sh --reuse`, reusing a passing record for an unchanged tree) | `hooks/post-implementation-audit.sh` | 3.5–3.8 | `SubagentStop`, matcher `implementation` (script also filters) |
@@ -553,6 +554,14 @@ Each agent needs a launch prompt, which the plan asks for, and an entry in the `
 - **Outputs/handoff:** Numbers and findings written to `artifacts/review/pass-<n>/review-targets.yaml`; returns a summary to 4.4 (D93), and the numbers are reported at 5.4. Never measures the harness, which 3.9 proves; not launched on the light path, which has no `verification-plan.md` (D94).
 - **Plan reference:** 4.3.
 - **Status:** New.
+
+### `review-lessons`
+- **Description:** A Phase 4 lens that checks whether the change repeats a mistake the project has already recorded.
+- **Goals:** Report each repeated review lesson as `high` with its `RL-` id, and each repeated pitfall or retrospective process lesson with no review-lesson entry as `medium`, proposing it be recorded as a review lesson at the next 5.7.
+- **Triggers/inputs:** The full diff, `.workflow/review-lessons.md` (a missing file is an empty list), `.workflow/decisions/pitfalls.md` and `.workflow/decisions/retrospectives/*.md`. A review lesson is checked only in files matching its `paths`. It never receives the spec, standards or the other lenses' output.
+- **Outputs/handoff:** Findings written to `artifacts/review/pass-<n>/review-lessons.yaml`; returns a summary to 4.4.
+- **Plan reference:** 4.9 (spec 002-review-lessons).
+- **Status:** New. Read-only, cheap tier; only the retrospective writes the lessons file.
 
 ### `standards-discovery`
 - **Description:** A read-only brownfield scan that reports the conventions the code already follows, so `project-standards` ratifies them instead of inventing them (D80).
