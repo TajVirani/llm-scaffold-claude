@@ -72,8 +72,11 @@ tree_hash() {
   local top real idx err rc=0 hash="" folder
   local data_dirs=("$WF_SPECS" "$WF_INITIATIVES" "$WF_DEFERRED" "$WF_DECISIONS" "$WF_HANDOFF" "$WF_WORKTREES" "$WF_CACHE_STAGING" "$WF_STANDARDS_STAGING")
   local excludes=()
-  for folder in "${data_dirs[@]}"; do excludes+=(":(exclude)$folder"); done
   top=$(git -C "$1" rev-parse --show-toplevel 2>/dev/null) || die "--cwd is not inside a git repository: $1"
+  # git add refuses a pathspec naming an ignored folder, even an exclude; git add skips ignored folders anyway.
+  for folder in "${data_dirs[@]}"; do
+    git -C "$top" check-ignore -q -- "$folder" || excludes+=(":(exclude)$folder")
+  done
   real=$(git -C "$top" rev-parse --path-format=absolute --git-path index) || die "cannot locate the git index for $top"
   idx=$(mktemp "${TMPDIR:-/tmp}/run-toolchain-index.XXXXXX") || die "cannot create a temporary index"
   err=$idx.err
@@ -81,12 +84,13 @@ tree_hash() {
   # An empty file is not a valid index, so without one git must start from nothing.
   if [ -f "$real" ]; then cp "$real" "$idx"; else rm -f "$idx"; fi
   hash=$(
+    exec 2>"$err"
     cd "$top" || exit 1
     export GIT_INDEX_FILE="$idx"
     git rm -r -q --cached --ignore-unmatch -- "${data_dirs[@]}" >/dev/null &&
       git add -A -- . "${excludes[@]}" &&
       git write-tree
-  ) 2>"$err" || rc=$?
+  ) || rc=$?
   if [ "$rc" -ne 0 ] || [ -z "$hash" ]; then
     local msg
     msg=$(tail -n 5 "$err" | tr '\n' ' ')

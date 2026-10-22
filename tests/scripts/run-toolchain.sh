@@ -2,7 +2,7 @@
 # Suite: run-toolchain.sh (feature-workflow/scripts).
 # Covers: toolchain key order and skipping, serve keys never run, --e2e, failure digest and --tail, evidence files,
 #   missing profile / unclassified work type / usage errors, worktree evidence location, commands run in --cwd,
-#   the tree hash (recorded, --tree-hash, untracked files, workflow data ignored), --reuse hits and misses, test_scoped on the own list alone.
+#   the tree hash (recorded, --tree-hash, untracked files, workflow data ignored, a gitignored data folder present), --reuse hits and misses, test_scoped on the own list alone.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -109,6 +109,11 @@ h3=$("$RT" --tree-hash --cwd "$T/wt")
 echo y > "$T/wt/untracked.txt"
 check tree-hash-worktree 'grep -Eqx "[0-9a-f]{40}" <<<"$h3" && [ "$("$RT" --tree-hash --cwd "$T/wt")" != "$h3" ]' "$h3"
 rm -f "$T/wt/untracked.txt"
+printf '.workflow/.handoff/\n' > .gitignore && mkdir -p .workflow/.handoff
+h4=$("$RT" --tree-hash --cwd "$T/repo" 2>/dev/null)
+echo x > .workflow/.handoff/h.md
+check tree-hash-ignored-data-folder 'grep -Eqx "[0-9a-f]{40}" <<<"$h4" && [ "$("$RT" --tree-hash --cwd "$T/repo" 2>/dev/null)" = "$h4" ]' "$h4"
+rm -rf .gitignore .workflow/.handoff
 mkdir -p "$T/nogit"
 t tree-hash-no-repo-rc 2 "$RT" --tree-hash --cwd "$T/nogit"
 t run-no-repo-rc 2 "$RT" --spec-dir .workflow/specs/001-x --task-id T1 --work-type fake --cwd "$T/nogit"
