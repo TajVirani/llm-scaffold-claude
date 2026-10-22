@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Suite: tests/run-all.sh suite selection and parallel runs.
 # Covers: --only-file and --exclude-file (repo-relative and label selectors, F minus G, empty or missing files),
-#   unknown selectors and --suite conflicts exiting 2, -j validation, concurrent runs by default and serial with -j 1,
+#   unknown selectors and --suite conflicts exiting 2, repeated --suite (only the named suites, in glob order; one
+#   unknown name exits 2), -j validation, concurrent runs by default and serial with -j 1,
 #   output in glob order identical to a serial run apart from timings, -v printing full logs, exit codes 0 / 1.
 # The runner is copied into a fixture tree with stub suites, so this suite never runs the real harness.
 # shellcheck disable=SC2016  # check expressions are single-quoted so check evaluates them
@@ -107,6 +108,16 @@ run_all --suite beta --exclude-file "$only"
 eq "--suite with --exclude-file exits 2" "$RC" 2
 run_all --only-file
 eq "--only-file without a path exits 2" "$RC" 2
+
+# Repeated --suite: the names are given out of glob order, by label and by basename.
+run_all --suite lint/delta --suite alpha
+eq "two --suite flags run both suites and only those, in glob order" "$(summary_labels)" "scripts/alpha lint/delta"
+eq "a repeated --suite run of passing suites exits 0" "$RC" 0
+run_all --suite alpha --suite omega --suite delta
+eq "one unknown --suite name among several exits 2" "$RC" 2
+check "the unknown --suite name is named in the message" '[[ "$OUT" == *"no suite named"*omega* ]]' "$OUT"
+run_all --suite alpha --suite delta --only-file "$only"
+eq "--suite twice with --only-file exits 2" "$RC" 2
 
 # -j validation
 for bad in 0 -1 two 1.5 ""; do
