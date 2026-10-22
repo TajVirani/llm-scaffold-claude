@@ -1,6 +1,6 @@
 ---
 name: profile-mini-review
-description: Workflow read-only reviewer for one task's diff (feature-workflow 3.7, gate 3.8). Judges the diff against only the work profile's Mini-review checklist plus the fixed readable-code lines, the items no tool can express, given the toolchain output from 3.5 so nothing a tool reported is re-derived; returns pass or fail per checklist item with file:line evidence. Launched only by the feature-workflow orchestrator, after a clean post-implementation audit, with a launch-header.
+description: Workflow read-only reviewer for one task's diff (feature-workflow 3.7, gate 3.8). Judges the diff against only the work profile's Mini-review checklist plus the fixed readable-code lines, the items no tool can express, given the toolchain output from 3.5 so nothing a tool reported is re-derived; returns a verdict per checklist item, by its number, with file:line evidence. Launched only by the feature-workflow orchestrator, after a clean post-implementation audit, with a launch-header.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -47,7 +47,7 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 
 ## Return
 
-Your final message is this block and nothing else. Quote each checklist line exactly as the profile wrote it, in the profile's order, then the readable-code lines exactly as `readable-code.md` writes them.
+Your final message is this block and nothing else. Name each item by its number, never by quoting it: the profile's checklist lines are `1`, `2`, … in the profile's order, then the readable-code lines `R1` to `R5` as `readable-code.md` numbers them. Every item gets one entry.
 
 ```yaml
 verdict: pass | fail
@@ -56,13 +56,10 @@ work_type: <work_type>
 diff: <diff file, or worktree@base..HEAD>
 tool_output: <spec_dir>/artifacts/<task_id>/toolchain.json
 items:
-  - item: "<checklist line, verbatim>"
-    result: pass | fail | tool-covered | not-applicable
-    locations: [<file:line>, ...]       # evidence for pass; every offending line for fail
-    finding: <fail only: what goes wrong, for whom>
-    fix: <fail only: the change to make>
-    covered_by: <tool-covered only: toolchain key and rule>
-    tool_rule_candidate: <fail only: true when a lint or boundary rule could express this check>
+  - n: 1                                # checklist position, or R1-R5
+    verdict: pass | fail | tool-covered | not-applicable
+    location: <file:line>               # evidence for pass; for fail, every offending line, comma-separated
+    note: <fail or tool-covered only, one line>
 read_outside_diff: [<file: why>]
 out_of_scope_noticed: []   # problems seen in passing that no checklist item covers; never a fail; each entry:
 #  - kind: bug | requirement | refactor | scope-expansion | decision
@@ -71,3 +68,5 @@ out_of_scope_noticed: []   # problems seen in passing that no checklist item cov
 #    blocker_assessment: blocks-this-task | can-wait
 #    reason: <why>
 ```
+
+The `note` of a `fail` says what goes wrong, for whom, and the change to make, and ends with `(rule candidate)` when a lint or boundary rule could express the check. The `note` of a `tool-covered` item names the toolchain key and rule that cover it.

@@ -101,7 +101,9 @@ out=$(printf 'not json' | (cd "$P" && bash "$H/worktree-write-guard.sh" 2>/dev/n
 check "unparsable payload -> allow silently (main-session safe)" '[ $rc -eq 0 ] && [ -z "$out" ]' "rc=$rc out=$out"
 N=$WORK/noflow
 mkdir -p "$N/.agents/hooks" && cp "$H/worktree-write-guard.sh" "$N/.agents/hooks/"
-out=$(printf '%s' "$(pl Write "$P/src/a.ts" "$P" "$A3")" | bash "$N/.agents/hooks/worktree-write-guard.sh" 2>/dev/null); rc=$?
+# The hook exits before reading stdin here, so the payload comes from a file: a pipe would let the writer die of SIGPIPE.
+pl Write "$P/src/a.ts" "$P" "$A3" > "$WORK/noflow.json"
+out=$(bash "$N/.agents/hooks/worktree-write-guard.sh" < "$WORK/noflow.json" 2>/dev/null); rc=$?
 check "no workflow installed -> silent" '[ $rc -eq 0 ] && [ -z "$out" ]' "rc=$rc out=$out"
 
 echo "== check-worktree-scope.sh CLI"

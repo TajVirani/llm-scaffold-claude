@@ -43,7 +43,7 @@ A lint rule in the profile toolchain that already catches a breach covers it: at
 
 ### Checking at 3.7
 
-profile-mini-review adds these lines after the profile's checklist, quoted exactly:
+profile-mini-review checks these lines after the profile's checklist and reports each by its number (R1 to R5) with a verdict, without quoting it:
 
 - `readable-code R1: names say what each thing is for.`
 - `readable-code R2: a workaround or trade-off a reader would undo says why.`

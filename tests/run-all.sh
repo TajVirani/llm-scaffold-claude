@@ -2,7 +2,8 @@
 # File: Test runner (scaffold-only, never installed in a target project).
 # Usage:
 #   tests/run-all.sh                  run every suite under tests/scripts, tests/hooks and tests/lint, print a summary
-#   tests/run-all.sh --suite NAME     run one suite (basename without .sh, e.g. pre-launch; or scripts/NAME, hooks/NAME, lint/NAME)
+#   tests/run-all.sh --suite NAME     run one suite (basename without .sh, e.g. pre-launch; or scripts/NAME, hooks/NAME, lint/NAME);
+#                                     repeat it to run several suites, in --list order
 #   tests/run-all.sh --only-file F    run only the suites F names, one per line (tests/scripts/NAME.sh or scripts/NAME);
 #                                     an empty or missing F selects every suite
 #   tests/run-all.sh --exclude-file G leave out the suites G names (same format); with --only-file, runs F minus G
@@ -30,7 +31,8 @@ default_jobs() {
   esac
 }
 
-only=""
+# The --suite names, each followed by a newline, so a case pattern can test membership.
+suite_names=$'\n'
 only_file=""
 exclude_file=""
 jobs=$(default_jobs)
@@ -39,8 +41,8 @@ list=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --suite)
-      [ $# -ge 2 ] || usage_error "--suite needs a name"
-      only=$2
+      [ $# -ge 2 ] && [ -n "$2" ] || usage_error "--suite needs a name"
+      suite_names+="$2"$'\n'
       shift
       ;;
     --only-file)
@@ -72,7 +74,7 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-if [ -n "$only" ] && { [ -n "$only_file" ] || [ -n "$exclude_file" ]; }; then
+if [ "$suite_names" != $'\n' ] && { [ -n "$only_file" ] || [ -n "$exclude_file" ]; }; then
   usage_error "--suite cannot be combined with --only-file or --exclude-file"
 fi
 
@@ -90,7 +92,20 @@ if [ "$list" -eq 1 ]; then
 fi
 
 all_labels=$'\n'
-for f in "${suites[@]}"; do all_labels+="$(suite_label "$f")"$'\n'; done
+all_names=$'\n'
+for f in "${suites[@]}"; do
+  all_labels+="$(suite_label "$f")"$'\n'
+  all_names+="$(suite_name "$f")"$'\n'
+done
+
+# A --suite name is a basename or a label; the first name that matches no suite ends the run with exit 2.
+while IFS= read -r name; do
+  [ -n "$name" ] || continue
+  case "$all_labels$all_names" in
+    *$'\n'"$name"$'\n'*) ;;
+    *) usage_error "no suite named '$name' (try --list)" ;;
+  esac
+done <<<"$suite_names"
 
 # selector_labels FILE : the suite label of each selector in FILE, one per line. A selector is a repo-relative
 # path (tests/scripts/NAME.sh) or a label (scripts/NAME). Exits 2 naming the first selector that matches no suite.
@@ -127,9 +142,11 @@ rm -f "$selector_tmp"
 is_selected() {
   local f=$1 label
   label=$(suite_label "$f")
-  if [ -n "$only" ]; then
-    [ "$only" = "$(suite_name "$f")" ] || [ "$only" = "$label" ]
-    return
+  if [ "$suite_names" != $'\n' ]; then
+    case "$suite_names" in
+      *$'\n'"$(suite_name "$f")"$'\n'* | *$'\n'"$label"$'\n'*) return 0 ;;
+      *) return 1 ;;
+    esac
   fi
   if [ "$only_list" != $'\n' ]; then
     case "$only_list" in *$'\n'"$label"$'\n'*) ;; *) return 1 ;; esac
@@ -142,10 +159,6 @@ selected=()
 for f in "${suites[@]}"; do
   is_selected "$f" && selected+=("$f")
 done
-if [ -n "$only" ] && [ "${#selected[@]}" -eq 0 ]; then
-  echo "run-all: no suite named '$only' (try --list)" >&2
-  exit 2
-fi
 
 preflight
 if ! have_shellcheck; then
@@ -223,11 +236,19 @@ report_suite() {
 # Keep up to $jobs suites running and print each one as soon as it and every suite before it have finished.
 # bash 3.2 has no `wait -n`, so finished suites are found by polling for their .done files.
 suite_count=${#selected[@]}
+# Suites start largest file first, so the long ones are not left to start last and set the run's length;
+# file size stands in for run time. Output order is unaffected: suites are still reported by glob index.
+start_order=()
+if [ "$suite_count" -gt 0 ]; then
+  while IFS= read -r i; do start_order+=("$i"); done < <(
+    for i in "${!selected[@]}"; do printf '%s %s\n' "$(($(wc -c <"${selected[$i]}")))" "$i"; done | sort -k1,1nr -k2,2n | cut -d' ' -f2
+  )
+fi
 launched=0
 reported=0
 while [ "$reported" -lt "$suite_count" ]; do
   while [ "$launched" -lt "$suite_count" ] && [ $((launched - $(finished_count))) -lt "$jobs" ]; do
-    start_suite "$launched" "${selected[$launched]}"
+    start_suite "${start_order[$launched]}" "${selected[${start_order[$launched]}]}"
     launched=$((launched + 1))
   done
   if [ -e "$results/$reported.done" ]; then

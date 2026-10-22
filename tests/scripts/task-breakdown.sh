@@ -247,7 +247,8 @@ eq "gate without flag: full test runs, fails" "$rc" 1
 eq "gate without flag: not scoped" "$(jq -c '.results[] | select(.key=="test") | has("scoped")' <<<"$out")" false
 yq --front-matter=process -i '.tasks[] |= (.status = "done")' "$Q/.workflow/specs/002-q/tasks.md"
 out=$(RT --spec-dir .workflow/specs/002-q --task-id T2 --cwd "$Q" 2>/dev/null); rc=$?
-eq "nothing unfinished: full test runs (whole suite must pass)" "$rc" 1
+eq "nothing unfinished, own tests listed: test_scoped runs, rc 0" "$rc" 0
+eq "nothing unfinished, own tests listed: scoped flags" "$(jq -c '.results[] | select(.key=="test") | [.scoped, .own, .excluded]' <<<"$out")" '[true,1,0]'
 yq --front-matter=process -i '.tasks[2].status = "pending"' "$Q/.workflow/specs/002-q/tasks.md"
 out=$(RT --spec-dir .workflow/specs/002-q --task-id T5 --cwd "$Q" 2>"$WORK/err"); rc=$?
 eq "no test_scoped + red unfinished tests: rc 0" "$rc" 0

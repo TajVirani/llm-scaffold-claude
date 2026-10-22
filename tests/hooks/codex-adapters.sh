@@ -142,8 +142,10 @@ check "Tier A without yq -> deny, fail closed" 'jq -r .hookSpecificOutput.permis
 N=$WORK/noflow
 mkdir -p "$N/.agents"
 cp -R "$H" "$N/.agents/hooks"
-out=$(wp "$(add .workflow/cache/a.md)" "$N" | bash "$N/.agents/hooks/codex-write-guard.sh"); rc=$?
-check "workflow not installed -> silent allow" '[ $rc -eq 0 ] && [ -z "$out" ]' "$out"
+# The hook exits before reading stdin here, so the payload comes from a file: a pipe would let the writer die of SIGPIPE.
+wp "$(add .workflow/cache/a.md)" "$N" > "$WORK/noflow-write.json"
+out=$(bash "$N/.agents/hooks/codex-write-guard.sh" < "$WORK/noflow-write.json"); rc=$?
+check "write guard, workflow not installed -> silent allow" '[ $rc -eq 0 ] && [ -z "$out" ]' "$out"
 
 echo "== codex-pre-spawn.sh"
 mkdir -p "$P/.workflow/specs/007-checkout"
@@ -199,8 +201,9 @@ out=$(sp implementation s007_t3 | (cd "$P" && PATH="$NOJQ" "$NOJQ/bash" "$H/code
 check "pre-spawn, no jq -> static deny JSON" 'grep -q "\"permissionDecision\":\"deny\"" <<<"$out" && grep -q "jq not found" <<<"$out"' "$out"
 spawn 'nope'
 check "unparsable payload -> deny" '[ "$(jq -r .hookSpecificOutput.permissionDecision <<<"$out")" = deny ]' "$out"
-out=$(sp implementation s009_t1 "$N" | bash "$N/.agents/hooks/codex-pre-spawn.sh"); rc=$?
-check "workflow not installed -> silent allow" '[ $rc -eq 0 ] && [ -z "$out" ]' "$out"
+sp implementation s009_t1 "$N" > "$WORK/noflow-spawn.json"
+out=$(bash "$N/.agents/hooks/codex-pre-spawn.sh" < "$WORK/noflow-spawn.json"); rc=$?
+check "pre-spawn, workflow not installed -> silent allow" '[ $rc -eq 0 ] && [ -z "$out" ]' "$out"
 
 echo "== codex-rules-sync.sh"
 cat > "$P/.workflow/rules.md" <<'S'
