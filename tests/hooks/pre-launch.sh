@@ -111,7 +111,7 @@ run "$(payload Agent fact-lookup "$FH" "$FX")"
 jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.permissionDecisionReason|test("00.14"))' <<<"$out" >/dev/null \
   && ok "model unresolved -> deny 00.14" || ko "00.14" "$out"
 
-# 5b JRN-005: the review-lessons lens launch
+# 5b: the review-lessons lens launch
 cat > "$FX/.workflow/model-map/review-lessons.md" <<'M'
 ---
 tier: cheap

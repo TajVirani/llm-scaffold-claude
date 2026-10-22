@@ -242,7 +242,7 @@ eq "two errors: exit 1" "$RC" 1
 eq "two errors: both lines" "$OUT" "status: 'finished' is not done or blocked
 findings[0].severity: 'critical' is not high, medium or low"
 
-# --- JRN-003: the review-lessons lens file the lens writes for a change that repeats lesson RL-001
+# --- The review-lessons lens file the lens writes for a change that repeats lesson RL-001
 PL="$WORK/lessons-spec/artifacts/review/pass-1"
 expected_lens_block "$PL/review-lessons.yaml"
 run_crf "$PL/review-lessons.yaml"

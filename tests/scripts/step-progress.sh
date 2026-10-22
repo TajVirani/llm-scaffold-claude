@@ -87,7 +87,7 @@ t "--spec-dir: no marker and no id exits 1" 1 "$TEST_BASH" "$SP" --spec-dir .wor
 t "--spec-dir: missing spec.md exits 1" 1 "$TEST_BASH" "$SP" --spec-dir .workflow/specs/404-none 3.3
 
 
-# JRN-007 (review lessons): the 4.9 lens runs fourth in Phase 4, right after 4.3, on both paths.
+# The review-lessons lens (4.9) runs fourth in Phase 4, right after 4.3, on both paths.
 LESSONS_SPEC=.workflow/specs/002-lessons
 mkdir -p "$WORK/$LESSONS_SPEC"
 # progress_at LIGHT STEP : the progress line for the fixture spec with light_path LIGHT and its .step at STEP.
