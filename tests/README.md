@@ -80,6 +80,7 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | `lint/step-list` | `feature-workflow/references/steps.tsv` against the decision-flow reference and mermaid (same node ids, same ids per phase), the agreed per-phase counts, and every step id used by `status-transition.sh`, `check-write.sh` and the skills (D84); JRN-007: phase row P6, the `large` track of `6.x` ids, the conversion node, their ids in the two flow docs, the large progress line |
 | `lint/symlinks` | `.claude/{skills,agents,output-styles}` symlinks into `.agents/`, no `.claude/commands`, every hook command in `.claude/settings.json` and both hook templates names an executable `.agents/hooks/` script |
 | `lint/upstream-lineage` | `upstream-lineage.json` (schema per kind, enums, paths exist outside the vendored copies, no duplicates) and coverage: every upstream a first-party `Sources:` / `Adapted from` / `Copied from` line names has an entry, and no such line points at a missing `.agents/skills/<name>/` directory |
+| `scripts/check-review-findings` | `check-review-findings.sh` (header line and finding table for real lens files, a targets file with measurements, the pass from the file or its `pass-<n>` directory, one malformed file per shape rule, two errors at once, usage, missing file and unparsable YAML) |
 
 ## Conventions
 
