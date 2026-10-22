@@ -10,6 +10,7 @@
 # API:
 #   WF_DIR                 the workflow root, relative to the project root (".workflow")
 #   WF_<NAME>              each path below, relative to the project root, no trailing slash
+#   WF_SPECS, WF_INITIATIVES  the roots for feature specs and for initiatives (".workflow/specs", ".workflow/initiatives")
 #   wf_path <root> <rel>   prints <root>/<rel> (root's trailing slash dropped); e.g. wf_path "$ROOT" "$WF_SPECS"
 # Paths are repo-relative; the write guards compare them case-insensitively.
 # Sources: first-party.
@@ -23,6 +24,7 @@ WF_AGENT_OVERRIDES="$WF_DIR/agent-overrides.yaml"
 WF_MODEL_MAP="$WF_DIR/model-map"
 WF_PROFILES="$WF_DIR/profiles"
 WF_SPECS="$WF_DIR/specs"
+WF_INITIATIVES="$WF_DIR/initiatives"
 WF_WORK_BACKLOG="$WF_SPECS/work-backlog"
 WF_DEFERRED="$WF_DIR/deferred"
 WF_RULES="$WF_DIR/rules.md"
