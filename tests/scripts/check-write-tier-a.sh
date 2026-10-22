@@ -126,6 +126,12 @@ for s in 0.3.7 5.3 4.9 0.1.4; do
   err=$(CW --cwd "$LR" --path .workflow/review-lessons.md 2>&1 >/dev/null)
   check "JRN-004 review-lessons.md at $s: a deny naming 5.7 on stderr" '[[ $err == "deny: "*5.7* ]]' "$err"
 done
+lessons_at 5.3
+t "review-lessons.md in another case at 5.3 deny" 2 CW --cwd "$LR" --path .workflow/Review-Lessons.md
+yq --front-matter=process -i '.status="done"' "$LR/$LS/spec.md"
+t "review-lessons.md with no feature in flight deny" 2 CW --cwd "$LR" --path .workflow/review-lessons.md
+err=$(CW --cwd "$LR" --path .workflow/review-lessons.md 2>&1 >/dev/null)
+check "review-lessons.md with no feature in flight: a deny naming 5.7 on stderr" '[[ $err == "deny: "*5.7* ]]' "$err"
 
 shellcheck_files "shellcheck: scripts under test" "$SRC/scripts/check-write.sh"
 finish

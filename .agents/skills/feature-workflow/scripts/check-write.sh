@@ -41,6 +41,8 @@
 #                                                     .workflow/profiles/**: editing an existing file 5.3 only; creating a new file 00.19 or 5.3
 #                                                     other Tier A (rules.md, capabilities.md, decisions/**): 0.3.7, 5.3, 5.7
 #                                                   else redirect to a 5.2 proposal.
+#   tier-a   .workflow/review-lessons.md              deny sub-agents. Main session: allow only when the newest .step among in-flight specs and
+#                                                   initiatives names 5.7 (the retrospective); denied when no feature is in flight.
 #   other    everything else                        allow.
 #   (The in-flight scan skips .workflow/specs/work-backlog/.)
 # Triggers/inputs: Reads the gitignored step markers .workflow/specs/NNN-slug/.step and .workflow/initiatives/NNN-slug/.step (formats owned by status-transition.sh and initiative-transition.sh: `step: "<node>"`, `updated_at: "<UTC>"`,
@@ -73,6 +75,7 @@ GLOSSARY_STEPS="0.2.3 0.3.15 0.4.3 5.3 6.6"       # the term gates (6.6 is the i
 TIER_A_STEPS="0.3.7 5.3 5.7"                     # every other Tier A path (rules.md, capabilities.md, decisions/**)
 PROFILE_EDIT_STEPS="5.3"                          # an existing .workflow/profiles/** file
 PROFILE_CREATE_STEPS="00.19 5.3"                  # a new .workflow/profiles/** file (00.19 in-flow, 5.3 approved proposal)
+REVIEW_LESSONS_STEPS="5.7"                        # .workflow/review-lessons.md: only the retrospective records a lesson
 
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 1; }
 allow() { printf 'allow: %s\n' "$1"; exit 0; }
@@ -192,6 +195,7 @@ CLASS=other KIND=""
 P_CACHE=$(lower "$WF_CACHE") P_SPECS=$(lower "$WF_SPECS") P_BACKLOG=$(lower "$WF_WORK_BACKLOG")
 P_PROFILES=$(lower "$WF_PROFILES") P_DECISIONS=$(lower "$WF_DECISIONS")
 P_RULES=$(lower "$WF_RULES") P_CAPABILITIES=$(lower "$WF_CAPABILITIES") P_INITIATIVES=$(lower "$WF_INITIATIVES")
+P_REVIEW_LESSONS=$(lower "$WF_REVIEW_LESSONS")
 SPEC_REST="" INITIATIVE_REST=""
 [[ "$LC" != "$P_SPECS"/* ]] || SPEC_REST=${LC#"$P_SPECS"/}
 [[ "$LC" != "$P_INITIATIVES"/* ]] || INITIATIVE_REST=${LC#"$P_INITIATIVES"/}
@@ -215,6 +219,8 @@ elif [[ "$LC" == "glossary.md" || "$LC" == */glossary.md || "$LC" == "glossary-m
   CLASS=tier-a KIND=glossary                 # any depth, so .workflow/GLOSSARY.md and per-context glossaries
 elif [[ "$LC" == "$P_PROFILES" || "$LC" == "$P_PROFILES"/* ]]; then
   CLASS=tier-a KIND=profile
+elif [[ "$LC" == "$P_REVIEW_LESSONS" ]]; then
+  CLASS=tier-a KIND=review-lessons
 elif [[ "$LC" == "$P_CAPABILITIES" || "$LC" == "$P_RULES" || "$LC" == "$P_DECISIONS" || "$LC" == "$P_DECISIONS"/* ]]; then
   CLASS=tier-a KIND=tier-a
 fi
@@ -360,10 +366,15 @@ for mk in "$ROOT/$WF_INITIATIVES"/*/.step; do
   fi
 done
 
+if [[ $IN_FLIGHT -eq 0 && "$KIND" == "review-lessons" ]]; then
+  # Lessons come only out of a feature's retrospective, so with nothing in flight there is no step that may record one.
+  deny "$REL is written only at $REVIEW_LESSONS_STEPS, the retrospective of a feature in flight, and no feature is in flight."
+fi
 [[ $IN_FLIGHT -eq 1 ]] || allow "$REL: Tier A, main session, no feature in flight"
 
 case "$KIND" in
   glossary) STEPS=$GLOSSARY_STEPS WHAT="Glossary files are" ;;
+  review-lessons) STEPS=$REVIEW_LESSONS_STEPS WHAT="The review-lessons file is" ;;
   profile)
     if [[ -e "$ABS" ]]; then STEPS=$PROFILE_EDIT_STEPS WHAT="An existing profile is"
     else STEPS=$PROFILE_CREATE_STEPS WHAT="A new profile is"; fi ;;
