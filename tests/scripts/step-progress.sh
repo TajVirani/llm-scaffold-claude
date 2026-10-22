@@ -2,11 +2,15 @@
 # Suite: step-progress.sh (feature-workflow/scripts), the phase progress line.
 # Covers: full vs light totals and phase numbering, run-order positions (0.3.22 before 0.3.8, 3.16 before 3.9), ids that
 #   compare equal as numbers (3.1 / 3.10, 00.2 / 00.20), steps off the chosen path, cross-cutting 00.x with and without --at,
-#   intake (no line), side artifacts, unknown ids, --spec-dir defaults from spec.md light_path and .step, usage errors.
+#   intake (no line), side artifacts, unknown ids, --spec-dir defaults from spec.md light_path and .step, usage errors;
+#   JRN-007: the large form for the first and last large-track rows, the conversion node and a phase 0 row still in the
+#   "Phase 1 of 6" form.
 # Env: TEST_BASH=<bash binary> runs the script under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/initiative.sh
+source "$TESTS_DIR/fixtures/initiative.sh"
 preflight
 
 TEST_BASH=${TEST_BASH:-bash}
@@ -80,5 +84,24 @@ eq "--spec-dir: a 00.x marker with --at" "$(sp --spec-dir .workflow/specs/001-al
 rm "$D/.step"
 t "--spec-dir: no marker and no id exits 1" 1 "$TEST_BASH" "$SP" --spec-dir .workflow/specs/001-alpha
 t "--spec-dir: missing spec.md exits 1" 1 "$TEST_BASH" "$SP" --spec-dir .workflow/specs/404-none 3.3
+
+
+# JRN-007: the large track. The expected lines are built from the large-track rows of steps.tsv.
+large_rows() { grep -v '^#' "$FW_SKILL/references/steps.tsv" | awk -F'\t' '$3 == "large"'; }
+LARGE_COUNT=$(large_rows | grep -c .)
+FIRST_LARGE_ID=$(large_rows | head -n1 | cut -f1)
+FIRST_LARGE_TITLE=$(large_rows | head -n1 | cut -f4)
+LAST_LARGE_ID=$(large_rows | tail -n1 | cut -f1)
+LAST_LARGE_TITLE=$(large_rows | tail -n1 | cut -f4)
+check "JRN-007 steps.tsv has large-track rows" '[ "$LARGE_COUNT" -gt 0 ]'
+eq "JRN-007 the first large row prints the large form" "$(sp "${FIRST_LARGE_ID:-6.1}")" \
+  "Large path · step 1 of $LARGE_COUNT — $FIRST_LARGE_TITLE (${FIRST_LARGE_ID:-6.1})"
+eq "JRN-007 the last large row prints the large form" "$(sp "${LAST_LARGE_ID:-6.1}")" \
+  "Large path · step $LARGE_COUNT of $LARGE_COUNT — $LAST_LARGE_TITLE (${LAST_LARGE_ID:-6.1})"
+check "JRN-007 a phase 0 row still prints Phase 1 of 6" '[[ "$(sp 0.3.8)" == "Phase 1 of 6 · step "*" — Discovery: Compute the frontier (0.3.8)" ]]' "$(sp 0.3.8)"
+check "JRN-007 the conversion node prints as a Discovery step on the full path" \
+  '[[ "$(sp "$CONVERSION_STEP")" == "Phase 1 of 6 · step "*" — Discovery: "*"($CONVERSION_STEP)" ]]' "$(sp "$CONVERSION_STEP")"
+check "JRN-007 the conversion node prints as a Discovery step on the light path" \
+  '[[ "$(sp "$CONVERSION_STEP" --path light)" == "Phase 1 of 4 · step "*"($CONVERSION_STEP)" ]]' "$(sp "$CONVERSION_STEP" --path light)"
 
 finish
