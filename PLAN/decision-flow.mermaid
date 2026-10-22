@@ -160,6 +160,7 @@ flowchart TD
         aStd["4.1 - Sub-agent: coding standards, rules, profile and architecture conformance"]
         aReq["4.2 - Sub-agent: goal and end-state conformance"]
         aTargets["4.3 - Sub-agent: measurable targets met"]
+        aLessons["4.9 - Sub-agent: recorded review lessons, pitfalls and retrospectives"]
         triage["4.4 - Triage each finding from each lens's findings file, checked by check-review-findings.sh: verify it at the named location, assign severity, dismiss noise with a recorded reason"]
         gRoute{"4.5 - Route each surviving finding"}
         gThird{"4.6 - Another pass only after a high-severity patch?"}
@@ -209,6 +210,7 @@ flowchart TD
     hook -.->|"launch on the resolved model"| aStd
     hook -.->|"launch on the resolved model"| aReq
     hook -.->|"launch on the resolved model"| aTargets
+    hook -.->|"launch on the resolved model"| aLessons
     hook -.->|"launch on the resolved model"| integrator
     orch -->|"every launch: header block + task"| hook
 
@@ -390,6 +392,7 @@ flowchart TD
     skipSuites -->|"neither exists, status: in-review"| aStd
     skipSuites --> aReq
     skipSuites --> aTargets
+    skipSuites --> aLessons
     skipSuites -.->|"gap flagged at sign-off"| report
     gGreen -->|"No: reopen the task, done to in-progress"| impl
     gGreen -->|"Yes"| e2e --> gE2E
@@ -399,6 +402,7 @@ flowchart TD
     gE2E -->|"Yes, status: in-review"| aStd
     gE2E --> aReq
     gE2E --> aTargets
+    gE2E --> aLessons
     harnessDoc -.->|"gates every batch"| gGreen
     harnessDoc -.->|"the suite that runs here"| e2e
 
@@ -406,6 +410,7 @@ flowchart TD
     aStd --> triage
     aReq --> triage
     aTargets --> triage
+    aLessons --> triage
     triage --> gRoute
     gRoute -->|"Patch: unambiguous code fix"| gThird
     gRoute -->|"Defer: real, but not this change"| gaps
@@ -501,7 +506,7 @@ flowchart TD
 
     class scan,slug,draft,area,place,deeper,answerable,ask,deepdive,shelve,settle,impact,classify,endstate,budgets,harness,browser,cut,orch,toolAudit,e2e,triage,gaps,reconcile,propose,report,retro,hook,inject,dwBlock,dwPresent,dwWrite,dwResume,waveMerge stage
     class agree0,agree1,agree2,reuse,supersede,journeys,fixtures,selfreview,reenter,archiveStep,assignModel,newProfile,skipSuites step
-    class retrieve,derive,libs,audit,lookup,impl,integrator,miniReview,aStd,aReq,aTargets agent
+    class retrieve,derive,libs,audit,lookup,impl,integrator,miniReview,aStd,aReq,aTargets,aLessons agent
     class dContext,dCap,dRules,dLog,folder,map,dlog,dataModel,vplan,adrDoc,harnessDoc,tasks,defFile,dwItem,defArchive,evidence,modelFile,pTemplate,pFile doc
     class cModules,cFlows,cArch cache
     class regen,setup external
