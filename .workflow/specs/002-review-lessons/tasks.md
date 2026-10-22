@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Lessons file template and the 5.7 guard class"
-    status: done
+    status: in-progress
     capability: CAP-NEW-review-lessons-record
     depends_on: []
     touches_core: true
@@ -28,7 +28,7 @@ tasks:
     pr: null
   - id: T2
     title: "Launch row, lens table and step 4.9"
-    status: done
+    status: in-progress
     capability: CAP-NEW-review-lessons-lens
     depends_on: []
     touches_core: false

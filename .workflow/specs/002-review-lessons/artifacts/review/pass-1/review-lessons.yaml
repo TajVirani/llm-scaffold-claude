@@ -1,0 +1,12 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "7289fbf78919ba022f59aa336370e2fca50806bf"
+head: "be7638e87ae5146fcf2d85f2d059d079d85ae628"
+findings: []
+checked:
+  - ".workflow/decisions/pitfalls.md"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md"
+not_checked:
+  - ".workflow/review-lessons.md: missing (path tried: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/review-lessons.md); the review-lesson list is empty, so step 4 had nothing to check"
+  - "Retrospective 004 process lesson 'search open items by concept first': 002-review-lessons-disc-002 (timing assertion under load) overlaps deferred .workflow/deferred/concurrency-check-timing.md and the moved-to-deferred 004-scoped-test-runs-disc-003; 002-review-lessons-disc-001 (research missing from model map) overlaps deferred .workflow/deferred/research-model-map.md. No open item is duplicated, so the lesson's wording does not match; confidence about 50. Would settle: a ruling on whether a deferred item counts as open for the duplicate-work rule"

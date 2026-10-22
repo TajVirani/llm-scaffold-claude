@@ -41,3 +41,7 @@ At 1.1 the stakeholder chose not to set a performance target, since the stack ha
 ## Out of scope
 
 - Optimising the hook before a measurement exists.
+
+## Later requests
+
+- .workflow/specs/002-review-lessons, 4.8: Targets row "Guard and launch hook wall time" has no target by the same 1.1 decision (2026-10-22); the targets lens reports it not measurable (triage gap F5).

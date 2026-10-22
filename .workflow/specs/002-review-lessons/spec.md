@@ -5,7 +5,7 @@ spec_branch: spec/002-review-lessons # spec/NNN-slug, created off main at 1.1 (0
 impl_base_revision: "726149960fd8e7cd78c6337baf6c5543f3e0e39c" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
-deferred: [.workflow/deferred/retrospective-template-drift.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote
+deferred: [.workflow/deferred/retrospective-template-drift.md, .workflow/deferred/harness-run-lint-target.md, .workflow/deferred/session-start-timing-target.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote or added to (4.8)
 # origin: NNN-slug-disc-001.md       # optional; filename of the work-backlog item this spec was seeded from; the item is deleted after discovery
 budget: {max_tasks: 10, max_changed_files: 30} # written at 2.5 from .workflow/rules.md "Size budget" (D11); raised only by an approved overrun (00.29)
 # blocked_condition: "<what a human must decide or do before work can continue>"   # present only while status is blocked; forms: "discovered work: <slug>", "size budget: <what>", or free text

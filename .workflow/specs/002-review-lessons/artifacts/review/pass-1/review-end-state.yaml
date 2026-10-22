@@ -1,0 +1,25 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "7289fbf78919ba022f59aa336370e2fca50806bf"
+head: "be7638e87ae5146fcf2d85f2d059d079d85ae628"
+findings: []
+checked:
+  - "Diff 7289fbf..be7638e excluding the spec folder: 38 files, +765/-58; git log of 30 commits read against the task list (T1-T6 plus integration-shell-scripts)"
+  - "CAP-NEW-review-lessons-lens: .agents/agents/review-lessons.md (inputs: review-lessons.md, pitfalls.md, retrospectives; missing lessons file read as empty list; high for a repeated review lesson with lesson: id, medium for a pitfall/retrospective lesson with a suggestion to record it at 5.7; RL- ids; category lesson; read-only apart from its pass file); frontmatter is exactly name, description, tools"
+  - "CAP-NEW-review-lessons-record: check-write.sh REVIEW_LESSONS_STEPS=5.7, KIND=review-lessons under the tier-a class (so tier-a-write-guard and codex-write-guard --only tier-a both cover it), sub-agents denied, denied with no feature in flight; retrospective SKILL.md, routing.md (Recording and Retiring procedures, create from template when missing, per-entry approval), evidence.md, assets/retrospective.md"
+  - "Constraint: triage change limited to the RL prefix/category row in check-review-findings.sh and four-lens wording in review-triage.md; validation, confidence filter and routing unchanged"
+  - "Constraint: steps.tsv 4.9 row (phase 4, both) placed right after 4.3; 4.4-4.8 ids unchanged; step-progress tests pin 9 steps on both paths"
+  - "Constraint: WF_REVIEW_LESSONS added to .agents/lib/workflow-paths.sh via the integration merge (39e11e0, ebd2c2b)"
+  - "Constraint: install-manifest.txt (Agents 14), PROVENANCE.md agent and template lines, assetlist.md, README.md four lenses, resolve-launch.sh row, model-map cheap tier (haiku / gpt-6-luna), project-setup files.md row and model-map count 13; Codex toml checked by generation in tests/lint/review-lessons.sh, not hand-written"
+  - "Template .agents/skills/feature-workflow/assets/review-lessons.md: lessons: [] with validate: and next-id: commands implementing the data-model field rules (id format and uniqueness, symptom, paths not absolute and no .., origin_spec, ISO date, retired implies enforced_by)"
+  - "Non-goals: no change to review-standards.md, review-end-state.md, review-targets.md, retrieval.md, pr-quality; no rules/profile auto-writing; no .workflow/review-lessons.md created in this repo (ls: absent); lesson text appears only in tests/fixtures/review-lessons.sh; retrospective template stale notes untouched and shelved at .workflow/deferred/retrospective-template-drift.md"
+  - "End-state objectives 1-8 of verification-plan.md compared with the diff and tests"
+  - "JRN-001: artifacts/review-lessons/jrn-001.yaml (one RL-1, lesson, high, confidence 85, lesson RL-001, src/report.sh:4) and jrn-001.check.txt (exit 0, high 1); record.md verdict pass"
+  - "JRN-002: artifacts/review-lessons/jrn-002.yaml (status done, findings []) and jrn-002.check.txt (exit 0, 0 findings); record.md verdict pass"
+  - "JRN-003: tests/scripts/check-review-findings.sh diff; JRN-004: tests/scripts/check-write-tier-a.sh and tests/hooks/write-guards.sh diffs (5.7 allow, 0.3.7/5.3/4.9/0.1.4 deny, sub-agent deny, no-feature-in-flight deny); JRN-005: tests/hooks/pre-launch.sh 5b block; JRN-006/JRN-008: tests/lint/review-lessons.sh; JRN-007: tests/scripts/step-progress.sh"
+  - "Harness evidence: artifacts/gate-3.9-w2/toolchain.txt (44 suites, 2588 passed, 0 failed) and artifacts/gate-3.9-w2a/toolchain.txt/json (status pass)"
+not_verifiable:
+  - "CAP-NEW-review-lessons-record end to end: the retrospective agent's judgement in writing a real approved entry runs live only at this spec's 5.7 (verification-plan JRN-006 says so); the orchestrator should confirm at 5.7 that an approved lesson produces exactly one entry that passes validate: and that a rejected lesson writes nothing"
+  - "Success signal 'the next feature's Phase 4 review runs four lenses' in a real feature: proven here only by the JRN-001/JRN-002 fixture runs; the orchestrator can confirm by this spec's own pass-1 containing review-lessons.yaml once all four lenses return"
+not_checked: []
