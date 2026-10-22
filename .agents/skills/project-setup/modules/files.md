@@ -8,6 +8,7 @@ All workflow data lives under one committed folder, `.workflow/`; create it firs
 | `.workflow/capabilities.md` | `A/docs/capabilities.md` | Delete the example `CAP-001` row, so the table has its header only. 5.3 numbers the first real capability `CAP-001` (highest + 1). |
 | `.workflow/rules.md` | `A/docs/rules.md` | Copy as is. `project-standards` fills it at step 6 of the skill (see "Rules" below). |
 | `.workflow/decisions/pitfalls.md` | `A/docs/decisions/pitfalls.md` | Copy as is. The comment holds the entry shape the retrospective follows at 5.7. |
+| `.workflow/review-lessons.md` | `.agents/skills/feature-workflow/assets/review-lessons.md` | Copy as is. The header holds the entry rules and the commands the retrospective follows at 5.7; a project set up before this file existed gets it from the retrospective at its next 5.7. |
 | `.workflow/deferred/.gitkeep` | none | Create an empty file so git keeps `.workflow/deferred/`. `.workflow/deferred/archive/` is created when the first item is archived (00.9). |
 | `.workflow/agent-overrides.yaml` | `A/agent-overrides.yaml` | Copy as is: comments only, no entries. |
 | `.workflow/profiles/TEMPLATE.md` | `A/profiles/TEMPLATE.md` | Copy as is (00.16). Profiles are filled from it in [profiles.md](profiles.md). |
