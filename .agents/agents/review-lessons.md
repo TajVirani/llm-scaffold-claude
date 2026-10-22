@@ -33,9 +33,9 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 1. **Pin the diff.** Resolve `baseline_revision` with `git rev-parse`. Capture `git diff <baseline_revision>...HEAD -- . ':(exclude)<spec_dir>'`, the same with `--stat`, and `git log <baseline_revision>..HEAD --oneline`. The pathspec keeps the feature's own spec folder out of your view. An empty or unresolvable `baseline_revision`, or an empty diff, ends the review here: write the block with `status: blocked` and the reason, and return the summary.
 2. **Load the review lessons.** When `.workflow/review-lessons.md` is missing, the list is empty: carry on with pitfalls and retrospectives, because a project with no recorded lessons yet is normal. When it is present, extract its fenced block and parse it with `yq '.lessons'`; a parse error ends the review: write the block with `status: blocked`, the file path and yq's error, and return the summary. Skip every entry that has `retired`; a rule, lint or checklist line now enforces it.
 3. **Load the pitfalls and retrospective lessons.** Read `pitfalls.md` and every retrospective's Process lessons table. A missing pitfalls file, or a retrospectives folder with no files, goes under `not_checked` with the path tried; continue with the rest. Note every file read under `checked`.
-4. **Look for each review lesson in its own paths.** For each live lesson, take only the hunks of files that match one of its `paths`. The globs use the Ownership-block syntax of `.workflow/rules.md`: `**` matches any run of path segments, `*` matches within one segment. Read those hunks for the `symptom`: the same mistake, not the same words. A lesson with no matching file in the diff has nothing to check; it is done.
+4. **Look for each review lesson in its own paths.** For each live lesson, take only the hunks of files that match one of its `paths`. The globs use the Ownership-block syntax of `.workflow/rules.md`: `**` matches any run of path segments, `*` matches within one segment. Read those hunks for the `symptom`: the same mistake, not the same words. A `symptom` usually names a mistake and then its consequence ("<mistake>, so <consequence>"). Match the mistake; the consequence says why the stakeholder recorded the lesson, never whether a repeat counts. A lesson with no matching file in the diff has nothing to check; it is done.
 5. **Look for each pitfall and retrospective lesson across the whole diff.** Their scope is the change, not a path list. Skip one that already has a review-lesson entry (same mistake): step 4 covered it. Skip a pitfall whose Prevented by names a rule or check that now catches it; that tool owns it.
-6. **Try to disprove each suspicion** before you keep it. Re-read the lesson and the hunk with its surrounding code: check whether a guard, a fix elsewhere in the diff, or a documented exception means the mistake is not repeated. Keep a finding only when you can say what goes wrong, for whom, if it ships as is.
+6. **Try to disprove each suspicion** before you keep it. Re-read the lesson and the hunk with its surrounding code: check whether a guard, a fix elsewhere in the diff, or a documented exception means the mistake is not repeated. A consequence the diff does not show never disproves a repeat. Keep a finding only when you can say what goes wrong, for whom, if it ships as is.
 7. **Score and filter.** Give each survivor a confidence score and the severity its source sets (below). Drop every finding under 80. A suspicion you cannot raise to 80 goes under `not_checked` with what would settle it.
 8. **Write and return** as Return says.
 
@@ -50,7 +50,7 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 
 - 0: does not survive light scrutiny, or the mistake is pre-existing.
 - 25: might be a repeat; could not verify against the hunk.
-- 50: the hunk resembles the lesson, but the circumstances that made it a mistake are absent or rare.
+- 50: the hunk makes the mistake only in part: a guard in the hunk covers some of it, or it is made in a path the lesson does not cover.
 - 75: double-checked; the hunk very likely repeats the mistake the lesson describes.
 - 100: certain; the lesson line is quotable and the hunk does exactly what it warns against.
 
@@ -61,6 +61,10 @@ Report only findings scored 80 or above. These score below 80:
 - A hunk that shares words with the lesson but not its mistake.
 - Anything a linter, typechecker, formatter or the boundary tool catches.
 - A general quality point no recorded lesson names: that is the standards lens.
+
+These score 75 or above:
+
+- A hunk that makes the lesson's mistake in one of its `paths` with no guard, whether or not the diff shows the consequence.
 
 ## Return
 
