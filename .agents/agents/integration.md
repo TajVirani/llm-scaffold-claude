@@ -63,10 +63,10 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 
    ```bash
    main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
-   bash "$main/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --work-type <work_type> --task-id integration-<work_type> --cwd "$PWD"
+   bash "$main/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --work-type <work_type> --task-id integration-<work_type> --cwd "$PWD" --exclude-unfinished
    ```
 
-   Evidence lands in `<spec_dir>/artifacts/integration-<work_type>/` in the main checkout.
+   `--exclude-unfinished` leaves out the Phase 1 tests of every task not yet `done`: they are red by design until their task merges. Evidence lands in `<spec_dir>/artifacts/integration-<work_type>/` in the main checkout.
 3. **Run the shared-core tests and the tests of every caller you found** in step 4 of the Method.
 4. **Commit** in the checkout you were launched in, one commit per applied request where practical, each message naming the request number. The orchestrator merges it before the next wave.
 

@@ -12,11 +12,15 @@ Phase 4 runs once per **pass**. Read `.workflow/specs/NNN-slug/design-log.md` be
 - **Rework used**: the count of `Outcome: rework` lines in the whole file. The ceiling is 5, and it never resets.
 - **Next finding id**: the highest `F<n>` in the file plus one. Finding ids are unique across the feature.
 
+**After a rework with no verified high patch.** When the spec is back at `in-review` and the newest triage entry's outcome is `rework <k> of 5` with no patch row verified `high`, the rework's own gates were its check: start no new pass. Run step 7 for any deferred entries not yet written, then load `modules/sign-off.md`.
+
 **Resuming.** If any task record in `tasks.md` is `in-progress`, a rework is under way whatever `.step` says (the orchestrator's gates move it off 4.7): load `modules/implementation-orchestrator.md` for those tasks instead, as the router does. Otherwise, if the newest triage entry has an `Outcome:` line and `.step` names 4.5 to 4.8, that pass is already decided: finish its exit instead of starting a new pass; for a pending 4.8, run step 7. If `.step` names a node from 00.21 to 00.28, a discovered-work entry was being handled: finish it through `modules/discovered-work.md`, then continue at 6.0 with the next one.
 
 ## 2. Launch the three lenses (4.1-4.3)
 
-Launch `review-standards`, `review-end-state` and `review-targets` together in one message, in the foreground, and wait for all three before reading any result. Give each the same minimal prompt: the header, then one line of task. Pass nothing else: no diff, no other lens's output, no summary of the feature. Each lens reads its own inputs.
+**Light path: no targets lens.** When `.workflow/specs/NNN-slug/verification-plan.md` does not exist, there are no targets to measure: launch only `review-standards` and `review-end-state`, and write `no targets (light path)` in the triage entry where the targets lens would be named.
+
+Launch `review-standards`, `review-end-state` and `review-targets` together in one message, in the foreground, and wait for every one before reading any result. Give each the same minimal prompt: the header, then one line of task. Pass nothing else: no diff, no other lens's output, no summary of the feature. Each lens reads its own inputs.
 
 ````text
 ```yaml launch-header
@@ -24,63 +28,45 @@ task_type: review-standards
 spec_dir: .workflow/specs/NNN-slug
 ```
 
-Review pass <n> of .workflow/specs/NNN-slug. Return the review-findings block.
+Review pass <n> of .workflow/specs/NNN-slug. Write the review-findings block to your pass file and return the summary block.
 ````
 
 Repeat with `task_type: review-end-state` and `task_type: review-targets`; `subagent_type` matches `task_type`. On Claude the `pre-launch` hook resolves the model through `resolve-launch.sh` and denies a malformed header. On Codex, build each prompt yourself and launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `review_standards`, `review_end_state`, `review_targets`, `task_name` `s<NNN>_<lens>` (`s007_review_standards`, `s007_review_end_state`, `s007_review_targets`), `fork_turns: "none"`:
 
 ```bash
-echo "Review pass <n> of .workflow/specs/NNN-slug. Return the review-findings block." |
+echo "Review pass <n> of .workflow/specs/NNN-slug. Write the review-findings block to your pass file and return the summary block." |
   .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type review-standards --spec-dir .workflow/specs/NNN-slug
 ```
 
-**`review-targets` runs the build itself.** It starts the build with the profile's `serve`, waits for `serve_ready`, measures and stops it, so start nothing for it. Its block is parsed as in step 3, including its `measurements:` table; a return with no parseable `review-findings` block is a failed lens like any other.
+**`review-targets` runs the build itself.** It starts the build with the profile's `serve`, waits for `serve_ready`, measures and stops it, so start nothing for it. Its pass file is checked as in step 3, including its `measurements:` table.
 
-Done when all three launches have returned.
+Done when every launched lens has returned.
 
-## 3. Save and parse the returns
+## 3. Check the pass files
 
-Save each lens's fenced `review-findings` block, without the fence lines, to `.workflow/specs/NNN-slug/artifacts/review/pass-<n>/<lens>.yaml`. Then check its shape with mikefarah yq v4; `PFX` is `RS` for `review-standards`, `RE` for `review-end-state` and `RT` for `review-targets`:
+Each lens writes its full `review-findings` block to `.workflow/specs/NNN-slug/artifacts/review/pass-<n>/<lens>.yaml` itself and returns only a summary block: `lens`, `pass`, `file`, counts by severity, the discovered-work count and one line per finding id. You never retype a block. For each lens:
 
-```bash
-LENS=review-standards PFX=RS yq -e '
-  (.lens == strenv(LENS)) and (.status == "done" or .status == "blocked") and
-  ((.findings | tag) == "!!seq") and
-  ([.findings[] | select(((.id // "") | test("^" + strenv(PFX) + "-[0-9]+$")) and
-      ((.category == "discovered-work" and
-          ((.kind // "") | test("^(bug|requirement|refactor|scope-expansion|decision)$")) and
-          (.summary // "") != "" and (.evidence // "") != "" and
-          ((.blocker_assessment // "") | test("^(blocks-this-task|can-wait)$")) and
-          (.reason // "") != "") or
-       (.category != "discovered-work" and
-          ((.severity // "") | test("^(high|medium|low)$")) and ((.confidence // 0) >= 80))))] | length) == (.findings | length)
-' .workflow/specs/NNN-slug/artifacts/review/pass-<n>/review-standards.yaml
-```
+1. **Confirm the file exists** at the `file` its summary names, and that the path is this pass's folder and this lens's name. A missing file, or no summary at all: relaunch that lens once.
+2. **Check its shape:**
 
-A `category: discovered-work` finding has its own shape (`kind`, `summary`, `evidence`, `blocker_assessment`, `reason`) and no severity, confidence, location or claim; the 80 cutoff applies only to the other categories.
+   ```bash
+   .agents/skills/feature-workflow/scripts/check-review-findings.sh .workflow/specs/NNN-slug/artifacts/review/pass-<n>/review-standards.yaml
+   ```
 
-For `review-targets`, also check the `measurements:` table: one entry per `## Targets` row of `verification-plan.md`, in table order, each with a `result` of `pass`, `fail` or `not_measurable`, and a `reason` whenever it is `not_measurable`:
+   - **Exit 0:** it prints a header line (lens, pass, counts by severity, discovered work, and the `checked`, `not_checked` and `not_verifiable` counts), then a tab-separated table, one row per finding: `id category severity confidence location claim`. For `review-targets` it also prints `target measured verdict` rows, one per `## Targets` row. This table is your finding list for step 4.
+   - **Exit 1:** one line per shape error, each naming the field. Relaunch that lens once, with those lines added after its task line. If it fails again, it is a **failed lens**.
+   - **Exit 2:** a usage error, a missing file or YAML that does not parse. Stop and report it.
+3. **Read the status:** `yq '.status, .blocked_reason' <file>`. `status: blocked`: fix the cause it names (usually an empty or unresolvable `baseline_revision`) and relaunch. If you cannot fix it, it is a failed lens.
 
-```bash
-yq -e '((.measurements | tag) == "!!seq") and
-  ([.measurements[] | select((.result | test("^(pass|fail|not_measurable)$")) and
-      (.result != "not_measurable" or (.reason // "") != ""))] | length) == (.measurements | length)
-' .workflow/specs/NNN-slug/artifacts/review/pass-<n>/review-targets.yaml
-```
+`review-targets` findings use `category: target` (one per failed target: `claim` names the measured value and the threshold, `evidence.basis` the raw output path). Its `measurements:` table is not triaged; 5.4 copies it into "Targets vs measured", and every `not_measurable` row is a gap, never a pass.
 
-Its findings use `category: target` (one per failed target: `claim` names the measured value and the threshold, `evidence.basis` the raw output path). The table is not triaged; 5.4 copies it into "Targets vs measured", and every `not_measurable` row is a gap, never a pass.
+A failed lens is named in the triage entry and the 5.4 report. A pass with a failed lens is never reported as clean.
 
-List the findings with `yq -o=tsv '.findings[] | select(.category != "discovered-work") | [.id, .category, .severity, .confidence, .location, .claim]' <file>`, and read `claim`, `consequence`, `evidence` and `suggested_fix` per finding. List the discovered-work findings separately with `yq -o=tsv '.findings[] | select(.category == "discovered-work") | [.id, .kind, .blocker_assessment, .evidence, .summary]' <file>`, and read each one's `reason`. Read `not_checked` and `not_verifiable` too: they are gaps, never passes.
-
-- A block that fails the check, or no block at all: relaunch that lens once. If it fails again, it is a **failed lens**.
-- `status: blocked`: fix the cause it names (usually an empty or unresolvable `baseline_revision`) and relaunch. If you cannot fix it, it is a failed lens.
-- A failed lens is named in the triage entry and the 5.4 report. A pass with a failed lens is never reported as clean.
-
-Done when every lens has a parsed block or is recorded as failed.
+Done when every launched lens has a file that passed the check or is recorded as failed.
 
 ## 4. Triage each finding (4.4)
 
-Work on one combined list. Give each finding the next `F<n>` and keep its lens id beside it (`F7 (RS-2)`). Treat the lens's `severity` as a claim only: the lens lacks the context to grade, and your verdict replaces it.
+Work on one combined list: the rows of the step 3 tables. Read a finding's full entry only when you triage it, by id: `yq '.findings[] | select(.id == "RS-2")' <file>` gives its `claim`, `consequence`, `evidence` and `suggested_fix`, or, for discovered work, its `kind`, `summary`, `evidence`, `blocker_assessment` and `reason`. Read `not_checked` and `not_verifiable` too (`yq '.not_checked, .not_verifiable' <file>`): they are gaps, never passes. Give each finding the next `F<n>` and keep its lens id beside it (`F7 (RS-2)`). Treat the lens's `severity` as a claim only: the lens lacks the context to grade, and your verdict replaces it.
 
 1. **Carry what was settled.** On pass 2 or later, compare each finding with the earlier triage rows. Same location, same claim, and the code there still reads as the row describes: keep that row's verdict and route, write `carried from F<m>` as the evidence, and skip verification. A carried finding is never patched or deferred a second time.
 2. **Verify the claim.** At the cited file and line, does the bad outcome the lens describes actually occur? Read beyond the changed lines (callers, guards upstream, the spec line or rule it quotes) until you can answer yes or no. Judge whether the problem is real, not whether the suggested fix is plausible. Code that fails loudly on a situation the program cannot be shown to reach is correct behaviour.
@@ -139,7 +125,7 @@ Set the outcome line to `loop back (4.5 decision needed)` and load `modules/ques
 
 ### 6.2 Third pass still has non-trivial findings (4.6)
 
-If pass `n` is 3 or more and any **patch** entry is verified `high` or `medium`, the problem is upstream. Run 4.8 for the deferred entries, then:
+If pass `n` is 3 or more and any **patch** entry is verified `high`, the problem is upstream. A further pass runs only after a high-severity patch, so a pass whose patches are all `medium` or `low` goes on to 6.3. Run 4.8 for the deferred entries, then:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 4.6
@@ -161,7 +147,7 @@ If any **patch** entry remains and rework used is below 5: run 4.8 for the defer
 .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T<n> --status in-progress --step 4.7
 ```
 
-`set-task` allows `done` to `in-progress` only with `--step 4.7`. Set the outcome line to `rework <used + 1> of 5` and load `modules/implementation-orchestrator.md` for those tasks, handing it each patch as one line: `<file:line> - <what is wrong> - <what the smallest fix must do>`. The orchestrator relaunches `implementation`, re-runs the gates, sets `in-review` again at 3.11 (or 3.14), and returns here for pass `n + 1`.
+`set-task` allows `done` to `in-progress` only with `--step 4.7`. Set the outcome line to `rework <used + 1> of 5` and load `modules/implementation-orchestrator.md` for those tasks, handing it each patch as one line: `<file:line> - <what is wrong> - <what the smallest fix must do>`. The orchestrator relaunches `implementation`, re-runs the gates, sets `in-review` again at 3.11 (or 3.14), and returns here. When a patch entry is verified `high`, that return starts pass `n + 1`; when none is, Phase 4 ends after the rework (step 1, "After a rework with no verified high patch").
 
 ### 6.4 Rework ceiling reached (4.7 No)
 
@@ -192,4 +178,4 @@ Run 4.8 whenever deferred entries exist, before the exit that needs it:
 
 Then load `modules/deferred-handoff.md` and write one handoff per deferred entry (proposal-routed entries already live in `proposals.md`). Pass it, for each entry: the concept the finding is about, origin step 4.8, `severity` from your verdict (a `maybe-false` entry carries the severity it would have if true and says "unverified" under Evidence), the location tied to the current `HEAD` commit, the verdict evidence, and the design-log triage entry. Add the remaining gaps from the lenses the same way: requirements under `not_verifiable` and targets that could not be measured; a gap has no verdict, so its handoff omits `severity`. `deferred-handoff` adds each file to `deferred` in `.workflow/specs/NNN-slug/spec.md` (admitted at step 4.8) and fills the Route cells of the triage rows. Check its Return lists every entry you handed over; a `failed` item stays open in the triage entry until it is written.
 
-Done when every deferred entry has a `.workflow/deferred/` file listed in `spec.md`. After an exit in 6.4 or 6.5, load `modules/sign-off.md`. A spec set `blocked` at 6.4 continues there only with the stakeholder present: 5.1 lifts the block.
+Done when every deferred entry has a `.workflow/deferred/` file listed in `spec.md`. After an exit in 6.4 or 6.5, or a rework with no verified high patch (step 1), load `modules/sign-off.md`. A spec set `blocked` at 6.4 continues there only with the stakeholder present: 5.1 lifts the block.

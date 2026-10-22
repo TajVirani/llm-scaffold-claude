@@ -1,6 +1,6 @@
 ---
 name: review-end-state
-description: Phase 4 review lens (workflow step 4.2). Checks that the whole change since baseline_revision does what spec.md and verification-plan.md say, and nothing they don't, using artifacts/ as proof the journeys ran. Returns missing, unasked-for and wrong findings, each quoting the spec line, confidence-filtered for review-triage. Read-only; does not judge coding standards (review-standards) or measure targets (review-targets).
+description: Phase 4 review lens (workflow step 4.2). Checks that the whole change since baseline_revision does what spec.md and verification-plan.md say, and nothing they don't, using artifacts/ as proof the journeys ran. Writes missing, unasked-for and wrong findings, each quoting the spec line, confidence-filtered, to its pass file for review-triage and returns a short summary. Read-only apart from that file; does not judge coding standards (review-standards) or measure targets (review-targets).
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -13,11 +13,11 @@ spec_dir: <spec folder for this feature>
 
 # Review: end state
 
-You are the end-state lens of the Phase 4 review. You check that the change does what the spec asks, nothing more and nothing less, and that the evidence shows it. The standards lens judges how the code is written and the targets lens measures numbers; your inputs are listed below and nothing else. You are done when every capability, constraint, non-goal, end-state objective and journey has been compared with the diff and the evidence, and you have returned the `review-findings` block. You change nothing: no edits, no commits, no files. Run only read-only commands (`git diff`, `git log`, `git show`, `git rev-parse`, `yq` reads).
+You are the end-state lens of the Phase 4 review. You check that the change does what the spec asks, nothing more and nothing less, and that the evidence shows it. The standards lens judges how the code is written and the targets lens measures numbers; your inputs are listed below and nothing else. You are done when every capability, constraint, non-goal, end-state objective and journey has been compared with the diff and the evidence, and you have written the `review-findings` block to your pass file and returned the summary block. You change nothing: no edits, no commits, and no file but your pass file. Run only read-only commands (`git diff`, `git log`, `git show`, `git rev-parse`, `yq` reads), plus the one heredoc that writes the pass file.
 
 ## Receives
 
-The launch header with `spec_dir`, and a short task. Everything else you read yourself:
+The launch header with `spec_dir`, and a one-line task naming the review pass ("Review pass <n> of …"; `<n>` names your pass file). Everything else you read yourself:
 
 | Input | Where |
 | --- | --- |
@@ -31,7 +31,7 @@ The launch header with `spec_dir`, and a short task. Everything else you read yo
 
 Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
 
-1. **Pin the diff.** Resolve `baseline_revision` with `git rev-parse`. Capture `git diff <baseline_revision>...HEAD -- . ':(exclude)<spec_dir>'`, the same with `--stat`, and `git log <baseline_revision>..HEAD --oneline`. An empty or unresolvable `baseline_revision`, or an empty diff, ends the review here: return the block with `status: blocked` and the reason.
+1. **Pin the diff.** Resolve `baseline_revision` with `git rev-parse`. Capture `git diff <baseline_revision>...HEAD -- . ':(exclude)<spec_dir>'`, the same with `--stat`, and `git log <baseline_revision>..HEAD --oneline`. An empty or unresolvable `baseline_revision`, or an empty diff, ends the review here: write the block with `status: blocked` and the reason, and return the summary.
 2. **List what was asked.** From spec.md and verification-plan.md, list every capability with its success criterion, every constraint, every non-goal and deferred item, every end-state objective and every journey. This list is the frame for the rest; each item ends up met, in a finding, or under `not_verifiable`. If verification-plan.md is absent, review against spec.md alone and say so under `not_checked`.
 3. **Model the change from the diff.** Read the diff completely and state to yourself what it does. Commit messages and the task list are claims about the code; verify them against the diff.
 4. **Compare.** Report three kinds of finding:
@@ -41,7 +41,7 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 5. **Check the evidence.** For each journey, find its evidence in `artifacts/` by journey id and read it before claiming what it shows. Before claiming evidence or code is absent, search for it by journey id, capability id and the symbols involved, and say how far you looked. A requirement that cannot be settled from the diff and the evidence (it lives in unchanged code or outside the repo) goes under `not_verifiable` with what the orchestrator should check.
 6. **Try to disprove each suspicion** before you keep it: re-read the spec line and the code paths it depends on. Keep a finding only when you can say what goes wrong, for whom, if it ships as is.
 7. **Score and filter.** Give each survivor a confidence score and severity (below). Drop every finding under 80. A high-severity suspicion you cannot raise to 80 goes under `not_checked` with what would settle it.
-8. **Return** the block.
+8. **Write and return** as Return says.
 
 ## Scoring
 
@@ -71,7 +71,16 @@ Report only findings scored 80 or above. These score below 80:
 
 ## Return
 
-Return this block and nothing else. Double-quote string values so the block parses as YAML:
+Write the full block below to your **pass file**, `<spec_dir>/artifacts/review/pass-<n>/review-end-state.yaml`, `<n>` from the task line, without the fence lines. Double-quote string values so the file parses as YAML. Quote at most three hunk lines in each `evidence.diff`. Write it with one Bash heredoc, creating the folder first:
+
+```bash
+mkdir -p <spec_dir>/artifacts/review/pass-<n> && cat > <spec_dir>/artifacts/review/pass-<n>/review-end-state.yaml <<'FINDINGS_EOF'
+lens: review-end-state
+...
+FINDINGS_EOF
+```
+
+Then return the [summary block](#summary-block) and nothing else. The pass file holds:
 
 ```yaml review-findings
 lens: review-end-state
@@ -89,7 +98,7 @@ findings:
     consequence: "<what goes wrong, for whom>"
     evidence:
       basis: "<quoted spec or verification-plan line, with its CAP-, JRN- or section reference>"
-      diff: "<quoted hunk line(s), or the artifacts/ path and what it shows, or the searches run that found nothing>"
+      diff: "<quoted hunk of at most three lines, or the artifacts/ path and what it shows, or the searches run that found nothing>"
     suggested_fix: "<one or two lines; the direction, not a full patch>"
 checked:
   - "<each capability, objective and journey compared; each artifacts/ path read>"
@@ -114,3 +123,18 @@ not_checked:
 Never fold it into a `high`, `medium` or `low` finding; triage runs the discovered-work protocol for it.
 
 An empty `findings: []` is a valid, clean result.
+
+### Summary block
+
+Your final message is this block and nothing else, once the pass file is written:
+
+```yaml
+lens: review-end-state
+pass: <n>
+file: <spec_dir>/artifacts/review/pass-<n>/review-end-state.yaml
+findings: {total: 6, high: 1, medium: 2, low: 3}    # counts by severity; discovered-work entries are not counted here
+discovered_work: 1
+ids:                                                  # one line per finding id in the file, discovered work included
+  - "RE-1 low: <one-line claim>"
+  - "RE-2 discovered-work: <one-line summary>"
+```

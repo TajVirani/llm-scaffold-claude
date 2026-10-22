@@ -68,8 +68,14 @@ Done when every approved and modified row is written, every rejected row is unto
 
 Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write tool refuses a file named `report.md`, so create it with a Bash heredoc and edit it afterwards. Every claim needs evidence you can point to (no completion claim without evidence first):
 
-- **Tests and CI**: the 3.9 suite and CI results at the current `HEAD`. If the newest recorded run is older than `HEAD`, run the suite again and paste the real output. Tool audit rows from `artifacts/<task-id>/toolchain.json`.
-- **Targets vs measured**: one row per target in `verification-plan.md`, copied from the `measurements:` table of the newest `artifacts/review/pass-<n>/review-targets.yaml` (target, threshold, measured, result, raw output link). A `not_measurable` row keeps its reason and is a known gap. If the lens failed (no parseable block), each row says `not measured: review-targets failed` and is a known gap.
+- **Tests and CI**: the harness and CI results at the current `HEAD`. Run the harness through the toolchain script, which reuses the newest passing full run on the same tree (workflow-data commits do not change it) and runs the harness again only when code changed:
+
+  ```bash
+  .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id sign-off-5.4 --work-type test-harness --cwd "$PWD" --reuse
+  ```
+
+  Paste the harness's summary line from `artifacts/sign-off-5.4/toolchain.txt` and that path, not the whole output; `reused_from` in its `toolchain.json` names the run it reused. Tool audit rows from `artifacts/<task-id>/toolchain.json`.
+- **Targets vs measured**: one row per target in `verification-plan.md`, copied from the `measurements:` table of the newest `artifacts/review/pass-<n>/review-targets.yaml` (target, threshold, measured, result, raw output link). A `not_measurable` row keeps its reason and is a known gap. If the lens failed (its pass file failed the check), each row says `not measured: review-targets failed` and is a known gap. On the light path, with no `verification-plan.md`, the section reads `no targets (light path)`.
 - **Journeys**: one row per `JRN-###`, linked to its evidence under `artifacts/`. A journey with no evidence is `not exercised`.
 - **Review outcome**: passes, rework used, and patched, deferred and dismissed counts from the design-log triage entries; failed lenses; `followup_review_recommended`.
 - **Known gaps**: everything under `## Known gaps` in spec.md (light-path suite gaps from 3.14; open findings from 5.1), the lenses' `not_verifiable` and `not_checked` items, and unmeasured targets. A skipped gate is a gap, never a pass.
