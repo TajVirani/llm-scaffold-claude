@@ -19,7 +19,8 @@
 #     --head      the branch to push and open the PR/MR from; it must exist locally in the main checkout.
 #     --base      the branch the PR/MR targets; it is not pushed.
 #     --title     the PR/MR title. --body: its description (default: the title).
-#     --record    after a PR/MR is opened (or found), write its URL with initiative-transition.sh set-pr <initiative-dir> <url>.
+#     --record    after a PR/MR is opened (or found), write its URL with initiative-transition.sh set-pr <initiative-dir> <url>; the directory is
+#                 `.workflow/initiatives/NNN-slug` (relative to the project root, or an absolute path ending in it).
 #     --cwd, --dry-run as in task mode. The caller reads task_review; this mode does not.
 # Host choice: `git remote get-url origin`; a host containing "github" -> gh (gh pr create --base <base> --head <head>), a host
 #   containing "gitlab" -> glab (glab mr create --target-branch <base> --source-branch <head> --yes); anything else -> skipped.
@@ -27,9 +28,10 @@
 # Spec branch (task mode): spec.md `spec_branch`, else spec/<NNN-slug>.
 # PR title (task mode) "T<n>: <title>"; body names the task file and, when present, artifacts/<task-id>/mini-review.yaml.
 # stdout: one line, the PR/MR URL or `skipped: <reason>` (with --dry-run, the commands and then `dry-run: ...`). Details on stderr.
-# Exit codes: 0 always once the arguments are valid (opened, reused, skipped or dry run); 1 task-mode usage error (bad arguments, spec
-#   or task not found); 2 generic-mode usage error (a missing --head, --base or --title, an option missing its value or unknown,
-#   task-mode arguments mixed in, a --record directory without initiative.md, --cwd outside a git repository).
+# Exit codes: 0 always once the arguments are valid (opened, reused, skipped or dry run), and for -h/--help in either mode (it prints
+#   the usage line of the mode the other arguments select, on stdout); 1 task-mode usage error (bad arguments, spec or task not
+#   found); 2 generic-mode usage error (a missing --head, --base or --title, an option missing its value or unknown, task-mode
+#   arguments mixed in, a --record directory outside the initiatives root or without initiative.md, --cwd outside a git repository).
 # Called by: modules/implementation-orchestrator.md (3.16) when rules-setting.sh task_review prints pr or pr-blocking (task mode);
 #   modules/large-path.md (6.11 and 6.13, the initiative merge into main) under the same settings (generic mode).
 # Notes: Requires git; mikefarah yq v4 in task mode and for --record; gh or glab only for the matching host. Pushing the branches is
@@ -45,12 +47,19 @@ PROG=open-task-pr.sh
 SCRIPTS=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit "${2:-1}"; }
 skip() { printf '%s: skipped: %s\n' "$PROG" "$1" >&2; printf 'skipped: %s\n' "$1"; exit 0; }
-usage() { echo "usage: open-task-pr.sh <spec-dir> <task-id> [--cwd <dir>] [--record] [--dry-run]" >&2; exit 1; }
+TASK_USAGE="usage: open-task-pr.sh <spec-dir> <task-id> [--cwd <dir>] [--record] [--dry-run]"
+GENERIC_USAGE="usage: open-task-pr.sh --head <branch> --base <branch> --title <text> [--body <text>] [--cwd <dir>] [--record <initiative-dir>] [--dry-run]"
+usage() { echo "$TASK_USAGE" >&2; exit 1; }
 # generic_usage MESSAGE : report a generic-mode usage error and exit 2.
 generic_usage() {
   printf '%s: %s\n' "$PROG" "$1" >&2
-  echo "usage: open-task-pr.sh --head <branch> --base <branch> --title <text> [--body <text>] [--cwd <dir>] [--record <initiative-dir>] [--dry-run]" >&2
+  echo "$GENERIC_USAGE" >&2
   exit 2
+}
+# show_help : print the usage line of the mode the other arguments select, and exit 0.
+show_help() {
+  if [[ $GENERIC -eq 1 ]]; then echo "$GENERIC_USAGE"; else echo "$TASK_USAGE"; fi
+  exit 0
 }
 
 # The generic mode's --record takes a directory while the task mode's is a flag, so the mode is settled before parsing.
@@ -79,7 +88,7 @@ while [[ $# -gt 0 ]]; do
         --body) BODY_ARG=$2; BODY_SET=1 ;;
       esac
       shift 2 ;;
-    -h|--help) usage ;;
+    -h|--help) show_help ;;
     --*) die "unknown option: $1" $((GENERIC + 1)) ;;
     *) POS+=("$1"); shift ;;
   esac
@@ -105,13 +114,17 @@ else ROOT=$(git -C "$OPT_CWD" worktree list --porcelain | sed -n '1s/^worktree /
 
 if [[ $GENERIC -eq 1 ]]; then
   if [[ $RECORD -eq 1 ]]; then
+    record_arg=$RECORD_DIR
     RECORD_DIR=${RECORD_DIR%/}; RECORD_DIR=${RECORD_DIR#./}
-    record_root=$ROOT/
-    [[ "$RECORD_DIR" != /* ]] || record_root=""
-    [[ -f "$record_root$RECORD_DIR/initiative.md" ]] || generic_usage "--record is not an initiative directory (no initiative.md): $RECORD_DIR"
+    [[ "$RECORD_DIR" != /* ]] || RECORD_DIR="$WF_INITIATIVES/$(basename "$RECORD_DIR")"
+    initiative_slug=${RECORD_DIR#"$WF_INITIATIVES"/}
+    [[ "$RECORD_DIR" == "$WF_INITIATIVES"/* && "$initiative_slug" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
+      || generic_usage "--record must be $WF_INITIATIVES/NNN-slug: $record_arg"
+    [[ -f "$ROOT/$RECORD_DIR/initiative.md" ]] || generic_usage "--record is not an initiative directory (no initiative.md): $record_arg"
   fi
   PUSH_BRANCHES=("$HEAD")
   PR_HEAD=$HEAD PR_BASE=$BASE PR_TITLE=$TITLE_ARG PR_BODY=$TITLE_ARG
+  # A flag rather than ${BODY_ARG:-...}, so an explicit --body "" gives an empty description instead of repeating the title.
   [[ $BODY_SET -eq 0 ]] || PR_BODY=$BODY_ARG
   git -C "$ROOT" show-ref --verify --quiet "refs/heads/$HEAD" || skip "head branch $HEAD does not exist locally"
 else

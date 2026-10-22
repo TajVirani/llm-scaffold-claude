@@ -124,6 +124,14 @@ refused "generic mode without --head exits 2" OTP --base "$BASE" --title "$TITLE
 refused "generic mode without --base exits 2" OTP --head "$BR" --title "$TITLE" --cwd "$Q" --dry-run
 refused "generic mode with an unknown option exits 2" OTP "${GENERIC_ARGS[@]}" --draft --dry-run
 refused "generic mode with --cwd missing its directory exits 2" OTP --head "$BR" --base "$BASE" --title "$TITLE" --cwd
+refused "generic --record on an initiative folder outside the initiatives root exits 2" \
+  OTP "${GENERIC_ARGS[@]}" --record .workflow/specs/001-storage-overhaul --dry-run
+mkdir -p "$Q/elsewhere" && cp "$Q/$INI/initiative.md" "$Q/elsewhere/initiative.md"
+refused "generic --record on a directory with initiative.md outside the initiatives root exits 2" \
+  OTP "${GENERIC_ARGS[@]}" --record elsewhere --dry-run
+rm -rf "$Q/elsewhere"
+out=$(OTP --head "$BR" --help 2>&1); rc=$?
+check "generic --help prints the generic usage and exits 0" '[ $rc -eq 0 ] && grep -q "^usage: open-task-pr.sh --head <branch> --base <branch> --title <text>" <<<"$out"' "rc=$rc $out"
 refused "generic --record without a directory exits 2" OTP "${GENERIC_ARGS[@]}" --record
 refused "generic --record on a directory without initiative.md exits 2" OTP "${GENERIC_ARGS[@]}" --record .workflow/specs --dry-run
 out=$(OTP --head initiative/999-missing --base "$BASE" --title "$TITLE" --cwd "$Q" --dry-run 2>/dev/null); rc=$?
