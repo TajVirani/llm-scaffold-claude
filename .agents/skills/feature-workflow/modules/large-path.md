@@ -64,6 +64,7 @@ Entered from the questioning loop, when the stakeholder agrees that the draft sp
 2. **Number and branch.** Fetch and compute the main ref (Conventions). The initiative number is one above the highest `NNN` among `.workflow/initiatives/[0-9][0-9][0-9]-*/`, the `initiative/*` branches (`git for-each-ref refs/heads/initiative refs/remotes/origin/initiative`) and the main ref's `.workflow/initiatives/` (`git ls-tree --name-only "$main_ref" .workflow/initiatives/`), zero-padded (`001` when there are none). The slug is the spec's slug unless the stakeholder names a better one. Check that no tracked file is modified (`git status --porcelain --untracked-files=no` prints nothing; the untracked spec folder travels with the switch), then:
 
    ```bash
+   # --no-track: without it the branch would track the main branch, and a later plain pull or push would go to main.
    git switch --no-track -c initiative/NNN-slug "$main_ref"
    ```
 
@@ -71,7 +72,7 @@ Entered from the questioning loop, when the stakeholder agrees that the draft sp
 
    ```bash
    IT step .workflow/initiatives/NNN-slug 6.1
-   # Copy ../assets/initiative.md and ../assets/questions.md into the folder. In initiative.md set origin: <spec NNN-slug>,
+   # Copy the initiative and questions templates into the folder. In the initiative file set origin: <spec NNN-slug>,
    #   created: <date -u +%F>, branch: initiative/NNN-slug, merge_pr: null, slices: []; the title, and the spec's Why as the goal.
    IT status .workflow/initiatives/NNN-slug exploring --step 6.1
    ```
