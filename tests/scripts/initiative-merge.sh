@@ -3,7 +3,8 @@
 # Covers: initiative-transition.sh status planned with every slice emitted; the merge step per rules-setting.sh task_review
 #   (local: --no-ff merge on main, branch deleted, nothing pushed; pr: the generic mode of open-task-pr.sh printing the gh or glab
 #   command with head initiative/NNN-slug and base main, and --record writing merge_pr); the resume check reading each emitted
-#   spec from main; the done flip on a re-created branch, merged the same way; done being terminal (every subcommand exits 2).
+#   spec from main; the done flip on a re-created branch, merged the same way; done being terminal (every subcommand exits 2); the
+#   generic mode's usage errors (exit 2), its skip paths (missing head, unknown host, no remote) and its reuse of an open PR.
 #   gh and glab are stubs on PATH; the origin remote is a local bare repo; no network.
 # shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose, and call helpers shellcheck cannot see
 # shellcheck source=../lib/common.sh
@@ -114,6 +115,53 @@ git -C "$Q" remote set-url origin git@gitlab.com:o/r.git
 out=$(OTP --head "$BR" --base "$BASE" --title "$TITLE" --cwd "$Q" --dry-run 2>"$WORK/err")
 check "JRN-005 pr dry run on GitLab prints the glab command with source and target" \
   'grep -q "^glab mr create --target-branch main --source-branch initiative/001-storage-overhaul" <<<"$out"' "$out $(cat "$WORK/err")"
+
+echo "== generic mode: argument and host edge cases"
+GENERIC_ARGS=(--head "$BR" --base "$BASE" --title "$TITLE" --cwd "$Q")
+refused "generic mode mixed with <spec-dir> <task-id> exits 2" OTP .workflow/specs/002-core-flow T1 "${GENERIC_ARGS[@]}" --dry-run
+refused "generic mode without --title exits 2" OTP --head "$BR" --base "$BASE" --cwd "$Q" --dry-run
+refused "generic mode without --head exits 2" OTP --base "$BASE" --title "$TITLE" --cwd "$Q" --dry-run
+refused "generic mode without --base exits 2" OTP --head "$BR" --title "$TITLE" --cwd "$Q" --dry-run
+refused "generic mode with an unknown option exits 2" OTP "${GENERIC_ARGS[@]}" --draft --dry-run
+refused "generic mode with --cwd missing its directory exits 2" OTP --head "$BR" --base "$BASE" --title "$TITLE" --cwd
+refused "generic --record on an initiative folder outside the initiatives root exits 2" \
+  OTP "${GENERIC_ARGS[@]}" --record .workflow/specs/001-storage-overhaul --dry-run
+mkdir -p "$Q/elsewhere" && cp "$Q/$INI/initiative.md" "$Q/elsewhere/initiative.md"
+refused "generic --record on a directory with initiative.md outside the initiatives root exits 2" \
+  OTP "${GENERIC_ARGS[@]}" --record elsewhere --dry-run
+rm -rf "$Q/elsewhere"
+out=$(OTP --head "$BR" --help 2>&1); rc=$?
+check "generic --help prints the generic usage and exits 0" '[ $rc -eq 0 ] && grep -q "^usage: open-task-pr.sh --head <branch> --base <branch> --title <text>" <<<"$out"' "rc=$rc $out"
+refused "generic --record without a directory exits 2" OTP "${GENERIC_ARGS[@]}" --record
+refused "generic --record on a directory without initiative.md exits 2" OTP "${GENERIC_ARGS[@]}" --record .workflow/specs --dry-run
+out=$(OTP --head initiative/999-missing --base "$BASE" --title "$TITLE" --cwd "$Q" --dry-run 2>/dev/null); rc=$?
+check "generic mode with a head branch missing locally -> skipped, rc 0" \
+  '[ $rc -eq 0 ] && grep -q "^skipped: head branch initiative/999-missing does not exist locally" <<<"$out"' "$out"
+git -C "$Q" remote set-url origin https://example.org/o/r.git
+out=$(OTP "${GENERIC_ARGS[@]}" --dry-run 2>/dev/null); rc=$?
+check "generic mode with an origin that is neither GitHub nor GitLab -> skipped, rc 0" \
+  '[ $rc -eq 0 ] && grep -q "^skipped: origin host is neither GitHub nor GitLab" <<<"$out"' "$out"
+git -C "$Q" remote remove origin
+out=$(OTP "${GENERIC_ARGS[@]}" --dry-run 2>/dev/null); rc=$?
+check "generic mode with no remote -> skipped, rc 0" '[ $rc -eq 0 ] && [ "$out" = "skipped: no origin remote" ]' "$out"
+
+echo "== generic mode reuses an open PR"
+R=$WORK/reuse
+large_path_repo "$R"
+: >"$STUBLOG"
+stub_pr_clis "$R" "$STUBLOG"
+cat >>"$R/bin/gh" <<'STUB'
+[ "$1 $2" != "pr list" ] || echo "https://github.com/o/r/pull/7"
+STUB
+git -C "$R" remote set-url origin https://github.com/o/r.git
+git -C "$R" config remote.origin.pushurl "$R.origin.git"
+git -C "$R" branch "$BR"
+out=$(env PATH="$R/bin:$PATH" bash "$R/$SCRIPTS_REL/open-task-pr.sh" --head "$BR" --base main --title "$TITLE" --cwd "$R" 2>"$WORK/err")
+eq "generic mode prints the URL of the open PR for the same head and base" "$out" "https://github.com/o/r/pull/7"
+check "generic mode creates no second PR" '! grep -q "pr create" "$STUBLOG"' "$(cat "$STUBLOG")"
+check "generic mode lists open PRs for that head and base" 'grep -q "^gh pr list --head $BR --base main --state open" "$STUBLOG"' "$(cat "$STUBLOG")"
+check "generic mode pushes only the head branch" \
+  'git -C "$R.origin.git" show-ref --verify --quiet "refs/heads/$BR" && [ "$(git -C "$R.origin.git" for-each-ref --format=x refs/heads | grep -c .)" -eq 2 ]'
 
 shellcheck_files "JRN-005 shellcheck merge components" "$P/$IT_REL" "$P/$SCRIPTS_REL/open-task-pr.sh" "$P/$SCRIPTS_REL/rules-setting.sh"
 finish
