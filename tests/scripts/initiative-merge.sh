@@ -6,8 +6,8 @@
 #   spec from main; the sign-off hand-off leaving an initiative still exploring untouched; the done flip on a re-created branch,
 #   merged the same way; done being terminal (every subcommand exits 2); the generic mode's usage errors (exit 2), its skip
 #   paths (missing head, unknown host, no remote) and its reuse of an open PR.
+#   gh and glab are stubs on PATH; the origin remote is a local bare repo; no network.
 # shellcheck disable=SC2016,SC2034,SC2329  # check expressions are single-quoted and eval'd on purpose, read variables and call helpers shellcheck cannot see
-# shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose, and call helpers shellcheck cannot see
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 # shellcheck source=../fixtures/initiative.sh
