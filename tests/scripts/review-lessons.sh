@@ -5,9 +5,9 @@
 #   origin_spec, a bad date, lessons not a list); next-id prints RL-001, RL-002 and RL-002 after retirement; exit 2 on no
 #   argument, an unknown subcommand and a missing file.
 # shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose; helpers run inside them
-# shellcheck source=../lib/common.sh
+# shellcheck source=../lib/common.sh  # the path is built from BASH_SOURCE at run time, so -x needs this hint to follow it
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
-# shellcheck source=../fixtures/review-lessons.sh
+# shellcheck source=../fixtures/review-lessons.sh  # the path is built from TESTS_DIR at run time, so -x needs this hint to follow it
 source "$TESTS_DIR/fixtures/review-lessons.sh"
 preflight
 
