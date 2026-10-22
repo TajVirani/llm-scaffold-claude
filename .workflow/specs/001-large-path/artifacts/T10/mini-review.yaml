@@ -1,0 +1,6 @@
+round_1:
+  verdict: pass
+  diff: ".workflow/.worktrees/s001_t10@cd94c1a1f3e631282c18dd9aa7963c8036c85970..1e6618d8396073d9c31adcf5ca1be2ec7ca6afe0"
+  items: "agent-docs checklist both not-applicable; readable-code R1-R5 pass (tip names the ref read; the close_check comment gives the reason a planned tip on origin is not a reopen and names no document or step id)"
+  read_outside_diff: [readable-code.md, the changed close_check body and header, large-path.md 6.13]
+  out_of_scope_noticed: []

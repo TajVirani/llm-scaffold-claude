@@ -1,0 +1,23 @@
+verdict: pass
+task_id: T1
+work_type: shell-scripts
+diff: .workflow/.worktrees/s001_t1@277459ad52cc277a09ab8c374a69fae35087e7f3..HEAD
+tool_output: .workflow/specs/001-large-path/artifacts/T1/toolchain.json
+items:
+  - {item: "A new `.workflow/` path is built from `workflow-paths.sh`, never spelled out.", result: pass, locations: ["install.sh:52", "tests/scripts/install.sh:84"], note: "the literals at .gitignore:10 and tests/scripts/install.sh:79,378 are generated-block data and assertions on it"}
+  - {item: "Hook logic stays thin: real work is in the owning skill's script.", result: not-applicable}
+  - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", result: not-applicable}
+  - {item: "A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.", result: not-applicable}
+  - {item: "Sibling paths resolve from `BASH_SOURCE` with `cd -P`.", result: not-applicable}
+  - {item: "The header block has the shape for its kind (hook or helper) and names no decision ID.", result: not-applicable}
+  - {item: "New files are kebab-case, run under `set -euo pipefail` and use `[[ ]]`; edited files keep their existing test syntax.", result: pass, locations: ["tests/scripts/install.sh:79-84,378", "install.sh:41"]}
+  - {item: "Each new function has its `# name ARGS : what it does` line, and each shellcheck directive has its reason.", result: not-applicable}
+readable_code: [R1 pass, R2-R5 not-applicable]
+read_outside_diff: [".agents/lib/workflow-paths.sh: WF_INITIATIVES defined (27) and documented (13)", "install.sh: GI_ENTRIES is the only consumer (448, 572)", "readable-code.md Checking at 3.7"]
+out_of_scope_noticed:
+  - {kind: decision, summary: "The shell-scripts profile has no test_scoped key, so the test key is reported unscoped and exits 1 because the ten Phase 1 suites are red by design.", evidence: "artifacts/T1/toolchain.json warnings", blocker_assessment: can-wait, reason: "Profile configuration gap; does not affect this task's checklist."}
+rework_1:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t1@291e55289f399f767e7403715e14b73ffa5a7ccd..e36774c6a5e70d175338f4f16fa28b664dee2a2b
+  items: ["one AGENTS.md prose line; every checklist and readable-code item not applicable; GI_ENTRIES and the line are in step"]
+  out_of_scope_noticed: []

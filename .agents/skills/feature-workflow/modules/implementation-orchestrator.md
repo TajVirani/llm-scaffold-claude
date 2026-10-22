@@ -1,6 +1,6 @@
 # Phase 3: Implementation
 
-You run the build: classify every task, launch one implementation agent per task in dependency **waves**, pass each task through the four gates, and merge between waves. You never write feature code yourself; agents do, and the gates judge it. You are done when every task record is `done` (or `split-out`), the harness and the browser suite pass on the merged spec branch (or a light-path suite gap is recorded), and the spec is `in-review`. The spec branch is **red by design** until then: Phase 1 committed tests for behaviour no task has built yet, so the full suite goes green only after the last wave (3.9, 3.11). Work outside the agreed scope is never folded into a task: it goes to `modules/discovered-work.md` (00.21-00.29).
+You run the build: classify every task, launch one implementation agent per task in dependency **waves**, pass each task through the four gates, and merge between waves. You never write feature code yourself; agents do, and the gates judge it. You are done when every task record is `done` (or `split-out`), the harness and the browser suite pass on the merged spec branch (or a light-path suite gap is recorded), the spec is `in-review`, and the workflow data you wrote under `.workflow/` is committed on the spec branch. The spec branch is **red by design** until then: Phase 1 committed tests for behaviour no task has built yet, so the full suite goes green only after the last wave (3.9, 3.11). Work outside the agreed scope is never folded into a task: it goes to `modules/discovered-work.md` (00.21-00.29).
 
 Call the scripts from the project root exactly as written below, with the repo-relative `.agents/skills/feature-workflow/scripts/` prefix (sandboxed projects exclude these exact command lines). Status and task records change only through `status-transition.sh`.
 
@@ -93,14 +93,15 @@ When a batch returns:
 
 ### Wave start: task branches and worktrees
 
-After 3.2's merges, for each frontier task create its task branch off the current spec-branch tip and a worktree for it, from the main checkout on the spec branch. `<task_name>` is `s<NNN>_t<N>` (the Codex spawn name, used on both hosts) and `<branch>` is the record's `branch`:
+After 3.2's merges, commit the workflow data you have written since the last commit, so the task branches fork with it. Then, for each frontier task, create its task branch off the current spec-branch tip and a worktree for it, from the main checkout on the spec branch. `<task_name>` is `s<NNN>_t<N>` (the Codex spawn name, used on both hosts) and `<branch>` is the record's `branch`:
 
 ```bash
+.agents/skills/feature-workflow/scripts/commit-workflow-data.sh .workflow/specs/NNN-slug -m "Workflow data for NNN-slug: wave <N> start"
 git worktree add .workflow/.worktrees/<task_name> -b <branch> spec/NNN-slug
 # e.g. git worktree add .workflow/.worktrees/s007_t3 -b task/007-checkout/T03-guest-cart spec/007-checkout
 ```
 
-Light path (`branch: null`): no task branch; create the worktree detached at the spec-branch tip (`git worktree add --detach .workflow/.worktrees/<task_name> spec/NNN-slug`) and fast-forward the spec branch to its commits at 3.16. A worktree that already exists (resume, fix round, rework) is reused. Integration worktrees are created at 3.2 as above.
+Light path (`branch: null`): no task branch; create the worktree detached at the spec-branch tip (`git worktree add --detach .workflow/.worktrees/<task_name> spec/NNN-slug`) and fast-forward the spec branch to its commits at 3.16. A worktree that already exists (resume, fix round, rework) is reused; on the light path, skip the commit too when it exists, so the spec branch stays where the worktree forked. Integration worktrees are created at 3.2 as above.
 
 ### 3.3 Launch the wave
 
@@ -161,6 +162,13 @@ When every task of the wave has passed 3.8 (or is blocked), take the passing tas
 
    Light path (`branch: null`): `git merge --ff-only <head_commit from implementation.yaml>` instead; no PR.
 3. **Clean up.** With `pr` or `pr-blocking`, push the spec branch so the PR/MR shows as merged. Then `git worktree remove .workflow/.worktrees/<task_name>` and `git branch -d <branch>`. The next wave forks from the new spec-branch tip.
+4. **Commit the workflow data.** Once the wave's merges are done, commit what the wave wrote under `.workflow/` (task records, gate evidence under `artifacts/`, `design-log.md`, deferred items, decisions) on the spec branch, so it sits beside the merged code:
+
+   ```bash
+   .agents/skills/feature-workflow/scripts/commit-workflow-data.sh .workflow/specs/NNN-slug -m "Workflow data for NNN-slug: wave <N> merged"
+   ```
+
+   It stages the spec folder, the work-backlog and the rest of `.workflow/` except other spec and initiative folders, leaves gitignored state (`.step`, `.worktrees/`) out, commits only those paths and prints `committed <sha>` or `nothing to commit`. Exit 1 means the main checkout is off the spec branch (or detached) or mid-merge: fix that and run it again. Exit 2 with `local state is not gitignored` means the `.gitignore` workflow block is missing an entry: restore it (install.sh writes it), never commit the path. Never commit between a wave start and its merges: on the light path the spec branch must stay where the worktree forked so `--ff-only` succeeds.
 
 On a merge conflict, run `git merge --abort` and resume that implementer: "merge the spec branch into your branch, resolve the conflict, re-run your tests, commit". Its diff changed, so it passes 3.5-3.8 again before you merge it (push it again when it has a PR); the tasks after it in id order wait.
 
@@ -250,4 +258,4 @@ A stop halts the task. Let the rest of the wave finish its gates and merge what 
 
 ## Hand off
 
-Task worktrees and branches are already gone (3.16). Remove what is left: `git worktree list`, then `git worktree remove <path>` for each remaining implementation or integration worktree under `.workflow/.worktrees/`, and `git branch -d <branch>` for its merged branch. Then load `modules/review-triage.md`.
+Task worktrees and branches are already gone (3.16). Remove what is left: `git worktree list`, then `git worktree remove <path>` for each remaining implementation or integration worktree under `.workflow/.worktrees/`, and `git branch -d <branch>` for its merged branch. Commit the workflow data the last gates wrote (3.9 and 3.10 evidence, the `in-review` status): `.agents/skills/feature-workflow/scripts/commit-workflow-data.sh .workflow/specs/NNN-slug -m "Workflow data for NNN-slug: implementation done"`. Then load `modules/review-triage.md`.

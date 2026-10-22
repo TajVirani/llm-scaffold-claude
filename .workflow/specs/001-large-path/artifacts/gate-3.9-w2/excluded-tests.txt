@@ -1,0 +1,3 @@
+tests/scripts/initiative-merge.sh
+tests/hooks/initiative-write-guards.sh
+tests/scripts/resolve-launch-initiative.sh

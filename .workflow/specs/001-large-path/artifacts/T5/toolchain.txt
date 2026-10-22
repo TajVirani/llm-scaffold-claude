@@ -1,0 +1,118 @@
+== lint: git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+== lint exit 0
+
+== test: tests/run-all.sh
+== scripts/build-architecture
+== scripts/cache-scripts
+== scripts/generate-boundary-config
+== scripts/generate-codex-agents
+== scripts/initiative-conversion
+== scripts/initiative-emission
+== scripts/initiative-merge
+== scripts/initiative-transition
+== scripts/install
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/scripts/install.sh: No such file or directory
+== scripts/resolve-launch-initiative
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/scripts/resolve-launch-initiative.sh: No such file or directory
+== scripts/resolve-launch
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/scripts/resolve-launch.sh: No such file or directory
+== scripts/run-toolchain
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/scripts/run-toolchain.sh: No such file or directory
+== scripts/status-transition-check-write
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/scripts/status-transition-check-write.sh: No such file or directory
+== scripts/step-progress
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/scripts/step-progress.sh: No such file or directory
+== scripts/task-breakdown
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/scripts/task-breakdown.sh: No such file or directory
+== scripts/upstream-diff
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/scripts/upstream-diff.sh: No such file or directory
+== hooks/audit-sync-resume
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/audit-sync-resume.sh: No such file or directory
+== hooks/block-destructive-git
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/block-destructive-git.sh: No such file or directory
+== hooks/codex-adapters
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/codex-adapters.sh: No such file or directory
+== hooks/codex-pre-spawn-initiative
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/codex-pre-spawn-initiative.sh: No such file or directory
+== hooks/codex-shim
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/codex-shim.sh: No such file or directory
+== hooks/evidence-capture
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/evidence-capture.sh: No such file or directory
+== hooks/initiative-write-guards
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/initiative-write-guards.sh: No such file or directory
+== hooks/pre-launch
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/pre-launch.sh: No such file or directory
+== hooks/session-start-initiatives
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/session-start-initiatives.sh: No such file or directory
+== hooks/worktree-guard
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/worktree-guard.sh: No such file or directory
+== hooks/write-guards
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/hooks/write-guards.sh: No such file or directory
+== lint/frontmatter
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/lint/frontmatter.sh: No such file or directory
+== lint/step-list
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/lint/step-list.sh: No such file or directory
+== lint/symlinks
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/lint/symlinks.sh: No such file or directory
+== lint/upstream-lineage
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5/tests/lint/upstream-lineage.sh: No such file or directory
+
+== summary
+PASS scripts/build-architecture             passed=74   failed=0   skipped=0   xfail=0   8s
+PASS scripts/cache-scripts                  passed=36   failed=0   skipped=0   xfail=0   4s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   4s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   8s
+PASS scripts/initiative-conversion          passed=28   failed=0   skipped=0   xfail=0   3s
+PASS scripts/initiative-emission            passed=22   failed=0   skipped=0   xfail=0   2s
+PASS scripts/initiative-merge               passed=53   failed=0   skipped=0   xfail=0   6s
+PASS scripts/initiative-transition          passed=65   failed=0   skipped=0   xfail=0   4s
+FAIL scripts/install                        passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL scripts/resolve-launch-initiative      passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL scripts/resolve-launch                 passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL scripts/run-toolchain                  passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL scripts/status-transition-check-write  passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL scripts/step-progress                  passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL scripts/task-breakdown                 passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL scripts/upstream-diff                  passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/audit-sync-resume                passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/block-destructive-git            passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/codex-adapters                   passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/codex-pre-spawn-initiative       passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/codex-shim                       passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/evidence-capture                 passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/initiative-write-guards          passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/pre-launch                       passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/session-start-initiatives        passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/worktree-guard                   passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/write-guards                     passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL lint/frontmatter                       passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL lint/step-list                         passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL lint/symlinks                          passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL lint/upstream-lineage                  passed=0    failed=1   skipped=0   xfail=0   0s
+TOTAL passed=394 failed=23 skipped=0 xfail=0 (31 suites)
+FAILED suites: scripts/install scripts/resolve-launch-initiative scripts/resolve-launch scripts/run-toolchain scripts/status-transition-check-write scripts/step-progress scripts/task-breakdown scripts/upstream-diff hooks/audit-sync-resume hooks/block-destructive-git hooks/codex-adapters hooks/codex-pre-spawn-initiative hooks/codex-shim hooks/evidence-capture hooks/initiative-write-guards hooks/pre-launch hooks/session-start-initiatives hooks/worktree-guard hooks/write-guards lint/frontmatter lint/step-list lint/symlinks lint/upstream-lineage
+== test exit 1
+

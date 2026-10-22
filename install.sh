@@ -49,7 +49,7 @@ CODEX_HOOKS_TPL=$SRC/hooks/codex-hooks.template.json
 CODEX_CONFIG_TPL=$SRC/hooks/codex-config.template.toml
 # shellcheck source=.agents/lib/workflow-paths.sh
 . "$SRC/lib/workflow-paths.sh"
-GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_CACHE_STAGING/" "$WF_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/")
+GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_INITIATIVES/*/.step" "$WF_CACHE_STAGING/" "$WF_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/")
 SHIM_DIRS="skills agents output-styles"
 
 die() { echo "install.sh: error: $*" >&2; exit 2; }

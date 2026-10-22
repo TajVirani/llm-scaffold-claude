@@ -33,6 +33,7 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | Path | Purpose |
 |---|---|
 | `lib/common.sh` | Shared helpers: tool preflight (bash, git, jq, yq v4), scratch dir (`new_workdir`), fixture builders (`copy_agents`, `make_fixture_repo`, `git_init_repo`), assertions (`t`, `eq`, `check`, `xfail`, `finish`), `shellcheck_files` |
+| `fixtures/*.sh` | Fixture builders and oracles shared by several suites, sourced after `lib/common.sh`; never a suite. `fixtures/initiative.sh`: the large-path fixture repo, draft spec at the conversion node, seeded initiative, frontier, resume offer and next-spec-number oracles, and the large-path node ids |
 | `scripts/*.sh` | One suite per shared script |
 | `lint/*.sh` | Static checks over the repo itself (frontmatter, step list, symlinks, upstream lineage); read-only, never writing to the repo (step-list and upstream-lineage use a scratch dir from `new_workdir`) |
 | `hooks/*.sh` | One suite per hook (the three write guards share a suite; so do the audit, sync and resume hooks, which share one fixture) |
@@ -43,8 +44,9 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 |---|---|
 | `scripts/status-transition-check-write` | `status-transition.sh`, `check-write.sh`, `budget-check.sh` (PR/MR file set, test exclusion) |
 | `scripts/resolve-launch` | `resolve-launch.sh` |
-| `scripts/step-progress` | `step-progress.sh` (the D84 progress line: full and light totals, run-order positions, loop steps, 00.x with `--at`, intake, unknown ids, `--spec-dir` defaults) |
+| `scripts/step-progress` | `step-progress.sh` (the D84 progress line: full and light totals, run-order positions, loop steps, 00.x with `--at`, intake, unknown ids, `--spec-dir` defaults; JRN-007: the large form for the first and last large-track rows, the conversion node, a phase 0 row still `Phase 1 of 6`) |
 | `scripts/run-toolchain` | `run-toolchain.sh` |
+| `scripts/commit-workflow-data` | `commit-workflow-data.sh` (the spec folder, evidence, deferred, decisions and work-backlog committed on the spec branch; `.step`, `.worktrees/`, other specs, initiatives and other staged work left out; file names with spaces and non-ASCII; deletions; a run from a task worktree; refusals off the spec branch, on a detached HEAD, mid-merge and with local state not gitignored; usage errors) |
 | `scripts/task-breakdown` | Task-breakdown helpers: `task-waves.sh` (overlaps, implied edges, `parallel_with`, cycles, waves, JSON), `rules-setting.sh` (`task_review`, `main_branch`), `open-task-pr.sh` (gh/glab stubs, no network) and `run-toolchain.sh` test scoping (`tests`, `test_scoped`, `--exclude-unfinished`, `unscoped`) |
 | `scripts/cache-scripts` | `publish-cache.sh`, `cache-stamp-check.sh` |
 | `scripts/generate-boundary-config` | `generate-boundary-config.sh` |
@@ -52,7 +54,15 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | `scripts/install` | `install.sh` at the repo root (payload from `install-manifest.txt`, VERSION stamp, Claude and Codex shims, settings and config merges, `.gitignore`, refusals, `--dry-run`); runs against a copy of the scaffold inside the fixture |
 | `scripts/build-architecture` | regenerate-caches `build-architecture.sh`, `check-staged-cache.sh` (dependency-cruiser and tsc output are fixtures; no node needed) |
 | `scripts/upstream-diff` | `scripts/upstream-diff.sh` at the repo root (scaffold-only lineage diff): arguments, entry selection, `unknown`-commit skip, and a diff run against local `file://` upstreams; no network |
+| `scripts/initiative-transition` | JRN-002: `initiative-transition.sh` (frontier before and after a research question settles, set-question launch, reset and settle, illegal question, slice and status transitions exit 2, step and set-pr, usage errors) and the pending research count in `session-start-resume.sh` |
+| `scripts/initiative-conversion` | JRN-001: conversion of a draft spec into an initiative, replayed (branch off origin/main, `initiative-transition.sh`, moved design log and codebase map, re-pointed shelf and work items, folder-scoped commit), the resume offer naming the initiative, the next spec number skipping the converted one |
+| `scripts/initiative-emission` | JRN-003: a settled slice emitted as a spec through `status-transition.sh` with `initiative:`, the Origin entry, `set-slice` to emitted, the folder-scoped initiative commit, the `assets/spec.md` validator admitting the key |
+| `scripts/initiative-merge` | JRN-005: `planned`, the merge per `task_review` (local `--no-ff` merge; pr through the generic mode of `open-task-pr.sh`, gh/glab stubs, `--record` writing `merge_pr`), the done flip on resume and `done` as terminal |
+| `scripts/resolve-launch-initiative` | JRN-008: `resolve-launch.sh` with the `research` task type and a `spec_dir` naming an initiative folder |
 | `hooks/pre-launch` | `pre-launch.sh` |
+| `hooks/session-start-initiatives` | JRN-004: `session-start-resume.sh` listing an initiative from its branch tip, then from main after a local merge, once each, with status, step and pending research count |
+| `hooks/initiative-write-guards` | JRN-006: the three write guards and `check-write.sh` on `initiative.md`, `questions.md`, the initiative `.step` and glossary writes keyed to the initiative's `6.x` step |
+| `hooks/codex-pre-spawn-initiative` | JRN-008: `codex-pre-spawn.sh` accepting `i<NNN>_<type>` task names keyed to an initiative folder and denying a malformed one |
 | `hooks/audit-sync-resume` | `post-implementation-audit.sh`, `rules-boundary-config-sync.sh`, `session-start-resume.sh` |
 | `hooks/block-destructive-git` | `block-destructive-git.sh` (blocked and allowed git forms, nested and wrapped commands, heredoc and quoted text not matched, Codex argv payload, fail closed without awk) |
 | `hooks/evidence-capture` | `evidence-capture.sh` (Playwright JSON report → `artifacts/` evidence) |
@@ -61,7 +71,7 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | `hooks/codex-adapters` | Codex adapters: `_codex-patch.sh` (apply_patch parser), `codex-write-guard.sh`, `codex-pre-spawn.sh`, `codex-rules-sync.sh` and their template wiring |
 | `hooks/codex-shim` | Codex path of `post-implementation-audit.sh`, `codex-hooks.template.json`, `codex-config.template.toml` (live `codex sandbox` check when codex is installed, skipped otherwise) |
 | `lint/frontmatter` | `.agents/skills/*/SKILL.md` and `.agents/agents/*.md` frontmatter (parses with yq; `name` matches folder or file; `description`; agents have no `model:` (D35) and only `claude`/`codex` under `models:`; `disable-model-invocation` only on stubs or the listed user-invoked skills (which also need a Codex `agents/openai.yaml` policy), STUB markers consistent with `PROVENANCE.md`; none exist today) |
-| `lint/step-list` | `feature-workflow/references/steps.tsv` against the decision-flow reference and mermaid (same node ids, same ids per phase), the agreed per-phase counts, and every step id used by `status-transition.sh`, `check-write.sh` and the skills (D84) |
+| `lint/step-list` | `feature-workflow/references/steps.tsv` against the decision-flow reference and mermaid (same node ids, same ids per phase), the agreed per-phase counts, and every step id used by `status-transition.sh`, `check-write.sh` and the skills (D84); JRN-007: phase row P6, the `large` track of `6.x` ids, the conversion node, their ids in the two flow docs, the large progress line |
 | `lint/symlinks` | `.claude/{skills,agents,output-styles}` symlinks into `.agents/`, no `.claude/commands`, every hook command in `.claude/settings.json` and both hook templates names an executable `.agents/hooks/` script |
 | `lint/upstream-lineage` | `upstream-lineage.json` (schema per kind, enums, paths exist outside the vendored copies, no duplicates) and coverage: every upstream a first-party `Sources:` / `Adapted from` / `Copied from` line names has an entry, and no such line points at a missing `.agents/skills/<name>/` directory |
 
@@ -71,4 +81,4 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 - Fixtures live in a `mktemp` directory removed on exit. In the scripts and hooks suites, components under test are read from a copy of this repo's `.agents/` inside the fixture; lint suites read the repo directly and only read it. A test run never writes to the repo. No absolute or home paths.
 - Paths are relative to the repo root (found from the suite's own location) or to the temp dir.
 - An `xfail` records a known script defect. It does not fail the run, and it fails the run once the script is fixed, so the test gets updated. There are no current xfails.
-- Keep every file shellcheck clean (`shellcheck tests/lib/*.sh tests/scripts/*.sh tests/hooks/*.sh tests/lint/*.sh tests/run-all.sh`).
+- Keep every file shellcheck clean (`shellcheck tests/lib/*.sh tests/fixtures/*.sh tests/scripts/*.sh tests/hooks/*.sh tests/lint/*.sh tests/run-all.sh`).

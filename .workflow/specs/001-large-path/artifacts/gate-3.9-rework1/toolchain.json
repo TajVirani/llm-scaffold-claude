@@ -1,0 +1,45 @@
+{
+  "status": "fail",
+  "task_id": "gate-3.9-rework1",
+  "work_type": "test-harness",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/profiles/test-harness.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/gate-3.9-rework1",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR",
+      "status": "fail",
+      "exit_code": 1
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh",
+      "status": "pass",
+      "exit_code": 0
+    }
+  ],
+  "digest": "Toolchain failed for task gate-3.9-rework1 (1 of 2 commands). Fix these in the same context, then stop again.\nFull output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/gate-3.9-rework1/toolchain.txt\n\n[lint] git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR exited 1. Last 40 lines:\n\nIn tests/scripts/initiative-merge.sh line 177:\n  for slice in $(fm \"$p/$INI/initiative.md\" '.slices[].id'); do initiative_transition \"$p\" set-slice \"$INI\" \"$slice\" --status done >/dev/null 2>&1; done\n                                                                                                                              ^-- SC1010 (warning): Use semicolon or linefeed before 'done' (or quote to make it literal).\n\n\nIn tests/scripts/initiative-merge.sh line 178:\n  initiative_transition \"$p\" status \"$INI\" done >/dev/null 2>&1\n                                           ^-- SC1010 (warning): Use semicolon or linefeed before 'done' (or quote to make it literal).\n\n\nIn tests/scripts/initiative-merge.sh line 190:\nbefore=$(repo_state \"$E\")\n^----^ SC2034 (warning): before appears unused. Verify use (or export if used externally).\n\nFor more information:\n  https://www.shellcheck.net/wiki/SC1010 -- Use semicolon or linefeed before ...\n  https://www.shellcheck.net/wiki/SC2034 -- before appears unused. Verify use...\n"
+}

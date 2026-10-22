@@ -1,0 +1,59 @@
+verdict: fail
+task_id: T4
+work_type: shell-scripts
+diff: .workflow/.worktrees/s001_t4@6d6b57328c982c0457af45088d539ec395bdc25c..a5024b95ac9b43522f5082e44b1dd1d24b9a933d
+items:
+  - {item: "A new `.workflow/` path is built from `workflow-paths.sh`, never spelled out.", result: pass, locations: ["scripts/initiative-transition.sh:60,119-126,233"]}
+  - {item: "Hook logic stays thin: real work is in the owning skill's script.", result: not-applicable}
+  - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", result: pass, locations: ["scripts/initiative-transition.sh:69-71,116-122,184-194"]}
+  - {item: "A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.", result: pass, locations: ["scripts/initiative-transition.sh:50-51,69-71,191"]}
+  - {item: "Sibling paths resolve from `BASH_SOURCE` with `cd -P`.", result: pass, locations: ["scripts/initiative-transition.sh:60"]}
+  - {item: "The header block has the shape for its kind (hook or helper) and names no decision ID.", result: pass, locations: ["scripts/initiative-transition.sh:1-58"]}
+  - {item: "New files are kebab-case, run under `set -euo pipefail` and use `[[ ]]`; edited files keep their existing test syntax.", result: pass}
+  - {item: "Each new function has its `# name ARGS : what it does` line, and each shellcheck directive has its reason.", result: pass}
+  - {item: "readable-code R1-R3, R5", result: pass}
+  - {item: "readable-code R4", result: fail, locations: ["scripts/initiative-transition.sh:54-55 (header Sources line)", "scripts/initiative-transition.sh:143-144 (body comment)"], finding: "Both name template and sibling files by path.", fix: "drop the paths"}
+orchestrator_disposition: "The header Sources line stands: rules.md lets a header block name the paths the script reads or relates to, and the shell-scripts profile requires a Sources line. The body comment at 143-144 is a body comment and gets reworded without paths (fix round 1)."
+out_of_scope_noticed:
+  - {kind: bug, summary: "write_validated sends the validator call's stderr to /dev/null, so a yq runtime error is reported as a validator refusal and its diagnostic is lost; the sibling status-transition.sh:344 shares the pattern.", blocker_assessment: can-wait, disposition: "discovered work validator-stderr-hidden, presented at 00.22"}
+round_2:
+  verdict: fail
+  diff: .workflow/.worktrees/s001_t4@6d6b57328c982c0457af45088d539ec395bdc25c..3c37c37b69ca16b084d183e814698c1209f905e7
+  items_failed:
+    - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", locations: ["scripts/initiative-transition.sh:387"], finding: "the open_questions read in the exploring-to-planned check has no || die, unlike the other first reads of questions.md; a malformed file exits through set -e with yq's raw message", fix: "wrap it like :307-308 and :346-347"}
+    - {item: "A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.", locations: ["scripts/initiative-transition.sh:50"], finding: "label is # Exit codes:; two repo tools anchor help extraction on # Exit: (tests/run-all.sh:30, hooks/generate-codex-agents.sh:50); the sibling status-transition.sh shares the drift", fix: "rename the label"}
+  items_passed: ["workflow paths from the lib", "BASH_SOURCE cd -P", "header shape", "test syntax", "function header lines", "R1-R5 (header Sources line allowed per round-1 disposition; body comment now path-free)"]
+  out_of_scope_noticed: []
+  orchestrator_note: "The # Exit: vs # Exit codes: drift is repo-wide (status-transition.sh, open-task-pr.sh); proposal P4 at 5.3 to align the sibling headers or the profile wording."
+round_3:
+  verdict: fail
+  diff: .workflow/.worktrees/s001_t4@6d6b57328c982c0457af45088d539ec395bdc25c..b0ebb0f3daf8ae6e3b79f71ea8d2bd3fe04c0bca
+  items_failed:
+    - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", locations: ["scripts/initiative-transition.sh:358"], finding: "unsettled=$(unsettled_questions $(yq ... .questions[] ...)) drops the inner yq's exit status; if that read fails the planned-to-emitted transition proceeds with no settled-question check and exits 0", disposition: "fix round 3"}
+    - {item: "readable-code R5", locations: ["scripts/initiative-transition.sh:27,52,94"], finding: "'the template copied at conversion', 'the large-path module', 'a large-path step id' use terms the file does not define", disposition: "orchestrator: not a failure; Large path is a .workflow/GLOSSARY.md term and conversion is the name of step 0.3.23 in the module that calls this script; the project's rules direct scripts and docs to use the glossary vocabulary, so a maintainer reads these as the shared terms they are"}
+  items_passed: ["workflow paths from the lib", "exit codes and # Exit: label", "BASH_SOURCE cd -P", "header shape", "test syntax", "function header lines and directive reasons", "R1-R4"]
+  out_of_scope_noticed:
+    - {kind: bug, summary: "A yq failure in the validator call is reported as a validator rejection with exit 2.", disposition: "already ruled: work item 001-large-path-disc-002"}
+    - {kind: refactor, summary: "The \"null\" guard after the status read at 248-249 is likely dead (// \"\" already maps a missing status).", disposition: "in the task's own file; folded into fix round 3 as an optional cleanup once confirmed"}
+round_4:
+  verdict: fail
+  diff: .workflow/.worktrees/s001_t4@6d6b57328c982c0457af45088d539ec395bdc25c..c2879738ef31a71f0367ca2a8cd2a0ef8a32ef4f
+  items_failed:
+    - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", locations: ["scripts/initiative-transition.sh:266,291,292,342,385,393"], finding: "six yq reads unwrapped; on failure set -e exits with yq's stderr only, inconsistent with the wrapped reads", disposition: "fix round 4"}
+    - {item: "readable-code R1", locations: ["scripts/initiative-transition.sh:272-273"], finding: "PRV hides that it holds the merge PR URL", disposition: "fix round 4: rename"}
+    - {item: "readable-code R2", locations: ["scripts/initiative-transition.sh:272,281,302,310,334,361"], finding: "no comment says why values reach yq through strenv() env vars (user text stays data; the URL check allows quotes and dollars)", disposition: "fix round 4: one reason line at the first export"}
+  items_passed: ["workflow paths from the lib (leaf names spelled as the sibling does)", "exit codes and # Exit:", "BASH_SOURCE cd -P", "header shape", "test syntax", "function header lines and directive reasons", "R3-R5"]
+  out_of_scope_noticed:
+    - {kind: refactor, summary: "initiative.md, questions.md and .step leaf names are spelled in code and the lib has no variables for them; module-wide convention (status-transition.sh does the same).", blocker_assessment: can-wait, disposition: "convention, not a defect; noted for the 5.7 retrospective beside work item disc-003 and the shelved normaliser"}
+  orchestrator_note: "Fix round 4 is the fifth implementer round for T4 (3.4, then 3.8 rounds 1-4). The final review is sent to the round-4 reviewer so the judgement stays consistent."
+round_5:
+  verdict: pass
+  reviewer: the round-4 reviewer, resumed on the round-4 delta
+  diff: .workflow/.worktrees/s001_t4@6d6b57328c982c0457af45088d539ec395bdc25c..bd80c86ff8e7029b2b562bd9aaaa62c4c3b7c95b
+  items: ["error paths: pass (all six reads now die naming the file)", "R1: pass (MERGE_PR_URL)", "R2: pass (strenv reason at 272-273)", "every other item unchanged and passing"]
+  caveat: "reviewer did not re-run shellcheck at head; the orchestrator ran the shell-scripts lint in the worktree before merging (see design-log wave 2 entry)"
+rework_1:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t4@291e55289f399f767e7403715e14b73ffa5a7ccd..57fa257f50f0d13918a55db6c852560bf7075d3d
+  items: ["mode change 100644 -> 100755 and a one-line fixture change; every checklist and readable-code item not applicable; shebang and index mode confirmed"]
+  out_of_scope_noticed: []

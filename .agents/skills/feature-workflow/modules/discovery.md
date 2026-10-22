@@ -8,7 +8,21 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
 
 ## 0.1 Initialise the feature folder
 
-1. **0.1.1 Scan.** Find the highest existing number among the `NNN-slug` folders only: `ls -d .workflow/specs/[0-9][0-9][0-9]-*/ 2>/dev/null`. `.workflow/specs/work-backlog/` and any other folder without a numeric prefix are not specs and never count. The new number is the highest plus one, zero-padded to three digits (`001` when there are none).
+1. **0.1.1 Scan.** Find the highest number any spec has taken. A spec number lives on after its folder leaves the working tree: on a spec branch, in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (that spec folder is deleted, and its number is never reused). So count the `NNN-slug` spec folders, the `spec/*` branches local and on `origin`, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
+
+   ```bash
+   {
+     for d in .workflow/specs/[0-9][0-9][0-9]-*/; do [ -d "$d" ] && basename "$d"; done
+     git for-each-ref --format='%(refname:lstrip=3)' refs/heads/spec
+     git for-each-ref --format='%(refname:lstrip=4)' refs/remotes/origin/spec
+     for f in .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && yq --front-matter=extract '.origin, (.slices // [] | .[].spec)' "$f"; done
+     for ref in $(git for-each-ref --format='%(refname)' refs/heads/initiative refs/remotes/origin/initiative); do
+       git show "$ref:.workflow/initiatives/${ref##*/}/initiative.md" 2>/dev/null | yq --front-matter=extract '.origin, (.slices // [] | .[].spec)'
+     done
+   } | grep -oE '^[0-9]{3}' | sort -n | tail -1
+   ```
+
+   `.workflow/specs/work-backlog/` and any other folder without a numeric prefix are not specs and never count. The new number is the highest plus one, zero-padded to three digits (`001` when nothing prints).
 2. **0.1.2 Slug.** Two to four lowercase kebab-case words from the request, action-noun where it reads well, keeping technical terms ("Implement OAuth2 for the API" → `oauth2-api`). Use `.workflow/GLOSSARY.md` terms when the request names a known concept.
 3. **0.1.3** `mkdir -p .workflow/specs/NNN-slug`.
 4. **0.1.4 `spec.md`.** Set the step, write the template, then record the status through the script:
@@ -33,6 +47,14 @@ A request can come from a `.workflow/specs/work-backlog/<origin>-disc-<###>.md` 
 - **Origin entry.** Create `design-log.md` from [../assets/design-log.md](../assets/design-log.md) if needed and append a dated **Origin** entry: the item file name, its origin spec and step, and its Problem and Evidence copied in full. This entry is the lasting record, because the item file is deleted below.
 - **Started from 5.9:** after 0.1.6, hand the new folder name back to sign-off. The new spec waits in `draft` and resumes through the router.
 - **Delete the item when discovery finishes.** When this spec passes 0.6 (Clear) or the 0.3.20 light-path test, remove the item so no stale copy remains: `rm .workflow/specs/work-backlog/<item file>`. The `origin` key and the design-log Origin entry keep the history.
+
+### Seeded from a slice
+
+The large path emits a settled slice of an initiative as a spec ([6.9](large-path.md#69-emit-a-settled-slice)). The session is on `initiative/NNN-slug` with the initiative's commit already made; 0.1.5 is No. Run 0.1.1–0.1.6 with these additions, then hand the new folder name back to the large path. The spec waits in `draft` and resumes through the router; its folder stays uncommitted until its own spec branch exists (1.1 or 0.3.20).
+
+- **Seed.** The slice's title is the request for 0.1.2. At 0.1.6 the Why opens with `Origin: initiative <initiative NNN-slug>, slice S<n> (<title>).` and states the slice's goal from the initiative's goal and the slice's settled questions.
+- **At 0.1.4**, while writing `spec.md`, add `initiative: <initiative NNN-slug>` to the frontmatter.
+- **Origin entry.** Create `design-log.md` from [../assets/design-log.md](../assets/design-log.md) and make its first entry the template's `Origin: initiative <NNN-slug>, slice S<n>` entry, so the questioning loop never re-asks the slice's binding decisions: the initiative folder, the slice's id and title, and under Binding decisions each of the slice's questions with its settled line, verbatim. The loop treats these as settled decisions: they shorten it, and a later round may only supersede one with the stakeholder's explicit agreement.
 
 ## 0.2 Retrieve existing system context
 
@@ -233,5 +255,6 @@ The spec is `ready-for-dev`, so everything implementation needs is on disk, whil
 
 - `spec.md` is `ready-for-dev` (light or full path) and links every support file that exists; on the light path it carries `budget`.
 - A spec seeded from a work item carries `origin` and a design-log Origin entry; the item was marked `promoted` at 0.1.4 and deleted once discovery finished.
+- A spec seeded from a slice carries `initiative` and a design-log Origin entry with the slice's binding decisions.
 - `codebase-map.md` was written only from agent returns and carries the stamps; `design-log.md` holds the placement, impact and scope decisions.
 - Light path: `tasks.md` has one valid record with its task file, committed on `spec/NNN-slug`. Full path: `data-model.md` and `verification-plan.md` exist and pass 0.6.

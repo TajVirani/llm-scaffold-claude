@@ -1,0 +1,12 @@
+# interim agent-docs lint for T3 at 69cd17f, run by the orchestrator on 2026-10-22T02:09:54Z: the three suites the && chain skipped or hid, plus step-list's non-JRN-007 lines
+PASS lint/frontmatter                       passed=38   failed=0   skipped=0   xfail=0   2s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   0s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+non-JRN-007 failure: FAIL lint/step-list                         passed=28   failed=6   skipped=0   xfail=0   5s
+step-list non-JRN-007 failures listed above (none means only JRN-007 assertions fail)
+
+# fix round 1 at 42e7db3, 2026-10-22T02:21:36Z
+PASS lint/frontmatter                       passed=38   failed=0   skipped=0   xfail=0   2s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   1s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+(end of step-list non-JRN-007 failures)

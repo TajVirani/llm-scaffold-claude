@@ -1,0 +1,35 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "f5343888ecfc7faebba74d99a4ccdc3ef5adeab2"
+findings:
+  - id: RE-1
+    category: wrong
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/feature-workflow/modules/large-path.md (6.13, the `planned` / None listed branch)"
+    claim: "The new 6.13 gate checks only the initiative's status on the main ref. It never checks whether `initiative/NNN-slug` already exists. If an initiative was reopened at 6.12, main still says `planned` while the branch says `exploring`. When an emitted spec from the original set signs off in that state, 6.13 goes down the `planned` path. If every listed spec is done, it tries to re-create the branch and flip the initiative to `done`."
+    consequence: "Who hits this: a stakeholder who reopened a planned initiative and then signs off its last original emitted spec. If the local branch exists, `git switch --no-track -c initiative/NNN-slug` fails with 'already exists', so sign-off ends in a git error instead of reporting 'still exploring'. If the reopened work exists only on `origin/initiative/NNN-slug` (another clone, `pr` mode), the switch succeeds from main. The initiative is then flipped `planned -> done` from the stale main copy and the reopened exploration is left behind. The session-start resume path is not affected, because the hook reads the local branch first."
+    evidence:
+      basis: "CAP-NEW-initiative-close intent: 'moves a planned initiative to `done` once every emitted spec is done'. large-path.md 6.12: re-creates `initiative/NNN-slug` from main and sets `exploring`, and main keeps `planned` until the next 6.11 merge."
+      diff: "large-path.md 6.13 (changed since pass 1): '- **`planned`.** List the emitted specs not yet `done` on main ... - **None listed.** Re-create the branch from the main ref ... `git switch --no-track -c initiative/NNN-slug \"$main_ref\"`'. The status is read only from `git show \"$main_ref:...initiative.md\"`. No step checks `git rev-parse --verify initiative/NNN-slug` or `origin/initiative/NNN-slug`. The 'Empty or exploring' bullet itself notes 'the branch it would re-create still exists'. The JRN-005 hand-off check in tests/scripts/initiative-merge.sh (close_check) covers only the absent-from-main case."
+    suggested_fix: "In 6.13, before the `planned` branch, treat an existing `initiative/NNN-slug` (local or on origin) as 'reopened, still exploring': report it and write nothing. Add a JRN-005 assertion for a reopened initiative."
+checked:
+  - "Diff pinned: f7a4b23..f534388, 57 commits, 50 files outside the spec folder. The delta since pass 1 (291e552..f534388, 13 files) was read in full. The rest was compared against pass-1's full read, and no non-delta file changed."
+  - "Pass-1 RE-1 (F7): fixed. 6.13 now reads the status on main first, and 'Empty or exploring' and 'done' write nothing. sign-off.md's 'Close the initiative' sentence matches. initiative-merge.sh adds 'JRN-005 the 6.13 hand-off on an exploring initiative re-creates no branch and changes nothing'."
+  - "Pass-1 RE-2 (F8): fixed. The 6.4 launch body is Question / Goal / Settled, matching .agents/agents/research.md Input (question with id, goal, settled lines)."
+  - "F1: initiative-transition.sh mode is now 100755, the settings template has the allow entry, and the fixture calls the writer directly. F2: PROVENANCE rows list the module, the templates, the script and 31 suites. F5: conversion, slice-origin and round entries in large-path.md and discovery.md now point to assets/design-log.md, whose entries carry Spec/Initiative created/Number consumed/Reason/Re-pointed and Initiative/Slice/Binding decisions. The suites were updated to match."
+  - "AGENTS.md gitignore line now lists .workflow/initiatives/*/.step, in step with install.sh GI_ENTRIES (pass-1 read)."
+  - "CAP-NEW-initiative-conversion (JRN-001), CAP-NEW-initiative-exploration (JRN-002, JRN-006), CAP-NEW-slice-emission (JRN-003), CAP-NEW-initiative-close (JRN-004, JRN-005), Constraint step ids (JRN-007), Constraint launches (JRN-008): implementations unchanged since pass 1 except as above, and met."
+  - "Constraints (same stack, single writer, spec-side admission, plans only, initiative-branch-only commits, task_review push/merge via generic open-task-pr.sh): met. Non-goals: none implemented. Deferred items: none implemented."
+  - "artifacts/gate-3.9-rework1b/toolchain.json and toolchain.txt (run after HEAD's last commit): lint pass; tests/run-all.sh TOTAL passed=2281 failed=0 over 31 suites. Every journey suite passes: scripts/initiative-conversion 28, initiative-emission 22, initiative-merge 54, initiative-transition 65, resolve-launch-initiative 19, step-progress 60; hooks/codex-pre-spawn-initiative 17, initiative-write-guards 21, session-start-initiatives 26; lint/step-list 36."
+  - "artifacts/review/pass-1/review-end-state.yaml and the design-log 'Triage, review pass 1' table (F1-F8) were read to frame this pass."
+not_verifiable:
+  - "The journeys replay the module's markdown sequences in harness suites. Only a live run shows that an orchestrator following large-path.md does what they replay (the deferred item large-path-live-run.md covers this)."
+  - "CAP-NEW-initiative-exploration success ('the next session ... writes the answer back') depends on whether the host keeps a sub-agent result across sessions. That is outside the repo and shelved to .workflow/deferred/research-across-sessions.md."
+  - "Spec Assumption '.workflow/model-map/research.md' is still absent at HEAD (the model-map dir lists no research.md). Shelved to research-model-map.md. The orchestrator should confirm that the deferral is the accepted outcome."
+  - "The working tree holds uncommitted changes outside this spec's scope: implementation-orchestrator.md, PROVENANCE.md (a commit-workflow-data.sh row), tests/README.md, and the untracked .agents/skills/feature-workflow/scripts/commit-workflow-data.sh and tests/scripts/commit-workflow-data.sh. None is in the HEAD diff, and no capability asks for them. The orchestrator should keep them out of this spec's sign-off commit, which sweeps `git status --short` (see deferred sign-off-scoped-commit.md). Otherwise they would land on spec/001-large-path as unasked work."
+  - "Four files named in spec.md `deferred:` are untracked: research-model-map.md, research-across-sessions.md, large-path-live-run.md, session-start-timing-target.md. The orchestrator should commit them with the spec folder."
+not_checked:
+  - "Shell code style and numeric targets: left to the standards and targets lenses. artifacts/review/pass-2/targets/ was only listed, not judged."

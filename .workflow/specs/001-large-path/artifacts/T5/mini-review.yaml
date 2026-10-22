@@ -1,0 +1,18 @@
+verdict: fail
+task_id: T5
+work_type: shell-scripts
+diff: .workflow/.worktrees/s001_t5@5a7a51a88300e687a069d0990e34fa0a73dd07bd..9d3d857f7ec66f511944ae849e62a163622eaa2e
+items_failed:
+  - {item: "A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.", locations: ["scripts/open-task-pr.sh:82,30-33"], finding: "in generic mode -h|--help prints the task-mode usage and exits 1, while the header gives generic-mode usage errors exit 2", disposition: "fix round 1: mode-aware help, documented, with a test"}
+  - {item: "readable-code R2", locations: ["scripts/open-task-pr.sh:62,79,115"], finding: "BODY_SET exists so an explicit --body \"\" keeps an empty description instead of the title default; nothing says so", disposition: "fix round 1: one reason line"}
+items_passed: ["workflow paths from the lib", "error paths", "BASH_SOURCE cd -P", "header shape", "test syntax", "function header lines", "R1", "R3-R5"]
+out_of_scope_noticed:
+  - {kind: bug, summary: "--record accepts any directory holding initiative.md, with no check that it lies under WF_INITIATIVES as task mode checks WF_SPECS; a wrong path would have set-pr write into that file.", blocker_assessment: can-wait, disposition: "in the task's own mode and a guard the sibling mode already has on stored data; folded into fix round 1"}
+round_2:
+  verdict: pass
+  reviewer: the round-1 reviewer, resumed on the round-1 delta
+  diff: .workflow/.worktrees/s001_t5@5a7a51a88300e687a069d0990e34fa0a73dd07bd..6f00fe623e73fa585b100547b5de563dcb7ec0b7
+  items: ["exit codes: pass (help exit 0 documented; --record refusals exit 2)", "R2: pass (BODY_SET reason)", "workflow paths: pass (the --record guard builds from WF_INITIATIVES)", "every other item passes"]
+  out_of_scope_noticed:
+    - {kind: requirement, summary: "Task-mode -h/--help now exits 0; the help test covers only generic mode, and the profile asks for the test with a changed exit code.", blocker_assessment: can-wait, disposition: "in scope of T5's own change; fix round 2 adds the task-mode help test"}
+    - {kind: decision, summary: "--record maps an absolute path to $WF_INITIATIVES/<basename>, mirroring task mode and documented.", disposition: "consistent with the sibling mode; not a finding"}

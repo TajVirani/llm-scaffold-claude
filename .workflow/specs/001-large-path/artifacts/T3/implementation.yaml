@@ -1,0 +1,37 @@
+status: done
+summary: All four templates support initiatives. assets/spec.md documents and validates an optional initiative key like origin; assets/design-log.md gains Conversion, Origin from an initiative, Initiative round and Emission shapes; initiative.md and questions.md are real templates whose yq validators enforce the enums and presence rules; all three validators print true on seed_initiative and seed_draft_spec output. T4 must match one choice: launched is accepted as non-null only while a question is researching, so set-question --state settled or --state open must clear it.
+task_id: T3
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3
+branch: task/001-large-path/T03-initiative-templates
+base_commit: 277459ad52cc277a09ab8c374a69fae35087e7f3
+head_commit: 69cd17f1b293a64def2cd45da22080d2b80ee3b0
+files_changed: [.agents/skills/feature-workflow/assets/spec.md, .agents/skills/feature-workflow/assets/design-log.md, .agents/skills/feature-workflow/assets/initiative.md, .agents/skills/feature-workflow/assets/questions.md]
+tests_added: []
+evidence:
+  red: "scratch oracle check-templates.sh at base: passed 12, failed 19 (non-string initiative accepted, emitted with null spec accepted, decision researching accepted, ...)"
+  green: "same oracle after: passed 32, failed 0; seed-check.sh: initiative true, questions true, spec true"
+  suite: "tests/run-all.sh TOTAL passed=2095 failed=90 (31 suites); failing suites are exactly the ten red-by-design ones; status-transition-check-write 677/677; in initiative-emission every validator/template assertion passes, the 4 remaining fails need T4"
+  toolchain: ".workflow/specs/001-large-path/artifacts/T3/toolchain.txt (fail: lint/step-list only, red by design; lint/frontmatter 38/38; symlinks 45/45 and upstream-lineage 13/13 run separately; test unscoped)"
+considered_not_built:
+  - "Cross-file check that slices[].questions ids exist in questions.md: belongs in initiative-transition.sh (T4)"
+  - "Placeholder records in the template frontmatter: would leak into real initiatives; record shape stays a commented line"
+  - "A permanent tests/ suite for the validators: outside this task's predicted files; scratch oracle showed red then green"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: bug
+    summary: "The agent-docs profile's lint key chains its four suites with &&; while lint/step-list is red by design the symlinks and upstream-lineage suites never run."
+    evidence: ".workflow/profiles/agent-docs.md Toolchain lint key; artifacts/T3/toolchain.txt"
+    blocker_assessment: can-wait
+    reason: "Evidence collection only; run the two suites by hand until the 6.x rows land."
+notes:
+  - "Conversion entry heading: `## YYYY-MM-DD Origin: converted from spec <NNN-slug>` (matches the initiative-conversion suite)"
+  - "Initiative body reference table under `## Specs` with columns `| Slice | Spec |`"
+  - "Initiative validator also rejects planned or done with a slice still planned, and done with any slice not done"
+fix_round_1:
+  status: done
+  summary: "Every bare 6.x placeholder in the three initiative templates now names a real step (design-log header: conversion at 0.3.23, Initiative round at 6.8, Emission at 6.9; initiative.md writer steps 6.1, 6.7, 6.9; questions.md at any step); nothing else changed. Validators still print true on the templates and seeded fixtures."
+  head_commit: 42e7db36785ca1c50ec61b7522d7e1a7412c5195
+  evidence: "check-templates.sh passed 32 failed 0; seed-check.sh true/true/true; lint fails only on lint/step-list (red by design)"
+  note: "6.8 and 6.9 were read from modules/large-path.md on the T9 branch; if T9 renumbers they move with it."

@@ -225,5 +225,13 @@ for g in $SPECG $TIERA $TIERB; do
   if is_allow; then ok "$g: no feature-workflow skill -> silent allow"; else ko "$g: no feature-workflow skill -> silent allow" "rc=$rc out=$out"; fi
 done
 
+echo "== workflow-paths.sh constants"
+# lib_eval EXPR : source the path library in a clean shell and print EXPR's expansion.
+lib_eval() { bash -c '. "$1"; eval "printf %s \"$2\""' _ "$H/../lib/workflow-paths.sh" "$1"; }
+eq "WF_SPECS is the repo-relative specs root" "$(lib_eval '$WF_SPECS')" ".workflow/specs"
+eq "WF_INITIATIVES is the repo-relative initiatives root" "$(lib_eval '$WF_INITIATIVES')" ".workflow/initiatives"
+eq "wf_path joins the project root and WF_INITIATIVES" "$(lib_eval "\$(wf_path $P/ \"\$WF_INITIATIVES\")")" "$P/.workflow/initiatives"
+eq "an initiative's .step pattern builds from WF_INITIATIVES" "$(lib_eval '$WF_INITIATIVES/*/.step')" ".workflow/initiatives/*/.step"
+
 shellcheck_files "shellcheck: write guards, workflow-paths.sh" "$H/../lib/workflow-paths.sh" "$H/_guard-common.sh" "$H/$SPECG.sh" "$H/$TIERA.sh" "$H/$TIERB.sh"
 finish

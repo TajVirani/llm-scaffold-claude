@@ -8,6 +8,7 @@
 # - ".workflow/cache" = "read": Tier B caches are generated, so agents only read them. A plain subpath, so it is portable.
 # - .workflow/specs/*/.step is NOT listed: 0.155.1 rejects a glob with `read` ("filesystem glob path `.workflow/specs/*/.step` only supports `deny` access")
 #   and `deny` also blocks reads, which the workflow scripts need. .step stays guarded by check-write.sh only (advisory).
+#   The same holds for an initiative's marker, .workflow/initiatives/*/.step: not listed, guarded by check-write.sh only.
 # - Consequence: scripts the agent runs in the sandbox cannot write .workflow/cache either, so publish-cache.sh (regenerate-caches) needs an
 #   approved escalation (an approval_policy that can ask, e.g. the default on-request) or a run outside Codex.
 # - [tui] status_line: the context bar, on by default. Codex has no custom-command status line, only built-in item IDs

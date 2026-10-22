@@ -1,0 +1,31 @@
+verdict: fail
+task_id: T8
+work_type: agent-docs
+diff: .workflow/.worktrees/s001_t8@277459ad52cc277a09ab8c374a69fae35087e7f3..HEAD
+tool_output: .workflow/specs/001-large-path/artifacts/T8/toolchain.json
+items:
+  - {item: "Every skill `description` the diff adds or changes carries a trigger clause (\"Use when …\").", result: not-applicable}
+  - {item: "A new agent follows the agent template; its description leads with `<role> (step X.Y)`.", result: fail, locations: [".agents/agents/research.md:3"], finding: "Leads with \"Initiative research (large path, 6.x)\": no step token and no concrete id; siblings lead with a concrete (step N.N); 6.x also collides with review-triage's 6.0-6.5 headings.", fix: "Replace \"(large path, 6.x)\" with \"(step <id>)\", the large-path node that launches research.", tool_rule_candidate: true}
+  - {item: "readable-code R1", result: pass, locations: [".agents/agents/research.md:3,37-41"]}
+  - {item: "readable-code R2-R5", result: not-applicable}
+read_outside_diff: [agent.template.md, sibling agent descriptions, agent-docs profile lines 22 and 52, T08 task file line 11, steps.tsv, review-triage.md 122-195, tests/lint/frontmatter.sh 55-58, lint-interim.txt]
+out_of_scope_noticed:
+  - {kind: decision, summary: "T8's acceptance criterion says \"(large path, 6.x)\", the profile says \"(step X.Y)\"; one must win before the fix.", blocker_assessment: blocks-this-task}
+  - {kind: refactor, summary: "agent-docs profile has no test_scoped key.", blocker_assessment: can-wait}
+orchestrator_disposition: "Fix round 1: the profile wins (it is the checklist); the launching step is 6.4 (Launch research and fact lookups) in T9's modules/large-path.md, so the lead becomes \"Initiative research (step 6.4)\". The task-file wording was the orchestrator's. The test_scoped item is ruled as discovered work test-scoped-missing (work item)."
+round_2:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t8@277459ad52cc277a09ab8c374a69fae35087e7f3..a8c2f536023151741ad473f00a7a3d9553bce7e4
+  items:
+    - {item: "Every skill `description` the diff adds or changes carries a trigger clause (\"Use when …\").", result: not-applicable}
+    - {item: "A new agent follows the agent template; its description leads with `<role> (step X.Y)`.", result: pass, locations: [".agents/agents/research.md:2-3,9,25,32"]}
+    - {item: "readable-code R1", result: pass, locations: [".agents/agents/research.md:32-45"]}
+    - {item: "readable-code R2-R4", result: not-applicable}
+    - {item: "readable-code R5", result: pass, locations: [".agents/agents/research.md:3"]}
+  read_outside_diff: [agent.template.md, agent-docs profile lines 23 and 52, sibling descriptions]
+  out_of_scope_noticed: []
+rework_1:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t8@291e55289f399f767e7403715e14b73ffa5a7ccd..db75c2328bae7b1d52b858b3d4a19daf0154db0d
+  items: ["PROVENANCE.md inventory rows only; every checklist and readable-code item not applicable"]
+  out_of_scope_noticed: []

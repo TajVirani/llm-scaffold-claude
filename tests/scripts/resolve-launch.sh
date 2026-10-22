@@ -17,7 +17,7 @@ mkdir -p "$FX"
 cd "$FX" || exit 1
 git init -q -b main . && git config user.email t@t.invalid && git config user.name tester
 mkdir -p .agents/agents .workflow/model-map .workflow/profiles .workflow/specs/007-checkout
-for t in implementation integration profile-mini-review retrieval library-evaluation fact-lookup module-audit review-standards review-end-state review-targets cache-regeneration standards-discovery; do
+for t in implementation integration profile-mini-review retrieval library-evaluation fact-lookup research module-audit review-standards review-end-state review-targets cache-regeneration standards-discovery; do
   printf -- '---\nname: %s\ndescription: "x"\n---\nbody\n' "$t" > ".agents/agents/$t.md"
   printf -- '---\ntier: cheap\nclaude: haiku\ncodex: <alias>\n---\n# %s\n' "$t" > ".workflow/model-map/$t.md"
 done
@@ -122,7 +122,7 @@ P=(--project-dir "$FX")
 
 # ── Requirements table ──
 IN=""
-run "requirements: all 12 types" 0 'keys|length==12' "" -- --requirements
+run "requirements: all 13 types" 0 'keys|length==13' "" -- --requirements
 run "requirements: implementation required fields" 0 '.implementation.d31_fields==["spec_dir","task_id","work_type"]' "" -- --requirements --task-type implementation
 run "requirements: unknown type denied" 2 "" "unknown task type" -- --requirements --task-type nope
 
@@ -151,7 +151,7 @@ run "unparseable overrides -> deny" 2 "" "cannot parse YAML: .workflow/agent-ove
 mv "$FX/ov.bak" "$FX/.workflow/agent-overrides.yaml"
 
 # ── Header requirements per task type ──
-for t in retrieval library-evaluation fact-lookup module-audit review-standards review-end-state review-targets; do
+for t in retrieval library-evaluation fact-lookup research module-audit review-standards review-end-state review-targets; do
   IN=$(hdr task_type=$t spec_dir=.workflow/specs/007-checkout)
   run "$t: spec_dir only accepted" 0 ".task_type==\"$t\" and .header.spec_dir==\".workflow/specs/007-checkout\"" "" -- --host claude --task-type $t "${P[@]}"
   IN=$(hdr task_type=$t)

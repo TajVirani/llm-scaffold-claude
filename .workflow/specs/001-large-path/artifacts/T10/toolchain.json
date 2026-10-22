@@ -1,0 +1,45 @@
+{
+  "status": "fail",
+  "task_id": "T10",
+  "work_type": "agent-docs",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t10/.workflow/profiles/agent-docs.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t10",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/T10",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh",
+      "status": "fail",
+      "exit_code": 1
+    }
+  ],
+  "digest": "Toolchain failed for task T10 (1 of 2 commands). Fix these in the same context, then stop again.\nFull output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/T10/toolchain.txt\n\n[test] tests/run-all.sh exited 1. Last 40 lines:\n   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory\n   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t10/tests/lint/symlinks.sh: No such file or directory\n== lint/upstream-lineage\n   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory\n   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t10/tests/lint/upstream-lineage.sh: No such file or directory\n\n== summary\nPASS scripts/build-architecture             passed=74   failed=0   skipped=0   xfail=0   8s\nPASS scripts/cache-scripts                  passed=36   failed=0   skipped=0   xfail=0   5s\nPASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   3s\nPASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   8s\nPASS scripts/initiative-conversion          passed=28   failed=0   skipped=0   xfail=0   3s\nPASS scripts/initiative-emission            passed=22   failed=0   skipped=0   xfail=0   2s\nPASS scripts/initiative-merge               passed=63   failed=0   skipped=0   xfail=0   12s\nPASS scripts/initiative-transition          passed=65   failed=0   skipped=0   xfail=0   5s\nFAIL scripts/install                        passed=136  failed=2   skipped=0   xfail=0   118s\nFAIL scripts/resolve-launch-initiative      passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL scripts/resolve-launch                 passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL scripts/run-toolchain                  passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL scripts/status-transition-check-write  passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL scripts/step-progress                  passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL scripts/task-breakdown                 passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL scripts/upstream-diff                  passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/audit-sync-resume                passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/block-destructive-git            passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/codex-adapters                   passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/codex-pre-spawn-initiative       passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/codex-shim                       passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/evidence-capture                 passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/initiative-write-guards          passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/pre-launch                       passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/session-start-initiatives        passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/worktree-guard                   passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL hooks/write-guards                     passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL lint/frontmatter                       passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL lint/step-list                         passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL lint/symlinks                          passed=0    failed=1   skipped=0   xfail=0   0s\nFAIL lint/upstream-lineage                  passed=0    failed=1   skipped=0   xfail=0   0s\nTOTAL passed=540 failed=24 skipped=0 xfail=0 (31 suites)\nFAILED suites: scripts/install scripts/resolve-launch-initiative scripts/resolve-launch scripts/run-toolchain scripts/status-transition-check-write scripts/step-progress scripts/task-breakdown scripts/upstream-diff hooks/audit-sync-resume hooks/block-destructive-git hooks/codex-adapters hooks/codex-pre-spawn-initiative hooks/codex-shim hooks/evidence-capture hooks/initiative-write-guards hooks/pre-launch hooks/session-start-initiatives hooks/worktree-guard hooks/write-guards lint/frontmatter lin\n"
+}

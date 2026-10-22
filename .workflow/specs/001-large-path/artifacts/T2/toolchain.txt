@@ -1,0 +1,71 @@
+== lint: git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+== lint exit 0
+
+== test: tests/run-all.sh
+== scripts/build-architecture
+== scripts/cache-scripts
+== scripts/generate-boundary-config
+== scripts/generate-codex-agents
+== scripts/initiative-conversion
+== scripts/initiative-emission
+== scripts/initiative-merge
+== scripts/initiative-transition
+== scripts/install
+== scripts/resolve-launch-initiative
+== scripts/resolve-launch
+== scripts/run-toolchain
+== scripts/status-transition-check-write
+== scripts/step-progress
+== scripts/task-breakdown
+== scripts/upstream-diff
+== hooks/audit-sync-resume
+== hooks/block-destructive-git
+== hooks/codex-adapters
+== hooks/codex-pre-spawn-initiative
+== hooks/codex-shim
+== hooks/evidence-capture
+== hooks/initiative-write-guards
+== hooks/pre-launch
+== hooks/session-start-initiatives
+== hooks/worktree-guard
+== hooks/write-guards
+== lint/frontmatter
+== lint/step-list
+== lint/symlinks
+== lint/upstream-lineage
+
+== summary
+PASS scripts/build-architecture             passed=74   failed=0   skipped=0   xfail=0   10s
+PASS scripts/cache-scripts                  passed=36   failed=0   skipped=0   xfail=0   5s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   4s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   12s
+PASS scripts/initiative-conversion          passed=28   failed=0   skipped=0   xfail=0   3s
+PASS scripts/initiative-emission            passed=22   failed=0   skipped=0   xfail=0   3s
+PASS scripts/initiative-merge               passed=53   failed=0   skipped=0   xfail=0   7s
+PASS scripts/initiative-transition          passed=65   failed=0   skipped=0   xfail=0   5s
+PASS scripts/install                        passed=138  failed=0   skipped=0   xfail=0   189s
+PASS scripts/resolve-launch-initiative      passed=19   failed=0   skipped=0   xfail=0   3s
+PASS scripts/resolve-launch                 passed=93   failed=0   skipped=0   xfail=0   14s
+PASS scripts/run-toolchain                  passed=35   failed=0   skipped=0   xfail=0   4s
+PASS scripts/status-transition-check-write  passed=677  failed=0   skipped=0   xfail=0   111s
+PASS scripts/step-progress                  passed=60   failed=0   skipped=0   xfail=0   3s
+PASS scripts/task-breakdown                 passed=90   failed=0   skipped=0   xfail=0   9s
+PASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   4s
+PASS hooks/audit-sync-resume                passed=54   failed=0   skipped=0   xfail=0   28s
+PASS hooks/block-destructive-git            passed=144  failed=0   skipped=0   xfail=0   9s
+PASS hooks/codex-adapters                   passed=99   failed=0   skipped=0   xfail=0   27s
+PASS hooks/codex-pre-spawn-initiative       passed=17   failed=0   skipped=0   xfail=0   4s
+PASS hooks/codex-shim                       passed=38   failed=0   skipped=0   xfail=0   8s
+PASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   12s
+PASS hooks/initiative-write-guards          passed=21   failed=0   skipped=0   xfail=0   10s
+PASS hooks/pre-launch                       passed=17   failed=0   skipped=0   xfail=0   6s
+PASS hooks/session-start-initiatives        passed=26   failed=0   skipped=0   xfail=0   7s
+PASS hooks/worktree-guard                   passed=42   failed=0   skipped=0   xfail=0   12s
+PASS hooks/write-guards                     passed=97   failed=0   skipped=0   xfail=0   29s
+PASS lint/frontmatter                       passed=39   failed=0   skipped=0   xfail=0   3s
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   8s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   1s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+TOTAL passed=2280 failed=0 skipped=0 xfail=0 (31 suites)
+== test exit 0
+

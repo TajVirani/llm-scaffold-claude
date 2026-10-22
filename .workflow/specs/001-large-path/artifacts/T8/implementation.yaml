@@ -1,0 +1,41 @@
+status: done
+summary: Added the research sub-agent at .agents/agents/research.md in the agent template shape (Input / Steps / Return), listed in the install manifest with a first-party PROVENANCE entry. lint/frontmatter, scripts/generate-codex-agents and scripts/install pass; neither test file pins the agent count or list, so neither changed.
+task_id: T8
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t8
+branch: task/001-large-path/T08-research-task-type
+base_commit: 277459ad52cc277a09ab8c374a69fae35087e7f3
+head_commit: 90d699ee3d62c037633fd8a53fcb6f207916bea4
+files_changed: [.agents/agents/research.md, .agents/install-manifest.txt, PROVENANCE.md]
+tests_added: []
+evidence:
+  red: "No red run is possible: the seam tests check every agents/*.md generically and there was no count or list pin; no test added because it would repeat the per-file checks."
+  green: "lint/frontmatter passed=39 failed=0; scripts/generate-codex-agents passed=44 failed=0; scripts/install passed=136 failed=0; lint/symlinks 45/0; lint/upstream-lineage 13/0"
+  suite: "tests/run-all.sh (via toolchain) TOTAL passed=2093 failed=93 (31 suites); the 10 failing suites are the Phase 1 suites red by design, reported as unscoped"
+  toolchain: ".workflow/specs/001-large-path/artifacts/T8/toolchain.txt (fail: the lint key fails only because lint/step-list is red by design; its && chain stops before lint/symlinks and lint/upstream-lineage, which were run by hand and pass)"
+considered_not_built:
+  - "A research-specific assertion in tests/scripts/generate-codex-agents.sh: would repeat the existing per-definition loop"
+  - ".workflow/model-map/research.md: written by the 00.14 flow at the first real launch"
+  - "Glossary Task type entry: proposal P1 at 5.3"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: refactor
+    summary: "The agent-docs profile's lint command chains the four lint suites with &&. While lint/step-list is red by design, lint/symlinks and lint/upstream-lineage never run in the toolchain, so their result is missing from the artifact."
+    evidence: ".workflow/profiles/agent-docs.md Toolchain lint line; artifacts/T8/toolchain.txt ends after lint/step-list"
+    blocker_assessment: can-wait
+    reason: "Goes away once the task that lands the 6.x rows is merged; until then run the two skipped suites by hand."
+fix_round_1:
+  status: done
+  summary: "The research agent's description now starts with \"Initiative research (step 6.4).\"; nothing else changed. lint/frontmatter passes; the stop audit blocks on lint/step-list, red by design (ruled: agent-docs-lint-chain)."
+  head_commit: a8c2f536023151741ad473f00a7a3d9553bce7e4
+  commit: "a8c2f53 fix: name step 6.4 in the research agent description (T8)"
+  evidence: "run-toolchain.sh --task-id T8: lint/frontmatter 39/0; suite TOTAL passed=2093 failed=93, only the ten red-by-design suites"
+  discovered_work: "agent-docs-lint-chain again (already ruled, dismissed)"
+rework_1:
+  status: done
+  summary: "PROVENANCE.md: the feature-workflow row lists initiative-transition.sh (first-party, modelled on status-transition.sh), the templates initiative.md and questions.md and the module large-path (first-party, designed in this spec); the test-harness row counts 31 suites (16 scripts, 11 hooks, 4 lint) and names the eight new suites and tests/fixtures/initiative.sh."
+  base_commit: 291e55289f399f767e7403715e14b73ffa5a7ccd
+  head_commit: db75c2328bae7b1d52b858b3d4a19daf0154db0d
+  files_changed: [PROVENANCE.md]
+  evidence: "lint/upstream-lineage passes; toolchain pass"

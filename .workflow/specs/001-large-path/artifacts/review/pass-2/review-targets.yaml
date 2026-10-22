@@ -1,0 +1,61 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "f5343888ecfc7faebba74d99a4ccdc3ef5adeab2"
+measurements:
+  - target: "Harness green with the large track"
+    kind: errors
+    threshold: "exit 0; 0 failed suites in the summary"
+    command: "tests/run-all.sh"
+    measured: "TOTAL passed=2303 failed=0 skipped=0 xfail=0 (32 suites); 0 FAIL suite lines"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/review/pass-2/targets/harness-green-with-the-large-track.txt"
+    reason: ""
+  - target: "Script lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/review/pass-2/targets/script-lint-clean.txt"
+    reason: ""
+  - target: "Harness lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/review/pass-2/targets/harness-lint-clean.txt"
+    reason: ""
+  - target: "Every script this spec adds or changes has a suite"
+    kind: coverage
+    threshold: "0 printed (no uncovered script)"
+    command: "git diff --name-only --diff-filter=AM \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/001-large-path/spec.md)\"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' | while read -r f; do grep -rqF -- \"$(basename \"$f\")\" tests/ || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "0 uncovered scripts (9 changed scripts in range: codex-pre-spawn.sh, session-start-resume.sh, workflow-paths.sh, check-write.sh, initiative-transition.sh, open-task-pr.sh, resolve-launch.sh, rules-setting.sh, step-progress.sh)"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/review/pass-2/targets/every-script-this-spec-adds-or-changes-has-a-suite.txt"
+    reason: ""
+  - target: "Session-start hook wall time"
+    kind: performance
+    threshold: "none"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "no command in verification-plan.md; the row states 'not measured: stakeholder decision at 1.1 (no performance target)'"
+findings: []
+checked:
+  - "Harness green with the large track: tests/run-all.sh, 2303 passed, 0 failed, 32 suites"
+  - "Script lint clean: shellcheck over .agents and install.sh/scripts, 0 findings"
+  - "Harness lint clean: shellcheck over tests/*.sh, 0 findings"
+  - "Every script this spec adds or changes has a suite: 0 uncovered"
+not_checked:
+  - "Session-start hook wall time: not measurable: no command in verification-plan.md (stakeholder decision at 1.1)"
+  - "serve from .workflow/profiles/shell-scripts.md and agent-docs.md: not started: serve and serve_ready are empty in every profile named in tasks.md, so no build was started and no target needed one"
+  - "No build started, so no serve PID to stop"

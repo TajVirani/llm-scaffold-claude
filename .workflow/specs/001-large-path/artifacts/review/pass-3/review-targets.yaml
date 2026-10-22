@@ -1,0 +1,61 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "782c9ae170eb1e12d232787b60e81e322d071b4a"
+measurements:
+  - target: "Harness green with the large track"
+    kind: errors
+    threshold: "exit 0; 0 failed suites in the summary"
+    command: "tests/run-all.sh"
+    measured: "0 failed suites; TOTAL passed=2311 failed=0 skipped=0 xfail=0 (32 suites)"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/001-large-path/artifacts/review/pass-3/targets/harness-green-with-the-large-track.txt"
+    reason: ""
+  - target: "Script lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings (no output)"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/001-large-path/artifacts/review/pass-3/targets/script-lint-clean.txt"
+    reason: ""
+  - target: "Harness lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings (no output)"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/001-large-path/artifacts/review/pass-3/targets/harness-lint-clean.txt"
+    reason: ""
+  - target: "Every script this spec adds or changes has a suite"
+    kind: coverage
+    threshold: "0 printed (no uncovered script)"
+    command: "git diff --name-only --diff-filter=AM \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/001-large-path/spec.md)\"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' | while read -r f; do grep -rqF -- \"$(basename \"$f\")\" tests/ || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "0 uncovered scripts"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/001-large-path/artifacts/review/pass-3/targets/every-script-this-spec-adds-or-changes-has-a-suite.txt"
+    reason: ""
+  - target: "Session-start hook wall time"
+    kind: performance
+    threshold: "none"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "no command in verification-plan.md; the row records a stakeholder decision not to measure (1.1, 2026-10-22)"
+findings: []
+checked:
+  - "Harness green with the large track: tests/run-all.sh, exit 0, 32 suites, 0 failed"
+  - "Script lint clean: shell-scripts profile lint command, exit 0"
+  - "Harness lint clean: test-harness lint command, exit 0"
+  - "Every script this spec adds or changes has a suite: coverage count 0"
+not_checked:
+  - "Session-start hook wall time: not measurable: no command in verification-plan.md (stakeholder decision at 1.1)"
+  - "serve from .workflow/profiles/shell-scripts.md and .workflow/profiles/agent-docs.md: both profiles leave serve and serve_ready empty, so no build was started and no PID was recorded; no target needed a running build"
+  - "Profile for work type test-harness was not consulted because tasks.md lists only shell-scripts and agent-docs work types; its lint command was taken from the verification-plan row as written"

@@ -24,7 +24,7 @@ The scaffold repo is its own target project, so work on it goes through `feature
 
 - `.claude/` is Claude-specific wiring only: `settings.json` plus `skills`, `agents` and `output-styles` symlinks into `.agents/`. Do not add content there that another agent would need.
 - `.agents/lib/workflow-paths.sh` is the one home for paths under `.workflow/` (in target projects and in this repo); hooks and skill scripts build paths from it.
-- The `.gitignore` block for local workflow state (`.workflow/specs/*/.step`, `.cache-staging/`, `.worktrees/`, `.handoff/`, `.standards-staging/`) is written by `install.sh` in target projects. In this repo it was added by hand and must be kept in step with `GI_ENTRIES` in `install.sh`.
+- The `.gitignore` block for local workflow state (`.workflow/specs/*/.step`, `.workflow/initiatives/*/.step`, `.cache-staging/`, `.worktrees/`, `.handoff/`, `.standards-staging/`) is written by `install.sh` in target projects. In this repo it was added by hand and must be kept in step with `GI_ENTRIES` in `install.sh`.
 - `.agents/agents/` holds host-neutral sub-agent definitions; Codex tomls are generated from them.
 - `.codex/` holds shim docs only; `install.sh` creates the Codex config and agent tomls in target projects.
 - `CLAUDE.md` is a one-line `@AGENTS.md` import. Edit `AGENTS.md`, not `CLAUDE.md`.

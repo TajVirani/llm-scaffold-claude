@@ -1,0 +1,23 @@
+Toolchain failed for task T3 (1 of 2 commands). Fix these in the same context, then stop again.
+Full output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/T3/toolchain.txt
+
+[lint] tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage exited 1. Last 40 lines:
+== lint/frontmatter
+
+== summary
+PASS lint/frontmatter                       passed=38   failed=0   skipped=0   xfail=0   2s
+TOTAL passed=38 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/step-list
+FAIL JRN-007 phase row P6 is phase 6
+       got= want=6/phase
+FAIL JRN-007 steps.tsv has large-track rows
+FAIL JRN-007 the conversion node is a phase 0 step on both paths
+       got= want=0/both
+FAIL JRN-007 the reference names the conversion node
+FAIL JRN-007 the reference has a Phase 6 section
+FAIL JRN-007 check-write.sh step lists name 6.x steps
+
+== summary
+FAIL lint/step-list                         passed=28   failed=6   skipped=0   xfail=0   5s
+TOTAL passed=28 failed=6 skipped=0 xfail=0 (1 suites)
+FAILED suites: lint/step-list

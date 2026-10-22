@@ -1,0 +1,75 @@
+status: done
+summary: session-start-resume.sh lists each initiative once (exploring, or planned with an emitted spec not yet done on origin/<main> or <main>), from the working tree or with git show from initiative/NNN-slug or origin/initiative/NNN-slug; each line shows status, step and "research pending: <n>"; a done initiative is left out; the text says to resume through the large path. codex-pre-spawn.sh accepts i<NNN>_<type>[_r<round>] only when exactly one matching initiative exists (folder on disk, or a local or origin initiative/<NNN>-* branch); spec-form names unchanged. The settings templates and the install pin deny Edit(.workflow/initiatives/*/.step). pre-launch.sh untouched: it never inspects spec_dir.
+task_id: T6
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t6
+branch: task/001-large-path/T06-hooks-initiatives
+base_commit: 6d6b57328c982c0457af45088d539ec395bdc25c
+head_commit: 48f6f5b789b270ae6946f3c2f42457b96bfe3e5a
+files_changed: [.agents/hooks/session-start-resume.sh, .agents/hooks/codex-pre-spawn.sh, .agents/hooks/claude-settings.template.json, .agents/hooks/claude-settings.template.md, .agents/hooks/codex-config.template.toml, tests/scripts/install.sh]
+tests_added:
+  - {file: tests/scripts/install.sh, test: "deny unioned, user first, no duplicates (pin extended with Edit(.workflow/initiatives/*/.step))", kind: behaviour}
+evidence:
+  red: "hooks/session-start-initiatives passed=4 failed=10; hooks/codex-pre-spawn-initiative passed=6 failed=4; scripts/install after the pin edit: FAIL deny unioned ... want Edit(.workflow/initiatives/*/.step)"
+  green: "hooks/session-start-initiatives 14/14; hooks/codex-pre-spawn-initiative 7/10 (10/10 with research in the resolve-launch table for one trial run, then reverted); hooks/audit-sync-resume 54/54; scripts/install passes in the full run"
+  suite: "tests/run-all.sh TOTAL passed=2110 failed=78 (31 suites); failed suites: initiative-conversion, -emission, -merge, -transition, resolve-launch-initiative, step-progress, codex-pre-spawn-initiative, initiative-write-guards, lint/step-list; offer assertions green: JRN-001 lists once / no longer names the spec, JRN-002 next session lists once / no research pending after write-back; red (need T4's writes): JRN-001 exploring at the entry step, JRN-002 one pending research question"
+  toolchain: .workflow/specs/001-large-path/artifacts/T6/toolchain.txt (pass; test unscoped with 6 excluded selectors)
+considered_not_built:
+  - "This repo's own .claude/settings.json deny list still lacks the initiative .step entry: outside the hooks module and the predicted files; no test pins it"
+  - "No git fetch before the done-on-main check: the hook has a 10 s timeout; it reads the existing origin/<main> or <main> ref"
+  - "Moving the initiative scan into a skill script: the hook already does the spec scan itself; the new scan follows that pattern"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - {kind: requirement, summary: "codex-pre-spawn-initiative's three research checks cannot pass until resolve-launch.sh --requirements lists research (T7, wave 3).", blocker_assessment: can-wait}
+orchestrator_notes:
+  - "The discovered_work entry describes T7's planned scope, not new work: no 00.21 ruling."
+  - "The settings.json gap in considered_not_built is raised as discovered work (requirement, can-wait) in the next ruling round."
+  - "3.4: tests_added has no negative or edge case and the summary gives no reason; resumed for them."
+round_3_4:
+  status: done
+  summary: "15 negative and edge tests added to the two hook suites. One found a bug: an initiative.md with no status was listed as unreadable because the empty-output check treated it as a failed read; it is now listed as status (none), and only a failed read or parse counts as unreadable. Both hook suites pass apart from the three research checks that wait for T7; lint passes."
+  head_commit: b39511ef675b1614f681d24bc4df07d4d59ffeeb
+  tests_added_in_round:
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 a planned initiative whose spec is done only on local main is still offered", kind: edge}
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 a planned initiative whose emitted specs are all done on main is not offered", kind: edge}
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 an initiative on disk and on its checked-out branch is listed once", kind: edge}
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 an initiative on its checked-out branch is read from the working tree", kind: edge}
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 an initiative.md with unparseable frontmatter is listed as unreadable", kind: negative}
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 an initiative.md without a status is listed with no status", kind: negative}
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 a branch whose tip has no initiative.md is listed as unreadable", kind: negative}
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 a broken initiative does not stop the offer listing the others", kind: negative}
+    - {file: tests/hooks/codex-pre-spawn-initiative.sh, test: "JRN-008 i001_fact_lookup_r2 accepted", kind: edge}
+    - {file: tests/hooks/codex-pre-spawn-initiative.sh, test: "JRN-008 i001_fact-lookup (hyphen) denied", kind: negative}
+    - {file: tests/hooks/codex-pre-spawn-initiative.sh, test: "JRN-008 I001_fact_lookup (upper case) denied", kind: negative}
+    - {file: tests/hooks/codex-pre-spawn-initiative.sh, test: "JRN-008 two initiatives numbered 001 denied", kind: negative}
+    - {file: tests/hooks/codex-pre-spawn-initiative.sh, test: "JRN-008 initiative only on its branch accepted", kind: edge}
+    - {file: tests/hooks/codex-pre-spawn-initiative.sh, test: "JRN-008 two initiative/001-* branches denied", kind: negative}
+  evidence: "red: FAIL JRN-004 an initiative.md without a status is listed with no status (21/1); green: session-start-initiatives 22/22, codex-pre-spawn-initiative 14/17 (research checks wait for T7), audit-sync-resume 54/54, codex-adapters 99/99; suite TOTAL passed=2125 failed=78, same 9 failing suites as before; toolchain pass"
+fix_round_1:
+  status: done
+  summary: "The resume offer no longer drops an initiative whose initiative.md cannot be found on disk, on its local branch or on origin: it lists it as missing and counts it (new test red then green). The || true on each git for-each-ref call in both hooks has a one-line reason; the resume hook's header says unreadable and missing initiatives are listed, never skipped."
+  head_commit: b2536491b9038ef30762cd4ef38cd7195ce1ab49
+  tests_added_in_round: [{file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 a checked-out branch with no initiative.md is still listed, as missing", kind: negative}]
+  evidence: "red: FAIL JRN-004 a checked-out branch with no initiative.md is still listed, as missing (22/1); green: session-start-initiatives 23/23, codex-pre-spawn-initiative 14/17 (research checks wait for T7), audit-sync-resume 54/54; suite TOTAL passed=2126 failed=78, same 9 failing suites; toolchain pass"
+fix_round_2:
+  status: done
+  summary: "step_text prints 'no .step marker' only when the file is absent and 'step marker unreadable' when it exists but cannot be parsed (specs and initiatives alike); the header's Behaviour line names both texts; a new test writes a corrupt initiative .step and expects the unreadable text (red then green). In codex-pre-spawn.sh a comment above the initiative count explains the || true (grep -c exits 1 on zero matches; an exit 1 there would end the hook before the deny and let the spawn through)."
+  head_commit: 3bcd4d9f392970154de78b1701d09c3c972d09e9
+  tests_added_in_round: [{file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 a corrupt .step marker is listed as unreadable, not as missing", kind: negative}]
+  evidence: "red 23/1 then green: session-start-initiatives 24/24, codex-pre-spawn-initiative 14/17 (research checks wait for T7), audit-sync-resume 54/54; suite TOTAL passed=2127 failed=78, same 9 failing suites; toolchain pass"
+fix_round_3:
+  status: done
+  summary: "The hook still falls back to main when rules-setting.sh fails, but keeps the script's message and adds 'Warning: main branch setting unreadable (<message>); done-on-main checks used main.' to the offer, with a comment at the fallback saying a failed SessionStart hook would lose the whole offer. New test with main_branch: bad..name in the fixture's rules.md expects the warning (red then green). Header Behaviour line reads 'a spec made from one of its slices' and mentions the fallback."
+  head_commit: 1454a8d623e9b234f0d3b6e392cade35412873d6
+  tests_added_in_round:
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 fixture: rules.md carries an invalid main_branch", kind: negative}
+    - {file: tests/hooks/session-start-initiatives.sh, test: "JRN-004 an unreadable main branch setting is reported in the offer", kind: negative}
+  evidence: "red 25/1 then green: session-start-initiatives 26/26, audit-sync-resume 54/54, codex-pre-spawn-initiative 14/17 (research checks wait for T7); suite TOTAL passed=2129 failed=78; toolchain pass"
+rework_1:
+  status: done
+  summary: "Added Bash(.agents/skills/feature-workflow/scripts/initiative-transition.sh:*) to permissions.allow in the Claude settings template after the status-transition.sh entry; the template's rationale doc does not list allow entries one by one and the install suite checks only the first user entry and one template entry, so neither changed."
+  base_commit: 291e55289f399f767e7403715e14b73ffa5a7ccd
+  head_commit: 3c2ece6644105c304df5094861bd31438fd22c01
+  files_changed: [.agents/hooks/claude-settings.template.json]
+  evidence: "jq index of the new entry: 13; toolchain pass (lint pass, test pass)"

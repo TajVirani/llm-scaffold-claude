@@ -1,0 +1,50 @@
+{
+  "status": "fail",
+  "task_id": "T3",
+  "work_type": "agent-docs",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/.workflow/profiles/agent-docs.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/T3",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage",
+      "status": "fail",
+      "exit_code": 1
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh",
+      "status": "unscoped",
+      "exit_code": 1,
+      "scoped": false,
+      "excluded": 10
+    }
+  ],
+  "digest": "Toolchain failed for task T3 (1 of 2 commands). Fix these in the same context, then stop again.\nFull output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/T3/toolchain.txt\n\n[lint] tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage exited 1. Last 40 lines:\n== lint/frontmatter\n\n== summary\nPASS lint/frontmatter                       passed=38   failed=0   skipped=0   xfail=0   2s\nTOTAL passed=38 failed=0 skipped=0 xfail=0 (1 suites)\n== lint/step-list\nFAIL JRN-007 phase row P6 is phase 6\n       got= want=6/phase\nFAIL JRN-007 steps.tsv has large-track rows\nFAIL JRN-007 the conversion node is a phase 0 step on both paths\n       got= want=0/both\nFAIL JRN-007 the reference names the conversion node\nFAIL JRN-007 the reference has a Phase 6 section\nFAIL JRN-007 check-write.sh step lists name 6.x steps\n\n== summary\nFAIL lint/step-list                         passed=28   failed=6   skipped=0   xfail=0   5s\nTOTAL passed=28 failed=6 skipped=0 xfail=0 (1 suites)\nFAILED suites: lint/step-list\n",
+  "warnings": [
+    "test failed (exit 1) but could not be scoped: 10 Phase 1 test selector(s) belong to unfinished tasks and the profile has no test_scoped key; not counted as a failure. Add test_scoped to /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/.workflow/profiles/agent-docs.md."
+  ]
+}

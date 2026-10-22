@@ -78,6 +78,14 @@ _Avoid_: Epic mode, roadmap mode, planning mode
 The planning unit a **large path** creates: the subject's goal, its exploration record (what is known, unknown and decided) and the ordered specs it emits. An initiative plans; its specs build.
 _Avoid_: Epic, map, program, roadmap, theme
 
+**Slice**:
+A planned part of an **initiative** that becomes exactly one spec once its questions are settled and the stakeholder confirms it. A slice is not a spec until it is emitted.
+_Avoid_: Child spec, sub-spec, stream, planned spec
+
+**Initiative question**:
+One recorded uncertainty inside an **initiative**: a research question that agents answer, or a decision the stakeholder makes. It may depend on other questions or on an emitted spec, and it stays open until settled.
+_Avoid_: Ticket, decision ticket, research ticket
+
 **Deeper prompt**:
 The stakeholder-agreed rewrite of a feature request (the ask one level up, its goals, downstream work, tools and gotchas, scope unchanged) that the questioning loop takes as its input. Produced at step 0.3.22.
 _Avoid_: Expanded prompt, pre-grill
@@ -133,6 +141,7 @@ _Avoid_: Quota, cap
 - Each task has one **Task file** and, on the full path, one **Task branch**; every **Task branch** forks from and merges into the spec's one **Spec branch**.
 - A **Large path** runs on exactly one **Initiative** and emits one or more specs; each emitted spec takes the **Light path** or the **Full path**.
 - A spec whose discovery finds several features converts into an **Initiative**; a **Deferred handoff** item that grows large or unclear seeds one.
+- An **Initiative** holds many **Initiative questions** and many **Slices**; each **Slice** becomes exactly one spec, and an **Initiative question** may depend on an emitted spec.
 - A **Review lesson** is written by the retrospective of exactly one spec and checked by the review-lessons **Task type** on every later spec's review.
 
 ## Flagged ambiguities

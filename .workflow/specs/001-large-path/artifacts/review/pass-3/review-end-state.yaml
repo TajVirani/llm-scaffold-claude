@@ -1,0 +1,33 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "782c9ae170eb1e12d232787b60e81e322d071b4a"
+findings:
+  - id: RE-1
+    category: wrong
+    severity: high
+    confidence: 88
+    location: ".agents/skills/feature-workflow/modules/large-path.md:259 (6.13, '`planned`, branch present')"
+    claim: "Rework 2 treats `refs/remotes/origin/initiative/NNN-slug` as proof that the initiative was reopened. Under `task_review: pr` or `pr-blocking` that remote branch is always there after the `planned` merge, so a planned initiative never closes."
+    consequence: "Under `pr`, which is the default `task_review` and the value in this repo's rules.md, 6.10's commit point runs `git push -u origin initiative/NNN-slug` and 6.11's `open-task-pr.sh` pushes the head branch. 6.11 then deletes only the local branch (`git branch -d`). Nothing deletes the branch on origin, and the Conventions fetch (`git fetch -q origin`) does not prune. When the last emitted spec signs off, or the initiative is resumed, 6.13 finds the remote-tracking ref and reports 'reopened, still exploring'. The initiative stays `planned` on main for good. Anyone who uses the large path with a PR-based review mode meets this, and it undoes the CAP-NEW-initiative-close outcome. Pass 2's F14 only happened after a 6.12 reopen; this happens on every pr-mode initiative."
+    evidence:
+      basis: "CAP-NEW-initiative-close success: 'resuming a `planned` initiative whose emitted specs are all `done` moves it to `done` through the initiative status script and merges that change into main the same way `planned` was merged'. Constraint: '`pr` and `pr-blocking` push at every commit point and open the PR/MR at `planned` and `done`'."
+      diff: "large-path.md 6.13 (98dce0c): '- **`planned`, branch present.** ... `git rev-parse -q --verify refs/heads/initiative/NNN-slug` or `git rev-parse -q --verify refs/remotes/origin/initiative/NNN-slug` succeeds. The initiative was reopened at 6.12 ... write nothing.' 6.11 ends with only 'git branch -d initiative/NNN-slug'. Commit point: 'git push -u origin initiative/NNN-slug   # task_review pr or pr-blocking'. Conventions: 'git fetch -q origin' (no --prune). I grepped large-path.md, open-task-pr.sh and session-start-resume.sh for prune / push --delete / :refs and found nothing. In tests/scripts/initiative-merge.sh the done flip runs only in the `local` fixture (P). The pr fixture (Q) pushes the branch ('JRN-005 pr: the initiative branch is pushed') but never runs close_check. close_check's new 'refs/remotes/origin/$BR && return 0' line would return early in that state."
+    suggested_fix: "Tell a reopened initiative apart by what the branch holds, not by whether it exists. For example, reopen only if the branch tip's initiative.md reads `exploring`, or if the branch has commits that are not on the main ref (`git merge-base --is-ancestor`). Or have 6.11 delete the remote branch after the merge, or prune on fetch. Add a JRN-005 assertion: a pr-mode planned merge followed by all specs done leads to the done flip."
+checked:
+  - "Diff pinned f7a4b23..782c9ae: 59 commits, 50 files outside the spec folder. The rework-2 delta f534388..782c9ae (98dce0c: large-path.md 6.13 and tests/scripts/initiative-merge.sh) was read in full. The rest was framed by artifacts/review/pass-2/review-end-state.yaml and the design-log 'Triage, review pass 2' and 'Rework 2 merged' entries. Apart from the delta, no file changed since pass 2."
+  - "F14 (pass-2 RE-1): addressed for both cases it named, a reopened initiative with a local branch and one with the branch only on origin, and both have new JRN-005 assertions. The fix causes RE-1 above for the non-reopened pr-mode case."
+  - "Read large-path.md Conventions (main ref, commit point push, launches), 0.3.23, 6.1, 6.10-6.13 and Done in full at HEAD. Read sign-off.md lines 127-135 (the hand-off to 6.13)."
+  - "CAP-NEW-initiative-conversion (JRN-001), CAP-NEW-initiative-exploration (JRN-002, JRN-006), CAP-NEW-slice-emission (JRN-003), CAP-NEW-initiative-close (JRN-004; JRN-005 under local), Constraint step ids (JRN-007), Constraint launches (JRN-008): unchanged since pass 2 and met, apart from RE-1 for close under pr/pr-blocking."
+  - "Constraints (same stack, single writer, spec-side admission, plans only, initiative-branch-only commits, task_review routing through the generic open-task-pr.sh): met apart from RE-1. Non-goals and deferred items: none implemented."
+  - "artifacts/gate-3.9-rework2/toolchain.json (status pass, lint and test exit 0) and toolchain.txt: TOTAL passed=2311 failed=0 over 32 suites. Every journey suite passes: initiative-conversion 28, initiative-emission 22, initiative-merge 58, initiative-transition 65, resolve-launch-initiative 19, step-progress 60, codex-pre-spawn-initiative 17, initiative-write-guards 21, session-start-initiatives 26, lint/step-list 36. excluded-tests.txt is empty."
+not_verifiable:
+  - "The journeys replay the module's markdown in harness suites. Only a live run shows that an orchestrator following large-path.md behaves the same way; this is shelved in large-path-live-run.md."
+  - "The CAP-NEW-initiative-exploration cross-session research write-back depends on the host keeping sub-agent results. This is outside the repo and shelved in research-across-sessions.md."
+  - ".workflow/model-map/research.md (a spec Assumption) is still absent and is shelved in research-model-map.md. The orchestrator should confirm that the deferral is accepted."
+  - "The design log records the stakeholder saying 'the tests are not working right' after the rework-2 gate. The orchestrator should find out what they meant before sign-off. The gate evidence itself passes."
+  - "The working tree still holds another session's uncommitted and untracked files (implementation-orchestrator.md, PROVENANCE.md, tests/README.md, the commit-workflow-data.sh pair, ADR 0002, other specs). Keep them out of this spec's sign-off commit. Commit the four untracked .workflow/deferred files that this spec lists under `deferred:`."
+not_checked:
+  - "Shell style and the numeric targets are left to the standards and targets lenses. artifacts/review/pass-3/targets/ is empty and was not judged."
+  - "Wording drift, below threshold: sign-off.md:133 describes 6.13 without the new branch-present case. Not raised."

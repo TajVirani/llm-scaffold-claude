@@ -1,6 +1,6 @@
 <!--
-File: Template for .workflow/specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter.
-Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4, 0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry) and sign-off / retrospective (5.x, 5.7).
+File: Template for .workflow/specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter. An initiative keeps the same log at .workflow/initiatives/NNN-slug/design-log.md: conversion moves the spec's log there and replaces its `Spec:` line with `Initiative: [initiative.md](initiative.md)`.
+Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4, 0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off / retrospective (5.x, 5.7) and the large path (Conversion at 0.3.23; Initiative round at 6.8 and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
 
 Rules:
   - Append only. Never edit or delete an earlier entry. A reversal is a new entry that names what it supersedes; the old entry stays.
@@ -26,6 +26,25 @@ Spec: [spec.md](spec.md)
 - Origin spec and step: <.workflow/specs/NNN-slug>, step <n>
 - Problem: <the item's problem, one or two lines>
 - Evidence: <`path:line`, failing test or agent return, carried from the item>
+
+## YYYY-MM-DD Origin: initiative <NNN-slug>, slice S<n>
+
+<!-- 0.1.4. Written only for a spec emitted from an initiative slice. First entry in the emitted spec's log. The binding decisions are the `settled` lines of the slice's questions, copied verbatim: they bind this spec and are not reopened in its questioning loop. -->
+
+- Initiative: <.workflow/initiatives/NNN-slug>
+- Slice: S<n> <slice title>
+- Binding decisions:
+  - IQ<n>: <the question's settled line, verbatim>
+
+## YYYY-MM-DD Origin: converted from spec <NNN-slug>
+
+<!-- Conversion. Written in the moved log when the questioning loop converts a draft spec into an initiative. The spec folder is deleted; its number stays consumed, so the next spec takes a higher one. -->
+
+- Spec: <.workflow/specs/NNN-slug> (draft, step <n>)
+- Initiative created: <.workflow/initiatives/NNN-slug> on branch `initiative/NNN-slug`
+- Number consumed: <NNN>, kept as the initiative's `origin`
+- Reason: <why the subject is several features, one or two lines; quote the stakeholder where they decided it>
+- Re-pointed: <shelf items, work items and superseded_by links now naming the initiative, or "none">
 
 ## YYYY-MM-DD Deeper prompt
 
@@ -61,6 +80,36 @@ Revisions: <one line per restate round: what the stakeholder changed>, or "agree
 - Decision: **D<n>** <the decision, one line>
 
 Facts looked up instead of asked (0.3.10): <fact>: <answer> (source `<path:line>`), or "None."
+
+## YYYY-MM-DD Initiative round <n>
+
+<!-- 6.8, in an initiative's log. One round over the frontier of questions.md: the questions whose dependencies are all settled or done. One block per question asked or launched. -->
+
+Frontier: <IQ<n>, IQ<n>, ...>
+
+**IQ<n>. <question>** (decision)
+
+- Options: <A: concrete option and its cost> · <B: ...>
+- Recommended: <option>, because <reason with its source>
+- Answer: "<stakeholder's words, verbatim>"
+- Settled: <the line written to questions.md>. Decision: **D<n>** <one line>
+
+**IQ<n>. <question>** (research)
+
+- Launched: <task_type>, <one line: what the agent was asked>
+- Result: <settled with <source>> or <left researching across the session end>
+
+Slices planned or changed: <S<n> <title>: questions IQ<n>, depends on S<n>>, or "none".
+Still researching: <IQ<n> (<task_type>)>, or "none".
+
+## YYYY-MM-DD Emission: S<n> as <NNN-slug>
+
+<!-- 6.9, in an initiative's log. A settled slice becomes one spec. The spec folder stays uncommitted on the initiative branch; this entry, the slice record and the reference-table row are committed together. -->
+
+- Slice: S<n> <slice title>, questions <IQ<n>, IQ<n>>, all settled
+- Spec: [<NNN-slug>](../../specs/NNN-slug/spec.md), seeded at 0.1.4 with `initiative: <NNN-slug>`
+- Stakeholder confirmation: "<words, verbatim>"
+- Remaining: <S<n>, ...> planned, or "none, the initiative moves to planned"
 
 ## YYYY-MM-DD Deep dive: <question>
 

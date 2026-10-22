@@ -22,6 +22,8 @@
 #       Print the requirements table (or one entry) as JSON.
 # Project root (--project-dir, else $CLAUDE_PROJECT_DIR, else the current directory): always normalised to the main checkout via
 #   `git rev-parse --git-common-dir`, so a worktree cwd works; .workflow/agent-overrides.yaml, .workflow/model-map/, .workflow/profiles/, .agents/agents/ and .workflow/specs/ are read there, because gitignored state exists only in the main checkout.
+# spec_dir: a spec folder .workflow/specs/NNN-slug, or, for the types the table marks initiative_launch (research, fact-lookup, retrieval,
+#   library-evaluation), an initiative folder .workflow/initiatives/NNN-slug. Either must exist under the project root.
 # Model: <root>/agent-overrides.yaml [type][host] > <root>/.agents/agents/<type>.md frontmatter models.<host> > <root>/model-map/<type>.md
 #   frontmatter [host] > none: deny with 00.14. Empty values and unfilled template placeholders (`<...>`) count as unset. model-map `fallback` is not used.
 # Work type: header work_type; for implementation and profile-mini-review with task_id, the task record in <spec_dir>/tasks.md is authoritative:
@@ -47,7 +49,8 @@ deny() { echo "resolve-launch.sh: $*" >&2; exit 2; }
 
 # ── Requirements table (single source of truth; pre-launch.sh and post-implementation-audit.sh reuse it through this script) ──
 # Per type: d31_fields = the header fields this type requires; shapes = header key sets accepted (keys other than task_type; first match wins);
-# header_optional = a header-less prompt is accepted; profile = whole | checklist | none.
+# header_optional = a header-less prompt is accepted; profile = whole | checklist | none;
+# initiative_launch = spec_dir may also name an initiative folder (launches made while exploring an initiative).
 D31_TABLE=$(cat <<'JSON'
 {
   "implementation": {
@@ -68,9 +71,10 @@ D31_TABLE=$(cat <<'JSON'
     "shapes": [{"when": "one task's diff; work_type looked up from tasks.md by task_id", "required": ["spec_dir", "task_id"], "optional": ["work_type"]}],
     "header_optional": false, "profile": "checklist"
   },
-  "retrieval":          {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 0", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
-  "library-evaluation": {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 0", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
-  "fact-lookup":        {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 0", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
+  "retrieval":          {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 0", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none", "initiative_launch": true},
+  "library-evaluation": {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 0", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none", "initiative_launch": true},
+  "fact-lookup":        {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 0", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none", "initiative_launch": true},
+  "research":           {"d31_fields": ["spec_dir"], "shapes": [{"when": "initiative research (6.4), or Phase 0 of a spec", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none", "initiative_launch": true},
   "module-audit":       {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 0", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "review-standards":   {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "review-end-state":   {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
@@ -94,7 +98,10 @@ JSON
 
 # Field formats (task ids per the tasks.md schema; work_type names a file under .workflow/profiles/).
 SPECS_RE=$(printf '%s' "$WF_SPECS" | sed 's/\./[.]/g')   # literal dots, no JSON escaping needed
+INITIATIVES_RE=$(printf '%s' "$WF_INITIATIVES" | sed 's/\./[.]/g')
 FORMATS='{"spec_dir": "^'"$SPECS_RE"'/[0-9]+-[A-Za-z0-9._-]+/?$", "task_id": "^T[0-9]+$", "work_type": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}'
+# Accepted for spec_dir in place of a spec folder by the types marked initiative_launch.
+INITIATIVE_DIR_FORMAT='^'"$INITIATIVES_RE"'/[0-9]+-[A-Za-z0-9._-]+/?$'
 FENCE_OPEN='```yaml launch-header'
 
 # ── Arguments ──
@@ -195,9 +202,10 @@ validate_header() {
     fi
     deny "no launch header: task type '$expected' requires a \`\`\`yaml launch-header block first in the prompt with $(jq -r --arg t "$expected" '.[$t].d31_fields | join(", ")' <<<"$D31_TABLE")"
   fi
-  err=$(jq -r --argjson tbl "$D31_TABLE" --argjson fmt "$FORMATS" --arg exp "$expected" '
+  err=$(jq -r --argjson tbl "$D31_TABLE" --argjson base_fmt "$FORMATS" --arg ini_fmt "$INITIATIVE_DIR_FORMAT" --arg exp "$expected" '
     def shape_text: "{" + ((.required + (.optional | map(. + "?"))) | join(", ")) + "}";
     . as $h
+    | (if ($h.task_type | type) == "string" and ($tbl[$h.task_type] // {}).initiative_launch then $base_fmt + {spec_dir: "(\($base_fmt.spec_dir))|(\($ini_fmt))"} else $base_fmt end) as $fmt
     | if ($h.task_type | type) != "string" or $h.task_type == "" then "header has no task_type"
       elif ($tbl | has($h.task_type) | not) then "unknown task_type \u0027\($h.task_type)\u0027 in header"
       elif $exp != "" and $h.task_type != $exp then "header task_type \u0027\($h.task_type)\u0027 disagrees with the launched task type \u0027\($exp)\u0027"

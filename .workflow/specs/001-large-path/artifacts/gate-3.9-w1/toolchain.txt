@@ -1,0 +1,239 @@
+== lint: git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+== lint exit 0
+
+== test: tests/run-all.sh
+== scripts/build-architecture
+== scripts/cache-scripts
+== scripts/generate-boundary-config
+== scripts/generate-codex-agents
+== scripts/initiative-conversion
+FAIL JRN-001 the initiative marker names the entry step
+       got= want=6.1
+FAIL JRN-001 the offer lists the initiative once
+       got=0 want=1
+FAIL JRN-001 the offer shows the initiative exploring at the entry step
+== scripts/initiative-emission
+FAIL JRN-003 every question of S1 is settled
+       got=open open want=settled settled
+FAIL JRN-003 the Origin entry carries the binding decisions
+       # Design log: Core flow
+FAIL JRN-003 S1 is emitted
+       got=planned want=emitted
+FAIL JRN-003 S1 names its spec
+       got=null want=002-core-flow
+== scripts/initiative-merge
+FAIL JRN-005 the initiative is planned
+       got=exploring want=planned
+FAIL JRN-005 local: main carries the planned initiative
+       got=exploring want=planned
+FAIL JRN-005 done is refused while a slice is not done
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 done: main carries the done initiative
+       got=exploring want=done
+FAIL JRN-005 done: every slice on main is done
+       got=emitted emitted want=done done
+FAIL JRN-005 after done, status exploring exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, status planned exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, step exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, set-slice exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, set-question exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, set-pr exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 pr dry run exits 0
+       got=1 want=0
+FAIL JRN-005 pr dry run prints the gh command with head and base
+        open-task-pr.sh: unknown option: --head
+FAIL JRN-005 pr dry run prints the title
+FAIL JRN-005 pr: the PR URL is printed
+       got= want=https://github.com/o/r/pull/21
+FAIL JRN-005 pr: the initiative branch is pushed
+FAIL JRN-005 pr: --record writes merge_pr
+       got=null want=https://github.com/o/r/pull/21
+FAIL JRN-005 pr dry run on GitLab prints the glab command with source and target
+        open-task-pr.sh: unknown option: --head
+== scripts/initiative-transition
+FAIL JRN-002 a decision question cannot be researching
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a question cannot be settled without a settled line
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 IQ1 is researching
+       got=open want=researching
+FAIL JRN-002 IQ1 launched names the research task type
+       got=null want=research
+FAIL JRN-002 IQ1 launched records when
+       null
+FAIL JRN-002 the next session's offer lists the initiative once
+       got=0 want=1
+FAIL JRN-002 the offer shows one pending research question
+FAIL JRN-002 a researching question cannot be launched again
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 IQ1 is settled
+       got=open want=settled
+FAIL JRN-002 IQ1 settled line is the source
+       got=null want=https://example.org/storage-survey#formats
+FAIL JRN-002 frontier 2 is IQ2 and IQ3
+       got=IQ1 IQ3 want=IQ2 IQ3
+FAIL JRN-002 after the write-back no research is pending
+FAIL JRN-002 a settled question cannot be launched
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a slice cannot be emitted without its spec
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a slice cannot be emitted while its questions are open
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a planned slice cannot carry a spec
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a planned slice cannot jump to done
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 planned is refused while questions are open
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 done is refused from exploring
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 step writes the initiative marker
+       got=6.1 want=6.2
+FAIL JRN-002 set-pr records merge_pr
+       got=null want=https://github.com/o/r/pull/7
+FAIL JRN-002 an unknown subcommand is a usage error
+       rc=0 want=1: 
+FAIL JRN-002 a missing initiative folder is an environment error
+       rc=0 want=1: 
+FAIL JRN-002 a folder outside .workflow/initiatives is a usage error
+       rc=0 want=1: 
+FAIL JRN-002 an unknown question id is a usage error
+       rc=0 want=1: 
+FAIL JRN-002 set-pr with a value that is not a URL is a usage error
+       rc=0 want=1: 
+== scripts/install
+== scripts/resolve-launch-initiative
+FAIL JRN-008 --requirements lists research
+       cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery
+FAIL JRN-008 research requires spec_dir
+       got=null want=["spec_dir"]
+FAIL JRN-008 research carries no profile
+       got=null want=none
+FAIL JRN-008 --requirements --task-type research exits 0
+       rc=2 want=0: resolve-launch.sh: unknown task type 'research' (known: cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery)
+FAIL JRN-008 the research launch resolves
+       got=2 want=0
+FAIL JRN-008 the research launch returns a model
+        resolve-launch.sh: unknown task type 'research' (known: cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery)
+FAIL JRN-008 the research prompt keeps the header first and the body
+        resolve-launch.sh: unknown task type 'research' (known: cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery)
+FAIL JRN-008 the resolved header names the initiative folder
+       got= want=.workflow/initiatives/001-storage-overhaul
+FAIL JRN-008 a fact-lookup launch from an initiative folder resolves
+       got=2 want=0
+== scripts/resolve-launch
+== scripts/run-toolchain
+== scripts/status-transition-check-write
+== scripts/step-progress
+FAIL JRN-007 steps.tsv has large-track rows
+FAIL JRN-007 the first large row prints the large form
+       got= want=Large path · step 1 of 0 —  (6.1)
+FAIL JRN-007 the last large row prints the large form
+       got= want=Large path · step 0 of 0 —  (6.1)
+FAIL JRN-007 the conversion node prints as a Discovery step on the full path
+FAIL JRN-007 the conversion node prints as a Discovery step on the light path
+== scripts/task-breakdown
+== scripts/upstream-diff
+== hooks/audit-sync-resume
+== hooks/block-destructive-git
+== hooks/codex-adapters
+== hooks/codex-pre-spawn-initiative
+FAIL JRN-008 research is a workflow task type
+FAIL JRN-008 research s001_research is denied with a reason
+       rc=0 out=
+FAIL JRN-008 research i002_research (no such initiative) is denied
+       rc=0 out=
+FAIL JRN-008 fact_lookup i009_fact_lookup (no such initiative) is denied
+       rc=0 out=
+== hooks/codex-shim
+== hooks/evidence-capture
+== hooks/initiative-write-guards
+FAIL JRN-006 the initiative marker is at the read-only step
+       got=6.1 want=6.2
+FAIL JRN-006 initiative.md at a 6.x step that does not write it is denied
+       decision=allow want=deny reason=
+FAIL JRN-006 initiative.md from a sub-agent is denied
+       decision=allow want=deny reason=
+FAIL JRN-006 the initiative .step is never written by Write
+       decision=allow want=deny reason=
+FAIL JRN-006 glossary at another 6.x step is denied
+       decision=allow want=deny reason=
+== hooks/pre-launch
+== hooks/session-start-initiatives
+FAIL JRN-004 the offer lists the branch-only initiative once
+       got=0 want=1
+FAIL JRN-004 the branch-only line shows status exploring
+FAIL JRN-004 the branch-only line shows the current step
+FAIL JRN-004 the branch-only line shows one pending research question
+FAIL JRN-004 the offer names the large path for resuming
+FAIL JRN-004 after the merge the offer lists the initiative once, from main
+       got=0 want=1
+FAIL JRN-004 the main line shows status planned
+       In-flight features in this project (from .workflow/specs/*/spec.md frontmatter; status and .step are written only by status-transition.sh):
+FAIL JRN-004 the main line shows the current step
+       In-flight features in this project (from .workflow/specs/*/spec.md frontmatter; status and .step are written only by status-transition.sh):
+FAIL JRN-004 the main line shows no pending research
+       In-flight features in this project (from .workflow/specs/*/spec.md frontmatter; status and .step are written only by status-transition.sh):
+FAIL JRN-004 an initiative on main and on its branch is listed once
+       got=0 want=1
+== hooks/worktree-guard
+== hooks/write-guards
+== lint/frontmatter
+== lint/step-list
+FAIL every step id used by status-transition.sh, check-write.sh and the skills is in steps.tsv
+       got=0.3.23  want=
+FAIL JRN-007 phase row P6 is phase 6
+       got= want=6/phase
+FAIL JRN-007 steps.tsv has large-track rows
+FAIL JRN-007 the conversion node is a phase 0 step on both paths
+       got= want=0/both
+FAIL JRN-007 the reference names the conversion node
+FAIL JRN-007 the reference has a Phase 6 section
+FAIL JRN-007 check-write.sh step lists name 6.x steps
+FAIL JRN-007 every 6.x id used by the scripts and skills is in steps.tsv
+       got=6.1 6.10 6.11 6.12 6.13 6.2 6.3 6.4 6.5 6.6 6.7 6.8 6.9  want=
+== lint/symlinks
+== lint/upstream-lineage
+
+== summary
+PASS scripts/build-architecture             passed=74   failed=0   skipped=0   xfail=0   8s
+PASS scripts/cache-scripts                  passed=36   failed=0   skipped=0   xfail=0   4s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   3s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   9s
+FAIL scripts/initiative-conversion          passed=25   failed=3   skipped=0   xfail=0   2s
+FAIL scripts/initiative-emission            passed=18   failed=4   skipped=0   xfail=0   1s
+FAIL scripts/initiative-merge               passed=17   failed=18  skipped=0   xfail=0   3s
+FAIL scripts/initiative-transition          passed=13   failed=26  skipped=0   xfail=0   1s
+PASS scripts/install                        passed=138  failed=0   skipped=0   xfail=0   127s
+FAIL scripts/resolve-launch-initiative      passed=4    failed=9   skipped=0   xfail=0   2s
+PASS scripts/resolve-launch                 passed=90   failed=0   skipped=0   xfail=0   12s
+PASS scripts/run-toolchain                  passed=35   failed=0   skipped=0   xfail=0   3s
+PASS scripts/status-transition-check-write  passed=677  failed=0   skipped=0   xfail=0   91s
+FAIL scripts/step-progress                  passed=47   failed=5   skipped=0   xfail=0   2s
+PASS scripts/task-breakdown                 passed=89   failed=0   skipped=0   xfail=0   8s
+PASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   2s
+PASS hooks/audit-sync-resume                passed=54   failed=0   skipped=0   xfail=0   20s
+PASS hooks/block-destructive-git            passed=144  failed=0   skipped=0   xfail=0   8s
+PASS hooks/codex-adapters                   passed=99   failed=0   skipped=0   xfail=0   17s
+FAIL hooks/codex-pre-spawn-initiative       passed=6    failed=4   skipped=0   xfail=0   1s
+PASS hooks/codex-shim                       passed=38   failed=0   skipped=0   xfail=0   7s
+PASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   8s
+FAIL hooks/initiative-write-guards          passed=7    failed=5   skipped=0   xfail=0   5s
+PASS hooks/pre-launch                       passed=17   failed=0   skipped=0   xfail=0   4s
+FAIL hooks/session-start-initiatives        passed=4    failed=10  skipped=0   xfail=0   2s
+PASS hooks/worktree-guard                   passed=42   failed=0   skipped=0   xfail=0   9s
+PASS hooks/write-guards                     passed=97   failed=0   skipped=0   xfail=0   23s
+PASS lint/frontmatter                       passed=39   failed=0   skipped=0   xfail=0   2s
+FAIL lint/step-list                         passed=26   failed=8   skipped=0   xfail=0   6s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   1s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+TOTAL passed=2096 failed=92 skipped=0 xfail=0 (31 suites)
+FAILED suites: scripts/initiative-conversion scripts/initiative-emission scripts/initiative-merge scripts/initiative-transition scripts/resolve-launch-initiative scripts/step-progress hooks/codex-pre-spawn-initiative hooks/initiative-write-guards hooks/session-start-initiatives lint/step-list
+== test exit 1
+

@@ -1,0 +1,26 @@
+status: done
+summary: Added WF_INITIATIVES="$WF_DIR/initiatives" to .agents/lib/workflow-paths.sh below WF_SPECS and named it in the header; four tests in tests/hooks/write-guards.sh check the constant and wf_path. Lint passes; the harness fails the same 10 Phase 1 suites as at the base commit and every previously passing suite still passes.
+work_type: shell-scripts
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-a961dc1cd33f47d2a
+branch: worktree-agent-a961dc1cd33f47d2a
+base_commit: 57aeacf3a186dee81f43055287dd2ba429dc6656
+head_commit: 52da2d182a19cba23a201d5112635eed2c014e3e
+requests:
+  - n: 1
+    verdict: applied
+    reason: Inside .agents/lib/** (shared core); only adds a constant; no existing value changed.
+    interface: 'WF_INITIATIVES (".workflow/initiatives"), defined after WF_SPECS and exported the same way; wf_path "$ROOT" "$WF_INITIATIVES" prints "$ROOT/.workflow/initiatives"; header line "WF_SPECS, WF_INITIATIVES  the roots for feature specs and for initiatives".'
+    awaiting_contract: []
+    tests:
+      - "tests/hooks/write-guards.sh: WF_SPECS is the repo-relative specs root"
+      - "tests/hooks/write-guards.sh: WF_INITIATIVES is the repo-relative initiatives root"
+      - "tests/hooks/write-guards.sh: wf_path joins the project root and WF_INITIATIVES"
+      - "tests/hooks/write-guards.sh: an initiative's .step pattern builds from WF_INITIATIVES"
+files_changed: [.agents/lib/workflow-paths.sh, tests/hooks/write-guards.sh]
+evidence:
+  toolchain: .workflow/specs/001-large-path/artifacts/integration-shell-scripts/toolchain.txt (fail on the test key only; lint passed; the failing suites are the 10 Phase 1 suites red by design, same counts as at the base commit)
+  tests: "base 57aeacf TOTAL passed=2088 failed=93 (31 suites); after: TOTAL passed=2092 failed=93, same 10 failing suites; hooks/write-guards PASS passed=97 failed=0; shellcheck clean on both files"
+  callers_checked: ["27 files under .agents/ plus install.sh source workflow-paths.sh; their suites pass as before"]
+profile_wrong: null
+blocked: null
+discovered_work: []

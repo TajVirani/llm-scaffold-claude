@@ -1,0 +1,43 @@
+status: done
+summary: The step list includes the large path: phase row P6, steps 6.1-6.13 on a new large track with titles from modules/large-path.md, and 0.3.23 as a phase 0 both row after 0.3.19. step-progress.sh prints the large form for a 6.x id and exits 2 when it comes with --path or --spec-dir. scripts/step-progress passes in full; lint/step-list passes except "JRN-007 check-write.sh step lists name 6.x steps", red until T7. One file outside the predicted list, inside the module: SKILL.md's example progress line now reads "step 23 of 48" (phase 0 is 48 steps on the full path and 36 on the light path).
+task_id: T2
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t2
+branch: task/001-large-path/T02-large-track-steps
+base_commit: 6d6b57328c982c0457af45088d539ec395bdc25c
+head_commit: 7341b7b6c4646fa77e8d7d8134e2c57d9da95c97
+files_changed: [.agents/skills/feature-workflow/references/steps.tsv, .agents/skills/feature-workflow/scripts/step-progress.sh, .agents/skills/feature-workflow/SKILL.md, PLAN/decision-flow-reference.md, PLAN/decision-flow.mermaid, tests/lint/step-list.sh, tests/scripts/step-progress.sh, tests/fixtures/initiative.sh]
+tests_added:
+  - {file: tests/scripts/step-progress.sh, test: "large: 6.10 is not 6.1", kind: edge}
+  - {file: tests/scripts/step-progress.sh, test: "large: the term gate is step 6", kind: behaviour}
+  - {file: tests/scripts/step-progress.sh, test: "large: a 6.x id on --path full exits 2", kind: negative}
+  - {file: tests/scripts/step-progress.sh, test: "large: a 6.x id on --path light exits 2", kind: negative}
+  - {file: tests/scripts/step-progress.sh, test: "large: the refusal names the large path", kind: negative}
+  - {file: tests/scripts/step-progress.sh, test: "large: a 6.x id with --spec-dir exits 2", kind: negative}
+  - {file: tests/scripts/step-progress.sh, test: "the conversion node runs after 0.3.19, before 0.3.20", kind: edge}
+  - {file: tests/lint/step-list.sh, test: "large path step count, apart from both paths", kind: behaviour}
+  - {file: tests/lint/step-list.sh, test: "seven phase rows P0-P6", kind: behaviour}
+evidence:
+  red: "scripts/step-progress: FAIL JRN-007 the first large row prints the large form (got= want=Large path · step 1 of 0 — (6.1)), 5 failed; lint/step-list: FAIL JRN-007 phase row P6 is phase 6, 8 failed"
+  green: "bash tests/scripts/step-progress.sh RESULT passed=59 failed=0 (also under TEST_BASH=/bin/bash 3.2); bash tests/lint/step-list.sh passed=35 failed=1 (only the T7 check-write assertion)"
+  suite: "tests/run-all.sh TOTAL passed=2117 failed=80 (31 suites); base passed=2096 failed=92; every suite that passed at base still passes; scripts/step-progress now passes; the remaining failures are the other eight Phase 1 suites with the same counts plus the one T7 assertion in lint/step-list"
+  toolchain: .workflow/specs/001-large-path/artifacts/T2/toolchain.txt (pass; test unscoped)
+considered_not_built:
+  - "Large step reached through --at from a 00.x id: falls through to the large line via linear(); untested"
+  - "Mermaid render check: no mmdc installed; syntax checked by eye"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+fix_round_1:
+  status: done
+  summary: "One-line comment above PATH_ASKED=$PATH_OPT gives the reason (a 6.x id refuses a path given by --path or the spec but accepts the default); the header's Usage says --at may name a 6.x step; a new edge test pins 00.19 --at 6.4. step-progress 60/60; lint/step-list 35/36 (only the T7 check-write assertion)."
+  head_commit: 88a84b4640e38ae1a3353f8bb8f474bd4d4c36eb
+  tests_added_in_round: [{file: tests/scripts/step-progress.sh, test: "large: a 00.x id with --at a 6.x step shows the large form, then the 00.x step", kind: edge}]
+  evidence: "suite TOTAL passed=2118 failed=80; every suite that passed at base still passes; toolchain pass"
+rework_1:
+  status: done
+  summary: "Removed the JRN-007 prefix from the comments at tests/lint/step-list.sh:86 and tests/scripts/step-progress.sh:89; nothing else edited; toolchain pass (lint pass, test pass)."
+  base_commit: 291e55289f399f767e7403715e14b73ffa5a7ccd
+  head_commit: 60b3e12e283c443e351e5554cada23a6b7ee19f0
+  files_changed: [tests/lint/step-list.sh, tests/scripts/step-progress.sh]
+  discovered_work: [{kind: refactor, summary: "the suites' header # Covers: lines also carry JRN-007", disposition: "not applicable: # Covers: is the suite's interface header, which may name what it covers; F4 concerned body comments"}]
