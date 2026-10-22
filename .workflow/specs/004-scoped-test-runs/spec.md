@@ -1,11 +1,11 @@
 ---
-status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "f8ea802e8efa7f56499a2743930887986e1ec020" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/004-scoped-test-runs # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "f8ea802e8efa7f56499a2743930887986e1ec020" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: true # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
-deferred: [] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
+deferred: [.workflow/deferred/browser-suite.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 origin: 001-large-path-disc-001.md
 budget: {max_tasks: 10, max_changed_files: 30}
 ---
@@ -44,6 +44,10 @@ On 001-large-path's next wave, an implementation agent's 3.5 toolchain and stop 
 
 - `--suite` combined with `--only-file` or `--exclude-file` exits 2 (not confirmed explicitly).
 - The default job count comes from `getconf _NPROCESSORS_ONLN`, falling back to 4.
+
+## Known gaps
+
+- Gate skipped (3.10 browser suite): no `e2e-browser` profile in this repo. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)
 
 ## Links
 

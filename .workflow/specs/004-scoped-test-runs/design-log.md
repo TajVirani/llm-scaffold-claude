@@ -78,3 +78,7 @@ Spec: [spec.md](spec.md)
 - Found at 3.7 by the T1 profile-mini-review. Kind: refactor.
 - Problem: the suite's concurrency checks use fixed wall-clock limits. Evidence: `tests/scripts/run-all-selection.sh:413`, `:419`.
 - Assessment: can be solved later. Ruling: "Next feature (Recommended)". Item: [../work-backlog/004-scoped-test-runs-disc-003.md](../work-backlog/004-scoped-test-runs-disc-003.md).
+
+## 2026-10-22 Suite gap: browser suite
+
+- 3.14: no `e2e-browser` profile, so the 3.10-3.11 browser gate was skipped; recorded in [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md). The 3.9 harness gate passed: 2347 passed, 0 failed, 33 suites, 2 min 23 s (`artifacts/gate-3.9-w1/`).
