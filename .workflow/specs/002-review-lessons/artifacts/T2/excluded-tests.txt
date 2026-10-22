@@ -1,0 +1,3 @@
+tests/scripts/check-write-tier-a.sh
+tests/hooks/write-guards.sh
+tests/lint/review-lessons.sh

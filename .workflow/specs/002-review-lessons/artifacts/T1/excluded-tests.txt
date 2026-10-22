@@ -1,0 +1,6 @@
+tests/scripts/resolve-launch.sh
+tests/scripts/check-review-findings.sh
+tests/scripts/step-progress.sh
+tests/lint/step-list.sh
+tests/hooks/pre-launch.sh
+tests/lint/review-lessons.sh
