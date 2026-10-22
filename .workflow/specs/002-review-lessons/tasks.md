@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-review-lessons-record
     depends_on: []
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "check-write.sh exit codes and messages; the tier-a-write-guard allow or deny JSON; the template's own validate: and next-id: commands"
     file: tasks/T01-lessons-template-and-guard.md
@@ -32,7 +32,7 @@ tasks:
     capability: CAP-NEW-review-lessons-lens
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "resolve-launch.sh --requirements JSON; pre-launch.sh allow or deny JSON; check-review-findings.sh exit, errors and table; step-progress.sh output; steps.tsv rows against the PLAN docs"
     file: tasks/T02-launch-row-lens-table-step.md
@@ -64,7 +64,7 @@ tasks:
     capability: CAP-NEW-review-lessons-lens
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "agents"
     seam: "the frontmatter lint and the generated Codex toml; the lens's judgement by the JRN-001 and JRN-002 live runs at 3.10"
     file: tasks/T03-review-lessons-lens.md
@@ -85,7 +85,7 @@ tasks:
     capability: CAP-NEW-review-lessons-lens
     depends_on: [T1, T2, T3]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "none in the harness: prose checked at 3.7 and 4.2; the step-list lint guards the 4.9 step calls it adds"
     file: tasks/T04-triage-four-lenses.md
@@ -105,7 +105,7 @@ tasks:
     capability: CAP-NEW-review-lessons-record
     depends_on: [T1]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "retrospective"
     seam: "the template's validate: and next-id: commands (JRN-006 oracle in tests/lint/review-lessons.sh); the procedure runs live at this spec's 5.7"
     file: tasks/T05-retrospective-writes-lessons.md
@@ -125,7 +125,7 @@ tasks:
     capability: CAP-NEW-review-lessons-record
     depends_on: [T1, T2, T3]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "project-setup"
     seam: "the modules/files.md table row and the asset-set assertions of tests/lint/review-lessons.sh"
     file: tasks/T06-project-setup-lessons-file.md
