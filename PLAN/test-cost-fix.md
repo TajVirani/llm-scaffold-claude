@@ -118,12 +118,15 @@ The managed block in `AGENTS.md` mirrors these lines and is refreshed by `projec
 | Wording-only fix round | fresh launch, 2 full runs | resume, 1 scoped run |
 | Wave gate 3.9 | 1 full run | 1 full run, reused when the merged tree matches a passing record |
 | 5.4 report | 1 full run | reused unless code changed |
-| Full run | 141 s | under 70 s after U2 |
+| Full run | 141 s | measured after U2: about 80 s on the build machine, 43 suites, longest 48–52 s (`hooks/audit-sync-resume`, `scripts/check-write-paths`), serial sum about 825 s |
 | Review pass into the orchestrator | about 70K characters | about 15K |
 | 001-sized feature, harness time | about 3 h at today's speed | under 30 min |
+
+The remaining gap to the 70 s goal is the two 50-second suites, `hooks/audit-sync-resume` and `scripts/check-write-paths`, which would need a further split.
 
 ## Out of scope
 
 - Populating a light-path task's own-suite list from its predicted files: today the list comes only from Phase 1, so a light-path task still runs the full harness at 3.5 (D6 of spec 004).
 - Making `scripts/install` or `status-transition-check-write` themselves faster beyond splitting them.
 - Any change to the launch header fields: the pass number stays in the prompt line.
+- Removing U2's worktree `.claude/worktrees/agent-a9fa03bace130030c` and its branch: it is left in place until the process holding its lock ends, then `git worktree remove` and `git branch -d` clear it.
