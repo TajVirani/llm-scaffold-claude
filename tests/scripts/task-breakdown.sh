@@ -198,6 +198,9 @@ out=$(OTP $SPECD T2 --cwd "$P" --dry-run 2>/dev/null)
 check "dry run prints commands" 'grep -q "^gh pr create --base spec/007-shop" <<<"$out" && grep -q "^dry-run:" <<<"$out"' "$out"
 t "bad task id -> 1"               1 OTP $SPECD X2 --cwd "$P"
 t "unknown task -> 1"              1 OTP $SPECD T9 --cwd "$P"
+out=$(OTP --help 2>/dev/null); rc=$?
+check "--help prints the task-mode usage on stdout, rc 0" \
+  '[ $rc -eq 0 ] && [ "$out" = "usage: open-task-pr.sh <spec-dir> <task-id> [--cwd <dir>] [--record] [--dry-run]" ]' "rc=$rc $out"
 
 echo "== run-toolchain.sh test scoping"
 Q=$WORK/q
