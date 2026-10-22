@@ -46,6 +46,7 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | `scripts/resolve-launch` | `resolve-launch.sh` |
 | `scripts/step-progress` | `step-progress.sh` (the D84 progress line: full and light totals, run-order positions, loop steps, 00.x with `--at`, intake, unknown ids, `--spec-dir` defaults; JRN-007: the large form for the first and last large-track rows, the conversion node, a phase 0 row still `Phase 1 of 6`) |
 | `scripts/run-toolchain` | `run-toolchain.sh` |
+| `scripts/commit-workflow-data` | `commit-workflow-data.sh` (the spec folder, evidence, deferred, decisions and work-backlog committed on the spec branch; `.step`, `.worktrees/`, other specs, initiatives and other staged work left out; file names with spaces and non-ASCII; deletions; a run from a task worktree; refusals off the spec branch, on a detached HEAD, mid-merge and with local state not gitignored; usage errors) |
 | `scripts/task-breakdown` | Task-breakdown helpers: `task-waves.sh` (overlaps, implied edges, `parallel_with`, cycles, waves, JSON), `rules-setting.sh` (`task_review`, `main_branch`), `open-task-pr.sh` (gh/glab stubs, no network) and `run-toolchain.sh` test scoping (`tests`, `test_scoped`, `--exclude-unfinished`, `unscoped`) |
 | `scripts/cache-scripts` | `publish-cache.sh`, `cache-stamp-check.sh` |
 | `scripts/generate-boundary-config` | `generate-boundary-config.sh` |
