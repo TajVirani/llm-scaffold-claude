@@ -17,7 +17,8 @@
 #   - Initiatives (.workflow/initiatives/NNN-slug, sorted by name), each listed once as
 #     `- .workflow/initiatives/NNN-slug: status <s>; current step <id> (since <t>); research pending: <n>`, where <n> counts the questions in
 #     questions.md with state `researching` and the step comes from the gitignored .step in the main checkout. Listed: `exploring`, and
-#     `planned` while an emitted slice spec is not `done` on origin/<main_branch> (else <main_branch>; rules-setting.sh main_branch).
+#     `planned` while a spec made from one of its slices is not `done` on origin/<main_branch> (else <main_branch>; rules-setting.sh
+#     main_branch; when that setting cannot be read, main is used and the offer says so).
 #     Omitted: `done`, and `planned` with every emitted spec done. Read from the local initiative/NNN-slug branch with `git show` when it
 #     exists and is not checked out, else from the working tree, else from origin/initiative/NNN-slug; never by switching branches.
 #     An initiative.md that cannot be read is listed as unreadable, and one found in none of those places as missing; neither is skipped.
@@ -146,12 +147,18 @@ initiative_file() {
 }
 
 # A spec is done once it is done on the main branch; on its own branch it reads done before the merge lands.
-main_ref=""
+main_ref="" main_warning=""
 # spec_done_on_main SPEC : succeeds when SPEC's spec.md has status done on origin/<main> (or <main> without a remote copy).
 spec_done_on_main() {
   if [ -z "$main_ref" ]; then
-    local main
-    main=$(bash "$root/.agents/skills/feature-workflow/scripts/rules-setting.sh" main_branch --cwd "$root" 2>/dev/null) || main=main
+    local main err_file
+    err_file=$(mktemp 2>/dev/null) || err_file=""
+    # Fall back to main rather than exit: a failed SessionStart hook would lose the whole offer, so the problem is reported in it instead.
+    if ! main=$(bash "$root/.agents/skills/feature-workflow/scripts/rules-setting.sh" main_branch --cwd "$root" 2>"${err_file:-/dev/null}"); then
+      main=main
+      main_warning="Warning: main branch setting unreadable ($([ -z "$err_file" ] || tr '\n' ' ' <"$err_file" | sed 's/ *$//')); done-on-main checks used main."
+    fi
+    [ -z "$err_file" ] || rm -f "$err_file"
     main_ref=$main
     git -C "$root" rev-parse -q --verify "refs/remotes/origin/$main" >/dev/null 2>&1 && main_ref=origin/$main
   fi
@@ -248,6 +255,8 @@ if [ "$i_n" -gt 0 ]; then
   text+="Initiatives in this project (large-path subjects that plan several specs; from $WF_INITIATIVES/*/initiative.md, or from the initiative/* branch tip when this checkout does not hold the folder; status and .step are written only by initiative-transition.sh):
 $itext"
 fi
+[ -z "$main_warning" ] || text+="$main_warning
+"
 if [ "$open_n" -gt 0 ]; then
   text+="Open discovered-work backlog items in $WF_WORK_BACKLOG/: $open_n (${open_names}$([ "$open_n" -le 5 ] || echo ", ...")); each is offered as a next feature at sign-off (5.9) or can be started through discovery.
 "

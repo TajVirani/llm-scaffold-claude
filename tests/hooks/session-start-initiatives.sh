@@ -110,5 +110,10 @@ ctx=$(resume_offer "$Q")
 check "JRN-004 a corrupt .step marker is listed as unreadable, not as missing" \
   'offer_lines "$ctx" .workflow/initiatives/001-alpha | grep -q "step marker unreadable"' "$ctx"
 
+awk '{ print } /^task_review: / { print "main_branch: bad..name" }' "$Q/.workflow/rules.md" >"$Q/rules.tmp" && mv "$Q/rules.tmp" "$Q/.workflow/rules.md"
+check "JRN-004 fixture: rules.md carries an invalid main_branch" 'grep -q "^main_branch: bad..name" "$Q/.workflow/rules.md"'
+ctx=$(resume_offer "$Q")
+check "JRN-004 an unreadable main branch setting is reported in the offer" 'grep -q "main branch setting unreadable" <<<"$ctx"' "$ctx"
+
 shellcheck_files "JRN-004 shellcheck session-start-resume.sh" "$P/.agents/hooks/session-start-resume.sh"
 finish
