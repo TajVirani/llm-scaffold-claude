@@ -236,11 +236,19 @@ report_suite() {
 # Keep up to $jobs suites running and print each one as soon as it and every suite before it have finished.
 # bash 3.2 has no `wait -n`, so finished suites are found by polling for their .done files.
 suite_count=${#selected[@]}
+# Suites start largest file first, so the long ones are not left to start last and set the run's length;
+# file size stands in for run time. Output order is unaffected: suites are still reported by glob index.
+start_order=()
+if [ "$suite_count" -gt 0 ]; then
+  while IFS= read -r i; do start_order+=("$i"); done < <(
+    for i in "${!selected[@]}"; do printf '%s %s\n' "$(($(wc -c <"${selected[$i]}")))" "$i"; done | sort -k1,1nr -k2,2n | cut -d' ' -f2
+  )
+fi
 launched=0
 reported=0
 while [ "$reported" -lt "$suite_count" ]; do
   while [ "$launched" -lt "$suite_count" ] && [ $((launched - $(finished_count))) -lt "$jobs" ]; do
-    start_suite "$launched" "${selected[$launched]}"
+    start_suite "${start_order[$launched]}" "${selected[${start_order[$launched]}]}"
     launched=$((launched + 1))
   done
   if [ -e "$results/$reported.done" ]; then

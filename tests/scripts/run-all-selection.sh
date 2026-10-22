@@ -3,7 +3,8 @@
 # Covers: --only-file and --exclude-file (repo-relative and label selectors, F minus G, empty or missing files),
 #   unknown selectors and --suite conflicts exiting 2, repeated --suite (only the named suites, in glob order; one
 #   unknown name exits 2), -j validation, concurrent runs by default and serial with -j 1,
-#   output in glob order identical to a serial run apart from timings, -v printing full logs, exit codes 0 / 1.
+#   output in glob order identical to a serial run apart from timings, largest-file-first start order with glob-order output,
+#   -v printing full logs, exit codes 0 / 1.
 # The runner is copied into a fixture tree with stub suites, so this suite never runs the real harness.
 # shellcheck disable=SC2016  # check expressions are single-quoted so check evaluates them
 # shellcheck source=../lib/common.sh
@@ -171,6 +172,21 @@ only=$(selector_file only-broken tests/lint/broken.sh)
 run_all --only-file "$only"
 eq "a suite without a result footer makes the run exit 1" "$RC" 1
 check "the log of a suite without a footer is printed indented" '[[ "$OUT" == *"   crashed early"* ]]' "$OUT"
+
+# Start order: the larger suite starts first, but output stays in glob order. late.sh is padded so it is the
+# larger file although its name sorts last; -j 1 makes the start order observable through a shared log.
+starts=$WORK/start-order
+for name in early late; do
+  {
+    printf '#!/usr/bin/env bash\n'
+    printf 'echo %s >>"%s"\n' "$name" "$starts"
+    printf 'printf "\\nRESULT passed=1 failed=0 skipped=0 xfail=0\\n"\n'
+  } >"$FIXTURE_TESTS/lint/$name.sh"
+done
+for _ in 1 2 3 4 5 6 7 8; do printf '# padding so this stub is the larger file\n' >>"$FIXTURE_TESTS/lint/late.sh"; done
+run_all -j 1 --suite lint/early --suite lint/late
+eq "suites start largest file first" "$(tr '\n' ' ' <"$starts")" "late early "
+eq "output stays in glob order when the start order differs" "$(summary_labels)" "lint/early lint/late"
 
 # Help
 run_all --help
