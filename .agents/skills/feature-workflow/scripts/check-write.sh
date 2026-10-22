@@ -313,6 +313,7 @@ fi
 
 # ---------------------------------------------------------------- initiative.md
 if [[ "$KIND" == "initiative" ]]; then
+  # Cut the folder name from the path as written so it keeps its case: the lower-cased copy would miss the real .step on a case-sensitive file system.
   INITIATIVE_NAME=${REL:${#WF_INITIATIVES}+1}
   INITIATIVE_NAME=${INITIATIVE_NAME%%/*}
   INITIATIVE_DIR="$WF_INITIATIVES/$INITIATIVE_NAME"
