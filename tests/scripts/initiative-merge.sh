@@ -4,10 +4,10 @@
 #   (local: --no-ff merge on main, branch deleted, nothing pushed; pr: the generic mode of open-task-pr.sh printing the gh or glab
 #   command with head initiative/NNN-slug and base main, and --record writing merge_pr); the resume check reading each emitted
 #   spec from main; the sign-off hand-off (6.13) leaving untouched an initiative still exploring and a planned initiative reopened
-#   at 6.12 whose branch exists locally or only on origin; under pr, the done flip proceeding past the branch the planned
-#   merge left on origin, whose tip reads planned rather than exploring; the done flip on a re-created branch,
-#   merged the same way; done being terminal (every subcommand exits 2); the generic mode's usage errors (exit 2), its skip
-#   paths (missing head, unknown host, no remote) and its reuse of an open PR.
+#   at 6.12, told apart by the status exploring at its branch tip, locally or only on origin; under pr, the done flip
+#   proceeding past the branch the planned merge left on origin, whose tip reads planned rather than exploring; the done
+#   flip on a re-created branch, merged the same way; done being terminal (every subcommand exits 2); the generic mode's
+#   usage errors (exit 2), its skip paths (missing head, unknown host, no remote) and its reuse of an open PR.
 #   gh and glab are stubs on PATH; the origin remote is a local bare repo; no network.
 # shellcheck disable=SC2016,SC2034,SC2329  # check expressions are single-quoted and eval'd on purpose, read variables and call helpers shellcheck cannot see
 # shellcheck source=../lib/common.sh
@@ -167,13 +167,20 @@ check "generic mode pushes only the head branch" \
   'git -C "$R.origin.git" show-ref --verify --quiet "refs/heads/$BR" && [ "$(git -C "$R.origin.git" for-each-ref --format=x refs/heads | grep -c .)" -eq 2 ]'
 
 echo "== JRN-005 sign-off hand-off on an initiative still exploring"
-# close_check DIR : replays 6.13 from sign-off: the initiative's status on main, then whether its branch still exists (a reopened
-#   initiative, still exploring), then the emitted specs, then the done flip.
+# close_check DIR : replays the close step from sign-off: the initiative's status on main, then the status at its branch
+#   tip (exploring there means reopened and still exploring; a planned tip left on origin by a merged PR is not a reopen),
+#   then the emitted specs, then the done flip.
 close_check() {
-  local p=$1 spec pending="" slice
+  local p=$1 spec pending="" slice tip=""
   [ "$(on_main "$p" .status)" = planned ] || return 0
-  git -C "$p" show-ref --verify --quiet "refs/heads/$BR" && return 0
-  git -C "$p" show-ref --verify --quiet "refs/remotes/origin/$BR" && return 0
+  if git -C "$p" show-ref --verify --quiet "refs/heads/$BR"; then
+    tip=refs/heads/$BR
+  elif git -C "$p" show-ref --verify --quiet "refs/remotes/origin/$BR"; then
+    tip=refs/remotes/origin/$BR
+  fi
+  if [ -n "$tip" ]; then
+    [ "$(git -C "$p" show "$tip:$INI/initiative.md" 2>/dev/null | yq --front-matter=extract .status)" = exploring ] && return 0
+  fi
   for spec in $(on_main "$p" '.slices[].spec'); do
     [ "$(git -C "$p" show "main:.workflow/specs/$spec/spec.md" 2>/dev/null | yq --front-matter=extract .status)" = "done" ] || pending="$pending $spec"
   done

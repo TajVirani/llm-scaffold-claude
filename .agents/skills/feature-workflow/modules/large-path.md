@@ -256,8 +256,16 @@ git show "$main_ref:.workflow/initiatives/NNN-slug/initiative.md" 2>/dev/null | 
 
 - **Empty or `exploring`** (empty: the initiative has not reached main yet). This is the usual case when an initiative's first emitted spec signs off while its questions are still open. Tell the stakeholder the initiative is still exploring, name its emitted specs not yet `done` on main (the `spec` of each slice in `initiative.md` on `initiative/NNN-slug`, local or on `origin`), and write nothing: there is nothing to close, and the branch it would re-create still exists.
 - **`done`.** Already closed; write nothing.
-- **`planned`, branch present.** Before listing specs, check whether the branch exists: `git rev-parse -q --verify refs/heads/initiative/NNN-slug` or `git rev-parse -q --verify refs/remotes/origin/initiative/NNN-slug` succeeds. The initiative was reopened at 6.12 and is still exploring on its branch, whatever main says. Tell the stakeholder so, name its emitted specs not yet `done` on main (read from `initiative.md` on the branch, as for `exploring`), and write nothing.
-- **`planned`, no branch.** List the emitted specs not yet `done` on main:
+- **`planned`, branch tip `exploring`.** Before listing specs, read the status at the branch tip, from `refs/heads/initiative/NNN-slug` when it exists, else from `refs/remotes/origin/initiative/NNN-slug`:
+
+  ```bash
+  tip=refs/heads/initiative/NNN-slug
+  git rev-parse -q --verify "$tip" >/dev/null || tip=refs/remotes/origin/initiative/NNN-slug
+  git show "$tip:.workflow/initiatives/NNN-slug/initiative.md" 2>/dev/null | yq --front-matter=extract '.status'
+  ```
+
+  `exploring` there means the initiative was reopened at 6.12 and is still exploring, whatever main says. Tell the stakeholder so, name its emitted specs not yet `done` on main (read from `initiative.md` at that tip, as for `exploring`), and write nothing. Whether the branch exists decides nothing: under `pr` the merged PR leaves the `planned` tip on `origin`.
+- **`planned`, no branch or any other tip status.** List the emitted specs not yet `done` on main:
 
   ```bash
   for spec in $(git show "$main_ref:.workflow/initiatives/NNN-slug/initiative.md" | yq --front-matter=extract '.slices[].spec'); do
