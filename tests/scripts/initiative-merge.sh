@@ -4,7 +4,8 @@
 #   (local: --no-ff merge on main, branch deleted, nothing pushed; pr: the generic mode of open-task-pr.sh printing the gh or glab
 #   command with head initiative/NNN-slug and base main, and --record writing merge_pr); the resume check reading each emitted
 #   spec from main; the sign-off hand-off (6.13) leaving untouched an initiative still exploring and a planned initiative reopened
-#   at 6.12 whose branch exists locally or only on origin; the done flip on a re-created branch,
+#   at 6.12 whose branch exists locally or only on origin; under pr, the done flip proceeding past the branch the planned
+#   merge left on origin, whose tip reads planned rather than exploring; the done flip on a re-created branch,
 #   merged the same way; done being terminal (every subcommand exits 2); the generic mode's usage errors (exit 2), its skip
 #   paths (missing head, unknown host, no remote) and its reuse of an open PR.
 #   gh and glab are stubs on PATH; the origin remote is a local bare repo; no network.
@@ -225,6 +226,34 @@ before=$(repo_state "$O" 2>/dev/null)
 close_check "$O"; rc=$?
 check "JRN-005 the 6.13 hand-off on a reopened initiative only on origin re-creates nothing and flips nothing" \
   '[ $rc -eq 0 ] && [ "$(repo_state "$O" 2>/dev/null)" = "$before" ]' "rc=$rc"
+
+echo "== JRN-005 the done flip under pr with the stale remote branch"
+S=$WORK/stale
+large_path_repo "$S"
+set_task_review "$S" pr
+git -C "$S" commit -q -am "rules: task_review pr"
+seed_initiative "$S" 001 storage-overhaul
+every_slice_emitted "$S"
+initiative_transition "$S" status "$INI" planned >/dev/null 2>&1
+commit_initiative "$S" "initiative 001-storage-overhaul: planned"
+# A merged PR leaves its head branch on origin; only the local branch goes.
+git -C "$S" push -q origin "$BR" 2>/dev/null
+merge_locally "$S" "Merge initiative 001-storage-overhaul (planned)"
+for spec in 002-core-flow 003-reports; do
+  mkdir -p "$S/.workflow/specs/$spec"
+  sed '1,/^---$/s/^status: draft /status: done /' "$S/$FW_ASSETS_REL/spec.md" >"$S/.workflow/specs/$spec/spec.md"
+done
+git -C "$S" add .workflow/specs && git -C "$S" commit -q -m "specs 002 and 003: done"
+eq "JRN-005 under pr main carries the initiative at planned" "$(on_main "$S" .status)" planned
+check "JRN-005 under pr the merged branch is still on origin" 'git -C "$S" show-ref --verify --quiet "refs/remotes/origin/$BR"'
+eq "JRN-005 under pr the branch on origin reads planned" \
+  "$(git -C "$S" show "refs/remotes/origin/$BR:$INI/initiative.md" | yq --front-matter=extract .status)" planned
+close_check "$S"; rc=$?
+check "JRN-005 under pr the stale remote branch does not stop the done flip" \
+  '[ $rc -eq 0 ] && [ "$(git -C "$S" branch --show-current)" = "$BR" ] && [ "$(fm "$S/$INI/initiative.md" .status)" = "done" ]' \
+  "rc=$rc branch=$(git -C "$S" branch --show-current) status=$(fm "$S/$INI/initiative.md" .status)"
+slice_states=$(fm "$S/$INI/initiative.md" '[.slices[].status] | join(" ")')
+eq "JRN-005 under pr the done flip marks every slice done" "$slice_states" "done done"
 
 shellcheck_files "JRN-005 shellcheck merge components" "$P/$IT_REL" "$P/$SCRIPTS_REL/open-task-pr.sh" "$P/$SCRIPTS_REL/rules-setting.sh"
 finish
