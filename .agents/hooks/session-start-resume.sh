@@ -11,7 +11,8 @@
 # Behaviour:
 #   - No spec.md with a status other than `done`, no initiative to resume, no open backlog item and no session handoff: exit 0, no output.
 #   - Each non-done spec (draft, ready-for-dev, in-progress, in-review, blocked; sorted by folder name) is listed with its status,
-#     blocked_condition (while blocked), and the current step from .workflow/specs/NNN-slug/.step (step, updated_at, blocked_from), or "no .step marker".
+#     blocked_condition (while blocked), and the current step from .workflow/specs/NNN-slug/.step (step, updated_at, blocked_from), "no .step marker"
+#     when the file is absent, or "step marker unreadable" when it exists and cannot be parsed.
 #     A spec.md whose frontmatter cannot be read is listed as unreadable rather than skipped.
 #   - Initiatives (.workflow/initiatives/NNN-slug, sorted by name), each listed once as
 #     `- .workflow/initiatives/NNN-slug: status <s>; current step <id> (since <t>); research pending: <n>`, where <n> counts the questions in
@@ -108,16 +109,18 @@ if [ "${#handoffs[@]}" -gt 0 ]; then
   LIMIT=$((LIMIT - ${#htext}))
 fi
 
-# step_text MARKER : "current step <id> (since <time>)" from a .step marker, or "no .step marker".
+# step_text MARKER : "current step <id> (since <time>)" from a .step marker, "no .step marker", or "step marker unreadable".
 step_text() {
   local st step="" at="" from=""
-  if [ -f "$1" ] && st=$(yq -o=json -I=0 '[.step, .updated_at, .blocked_from]' "$1" 2>/dev/null | lines); then
+  if [ ! -f "$1" ]; then
+    printf 'no .step marker'
+  elif st=$(yq -o=json -I=0 '[.step, .updated_at, .blocked_from]' "$1" 2>/dev/null | lines); then
     { IFS= read -r step; IFS= read -r at; IFS= read -r from; } <<<"$st" || true
     printf 'current step %s' "${step:-unknown}"
     [ -z "$at" ] || printf ' (since %s)' "$at"
     [ -z "$from" ] || printf '; blocked from %s' "$from"
   else
-    printf 'no .step marker'
+    printf 'step marker unreadable'
   fi
 }
 

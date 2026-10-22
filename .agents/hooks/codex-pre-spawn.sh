@@ -99,6 +99,8 @@ spec_folder() {
 # origin); an initiative still in exploration exists only on its branch until it merges.
 initiative_folder() {
   local d n
+  # grep -c exits 1 when it counts zero; the || true after the substitution keeps that a count of 0 for the check below, because an
+  # exit 1 here would end the hook before the deny and let the spawn through.
   n=$(
     {
       for d in "$root/$WF_INITIATIVES/$1"-*/; do [ -d "$d" ] && basename "$d"; done

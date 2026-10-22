@@ -105,5 +105,10 @@ ctx=$(resume_offer "$Q")
 check "JRN-004 a checked-out branch with no initiative.md is still listed, as missing" \
   'offer_lines "$ctx" .workflow/initiatives/004-empty | grep -q "no initiative.md"' "$ctx"
 
+printf 'step: [unclosed\n' >"$Q/.workflow/initiatives/001-alpha/.step"
+ctx=$(resume_offer "$Q")
+check "JRN-004 a corrupt .step marker is listed as unreadable, not as missing" \
+  'offer_lines "$ctx" .workflow/initiatives/001-alpha | grep -q "step marker unreadable"' "$ctx"
+
 shellcheck_files "JRN-004 shellcheck session-start-resume.sh" "$P/.agents/hooks/session-start-resume.sh"
 finish
