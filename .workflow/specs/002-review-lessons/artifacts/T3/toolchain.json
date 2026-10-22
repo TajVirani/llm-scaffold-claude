@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t3/.workflow/profiles/agent-docs.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t3",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/002-review-lessons/artifacts/T3",
-  "tree": "19669c0e373f301ac779a92e223b402c49474d57",
+  "tree": "51a48ce5c15acf9408811cf58ce2a2d6ac314894",
   "ran": 2,
   "results": [
     {
@@ -37,12 +37,9 @@
     },
     {
       "key": "test",
-      "command": "tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\"",
+      "command": "tests/run-all.sh",
       "status": "pass",
-      "exit_code": 0,
-      "scoped": true,
-      "own": 0,
-      "excluded": 1
+      "exit_code": 0
     }
   ],
   "digest": "",

@@ -1,0 +1,12 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "72a900afca6a607c0523a6e50e9c70db8cbb1e07"
+head: "983c0d9c0efbd954265dbf9b84799df5215f4d0d"
+findings: []
+checked:
+  - ".workflow/review-lessons.md"
+  - ".workflow/decisions/pitfalls.md"
+not_checked:
+  - "Retrospectives folder .workflow/decisions/retrospectives/ is missing; no Process lessons table was read."
+  - "RL-001 against src/report.sh:4 (cat \"$1\" with no existence check): suspicion scored about 60, below 80. The lesson's consequence is a confusing error far from the call; cat reports a missing file at the call itself, so the mistake is only partly repeated. Would settle it: evidence that callers see the failure far from the call, or that the missing-argument case (set -u unbound $1) is counted as the confusing error the lesson describes."

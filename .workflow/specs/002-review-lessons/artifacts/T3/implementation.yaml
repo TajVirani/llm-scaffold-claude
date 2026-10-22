@@ -1,22 +1,21 @@
 status: done
-summary: The review-lessons lens is in place at step 4.9, with its manifest, PROVENANCE, assetlist and README entries. First return was profile-wrong (the agent-docs lint key ran lint/step-list unscoped while it carried T2's red Phase 1 pin; see implementation-r1 note below). After the ruling, spec/002-review-lessons was merged into the task branch with no conflicts and the PROVENANCE Sources line for skills/feature-workflow/assets/review-lessons.md was added. The full toolchain now passes: all four lint suites and the scoped harness at 2555 passed, 0 failed.
+summary: >-
+  Fix round after 3.11 (JRN-001 failed on its second live run): the lens now matches a lesson on the mistake it names, not on its consequence clause. Step 4 says a symptom is usually "<mistake>, so <consequence>" and only the mistake is matched; step 6 says a consequence the diff does not show never disproves a repeat; the 50 anchor describes a partial match (a guard in the hunk, or the mistake in a path the lesson does not cover); a new "These score 80 or above" list mirrors the below-80 list: a hunk that makes the lesson's mistake in a covered path with no guard is reported. Frontmatter, Receives, Return and the summary block unchanged. The wave-1 result is kept as implementation-wave1.yaml.
 task_id: T3
 worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t3
 branch: task/002-review-lessons/T03-review-lessons-lens
-base_commit: 917842de2713814d80ef67f2cce56284279c78a7
-head_commit: f228fcbe20c12392e3b8e2a682a426e14ea16b99
-files_changed: [.agents/agents/review-lessons.md, .agents/install-manifest.txt, PROVENANCE.md, README.md, assetlist.md]
-tests_added: []   # owns no Phase 1 tests; the seam is the frontmatter, codex-agents and install-payload suites plus T6's tests/lint/review-lessons.sh
+base_commit: 069b0a4b07f22194a76b408cba5c8f6007316cd3
+head_commit: c135205e8c211d4d9278d74746af271bee70764a
+files_changed: [.agents/agents/review-lessons.md]
+tests_added: []
 evidence:
-  red: "bash tests/lint/review-lessons.sh at base: the agent, manifest, PROVENANCE, README and toml assertions fail (agents/review-lessons.md absent)"
-  green: "bash tests/lint/review-lessons.sh after the merge: all 12 agent, manifest, PROVENANCE, README and toml checks pass; passed=31 failed=2 (the two files.md-row checks, T6). tests/lint/frontmatter.sh 40/40, tests/scripts/generate-codex-agents.sh 44/44, tests/scripts/install-payload.sh 55/55, tests/lint/upstream-lineage.sh 13/13."
-  suite: "run-toolchain.sh --spec-dir .workflow/specs/002-review-lessons --task-id T3 --cwd $PWD; lint pass (frontmatter 40, step-list 36, symlinks 45, upstream-lineage 13); test (scoped, own 0, excluded 1) pass, TOTAL passed=2555 failed=0 (43 suites)"
+  red: "None in the harness; the failing evidence is the JRN-001 live run 2 (artifacts/review-lessons/jrn-001-run2-after-rework.yaml)."
+  green: "tests/lint/frontmatter.sh 40/40; tests/lint/review-lessons.sh 33/33; tests/scripts/generate-codex-agents.sh 44/44"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/002-review-lessons --task-id T3 --cwd $PWD, re-run after the adjustment: exit 0; lint and test pass"
   toolchain: .workflow/specs/002-review-lessons/artifacts/T3/toolchain.txt (pass)
-considered_not_built:
-  - "a low severity grade for lessons: the spec sets only high and medium; the summary block keeps low: 0 to match the other lenses"
-  - ".workflow/model-map/review-lessons.md: the orchestrator writes it at the first launch"
-profile_wrong: null   # round 1 reported it; resolved by the 3.3 ruling (design-log 2026-10-22), proposal P3 for 5.3
+considered_not_built: []
+profile_wrong: null
 scope_expansion: null
 blocked: null
 discovered_work: []
-# Commits on the task branch: 3c21f85 feat(agents): add the review-lessons Phase 4 lens (T3); merge of spec/002-review-lessons; f228fcb docs(provenance): record the review-lessons file template (T3).
+# Commits: 0b75655 (rule rewording), c135205 (the 80-or-above adjustment).
