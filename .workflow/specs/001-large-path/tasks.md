@@ -199,6 +199,27 @@ tasks:
     mode: afk
     parallel_with: []
     pr: null
+  - id: T10
+    title: "Close recognises a reopened initiative by its branch status"
+    status: pending
+    capability: CAP-NEW-initiative-close
+    depends_on: [T9]
+    touches_core: false
+    work_type: null
+    module: "feature-workflow"
+    seam: "prose: the JRN-005 replay (close_check) in tests/scripts/initiative-merge.sh and the Phase 4 review lenses against 6.13"
+    file: tasks/T10-close-by-branch-status.md
+    branch: task/001-large-path/T10-close-by-branch-status
+    predicted_files:
+      - .agents/skills/feature-workflow/modules/large-path.md
+      - .agents/skills/feature-workflow/modules/sign-off.md
+      - tests/scripts/initiative-merge.sh
+    size: {files: 3, est_lines: 40, points: S}
+    mode: afk
+    parallel_with: []
+    tests:
+      - "tests/scripts/initiative-merge.sh (the five checks labelled 'JRN-005 under pr')"
+    pr: null
 ---
 
 # Tasks: Large path: planning a large subject into several specs
@@ -218,6 +239,7 @@ Derived from `depends_on` at 2.5 and approved in the 2.1 quiz (2026-10-22). T9 l
 | 2 | [T2](tasks/T02-large-track-steps.md) | Large track in the step list and progress line | M (7 files, ~250 lines) | afk | none |
 | 2 | [T4](tasks/T04-initiative-single-writer.md) | The initiative single writer | M (1 file, ~380 lines) | afk | none |
 | 2 | [T6](tasks/T06-hooks-initiatives.md) | Hooks know initiatives | M (7 files, ~220 lines) | afk | T1: `tests/scripts/install.sh`, ordered by the T1 → T6 edge |
+| 2 | [T10](tasks/T10-close-by-branch-status.md) | Close recognises a reopened initiative by its branch status (added at the 2026-10-22 re-entry after the 4.6 loop back; T9 is done, so it runs alone) | S (3 files, ~40 lines) | afk | T9: `modules/large-path.md`, `modules/sign-off.md`, ordered by the T9 → T10 edge |
 | 3 | [T5](tasks/T05-generic-pr-mode.md) | Generic PR mode | S (2 files, ~120 lines) | afk | none |
 | 3 | [T7](tasks/T07-guards-and-launches.md) | Guards and launches from an initiative | M (4 files, ~220 lines) | afk | none |
 
@@ -234,4 +256,5 @@ graph LR
   T1 --> T7
   T2 --> T7
   T8 --> T7
+  T9 --> T10
 ```

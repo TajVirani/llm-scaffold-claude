@@ -482,3 +482,7 @@ Rows that change against the earlier classifications: none. D33 changes the pros
 ## 2026-10-22 Phase 1 re-entry (1.3-1.5) after the 4.6 loop back
 
 - 1.1: spec branch, baseline and Targets unchanged. 1.3: one Phase 1 build added five JRN-005 checks for step 5 (the done flip under `pr` with the stale remote branch) to `tests/scripts/initiative-merge.sh`; merged as 1a2718a; stop audit clean (lint pass, test skipped by design). 1.4: Run 3 in [artifacts/phase-1-known-bad/record.md](artifacts/phase-1-known-bad/record.md): the two flip checks fail on assertions at HEAD, the three setup checks pass. 1.5: Suites table unchanged; the spec folder is committed on the spec branch. The branch is red by design again until the task for D33 lands.
+
+## 2026-10-22 Task breakdown re-entry (2.1-2.6) after the 4.6 loop back
+
+- 2.1: one slice, T10 "Close recognises a reopened initiative by its branch status" (D33), approved as drafted by the stakeholder; the nine existing tasks stay `done`. 2.5: task file and record written, `depends_on: [T9]` for the shared module files (T9 is done, so T10 runs alone in its wave); `tests` names the five "JRN-005 under pr" checks in `tests/scripts/initiative-merge.sh` (the suite file itself stays T5's). 2.6: 10 tasks of 10, changed files unchanged; within budget on both checks.
