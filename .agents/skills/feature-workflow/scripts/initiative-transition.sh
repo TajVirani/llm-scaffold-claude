@@ -140,8 +140,8 @@ write_marker() {
   mv -f "$tmp" "$file"
 }
 
-# Validators copied verbatim from the "Validate the frontmatter" blocks of feature-workflow/assets/initiative.md and
-# assets/questions.md; keep each identical to its template. Every write must pass the one for its file.
+# Each validator below is a copy of the one in its template. Keep each identical to its template, because a write must pass
+# the template's own rule.
 INITIATIVE_VALIDATOR='
     (.status | test("^(exploring|planned|done)$")) and
     ((.origin | tag) == "!!str") and
