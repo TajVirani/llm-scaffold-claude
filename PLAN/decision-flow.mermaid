@@ -142,9 +142,9 @@ flowchart TD
         integrator["3.2 - Integration owner applies core changes between batches; one work type per batch"]
         impl["3.3 - Pause before hitl tasks; sub-agent per module, in its task worktree: write failing test, then implementation, under the injected profile"]
         selfreview["3.4 - Add negative and edge-case tests"]
-        toolAudit["3.5 - On stop, run the profile's toolchain via run-toolchain.sh: lint with anti-slop rules, type-check, format, import-boundary check"]
+        toolAudit["3.5 - On stop, run the profile's toolchain via run-toolchain.sh: lint with anti-slop rules, type-check, format, import-boundary check; reused when the tree is unchanged"]
         gTool{"3.6 - Tool audit clean?"}
-        miniReview["3.7 - Sub-agent: mini-review against the checklist items no tool can express, given the tool output"]
+        miniReview["3.7 - Sub-agent: mini-review against the checklist items no tool can express, given the tool output; returns verdicts, not the checklist"]
         gMini{"3.8 - Mini-review passes?"}
         gSuites{"3.13 - Harness and browser suite both exist? Always yes on the full path"}
         skipSuites["3.14 - Light path only: skip only the gate of each missing suite; record the gap in spec.md and .workflow/deferred/"]
@@ -160,9 +160,9 @@ flowchart TD
         aStd["4.1 - Sub-agent: coding standards, rules, profile and architecture conformance"]
         aReq["4.2 - Sub-agent: goal and end-state conformance"]
         aTargets["4.3 - Sub-agent: measurable targets met"]
-        triage["4.4 - Triage each finding: verify it at the named location, assign severity, dismiss noise with a recorded reason"]
+        triage["4.4 - Triage each finding from each lens's findings file, checked by check-review-findings.sh: verify it at the named location, assign severity, dismiss noise with a recorded reason"]
         gRoute{"4.5 - Route each surviving finding"}
-        gThird{"4.6 - Third review pass with non-trivial findings?"}
+        gThird{"4.6 - Another pass only after a high-severity patch?"}
         gRounds{"4.7 - Rework attempts remaining? (max 5)"}
         gaps["4.8 - Write deferred findings and remaining gaps as deferred handoffs"]
     end
@@ -171,7 +171,7 @@ flowchart TD
         reconcile["5.1 - Reconcile spec.md with what actually shipped"]
         propose["5.2 - Propose Tier A updates in proposals.md: new capabilities, changed rules, decisions, observed pitfalls, profile changes"]
         gApproveDocs{"5.3 - Human approves or modifies the proposals?"}
-        report["5.4 - report.md: test output, metrics, known gaps"]
+        report["5.4 - report.md: test output (reuses the last passing run), metrics, known gaps"]
         gApprove{"5.5 - Stakeholder approves the work?"}
         reenter["5.6 - Read spec.md status; re-enter at the phase it names"]
         retro["5.7 - retrospective skill, run with stakeholder: judge the combined result against spec.md; agree process lessons"]
