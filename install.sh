@@ -36,7 +36,7 @@
 #   template value, outputStyle, statusLine and default_permissions are overwritten, and a hand-written [permissions.workflow] that
 #   differs is left as is with a warning (it cannot be rewritten safely). Unparseable JSON or TOML always refuses.
 # Exit: 0 installed (or dry-run clean); 1 refused because of a conflict; 2 usage or preflight error.
-# Run it outside a Codex session. Tests: tests/scripts/install.sh.
+# Run it outside a Codex session. Tests: tests/scripts/install-*.sh (payload, hosts, upgrade, claude-settings, codex-config, codex-tui).
 
 set -euo pipefail
 export LC_ALL=C
