@@ -332,3 +332,7 @@ Rows that change against the earlier classifications; every other row stands.
 
 - Dismissed discovered work: no-e2e-work-type: verification-setup 1.3 and 1.4 step 2 assume an e2e-browser work type and this project has none, every journey being a harness suite (`.agents/skills/feature-workflow/modules/verification-setup.md` § 1.3, § 1.4), not a blocker, user chose not to pursue; this spec records the Browser suite as `none` and 1.4 step 2 as not applicable.
 - Dismissed discovered work: spec-number-origin: D31's next-number count omits a converted spec that left no folder and no branch, while the end state says its number is not reused (`.workflow/specs/001-large-path/design-log.md:316`, `tests/fixtures/initiative.sh` `next_spec_number`), not a blocker, user chose not to pursue a loop-back; clarification recorded: D31's count also includes each initiative's `origin`, as JRN-001 pins.
+
+## 2026-10-22 Size budget (2.6)
+
+- Approved budget overrun: max_changed_files reached 31 against 30 (predicted, `budget-check.sh --predicted`: 40 predicted files, 9 of them tests; 9 tasks against 10). Reason: "Approve the overrun (Recommended)", accepting the assessment that the one-file overrun is the scaffold-doc files granted at 2.1 (PLAN flow docs, `.gitignore`, PROVENANCE) and that a split would leave a capability's success line unmet. Budget raised to {max_tasks: 10, max_changed_files: 35} for this spec only (spec.md `budget`).
