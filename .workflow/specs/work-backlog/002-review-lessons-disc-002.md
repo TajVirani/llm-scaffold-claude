@@ -2,7 +2,7 @@
 origin_spec: .workflow/specs/002-review-lessons
 origin_step: "3.9"
 discovered_at: 2026-10-22
-status: open
+status: moved-to-deferred
 kind: bug
 ---
 
@@ -31,3 +31,4 @@ No capability or journey of 002-review-lessons touches the runner; the gate pass
 
 - Origin spec: [spec.md](../002-review-lessons/spec.md)
 - Design log entry: [design-log.md](../002-review-lessons/design-log.md) (section 2026-10-22 Discovered work: flaky-parallel-timing-test)
+- Deferred file: [.workflow/deferred/concurrency-check-timing.md](../../deferred/concurrency-check-timing.md) (same concept, already shelved; this item's Later requests line added at 5.9)

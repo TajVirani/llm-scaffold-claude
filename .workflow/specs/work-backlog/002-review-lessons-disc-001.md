@@ -2,7 +2,7 @@
 origin_spec: .workflow/specs/002-review-lessons
 origin_step: "2.1"
 discovered_at: 2026-10-22
-status: open
+status: moved-to-deferred
 kind: bug
 ---
 
@@ -31,3 +31,4 @@ No capability or journey of 002-review-lessons needs a research launch. T6 of th
 
 - Origin spec: [spec.md](../002-review-lessons/spec.md)
 - Design log entry: [design-log.md](../002-review-lessons/design-log.md) (section 2026-10-22 Discovered work: research-missing-from-model-map)
+- Deferred file: [.workflow/deferred/research-model-map.md](../../deferred/research-model-map.md) (same concept, shelved by spec 001; this item's Later requests line added at 5.9)

@@ -230,3 +230,8 @@ Outcome: rework 1 of 5
 
 - 5.1: `spec.md` reconciled with what shipped (the lens writes a pass file checked by `check-review-findings.sh` with one lens-table row; the lessons file is validated by `scripts/review-lessons.sh`, which the template lines call; a standalone retrospective records a lesson as an action item); four assumptions confirmed; Known gaps section added (F6 until 5.7, the two unmeasured targets).
 - 5.2-5.3: thirteen proposals, all approved: P1-P4 profiles, P5-P6 capabilities (assigned CAP-002 lens and CAP-003 record), P7 rules.md comments line, P8 readable-code R4 header exemption, P9-P12 pitfalls, P13 tool rule (the lint suite shelved as `.workflow/deferred/comment-id-lint.md`). Orchestrator error: the ids were first assigned as CAP-001/CAP-002 before re-reading `capabilities.md`, which already held CAP-001 (spec 004); the unguarded files were corrected by sed, and `tasks.md` with `yq --front-matter=process -i`, because `set-task` rewrites only a provisional id. Lesson for the retrospective: run the capabilities read and the assignment as one step, as the module says.
+
+## 2026-10-22 Sign-off 5.5 and 5.9
+
+- 5.5: approved. Stakeholder: "Yes, approve (Recommended)".
+- 5.9: both open backlog items moved to the shelf as duplicates of existing items (the F9 finding): `002-review-lessons-disc-001` → [.workflow/deferred/research-model-map.md](../../deferred/research-model-map.md) (Later requests line); `002-review-lessons-disc-002` → [.workflow/deferred/concurrency-check-timing.md](../../deferred/concurrency-check-timing.md) (Later requests line). Stakeholder: "Move it to the shelf (Recommended)" for both.
