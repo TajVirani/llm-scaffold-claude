@@ -283,6 +283,8 @@ if [[ "$MODE" == "set-question" ]]; then
   [[ "$QID" =~ ^IQ[0-9]+$ ]] || die "question id must look like IQ<n>: $QID"
   [[ -n "$OPT_STATE" ]] || die "set-question needs --state <open|researching|settled>"
   in_list "$OPT_STATE" "$QUESTION_STATES" || die "unknown question state '$OPT_STATE' (expected one of: $QUESTION_STATES)"
+  [[ -z "$OPT_LAUNCHED" || "$OPT_LAUNCHED" == "clear" ]] || in_list "$OPT_LAUNCHED" "$LAUNCH_TASK_TYPES" \
+    || die "unknown launch task type '$OPT_LAUNCHED' (expected one of: $LAUNCH_TASK_TYPES, or clear)"
   [[ -f "$QUESTIONS" ]] || die "questions.md not found in the main checkout: $QUESTIONS"
   count=$(yq --front-matter=extract '[.questions[] | select(.id == strenv(QID))] | length' "$QUESTIONS") \
     || die "cannot read the questions: array in $QUESTIONS"
@@ -298,7 +300,6 @@ if [[ "$MODE" == "set-question" ]]; then
     "open>researching")
       [[ "$QKIND" == "research" ]] || reject_question "only a research question is researched; a $QKIND question is settled by the stakeholder"
       [[ -n "$OPT_LAUNCHED" && "$OPT_LAUNCHED" != "clear" ]] || reject_question "pass --launched <task_type> naming the agent launched"
-      in_list "$OPT_LAUNCHED" "$LAUNCH_TASK_TYPES" || die "unknown launch task type '$OPT_LAUNCHED' (expected one of: $LAUNCH_TASK_TYPES)"
       export TASK_TYPE=$OPT_LAUNCHED LAUNCHED_AT
       LAUNCHED_AT=$(utc_now)
       EXPR="($RECORD) |= (.state = \"researching\" | .launched = {\"task_type\": strenv(TASK_TYPE), \"at\": strenv(LAUNCHED_AT)})"

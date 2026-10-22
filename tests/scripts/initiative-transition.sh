@@ -75,5 +75,46 @@ t "JRN-002 a folder outside .workflow/initiatives is a usage error" 1 IT status 
 t "JRN-002 an unknown question id is a usage error" 1 IT set-question "$INI" IQ9 --state open
 t "JRN-002 set-pr with a value that is not a URL is a usage error" 1 IT set-pr "$INI" not-a-url
 
+echo "== JRN-002 step markers and initiative dirs"
+NEW_INI=.workflow/initiatives/002-new-subject
+mkdir -p "$P/$NEW_INI"
+t "JRN-002 step is accepted on a folder with no initiative.md yet" 0 IT step "$NEW_INI" "$LARGE_ENTRY_STEP"
+eq "JRN-002 step before initiative.md writes the marker" "$(marker_step "$P/$NEW_INI/.step")" "$LARGE_ENTRY_STEP"
+refused "JRN-002 step refuses an id that is not 6.x" IT step "$INI" 0.1.4
+t "JRN-002 an absolute initiative dir is accepted" 0 IT step "$P/$INI" "$LARGE_TERM_GATE_STEP"
+eq "JRN-002 an absolute dir writes the marker" "$(marker_step "$P/$INI/.step")" "$LARGE_TERM_GATE_STEP"
+refused "JRN-002 status refuses a --step that is not 6.x" IT status "$INI" exploring --step 0.3.1
+
+echo "== JRN-002 unknown ids and values"
+t "JRN-002 an unknown slice id is a usage error" 1 IT set-slice "$INI" S9 --status emitted --spec 002-core-flow
+t "JRN-002 a launch task type outside the allowed four is a usage error" 1 IT set-question "$INI" IQ3 --state researching --launched wizard
+eq "JRN-002 a refused launch leaves the question open" "$(question IQ3 .state)" open
+
+echo "== JRN-002 a write the validator refuses"
+# A hand edit that breaks the template rules (S2 depends on a slice that does not exist) makes any later write fail validation.
+yq --front-matter=process -i '.slices[1].depends_on = ["S7"]' "$P/$INI/initiative.md"
+sum_before=$(cksum <"$P/$INI/initiative.md")
+refused "JRN-002 a write the validator rejects is refused" IT set-pr "$INI" https://github.com/o/r/pull/8
+eq "JRN-002 a refused write leaves initiative.md byte-identical" "$(cksum <"$P/$INI/initiative.md")" "$sum_before"
+yq --front-matter=process -i '.slices[1].depends_on = ["S1"]' "$P/$INI/initiative.md"
+
+echo "== JRN-002 emitted slices, planned and reopen"
+IT set-question "$INI" IQ2 --state settled --settled "Adopt the surveyed format." >/dev/null 2>&1
+IT set-question "$INI" IQ3 --state settled --settled "The platform team owns the core flow." >/dev/null 2>&1
+t "JRN-002 S1 is emitted once its questions settle" 0 IT set-slice "$INI" S1 --status emitted --spec 002-core-flow
+refused "JRN-002 an emitted slice keeps the spec it was emitted as" IT set-slice "$INI" S1 --spec 003-other
+eq "JRN-002 S1 still names its first spec" "$(fm "$P/$INI/initiative.md" '.slices[] | select(.id == "S1") | .spec')" 002-core-flow
+IT set-slice "$INI" S2 --status emitted --spec 003-follow-up-reports >/dev/null 2>&1
+t "JRN-002 planned is accepted once every slice is emitted" 0 IT status "$INI" planned
+eq "JRN-002 the initiative is planned" "$(fm "$P/$INI/initiative.md" .status)" planned
+t "JRN-002 a planned initiative can be reopened" 0 IT status "$INI" exploring
+eq "JRN-002 the reopened initiative is exploring" "$(fm "$P/$INI/initiative.md" .status)" exploring
+
+echo "== JRN-002 replacing merge_pr"
+IT set-pr "$INI" https://github.com/o/r/pull/7 >/dev/null 2>&1
+err=$(IT set-pr "$INI" https://github.com/o/r/pull/9 2>&1 >/dev/null)
+check "JRN-002 replacing merge_pr warns on stderr" 'grep -q "warning: .*pull/7 replaced by .*pull/9" <<<"$err"' "$err"
+eq "JRN-002 the replacement is recorded" "$(fm "$P/$INI/initiative.md" .merge_pr)" https://github.com/o/r/pull/9
+
 shellcheck_files "JRN-002 shellcheck initiative-transition.sh" "$P/$IT_REL"
 finish
