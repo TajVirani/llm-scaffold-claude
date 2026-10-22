@@ -11,9 +11,9 @@ Entry rules, one item of the `lessons` list per lesson:
   - retired: optional, the day a rule or a tool started to enforce the lesson, YYYY-MM-DD. A retired entry also needs enforced_by.
   - enforced_by: required once retired is set, never empty: the rule line or tool check that now catches the mistake.
 
-Two commands check the file and give the next id. Each takes the file path as its one argument (bash, then mikefarah yq v4 and jq):
-validate: set -o pipefail; awk '/^```yaml$/{f=1;next} /^```$/{if(f)exit} f' "$1" | yq -o=json '.' - | jq -e 'def iso_date: type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"); type == "object" and (.lessons | type == "array") and ([.lessons[].id] | length == (unique | length)) and all(.lessons[]; type == "object" and (.id | type == "string" and test("^RL-[0-9]{3,}$")) and (.symptom | type == "string" and length > 0) and (.paths | type == "array" and length > 0 and all(.[]; type == "string" and length > 0 and (startswith("/") | not) and (split("/") | any(. == "..") | not))) and (.origin_spec | type == "string" and test("^\\.workflow/specs/[0-9]{3}-[a-z0-9-]+$")) and (.date | iso_date) and (if has("retired") then (.retired | iso_date) and (.enforced_by | type == "string" and length > 0) else true end))' >/dev/null || { echo "review lessons: $1 breaks the entry rules in its header" >&2; exit 1; }
-next-id: set -o pipefail; awk '/^```yaml$/{f=1;next} /^```$/{if(f)exit} f' "$1" | yq -o=json '.' - | jq -r '([.lessons[]?.id | ltrimstr("RL-") | tonumber] | max // 0) + 1 | tostring | if length < 3 then ("00" + .)[-3:] else . end | "RL-" + .'
+Two commands check the file and give the next id. Each takes the file path as its one argument and runs the feature-workflow script review-lessons.sh, which holds these rules in executable form:
+validate: "$(git rev-parse --show-toplevel)"/.agents/skills/feature-workflow/scripts/review-lessons.sh validate "$1"
+next-id: "$(git rev-parse --show-toplevel)"/.agents/skills/feature-workflow/scripts/review-lessons.sh next-id "$1"
 -->
 
 # Review lessons
