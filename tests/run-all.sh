@@ -240,6 +240,7 @@ done
 wait
 
 printf '\n== summary\n'
+# The guard keeps `set -u` from failing on an empty array in bash 3.2, which happens when no suite is selected.
 for r in ${rows[@]+"${rows[@]}"}; do printf '%s\n' "$r"; done
 printf 'TOTAL passed=%s failed=%s skipped=%s xfail=%s (%s suites)\n' "$total_pass" "$total_fail" "$total_skip" "$total_xfail" "$suite_count"
 if [ "${#failed_suites[@]}" -gt 0 ]; then
