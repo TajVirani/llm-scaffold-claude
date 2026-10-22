@@ -76,11 +76,12 @@ t "generated agents are current (--check)" 0 "$TEST_BASH" "$A/.agents/hooks/gene
 check "hooks.json equals the Codex template" '[ "$(jq -S . "$A/.codex/hooks.json")" = "$(jq -S . "$SC/.agents/hooks/codex-hooks.template.json")" ]'
 check "config.toml parses to the template values" '[ "$(yq -p toml -o json -I=0 . "$A/.codex/config.toml")" = "$(yq -p toml -o json -I=0 . "$SC/.agents/hooks/codex-config.template.toml")" ]'
 eq "config.toml sets the Codex context bar" "$(yq -p toml -o json -I=0 .tui.status_line "$A/.codex/config.toml")" '["model-with-reasoning","context-remaining","current-dir","git-branch"]'
-for p in '.workflow/specs/*/.step' '.workflow/.cache-staging/' '.workflow/.worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/'; do
+for p in '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.cache-staging/' '.workflow/.worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/'; do
   check ".gitignore has $p" 'grep -qxF -- "$p" "$A/.gitignore"'
 done
 check "install creates no .workflow/" '[ ! -e "$A/.workflow" ]'
 check "path helper installed" '[ -f "$A/.agents/lib/workflow-paths.sh" ]'
+eq "installed wf_path resolves the initiatives root" "$("$TEST_BASH" -c '. "$1/.agents/lib/workflow-paths.sh" && wf_path "$1" "$WF_INITIATIVES"' _ "$A")" "$A/.workflow/initiatives"
 check "hook scripts are executable" '[ -x "$A/.agents/hooks/pre-launch.sh" ] && [ -x "$A/.agents/hooks/block-destructive-git.sh" ] && [ -x "$A/.agents/skills/feature-workflow/scripts/status-transition.sh" ]'
 out=$(printf '{"tool_name":"Bash","tool_input":{"command":"git push --force"},"cwd":"%s"}' "$A" | "$A/.agents/hooks/block-destructive-git.sh" 2>&1)
 check "an installed hook runs from the target" 'printf "%s" "$out" | grep -qi "deny\|block"' "$out"
@@ -374,7 +375,7 @@ INST "$P" --force >/dev/null 2>&1
 "$TEST_BASH" "$WORK/sc2/install.sh" "$P" --force >/dev/null 2>&1
 eq "project-owned files byte-identical after install, --force and upgrade" "$(owned)" "$before"
 check "project-owned .workflow/ gained no files" '[ "$(find "$P/.workflow" -type f | wc -l | tr -d " ")" = 10 ]'
-check ".gitignore user lines kept, block added once" 'grep -qx "node_modules/" "$P/.gitignore" && grep -qx "\*.log" "$P/.gitignore" && [ "$(grep -c "^.workflow/specs/\*/.step$" "$P/.gitignore")" = 1 ]'
+check ".gitignore user lines kept, block added once" 'grep -qx "node_modules/" "$P/.gitignore" && grep -qx "\*.log" "$P/.gitignore" && [ "$(grep -c "^.workflow/specs/\*/.step$" "$P/.gitignore")" = 1 ] && [ "$(grep -c "^.workflow/initiatives/\*/.step$" "$P/.gitignore")" = 1 ]'
 
 echo "== lint"
 shellcheck_files "shellcheck: install.sh" "$REPO_ROOT/install.sh"
