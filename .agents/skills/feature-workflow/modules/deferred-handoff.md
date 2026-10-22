@@ -2,7 +2,9 @@
 
 One file per shelved concept in `.workflow/deferred/`, written so a fresh agent with no access to this conversation can act on it months later. `retrieval` reads the shelf at 0.2.4 of every later feature, so a well-named, durable file is how shelved work comes back.
 
-Run [Write](#write) or [Archive](#archive) as the caller asks, then return to the calling module with the [Return](#return) summary.
+Run [Write](#write), [Archive](#archive) or [Re-point at conversion](#re-point-at-conversion) as the caller asks, then return to the calling module with the [Return](#return) summary.
+
+`origin_spec` and `superseded_by` name the folder that owns the item: a spec, `.workflow/specs/NNN-slug`, or an initiative, `.workflow/initiatives/NNN-slug`. An initiative's large path writes an item at 6.5 with its own folder as `origin_spec`; the steps below that touch `spec.md` (`deferred`, Non-goals) and the spec's step do not apply to it, and the note goes to the initiative's `design-log.md`.
 
 ## Write
 
@@ -50,6 +52,20 @@ Used at 0.1.5 when the request came off the shelf (00.9), and when the stakehold
 
 Done when `.workflow/deferred/<slug>.md` no longer exists, `.workflow/deferred/archive/<slug>.md` carries `superseded_by`, and the design log links it.
 
+## Re-point at conversion
+
+Used at 0.3.23, when the large path converts a draft spec into an initiative and deletes the spec folder. Every shelf item that names the spec must name the initiative instead, or it would point at nothing.
+
+1. Find them: every `.workflow/deferred/*.md` and `.workflow/deferred/archive/*.md` whose `origin_spec` or `superseded_by` is `.workflow/specs/<spec NNN-slug>`.
+
+   ```bash
+   for f in .workflow/deferred/*.md .workflow/deferred/archive/*.md; do [ -f "$f" ] && OLD=.workflow/specs/<spec NNN-slug> yq --front-matter=extract -e '.origin_spec == strenv(OLD) or .superseded_by == strenv(OLD)' "$f" >/dev/null 2>&1 && echo "$f"; done
+   ```
+
+2. In each, set the matching key to `.workflow/initiatives/NNN-slug`. Change nothing else, and leave the file where it is.
+
+Done when the loop above prints nothing. Report each file under `re-pointed:` in the Return.
+
 ## Return
 
 Report back to the calling module:
@@ -58,6 +74,7 @@ Report back to the calling module:
 written:  .workflow/deferred/<slug>.md, ...
 appended: .workflow/deferred/<slug>.md (Later requests), ...
 archived: .workflow/deferred/archive/<slug>.md, ...
+re-pointed: .workflow/deferred/<slug>.md, ...
 failed:   <item>: <why>
 ```
 

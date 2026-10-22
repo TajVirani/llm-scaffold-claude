@@ -23,6 +23,8 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 ## The round
 
 1. **0.3.8 Compute the frontier.** Map the open decisions as a design tree: each decision branches into the decisions that hang off it. The frontier is every open decision whose prerequisites are settled. Order it highest priority first: decisions that change scope or unblock the most others lead. A question whose answer depends on another question still open in this round waits for a later round.
+
+   **Several features?** When the tree holds more than one capability with its own success signal or its own owning module, put a conversion question first on the frontier: "This is several features: convert the spec into an initiative and plan each one as its own spec?" The stakeholder decides. Yes → convert at [0.3.23](large-path.md#0323-convert-a-spec-into-an-initiative) after logging the round; the loop ends there. No → keep the tree as one feature and continue.
 2. **0.3.9 Any answerable?** No → go to [0.3.19](#settle-the-goal).
 3. **0.3.10 Look up facts.** For each frontier question that needs a fact from the repo, launch one `fact-lookup` with all such questions numbered:
 
@@ -66,6 +68,8 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 
 **0.3.19 Confirm or revise the goal.** The frontier is empty when every branch is visited and nothing is silently assumed. Summarise the settled design in a few lines and ask the stakeholder to confirm shared understanding; a correction reopens the frontier.
 
+**One feature?** Before writing `spec.md`, check that the settled design is one feature: one capability set with one success signal, buildable as one spec. No → convert at [0.3.23](large-path.md#0323-convert-a-spec-into-an-initiative) and write nothing here; the large path takes the design log with it. Yes → continue.
+
 Once confirmed, evaluate the **0.3.20 light-path facts** (table in [discovery.md](discovery.md#0320-light-path-test)) so the same write records them, then write `spec.md`:
 
 ```bash
@@ -82,6 +86,6 @@ Return to [discovery](discovery.md#0320-light-path-test) at 0.3.20. The size `bu
 
 ## Done
 
-- The frontier is empty and the stakeholder confirmed the summary.
+- The frontier is empty and the stakeholder confirmed the summary as one feature, or the spec was handed to the large path at 0.3.23.
 - Every round, deep dive and scope ruling is in `design-log.md` with decision ids; every new term is in the glossary; every shelved item is a `.workflow/deferred/` file listed in `spec.md`.
 - `spec.md` holds the final goal, capabilities and `light_path`, written at step 0.3.19.
