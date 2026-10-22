@@ -27,7 +27,7 @@ run_rls() {
 # refuses_naming FILE FIELD : validate exits 1 on FILE with exactly one stderr line, and that line names FIELD.
 refuses_naming() {
   run_rls validate "$1"
-  [ "$RC" -eq 1 ] && [ "$(printf '%s\n' "$ERR" | wc -l | tr -d ' ')" -eq 1 ] && [[ $ERR == *"$2"* ]]
+  [[ $RC -eq 1 && $(printf '%s\n' "$ERR" | wc -l | tr -d ' ') -eq 1 && $ERR == *"$2"* ]]
 }
 
 echo "== validate accepts files that meet the entry rules"
@@ -35,7 +35,7 @@ review_lessons_file "$L/one.md" "$(lesson_rl001)"
 review_lessons_file "$L/retired.md" "$(lesson_rl001_retired)"
 for file in "$TEMPLATE" "$L/one.md" "$L/retired.md"; do
   run_rls validate "$file"
-  check "validate accepts $(basename "$file")" '[ "$RC" -eq 0 ] && [ -z "$ERR" ]' "rc=$RC: $ERR"
+  check "validate accepts $(basename "$file")" '[[ $RC -eq 0 && -z $ERR ]]' "rc=$RC: $ERR"
 done
 
 echo "== validate refuses each broken file, naming the rule"
