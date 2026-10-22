@@ -47,7 +47,7 @@ yq --front-matter=process -i '.initiative = "001-storage-overhaul"' "$P/$SPEC/sp
 spec_transition "$P" status "$SPEC" draft --step 0.1.4 >/dev/null 2>&1
 {
   printf '# Design log: Core flow\n\nSpec: [spec.md](spec.md)\n\n'
-  printf '## 2026-10-21 Origin: initiative 001-storage-overhaul, slice S1\n\n- Initiative: %s\n- Binding decisions:\n' "$INI"
+  printf '## 2026-10-21 Origin: initiative 001-storage-overhaul, slice S1\n\n- Initiative: %s\n- Slice: S1 Core flow\n- Binding decisions:\n' "$INI"
   fm "$P/$INI/questions.md" '.questions[] | select(.id == "IQ1" or .id == "IQ3") | "  - " + .id + ": " + (.settled // "")'
 } >"$P/$SPEC/design-log.md"
 IT set-slice "$INI" S1 --status emitted --spec "$SPEC_NAME" >/dev/null 2>&1

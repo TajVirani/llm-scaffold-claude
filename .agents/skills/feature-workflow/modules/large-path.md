@@ -77,17 +77,8 @@ Entered from the questioning loop, when the stakeholder agrees that the draft sp
    IT status .workflow/initiatives/NNN-slug exploring --step 6.1
    ```
 
-4. **Move the record in.** `mv` the spec's `design-log.md` and `codebase-map.md` into the initiative folder. In the moved log, replace the line `Spec: [spec.md](spec.md)` with `Initiative: [initiative.md](initiative.md)` (the one edit of an earlier line, because the spec it linked is deleted), then append:
-
-   ```markdown
-   ## YYYY-MM-DD Origin: converted from spec <spec NNN-slug>
-
-   - Spec: .workflow/specs/<spec NNN-slug> (draft, step 0.3.23)
-   - Reason: <why it is several features, with the round that showed it>
-   ```
-
-   Decisions keep their `D<n>` ids; later rounds continue the numbering.
-5. **Re-point every reference to the spec.** Shelf items: [deferred-handoff](deferred-handoff.md#re-point-at-conversion) **Re-point at conversion**. A work item that seeded the spec (`.workflow/specs/work-backlog/*.md` whose `promoted_to` names the spec folder): set `promoted_to: .workflow/initiatives/NNN-slug` and change nothing else.
+4. **Move the record in.** `mv` the spec's `design-log.md` and `codebase-map.md` into the initiative folder. In the moved log, replace the line `Spec: [spec.md](spec.md)` with `Initiative: [initiative.md](initiative.md)` (the one edit of an earlier line, because the spec it linked is deleted). Decisions keep their `D<n>` ids; later rounds continue the numbering.
+5. **Re-point every reference to the spec.** Shelf items: [deferred-handoff](deferred-handoff.md#re-point-at-conversion) **Re-point at conversion**. A work item that seeded the spec (`.workflow/specs/work-backlog/*.md` whose `promoted_to` names the spec folder): set `promoted_to: .workflow/initiatives/NNN-slug` and change nothing else. Then append to the moved log the `Origin: converted from spec <NNN-slug>` entry, shaped as in [../assets/design-log.md](../assets/design-log.md): the spec folder at step 0.3.23, the new initiative and its branch, the spec's number as consumed, the reason it is several features (with the round that showed it), and the items re-pointed here.
 6. **Delete the spec folder** (`rm -rf .workflow/specs/<spec NNN-slug>`). Its number is never reused: discovery 0.1.1 counts each initiative's `origin`.
 7. **Commit point** (`converted from spec <spec NNN-slug>`).
 
@@ -146,12 +137,12 @@ task_type: research
 spec_dir: .workflow/initiatives/NNN-slug
 ```
 
-Question: IQ<n>: <question>
-Settled context: <each settled question it depends on, with its settled line>
-Affected area: <modules and paths from codebase-map.md, or "none">
+Question: IQ<n>: <the question, verbatim from questions.md>
+Goal: <the initiative's goal, from initiative.md>
+Settled: <IQ<n>: its settled line, one per question it depends on, or "none">
 ````
 
-The body carries what `.agents/agents/research.md` lists under its inputs; its return format is fixed there. A research question may stay `researching` when the session ends: 6.2 of a later session writes it back.
+The body carries exactly the inputs `.agents/agents/research.md` lists, and its return format is fixed there. A research question may stay `researching` when the session ends: 6.2 of a later session writes it back.
 
 For `decision` questions that need a fact from the repo, launch one `fact-lookup` with them numbered, exactly as [0.3.10](questioning-loop.md#the-round) shows, with the initiative folder as `spec_dir`. An **Answer + Source** settles the question (`--state settled --settled "<answer> (<source>)"`) and it is never asked.
 
@@ -179,23 +170,7 @@ When the round settled how the subject divides: `IT step .workflow/initiatives/N
 
 ### 6.8 Log and commit the round
 
-`IT step .workflow/initiatives/NNN-slug 6.8`. Append the round to `design-log.md`; decision ids continue the log's `D<n>` sequence:
-
-```markdown
-## YYYY-MM-DD Initiative round <n>
-
-**IQ<n>. <question>**
-
-- Why now: <the settled question, fact or emitted spec that made it answerable>
-- Options: <A: option and its cost> · <B: ...>
-- Recommended: <option>, because <reason; source>
-- Answer: "<verbatim>" (or: deferred to deep dive)
-- Decision: **D<n>** <the decision, one line>
-
-Research: <IQ<n> launched | IQ<n> settled: <finding> (<source>) | IQ<n> reopened: no result>, or "None."
-Facts looked up instead of asked: <fact>: <answer> (source), or "None."
-Slices: <S<n> added or changed, one line each>, or "unchanged".
-```
+`IT step .workflow/initiatives/NNN-slug 6.8`. Append the `Initiative round <n>` entry to `design-log.md`, shaped as in [../assets/design-log.md](../assets/design-log.md): the round's frontier, one block per question asked or launched (a research question's result is its settled line with the source, or "left researching"), the slices planned or changed at 6.7, and the questions still researching. Decision ids continue the log's `D<n>` sequence. Facts that settled a question at 6.4 go in that question's block.
 
 Then the commit point (`round <n>`). Route on what the record now says:
 
@@ -273,27 +248,35 @@ Append `## YYYY-MM-DD Reopened: <the stakeholder's reason, verbatim>` to `design
 
 ### 6.13 Close when every spec is done
 
-On resume of a `planned` initiative that has merged, and from sign-off once a spec carrying `initiative:` has merged into main. Fetch and compute the main ref, then list the emitted specs not yet `done` there:
+On resume of a `planned` initiative that has merged, and from sign-off once a spec carrying `initiative:` has merged into main. Fetch and compute the main ref, then read the initiative's status there:
 
 ```bash
-for spec in $(git show "$main_ref:.workflow/initiatives/NNN-slug/initiative.md" | yq --front-matter=extract '.slices[].spec'); do
-  spec_done_on_main "$spec" || echo "$spec"
-done
+git show "$main_ref:.workflow/initiatives/NNN-slug/initiative.md" 2>/dev/null | yq --front-matter=extract '.status'
 ```
 
-- **Some listed.** Tell the stakeholder which specs are still open and write nothing; offer 6.12 if they want to reopen.
-- **None listed.** Re-create the branch from the main ref (after the clean check, as at 6.12), then flip:
+- **Empty or `exploring`** (empty: the initiative has not reached main yet). This is the usual case when an initiative's first emitted spec signs off while its questions are still open. Tell the stakeholder the initiative is still exploring, name its emitted specs not yet `done` on main (the `spec` of each slice in `initiative.md` on `initiative/NNN-slug`, local or on `origin`), and write nothing: there is nothing to close, and the branch it would re-create still exists.
+- **`done`.** Already closed; write nothing.
+- **`planned`.** List the emitted specs not yet `done` on main:
 
   ```bash
-  git switch --no-track -c initiative/NNN-slug "$main_ref"
-  IT step .workflow/initiatives/NNN-slug 6.13
-  IT set-slice .workflow/initiatives/NNN-slug S<n> --status done   # once per slice
-  IT status .workflow/initiatives/NNN-slug done --step 6.13
+  for spec in $(git show "$main_ref:.workflow/initiatives/NNN-slug/initiative.md" | yq --front-matter=extract '.slices[].spec'); do
+    spec_done_on_main "$spec" || echo "$spec"
+  done
   ```
 
-  Commit point (`done`), then merge it as 6.11 does with `<state>` = `done`. `done` is final: every later `IT` call exits 2.
+  - **Some listed.** Tell the stakeholder which specs are still open and write nothing; offer 6.12 if they want to reopen.
+  - **None listed.** Re-create the branch from the main ref (after the clean check, as at 6.12), then flip:
 
-Done when main carries the initiative at `done` with every slice `done` and the local branch is deleted, or the stakeholder has been told which specs are still open.
+    ```bash
+    git switch --no-track -c initiative/NNN-slug "$main_ref"
+    IT step .workflow/initiatives/NNN-slug 6.13
+    IT set-slice .workflow/initiatives/NNN-slug S<n> --status done   # once per slice
+    IT status .workflow/initiatives/NNN-slug done --step 6.13
+    ```
+
+    Commit point (`done`), then merge it as 6.11 does with `<state>` = `done`. `done` is final: every later `IT` call exits 2.
+
+Done when main carries the initiative at `done` with every slice `done` and the local branch is deleted, or the stakeholder has been told that the initiative is still exploring or which specs are still open.
 
 ## Done
 

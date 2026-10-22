@@ -54,17 +54,7 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 
 - **Seed.** The slice's title is the request for 0.1.2. At 0.1.6 the Why opens with `Origin: initiative <initiative NNN-slug>, slice S<n> (<title>).` and states the slice's goal from the initiative's goal and the slice's settled questions.
 - **At 0.1.4**, while writing `spec.md`, add `initiative: <initiative NNN-slug>` to the frontmatter.
-- **Origin entry.** Create `design-log.md` from [../assets/design-log.md](../assets/design-log.md) and make its first entry the slice's binding decisions, so the questioning loop never re-asks them:
-
-  ```markdown
-  ## YYYY-MM-DD Origin: initiative <initiative NNN-slug>, slice S<n>
-
-  - Initiative: .workflow/initiatives/<initiative NNN-slug>
-  - Binding decisions:
-    - IQ<n>: <its settled line, verbatim>
-  ```
-
-  One line per question the slice lists. The loop treats these as settled decisions: they shorten it, and a later round may only supersede one with the stakeholder's explicit agreement.
+- **Origin entry.** Create `design-log.md` from [../assets/design-log.md](../assets/design-log.md) and make its first entry the template's `Origin: initiative <NNN-slug>, slice S<n>` entry, so the questioning loop never re-asks the slice's binding decisions: the initiative folder, the slice's id and title, and under Binding decisions each of the slice's questions with its settled line, verbatim. The loop treats these as settled decisions: they shorten it, and a later round may only supersede one with the stakeholder's explicit agreement.
 
 ## 0.2 Retrieve existing system context
 

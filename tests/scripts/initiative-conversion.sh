@@ -38,8 +38,8 @@ CONV_ORIGIN=001-billing-suite CONV_BRANCH=$BR yq --front-matter=process -i \
 IT status "$INI" exploring --step "$LARGE_ENTRY_STEP" >/dev/null 2>&1
 mv "$P/$SPEC/design-log.md" "$P/$SPEC/codebase-map.md" "$P/$INI/"
 sed -i.bak 's/^Spec: \[spec.md\](spec.md)$/Initiative: [initiative.md](initiative.md)/' "$P/$INI/design-log.md" && rm -f "$P/$INI/design-log.md.bak"
-printf '\n## 2026-10-21 Origin: converted from spec 001-billing-suite\n\n- Spec: %s (draft, step %s)\n- Reason: discovery found several features.\n' \
-  "$SPEC" "$CONVERSION_STEP" >>"$P/$INI/design-log.md"
+printf '\n## 2026-10-21 Origin: converted from spec 001-billing-suite\n\n- Spec: %s (draft, step %s)\n- Initiative created: %s on branch `%s`\n- Number consumed: 001, kept as the initiative'"'"'s `origin`\n- Reason: discovery found several features.\n- Re-pointed: %s, %s\n' \
+  "$SPEC" "$CONVERSION_STEP" "$INI" "$BR" "${SHELF#"$P"/}" "${WORK_ITEM#"$P"/}" >>"$P/$INI/design-log.md"
 NEW_REF=$INI yq --front-matter=process -i '.origin_spec = strenv(NEW_REF)' "$SHELF"
 NEW_REF=$INI yq --front-matter=process -i '.promoted_to = strenv(NEW_REF)' "$WORK_ITEM"
 rm -rf "${P:?}/$SPEC"
