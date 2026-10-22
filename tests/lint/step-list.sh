@@ -5,10 +5,14 @@
 #   nodes such as ~~00.15~~ excluded); each "## Phase N" section of the reference lists exactly the ids the file puts in phase N;
 #   per-phase step counts on the full and light paths are the agreed ones; every step id named by status-transition.sh, the
 #   check-write.sh step lists and every `--step` / `step <spec-dir> <id>` call under .agents/ is in the file; and
-#   step-progress.sh prints a line for every counted step on each of its paths. Read-only.
+#   step-progress.sh prints a line for every counted step on each of its paths. JRN-007: the large track (phase row P6, 6.x ids
+#   on track large, the conversion node in phase 0 on both paths), its ids in the reference and the mermaid, the 6.x ids the
+#   scripts and skills use, and the large form of the progress line for every large row. Read-only.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/initiative.sh
+source "$TESTS_DIR/fixtures/initiative.sh"
 preflight
 new_workdir
 
@@ -77,5 +81,43 @@ while IFS=$'\t' read -r id _ track _; do
   done
 done < <(rows | awk -F'\t' '$3 == "both" || $3 == "full" || $3 == "light"')
 eq "step-progress.sh prints every counted step" "$miss" ""
+
+# JRN-007: the large track. Its ids are 6.x, so they sit outside ID_RE and are checked here on their own.
+LARGE_RE='6(\.[0-9]+)+'
+eq "JRN-007 phase row P6 is phase 6" "$(rows | awk -F'\t' '$1 == "P6" { print $2 "/" $3 }')" "6/phase"
+rows | awk -F'\t' '$3 == "large" { print $1 }' | sort -u >"$WORK/large"
+check "JRN-007 steps.tsv has large-track rows" '[ -s "$WORK/large" ]'
+eq "JRN-007 every large row is a 6.x id in phase 6" "$(rows | awk -F'\t' '$3 == "large" && ($2 != "6" || $1 !~ /^6(\.[0-9]+)+$/) { print $1 }')" ""
+eq "JRN-007 every 6.x row is on the large track" "$(rows | awk -F'\t' '$1 ~ /^6\./ && $3 != "large" { print $1 }')" ""
+eq "JRN-007 the conversion node is a phase 0 step on both paths" \
+  "$(rows | awk -F'\t' -v id="$CONVERSION_STEP" '($1 "") == (id "") { print $2 "/" $3 }')" "0/both"
+check "JRN-007 the reference names the conversion node" 'grep -qE "\*\*${CONVERSION_STEP//./\\.}( |\*\*)" "$REF"'
+
+grep -oE "(~~)?\*\*$LARGE_RE( |\*\*)" "$REF" | grep -v '^~~' | grep -oE "$LARGE_RE" | sort -u >"$WORK/ref-large"
+eq "JRN-007 reference 6.x node ids == steps.tsv large ids" "$(comm -3 "$WORK/ref-large" "$WORK/large" | tr -s '\t ' ' ')" ""
+grep -v '^\s*subgraph' "$MMD" | grep -oE "[\[{(/]\"$LARGE_RE - " | grep -oE "$LARGE_RE" | sort -u >"$WORK/mmd-large"
+eq "JRN-007 mermaid 6.x node ids == steps.tsv large ids" "$(comm -3 "$WORK/mmd-large" "$WORK/large" | tr -s '\t ' ' ')" ""
+check "JRN-007 the reference has a Phase 6 section" 'grep -q "^## Phase 6 " "$REF"'
+awk '/^## / { on = ($0 ~ /^## Phase 6 /) } on' "$REF" | grep -v '^~~' | grep -oE "\*\*$LARGE_RE —" | grep -oE "$LARGE_RE" | sort -u >"$WORK/ref6"
+eq "JRN-007 reference Phase 6 ids == steps.tsv large ids" "$(comm -3 "$WORK/ref6" "$WORK/large" | tr -s '\t ' ' ')" ""
+
+IT_SCRIPT=$FW_SKILL/scripts/initiative-transition.sh
+{
+  grep -E '^[A-Z_]*STEPS?="' "$CW" | grep -oE "\b$LARGE_RE"
+  [ ! -f "$IT_SCRIPT" ] || grep -oE "\b$LARGE_RE" "$IT_SCRIPT"
+  grep -rhoE -- "--step +$LARGE_RE" "$AGENTS_SRC" | grep -oE "$LARGE_RE\$"
+  grep -rhoE "step +[^ ]*initiatives/[^ ]+ +$LARGE_RE" "$AGENTS_SRC" | grep -oE "$LARGE_RE\$"
+} | sort -u >"$WORK/used-large"
+check "JRN-007 check-write.sh step lists name 6.x steps" 'grep -E "^[A-Z_]*STEPS?=\"" "$CW" | grep -qE "\b$LARGE_RE"'
+eq "JRN-007 every 6.x id used by the scripts and skills is in steps.tsv" "$(comm -23 "$WORK/used-large" "$WORK/large" | tr '\n' ' ')" ""
+
+large_miss=""
+large_pos=0
+large_count=$(grep -c . "$WORK/large")
+while IFS=$'\t' read -r id _ _ title; do
+  large_pos=$((large_pos + 1))
+  [ "$(bash "$SP" "$id" 2>&1)" = "Large path · step $large_pos of $large_count — $title ($id)" ] || large_miss="$large_miss $id"
+done < <(rows | awk -F'\t' '$3 == "large"')
+eq "JRN-007 step-progress.sh prints the large form for every large row" "$large_miss" ""
 
 finish
