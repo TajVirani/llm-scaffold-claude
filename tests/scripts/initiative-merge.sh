@@ -3,8 +3,9 @@
 # Covers: initiative-transition.sh status planned with every slice emitted; the merge step per rules-setting.sh task_review
 #   (local: --no-ff merge on main, branch deleted, nothing pushed; pr: the generic mode of open-task-pr.sh printing the gh or glab
 #   command with head initiative/NNN-slug and base main, and --record writing merge_pr); the resume check reading each emitted
-#   spec from main; the done flip on a re-created branch, merged the same way; done being terminal (every subcommand exits 2); the
-#   generic mode's usage errors (exit 2), its skip paths (missing head, unknown host, no remote) and its reuse of an open PR.
+#   spec from main; the sign-off hand-off leaving an initiative still exploring untouched; the done flip on a re-created branch,
+#   merged the same way; done being terminal (every subcommand exits 2); the generic mode's usage errors (exit 2), its skip
+#   paths (missing head, unknown host, no remote) and its reuse of an open PR.
 #   gh and glab are stubs on PATH; the origin remote is a local bare repo; no network.
 # shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose, and call helpers shellcheck cannot see
 # shellcheck source=../lib/common.sh
@@ -162,6 +163,34 @@ check "generic mode creates no second PR" '! grep -q "pr create" "$STUBLOG"' "$(
 check "generic mode lists open PRs for that head and base" 'grep -q "^gh pr list --head $BR --base main --state open" "$STUBLOG"' "$(cat "$STUBLOG")"
 check "generic mode pushes only the head branch" \
   'git -C "$R.origin.git" show-ref --verify --quiet "refs/heads/$BR" && [ "$(git -C "$R.origin.git" for-each-ref --format=x refs/heads | grep -c .)" -eq 2 ]'
+
+echo "== JRN-005 sign-off hand-off on an initiative still exploring"
+# close_check DIR : replays 6.13 from sign-off: the initiative's status on main, then the emitted specs, then the done flip.
+close_check() {
+  local p=$1 spec pending="" slice
+  [ "$(on_main "$p" .status)" = planned ] || return 0
+  for spec in $(on_main "$p" '.slices[].spec'); do
+    [ "$(git -C "$p" show "main:.workflow/specs/$spec/spec.md" 2>/dev/null | yq --front-matter=extract .status)" = "done" ] || pending="$pending $spec"
+  done
+  [ -z "$pending" ] || return 0
+  git -C "$p" switch -q --no-track -c "$BR" main 2>/dev/null || return 1
+  for slice in $(fm "$p/$INI/initiative.md" '.slices[].id'); do initiative_transition "$p" set-slice "$INI" "$slice" --status done >/dev/null 2>&1; done
+  initiative_transition "$p" status "$INI" done >/dev/null 2>&1
+}
+repo_state() { git -C "$1" for-each-ref --format='%(refname) %(objectname)'; git -C "$1" status --porcelain; git -C "$1" show "$BR:$INI/initiative.md"; }
+E=$WORK/exploring
+large_path_repo "$E"
+seed_initiative "$E" 001 storage-overhaul
+yq --front-matter=process -i '.slices[0].status = "emitted" | .slices[0].spec = "002-core-flow"' "$E/$INI/initiative.md"
+commit_initiative "$E" "initiative 001-storage-overhaul: emitted S1 as 002-core-flow"
+git -C "$E" switch -q main
+mkdir -p "$E/.workflow/specs/002-core-flow"
+sed '1,/^---$/s/^status: draft /status: done /' "$E/$FW_ASSETS_REL/spec.md" >"$E/.workflow/specs/002-core-flow/spec.md"
+git -C "$E" add .workflow/specs && git -C "$E" commit -q -m "Merge spec 002-core-flow"
+before=$(repo_state "$E")
+close_check "$E"; rc=$?
+check "JRN-005 the 6.13 hand-off on an exploring initiative re-creates no branch and changes nothing" \
+  '[ $rc -eq 0 ] && [ "$(repo_state "$E")" = "$before" ]' "rc=$rc"
 
 shellcheck_files "JRN-005 shellcheck merge components" "$P/$IT_REL" "$P/$SCRIPTS_REL/open-task-pr.sh" "$P/$SCRIPTS_REL/rules-setting.sh"
 finish
