@@ -142,3 +142,9 @@ Facts looked up instead of asked (0.3.10): None.
 ## 2026-10-21 Exit gate 0.6
 
 - D9 and D10 put to the stakeholder with the gate: "Both confirmed". Scope, system impact, data changes and testable objectives all clear; status set to `ready-for-dev` at 0.6. Stakeholder chose a fresh session for Phase 1: "Fresh session".
+
+## 2026-10-22 Phase 1 note: the lens contract moved since discovery
+
+- Main moved from `6704f93` to `4724073` between 0.6 and 1.1 (the fix/test-cost merge). Each Phase 4 lens now writes its `review-findings` block to `<spec_dir>/artifacts/review/pass-<n>/<lens>.yaml` with one heredoc and returns a summary block, and triage checks that file with `.agents/skills/feature-workflow/scripts/check-review-findings.sh`, whose lens table (prefix and allowed categories per lens) replaced the inline yq checks in `modules/review-triage.md`.
+- The constraint "the same block as the other lenses; triage changes only by adding the fourth prefix" keeps its intent: the fourth lens writes its pass file the same way, and the script's lens table gains the row `review-lessons` (prefix `RL`, category `lesson`). No decision needed. The end-state lines and JRN-001 to JRN-003 in `verification-plan.md` now name the script and the pass file; `tests/scripts/check-review-findings.sh` is the suite JRN-003 extends.
+- Targets filled at 1.1: lint and coverage rows from the profiles and `spec.md`; performance: no target. Stakeholder: "No performance target (Recommended)".
