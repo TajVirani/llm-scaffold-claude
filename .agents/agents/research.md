@@ -1,6 +1,6 @@
 ---
 name: research
-description: "Initiative research (large path, 6.x). Answers one open-ended initiative question from the repo, its docs, git history and the web, with a source for every claim, so the main session can write the answer back into questions.md as the settled line. Launch when an initiative question of kind research is open; the launch may stay pending across a session end. Not for a single repo fact during a spec's questioning loop (use fact-lookup) or for choosing a library (use library-evaluation)."
+description: "Initiative research (step 6.4). Answers one open-ended initiative question from the repo, its docs, git history and the web, with a source for every claim, so the main session can write the answer back into questions.md as the settled line. Launch when an initiative question of kind research is open; the launch may stay pending across a session end. Not for a single repo fact during a spec's questioning loop (use fact-lookup) or for choosing a library (use library-evaluation)."
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
 ---
 
