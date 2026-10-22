@@ -7,6 +7,7 @@ light_path: false                   # true once the 0.3.20 light-path test passe
 followup_review_recommended: false  # true when triage recommends another review pass after this one
 deferred: []                        # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 # origin: NNN-slug-disc-001.md       # optional; filename of the work-backlog item this spec was seeded from; the item is deleted after discovery
+# initiative: NNN-slug               # optional; the initiative this spec was emitted from, present only on an emitted spec
 # budget: {max_tasks: 10, max_changed_files: 30}   # absent until written; written at 2.5 (0.3.20 on the light path) from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
 # blocked_condition: "<what a human must decide or do before work can continue>"   # present only while status is blocked; forms: "discovered work: <slug>", "size budget: <what>", or free text
 ---
@@ -29,6 +30,7 @@ Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`). stat
   - followup_review_recommended: boolean, default false.
   - deferred: list of strings, repo-relative paths under .workflow/deferred/ (0.3.17, 3.14, 4.8). Empty list when none.
   - origin: optional string, the filename of the .workflow/specs/work-backlog/ item this spec was seeded from. Set at 0.1.4 when seeded from a backlog item; the item is deleted at 0.6 (0.3.20 on the light path) after its content is carried into this spec. Convention: the spec body opens its Why with a line "Origin: <work-item filename>, <one-phrase problem>."
+  - initiative: optional string, the `NNN-slug` folder name under .workflow/initiatives/ of the initiative this spec was emitted from. Written at 0.1.4 only when the spec is seeded from a slice; absent on every other spec. The initiative folder lives on main or on its `initiative/NNN-slug` branch. Convention: the spec body opens its Why with a line "Origin: initiative <NNN-slug>, slice S<n> (<slice title>). <one-phrase goal>.", and the design log opens with an Origin entry carrying the slice's binding decisions.
   - budget: optional map `{max_tasks: int, max_changed_files: int}`. Absent (the shipped template leaves it commented out) until 2.5 (0.3.20 on the light path) writes it; until then the rules.md fallback applies. The defaults come from the `## Size budget` block of .workflow/rules.md. 2.6 checks the task count, 3.15 the changed-file count. An approved overrun raises it for this spec only (00.29).
   - blocked_condition: string. Present only while status is `blocked`; status-transition.sh adds it on entering `blocked` and removes it on leaving. Discovered-work and size-budget halts (00.21) use `discovered work: <slug>` and `size budget: <what>`.
   Add no other keys. Status changes go only through status-transition.sh, never by hand.
@@ -50,6 +52,7 @@ Validate the frontmatter (prints true, exits non-zero otherwise):
     ((.followup_review_recommended | tag) == "!!bool") and
     ((.deferred | tag) == "!!seq") and
     (((.origin // "") | tag) == "!!str") and
+    (((.initiative // "") | tag) == "!!str") and
     (((.budget // null) == null) or (((.budget.max_tasks | tag) == "!!int") and ((.budget.max_changed_files | tag) == "!!int"))) and
     ((.status == "blocked") == ((.blocked_condition // "") != ""))
   ' .workflow/specs/NNN-slug/spec.md
