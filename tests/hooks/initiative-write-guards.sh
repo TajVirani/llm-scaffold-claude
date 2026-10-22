@@ -3,7 +3,8 @@
 # Covers: hooks/spec-single-writer-guard.sh, hooks/tier-a-write-guard.sh and hooks/tier-b-write-guard.sh (thin adapters over
 #   feature-workflow/scripts/check-write.sh) on PreToolUse Write payloads: initiative.md denied at a 6.x step that does not write it
 #   and allowed at a writer step; questions.md allowed at any step; a sub-agent write to initiative.md and any Write to the initiative
-#   .step denied; a glossary write with no spec in flight allowed at a 6.x term-gate step and denied at another 6.x step. Every
+#   .step denied; a glossary write with no spec in flight allowed at a 6.x term-gate step and denied at another 6.x step; edge
+#   cases: questions.md unguarded for sub-agents, a non-6.x or missing initiative marker, a done initiative not in flight. Every
 #   guard runs on every payload: the decision is a deny when any guard denies, so the suite does not depend on which guard owns the
 #   initiative class.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -72,6 +73,23 @@ at "$LARGE_TERM_GATE_STEP"
 expect "JRN-006 glossary at a 6.x term-gate step is allowed" allow "$(payload .workflow/GLOSSARY.md)"
 at "$INITIATIVE_READONLY_STEP"
 expect "JRN-006 glossary at another 6.x step is denied" deny "$(payload .workflow/GLOSSARY.md)" "$INITIATIVE_READONLY_STEP"
+expect "JRN-006 rules.md at the term-gate step is denied" deny "$(payload .workflow/rules.md)" "Tier A"
+
+echo "== JRN-006 edge and negative cases"
+at "$INITIATIVE_WRITER_STEP"
+expect "JRN-006 questions.md from a sub-agent is not guarded" allow "$(payload "$INI/questions.md" "$SUB")"
+expect "JRN-006 the initiative .step from a sub-agent is denied" deny "$(payload "$INI/.step" "$SUB")" "initiative-transition"
+expect "JRN-006 a differently cased path to initiative.md from a sub-agent is denied" deny \
+  "$(payload ".workflow/Initiatives/001-storage-overhaul/initiative.md" "$SUB")" "sub-agent"
+printf 'step: "3.1"\nupdated_at: "2026-10-22T10:00:00Z"\n' >"$P/$INI/.step"
+expect "JRN-006 initiative.md with the marker at a non-6.x step is denied" deny "$(payload "$INI/initiative.md")" "step 3\.1"
+expect "JRN-006 glossary with the initiative marker at a non-6.x step is denied" deny "$(payload .workflow/GLOSSARY.md)" "3\.1"
+rm -f "$P/$INI/.step"
+expect "JRN-006 initiative.md with no initiative marker is denied" deny "$(payload "$INI/initiative.md")" "<none>"
+expect "JRN-006 glossary with no initiative marker and no spec in flight is allowed" allow "$(payload .workflow/GLOSSARY.md)"
+at "$INITIATIVE_READONLY_STEP"
+yq --front-matter=process -i '.status = "done"' "$P/$INI/initiative.md"
+expect "JRN-006 glossary with only a done initiative is allowed" allow "$(payload .workflow/GLOSSARY.md)"
 
 shellcheck_files "JRN-006 shellcheck guard components" "$P/.agents/skills/feature-workflow/scripts/check-write.sh" \
   "$H/spec-single-writer-guard.sh" "$H/tier-a-write-guard.sh" "$H/tier-b-write-guard.sh" "$H/_guard-common.sh"

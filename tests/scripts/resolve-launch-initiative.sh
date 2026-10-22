@@ -2,7 +2,8 @@
 # Suite: resolve-launch.sh (feature-workflow/scripts) for launches from an initiative; JRN-008 "Launch from an initiative" (resolve part).
 # Covers: --requirements listing the research task type with its spec_dir field; resolving a research launch header whose spec_dir
 #   names an initiative folder (prompt and model returned, model from the research model-map entry or definition); the same for a
-#   fact-lookup launch; a spec_dir naming a missing initiative folder denied; spec launches unchanged.
+#   fact-lookup launch; a spec_dir naming a missing initiative folder denied; spec launches unchanged; edge cases: research from a
+#   spec folder, module-audit from an initiative folder denied, an unnumbered initiative folder, a trailing slash, orchestrator mode.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -52,6 +53,20 @@ eq "JRN-008 a spec_dir that is not an initiative folder is denied" "$rc" 2
 mkdir -p "$P/.workflow/specs/002-core-flow"
 launch fact-lookup .workflow/specs/002-core-flow
 eq "JRN-008 a spec folder launch still resolves" "$rc" 0
+
+echo "== JRN-008 edge and negative cases"
+launch research .workflow/specs/002-core-flow
+eq "JRN-008 a research launch from a spec folder resolves" "$rc" 0
+launch module-audit "$INI"
+eq "JRN-008 a module-audit launch from an initiative folder is denied" "$rc" 2
+check "JRN-008 the module-audit refusal names the expected spec folder format" 'grep -q "malformed header value(s): spec_dir=" <<<"$err"' "$err"
+launch research .workflow/initiatives/storage-overhaul
+eq "JRN-008 an initiative folder without its number is denied" "$rc" 2
+launch research "$INI/"
+eq "JRN-008 a trailing slash on the initiative folder still resolves" "$rc" 0
+out=$(bash "$RL" --host codex --task-type research --spec-dir "$INI" --project-dir "$P" </dev/null 2>"$WORK/err")
+rc=$?
+eq "JRN-008 an orchestrator-mode research launch from an initiative folder resolves" "$rc" 0
 
 shellcheck_files "JRN-008 shellcheck resolve-launch.sh" "$RL"
 finish
