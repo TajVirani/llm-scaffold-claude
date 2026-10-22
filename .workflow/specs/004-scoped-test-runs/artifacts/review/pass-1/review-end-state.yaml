@@ -1,0 +1,16 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "f8ea802e8efa7f56499a2743930887986e1ec020"
+head: "9fe4e82d5435bd769bfe58f9e39b65d63ae3b662"
+findings:
+  - id: RE-1
+    category: discovered-work
+    kind: bug
+    summary: "commit-workflow-data.sh stages everything under .workflow/ except other spec and initiative folders, so other in-flight specs' workflow data (ADR 0002, deferred items from 002 and 003, 001-large-path-disc-002..004) was committed on 004's branch in af43dbe; specs 002 and 003 are untracked, so main would get an accepted ADR and deferred items linking to spec folders not in git. 001-large-path-disc-004 also duplicates 004-scoped-test-runs-disc-001 (the codex-adapters flake)."
+    evidence: "git show --stat af43dbe; .agents/skills/feature-workflow/scripts/commit-workflow-data.sh:6-7; git status shows 002 and 003 untracked."
+    blocker_assessment: can-wait
+    reason: "None of these files touches the delivered capability (tests/ only); decide before merging whether they ship with 004; the staging rule is pre-existing tooling."
+checked: ["CAP-NEW-scoped-test-runs: --only-file, empty/missing only-file, F minus G, exit 2 on bad selector, parallel default matches -j 1 output and exit codes", "assumptions (--suite + file flags exit 2; default -j)", "constraints (bash 3.2, no WF_* in tests/, glob order, exit contract, profiles untouched)", "non-goals", "deferred browser-suite.md", "artifacts T1 and gate-3.9-w1"]
+not_verifiable: ["Success signal 'seconds per task' depends on P1-P3 at 5.3 and Spec B", "test_scoped runs only when the excluded set is non-empty (run-toolchain.sh:152-171), by D3"]
+not_checked: ["verification-plan.md absent (light path)"]

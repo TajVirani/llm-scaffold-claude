@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Scoped and parallel harness runs"
     status: done
-    capability: CAP-NEW-scoped-test-runs
+    capability: CAP-001
     depends_on: []
     touches_core: false
     work_type: test-harness

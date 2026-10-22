@@ -17,6 +17,7 @@ The check named "workflow not installed -> silent allow" in the Codex adapters s
 - `tests/hooks/codex-adapters.sh:146` and `:203`, two checks with the same name, at commit `291e55289f399f767e7403715e14b73ffa5a7ccd`.
 - The first toolchain run of T1's rework (`.workflow/specs/001-large-path/artifacts/T1/`) recorded `FAIL workflow not installed -> silent allow` and `FAILED suites: hooks/codex-adapters`; three standalone runs of the suite and the next full run passed (2280 of 2280).
 - Reported by the T1 rework implementation return (`discovered_work`, kind bug, can-wait).
+- Seen again under the parallel runner of 004-scoped-test-runs: one default (parallel) full run failed `FAIL hooks/codex-adapters passed=98 failed=1`; the next parallel run and a `-j 1` run passed 2347 of 2347 (`.workflow/specs/004-scoped-test-runs/artifacts/T1/implementation.yaml`). Parallel-by-default may surface it more often.
 
 ## Why not a blocker
 

@@ -1,0 +1,11 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "f8ea802e8efa7f56499a2743930887986e1ec020"
+head: "9fe4e82d5435bd769bfe58f9e39b65d63ae3b662"
+measurements: []
+findings: []
+checked: []
+not_checked:
+  - "verification-plan.md: missing at .workflow/specs/004-scoped-test-runs/verification-plan.md, so there is no ## Targets table to measure"
+  - "build: no serve started, because no targets were read and no profile pair was collected"

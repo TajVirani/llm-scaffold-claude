@@ -65,7 +65,7 @@ Spec: [spec.md](spec.md)
 
 - Found at 3.4 by the T1 implementation agent (`artifacts/T1/implementation.yaml`). Kind: bug.
 - Problem: `hooks/codex-adapters` "workflow not installed -> silent allow" failed once in a parallel full run; passed alone, in a second parallel run and at `-j 1`. Evidence: `tests/hooks/codex-adapters.sh:146` or `:203`.
-- Assessment: can be solved later (CAP-NEW-scoped-test-runs' success line is met). Ruling: "Next feature (Recommended)". Item: [../work-backlog/004-scoped-test-runs-disc-001.md](../work-backlog/004-scoped-test-runs-disc-001.md).
+- Assessment: can be solved later (CAP-001' success line is met). Ruling: "Next feature (Recommended)". Item: [../work-backlog/004-scoped-test-runs-disc-001.md](../work-backlog/004-scoped-test-runs-disc-001.md).
 
 ## 2026-10-22 Discovered work: interrupted-run-orphans
 
@@ -82,3 +82,34 @@ Spec: [spec.md](spec.md)
 ## 2026-10-22 Suite gap: browser suite
 
 - 3.14: no `e2e-browser` profile, so the 3.10-3.11 browser gate was skipped; recorded in [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md). The 3.9 harness gate passed: 2347 passed, 0 failed, 33 suites, 2 min 23 s (`artifacts/gate-3.9-w1/`).
+
+## 2026-10-22 Discovered work: workflow-data-cross-spec-commit
+
+- Found at 4.4 by review-standards RS-2 and review-end-state RE-1 (triage F2, pass 1). Kind: bug.
+- Problem: `commit-workflow-data.sh` commits other specs' workflow files on this spec's branch (`af43dbe`: ADR 0002, deferred items of 002 and 003, 001-large-path-disc-002..004). Evidence: `.agents/skills/feature-workflow/scripts/commit-workflow-data.sh:6-7`.
+- Assessment: can be solved later; recommended next feature plus untracking the foreign files on spec/004. Ruling: "Next feature, ship as-is" (the carried files stay on the branch and reach main with 004). Item: [../work-backlog/004-scoped-test-runs-disc-004.md](../work-backlog/004-scoped-test-runs-disc-004.md).
+- Duplicate corrected: `004-scoped-test-runs-disc-001` (codex-adapters flake) repeated `001-large-path-disc-004`; its parallel-run evidence was added to disc-004 and disc-001 deleted ("Merge into disc-004 (Recommended)"). The 2026-10-22 codex-adapters-parallel-flake entry above now points to [../work-backlog/001-large-path-disc-004.md](../work-backlog/001-large-path-disc-004.md).
+
+## 2026-10-22 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 (RS-1) | review-standards | T1 code commits use a `T1:` subject, not a Conventional Commits type | commits `91407dc`, `f786aa3` | low | `git log f8ea802..HEAD`; `.workflow/rules.md` § Cross-cutting policy requires Conventional Commits subjects | none (stakeholder: "Fix at merge"; the 5.8 merge to main uses a Conventional subject) |
+| F2 (RS-2, RE-1) | review-standards, review-end-state | Workflow-data commits carry other specs' Tier A and backlog files | `.agents/skills/feature-workflow/scripts/commit-workflow-data.sh:6-7`; commit `af43dbe` | low | `git show --stat af43dbe` lists ADR 0002, 002/003 deferred items, 001-disc-002..004 | discovered work (see "Discovered work: workflow-data-cross-spec-commit"; next feature, ship as-is) |
+| G1 | review-end-state | Success signal (per-task runs in seconds) not verifiable until P1-P3 apply and the stop-audit spec lands | spec.md § Success signal | gap | `not_verifiable` in `artifacts/review/pass-1/review-end-state.yaml` | defer ([.workflow/deferred/per-task-scoped-runs.md](../../deferred/per-task-scoped-runs.md)) |
+
+review-targets measured nothing: no `verification-plan.md` on the light path (not a pass).
+
+Failed lenses: none
+Outcome: deferred, to sign-off
+
+## 2026-10-22 Sign-off backlog offer (5.9)
+
+- `004-scoped-test-runs-disc-002.md` (interrupted runs): kept open ("Keep open (Recommended)").
+- `004-scoped-test-runs-disc-003.md` (wall-clock thresholds): moved to [.workflow/deferred/concurrency-check-timing.md](../../deferred/concurrency-check-timing.md) ("Move to deferred").
+- `004-scoped-test-runs-disc-004.md` (cross-spec workflow-data commits): dismissed ("This is acceptable").
+
+## 2026-10-22 Retrospective notes
+
+- The runner accepts suite labels (`scripts/x`) as well as paths in selector files, and a selection that exclusion leaves empty exits 0; both were the implementer's calls, not loop decisions, see .workflow/decisions/retrospectives/004-scoped-test-runs.md
+- Measured: full harness 142 s parallel vs 425 s at `-j 1`; `test_scoped` with one own suite 17 s, see .workflow/decisions/retrospectives/004-scoped-test-runs.md

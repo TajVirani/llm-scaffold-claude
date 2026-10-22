@@ -2,7 +2,7 @@
 origin_spec: .workflow/specs/004-scoped-test-runs
 origin_step: "3.7"
 discovered_at: 2026-10-22
-status: open
+status: moved-to-deferred
 kind: refactor
 ---
 
@@ -30,3 +30,4 @@ The limits leave margin and the checks passed in every run so far; the report-or
 
 - Origin spec: [spec.md](../004-scoped-test-runs/spec.md)
 - Design log entry: [design-log.md](../004-scoped-test-runs/design-log.md) (section 2026-10-22 Discovered work: timing-check-thresholds)
+- Deferred file: [.workflow/deferred/concurrency-check-timing.md](../../deferred/concurrency-check-timing.md)

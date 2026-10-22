@@ -36,7 +36,7 @@ typecheck: ""   # e.g. tsc --noEmit
 format: ""      # a check command, e.g. prettier --check .
 boundary: ""    # e.g. depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs src (config generated from .workflow/rules.md)
 test: "tests/run-all.sh"
-test_scoped: "" # optional; runs in place of test while Phase 1 tests of unfinished tasks are excluded: $WF_EXCLUDE_TESTS / $WF_EXCLUDE_TESTS_FILE hold their selectors (space-separated / one per line), $WF_TASK_TESTS / $WF_TASK_TESTS_FILE this task's own, plus $WF_TASK_ID and $WF_IMPL_BASE. Without it a failing test is recorded `unscoped` (a warning, not a failure). e.g. npx vitest run $(sed "s/^/--exclude /" "$WF_EXCLUDE_TESTS_FILE")
+test_scoped: 'tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"' # runs in place of test while Phase 1 tests of unfinished tasks are excluded: the task's own suites, or every suite minus the excluded ones when it owns none
 e2e: ""         # run at 3.10 by the orchestrator (run-toolchain.sh --e2e); empty outside e2e work types, e.g. npx playwright test
 # Descriptive keys (not commands; run-toolchain.sh never runs them):
 serve: ""       # start command for the built app, used by review-targets (4.3), e.g. npm run start
