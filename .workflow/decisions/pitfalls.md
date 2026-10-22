@@ -14,6 +14,30 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Keep a work type's lint key free of suites another task's Phase 1 pin can turn red
+- What happened: an agent-docs task in the same wave as a step-list change could not pass its toolchain: the agent-docs `lint` key ran `lint/step-list` unscoped while that suite carried the sibling task's red Phase 1 pin, and the `&&` chain hid the later lint suites (T3, `profile-wrong` at 3.3).
+- Where: `.workflow/profiles/agent-docs.md` § Toolchain, `lint`
+- Spec: .workflow/specs/002-review-lessons
+- Prevented by: the agent-docs `lint` key no longer runs `lint/step-list`; the scoped `test` key covers it (P3, 2026-10-22)
+
+## Never overlap a 3.9 gate with an agent's full-harness run
+- What happened: a 3.9 gate ran while an agent's toolchain was running the whole harness; the runner's wall-clock concurrency assertion failed on load and turned a green gate red (`gate-3.9-w1b`).
+- Where: `tests/scripts/run-all-selection.sh` ("with no -j, suites run concurrently"); orchestrator gate timing
+- Spec: .workflow/specs/002-review-lessons
+- Prevented by: none yet for the assertion (shelved as `.workflow/deferred/concurrency-check-timing.md`); the orchestrator runs one harness at a time
+
+## Match a review lesson on the mistake its symptom names, not its consequence clause
+- What happened: the cheap-tier review-lessons lens read a lesson's "..., so <consequence>" clause as a matching condition and dropped a plain repeat of the mistake to confidence 60, reporting nothing (JRN-001 live run 2).
+- Where: `.agents/agents/review-lessons.md` § Method and Scoring
+- Spec: .workflow/specs/002-review-lessons
+- Prevented by: the lens definition matches on the mistake and treats the consequence as context (T3 fix, 2026-10-22)
+
+## Check the deferred shelf by concept before writing a backlog item
+- What happened: two discovered-work backlog items were written at 00.26 without a shelf check and both duplicated shelved items (`002-review-lessons-disc-001` with `research-model-map.md`, `-002` with `concurrency-check-timing.md`); the review-lessons lens caught it from retrospective 004's lesson.
+- Where: `.agents/skills/feature-workflow/modules/discovered-work.md` 00.26; `.workflow/specs/work-backlog/`
+- Spec: .workflow/specs/002-review-lessons
+- Prevented by: none yet; a shelf check at 00.26 is a candidate next feature
+
 ## Edit frontmatter with Edit or `yq --front-matter=process`, never `--front-matter=extract -i`
 - What happened: `yq --front-matter=extract -i` rewrote two work-backlog items as their frontmatter alone, deleting the body; one was restored from git, the other from the session.
 - Where: main-session status edits of `.workflow/specs/work-backlog/*.md` (00.26, 5.9)

@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Lessons file template and the 5.7 guard class"
     status: done
-    capability: CAP-NEW-review-lessons-record
+    capability: CAP-003
     depends_on: []
     touches_core: true
     work_type: shell-scripts
@@ -29,7 +29,7 @@ tasks:
   - id: T2
     title: "Launch row, lens table and step 4.9"
     status: done
-    capability: CAP-NEW-review-lessons-lens
+    capability: CAP-002
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -61,7 +61,7 @@ tasks:
   - id: T3
     title: "The review-lessons lens definition"
     status: done
-    capability: CAP-NEW-review-lessons-lens
+    capability: CAP-002
     depends_on: []
     touches_core: false
     work_type: agent-docs
@@ -82,7 +82,7 @@ tasks:
   - id: T4
     title: "Triage launches four lenses; sign-off names the lessons write"
     status: done
-    capability: CAP-NEW-review-lessons-lens
+    capability: CAP-002
     depends_on: [T1, T2, T3]
     touches_core: false
     work_type: agent-docs
@@ -102,7 +102,7 @@ tasks:
   - id: T5
     title: "Retrospective writes and retires review lessons"
     status: done
-    capability: CAP-NEW-review-lessons-record
+    capability: CAP-003
     depends_on: [T1]
     touches_core: false
     work_type: agent-docs
@@ -122,7 +122,7 @@ tasks:
   - id: T6
     title: "New projects get the lessons file; the asset-set lint goes green"
     status: done
-    capability: CAP-NEW-review-lessons-record
+    capability: CAP-003
     depends_on: [T1, T2, T3]
     touches_core: false
     work_type: agent-docs
