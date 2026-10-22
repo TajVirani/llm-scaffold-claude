@@ -206,7 +206,7 @@ Codex hooks replace the direct script calls only for events a live Codex run has
 | [verification-setup](modules/verification-setup.md) | 1.1–1.5 | discovery (0.6) | task-breakdown |
 | [task-breakdown](modules/task-breakdown.md) | 2.1–2.6 | verification-setup | implementation-orchestrator; questioning-loop (2.2, 2.3); discovered-work (2.1, 2.6) |
 | [implementation-orchestrator](modules/implementation-orchestrator.md) | 3.1–3.16 | task-breakdown; discovery (light path); review-triage (4.7 rework) | review-triage (`in-review`); discovered-work |
-| [review-triage](modules/review-triage.md) | 4.1–4.8 | implementation-orchestrator | sign-off; questioning-loop (4.5, 4.6); implementation-orchestrator (4.7 rework); discovered-work (4.4) |
+| [review-triage](modules/review-triage.md) | 4.1–4.9 | implementation-orchestrator | sign-off; questioning-loop (4.5, 4.6); implementation-orchestrator (4.7 rework); discovered-work (4.4) |
 | [sign-off](modules/sign-off.md) | 5.1–5.9 (5.5 Yes → 5.9 → 5.7 → 5.8) | review-triage | done; [Re-entry](#4-re-entry-56-and-loop-backs) (5.5 No); discovery for a work item started at 5.9; large-path 6.13 for a spec that carries `initiative:` |
 | [large-path](modules/large-path.md) | 0.3.23, 6.1–6.13 (rounds 6.2–6.8, emission 6.9, planned 6.10–6.11, reopen 6.12, done 6.13) | questioning-loop (0.3.19 or a round, conversion); [Find the state](#1-find-the-state) for an initiative; sign-off (after 5.8) | discovery 0.1 seeded from a slice (6.9); the router for an emitted spec an open question depends on; done |
 

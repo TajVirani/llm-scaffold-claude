@@ -151,7 +151,7 @@ Still researching: <IQ<n> (<task_type>)>, or "none".
 
 | Id | Source lens | Finding | Location | Verdict | Evidence | Route |
 | --- | --- | --- | --- | --- | --- | --- |
-| F<n> | review-standards / review-end-state / review-targets | <one line> | `<path:line>` | high / medium / low / false / maybe-false | <what verified or disproved it; for maybe-false, what would settle it> | patch / defer ([.workflow/deferred/<slug>.md](../../deferred/<slug>.md)) / decision needed (Q<n>) / discovered work (see "Discovered work" entry) / none (dismissed: <reason>) |
+| F<n> | review-standards / review-end-state / review-targets / review-lessons | <one line> | `<path:line>` | high / medium / low / false / maybe-false | <what verified or disproved it; for maybe-false, what would settle it> | patch / defer ([.workflow/deferred/<slug>.md](../../deferred/<slug>.md)) / decision needed (Q<n>) / discovered work (see "Discovered work" entry) / none (dismissed: <reason>) |
 
 Failed lenses: none
 Outcome: <rework k of 5 | loop back (4.5 decision needed) | loop back (4.6 third pass) | loop back (00.24 discovered work) | loop back (00.29 budget re-scope) | blocked (4.7) | deferred, to sign-off | clean, to sign-off>
