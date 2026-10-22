@@ -263,14 +263,16 @@ fi
 # ---------------------------------------------------------------- set-pr
 if [[ "$MODE" == "set-pr" ]]; then
   PR=${POS[1]}
-  PCUR=$(yq --front-matter=extract '.merge_pr // ""' "$INITIATIVE")
+  PCUR=$(yq --front-matter=extract '.merge_pr // ""' "$INITIATIVE") || die "cannot read merge_pr in $INITIATIVE"
   if [[ "$PR" == "null" ]]; then
     write_validated "$INITIATIVE" "$INITIATIVE_VALIDATOR" '.merge_pr = null'
   else
     [[ "$PR" =~ ^https?://[^[:space:]]+$ ]] || die "merge_pr must be an http(s) URL of the PR/MR, or null: '$PR'"
     [[ -z "$PCUR" || "$PCUR" == "$PR" ]] || printf '%s: warning: %s merge_pr %s replaced by %s\n' "$PROG" "$INI_DIR" "$PCUR" "$PR" >&2
-    export PRV=$PR
-    write_validated "$INITIATIVE" "$INITIATIVE_VALIDATOR" '.merge_pr = strenv(PRV)'
+    # Values reach yq through exported variables read with strenv(), never pasted into the expression, so quotes or $ in
+    # user text (a URL, a settled answer) cannot break or change the yq program.
+    export MERGE_PR_URL=$PR
+    write_validated "$INITIATIVE" "$INITIATIVE_VALIDATOR" '.merge_pr = strenv(MERGE_PR_URL)'
   fi
   printf '%s: %s merge_pr %s -> %s\n' "$PROG" "$INI_DIR" "${PCUR:-null}" "$PR"
   exit 0
@@ -288,8 +290,8 @@ if [[ "$MODE" == "set-question" ]]; then
   count=$(yq --front-matter=extract '[.questions[] | select(.id == strenv(QID))] | length' "$QUESTIONS") \
     || die "cannot read the questions: array in $QUESTIONS"
   [[ "$count" == "1" ]] || die "question $QID appears $count times in $QUESTIONS (expected exactly once)"
-  QCUR=$(yq --front-matter=extract '.questions[] | select(.id == strenv(QID)) | .state // ""' "$QUESTIONS")
-  QKIND=$(yq --front-matter=extract '.questions[] | select(.id == strenv(QID)) | .kind // ""' "$QUESTIONS")
+  QCUR=$(yq --front-matter=extract '.questions[] | select(.id == strenv(QID)) | .state // ""' "$QUESTIONS") || die "cannot read the state of $QID in $QUESTIONS"
+  QKIND=$(yq --front-matter=extract '.questions[] | select(.id == strenv(QID)) | .kind // ""' "$QUESTIONS") || die "cannot read the kind of $QID in $QUESTIONS"
   # reject_question [REASON] : refuse this question change with exit 2
   reject_question() { illegal "question $QID in $INI_DIR: '${QCUR:-<none>}' -> '$OPT_STATE' is not allowed${1:+: $1} (see the question table at the top of $PROG)"; }
 
@@ -339,7 +341,7 @@ if [[ "$MODE" == "set-slice" ]]; then
   count=$(yq --front-matter=extract '[.slices[] | select(.id == strenv(SID))] | length' "$INITIATIVE") \
     || die "cannot read the slices: array in $INITIATIVE"
   [[ "$count" == "1" ]] || die "slice $SID appears $count times in $INITIATIVE (expected exactly once)"
-  SCUR=$(yq --front-matter=extract '.slices[] | select(.id == strenv(SID)) | .status // ""' "$INITIATIVE")
+  SCUR=$(yq --front-matter=extract '.slices[] | select(.id == strenv(SID)) | .status // ""' "$INITIATIVE") || die "cannot read the status of $SID in $INITIATIVE"
   # reject_slice [REASON] : refuse this slice change with exit 2
   reject_slice() { illegal "slice $SID in $INI_DIR: '${SCUR:-<none>}' -> '$OPT_STATUS' is not allowed${1:+: $1} (see the slice table at the top of $PROG)"; }
 
@@ -382,7 +384,8 @@ reject_status() { illegal "$INI_DIR: '${CUR:-<none>}' -> '$NEW' is not allowed${
 case "$CUR>$NEW" in
   ">exploring"|"exploring>exploring"|"planned>exploring") ;;
   "exploring>planned")
-    pending_slices=$(yq --front-matter=extract '.slices[] | select(.status == "planned") | .id' "$INITIATIVE" | tr '\n' ' ')
+    pending_slices=$(yq --front-matter=extract '.slices[] | select(.status == "planned") | .id' "$INITIATIVE" | tr '\n' ' ') \
+      || die "cannot read the slices: array in $INITIATIVE"
     [[ -z "$pending_slices" ]] || reject_status "slices not yet emitted: ${pending_slices% }"
     [[ -f "$QUESTIONS" ]] || die "questions.md not found in the main checkout: $QUESTIONS"
     open_questions=$(yq --front-matter=extract '.questions[] | select(.state == "open" or .state == "researching") | .id' "$QUESTIONS" | tr '\n' ' ') \
@@ -390,7 +393,8 @@ case "$CUR>$NEW" in
     [[ -z "$open_questions" ]] || reject_status "questions still open or researching: ${open_questions% }"
     ;;
   "planned>done")
-    unfinished=$(yq --front-matter=extract '.slices[] | select(.status != "done") | .id' "$INITIATIVE" | tr '\n' ' ')
+    unfinished=$(yq --front-matter=extract '.slices[] | select(.status != "done") | .id' "$INITIATIVE" | tr '\n' ' ') \
+      || die "cannot read the slices: array in $INITIATIVE"
     [[ -z "$unfinished" ]] || reject_status "slices not yet done: ${unfinished% }"
     ;;
   *) reject_status "" ;;
