@@ -22,3 +22,13 @@ Verdict: pass (expected outcome met exactly).
 Verdict: pass.
 
 Both journeys pass, so 3.11 sets the spec `in-review`.
+
+## Runs after the review rework (2026-10-22, spec branch `7507db6`)
+
+The module runs 3.10 again after a rework. Run 2 of JRN-001 (after rework 1, before the T3 fix) **failed**: `findings: []`, the lens scored the same hunk at about 60 and put RL-001 under `not_checked`, reasoning that the lesson's consequence clause ("a confusing error far from the call") was only partly repeated ([jrn-001-run2-after-rework.yaml](jrn-001-run2-after-rework.yaml)). 3.11 reopened T3: the lens now matches a lesson on the mistake its symptom names and treats the consequence clause as context (merged as `7507db6`). Runs 3 are against that lens, on rebuilt fixtures:
+
+- **JRN-001 run 3** ([jrn-001.yaml](jrn-001.yaml), [jrn-001.check.txt](jrn-001.check.txt)): `RL-1`, `category: lesson`, `severity: high`, `confidence: 85`, `lesson: RL-001`, `location: src/report.sh:4`; check exit 0, header `findings: 1 (high 1, medium 0, low 0)`. Pass. The lens's summary block carried extra "Notes for triage" lines after the block and it left a scratch file in the temp dir (removed); both recorded for the retrospective as model observations.
+- **JRN-002 run 3** ([jrn-002.yaml](jrn-002.yaml), [jrn-002.check.txt](jrn-002.check.txt)): `findings: []`, `status: done`, lessons file and pitfalls under `checked`; check exit 0. Pass.
+- Run 1 evidence is kept as `jrn-001-run1.yaml` and `jrn-002-run1.yaml` with their checks.
+
+Three live runs of JRN-001 in all: two passes (before the rework and after the T3 fix) and one failure in between on the unchanged lens, so the lens's judgement at the cheap tier is a sample, not a proof; the T3 fix removes the reasoning that produced the miss.

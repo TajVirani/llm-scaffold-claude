@@ -1,4 +1,4 @@
-lens: review-lessons  pass: 1  findings: 1 (high 1, medium 0, low 0)  discovered_work: 0  checked: 2  not_checked: 2  not_verifiable: 0
+lens: review-lessons  pass: 1  findings: 1 (high 1, medium 0, low 0)  discovered_work: 0  checked: 2  not_checked: 1  not_verifiable: 0
 id	category	severity	confidence	location	claim
-RL-1	lesson	high	85	src/report.sh:4	New script src/report.sh opens the path in its first argument with cat "$1" and never checks that the file exists, which
+RL-1	lesson	high	85	src/report.sh:4	The new src/report.sh opens the file named by its first argument with cat and never checks that the file exists first, t
 check exit=0

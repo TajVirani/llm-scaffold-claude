@@ -1,3 +1,3 @@
-lens: review-lessons  pass: 1  findings: 0 (high 0, medium 0, low 0)  discovered_work: 0  checked: 2  not_checked: 2  not_verifiable: 0
+lens: review-lessons  pass: 1  findings: 0 (high 0, medium 0, low 0)  discovered_work: 0  checked: 2  not_checked: 1  not_verifiable: 0
 id	category	severity	confidence	location	claim
 check exit=0
