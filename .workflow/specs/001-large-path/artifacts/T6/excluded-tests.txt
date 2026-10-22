@@ -1,0 +1,3 @@
+tests/lint/step-list.sh
+tests/scripts/step-progress.sh
+tests/scripts/initiative-emission.sh

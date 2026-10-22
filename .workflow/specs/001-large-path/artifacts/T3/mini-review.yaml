@@ -1,0 +1,30 @@
+verdict: fail
+task_id: T3
+work_type: agent-docs
+diff: .workflow/.worktrees/s001_t3@277459ad52cc277a09ab8c374a69fae35087e7f3..HEAD
+tool_output: .workflow/specs/001-large-path/artifacts/T3/toolchain.json
+items:
+  - {item: "Every skill `description` the diff adds or changes carries a trigger clause (\"Use when …\").", result: not-applicable}
+  - {item: "A new agent follows the agent template; its description leads with `<role> (step X.Y)`.", result: not-applicable}
+  - {item: "readable-code R1", result: pass, locations: ["assets/questions.md:8-16", "assets/initiative.md:14-24"]}
+  - {item: "readable-code R2", result: pass, locations: ["assets/design-log.md:41,107"]}
+  - {item: "readable-code R3", result: pass, locations: ["assets/design-log.md:86,107", "assets/questions.md:5-7"]}
+  - {item: "readable-code R4: no comment references a decision record or document.", result: fail, locations: ["assets/design-log.md:2,3,32,86,107", "assets/initiative.md:2,11,13,21,29,32,58", "assets/questions.md:6,8,17,20,40", "assets/spec.md:33"], finding: "Template comments name workflow paths, script file names and step ids (0.1.4, 6.x, 6.1); the reviewer notes the pre-existing header lines of these templates already do so.", fix: "Rewrite each added reference as a plain noun phrase.", tool_rule_candidate: true}
+  - {item: "readable-code R5", result: pass, locations: ["assets/design-log.md:86", "assets/initiative.md:12-21"]}
+read_outside_diff: [readable-code.md, artifacts/T3/toolchain.json]
+out_of_scope_noticed: []
+orchestrator_disposition: "R4 as applied conflicts with .workflow/rules.md Cross-cutting policy: an interface header block may name the paths the file reads or writes and the step that calls it, never a decision ID; a template's frontmatter comment is that file's interface doc, every sibling template cites steps, scripts and paths, and the diff cites no decision id. The path, script and step references therefore stand. Fix round 1 keeps the one actionable point: the bare 6.x placeholders become the concrete large-path ids fixed by T9 (6.1 enter and convert, 6.6 term gate, 6.7 plan the slices, 6.9 emit a settled slice). review-standards re-checks R4 over the whole change at 4.1."
+round_2:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t3@277459ad52cc277a09ab8c374a69fae35087e7f3..42e7db36785ca1c50ec61b7522d7e1a7412c5195
+  items:
+    - {item: "Every skill `description` the diff adds or changes carries a trigger clause (\"Use when …\").", result: not-applicable}
+    - {item: "A new agent follows the agent template; its description leads with `<role> (step X.Y)`.", result: not-applicable}
+    - {item: "readable-code R1", result: pass, locations: ["assets/initiative.md:4-9", "assets/questions.md:14-15", "assets/design-log.md:84-105"]}
+    - {item: "readable-code R2", result: pass, locations: ["assets/initiative.md:27", "assets/questions.md:15", "assets/spec.md:55"]}
+    - {item: "readable-code R3", result: pass, locations: ["assets/design-log.md:32", "assets/initiative.md:116"]}
+    - {item: "readable-code R4", result: pass, locations: ["assets/design-log.md:32", "assets/initiative.md:11", "assets/spec.md:33"], note: "no decision id cited; paths and step ids are interface-header content under the orchestrator's ruling"}
+    - {item: "readable-code R5", result: pass, locations: ["assets/design-log.md:86", "assets/questions.md:14", "assets/initiative.md:65"]}
+  read_outside_diff: [readable-code.md, .workflow/GLOSSARY.md]
+  out_of_scope_noticed:
+    - {kind: decision, summary: "agent-docs profile lacks test_scoped; unscoped test key.", blocker_assessment: can-wait, note: "already ruled: work item 001-large-path-disc-001"}

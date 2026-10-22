@@ -1,0 +1,10 @@
+== scripts/initiative-merge
+FAIL JRN-005 under pr the stale remote branch does not stop the done flip
+       rc=0 branch=main status=planned
+FAIL JRN-005 under pr the done flip marks every slice done
+       got=emitted emitted want=done done
+
+== summary
+FAIL scripts/initiative-merge               passed=61   failed=2   skipped=0   xfail=0   12s
+TOTAL passed=61 failed=2 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/initiative-merge

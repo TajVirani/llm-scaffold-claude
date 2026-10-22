@@ -1,0 +1,242 @@
+== lint: tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage
+== lint/frontmatter
+
+== summary
+PASS lint/frontmatter                       passed=38   failed=0   skipped=0   xfail=0   2s
+TOTAL passed=38 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/step-list
+FAIL JRN-007 phase row P6 is phase 6
+       got= want=6/phase
+FAIL JRN-007 steps.tsv has large-track rows
+FAIL JRN-007 the conversion node is a phase 0 step on both paths
+       got= want=0/both
+FAIL JRN-007 the reference names the conversion node
+FAIL JRN-007 the reference has a Phase 6 section
+FAIL JRN-007 check-write.sh step lists name 6.x steps
+
+== summary
+FAIL lint/step-list                         passed=28   failed=6   skipped=0   xfail=0   5s
+TOTAL passed=28 failed=6 skipped=0 xfail=0 (1 suites)
+FAILED suites: lint/step-list
+== lint exit 1
+
+== test: tests/run-all.sh
+== scripts/build-architecture
+== scripts/cache-scripts
+== scripts/generate-boundary-config
+== scripts/generate-codex-agents
+== scripts/initiative-conversion
+FAIL JRN-001 the initiative marker names the entry step
+       got= want=6.1
+FAIL JRN-001 the offer lists the initiative once
+       got=0 want=1
+FAIL JRN-001 the offer shows the initiative exploring at the entry step
+== scripts/initiative-emission
+FAIL JRN-003 every question of S1 is settled
+       got=open open want=settled settled
+FAIL JRN-003 the Origin entry carries the binding decisions
+       # Design log: Core flow
+FAIL JRN-003 S1 is emitted
+       got=planned want=emitted
+FAIL JRN-003 S1 names its spec
+       got=null want=002-core-flow
+== scripts/initiative-merge
+FAIL JRN-005 the initiative is planned
+       got=exploring want=planned
+FAIL JRN-005 local: main carries the planned initiative
+       got=exploring want=planned
+FAIL JRN-005 done is refused while a slice is not done
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 done: main carries the done initiative
+       got=exploring want=done
+FAIL JRN-005 done: every slice on main is done
+       got=emitted emitted want=done done
+FAIL JRN-005 after done, status exploring exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, status planned exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, step exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, set-slice exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, set-question exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 after done, set-pr exits 2
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-005 pr dry run exits 0
+       got=1 want=0
+FAIL JRN-005 pr dry run prints the gh command with head and base
+        open-task-pr.sh: unknown option: --head
+FAIL JRN-005 pr dry run prints the title
+FAIL JRN-005 pr: the PR URL is printed
+       got= want=https://github.com/o/r/pull/21
+FAIL JRN-005 pr: the initiative branch is pushed
+FAIL JRN-005 pr: --record writes merge_pr
+       got=null want=https://github.com/o/r/pull/21
+FAIL JRN-005 pr dry run on GitLab prints the glab command with source and target
+        open-task-pr.sh: unknown option: --head
+== scripts/initiative-transition
+FAIL JRN-002 a decision question cannot be researching
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a question cannot be settled without a settled line
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 IQ1 is researching
+       got=open want=researching
+FAIL JRN-002 IQ1 launched names the research task type
+       got=null want=research
+FAIL JRN-002 IQ1 launched records when
+       null
+FAIL JRN-002 the next session's offer lists the initiative once
+       got=0 want=1
+FAIL JRN-002 the offer shows one pending research question
+FAIL JRN-002 a researching question cannot be launched again
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 IQ1 is settled
+       got=open want=settled
+FAIL JRN-002 IQ1 settled line is the source
+       got=null want=https://example.org/storage-survey#formats
+FAIL JRN-002 frontier 2 is IQ2 and IQ3
+       got=IQ1 IQ3 want=IQ2 IQ3
+FAIL JRN-002 after the write-back no research is pending
+FAIL JRN-002 a settled question cannot be launched
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a slice cannot be emitted without its spec
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a slice cannot be emitted while its questions are open
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a planned slice cannot carry a spec
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 a planned slice cannot jump to done
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 planned is refused while questions are open
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 done is refused from exploring
+       rc=0 want=2 with a reason on stderr: 
+FAIL JRN-002 step writes the initiative marker
+       got=6.1 want=6.2
+FAIL JRN-002 set-pr records merge_pr
+       got=null want=https://github.com/o/r/pull/7
+FAIL JRN-002 an unknown subcommand is a usage error
+       rc=0 want=1: 
+FAIL JRN-002 a missing initiative folder is an environment error
+       rc=0 want=1: 
+FAIL JRN-002 a folder outside .workflow/initiatives is a usage error
+       rc=0 want=1: 
+FAIL JRN-002 an unknown question id is a usage error
+       rc=0 want=1: 
+FAIL JRN-002 set-pr with a value that is not a URL is a usage error
+       rc=0 want=1: 
+== scripts/install
+== scripts/resolve-launch-initiative
+FAIL JRN-008 --requirements lists research
+       cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery
+FAIL JRN-008 research requires spec_dir
+       got=null want=["spec_dir"]
+FAIL JRN-008 research carries no profile
+       got=null want=none
+FAIL JRN-008 --requirements --task-type research exits 0
+       rc=2 want=0: resolve-launch.sh: unknown task type 'research' (known: cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery)
+FAIL JRN-008 the research launch resolves
+       got=2 want=0
+FAIL JRN-008 the research launch returns a model
+        resolve-launch.sh: unknown task type 'research' (known: cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery)
+FAIL JRN-008 the research prompt keeps the header first and the body
+        resolve-launch.sh: unknown task type 'research' (known: cache-regeneration, fact-lookup, implementation, integration, library-evaluation, module-audit, profile-mini-review, retrieval, review-end-state, review-standards, review-targets, standards-discovery)
+FAIL JRN-008 the resolved header names the initiative folder
+       got= want=.workflow/initiatives/001-storage-overhaul
+FAIL JRN-008 a fact-lookup launch from an initiative folder resolves
+       got=2 want=0
+== scripts/resolve-launch
+== scripts/run-toolchain
+== scripts/status-transition-check-write
+== scripts/step-progress
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/scripts/step-progress.sh: No such file or directory
+== scripts/task-breakdown
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/scripts/task-breakdown.sh: No such file or directory
+== scripts/upstream-diff
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/scripts/upstream-diff.sh: No such file or directory
+== hooks/audit-sync-resume
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/audit-sync-resume.sh: No such file or directory
+== hooks/block-destructive-git
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/block-destructive-git.sh: No such file or directory
+== hooks/codex-adapters
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/codex-adapters.sh: No such file or directory
+== hooks/codex-pre-spawn-initiative
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/codex-pre-spawn-initiative.sh: No such file or directory
+== hooks/codex-shim
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/codex-shim.sh: No such file or directory
+== hooks/evidence-capture
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/evidence-capture.sh: No such file or directory
+== hooks/initiative-write-guards
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/initiative-write-guards.sh: No such file or directory
+== hooks/pre-launch
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/pre-launch.sh: No such file or directory
+== hooks/session-start-initiatives
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/session-start-initiatives.sh: No such file or directory
+== hooks/worktree-guard
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/worktree-guard.sh: No such file or directory
+== hooks/write-guards
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/hooks/write-guards.sh: No such file or directory
+== lint/frontmatter
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/lint/frontmatter.sh: No such file or directory
+== lint/step-list
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/lint/step-list.sh: No such file or directory
+== lint/symlinks
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/lint/symlinks.sh: No such file or directory
+== lint/upstream-lineage
+   shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+   bash: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t3/tests/lint/upstream-lineage.sh: No such file or directory
+
+== summary
+PASS scripts/build-architecture             passed=74   failed=0   skipped=0   xfail=0   8s
+PASS scripts/cache-scripts                  passed=36   failed=0   skipped=0   xfail=0   4s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   3s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   8s
+FAIL scripts/initiative-conversion          passed=25   failed=3   skipped=0   xfail=0   2s
+FAIL scripts/initiative-emission            passed=18   failed=4   skipped=0   xfail=0   2s
+FAIL scripts/initiative-merge               passed=17   failed=18  skipped=0   xfail=0   2s
+FAIL scripts/initiative-transition          passed=13   failed=26  skipped=0   xfail=0   1s
+PASS scripts/install                        passed=136  failed=0   skipped=0   xfail=0   114s
+FAIL scripts/resolve-launch-initiative      passed=4    failed=9   skipped=0   xfail=0   2s
+PASS scripts/resolve-launch                 passed=90   failed=0   skipped=0   xfail=0   10s
+PASS scripts/run-toolchain                  passed=35   failed=0   skipped=0   xfail=0   3s
+PASS scripts/status-transition-check-write  passed=677  failed=0   skipped=0   xfail=0   81s
+FAIL scripts/step-progress                  passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL scripts/task-breakdown                 passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL scripts/upstream-diff                  passed=0    failed=1   skipped=0   xfail=0   1s
+FAIL hooks/audit-sync-resume                passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/block-destructive-git            passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/codex-adapters                   passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/codex-pre-spawn-initiative       passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/codex-shim                       passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/evidence-capture                 passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/initiative-write-guards          passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/pre-launch                       passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/session-start-initiatives        passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/worktree-guard                   passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL hooks/write-guards                     passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL lint/frontmatter                       passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL lint/step-list                         passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL lint/symlinks                          passed=0    failed=1   skipped=0   xfail=0   0s
+FAIL lint/upstream-lineage                  passed=0    failed=1   skipped=0   xfail=0   0s
+TOTAL passed=1241 failed=78 skipped=0 xfail=0 (31 suites)
+FAILED suites: scripts/initiative-conversion scripts/initiative-emission scripts/initiative-merge scripts/initiative-transition scripts/resolve-launch-initiative scripts/step-progress scripts/task-breakdown scripts/upstream-diff hooks/audit-sync-resume hooks/block-destructive-git hooks/codex-adapters hooks/codex-pre-spawn-initiative hooks/codex-shim hooks/evidence-capture hooks/initiative-write-guards hooks/pre-launch hooks/session-start-initiatives hooks/worktree-guard hooks/write-guards lint/frontmatter lint/step-list lint/symlinks lint/upstream-lineage
+== test exit 1
+

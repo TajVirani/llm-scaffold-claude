@@ -1,0 +1,83 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "291e55289f399f767e7403715e14b73ffa5a7ccd"
+findings:
+  - id: RS-1
+    category: profile
+    severity: high
+    confidence: 90
+    location: .agents/skills/feature-workflow/scripts/initiative-transition.sh (git mode 100644)
+    claim: "The new single writer is committed without the executable bit, but large-path.md runs it directly as a command."
+    consequence: "Every IT call in the large path, entered exactly as large-path.md says, fails with 'Permission denied' (exit 126): conversion, every step marker, every question and slice change, the status flips. install.sh copies the file with the same mode, so target projects get the same failure. The module only says what to do on exit 1 or 2. The suites call it through bash (tests/fixtures/initiative.sh:59), which hides the problem. Related gap: claude-settings.template.json has no Bash(.agents/skills/feature-workflow/scripts/initiative-transition.sh:*) allow entry, though it has one for every sibling script."
+    evidence:
+      basis: ".workflow/profiles/shell-scripts.md: '.agents/skills/<s>/scripts/: the skill's executable logic.' Every other script in this folder is 100755 (git ls-files -s)."
+      diff: "new file mode 100644 initiative-transition.sh; large-path.md:9 'type the full path every time from the project root, because sandboxed projects allow those exact command lines'"
+    suggested_fix: "git update-index --chmod=+x on the script; add the allow entry to claude-settings.template.json (and this repo's .claude/settings.json); have one suite run the script directly instead of through bash."
+  - id: RS-2
+    category: rule
+    severity: medium
+    confidence: 90
+    location: PROVENANCE.md:11
+    claim: "The change adds a module, two templates and a script under .agents/skills/feature-workflow/, but the feature-workflow inventory row in PROVENANCE.md lists none of them."
+    consequence: "large-path.md, assets/initiative.md, assets/questions.md and scripts/initiative-transition.sh are missing from the row, so the next lineage or provenance audit finds first-party assets with no recorded origin. The test-harness row still says 23 suites, although this change adds 8."
+    evidence:
+      basis: ".workflow/rules.md Cross-cutting policy: 'Adding, vendoring or removing anything under .agents/: update PROVENANCE.md in the same change.'"
+      diff: "PROVENANCE.md change touches only the Agents row (+research.md)"
+    suggested_fix: "Add initiative-transition.sh, the large-path module and the two templates to the row, each first-party; update the suite count."
+  - id: RS-3
+    category: profile
+    severity: medium
+    confidence: 80
+    location: .agents/skills/feature-workflow/scripts/initiative-transition.sh:50-51,69-83
+    claim: "The new script uses the exit codes the other way round from the profile: 1 for usage and environment errors, 2 for a refused transition."
+    consequence: "open-task-pr.sh's new generic mode exits 2 on a usage error, as the profile says, while initiative-transition.sh exits 1 on a usage error and 2 on a refusal. The sibling status-transition.sh has the same inversion, but the profile keeps old codes only for existing scripts, and this file is new."
+    evidence:
+      basis: ".workflow/profiles/shell-scripts.md: 'Exit codes: 0 ok, 1 the check found a problem or refused, 2 usage, environment or preflight error ... Existing scripts keep their codes'"
+      diff: "+# Exit: 0 done; 1 usage or environment error; 2 illegal transition or a result the template validator rejects"
+    suggested_fix: "Change the codes to the profile's (and the # Exit: line, large-path.md:19 and the suite), or record at 5.3 that feature-workflow single writers keep status-transition.sh's codes and amend the profile."
+  - id: RS-4
+    category: standard
+    severity: medium
+    confidence: 85
+    location: tests/lint/step-list.sh:86; tests/scripts/step-progress.sh:89
+    claim: "Body comments in the test code point at a journey ID from this spec's verification plan instead of giving the reason."
+    consequence: "A maintainer cannot follow 'JRN-007' without opening the spec's verification plan, and the reference goes stale once the spec is archived. Test labels carry JRN ids on purpose, but these lines are comments."
+    evidence:
+      basis: "readable-code.md R4; Checking table: R4 at 4.1 is standard, severity medium."
+      diff: "+# JRN-007: the large track. Its ids are 6.x, so they sit outside ID_RE and are checked here on their own. ; +# JRN-007: the large track. The expected lines are built from the large-track rows of steps.tsv."
+    suggested_fix: "Drop the JRN-007: prefix from both comments; the rest already gives the reason."
+  - id: RS-5
+    category: smell
+    severity: medium
+    confidence: 85
+    location: .agents/skills/feature-workflow/modules/large-path.md:83-87,185-198; .agents/skills/feature-workflow/modules/discovery.md:60-65; .agents/skills/feature-workflow/assets/design-log.md (Origin initiative, Origin converted, Initiative round entries)
+    claim: "Duplicated Code: three design-log entry shapes are written twice, once in the template and once inline in a module, and the two copies already differ."
+    consequence: "An agent following large-path.md writes a conversion Origin entry with only Spec and Reason; the template asks for Initiative created, Number consumed and Re-pointed as well. Its round entries use 'Why now / Research / Facts looked up / Slices', the template 'Frontier / Settled / Launched / Still researching'. discovery.md's slice Origin entry leaves out the template's Slice line."
+    evidence:
+      basis: "Smell baseline: Duplicated Code"
+      diff: "large-path.md '- Why now:' vs assets/design-log.md 'Frontier:'; conversion block has Spec and Reason only vs template Initiative created, Number consumed, Re-pointed"
+    suggested_fix: "Keep each entry shape only in assets/design-log.md and have the modules name the heading and link to it; or make the inline copies match the template exactly."
+  - id: RS-6
+    category: profile
+    severity: low
+    confidence: 80
+    location: tests/scripts/initiative-conversion.sh, initiative-emission.sh, initiative-merge.sh, resolve-launch-initiative.sh; tests/hooks/session-start-initiatives.sh, codex-pre-spawn-initiative.sh; tests/fixtures/initiative.sh
+    claim: "The new suites are named after journeys, and the components they test now have second suites; shared fixture helpers move to a new tests/fixtures/ folder outside lib/common.sh."
+    consequence: "Someone changing session-start-resume.sh, resolve-launch.sh or codex-pre-spawn.sh who runs the suite named for that component misses the new initiative cases in the second suites."
+    evidence:
+      basis: ".workflow/profiles/test-harness.md: 'one suite per component, named after it' and 'Assertions and fixtures: tests/lib/common.sh'"
+      diff: "+| hooks/session-start-initiatives | JRN-004 ... ; +| fixtures/*.sh | Fixture builders and oracles shared by several suites"
+    suggested_fix: "Fold the per-component cases into the component's existing suite, or record the journey-suite layout and tests/fixtures/ in the test-harness profile at 5.3."
+checked:
+  - "diff f7a4b23...HEAD excluding the spec folder (49 files) and log read"
+  - "AGENTS.md; .workflow/rules.md; the three profiles; the placement entry in design-log.md; .workflow/GLOSSARY.md; readable-code.md"
+  - "Toolchain output for T1-T9 and gate-3.9-w3"
+  - "Mini-review records for T4, T5, T6 and the design-log rulings on discovered work, so settled items are not raised again (shared path normaliser, duplicated branch lookup disc-003, validator stderr disc-002, repo settings deny entry dismissed)"
+not_checked:
+  - "T3, T8, T9 per-task lint failed on lint/step-list red by design; the final gate records lint pass"
+  - "per-task test keys unscoped; only the gate-3.9-w3 pass judged"
+  - "typecheck, format and boundary skipped in every profile; module edges checked by hand against rules.md"
+  - "Possible thin-hook breach in session-start-resume.sh (about 90 added lines of initiative listing), held below 80 because the hook already held the spec scan; to settle: a ruling on whether a resume-listing scan counts as business logic"
+  - "AGENTS.md Layout still lists the .gitignore block without .workflow/initiatives/*/.step; a line this change did not edit"

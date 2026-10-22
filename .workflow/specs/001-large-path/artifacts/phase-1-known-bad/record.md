@@ -147,3 +147,12 @@ RESULT passed=47 failed=5 skipped=0 xfail=0
 - FAIL JRN-007 the conversion node prints as a Discovery step on the full path  ->  (no detail)
 - FAIL JRN-007 the conversion node prints as a Discovery step on the light path  ->  (no detail)
 
+
+## Run 3 (2026-10-22, re-entry after the 4.6 loop back): JRN-005 step 5
+
+- Fault: the baseline for the new step is the merged spec branch at 1a2718a, where 6.13's replay (`close_check`) still returns early on an existing `origin/initiative/*` ref; the D33 rule is not built.
+- Command: `tests/run-all.sh --suite scripts/initiative-merge` in a detached scratch worktree at HEAD; log [run-3-initiative-merge.log](run-3-initiative-merge.log).
+- Exit 1. New checks and their first error, both assertions:
+  - FAIL JRN-005 under pr the stale remote branch does not stop the done flip -> `rc=0 branch=main status=planned`
+  - FAIL JRN-005 under pr the done flip marks every slice done -> `got=emitted emitted want=done done`
+- The three new setup checks (main at `planned`, the merged branch still on origin, the branch on origin reads `planned`) pass; every other check in the suite passes (61 of 63).

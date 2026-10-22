@@ -1,0 +1,40 @@
+status: done
+summary: open-task-pr.sh has a generic mode (--head/--base/--title [--body] [--cwd] [--record <initiative-dir>] [--dry-run]) sharing the host switch, auth check, push, open-PR reuse, dry-run output and exit-0 skip contract with task mode; both modes set PUSH_BRANCHES/PR_HEAD/PR_BASE/PR_TITLE/PR_BODY and run one shared tail. --record writes merge_pr through initiative-transition.sh set-pr. Task-mode output byte-for-byte unchanged (task-breakdown 89/89). Headers of open-task-pr.sh and rules-setting.sh name the large path. With no origin both modes print "skipped: no origin remote" (the shared text), not the "no remote" the criterion quoted.
+task_id: T5
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t5
+branch: task/001-large-path/T05-generic-pr-mode
+base_commit: 5a7a51a88300e687a069d0990e34fa0a73dd07bd
+head_commit: 9d3d857f7ec66f511944ae849e62a163622eaa2e
+files_changed: [.agents/skills/feature-workflow/scripts/open-task-pr.sh, .agents/skills/feature-workflow/scripts/rules-setting.sh, tests/scripts/initiative-merge.sh]
+tests_added: "15 in tests/scripts/initiative-merge.sh: 8 negative (mixed modes, missing --title/--head/--base, unknown option, --cwd missing dir, --record without dir or without initiative.md), 3 edge (head missing locally, non-GitHub/GitLab origin, no remote: skipped rc 0), 4 behaviour (open-PR reuse, no second PR, list for head and base, pushes only the head)"
+evidence:
+  red: "initiative-merge at base: 7 failed (pr dry run exits 0 got=1; unknown option: --head); with the base script swapped back after the new tests: 19 failed, every added test among them"
+  green: "initiative-merge 50/50; task-breakdown 89/89"
+  suite: "tests/run-all.sh TOTAL passed=2241 failed=17 (31 suites); only T7's suites fail (resolve-launch-initiative 9, codex-pre-spawn-initiative 3, initiative-write-guards 4, lint/step-list 1)"
+  toolchain: .workflow/specs/001-large-path/artifacts/T5/toolchain.txt (pass; test unscoped)
+considered_not_built:
+  - "generic mode reading task_review: the caller reads it; under local it never calls the script"
+  - "checking or pushing --base: only the head is pushed"
+  - "a separate no-remote message: the shared host switch keeps task mode's text"
+  - "switching task-mode usage errors to exit 2: existing codes stay; generic-mode usage errors exit 2, both documented"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+orchestrator_notes:
+  - "The 'skipped: no origin remote' wording is accepted: the task file's 'no remote' was illustrative and one host switch is the constraint."
+fix_round_1:
+  status: done
+  summary: "-h/--help prints the usage of whichever mode the other arguments select and exits 0 in both modes (task mode's help used to print to stderr and exit 1; no test covered it), documented in the Exit line. A reason line sits above the BODY_SET check. --record accepts only a folder under WF_INITIATIVES named NNN-slug (an absolute path is mapped as task mode maps a spec folder); a wrong folder exits 2 with the usage line, documented in the header."
+  head_commit: 6f00fe623e73fa585b100547b5de563dcb7ec0b7
+  tests_added_in_round:
+    - {file: tests/scripts/initiative-merge.sh, test: "generic --record on an initiative folder outside the initiatives root exits 2", kind: negative}
+    - {file: tests/scripts/initiative-merge.sh, test: "generic --record on a directory with initiative.md outside the initiatives root exits 2", kind: negative}
+    - {file: tests/scripts/initiative-merge.sh, test: "generic --help prints the generic usage and exits 0", kind: edge}
+  evidence: "red: --record outside the root rc=0 want=2; --help rc=1 with the task-mode usage (51/2); green: initiative-merge 53/53, task-breakdown 89/89; suite passed=2244 failed=17 (only T7's suites); toolchain pass"
+fix_round_2:
+  status: done
+  summary: "tests/scripts/task-breakdown.sh gains one task-mode case: open-task-pr.sh --help with no generic option prints the task-mode usage on stdout and exits 0. No script changed."
+  head_commit: dd1c97d08ecb989e6a0ffe7ff0953365540aa6d8
+  evidence: "task-breakdown 90/90; initiative-merge 53/53; suite passed=2245 failed=17 (only T7's suites, red on T5's base); toolchain pass"
+  orchestrator_note: "test-only delta over the reviewed head 6f00fe6 (one test file); no further review round."

@@ -1,0 +1,1 @@
+tests/scripts/initiative-emission.sh

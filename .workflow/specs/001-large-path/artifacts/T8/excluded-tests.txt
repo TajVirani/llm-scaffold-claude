@@ -1,0 +1,7 @@
+tests/lint/step-list.sh
+tests/scripts/step-progress.sh
+tests/scripts/initiative-emission.sh
+tests/scripts/initiative-conversion.sh
+tests/scripts/initiative-transition.sh
+tests/hooks/session-start-initiatives.sh
+tests/hooks/codex-pre-spawn-initiative.sh

@@ -2,8 +2,8 @@
   "status": "pass",
   "task_id": "phase-1-test-harness",
   "work_type": "test-harness",
-  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-ad42eb082d271a567/.workflow/profiles/test-harness.md",
-  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-ad42eb082d271a567",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-af619bbbbc4d3bfe3/.workflow/profiles/test-harness.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-af619bbbbc4d3bfe3",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/phase-1-test-harness",
   "ran": 1,
   "results": [

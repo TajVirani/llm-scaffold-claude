@@ -1,0 +1,29 @@
+status: done
+summary: check-write.sh has an initiative.md class under --only spec (write allowed only at the initiative's own .step 6.1, 6.7, 6.9; a Write/Edit to the initiative .step always denied); the Tier A scan also reads .workflow/initiatives/*/.step and counts an initiative as in flight unless its initiative.md says done; the newest marker across specs and initiatives decides; GLOSSARY_STEPS gains 6.6. resolve-launch.sh has the research task type (spec_dir only, no profile); research, fact-lookup, retrieval and library-evaluation may name a numbered initiative folder as spec_dir through an initiative_launch flag in the requirements table; the spec format and the missing-folder deny stay. No hook files changed.
+task_id: T7
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t7
+branch: task/001-large-path/T07-guards-and-launches
+base_commit: 5a7a51a88300e687a069d0990e34fa0a73dd07bd
+head_commit: 88a21a9cacf3f22e07fd633d23b43a0a2d29078c
+files_changed: [.agents/skills/feature-workflow/scripts/check-write.sh, .agents/skills/feature-workflow/scripts/resolve-launch.sh, tests/hooks/initiative-write-guards.sh, tests/scripts/resolve-launch-initiative.sh, tests/scripts/resolve-launch.sh]
+tests_added: "15: 9 in initiative-write-guards (rules.md at the term gate denied; questions.md from a sub-agent unguarded; initiative .step from a sub-agent denied; differently cased initiative.md path denied; marker at a non-6.x step denied for initiative.md and the glossary; no initiative marker denied; glossary allowed with no marker and no spec, and with only a done initiative), 5 in resolve-launch-initiative (research from a spec folder; module-audit from an initiative folder denied; folder without its number denied; trailing slash; orchestrator-mode research), 1 in resolve-launch (13 types)"
+evidence:
+  red: "initiative-write-guards 8/4 (FAIL JRN-006 initiative.md at a 6.x step that does not write it is denied); resolve-launch-initiative 4/9; codex-pre-spawn-initiative 3 research checks; lint/step-list the check-write line"
+  green: "initiative-write-guards 21/21; resolve-launch-initiative 19/19; codex-pre-spawn-initiative 17/17; lint/step-list 36/36; resolve-launch 93/93; status-transition-check-write 677/677; write-guards 97/97"
+  suite: "tests/run-all.sh TOTAL passed=2254 failed=7 (31 suites); only scripts/initiative-merge (T5) fails"
+  toolchain: .workflow/specs/001-large-path/artifacts/T7/toolchain.txt (pass; test unscoped)
+considered_not_built:
+  - "Guarding questions.md: the module says it is unguarded; a sub-agent write is allowed and pinned"
+  - "Tier A precedence: newest marker across in-flight specs and initiatives decides; no spec-always-wins rule"
+  - "An initiative counts as in flight when its .step exists and initiative.md is missing or not done; a done initiative's leftover marker does not block"
+  - "initiative.md content checks with --proposed: not asked; the deny points at initiative-transition.sh"
+  - "spec-single-writer-guard.sh header Goals text still lists spec paths only: no hook changes"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+fix_round_1:
+  status: done
+  summary: "One comment line above the initiative folder-name cut in check-write.sh says why the name comes from the path as written (keeps the folder's case; the lower-cased copy would miss the real .step on a case-sensitive file system). Code unchanged."
+  head_commit: 7d1a099bb3a25e623088529bb3d66506b3a93788
+  evidence: "initiative-write-guards 21/21; resolve-launch-initiative 19/19; lint/step-list 36/36; toolchain pass"

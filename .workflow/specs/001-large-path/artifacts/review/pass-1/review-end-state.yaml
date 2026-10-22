@@ -1,0 +1,46 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "291e55289f399f767e7403715e14b73ffa5a7ccd"
+findings:
+  - id: RE-1
+    category: wrong
+    severity: medium
+    confidence: 85
+    location: .agents/skills/feature-workflow/modules/sign-off.md:129 (with modules/large-path.md 6.13)
+    claim: "Sign-off sends every merged spec that carries `initiative:` to 6.13 without checking the initiative's status. 6.13 then reads the emitted specs from the main ref. For an initiative still `exploring`, which is not on main yet, that list comes back empty, so 6.13 takes the 'None listed' branch and tries to close the initiative."
+    consequence: "Take the normal case: the first emitted slice is built and signed off while its initiative is still exploring. When that spec signs off, the stakeholder is told every spec is done. The orchestrator then runs `git switch --no-track -c initiative/NNN-slug \"$main_ref\"`, which fails because the branch already exists. If the branch exists only on origin, it creates a branch with no initiative folder, and `IT step` exits 1. Either way, sign-off for every emitted spec of an exploring initiative ends in an error instead of a correct 'still exploring / specs still open' report. initiative-transition.sh refuses exploring -> done, so no data is corrupted."
+    evidence:
+      basis: "CAP-NEW-initiative-close intent: 'moves a planned initiative to `done` once every emitted spec is done'; large-path.md 6.13: 'On resume of a `planned` initiative that has merged, and from sign-off once a spec carrying `initiative:` has merged into main.'"
+      diff: "sign-off.md: '+**Close the initiative.** For a spec that carries `initiative:`, once the merge has landed on main, load [large-path] at 6.13 for that initiative.' There is no status check. large-path.md 6.13: 'for spec in $(git show \"$main_ref:.workflow/initiatives/NNN-slug/initiative.md\" | yq ... .slices[].spec)' then '**None listed.** Re-create the branch from the main ref ... git switch --no-track -c initiative/NNN-slug \"$main_ref\"'. When the file is absent from the ref, `git show ... 2>/dev/null | yq --front-matter=extract '.slices[].spec'` exits 0 with empty output, so the loop lists nothing. JRN-005 (tests/scripts/initiative-merge.sh) only covers the planned-and-merged case."
+    suggested_fix: "Make 6.13 (and the sign-off hand-off) start by checking that the initiative is `planned` on the main ref. If it is not on main, or is `exploring`, report that it is still exploring and write nothing."
+  - id: RE-2
+    category: wrong
+    severity: low
+    confidence: 80
+    location: .agents/skills/feature-workflow/modules/large-path.md (6.4 launch body)
+    claim: "The 6.4 research launch body (Question, Settled context, Affected area) does not match what .agents/agents/research.md lists as its input (question with id, the initiative's goal, settled lines). The goal is missing and an unlisted 'Affected area' is added."
+    consequence: "A research agent launched from the module's template has no initiative goal. Its step 1 ('Split it into the claims an answer needs, read against the goal') has nothing to read against, so answers drift from the initiative's aim. The person running an initiative gets less targeted research lines."
+    evidence:
+      basis: "CAP-NEW-initiative-exploration: 'research done by agents'; large-path.md 6.4: 'The body carries what `.agents/agents/research.md` lists under its inputs'"
+      diff: "research.md: '- the initiative's **goal**;' versus the large-path.md template: 'Question: IQ<n>: <question> / Settled context: ... / Affected area: ...'"
+    suggested_fix: "Make the 6.4 template and research.md's Input list name the same fields: add a Goal line to the template, and either add Affected area to the agent or drop it."
+checked:
+  - "Diff pinned: f7a4b23..291e552, 42 commits, 49 files outside the spec folder; every non-test hunk read in full plus the JRN suites and fixture"
+  - "CAP-NEW-initiative-conversion: large-path.md 0.3.23; questioning-loop.md conversion entry points; discovery.md 0.1.1 scan counts initiative origin and slices; JRN-001"
+  - "CAP-NEW-initiative-exploration: initiative-transition.sh transition tables, validators identical to the templates, done terminal; large-path.md 6.2-6.8; check-write.sh initiative.md and marker guards, glossary term gate 6.6; JRN-002 and JRN-006"
+  - "CAP-NEW-slice-emission: large-path.md 6.9, discovery.md Seeded from a slice, assets/spec.md initiative key and validator, design-log template Origin entry; JRN-003"
+  - "CAP-NEW-initiative-close: session-start-resume.sh lists exploring initiatives from the branch tip and planned ones with a spec not done on main; SKILL.md router branch 1; large-path.md 6.1, 6.10-6.13; open-task-pr.sh generic mode (no second host switch); JRN-004 and JRN-005"
+  - "Constraint step ids: steps.tsv, step-list.sh, both PLAN docs changed together in 7341b7b; step-progress.sh large form; JRN-007"
+  - "Constraint launches: resolve-launch.sh research type and initiative spec_dir format; codex-pre-spawn.sh i<NNN> check; research.md in the install manifest; JRN-008"
+  - "Constraints: same stack, single writer, spec-side initiative admission, plans only, commits only on the initiative branch, task_review push and merge rules: met"
+  - "Non-goals and deferred items: none implemented; the two deferred files were added"
+  - "artifacts/gate-3.9-w3: lint and tests/run-all.sh pass, 31 suites, 2280 passed, 0 failed"
+  - "artifacts/review/pass-1/targets/harness-green-with-the-large-track.txt: partial (suite list stops at scripts/install); relied on gate-3.9-w3 for journey evidence"
+not_verifiable:
+  - "The journeys are proven by harness replays of the module's markdown sequences, not by running the module itself; only a live run on a real initiative shows an orchestrator following large-path.md does what the suites replay."
+  - "Spec Assumption 'this repo records it in .workflow/model-map/research.md': that file does not exist at HEAD; tasks/T08 says the 00.14 flow writes it at the first real research launch, which resolve-launch.sh will otherwise block with 00.14."
+  - "CAP-NEW-initiative-exploration success says 'the next session ... writes the answer back'. Module 6.2 settles only when the agent's return is in this session; otherwise it resets the question to open and 6.4 relaunches it. Whether a host keeps a sub-agent result across a fresh session lives outside the repo."
+not_checked:
+  - "Shell code style and lint quality: left to the standards lens. Numeric targets: left to the targets lens."

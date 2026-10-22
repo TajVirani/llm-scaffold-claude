@@ -1,0 +1,44 @@
+verdict: fail
+task_id: T2
+work_type: shell-scripts
+diff: .workflow/.worktrees/s001_t2@6d6b57328c982c0457af45088d539ec395bdc25c..7341b7b6c4646fa77e8d7d8134e2c57d9da95c97
+tool_output: .workflow/specs/001-large-path/artifacts/T2/toolchain.json
+items:
+  - {item: "A new `.workflow/` path is built from `workflow-paths.sh`, never spelled out.", result: not-applicable}
+  - {item: "Hook logic stays thin: real work is in the owning skill's script.", result: not-applicable}
+  - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", result: pass, locations: ["scripts/step-progress.sh:84,90,111,121"]}
+  - {item: "A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.", result: pass, locations: ["scripts/step-progress.sh:18,90"]}
+  - {item: "Sibling paths resolve from `BASH_SOURCE` with `cd -P`.", result: pass, locations: ["scripts/step-progress.sh:27"]}
+  - {item: "The header block has the shape for its kind (hook or helper) and names no decision ID.", result: pass, locations: ["scripts/step-progress.sh:1-22"]}
+  - {item: "New files are kebab-case, run under `set -euo pipefail` and use `[[ ]]`; edited files keep their existing test syntax.", result: pass, locations: ["scripts/step-progress.sh:24,39,90", "tests/scripts/step-progress.sh"]}
+  - {item: "Each new function has its `# name ARGS : what it does` line, and each shellcheck directive has its reason.", result: pass, locations: ["scripts/step-progress.sh:72"]}
+  - {item: "readable-code R1", result: pass, locations: ["scripts/step-progress.sh:66,72,76"]}
+  - {item: "readable-code R2", result: fail, locations: ["scripts/step-progress.sh:66-67"], finding: "PATH_ASKED and PATH_OPT carry the path with no comment saying why they are split; merging them would stop a 6.x id from refusing an explicit --path.", fix: "One comment line above :66 giving the reason."}
+  - {item: "readable-code R3", result: pass, locations: ["scripts/step-progress.sh:12-13,72", "tests/fixtures/initiative.sh:23-24"]}
+  - {item: "readable-code R4", result: pass}
+  - {item: "readable-code R5", result: pass, locations: ["scripts/step-progress.sh:12-13", "references/steps.tsv:4-5"]}
+read_outside_diff: [readable-code.md, sibling scripts for die/refuse and BASH_SOURCE conventions, two read-only runs of step-progress.sh]
+out_of_scope_noticed:
+  - {kind: decision, summary: "A 00.x id with --at pointing at a 6.x id prints a combined large-path line with exit 0; the diff does not say whether that is intended.", evidence: "scripts/step-progress.sh:117-118", blocker_assessment: can-wait}
+orchestrator_disposition: "Fix round 1: add the R2 comment. The --at edge is in scope and settled from SKILL.md's --at contract (a 00.x step names the linear step it was entered from; the large path launches agents at 6.4, where a 00.14 or 00.19 denial can arise), so the combined line is intended: the fix round pins it with an edge test and a header note instead of a 00.21 ruling."
+round_2:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t2@6d6b57328c982c0457af45088d539ec395bdc25c..88a84b4640e38ae1a3353f8bb8f474bd4d4c36eb
+  items:
+    - {item: "A new `.workflow/` path is built from `workflow-paths.sh`, never spelled out.", result: pass, locations: ["scripts/step-progress.sh:2-23", "tests/scripts/step-progress.sh:114"]}
+    - {item: "Hook logic stays thin: real work is in the owning skill's script.", result: not-applicable}
+    - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", result: pass, locations: ["scripts/step-progress.sh:75-80,92"]}
+    - {item: "A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.", result: pass, locations: ["scripts/step-progress.sh:19-20,92"]}
+    - {item: "Sibling paths resolve from `BASH_SOURCE` with `cd -P`.", result: pass, locations: ["scripts/step-progress.sh:28-29"]}
+    - {item: "The header block has the shape for its kind (hook or helper) and names no decision ID.", result: pass, locations: ["scripts/step-progress.sh:1-23"]}
+    - {item: "New files are kebab-case, run under `set -euo pipefail` and use `[[ ]]`; edited files keep their existing test syntax.", result: pass, locations: ["scripts/step-progress.sh:25,68-69,92"]}
+    - {item: "Each new function has its `# name ARGS : what it does` line, and each shellcheck directive has its reason.", result: pass, locations: ["scripts/step-progress.sh:74"]}
+    - {item: "readable-code R1-R5", result: pass, locations: ["scripts/step-progress.sh:12-19,67,68,74,75-80", "tests/scripts/step-progress.sh:107", "tests/fixtures/initiative.sh:22-24"]}
+  out_of_scope_noticed:
+    - {kind: refactor, summary: "Phase 1 suite headers name JRN-007.", blocker_assessment: can-wait, disposition: "not applicable: JRN ids are the journey tags the verification plan requires so evidence is filed by journey; not decision records"}
+    - {kind: decision, summary: "shell-scripts profile has no test_scoped.", blocker_assessment: can-wait, disposition: "already ruled: work item 001-large-path-disc-001"}
+rework_1:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t2@291e55289f399f767e7403715e14b73ffa5a7ccd..60b3e12e283c443e351e5554cada23a6b7ee19f0
+  items: ["R1-R5 pass on the two changed comment lines; every other item not applicable"]
+  out_of_scope_noticed: [{kind: refactor, summary: "test labels still begin with JRN-007", disposition: "not applicable: the journey tag in labels is the verification plan's evidence convention"}]

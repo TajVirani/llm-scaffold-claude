@@ -1,0 +1,31 @@
+status: done
+summary: A fresh install's gitignore block lists .workflow/initiatives/*/.step next to .workflow/specs/*/.step, built in install.sh from $WF_INITIATIVES; this repo's hand-kept block has the same line. The install suite checks the entry in a fresh install, its single occurrence after install, --force and upgrade, and that the installed wf_path resolves WF_INITIATIVES. 138 install checks pass; the only failing suites in the full run are the ten Phase 1 suites red by design.
+task_id: T1
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t1
+branch: task/001-large-path/T01-initiative-paths
+base_commit: 277459ad52cc277a09ab8c374a69fae35087e7f3
+head_commit: 786a549fec7ffca444864ae436d3a75cadf33df7
+files_changed: [install.sh, .gitignore, tests/scripts/install.sh]
+tests_added:
+  - {file: tests/scripts/install.sh, test: ".gitignore has .workflow/initiatives/*/.step (added to the line-79 entries loop)", kind: behaviour}
+  - {file: tests/scripts/install.sh, test: ".gitignore user lines kept, block added once (now also counts the initiatives line == 1)", kind: edge}
+  - {file: tests/scripts/install.sh, test: "installed wf_path resolves the initiatives root", kind: behaviour}
+evidence:
+  red: "tests/run-all.sh --suite scripts/install; FAIL .gitignore has .workflow/initiatives/*/.step / FAIL .gitignore user lines kept, block added once (135 passed, 3 failed; the third was SC2031 in the suite from sourcing the lib inside $(...), fixed by running it in a child $TEST_BASH -c)"
+  green: "tests/run-all.sh --suite scripts/install; PASS scripts/install passed=138 failed=0"
+  suite: "tests/run-all.sh (via toolchain); TOTAL passed=2094 failed=93 (31 suites); only the ten Phase 1 suites fail"
+  toolchain: .workflow/specs/001-large-path/artifacts/T1/toolchain.txt (pass; test unscoped with 10 excluded selectors, a warning)
+considered_not_built:
+  - "Settings-template deny entry and the deny-list pin at tests/scripts/install.sh:231: assigned to T6"
+  - "Changes to .agents/lib/workflow-paths.sh: shared core, already applied by integration"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+rework_1:
+  status: done
+  summary: "Added .workflow/initiatives/*/.step to the AGENTS.md Layout bullet listing the gitignore block's entries, matching GI_ENTRIES. Second toolchain run 2280/2280, exit 0; the first run had one codex-adapters check fail once ('workflow not installed -> silent allow'), which then passed in three standalone runs and the next full run."
+  base_commit: 291e55289f399f767e7403715e14b73ffa5a7ccd
+  head_commit: e36774c6a5e70d175338f4f16fa28b664dee2a2b
+  files_changed: [AGENTS.md]
+  discovered_work: [{kind: bug, summary: "flaky check 'workflow not installed -> silent allow' in tests/hooks/codex-adapters.sh (two checks share the name at lines 146 and 203); failed once in a full run during six parallel harness runs, passed four times after", blocker_assessment: can-wait, disposition: "presented at 00.22 as codex-adapters-flaky-check"}]

@@ -1,0 +1,60 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "782c9ae170eb1e12d232787b60e81e322d071b4a"
+findings:
+  - id: RS-1
+    category: profile
+    severity: medium
+    confidence: 80
+    location: ".agents/hooks/session-start-resume.sh:66-200"
+    claim: "The resume hook now holds about 100 lines of large-path business rules: which initiatives can be resumed, which ref wins (a local branch beats the working tree unless it is checked out, then origin), and the done-on-main test for emitted specs. None of this goes through a feature-workflow script."
+    consequence: "Two places now decide when an initiative can be resumed, and they already disagree. The hook hides a planned initiative whose emitted specs are all done on main. The SKILL.md branch 4 listing, used by Codex or any session without the hook, still shows it because its status is not done. A later change to the large-path rules (the module's main-ref and 6.13 logic) has to be copied into the hook by hand, or the two drift further."
+    evidence:
+      basis: ".workflow/profiles/shell-scripts.md: \"`.agents/hooks/`: thin host adapters ... Never business logic: call the owning skill's script instead.\" Checklist: \"Hook logic stays thin: real work is in the owning skill's script.\""
+      diff: "+initiative_ref() { ... +spec_done_on_main() { ... +    case \"$status\" in done) continue ;; planned) ... for s in $emitted; do spec_done_on_main \"$s\" || { open_spec=$s; break; }; done"
+    suggested_fix: "Move the listing (find initiatives, pick the ref, apply the planned/done-on-main filter) into one feature-workflow script, for example an `initiative-transition.sh list` subcommand. Have both the hook and SKILL.md branch 4 call it."
+  - id: RS-2
+    category: profile
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/feature-workflow/scripts/initiative-transition.sh:50-51"
+    claim: "The new script uses exit 1 for usage and environment errors and exit 2 for a refused transition. That is the reverse of the profile's convention for new scripts. The same change adds open-task-pr.sh generic mode, which follows the profile (2 = usage)."
+    consequence: "Two interfaces added in one change give exit 2 opposite meanings. A developer or module author who follows the written profile will read a refused slice or question transition as an environment error, or the reverse. The convention also erodes for whatever new script is copied from this one next."
+    evidence:
+      basis: ".workflow/profiles/shell-scripts.md: \"Exit codes: `0` ok, `1` the check found a problem or refused, `2` usage, environment or preflight error, documented in `# Exit:`. Existing scripts keep their codes\""
+      diff: "+# Exit: 0 done; 1 usage or environment error (missing yq, not a git repo, missing folder or file, unknown slice or question\n+#   id, malformed value); 2 illegal transition or a result the template validator rejects, with the reason on stderr."
+    suggested_fix: "Swap the codes to the profile's 0/1/2 and update `# Exit:`, the large-path Conventions line and the tests. Or, if matching status-transition.sh is intended, record that as a written exception in the profile."
+  - id: RS-3
+    category: smell
+    severity: medium
+    confidence: 80
+    location: ".agents/hooks/codex-pre-spawn.sh:100-113; .agents/hooks/session-start-resume.sh:66-73"
+    claim: "Possible Duplicated Code: both hooks have their own copy of the 'find initiatives in the main checkout folder plus local and origin initiative/* branches' scan. The for-each-ref and sed normalisation differ only slightly, and the explanatory comment is copied word for word."
+    consequence: "What counts as an existing initiative is defined twice in two hooks. The copies already differ (one lists every name using a single-segment `[^/]*` match, the other counts NNN-* by prefix stripping). The Codex spawn check and the resume offer can disagree on whether an initiative exists, and a change to branch naming or remotes has to be made in both."
+    evidence:
+      basis: "Fowler smell baseline: Duplicated Code"
+      diff: "+      { git -C \"$root\" for-each-ref --format='%(refname:lstrip=2)' \"refs/heads/initiative/$1-*\" \"refs/remotes/origin/initiative/$1-*\" 2>/dev/null || true; } \\  /  +    { git -C \"$root\" for-each-ref --format='%(refname:lstrip=2)' refs/heads/initiative refs/remotes/origin/initiative 2>/dev/null || true; } \\"
+    suggested_fix: "Put one 'initiative names' function in a sourced hook helper (`.agents/hooks/_initiatives.sh`) or the owning skill's script, and call it from both hooks."
+checked:
+  - "git diff f7a4b23...782c9ae excluding .workflow/specs/001-large-path (50 files), --stat and log (59 commits)"
+  - "AGENTS.md (root; CLAUDE.md is a one-line @AGENTS.md import)"
+  - "CODING_STANDARDS.md and CONTRIBUTING.md: not present in repo (nothing to check)"
+  - ".workflow/rules.md (all sections: ownership, shared core, size budget, workflow settings, cross-cutting policy, external systems, required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1, T2, T4, T5, T6, T7)"
+  - ".workflow/profiles/agent-docs.md (T3, T8, T9)"
+  - ".workflow/profiles/test-harness.md (for tests/** in the diff)"
+  - ".workflow/specs/001-large-path/design-log.md Placement entry (2026-10-21, D1; no ADR link, so the entry is the placement record): checked. Secondary touches are lib, hooks, agents, tests and root-docs, as recorded"
+  - ".workflow/GLOSSARY.md (naming: no _Avoid_ alias found in added lines; Slice and Initiative question added in canonical form)"
+  - ".agents/skills/project-setup/assets/GLOSSARY.md (template, not a naming baseline for this repo; no GLOSSARY-MAP.md exists)"
+  - ".agents/skills/feature-workflow/references/readable-code.md (added comments in .sh files checked for R2-R5; JRN-### ids in suite headers are endorsed by verification-setup.md's 'named or tagged by its JRN-### id')"
+  - ".agents/skills/writing-for-agents/assets/agent.template.md against .agents/agents/research.md (Input/Steps/Return, frontmatter name/description/tools, description leads with 'Initiative research (step 6.4)')"
+  - "toolchain.json for T1-T9 under .workflow/specs/001-large-path/artifacts/<task>/"
+  - "Rule checks with no finding: PROVENANCE.md updated in the same change; research.md in install-manifest.txt; .gitignore matches GI_ENTRIES in install.sh; WF_INITIATIVES added to workflow-paths.sh and used rather than spelled-out paths; no bash 4 constructs seen in added code"
+not_checked:
+  - "T3 toolchain: lint=fail (.workflow/specs/001-large-path/artifacts/T3/toolchain.json), test=unscoped; not re-run"
+  - "T5, T7 toolchain: test=unscoped; not re-run"
+  - "T1-T9 toolchain: typecheck, format and boundary skipped (no command in the profile); rules.md says no boundary tool reads bash, so module boundaries were checked by reading only"
+  - "test-harness lint (shellcheck over tests/*.sh, including tests/fixtures/initiative.sh and the 8 new suites) ran under no task: every task's work_type is shell-scripts or agent-docs. Running the test-harness lint command at HEAD would settle it"
+  - "tests/fixtures/ is a new test folder that the test-harness profile's File locations do not list (it is documented in tests/README.md). Kept below 80 because the profile does not forbid it; a profile ruling would settle it"

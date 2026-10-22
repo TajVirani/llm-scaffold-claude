@@ -1,0 +1,16 @@
+verdict: fail
+task_id: T7
+work_type: shell-scripts
+diff: .workflow/.worktrees/s001_t7@5a7a51a88300e687a069d0990e34fa0a73dd07bd..88a21a9cacf3f22e07fd633d23b43a0a2d29078c
+items_failed:
+  - {item: "readable-code R2", locations: ["scripts/check-write.sh:316"], finding: "the initiative folder name is cut from REL (original case) while the sibling spec branch uses the lower-cased SPEC_REST; no comment says why, and aligning the two would lower-case the folder name and break the .step lookup on a case-sensitive file system", disposition: "fix round 1: one reason line, no code change"}
+items_passed: ["workflow paths from the lib", "error paths", "header shape", "test syntax", "R1", "R3-R5"]
+out_of_scope_noticed:
+  - {kind: bug, summary: "The guard's yq reads at 333 and 350 discard stderr and treat a failed read as status unreadable (in flight); fail-safe and the same as the spec loop, but the deny does not say a read failed.", blocker_assessment: can-wait, disposition: "fail-safe diagnostic gap shared with the existing spec loop; noted for the 5.7 retrospective beside work item disc-002"}
+round_2:
+  verdict: pass
+  reviewer: the round-1 reviewer, resumed on the round-1 delta
+  diff: .workflow/.worktrees/s001_t7@5a7a51a88300e687a069d0990e34fa0a73dd07bd..7d1a099bb3a25e623088529bb3d66506b3a93788
+  items: ["R2: pass (reason at check-write.sh:316)", "every other item unchanged and passing"]
+  out_of_scope_noticed:
+    - {kind: bug, summary: "Guard yq reads discard stderr; a failed read counts as unreadable (in flight), fail-safe like the spec loop, without a diagnostic.", disposition: "unchanged from round 1; noted for the 5.7 retrospective"}

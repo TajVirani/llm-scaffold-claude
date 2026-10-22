@@ -1,0 +1,65 @@
+status: done
+summary: Wrote modules/large-path.md (conversion at node 0.3.23, steps 6.1-6.13 in run order, a table marking the initiative.md writer steps 6.1, 6.7, 6.9 and the one term gate 6.6) and wired the five entry points (SKILL.md, questioning-loop, discovery, deferred-handoff, sign-off). The sign-off criterion asking 5.7 to flip the initiative contradicts the design log (sign-off writes nothing into an initiative; done is read from main, reached only at 5.8), so 5.7 notes it writes nothing and the flip runs after the 5.8 merge when sign-off hands off to large-path 6.13.
+task_id: T9
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t9
+branch: task/001-large-path/T09-large-path-module
+base_commit: 277459ad52cc277a09ab8c374a69fae35087e7f3
+head_commit: d29a9f00db76a9988eaed7db5afad01c50cf4910
+files_changed: [.agents/skills/feature-workflow/modules/large-path.md, .agents/skills/feature-workflow/SKILL.md, .agents/skills/feature-workflow/modules/questioning-loop.md, .agents/skills/feature-workflow/modules/discovery.md, .agents/skills/feature-workflow/modules/deferred-handoff.md, .agents/skills/feature-workflow/modules/sign-off.md]
+tests_added: []
+evidence:
+  red: "lint/step-list: FAIL every step id used by the skills is in steps.tsv got=0.3.23; FAIL JRN-007 every 6.x id used ... got=6.1 6.10 6.11 6.12 6.13 6.2 ... 6.9 (all 14 new ids; red until T2 copies them in)"
+  green: "lint/frontmatter 38/38, lint/symlinks 45/45, lint/upstream-lineage 13/13; scratch-repo trials of the frontier loop (IQ2 IQ4 IQ6), the 0.1.1 numbering block (003 from a slice only on an initiative branch) and the shelf re-pointing loop"
+  suite: "tests/run-all.sh TOTAL passed=2090 failed=95 (31 suites), same totals and failing suites as the base run (the ten red-by-design suites); caveat: the doc edits landed while the base run was in progress, so lint/step-list's base result is not a clean baseline"
+  toolchain: ".workflow/specs/001-large-path/artifacts/T9/toolchain.txt (fail: lint/step-list only; symlinks and upstream-lineage run separately and pass; test unscoped)"
+considered_not_built:
+  - "Fixture placeholders: 0.3.23 kept; 6.2 (write back research) fits INITIATIVE_READONLY_STEP; the term gate is 6.6, so LARGE_TERM_GATE_STEP must become 6.6 (set by the step-list task); writer steps for the guard list: 6.1, 6.7, 6.9"
+  - "Converting a spec that already has a spec branch: refused, sent to the scope gate 0.3.16"
+  - "No --step option on set-slice/set-question: the module calls the step subcommand first"
+  - "New question and slice records are added by hand (questions.md any step; initiative.md only at a writer step); state changes only through the script"
+  - "0.1.1 numbering counts the working tree plus local and origin initiative branches, not main"
+  - "No new design-log entry shapes in assets/design-log.md (M3, T3); the module states the Initiative round shape and the conversion Origin heading inline; T3 should match"
+  - "Protected main under pr/pr-blocking: the module tells the stakeholder and leaves the PR/MR to be merged on the host"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: decision
+    summary: "The sign-off criterion (5.7 flips the initiative to done and merges that change) contradicts the design log: sign-off writes nothing into an initiative, and an emitted spec counts as done only on main, reached at 5.8. Implemented as a hand-off from the end of 5.8 to large-path 6.13; 5.7 only notes it writes nothing."
+    evidence: "design-log.md:266 and :311; codebase-map constraint (modules/sign-off.md:124,129)"
+    blocker_assessment: can-wait
+    reason: "The hand-off gives the behaviour the criterion wants without breaking either rule; needs confirmation."
+fix_round_1:
+  status: done
+  summary: "The 0.3.23 step 3 bash-block comment names no paths (now 'the initiative and questions templates' and 'the initiative file'); one comment at the first git switch --no-track gives the reason (without the flag the branch would track main and a plain pull or push would go to main). Nothing else changed."
+  head_commit: ce96b0914cb848e2dbfd027e814086a3cb75de51
+  evidence: "lint/frontmatter 38/38, lint/symlinks 45/45, lint/upstream-lineage 13/13; step-list red only on the new ids until T2; suite TOTAL passed=2090 failed=95, only the ten red-by-design suites"
+  discovered_work: "signoff-flip-timing carried over (ruled: confirmed hand-off reading, dismissed record)"
+rework_1:
+  status: done
+  summary: "F7: 6.13 reads the initiative's status on the main ref first; absent or exploring tells the stakeholder it is still exploring, names its open emitted specs and writes nothing; done writes nothing; only planned goes on to the spec list and the flip; the sign-off hand-off states the same condition; JRN-005 gains an assertion that the hand-off on an exploring initiative re-creates no branch and changes nothing (red then green). F5: the three inline entry shapes are gone; each point names the template's heading, links assets/design-log.md and keeps only the values the step fills in; the conversion entry moved into step 5 so Re-pointed can list what was re-pointed; the replay entries in the conversion and emission suites brought into line. F8: the 6.4 launch body is Question (verbatim, with id), Goal, Settled; Affected area gone. One rule added beyond the template: a fact that settled a question at 6.4 goes in that question's block (the template's round entry has no line for looked-up facts)."
+  base_commit: 291e55289f399f767e7403715e14b73ffa5a7ccd
+  head_commit: d05e537ce26f387ed81d273e268fa76ab0f93ee8
+  files_changed: [.agents/skills/feature-workflow/modules/large-path.md, .agents/skills/feature-workflow/modules/sign-off.md, .agents/skills/feature-workflow/modules/discovery.md, tests/scripts/initiative-merge.sh, tests/scripts/initiative-conversion.sh, tests/scripts/initiative-emission.sh]
+  tests_added: [{file: tests/scripts/initiative-merge.sh, test: "JRN-005 the 6.13 hand-off on an exploring initiative re-creates no branch and changes nothing", kind: edge}]
+  evidence: "red: with the status gate removed from the replay the new assertion fails (git switch -c on the existing branch); green: initiative-merge 54/54, initiative-conversion 28/28, initiative-emission 22/22; suite TOTAL passed=2281 failed=0 (31 suites); toolchain pass"
+rework_1_fix_round_1:
+  status: done
+  gate: "3.9 lint (test-harness shellcheck over tests/) after rework 1 merged; harness itself 2281/2281"
+  summary: "tests/scripts/initiative-merge.sh: the two 'done' status arguments in the JRN-005 close_check replay are quoted (SC1010); SC2034 joins the header disable list with its reason extended (the check expressions read variables shellcheck cannot see). The first commit (25182e6) displaced the 'gh and glab are stubs' header line and kept the old directive; 1c18594 restored the line and left one directive. Against 93b12bc the change is one directive line and the two quoted lines."
+  base_commit: 93b12bc9e8a5ea03575dea87354983fe7eddaefa
+  head_commit: 1c185948eea7229fa9d98c235c6756d93dce2564
+  files_changed: [tests/scripts/initiative-merge.sh]
+  tests_added: []
+  evidence: "shellcheck over tests exit 0 (artifacts/T9/lint-test-harness.txt); scripts/initiative-merge 54/54; toolchain pass (agent run and orchestrator run), harness 2281/2281 over 31 suites"
+  discovered_work: []
+rework_2:
+  status: done
+  finding: F14 (review pass 2, RE-1)
+  summary: "6.13 checks for initiative/NNN-slug (local or origin/) before listing specs; a present branch means the planned initiative was reopened and is still exploring: tell the stakeholder, name the emitted specs not yet done from the branch's initiative.md, write nothing. The planned bullet is split into 'branch present' (write nothing) and 'no branch' (the existing listing and flip). close_check in the merge suite replays the check in the same order; four assertions cover the reopened case (main planned, branch exploring; local branch and origin-only), red first (switch failed on the local branch; origin-only re-created and flipped) then green."
+  base_commit: f5343888ecfc7faebba74d99a4ccdc3ef5adeab2
+  head_commit: 98dce0cd5749d9f722d308a7c6cfcd8938530c0a
+  files_changed: [.agents/skills/feature-workflow/modules/large-path.md, tests/scripts/initiative-merge.sh]
+  tests_added: 4 edge checks in tests/scripts/initiative-merge.sh (JRN-005 reopened section)
+  evidence: "scripts/initiative-merge 56/58 red then 58/58 green; harness 2285/2285 over 31 suites (agent run); lint/step-list 36/36; shellcheck over tests exit 0"
+  discovered_work: []

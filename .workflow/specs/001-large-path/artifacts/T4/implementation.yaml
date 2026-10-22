@@ -1,0 +1,71 @@
+status: done
+summary: Replaced the Phase 1 stub with the real initiative-transition.sh (status, step, set-slice, set-question, set-pr; 0/1/2 exit contract as the spec writer). Every write goes to a copy, is checked with the template's validator (copied word for word from assets/initiative.md and assets/questions.md), then moved into place; done is terminal. initiative-emission fully green; initiative-transition 36/39 (the 3 resume-offer cases need T6); initiative-merge 28/35 (the 7 pr cases need T5). No suite regressed.
+task_id: T4
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s001_t4
+branch: task/001-large-path/T04-initiative-single-writer
+base_commit: 6d6b57328c982c0457af45088d539ec395bdc25c
+head_commit: 4216dae597f75708711d774c9359ece08a3a6393
+files_changed: [.agents/skills/feature-workflow/scripts/initiative-transition.sh]
+tests_added: []
+evidence:
+  red: "scripts/initiative-transition against the stub: FAIL JRN-002 a decision question cannot be researching ... passed=13 failed=26; initiative-emission 18/4; initiative-merge 17/18"
+  green: "scripts/initiative-emission PASS 22/22; scripts/initiative-transition 36/39 (resume-offer cases need T6); scripts/initiative-merge 28/35 (pr cases need T5); planned/done and done-is-terminal green"
+  suite: "tests/run-all.sh base passed=2096 failed=92 -> passed=2136 failed=52; every failing suite already failed at base with no more failures than before; initiative-conversion 3 -> 2, initiative-write-guards 5 -> 4"
+  toolchain: .workflow/specs/001-large-path/artifacts/T4/toolchain.txt (pass; test unscoped)
+considered_not_built:
+  - "Suite tests for the edge cases (checked by hand against a fixture repo): step before initiative.md exists and a non-6.x id (exit 2); an absolute dir; invalid --step on status (2); unknown slice and question ids (1); --spec on an emitted slice (2); validator refusal exits 2 and leaves the file byte-identical; reopen planned -> exploring; replacing merge_pr prints a warning"
+  - "Refusing planned with no slices at all: left open by the spec; the validator accepts it"
+  - "set-question without --state: --state is required, missing it exits 1"
+  - "--step on set-slice / set-question: the data model and suites win; callers run step first; --step outside status exits 1"
+  - "Missing --settled with --state settled exits 2 (the suite's refused case expects 2), not 1 as the task notes said"
+notes:
+  - "exploring -> exploring accepted (the copied template already says exploring; conversion then runs status exploring --step 6.1)"
+  - "--launched accepts only research, fact-lookup, retrieval, library-evaluation"
+  - "status writes .step only when --step is given"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+orchestrator_notes:
+  - "3.4: no negative or edge test added; the Phase 1 suite covers the illegal transitions and usage errors, but the hand-checked edge cases are not in a suite; resumed to add them."
+round_3_4:
+  status: done
+  summary: "Gate 3.4 negative and edge cases added to tests/scripts/initiative-transition.sh with JRN-002 names (20 tests). One turned up a script fix: a --launched value outside the four allowed task types now exits 1 even for a decision question (the kind check used to run first and return 2). initiative-transition fails only its 3 resume-offer cases (T6); initiative-emission fully green; lint passes."
+  head_commit: a5024b95ac9b43522f5082e44b1dd1d24b9a933d
+  tests_added_in_round: "step accepted/marker written before initiative.md; non-6.x id refused; absolute dir; status refuses non-6.x --step; unknown slice id; launch type outside the four; refused launch leaves the question open; validator-rejected write refused and leaves initiative.md byte-identical; emitted slice keeps its spec; planned once every slice emitted; reopen; replacing merge_pr warns and records"
+  evidence: "red: 13 new checks fail against the stub (swapped in temporarily); green: initiative-transition 56/59 (3 resume-offer cases wait for T6), initiative-emission 22/22, initiative-merge 28/35 (PR cases wait for T5); suite passed=2156 failed=52 vs base 2096/92; toolchain pass"
+fix_round_1:
+  status: done
+  summary: "The validator comment no longer names a document path and keeps the reason: 'Each validator below is a copy of the one in its template. Keep each identical to its template, because a write must pass the template's own rule.' Nothing else changed."
+  head_commit: 3c37c37b69ca16b084d183e814698c1209f905e7
+  evidence: "lint pass; initiative-emission 22/22; initiative-transition 56/59 (resume-offer cases wait for T6); initiative-merge 28/35 (PR cases wait for T5); suite passed=2156 failed=52; toolchain pass"
+fix_round_2:
+  status: done
+  summary: "On exploring -> planned with an unreadable questions.md the script exits 1 with an error line naming the file (new test red then green); the header label reads # Exit: with its text unchanged. Lint passes; initiative-emission 22/22; initiative-transition fails only its 3 resume-offer cases (T6)."
+  head_commit: b0ebb0f3daf8ae6e3b79f71ea8d2bd3fe04c0bca
+  tests_added_in_round:
+    - {file: tests/scripts/initiative-transition.sh, test: "JRN-002 planned with an unreadable questions.md is an environment error", kind: negative}
+    - {file: tests/scripts/initiative-transition.sh, test: "JRN-002 the error names questions.md", kind: negative}
+    - {file: tests/scripts/initiative-transition.sh, test: "JRN-002 the initiative stays exploring", kind: negative}
+  evidence: "red: FAIL JRN-002 the error names questions.md (only yq's raw message); green: initiative-transition 59/62, initiative-emission 22/22; suite passed=2159 failed=52 vs base 2096/92; toolchain pass"
+fix_round_3:
+  status: done
+  summary: "When the read of a slice's question ids fails while emitting, the script exits 1 naming initiative.md and the slice stays planned (new test red then green; the failed read is simulated with a yq wrapper on PATH, since yq returns rc 0 on a scalar questions value and the validator already refuses that). The \"null\" status guard is removed: it fired only on the quoted string \"null\" and then wrongly treated a broken status as no status; that value now exits 1 as an unknown status."
+  head_commit: c2879738ef31a71f0367ca2a8cd2a0ef8a32ef4f
+  tests_added_in_round:
+    - {file: tests/scripts/initiative-transition.sh, test: "JRN-002 an unreadable slice question list is an environment error", kind: negative}
+    - {file: tests/scripts/initiative-transition.sh, test: "JRN-002 the error names initiative.md", kind: negative}
+    - {file: tests/scripts/initiative-transition.sh, test: "JRN-002 the slice stays planned", kind: negative}
+  evidence: "red: got=0 want=1, stderr only the simulated yq failure, slice got=emitted; green: initiative-transition 62/65 (resume-offer cases wait for T6), initiative-emission 22/22, initiative-merge 28/35 (PR cases wait for T5); suite passed=2162 failed=52; toolchain pass"
+fix_round_4:
+  status: done
+  summary: "The six unwrapped yq reads (merge_pr, the question's state and kind, the slice's status, the two slice-list reads in the status checks) end in || die naming the file; PRV renamed MERGE_PR_URL; one comment above the first export says why values reach yq through strenv() rather than being pasted into the expression. Lint passes; initiative-emission 22/22; initiative-transition 62/65 (resume-offer cases wait for T6)."
+  head_commit: bd80c86ff8e7029b2b562bd9aaaa62c4c3b7c95b
+  evidence: "suite passed=2162 failed=52, unchanged from round 3; toolchain pass"
+rework_1:
+  status: done
+  summary: "initiative-transition.sh recorded as mode 100755 (commit shows mode change 100644 => 100755); the IT helper in tests/fixtures/initiative.sh runs the script directly, so the suites fail if the bit goes missing. ST helper left alone (status-transition.sh already 100755)."
+  base_commit: 291e55289f399f767e7403715e14b73ffa5a7ccd
+  head_commit: 57fa257f50f0d13918a55db6c852560bf7075d3d
+  files_changed: [".agents/skills/feature-workflow/scripts/initiative-transition.sh (mode only)", tests/fixtures/initiative.sh]
+  evidence: "red: direct-call helper with the bit cleared: Permission denied, initiative-transition passed=16 failed=49; green after chmod and update-index: TOTAL passed=2280 failed=0; toolchain pass"

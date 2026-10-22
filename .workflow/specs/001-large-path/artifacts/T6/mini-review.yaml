@@ -1,0 +1,51 @@
+verdict: fail
+task_id: T6
+work_type: shell-scripts
+diff: .workflow/.worktrees/s001_t6@6d6b57328c982c0457af45088d539ec395bdc25c..b39511ef675b1614f681d24bc4df07d4d59ffeeb
+items:
+  - {item: "A new `.workflow/` path is built from `workflow-paths.sh`, never spelled out.", result: pass, locations: ["hooks/session-start-resume.sh:65,129,140,161", "hooks/codex-pre-spawn.sh:104,109"]}
+  - {item: "Hook logic stays thin: real work is in the owning skill's script.", result: pass, locations: ["hooks/session-start-resume.sh:61-70,109-183"], note: "judgement pass; the hook already held the spec scan"}
+  - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", result: fail, locations: ["hooks/session-start-resume.sh:160"], finding: "ref=$(initiative_ref ...) || continue drops an initiative silently when its branch is checked out, has no initiative.md on its tip and has no origin copy; the convention is to list an unreadable item.", fix: "append an unreadable entry and count it instead of continue; add the test case"}
+  - {item: "A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.", result: pass}
+  - {item: "Sibling paths resolve from `BASH_SOURCE` with `cd -P`.", result: pass, locations: ["hooks/session-start-resume.sh:43,149"]}
+  - {item: "The header block has the shape for its kind (hook or helper) and names no decision ID.", result: pass}
+  - {item: "New files are kebab-case, run under `set -euo pipefail` and use `[[ ]]`; edited files keep their existing test syntax.", result: pass}
+  - {item: "Each new function has its `# name ARGS : what it does` line, and each shellcheck directive has its reason.", result: pass}
+  - {item: "readable-code R1", result: pass}
+  - {item: "readable-code R2", result: fail, locations: ["hooks/session-start-resume.sh:66", "hooks/codex-pre-spawn.sh:105"], finding: "|| true on git for-each-ref has no reason at the line; without it, outside a git repository the hook exits with no output under pipefail.", fix: "one-line reason above each"}
+  - {item: "readable-code R3-R5", result: pass}
+out_of_scope_noticed:
+  - {kind: decision, summary: "R4 reading for comments that name a workflow path as their subject.", disposition: "orchestrator: a comment may name the path that is its subject (the deny pattern in the toml comment, the files a header reads or writes); it may not point at a document as the reason for a choice; the reviewer's pass stands"}
+  - {kind: refactor, summary: "session-start-resume.sh grew to 266 lines with branch reading and frontmatter parsing.", disposition: "observation, no concrete work; noted for the 5.7 retrospective"}
+round_2:
+  verdict: fail
+  diff: .workflow/.worktrees/s001_t6@6d6b57328c982c0457af45088d539ec395bdc25c..b2536491b9038ef30762cd4ef38cd7195ce1ab49
+  items_failed:
+    - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", locations: ["hooks/session-start-resume.sh:115-120"], finding: "step_text takes the no-marker branch when yq fails on a corrupt .step (2>/dev/null), so a corrupt marker is listed as 'no .step marker'.", fix: "no-marker only when the file is absent; 'step marker unreadable' when it exists and the read fails; header line and a corrupt-.step test"}
+    - {item: "readable-code R2", locations: ["hooks/codex-pre-spawn.sh:109"], finding: "`) || true` after grep -c has no reason; without it set -e ends the hook with status 1 on zero matches, which Claude Code treats as allow (fail open).", fix: "a reason line above it"}
+  items_passed: ["workflow paths from the lib", "thin hook (judgement)", "exit codes", "BASH_SOURCE cd -P", "header shape", "test syntax", "function header lines", "R1", "R3", "R4 (paths name subjects; the (D18) cell in claude-settings.template.md:31 is a template-doc table cell like its neighbours)", "R5"]
+  out_of_scope_noticed:
+    - {kind: refactor, summary: "Branch-name resolution for initiatives is written twice (codex-pre-spawn.sh initiative_folder; session-start-resume.sh initiative_names and initiative_ref); a lib helper would keep one copy.", evidence: "codex-pre-spawn.sh:100-110; session-start-resume.sh:64-72,126-135", blocker_assessment: can-wait, disposition: "discovered work, to be presented with T4's round-2 result"}
+round_3:
+  verdict: fail
+  diff: .workflow/.worktrees/s001_t6@6d6b57328c982c0457af45088d539ec395bdc25c..3bcd4d9f392970154de78b1701d09c3c972d09e9
+  items_failed:
+    - {item: "Hook logic stays thin: real work is in the owning skill's script.", locations: ["hooks/session-start-resume.sh:65-80,113-190", "hooks/codex-pre-spawn.sh:100-112"], finding: "about 140 lines of initiative listing, branch resolution and done-on-main checks in the hook; the branch rule repeated in two hooks", fix_proposed: "a read-only list-initiatives.sh in feature-workflow that both hooks call", disposition: "orchestrator: settled by the stakeholder's ruling on initiative-branch-lookup-duplicated (work item disc-003, next feature); reviewers in rounds 1 and 2 passed this judgement item on the hook's existing inline spec scan; not sent back"}
+    - {item: "Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.", locations: ["hooks/session-start-resume.sh:154"], finding: "rules-setting.sh errors go to /dev/null and the hook falls back to main with no reason; in a project whose main branch is develop a planned initiative is re-offered at every start with nothing shown", disposition: "fix round 3"}
+    - {item: "Sibling paths resolve from `BASH_SOURCE` with `cd -P`.", locations: ["hooks/session-start-resume.sh:154"], finding: "rules-setting.sh resolved from the payload cwd's root rather than the hook's own .agents/ copy", disposition: "orchestrator: not a failure; every other hook resolves skill scripts from $root/.agents/skills/... (pre-launch.sh:69, codex-pre-spawn.sh:63, post-implementation-audit.sh:82), the rule covers files beside the hook, and the round-2 reviewer passed it on that precedent; consistency kept, noted for 4.1"}
+    - {item: "readable-code R5", locations: ["hooks/session-start-resume.sh:20"], finding: "'emitted slice spec' is undefined shorthand", disposition: "fix round 3"}
+  items_passed: ["workflow paths from the lib", "exit codes (n/a)", "header shape", "test syntax", "function header lines", "R1-R4"]
+  out_of_scope_noticed:
+    - {kind: refactor, summary: "JRN-NNN prefix in new test labels.", disposition: "not applicable: the journey tag is the verification plan's convention for filing evidence by journey"}
+round_4:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t6@6d6b57328c982c0457af45088d539ec395bdc25c..1454a8d623e9b234f0d3b6e392cade35412873d6
+  items: ["workflow paths from the lib: pass", "thin hook: settled (disc-003)", "error paths: pass (unreadable marker, missing initiative, frontmatter unreadable, main-setting warning, pre-spawn deny all visible)", "exit codes: n/a", "BASH_SOURCE cd -P: pass (rules-setting.sh via $root is the settled exception)", "header shape: pass", "test syntax: pass", "function header lines: pass", "R1-R5: pass"]
+  out_of_scope_noticed:
+    - {kind: decision, summary: "Sources line names workflow asset files.", disposition: "settled: a header block may name the files the script reads or relates to and the profile requires the Sources line"}
+    - {kind: bug, summary: "If mktemp fails the main-setting warning has empty parentheses.", blocker_assessment: can-wait, disposition: "cosmetic on a path that needs mktemp to fail; the warning still appears; noted for the 5.7 retrospective, no round"}
+rework_1:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t6@291e55289f399f767e7403715e14b73ffa5a7ccd..3c2ece6644105c304df5094861bd31438fd22c01
+  items: ["one permissions.allow entry in the settings template; every checklist item not applicable; R1 pass"]
+  out_of_scope_noticed: []

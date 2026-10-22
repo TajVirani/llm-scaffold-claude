@@ -1,0 +1,2 @@
+tests/hooks/initiative-write-guards.sh
+tests/scripts/resolve-launch-initiative.sh

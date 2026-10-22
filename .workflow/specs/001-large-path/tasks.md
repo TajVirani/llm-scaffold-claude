@@ -2,11 +2,11 @@
 tasks:
   - id: T1
     title: "Initiative paths, ignore block and installer entries"
-    status: pending
+    status: done
     capability: CAP-NEW-initiative-conversion
     depends_on: []
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: "installer"
     seam: "the install fixture's .gitignore block and dry-run output (tests/scripts/install.sh); wf_path on WF_INITIATIVES"
     file: tasks/T01-initiative-paths.md
@@ -22,11 +22,11 @@ tasks:
     pr: null
   - id: T2
     title: "Large track in the step list and progress line"
-    status: pending
+    status: done
     capability: CAP-NEW-initiative-exploration
     depends_on: [T9]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "step-progress.sh <id> stdout, and tests/lint/step-list.sh over references/steps.tsv and the PLAN flow docs"
     file: tasks/T02-large-track-steps.md
@@ -48,11 +48,11 @@ tasks:
     pr: null
   - id: T3
     title: "Templates admit initiatives"
-    status: pending
+    status: done
     capability: CAP-NEW-slice-emission
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "the yq validators embedded in the templates (frontmatter oracle)"
     file: tasks/T03-initiative-templates.md
@@ -68,11 +68,11 @@ tasks:
     pr: null
   - id: T4
     title: "The initiative single writer"
-    status: pending
+    status: done
     capability: CAP-NEW-initiative-exploration
     depends_on: [T3, T9]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "initiative-transition.sh CLI: exit 0/1/2, the reason on stderr, the frontmatter and .step it writes (read with yq)"
     file: tasks/T04-initiative-single-writer.md
@@ -87,11 +87,11 @@ tasks:
     pr: null
   - id: T5
     title: "Generic PR mode"
-    status: pending
+    status: done
     capability: CAP-NEW-initiative-close
     depends_on: [T4]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "open-task-pr.sh --head/--base/--title --dry-run stdout with gh and glab stubs on PATH; --record writes merge_pr through set-pr"
     file: tasks/T05-generic-pr-mode.md
@@ -107,11 +107,11 @@ tasks:
     pr: null
   - id: T6
     title: "Hooks know initiatives"
-    status: pending
+    status: done
     capability: CAP-NEW-initiative-close
     depends_on: [T1, T3]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "hooks"
     seam: "hook stdin and stdout JSON: session-start-resume.sh additionalContext text; codex-pre-spawn.sh deny JSON and exit code; the settings templates' deny entries"
     file: tasks/T06-hooks-initiatives.md
@@ -135,11 +135,11 @@ tasks:
     pr: null
   - id: T7
     title: "Guards and launches from an initiative"
-    status: pending
+    status: done
     capability: CAP-NEW-initiative-exploration
     depends_on: [T1, T2, T8]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "check-write.sh --cwd --path [--only] exit code and reason, driven through the three guard hooks' stdin JSON; resolve-launch.sh --requirements JSON and a resolved research header"
     file: tasks/T07-guards-and-launches.md
@@ -158,11 +158,11 @@ tasks:
     pr: null
   - id: T8
     title: "The research task type"
-    status: pending
+    status: done
     capability: CAP-NEW-initiative-exploration
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "agents"
     seam: "tests/lint/frontmatter.sh over .agents/agents/research.md and the Codex toml generate-codex-agents.sh produces from it"
     file: tasks/T08-research-task-type.md
@@ -179,11 +179,11 @@ tasks:
     pr: null
   - id: T9
     title: "The large-path module and its entry points"
-    status: pending
+    status: done
     capability: CAP-NEW-initiative-conversion
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "prose: tests/lint/step-list.sh (every step id the skill names exists) and the Phase 4 review lenses against the JRN-001, JRN-003 and JRN-005 replays"
     file: tasks/T09-large-path-module.md

@@ -1,0 +1,45 @@
+{
+  "status": "fail",
+  "task_id": "integration-shell-scripts",
+  "work_type": "shell-scripts",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-a961dc1cd33f47d2a/.workflow/profiles/shell-scripts.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-a961dc1cd33f47d2a",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/integration-shell-scripts",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh",
+      "status": "fail",
+      "exit_code": 1
+    }
+  ],
+  "digest": "Toolchain failed for task integration-shell-scripts (1 of 2 commands). Fix these in the same context, then stop again.\nFull output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/artifacts/integration-shell-scripts/toolchain.txt\n\n[test] tests/run-all.sh exited 1. Last 40 lines:\nFAIL JRN-007 the reference names the conversion node\nFAIL JRN-007 the reference has a Phase 6 section\nFAIL JRN-007 check-write.sh step lists name 6.x steps\n== lint/symlinks\n== lint/upstream-lineage\n\n== summary\nPASS scripts/build-architecture             passed=74   failed=0   skipped=0   xfail=0   9s\nPASS scripts/cache-scripts                  passed=36   failed=0   skipped=0   xfail=0   5s\nPASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   4s\nPASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   8s\nFAIL scripts/initiative-conversion          passed=25   failed=3   skipped=0   xfail=0   2s\nFAIL scripts/initiative-emission            passed=15   failed=7   skipped=0   xfail=0   2s\nFAIL scripts/initiative-merge               passed=17   failed=18  skipped=0   xfail=0   2s\nFAIL scripts/initiative-transition          passed=13   failed=26  skipped=0   xfail=0   2s\nPASS scripts/install                        passed=136  failed=0   skipped=0   xfail=0   131s\nFAIL scripts/resolve-launch-initiative      passed=4    failed=9   skipped=0   xfail=0   2s\nPASS scripts/resolve-launch                 passed=90   failed=0   skipped=0   xfail=0   11s\nPASS scripts/run-toolchain                  passed=35   failed=0   skipped=0   xfail=0   4s\nPASS scripts/status-transition-check-write  passed=677  failed=0   skipped=0   xfail=0   89s\nFAIL scripts/step-progress                  passed=47   failed=5   skipped=0   xfail=0   2s\nPASS scripts/task-breakdown                 passed=89   failed=0   skipped=0   xfail=0   8s\nPASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   3s\nPASS hooks/audit-sync-resume                passed=54   failed=0   skipped=0   xfail=0   21s\nPASS hooks/block-destructive-git            passed=144  failed=0   skipped=0   xfail=0   8s\nPASS hooks/codex-adapters                   passed=99   failed=0   skipped=0   xfail=0   18s\nFAIL hooks/codex-pre-spawn-initiative       passed=6    failed=4   skipped=0   xfail=0   1s\nPASS hooks/codex-shim                       passed=38   failed=0   skipped=0   xfail=0   7s\nPASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   7s\nFAIL hooks/initiative-write-guards          passed=7    failed=5   skipped=0   xfail=0   4s\nPASS hooks/pre-launch                       passed=17   failed=0   skipped=0   xfail=0   4s\nFAIL hooks/session-start-initiatives        passed=4    failed=10  skipped=0   xfail=0   1s\nPASS hooks/worktree-guard                   passed=42   failed=0   skipped=0   xfail=0   8s\nPASS hooks/write-guards                     passed=97   failed=0   skipped=0   xfail=0   17s\nPASS lint/frontmatter                       passed=38   failed=0   skipped=0   xfail=0   3s\nFAIL lint/step-list                         passed=28   failed=6   skipped=0   xfail=0   6s\nPASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   0s\nPASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s\nTOTAL passed=2092 failed=93 skipped=0 xfail=0 (31 suites)\nFAILED suites: scripts/initiative-conversion scripts/initiative-emission scripts/initiative-merge scripts/initiative-transition scripts/resolve-launch-initiative scripts/step-progress hooks/codex-pre-spawn-initiative hooks/initiative-write-guards hooks/session-start-initiatives lint/step-list\n"
+}

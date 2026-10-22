@@ -1,0 +1,24 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd"
+head: "f5343888ecfc7faebba74d99a4ccdc3ef5adeab2"
+findings: []
+checked:
+  - "diff f7a4b23...HEAD excluding .workflow/specs/001-large-path (50 files, +2765/-175), its --stat and the 57-commit log; also the delta since the pass-1 head 291e552 (15 commits, the rework merges)"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/AGENTS.md (CLAUDE.md is a one-line import of it); no CODING_STANDARDS.md or CONTRIBUTING.md in the repo"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/rules.md, all sections"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/profiles/shell-scripts.md, agent-docs.md and test-harness.md"
+  - "Placement entry (D1) in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/001-large-path/design-log.md (no ADR link; that entry is the placement record)"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/GLOSSARY.md (no GLOSSARY-MAP.md in the repo); the added lines were searched for _Avoid_ aliases and none were found"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.agents/skills/feature-workflow/references/readable-code.md"
+  - "toolchain.json for T1-T9 (lint passed for T1, T2, T4-T9; typecheck, format and boundary skipped with no command in every profile)"
+  - "Pass-1 findings (artifacts/review/pass-1/review-standards.yaml) and the pass-1 triage table. All patches landed and were checked: initiative-transition.sh is now 100755 and the fixture calls it directly; the settings template has the allow entry; the PROVENANCE feature-workflow row lists large-path, initiative.md, questions.md and initiative-transition.sh, and the harness row reads 31 suites; the two JRN-007 body comments are gone; the module and discovery now point at the design-log template's entry shapes; the AGENTS.md gitignore bullet is updated. RS-3 (exit codes) and RS-6 (journey-named suites and tests/fixtures/) are deferred as proposals P5 and P6 and are not raised again."
+  - "Design-log rulings used to suppress settled items: D25 (extend open-task-pr.sh with a generic mode, which endorses the dual-mode script), D17 (the resume hook lists initiatives), and disc-003 initiative-branch-lookup-duplicated (the copies of the branch lookup in codex-pre-spawn.sh and session-start-resume.sh, ruled can-wait as a next feature)"
+  - "New research agent checked against the agent-docs profile: frontmatter is exactly name, description and tools; the description leads with 'Initiative research (step 6.4)'; the body follows Input / Steps / Return; it is in install-manifest.txt and in the PROVENANCE Agents row"
+  - "The eight new suites checked against the test-harness profile: each has '# Suite:' and '# Covers:', sources lib/common.sh, calls preflight, ends with finish, and has a shellcheck_files assertion"
+not_checked:
+  - "T3 per-task lint: failed on lint/step-list, which was red by design until T2/T6 landed; the later gates and the T8/T9 lint pass cover it. Not re-run."
+  - "Per-task test keys for T3, T5 and T7 are 'unscoped' (no test_scoped command in any profile). Only the pass/fail of the later gates was relied on; not re-run."
+  - "typecheck, format and boundary: no command in any profile. Module edges were checked by hand against the rules.md Ownership block, and no undeclared edge was found."
+  - "Below 80, low/medium, not reported: the '# Suite:' and '# Covers:' headers of the new suites (and step-list.sh:8, step-progress.sh:6) still name JRN-### journey ids. This may breach readable-code R4, but verification-setup.md asks for tests 'named or tagged by its JRN-### id', and pass-1 triage only removed body comments. To settle it: rule whether a suite header counts as a tag or as a comment."

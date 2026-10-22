@@ -2,10 +2,10 @@
 status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "f7a4b23b895c0b7a81d8b7517ec6be87dba3b6fd" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: "spec/001-large-path" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
-impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
+impl_base_revision: "57aeacf3a186dee81f43055287dd2ba429dc6656" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes
-followup_review_recommended: false # true when triage recommends another review pass after this one
-deferred: [.workflow/deferred/shared-path-normaliser.md, .workflow/deferred/sign-off-scoped-commit.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
+followup_review_recommended: true # true when triage recommends another review pass after this one
+deferred: [.workflow/deferred/shared-path-normaliser.md, .workflow/deferred/sign-off-scoped-commit.md, .workflow/deferred/research-model-map.md, .workflow/deferred/research-across-sessions.md, .workflow/deferred/large-path-live-run.md, .workflow/deferred/session-start-timing-target.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 # origin: NNN-slug-disc-001.md       # optional; filename of the work-backlog item this spec was seeded from; the item is deleted after discovery
 budget: {max_tasks: 10, max_changed_files: 35} # written at 2.5 from .workflow/rules.md "Size budget"; raised by the approved overrun at 00.29 (2026-10-22, design-log Size budget entry)
 # blocked_condition: "<what a human must decide or do before work can continue>"   # present only while status is blocked; forms: "discovered work: <slug>", "size budget: <what>", or free text
@@ -41,6 +41,7 @@ Let the workflow take on a subject too large or too uncertain for one spec: plan
 - The large path plans only: no code is built inside an initiative.
 - Initiative files are committed only on `initiative/NNN-slug` and reach main only through a PR/MR, at `planned` and at `done`; they never sit on a spec branch, so the spec size budget and the Tier A gate are untouched.
 - `task_review` governs the initiative branch as it governs task branches: `pr` and `pr-blocking` push at every commit point and open the PR/MR at `planned` and `done`; `local` never pushes and merges the branch into main locally with `--no-ff`. The PR/MR is opened by the generic mode of `open-task-pr.sh`, never by a second copy of the host switch.
+- The close step recognises a reopened initiative by the status its branch tip carries: an `initiative/NNN-slug` branch, local or on `origin`, whose `initiative.md` reads `exploring` means the initiative is still exploring and nothing is written; a branch whose tip reads anything else is not a reopen, and the status on main decides. A stale remote branch left by a `pr` merge never stops the close.
 
 ## Non-goals
 

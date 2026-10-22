@@ -1,0 +1,14 @@
+# interim agent-docs lint for T9 at d29a9f0, run by the orchestrator on 2026-10-22T02:10:14Z: the three suites the && chain skipped or hid, plus step-list's non-JRN-007 lines
+PASS lint/frontmatter                       passed=38   failed=0   skipped=0   xfail=0   2s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   0s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   2s
+non-JRN-007 failure: FAIL every step id used by status-transition.sh, check-write.sh and the skills is in steps.tsv
+non-JRN-007 failure: FAIL lint/step-list                         passed=26   failed=8   skipped=0   xfail=0   5s
+step-list non-JRN-007 failures listed above (none means only JRN-007 assertions fail)
+
+# fix round 1 at ce96b09, 2026-10-22T02:21:47Z
+PASS lint/frontmatter                       passed=38   failed=0   skipped=0   xfail=0   3s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   0s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+non-JRN-007 failure: FAIL every step id used by status-transition.sh, check-write.sh and the skills is in steps.tsv
+(end of step-list non-JRN-007 failures)

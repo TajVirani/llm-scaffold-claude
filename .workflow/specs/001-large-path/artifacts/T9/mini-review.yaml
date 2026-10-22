@@ -1,0 +1,33 @@
+round_1:
+  verdict: fail
+  items_failed: ["readable-code R4: modules/large-path.md:139-140 bash-block comment named two template paths"]
+  out_of_scope_noticed: ["git switch --no-track used at 67, 266, 287 with no reason given (can-wait; folded into fix round 1 as in-scope)"]
+round_2:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t9@277459ad52cc277a09ab8c374a69fae35087e7f3..ce96b0914cb848e2dbfd027e814086a3cb75de51
+  items:
+    - {item: "Every skill `description` the diff adds or changes carries a trigger clause (\"Use when …\").", result: pass, locations: [".agents/skills/feature-workflow/SKILL.md:3"]}
+    - {item: "A new agent follows the agent template; its description leads with `<role> (step X.Y)`.", result: not-applicable}
+    - {item: "readable-code R1", result: pass, locations: ["modules/large-path.md:43-46,120-130", "SKILL.md:33"]}
+    - {item: "readable-code R2", result: pass, locations: ["modules/large-path.md:73,255,257"]}
+    - {item: "readable-code R3", result: pass, locations: ["modules/large-path.md:73,81-82,290", "SKILL.md:33"]}
+    - {item: "readable-code R4", result: pass, locations: ["modules/large-path.md:73,81-82,53,255,257,290"]}
+    - {item: "readable-code R5", result: pass, locations: ["modules/large-path.md:53,257,73,81-82"]}
+  out_of_scope_noticed: []
+rework_1:
+  verdict: pass
+  diff: .workflow/.worktrees/s001_t9@291e55289f399f767e7403715e14b73ffa5a7ccd..d05e537ce26f387ed81d273e268fa76ab0f93ee8
+  items: ["agent-docs checklist not applicable (no skill description or agent changed); R1-R5 pass"]
+  out_of_scope_noticed: [{kind: refactor, summary: "the merge suite's close_check replay re-implements the 6.13 spec check rather than calling the module's helper; drift risk between replay and module", blocker_assessment: can-wait, disposition: "the inherent limit of proving prose by replay; covered by the shelved large-path-live-run handoff"}]
+rework_1_fix_round_1:
+  verdict: pass
+  diff: ".workflow/.worktrees/s001_t9@93b12bc9e8a5ea03575dea87354983fe7eddaefa..1c185948eea7229fa9d98c235c6756d93dce2564"
+  items: "agent-docs checklist both not-applicable (no skill description, no agent); readable-code R1-R5 pass (the SC2034 directive carries its reason, no restatement, no document reference)"
+  read_outside_diff: []
+  out_of_scope_noticed: []
+rework_2:
+  verdict: pass
+  diff: ".workflow/.worktrees/s001_t9@f5343888ecfc7faebba74d99a4ccdc3ef5adeab2..98dce0cd5749d9f722d308a7c6cfcd8938530c0a"
+  items: "agent-docs checklist both not-applicable; readable-code R1-R5 pass (fixture name O matches P and E; the close_check comment gives the reason for the branch check; header and comment name step ids only)"
+  read_outside_diff: [tests/fixtures/initiative.sh large_path_repo, the existing exploring case and repo_state, large-path.md 6.13 in full, readable-code.md]
+  out_of_scope_noticed: []
