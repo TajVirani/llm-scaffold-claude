@@ -29,7 +29,7 @@ Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`). init
   Add no other keys. Status changes go only through initiative-transition.sh (`status`, `set-slice`, `set-pr`), never by hand.
 
 Writing rules:
-  - Single writer: the main session, on the initiative branch, during the 6.x steps. Sub-agents never write it.
+  - Single writer: the main session, on the initiative branch, at 6.1 (enter the initiative, where conversion creates it), 6.7 (plan the slices) and 6.9 (emit a settled slice). Sub-agents never write it.
   - Each commit on the initiative branch holds only files under this initiative's folder. An emitted spec's folder is never part of one.
   - Links, never copies: a slice's detail lives in its spec once emitted; a question's detail lives in questions.md.
   - Delete this comment in the finished file.

@@ -1,6 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter. An initiative keeps the same log at .workflow/initiatives/NNN-slug/design-log.md: conversion moves the spec's log there and replaces its `Spec:` line with `Initiative: [initiative.md](initiative.md)`.
-Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4, 0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off / retrospective (5.x, 5.7) and the large path (Conversion at conversion; Initiative round and Emission in an initiative's log during 6.x; the Origin entry of an emitted spec at its 0.1.4).
+Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4, 0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off / retrospective (5.x, 5.7) and the large path (Conversion at 0.3.23; Initiative round at 6.8 and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
 
 Rules:
   - Append only. Never edit or delete an earlier entry. A reversal is a new entry that names what it supersedes; the old entry stays.
@@ -83,7 +83,7 @@ Facts looked up instead of asked (0.3.10): <fact>: <answer> (source `<path:line>
 
 ## YYYY-MM-DD Initiative round <n>
 
-<!-- 6.x, in an initiative's log. One round over the frontier of questions.md: the questions whose dependencies are all settled or done. One block per question asked or launched. -->
+<!-- 6.8, in an initiative's log. One round over the frontier of questions.md: the questions whose dependencies are all settled or done. One block per question asked or launched. -->
 
 Frontier: <IQ<n>, IQ<n>, ...>
 
@@ -104,7 +104,7 @@ Still researching: <IQ<n> (<task_type>)>, or "none".
 
 ## YYYY-MM-DD Emission: S<n> as <NNN-slug>
 
-<!-- 6.x, in an initiative's log. A settled slice becomes one spec. The spec folder stays uncommitted on the initiative branch; this entry, the slice record and the reference-table row are committed together. -->
+<!-- 6.9, in an initiative's log. A settled slice becomes one spec. The spec folder stays uncommitted on the initiative branch; this entry, the slice record and the reference-table row are committed together. -->
 
 - Slice: S<n> <slice title>, questions <IQ<n>, IQ<n>>, all settled
 - Spec: [<NNN-slug>](../../specs/NNN-slug/spec.md), seeded at 0.1.4 with `initiative: <NNN-slug>`

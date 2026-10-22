@@ -17,7 +17,7 @@ Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`). init
   Add no other keys. Records change only through `initiative-transition.sh set-question` (`--state`, `--settled <text>`, `--launched <task_type>|clear`), never by hand.
 
 Writing rules:
-  - Single writer: the main session, on the initiative branch, during the 6.x steps. Sub-agents return answers; the main session writes them back.
+  - Single writer: the main session, on the initiative branch, at any step. Sub-agents return answers; the main session writes them back.
   - A question is never deleted. One that turns out not to matter is settled with the reason it does not.
   - Delete this comment in the finished file.
 
