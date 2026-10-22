@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Suite: install.sh (repo root): preflight, payload and host shims.
-# Covers: preflight errors (not a git repo, sub-directory, bad --host, manifest line matching nothing); fresh installs for
-#   --host all, claude and codex (payload = manifest expansion exactly, VERSION stamp, .claude symlinks, settings.json =
-#   template, .codex/agents generated, hooks.json = template, config.toml parses to the template, .gitignore block, next
-#   steps per host); vendored and scaffold-only files absent from the target; executable hooks; context-bridge.cjs shipped
-#   and wired as statusLine and run in a "type": "module" target; idempotent re-run (no byte changes, VERSION kept).
+# Suite: install.sh (repo root): preflight and the --host all payload.
+# Covers: preflight errors (not a git repo, sub-directory, bad --host, manifest line matching nothing); a fresh install
+#   for --host all (payload = manifest expansion exactly, VERSION stamp, .claude symlinks, settings.json = template,
+#   .codex/agents generated, hooks.json = template, config.toml parses to the template, .gitignore block); vendored and
+#   scaffold-only files absent from the target; executable hooks; context-bridge.cjs shipped and wired as statusLine and
+#   run in a "type": "module" target; idempotent re-run (no byte changes, VERSION kept).
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Env: TEST_BASH=<bash binary> runs install.sh under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -131,29 +131,6 @@ t "re-run --host all" 0 INST "$A" --host all
 eq "re-run changes nothing (VERSION included)" "$(snap "$A")" "$before"
 out=$(INST "$A" 2>&1)
 check "re-run reports up to date" 'printf "%s" "$out" | grep -q "up to date"'
-
-echo "== fresh install, --host claude and --host codex"
-C=$WORK/claude
-new_target "$C"
-t "install --host claude" 0 INST "$C" --host claude
-check "claude: .claude shim present, no .codex" '[ -L "$C/.claude/skills" ] && [ -f "$C/.claude/settings.json" ] && [ ! -e "$C/.codex" ]'
-check "claude: .gitignore block still written" 'grep -qxF ".workflow/.worktrees/" "$C/.gitignore"'
-out=$(INST "$C" --host claude 2>&1)
-check "claude: next steps name .claude/ but not .codex/" 'printf "%s" "$out" | grep -qF "(.agents/, .claude/, .gitignore)" && ! printf "%s" "$out" | grep -qF ".codex/"' "$out"
-before=$(snap "$C")
-INST "$C" --host claude >/dev/null 2>&1
-eq "claude: re-run changes nothing" "$(snap "$C")" "$before"
-X=$WORK/codex
-new_target "$X"
-t "install --host codex" 0 INST "$X" --host codex
-check "codex: .codex shim present, no .claude" '[ -f "$X/.codex/hooks.json" ] && [ -f "$X/.codex/config.toml" ] && [ -f "$X/.codex/agents/fact_lookup.toml" ] && [ ! -e "$X/.claude" ]'
-out=$(INST "$X" --host codex 2>&1)
-check "codex: next steps print the trust and /hooks steps" 'printf "%s" "$out" | grep -q "/hooks" && printf "%s" "$out" | grep -qi "trust"'
-check "next steps point at project-setup" 'printf "%s" "$out" | grep -q "project-setup"'
-check "codex: next steps name .codex/ but not .claude/" 'printf "%s" "$out" | grep -qF "(.agents/, .codex/, .gitignore)"' "$out"
-before=$(snap "$X")
-INST "$X" --host codex >/dev/null 2>&1
-eq "codex: re-run changes nothing" "$(snap "$X")" "$before"
 
 echo "== lint"
 shellcheck_files "shellcheck: install.sh" "$REPO_ROOT/install.sh"

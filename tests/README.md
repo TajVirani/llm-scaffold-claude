@@ -61,8 +61,9 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | `scripts/cache-scripts` | `publish-cache.sh`, `cache-stamp-check.sh` |
 | `scripts/generate-boundary-config` | `generate-boundary-config.sh` |
 | `scripts/generate-codex-agents` | `hooks/generate-codex-agents.sh` |
-| `scripts/install-payload` | `install.sh` at the repo root: preflight errors, payload from `install-manifest.txt`, VERSION stamp, Claude and Codex shims per `--host`, `.gitignore`, vendored and scaffold-only files absent, idempotent re-run. Every `install-*` suite runs against its own copy of the scaffold inside the fixture |
-| `scripts/install-upgrade` | `install.sh`: `--dry-run`, upgrade (changed files overwritten, dropped files removed), project-owned files untouched |
+| `scripts/install-payload` | `install.sh` at the repo root: preflight errors, `--host all` payload from `install-manifest.txt`, VERSION stamp, Claude and Codex shims, `.gitignore`, vendored and scaffold-only files absent, idempotent re-run. Every `install-*` suite runs against its own copy of the scaffold inside the fixture |
+| `scripts/install-hosts` | `install.sh`: `--host claude` and `--host codex` installs (one shim each, next steps per host), `--dry-run` |
+| `scripts/install-upgrade` | `install.sh`: upgrade (changed files overwritten, dropped files removed), project-owned files untouched |
 | `scripts/install-claude-settings` | `install.sh`: Claude settings merge over user settings, refusals that write nothing and their `--force` paths |
 | `scripts/install-codex-config` | `install.sh`: Codex `config.toml` and `hooks.json` merges over user files, `[permissions.workflow]` and `default_permissions` conflicts |
 | `scripts/install-codex-tui` | `install.sh`: the Codex `[tui]` status_line merge over a user `[tui]` table or key |

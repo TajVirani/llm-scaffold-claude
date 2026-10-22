@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Suite: install.sh (repo root): dry run, upgrade and project-owned files.
-# Covers: --dry-run writes nothing and lists or reports its actions; upgrade that overwrites a changed file and removes a
-#   file dropped from the manifest while keeping files no install shipped; project-owned files untouched by install,
-#   --force and upgrade (incl. .workflow/design-pattern-doc/ and .workflow/pr-quality/); .gitignore user lines kept.
+# Suite: install.sh (repo root): upgrade and project-owned files.
+# Covers: upgrade that overwrites a changed file and removes a file dropped from the manifest while keeping files no
+#   install shipped; project-owned files untouched by install, --force and upgrade (incl. .workflow/design-pattern-doc/
+#   and .workflow/pr-quality/); .gitignore user lines kept.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Env: TEST_BASH=<bash binary> runs install.sh under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -27,23 +27,6 @@ snap() {
   done)
 }
 new_target() { rm -rf "$1"; git_init_repo "$1"; }
-
-echo "== dry run"
-D=$WORK/dry
-new_target "$D"
-printf 'node_modules/\n' >"$D/.gitignore"
-before=$(snap "$D")
-out=$(INST "$D" --dry-run 2>&1)
-rc=$?
-eq "dry run on a fresh target exits 0" "$rc" 0
-eq "dry run on a fresh target writes nothing" "$(snap "$D")" "$before"
-check "dry run lists actions" 'printf "%s" "$out" | grep -q "would create .agents/skills/feature-workflow/SKILL.md" && printf "%s" "$out" | grep -q "would link .claude/skills" && printf "%s" "$out" | grep -q "would create .codex/agents/fact_lookup.toml"'
-INST "$D" >/dev/null 2>&1
-echo "tampered" >>"$D/.agents/skills/glab/SKILL.md"
-before=$(snap "$D")
-out=$(INST "$D" --dry-run 2>&1)
-eq "dry run on an install with drift writes nothing" "$(snap "$D")" "$before"
-check "...and reports the update" 'printf "%s" "$out" | grep -q "would update .agents/skills/glab/SKILL.md"'
 
 echo "== upgrade: overwrite changed files, remove files dropped from the manifest"
 U=$WORK/up
