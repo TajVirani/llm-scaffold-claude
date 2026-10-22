@@ -75,7 +75,7 @@ GLOSSARY_STEPS="0.2.3 0.3.15 0.4.3 5.3 6.6"       # the term gates (6.6 is the i
 TIER_A_STEPS="0.3.7 5.3 5.7"                     # every other Tier A path (rules.md, capabilities.md, decisions/**)
 PROFILE_EDIT_STEPS="5.3"                          # an existing .workflow/profiles/** file
 PROFILE_CREATE_STEPS="00.19 5.3"                  # a new .workflow/profiles/** file (00.19 in-flow, 5.3 approved proposal)
-REVIEW_LESSONS_STEPS="5.7"                        # .workflow/review-lessons.md: only the retrospective records a lesson
+REVIEW_LESSONS_STEPS="5.7"                        # the review-lessons file: only the retrospective records a lesson
 
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 1; }
 allow() { printf 'allow: %s\n' "$1"; exit 0; }
