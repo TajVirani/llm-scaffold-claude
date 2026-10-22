@@ -3,10 +3,14 @@
 # Covers: the header line and finding table for three real pass-1 lens files (standards, end-state, targets with no targets),
 #   a targets file with measurements, a failed target and discovered work, the pass taken from the file over the path,
 #   one malformed file per shape rule (exit 1, the message names the field), two errors in one file,
+#   JRN-003: the review-lessons pass file for a repeated lesson (one high RL-1 lesson row) and with no findings, and an RS- id,
+#   a confidence of 70 and a lesson finding under review-standards each refused naming the field,
 #   and the exit-2 cases: no argument, two arguments, missing file, YAML that does not parse.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/review-lessons.sh
+source "$TESTS_DIR/fixtures/review-lessons.sh"
 preflight
 
 new_workdir
@@ -237,6 +241,40 @@ run_crf "$WORK/bad/two-errors/pass-1/review-standards.yaml"
 eq "two errors: exit 1" "$RC" 1
 eq "two errors: both lines" "$OUT" "status: 'finished' is not done or blocked
 findings[0].severity: 'critical' is not high, medium or low"
+
+# --- JRN-003: the review-lessons lens file the lens writes for a change that repeats lesson RL-001
+PL="$WORK/lessons-spec/artifacts/review/pass-1"
+expected_lens_block "$PL/review-lessons.yaml"
+run_crf "$PL/review-lessons.yaml"
+eq "JRN-003 lessons: exit 0" "$RC" 0
+check "JRN-003 lessons: header counts one high finding" \
+  '[[ $(line 1) == "lens: review-lessons  pass: 1  findings: 1 (high 1, medium 0, low 0)  "* ]]' "$OUT"
+check "JRN-003 lessons: one RL-1 lesson row, high, confidence 90, in the diff" \
+  '[[ $(line 3) == "$(row RL-1 lesson high 90 "src/report.sh:$REPORT_REPEAT_LINE")$TAB"* ]]' "$OUT"
+eq "JRN-003 lessons: no other finding rows" "$(wc -l <<<"$OUT" | tr -d ' ')" 3
+
+# names_field NAME FILE FIELD : the script exits 1 on FILE with one line, naming FIELD.
+names_field() {
+  local field=$3
+  run_crf "$2"
+  eq "$1: exit 1" "$RC" 1
+  eq "$1: one line naming $field" "$(grep -c . <<<"$OUT"):${OUT%%: *}" "1:$field"
+}
+mkdir -p "$WORK/bad/lessons-rs-id/pass-1" "$WORK/bad/lessons-confidence/pass-1" "$WORK/bad/lesson-under-standards/pass-1"
+yq '.findings[0].id = "RS-1"' "$PL/review-lessons.yaml" >"$WORK/bad/lessons-rs-id/pass-1/review-lessons.yaml"
+names_field "JRN-003 lessons: an RS- id" "$WORK/bad/lessons-rs-id/pass-1/review-lessons.yaml" "findings[0].id"
+yq '.findings[0].confidence = 70' "$PL/review-lessons.yaml" >"$WORK/bad/lessons-confidence/pass-1/review-lessons.yaml"
+names_field "JRN-003 lessons: confidence 70" "$WORK/bad/lessons-confidence/pass-1/review-lessons.yaml" "findings[0].confidence"
+yq '.lens = "review-standards" | .findings[0].id = "RS-1"' "$PL/review-lessons.yaml" \
+  >"$WORK/bad/lesson-under-standards/pass-1/review-standards.yaml"
+names_field "JRN-003 a lesson finding under review-standards" "$WORK/bad/lesson-under-standards/pass-1/review-standards.yaml" "findings[0].category"
+
+mkdir -p "$WORK/lessons-clean/pass-1"
+yq '.findings = []' "$PL/review-lessons.yaml" >"$WORK/lessons-clean/pass-1/review-lessons.yaml"
+run_crf "$WORK/lessons-clean/pass-1/review-lessons.yaml"
+eq "JRN-003 lessons, no findings: exit 0" "$RC" 0
+check "JRN-003 lessons, no findings: header counts none" \
+  '[[ $(line 1) == "lens: review-lessons  pass: 1  findings: 0 (high 0, medium 0, low 0)  "* ]]' "$OUT"
 
 # --- Exit 2: usage, missing file, YAML that does not parse
 run_crf
