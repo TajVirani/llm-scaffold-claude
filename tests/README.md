@@ -17,17 +17,18 @@ Scaffold-only. This folder tests the scripts and hooks in `.agents/`, the root `
 ```sh
 tests/run-all.sh                       # every suite, then a summary; exit 1 if any suite failed
 tests/run-all.sh --suite pre-launch    # one suite (name without .sh; --list shows them)
+tests/run-all.sh --suite pre-launch --suite lint/symlinks   # several suites: repeat --suite; they run in --list order
 tests/run-all.sh -v                    # print each suite's full output instead of failures only
 tests/run-all.sh --only-file F         # only the suites F names, one per line (tests/scripts/NAME.sh or scripts/NAME)
 tests/run-all.sh --exclude-file G      # every suite except those G names; with --only-file, F minus G
 tests/run-all.sh -j 1                  # one suite at a time (default: as many at once as there are CPUs, else 4)
 bash tests/hooks/write-guards.sh       # a suite directly
-TEST_BASH=/bin/bash tests/run-all.sh --suite status-transition-check-write   # run the scripts under another bash
+TEST_BASH=/bin/bash tests/run-all.sh --suite status-transition-specs   # run the scripts under another bash
 ```
 
-The status-transition suite makes many `yq` calls and takes a few minutes; the rest take under a minute each.
+Every suite takes under a minute. The `install.sh`, `status-transition.sh` and `check-write.sh` suites are split by concern so no single suite holds up a parallel run.
 
-Suites run in parallel, but each suite's output is held until it finishes and printed in `--list` order, so the report reads the same as a `-j 1` run apart from timings. An empty or missing `--only-file` selects every suite. A selector that names no suite, `--suite` combined with either file, or a `-j` value that is not a positive whole number exits 2.
+Suites run in parallel, but each suite's output is held until it finishes and printed in `--list` order, so the report reads the same as a `-j 1` run apart from timings. An empty or missing `--only-file` selects every suite. A selector or `--suite` name that names no suite, `--suite` (once or repeated) combined with either file, or a `-j` value that is not a positive whole number exits 2.
 
 ## CI
 
@@ -47,7 +48,11 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 
 | Suite | Component |
 |---|---|
-| `scripts/status-transition-check-write` | `status-transition.sh`, `check-write.sh`, `budget-check.sh` (PR/MR file set, test exclusion) |
+| `scripts/status-transition-specs` | `status-transition.sh` spec status: transitions and the `.step` marker, blocked and discovered-work paths (00.21-00.29), fresh clone, worktree resolution, no 3.16 merge while blocked, a merged task reopened |
+| `scripts/status-transition-tasks` | `status-transition.sh` task records: `set-task` (status, work_type, capability, `--pr`), the tasks.md validator, split-out and backlog seeding, task bodies, `set-spec`, `budget-check.sh --predicted` |
+| `scripts/check-write-paths` | `check-write.sh` path classes: Tier B and `.step`, `.workflow/` prefixes and look-alikes, spec.md per step and its creation, tasks.md, work-backlog |
+| `scripts/check-write-tier-a` | `check-write.sh` Tier A: glossary, rules, capabilities, ADRs and profiles per step, newest marker, no feature in flight |
+| `scripts/budget-check` | `budget-check.sh` (budget source, PR/MR file set, merge-base, harness and test exclusion, refusals) |
 | `scripts/resolve-launch` | `resolve-launch.sh` |
 | `scripts/step-progress` | `step-progress.sh` (the D84 progress line: full and light totals, run-order positions, loop steps, 00.x with `--at`, intake, unknown ids, `--spec-dir` defaults; JRN-007: the large form for the first and last large-track rows, the conversion node, a phase 0 row still `Phase 1 of 6`) |
 | `scripts/run-toolchain` | `run-toolchain.sh` |
@@ -56,9 +61,14 @@ The runner is CI-agnostic: install the requirements above, run `tests/run-all.sh
 | `scripts/cache-scripts` | `publish-cache.sh`, `cache-stamp-check.sh` |
 | `scripts/generate-boundary-config` | `generate-boundary-config.sh` |
 | `scripts/generate-codex-agents` | `hooks/generate-codex-agents.sh` |
-| `scripts/install` | `install.sh` at the repo root (payload from `install-manifest.txt`, VERSION stamp, Claude and Codex shims, settings and config merges, `.gitignore`, refusals, `--dry-run`); runs against a copy of the scaffold inside the fixture |
+| `scripts/install-payload` | `install.sh` at the repo root: preflight errors, `--host all` payload from `install-manifest.txt`, VERSION stamp, Claude and Codex shims, `.gitignore`, vendored and scaffold-only files absent, idempotent re-run. Every `install-*` suite runs against its own copy of the scaffold inside the fixture |
+| `scripts/install-hosts` | `install.sh`: `--host claude` and `--host codex` installs (one shim each, next steps per host), `--dry-run` |
+| `scripts/install-upgrade` | `install.sh`: upgrade (changed files overwritten, dropped files removed), project-owned files untouched |
+| `scripts/install-claude-settings` | `install.sh`: Claude settings merge over user settings, refusals that write nothing and their `--force` paths |
+| `scripts/install-codex-config` | `install.sh`: Codex `config.toml` and `hooks.json` merges over user files, `[permissions.workflow]` and `default_permissions` conflicts |
+| `scripts/install-codex-tui` | `install.sh`: the Codex `[tui]` status_line merge over a user `[tui]` table or key |
 | `scripts/build-architecture` | regenerate-caches `build-architecture.sh`, `check-staged-cache.sh` (dependency-cruiser and tsc output are fixtures; no node needed) |
-| `scripts/run-all-selection` | `tests/run-all.sh` itself, run on stub suites in a fixture tree: `--only-file` and `--exclude-file` selection, unknown selectors and flag conflicts, `-j` validation, parallel by default and serial with `-j 1`, output in glob order matching a serial run, `-v`, exit codes |
+| `scripts/run-all-selection` | `tests/run-all.sh` itself, run on stub suites in a fixture tree: `--only-file` and `--exclude-file` selection, repeated `--suite`, unknown selectors and flag conflicts, `-j` validation, parallel by default and serial with `-j 1`, output in glob order matching a serial run, `-v`, exit codes |
 | `scripts/upstream-diff` | `scripts/upstream-diff.sh` at the repo root (scaffold-only lineage diff): arguments, entry selection, `unknown`-commit skip, and a diff run against local `file://` upstreams; no network |
 | `scripts/initiative-transition` | JRN-002: `initiative-transition.sh` (frontier before and after a research question settles, set-question launch, reset and settle, illegal question, slice and status transitions exit 2, step and set-pr, usage errors) and the pending research count in `session-start-resume.sh` |
 | `scripts/initiative-conversion` | JRN-001: conversion of a draft spec into an initiative, replayed (branch off origin/main, `initiative-transition.sh`, moved design log and codebase map, re-pointed shelf and work items, folder-scoped commit), the resume offer naming the initiative, the next spec number skipping the converted one |
