@@ -220,8 +220,10 @@ echo "== project without the workflow installed"
 NW=$WORK/nowf
 mkdir -p "$NW/.agents/hooks"
 cp "$H"/_guard-common.sh "$H"/*-guard.sh "$NW/.agents/hooks/"
+# The guards exit before reading stdin here, so the payload comes from a file: a pipe would let the writer die of SIGPIPE.
+payload Write .workflow/cache/modules.md "$NW" > "$WORK/nowf.json"
 for g in $SPECG $TIERA $TIERB; do
-  out=$(payload Write .workflow/cache/modules.md "$NW" | bash "$NW/.agents/hooks/$g.sh" 2>/dev/null); rc=$?
+  out=$(bash "$NW/.agents/hooks/$g.sh" < "$WORK/nowf.json" 2>/dev/null); rc=$?
   if is_allow; then ok "$g: no feature-workflow skill -> silent allow"; else ko "$g: no feature-workflow skill -> silent allow" "rc=$rc out=$out"; fi
 done
 
