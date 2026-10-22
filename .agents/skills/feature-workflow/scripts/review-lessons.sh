@@ -46,6 +46,7 @@ require_tools() {
 # lessons_json FILE : print the file's first fenced yaml block as JSON (null when there is none); exit 1 when it does not parse.
 lessons_json() {
   local json
+  # yq's own parse message is dropped on purpose: the refusal below must be the only line on stderr.
   json=$(awk '/^```yaml$/{inside=1; next} /^```$/{if (inside) exit} inside' "$1" | yq -o=json '.' - 2>/dev/null) ||
     refuse "$1" "the fenced yaml block does not parse"
   printf '%s\n' "$json"

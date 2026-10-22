@@ -2,8 +2,8 @@
 # Suite: review-lessons.sh (feature-workflow/scripts).
 # Covers: validate exits 0 on the template and on a file with RL-001 or RL-001 retired, and exits 1 with one stderr line naming
 #   the broken field for each broken file (retired without enforced_by, a repeated id, empty paths, an absolute path, a bad
-#   origin_spec, a bad date, lessons not a list); next-id prints RL-001, RL-002 and RL-002 after retirement; exit 2 on no
-#   argument, an unknown subcommand and a missing file.
+#   origin_spec, a bad date, lessons not a list, a block that does not parse); next-id prints RL-001, RL-002 and RL-002 after retirement,
+#   and exits 1 with one stderr line on a block that does not parse; exit 2 on no argument, an unknown subcommand and a missing file.
 # shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose; helpers run inside them
 # shellcheck source=../lib/common.sh  # the path is built from BASH_SOURCE at run time, so -x needs this hint to follow it
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -24,10 +24,13 @@ run_rls() {
   ERR=$(cat "$WORK/stderr")
 }
 
+# one_stderr_line : true when the last run_rls wrote exactly one line to stderr.
+one_stderr_line() { [[ $(printf '%s\n' "$ERR" | wc -l | tr -d ' ') -eq 1 ]]; }
+
 # refuses_naming FILE FIELD : validate exits 1 on FILE with exactly one stderr line, and that line names FIELD.
 refuses_naming() {
   run_rls validate "$1"
-  [[ $RC -eq 1 && $(printf '%s\n' "$ERR" | wc -l | tr -d ' ') -eq 1 && $ERR == *"$2"* ]]
+  [[ $RC -eq 1 && $ERR == *"$2"* ]] && one_stderr_line
 }
 
 echo "== validate accepts files that meet the entry rules"
@@ -50,6 +53,7 @@ review_lessons_file "$L/bad-id.md" "$(lesson_rl001 | sed 's#^  - id: .*#  - id: 
 review_lessons_file "$L/empty-symptom.md" "$(lesson_rl001 | sed 's#^    symptom: .*#    symptom: ""#')"
 lessons_block_file "$L/lessons-not-a-list.md" "lessons: {id: RL-001}"
 printf '# Review lessons\n\nNo fenced block here.\n' >"$L/no-block.md"
+lessons_block_file "$L/unparsable.md" "lessons: [\"RL-001"
 while IFS=' ' read -r case field; do
   check "validate refuses $case naming $field" 'refuses_naming "$L/$case.md" "$field"' "rc=$RC: $ERR"
 done <<'CASES'
@@ -64,6 +68,7 @@ bad-id lessons[0].id
 empty-symptom lessons[0].symptom
 lessons-not-a-list lessons:
 no-block lessons:
+unparsable the fenced yaml block does not parse
 CASES
 
 echo "== next-id"
@@ -76,6 +81,8 @@ eq "next-id after a retired RL-001 is still RL-002" "$OUT" "RL-002"
 lessons_block_file "$L/high.md" "$(printf 'lessons:\n%s\n%s' "$(lesson_rl001)" "$(lesson_rl001 | sed 's#^  - id: .*#  - id: RL-999#')")"
 run_rls next-id "$L/high.md"
 eq "next-id after RL-999 is RL-1000" "$OUT" "RL-1000"
+run_rls next-id "$L/unparsable.md"
+check "next-id on a block that does not parse exits 1 with one stderr line" '[[ $RC -eq 1 && -z $OUT && $ERR == *"does not parse" ]] && one_stderr_line' "rc=$RC: $ERR"
 
 echo "== usage and environment errors"
 t "no argument exits 2" 2 "$RLS"
