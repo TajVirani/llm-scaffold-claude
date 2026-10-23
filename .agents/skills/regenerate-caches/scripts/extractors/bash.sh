@@ -139,12 +139,16 @@ heredoc_end != "" {
     token_count = split(line, tokens, /[ \t;|&<>=`]+/)
     for (t = 1; t <= token_count; t++) {
       token = tokens[t]
-      while (sub(/^[(!]/, "", token) || (token ~ /^\$\([$\034]/ && sub(/^\$\(/, "", token))) {}
+      while (sub(/^(\$\(|[(!])/, "", token)) {}
       sub(/[);]+$/, "", token)
       if (token ~ /\{/ && token !~ /\}/) continue
       if (token !~ /^[$\034]/) continue
       if (token ~ /\.sh$/) add_edge(token, 1)
-      else if (token ~ /\// && is_claimed_script(resolve_anchored(token))) add_edge(token, 1)
+      else if (token ~ /\//) {
+        anchored_target = resolve_anchored(token)
+        if (is_claimed_script(anchored_target)) add_edge(token, 1)
+        else if (anchored_target in unreadable) add_edge(token, 0)
+      }
     }
     report_cwd_relative_calls(line)
   }
@@ -287,13 +291,16 @@ function resolve_anchored(token) {
 
 # is_claimed_script PATH : 1 when existing repo file PATH is one this extractor claims, by its .sh name or its shebang.
 # An anchored path without .sh is only a call when it names such a script; any other file it names is data.
-function is_claimed_script(path,   first_line) {
+# A file that cannot be read goes in unreadable, since it may be a script and its call must not be dropped.
+function is_claimed_script(path,   first_line, read_status) {
   if (path == "") return 0
   if (path ~ /\.sh$/) return 1
   if (!(path in shebang_checked)) {
     shebang_checked[path] = 1
     first_line = ""
-    if ((getline first_line < path) > 0 && first_line ~ shebang) has_shebang[path] = 1
+    read_status = (getline first_line < path)
+    if (read_status < 0) unreadable[path] = 1
+    else if (read_status > 0 && first_line ~ shebang) has_shebang[path] = 1
     close(path)
   }
   return (path in has_shebang)
@@ -303,7 +310,8 @@ function is_claimed_script(path,   first_line) {
 # working directory (`./x`, `../x`, `bash x`, `sh x`), since that directory is only known at run time.
 # Quoted text is not a command, so single-quoted strings are dropped, and a quote left open starts a string that runs
 # on past this line. An array assignment `=(` and a closing `)` do not start a command. Only a short-option cluster holding
-# `c` (`-c`, `-ec`) makes bash read a command string; long options such as `--norc` are skipped like other flags.
+# `c` (`-c`, `-ec`) makes bash read a command string; other options are skipped, with the value of those that take one.
+# Every call found is reported, whatever its path holds, so a glob or an odd character is never dropped silently.
 function report_cwd_relative_calls(text,   command_count, commands, c, command, word_count, words, w, script) {
   gsub(/\047[^\047]*\047/, "", text)
   sub(/\047.*$/, "", text)
@@ -315,13 +323,20 @@ function report_cwd_relative_calls(text,   command_count, commands, c, command, 
     while (sub(/^(then|do|else|elif|if|while|until|exec|time|command|!)[ \t]+/, "", command) \
       || sub("^" var_name "=[^ \t]*[ \t]+", "", command)) {}
     word_count = split(command, words, /[ \t]+/)
+    for (w = 1; w <= word_count; w++) {
+      sub(/^\$?\(/, "", words[w])
+      sub(/\)+$/, "", words[w])
+    }
     script = ""
     if (words[1] ~ /^\.\.?\/[^\/]/) script = words[1]
     else if (words[1] == "bash" || words[1] == "sh") {
-      for (w = 2; w <= word_count && words[w] ~ /^-/; w++) if (words[w] ~ /^-[^-]*c/) break
+      for (w = 2; w <= word_count && words[w] ~ /^[-+]/; w++) {
+        if (words[w] ~ /^-[^-]*c/) break
+        if (words[w] ~ /^([-+][oO]|--rcfile|--init-file)$/) w++
+      }
       if (w <= word_count && words[w] !~ /^[-$\/~]/ && (words[w] ~ /\// || words[w] ~ /\.sh$/)) script = words[w]
     }
-    if (script ~ /^[A-Za-z0-9_.\/${}-]+$/) add_edge(script, 0)
+    if (script != "") add_edge(script, 0)
   }
 }
 

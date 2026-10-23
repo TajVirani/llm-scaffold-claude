@@ -106,5 +106,29 @@ eq "heredoc bodies, redirection targets, bash -c and -ec strings, quoted text an
   '8 $here/missing.sh,12 ./run-me,13 tools/norc.sh'
 eq "a file nothing sources has no exports entry" "$(jq -c '.exports' <<<"$edges" 2>/dev/null)" '{}'
 
+# Detected calls are never dropped: subshell and command-substitution calls, glob paths, calls after a bash option that
+# takes a value, and an anchored call to a file that cannot be read are each unresolved, with the path text as module.
+cat >"$E/hooks/forms.sh" <<'OUTER'
+#!/usr/bin/env bash
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+(./scripts/version.sh)
+v=$(bash scripts/version.sh)
+./scripts/*.sh
+bash -o pipefail ./opt.sh
+w=$(./scripts/version.sh)
+"$here/../data/locked"
+bash --rcfile rc.sh ./rc-run.sh
+bash -O extglob ./ext.sh
+OUTER
+mkdir -p "$E/data"
+printf '#!/usr/bin/env bash\n' >"$E/data/locked"
+chmod 000 "$E/data/locked"
+forms=$("$X" --root "$E" --scope hooks); rc=$?
+chmod 644 "$E/data/locked"
+eq "extractor exits 0 when an anchored call names an unreadable file" "$rc" 0
+eq "subshell, substitution, glob, option-value and unreadable-target calls are each unresolved with the path text" \
+  "$(jq -r '[.modules[] | select(.source == "hooks/forms.sh") | .dependencies[] | select(.couldNotResolve) | "\(.line) \(.module)"] | join(",")' <<<"$forms" 2>/dev/null)" \
+  '3 ./scripts/version.sh,4 scripts/version.sh,5 ./scripts/*.sh,6 ./opt.sh,7 ./scripts/version.sh,8 $here/../data/locked,9 ./rc-run.sh,10 ./ext.sh'
+
 shellcheck_files "shellcheck: extractors/bash.sh" "$X"
 finish
