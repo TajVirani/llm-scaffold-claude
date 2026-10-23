@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Graph extractor per work profile"
     status: done
-    capability: CAP-NEW-selectable-graph-extractor
+    capability: CAP-004
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -23,7 +23,7 @@ tasks:
   - id: T2
     title: "Unresolved edges in architecture"
     status: done
-    capability: CAP-NEW-bash-graph-extractor
+    capability: CAP-005
     depends_on: [T1]
     touches_core: false
     work_type: shell-scripts
@@ -45,7 +45,7 @@ tasks:
   - id: T3
     title: "Bash graph extractor"
     status: done
-    capability: CAP-NEW-bash-graph-extractor
+    capability: CAP-005
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -64,7 +64,7 @@ tasks:
   - id: T4
     title: "Bash functions and test exclusion in modules and entries"
     status: done
-    capability: CAP-NEW-bash-graph-extractor
+    capability: CAP-005
     depends_on: [T2, T3]
     touches_core: false
     work_type: shell-scripts
@@ -84,7 +84,7 @@ tasks:
   - id: T5
     title: "regenerate-caches docs for graph extractors"
     status: done
-    capability: CAP-NEW-selectable-graph-extractor
+    capability: CAP-004
     depends_on: [T1, T2]
     touches_core: false
     work_type: agent-docs
@@ -102,7 +102,7 @@ tasks:
   - id: T6
     title: "Discovery 0.2.8 publishes the extractor names"
     status: done
-    capability: CAP-NEW-selectable-graph-extractor
+    capability: CAP-004
     depends_on: [T1]
     touches_core: false
     work_type: agent-docs
@@ -119,7 +119,7 @@ tasks:
   - id: T7
     title: "cache-regeneration agent names the extractors"
     status: done
-    capability: CAP-NEW-selectable-graph-extractor
+    capability: CAP-004
     depends_on: [T1]
     touches_core: false
     work_type: agent-docs
@@ -136,7 +136,7 @@ tasks:
   - id: T8
     title: "Profile template asks for graph_extractor"
     status: done
-    capability: CAP-NEW-selectable-graph-extractor
+    capability: CAP-004
     depends_on: []
     touches_core: false
     work_type: agent-docs

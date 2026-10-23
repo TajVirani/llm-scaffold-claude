@@ -19,10 +19,10 @@ The Tier B caches (module map, flows, architecture) can only be built for JS/TS 
 
 ## Capabilities
 
-- **CAP-NEW-selectable-graph-extractor** Graph extractor per work profile
+- **CAP-004** Graph extractor per work profile
   - **intent:** The cache build runs the graph extractor each work profile names, so caches can be built for any language that has an extractor.
   - **success:** With profiles naming `dependency-cruiser`, `bash` or `none`, `build-architecture.sh` runs each named extractor, merges their graphs and renders all three caches; a JS/TS fixture renders output identical to today's, apart from architecture's new "Unresolved edges" section reading `None.`, once its profile names `dependency-cruiser`; a profile without the key fails with a message that says it is a breaking change, names the profile and gives the line to add.
-- **CAP-NEW-bash-graph-extractor** Bash graph extractor
+- **CAP-005** Bash graph extractor
   - **intent:** A bash project gets a file graph from its `source`/`.` lines and script-to-script calls, with entry-point candidates and the functions of sourced files.
   - **success:** On fixtures, the bash extractor prints dependency-cruiser-shaped JSON with every statically resolvable edge, `couldNotResolve: true` for each path it cannot resolve, and an `exports` map of top-level functions for sourced files; architecture.md lists each unresolved edge under "Unresolved edges", modules.md shows each module's functions as Public interface, and flows.md lists no file matching a profile's `test_patterns` as an entry point; run on this repo at 5.3, the three caches pass `check-staged-cache.sh`, publish, and `cache-stamp-check.sh` reports them fresh.
 
@@ -49,9 +49,14 @@ A bash project whose profiles name `graph_extractor: bash` gets all three Tier B
 
 ## Assumptions
 
-- The `generator` frontmatter field records the names of the extractors that ran, comma-joined and sorted (e.g. `bash`, `bash,dependency-cruiser`); discovery and regenerate-caches stop hardcoding `--generator dependency-cruiser`.
-- The shipped profile template and example profiles (`project-setup/assets/profiles/`) gain the `graph_extractor` key, and project-setup asks for it when it writes a profile.
-- The bash extractor claims `*.sh` files and files with a bash or sh shebang; dependency-cruiser claims what it does today.
+- Confirmed: the `generator` frontmatter field records the names of the extractors that ran, comma-joined and sorted (e.g. `bash`, `bash,dependency-cruiser`). Callers read it from `build-architecture.sh --print-generator` (D14); discovery, the cache-regeneration agent and regenerate-caches no longer hardcode `--generator dependency-cruiser`.
+- Confirmed: the shipped profile template and example profiles (`project-setup/assets/profiles/`) carry the `graph_extractor` key, and project-setup asks for it when it writes a profile. dependency-cruiser stays required where a profile names it or a boundary config exists.
+- Confirmed: the bash extractor claims `*.sh` files and files with a bash or sh shebang; dependency-cruiser claims what it does today. Unresolved edges carry an optional `line` (D15), and every script call the bash extractor detects is either an edge or an unresolved entry.
+
+## Known gaps
+
+- With every profile naming `none`, no architecture cache can be published: [work-backlog/003-bash-cache-extractor-disc-001.md](../work-backlog/003-bash-cache-extractor-disc-001.md).
+- `case` pattern alternatives such as `../*` are listed as unresolved calls (two entries from `install.sh`): [work-backlog/003-bash-cache-extractor-disc-003.md](../work-backlog/003-bash-cache-extractor-disc-003.md).
 
 ## Links
 

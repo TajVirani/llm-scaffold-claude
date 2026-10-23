@@ -14,6 +14,24 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Fork a Phase 1 build's worktree from the spec branch
+- What happened: the 1.2 harness agent's `isolation: "worktree"` worktree started at `main`, without the spec folder; the agent fast-forwarded it to the spec branch, and the worktree guard then refused its result-file write to the main checkout, so the orchestrator copied the file in by hand.
+- Where: verification-setup 1.2 launch (`modules/verification-setup.md`)
+- Spec: .workflow/specs/003-bash-cache-extractor
+- Prevented by: none yet (needs `worktree.baseRef: head` in `.claude/settings.json`, or a wave-start-style worktree for Phase 1 builds)
+
+## Never pipe a gate checker into head inside a && chain
+- What happened: at 3.16 `check-task-result.sh ... | head -1 && git merge ...` merged T3 although the checker exited 1, because the pipeline returned head's exit status; the reviewer then rewrote the file and it passed.
+- Where: implementation-orchestrator 3.16 merge (`modules/implementation-orchestrator.md`)
+- Spec: .workflow/specs/003-bash-cache-extractor
+- Prevented by: none yet
+
+## Report a detected call as unresolved; never filter it out
+- What happened: the bash graph extractor dropped script calls it had already detected (extensionless targets, cwd-relative paths, `bash --norc x`, `$(...)` calls, `bash -o pipefail x`) through filters and option scans, found by one review finding and three fix rounds.
+- Where: `.agents/skills/regenerate-caches/scripts/extractors/bash.sh`
+- Spec: .workflow/specs/003-bash-cache-extractor
+- Prevented by: the call-form cases in `tests/scripts/extractor-bash.sh`
+
 ## Assign capability ids in the same step as re-reading capabilities.md
 - What happened: at 5.3 the orchestrator assigned CAP-001 and CAP-002 to this spec's capabilities while CAP-001 already belonged to spec 004; the unguarded files were corrected by sed and `tasks.md` with `yq --front-matter=process -i`, because `set-task` rewrites only a provisional id.
 - Where: sign-off 5.3, capability assignment (`modules/sign-off.md`)
