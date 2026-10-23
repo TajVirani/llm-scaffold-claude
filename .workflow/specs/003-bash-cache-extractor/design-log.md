@@ -253,3 +253,4 @@ Outcome: rework 1 of 5
 - Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
 - Backlog item: [work-backlog/003-bash-cache-extractor-disc-003.md](../work-backlog/003-bash-cache-extractor-disc-003.md)
 - 2026-10-23 rework 1: task PRs skipped for T1, T3 (gh not installed); merged locally.
+- 2026-10-23 rework 1: T3 was merged before its mini-review.yaml passed the shape check (the checker's exit was hidden by a pipe; `items[0].location` missing). The reviewer rewrote the file once; it then checked clean with verdict pass, so the merge stands. Full harness on the merged branch: 2881 passed, 0 failed.
