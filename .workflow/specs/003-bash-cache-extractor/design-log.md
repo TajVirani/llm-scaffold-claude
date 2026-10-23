@@ -179,3 +179,8 @@ Facts looked up instead of asked (0.3.10): None.
 
 - Stakeholder confirmed D10-D13 and the boundary-check-wording deferral. spec.md Capabilities and Constraints and data-model.md updated; the impact classification's "check-staged-cache.sh unchanged" row is superseded by D10 (now extend).
 - Light-path facts: intent gaps clean; irreversible actions not clean (removes a public contract: a profile without `graph_extractor` now errors, D5); footprint not small (five modules). `light_path: false`.
+
+## 2026-10-23 Main moved since discovery (1.1)
+
+- Changes on main in the affected area since 2026-10-21: discovery 0.2.7/0.2.8 now launch beside the term gate (`discovery.md:44-59`); its architecture publish line still passes `--generator dependency-cruiser` (`discovery.md:98`), as does `regenerate-caches/SKILL.md:123-126`. Profiles gained a filled `test_scoped` key and `-co --exclude-standard` in their lint commands; `workflow-paths.sh` gained `WF_INITIATIVES` and `WF_REVIEW_LESSONS`.
+- Effect on this spec: none to a contract it relies on. `test_patterns` is unchanged, and the two `--generator dependency-cruiser` lines are still the ones the generator assumption replaces.
