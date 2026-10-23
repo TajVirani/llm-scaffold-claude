@@ -3,12 +3,14 @@
 #   Sourced after lib/common.sh; defines variables and functions only. bash 3.2 compatible.
 # Provides:
 #   bash_project_repo DIR          committed git repo of bash scripts covering each `source` form and call form the bash
-#                                  extractor must handle (see the BASH_* variables), plus a bash-shebang file without .sh,
+#                                  extractor must handle (see the BASH_* variables), plus bash-shebang files without .sh,
 #                                  a python script and a README the extractor must not claim, and a test file
 #   BASH_SCOPES                    the --scope arguments covering every directory of the bash project
 #   BASH_MODULES                   the --module arguments, one module per top-level directory
 #   BASH_DYNAMIC_SOURCE_LINE, BASH_DYNAMIC_SOURCE_TEXT     where bin/build.sh sources a path built at run time
 #   BASH_MISSING_CALL_LINE, BASH_MISSING_CALL_TEXT         where bin/build.sh calls a runtime-root path that does not exist
+#   BASH_DOT_SLASH_CALL_LINE, BASH_DOT_SLASH_CALL_TEXT     where tools/deploy.sh runs a cwd-relative ./ script
+#   BASH_BASH_CWD_CALL_LINE, BASH_BASH_CWD_CALL_TEXT       where tools/deploy.sh runs a cwd-relative script through bash
 #   js_project_repo DIR            committed git repo with the TS tree and .workflow/rules.md of the build-architecture suite
 #   write_cruise_json FILE         the dependency-cruiser JSON for js_project_repo (the build-architecture suite's cruise.json)
 #   write_dts_dir DIR              the tsc declarations for js_project_repo (the build-architecture suite's dts fixture)
@@ -25,12 +27,16 @@ BASH_DYNAMIC_SOURCE_LINE=10
 BASH_DYNAMIC_SOURCE_TEXT='$PLUGIN_DIR/$PLUGIN.sh'
 BASH_MISSING_CALL_LINE=16
 BASH_MISSING_CALL_TEXT='$ROOT/ops/gone.sh'
+BASH_DOT_SLASH_CALL_LINE=9
+BASH_DOT_SLASH_CALL_TEXT='./scripts/stage.sh'
+BASH_BASH_CWD_CALL_LINE=10
+BASH_BASH_CWD_CALL_TEXT='scripts/build-docs.sh'
 
 bash_project_repo() {
   local r=$1
   git_init_repo "$r"
   mkdir -p "$r/bin" "$r/lib" "$r/ops" "$r/tests" "$r/tools"
-  # Line numbers 10 and 16 are pinned by BASH_DYNAMIC_SOURCE_LINE and BASH_MISSING_CALL_LINE.
+  # The line numbers named by the BASH_*_LINE variables are pinned: keep those lines where they are.
   cat >"$r/bin/build.sh" <<'EOF'
 #!/usr/bin/env bash
 # Builds the release from the tools and ops scripts.
@@ -65,6 +71,14 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB_DIR="$here/../lib"
 . "$LIB_DIR/strings.sh"
 trim "  deploy  "
+"$here/publish" --tag
+./scripts/stage.sh
+bash scripts/build-docs.sh
+EOF
+  cat >"$r/tools/publish" <<'EOF'
+#!/usr/bin/env bash
+# Publishes the tagged build.
+echo publish
 EOF
   cat >"$r/ops/report.sh" <<'EOF'
 #!/usr/bin/env bash
@@ -111,7 +125,7 @@ EOF
 source "$(dirname "$0")/../lib/strings.sh"
 [ "$(trim " a ")" = a ] || exit 1
 EOF
-  chmod +x "$r/bin/build.sh" "$r/bin/release" "$r/tools/deploy.sh" "$r/ops/report.sh" "$r/ops/notes.py" "$r/tests/build-test.sh"
+  chmod +x "$r/bin/build.sh" "$r/bin/release" "$r/tools/deploy.sh" "$r/tools/publish" "$r/ops/report.sh" "$r/ops/notes.py" "$r/tests/build-test.sh"
   write_profile "$r" shell-scripts bash '["tests/"]'
   git_commit_all "$r" init
 }

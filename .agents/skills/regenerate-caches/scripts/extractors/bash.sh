@@ -2,7 +2,9 @@
 # File: Helper script (not a hook): the bash graph extractor, a file graph from `source`/`.` lines and script calls, with the top-level functions of sourced files.
 # Purpose: Prints the graph of the bash files under the scopes in dependency-cruiser's JSON shape, for build-architecture.sh.
 #   Claims every `*.sh` file and every file whose first line is a bash or sh shebang (git-listed, symlinks skipped).
-#   Edges: each `source`/`.` line and each `$var/...sh` or `$(dirname ...)/...sh` path on a code line. A path resolves
+#   Edges: each `source`/`.` line, each `$var/...sh` or `$(dirname ...)/...sh` path on a code line, and each other anchored
+#   path on a code line that resolves to a file claimed by its shebang. A script run by a path relative to the working
+#   directory (`./x`, `bash x`, `sh x`) is always `couldNotResolve`. A path resolves
 #   statically when it is anchored to the script's own directory (`$(dirname "$0")`, `$(dirname "${BASH_SOURCE[0]}")`,
 #   `${BASH_SOURCE%/*}`, `$(cd [-P] X && pwd)`, or a variable assigned one of those, through any number of plain
 #   variable hops and `$(dirname "$var")`), or to a variable it cannot follow (a runtime root) whose literal tail is an
@@ -137,11 +139,18 @@ heredoc_end != "" {
     token_count = split(line, tokens, /[ \t;|&<>=`]+/)
     for (t = 1; t <= token_count; t++) {
       token = tokens[t]
-      while (sub(/^[(!]/, "", token) || (token ~ /^\$\([$\034]/ && sub(/^\$\(/, "", token))) {}
+      while (sub(/^(\$\(|[(!])/, "", token)) {}
       sub(/[);]+$/, "", token)
       if (token ~ /\{/ && token !~ /\}/) continue
-      if (token ~ /^[$\034]/ && token ~ /\.sh$/) add_edge(token, 1)
+      if (token !~ /^[$\034]/) continue
+      if (token ~ /\.sh$/) add_edge(token, 1)
+      else if (token ~ /\//) {
+        anchored_target = resolve_anchored(token)
+        if (is_claimed_script(anchored_target)) add_edge(token, 1)
+        else if (anchored_target in unreadable) add_edge(token, 0)
+      }
     }
+    report_cwd_relative_calls(line)
   }
 
   # Without the (( guard an arithmetic shift such as (( n = 1 << k )) reads as a heredoc and skips the rest of the file.
@@ -271,14 +280,70 @@ function normalize(path,   segments, count, i, kept, depth, out) {
   return out
 }
 
+# resolve_anchored TOKEN : the existing repo file anchored TOKEN names, or "" when it names none or, through a run-time
+# variable set from another one, both of its two readings name existing files.
+function resolve_anchored(token) {
+  if (!eval_path(token)) return ""
+  if (ev_root_tail_path == "") return (ev_path in exists) ? ev_path : ""
+  if ((ev_path in exists) == (ev_root_tail_path in exists)) return ""
+  return (ev_path in exists) ? ev_path : ev_root_tail_path
+}
+
+# is_claimed_script PATH : 1 when existing repo file PATH is one this extractor claims, by its .sh name or its shebang.
+# An anchored path without .sh is only a call when it names such a script; any other file it names is data.
+# A file that cannot be read goes in unreadable, since it may be a script and its call must not be dropped.
+function is_claimed_script(path,   first_line, read_status) {
+  if (path == "") return 0
+  if (path ~ /\.sh$/) return 1
+  if (!(path in shebang_checked)) {
+    shebang_checked[path] = 1
+    first_line = ""
+    read_status = (getline first_line < path)
+    if (read_status < 0) unreadable[path] = 1
+    else if (read_status > 0 && first_line ~ shebang) has_shebang[path] = 1
+    close(path)
+  }
+  return (path in has_shebang)
+}
+
+# report_cwd_relative_calls TEXT : prints an unresolved E record for each script TEXT runs by a path relative to the
+# working directory (`./x`, `../x`, `bash x`, `sh x`), since that directory is only known at run time.
+# Quoted text is not a command, so single-quoted strings are dropped, and a quote left open starts a string that runs
+# on past this line. An array assignment `=(` and a closing `)` do not start a command. Only a short-option cluster holding
+# `c` (`-c`, `-ec`) makes bash read a command string; other options are skipped, with the value of those that take one.
+# Every call found is reported, whatever its path holds, so a glob or an odd character is never dropped silently.
+function report_cwd_relative_calls(text,   command_count, commands, c, command, word_count, words, w, script) {
+  gsub(/\047[^\047]*\047/, "", text)
+  sub(/\047.*$/, "", text)
+  gsub(/=\(/, "= ", text)
+  command_count = split(text, commands, /;|&&|\|\||\||&|`|\$\(|\(/)
+  for (c = 1; c <= command_count; c++) {
+    command = commands[c]
+    sub(/^[ \t{}]+/, "", command)
+    while (sub(/^(then|do|else|elif|if|while|until|exec|time|command|!)[ \t]+/, "", command) \
+      || sub("^" var_name "=[^ \t]*[ \t]+", "", command)) {}
+    word_count = split(command, words, /[ \t]+/)
+    for (w = 1; w <= word_count; w++) {
+      sub(/^\$?\(/, "", words[w])
+      sub(/\)+$/, "", words[w])
+    }
+    script = ""
+    if (words[1] ~ /^\.\.?\/[^\/]/) script = words[1]
+    else if (words[1] == "bash" || words[1] == "sh") {
+      for (w = 2; w <= word_count && words[w] ~ /^[-+]/; w++) {
+        if (words[w] ~ /^-[^-]*c/) break
+        if (words[w] ~ /^([-+][oO]|--rcfile|--init-file)$/) w++
+      }
+      if (w <= word_count && words[w] !~ /^[-$\/~]/ && (words[w] ~ /\// || words[w] ~ /\.sh$/)) script = words[w]
+    }
+    if (script != "") add_edge(script, 0)
+  }
+}
+
 # add_edge TOKEN ANCHORED : prints the E record for TOKEN; a token without an anchor, or one whose two readings both
 # name existing files, is unresolved.
 function add_edge(token, anchored,   resolved) {
-  resolved = ""
-  if (anchored && eval_path(token)) {
-    if (ev_root_tail_path == "") { if (ev_path in exists) resolved = ev_path }
-    else if ((ev_path in exists) != (ev_root_tail_path in exists)) resolved = (ev_path in exists) ? ev_path : ev_root_tail_path
-  }
+  resolved = anchored ? resolve_anchored(token) : ""
   if (resolved != "" && line ~ /^[ \t]*(source|\.)[ \t]/) sourced[resolved] = 1
   print "E\t" file "\t" FNR "\t" resolved "\t" restore_text(token)
 }
