@@ -16,6 +16,7 @@
 #     kind (bug, requirement, refactor, scope-expansion, decision), non-empty summary, evidence and reason, and
 #     blocker_assessment (blocks-this-task, can-wait).
 #   head_commit is 7 to 40 hex characters; it may be null only when status is blocked or profile-wrong.
+#   head_commit or base_commit written as a YAML number (an unquoted all-digit sha) fails as `unquoted sha; quote it`.
 #   implementation:
 #   - status is done, profile-wrong, scope-expansion, discovered-work or blocked; summary, task_id, worktree and base_commit
 #     are non-empty strings; branch is a string or null; head_commit as above.
@@ -115,14 +116,19 @@ def null_or_map($k): if .[$k] == null or (.[$k] | type) == "object" then empty e
 def need_enum($k; $set):
   if (.[$k] | one_of($set)) then empty else "\($k): '\(.[$k] | text)' is not one of \($set | join(", "))" end;
 
+# yq -o=json has already turned an unquoted all-digit or exponent-shaped sha into a number, so a number is never a sha.
+def check_base:
+  if (.base_commit | type) == "number" then "base_commit: unquoted sha; quote it" else need_str("base_commit") end;
+
 def check_branch:
   if .branch == null or (.branch | type) == "string" then empty else "branch: not a string or null" end;
 
 def check_head($null_ok):
   .head_commit as $h
   | if $h == null then (if $null_ok then empty else "head_commit: missing; null is allowed only when status is blocked or profile-wrong" end)
-    elif ($h | type) == "string" or ($h | type) == "number" then
-      (if ($h | text | test("^[0-9a-fA-F]{7,40}$")) then empty else "head_commit: '\($h | text)' is not 7 to 40 hex characters" end)
+    elif ($h | type) == "number" then "head_commit: unquoted sha; quote it"
+    elif ($h | type) == "string" then
+      (if ($h | test("^[0-9a-fA-F]{7,40}$")) then empty else "head_commit: '\($h)' is not 7 to 40 hex characters" end)
     else "head_commit: not a string" end;
 
 def check_dw_entry($at):
@@ -166,7 +172,7 @@ def check_implementation($folder):
   | need_enum("status"; ["done", "profile-wrong", "scope-expansion", "discovered-work", "blocked"]),
     need_str("summary"),
     check_task_id($folder),
-    need_str("worktree"), need_str("base_commit"), check_branch,
+    need_str("worktree"), check_base, check_branch,
     check_head($s == "blocked" or $s == "profile-wrong"),
     check_strings_list("files_changed"),
     (if (.tests_added | is_list) | not then "tests_added: not a list"
@@ -189,7 +195,7 @@ def check_implementation($folder):
 def check_integration:
   (.status | text) as $s
   | need_enum("status"; ["done", "partial", "profile-wrong", "discovered-work", "blocked"]),
-    need_str("summary"), need_str("work_type"), need_str("worktree"), need_str("base_commit"), check_branch,
+    need_str("summary"), need_str("work_type"), need_str("worktree"), check_base, check_branch,
     check_head($s == "blocked" or $s == "profile-wrong"),
     (if (.requests | is_list) | not then "requests: not a list"
      else

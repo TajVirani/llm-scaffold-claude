@@ -5,7 +5,7 @@
 #   unknown name exits 2), -j validation, concurrent runs by default and serial with -j 1 (judged by whether the
 #   suites' recorded run times overlap, never by elapsed time), output in glob order identical to a serial run apart
 #   from timings, largest-file-first start order with glob-order output, -v printing full logs and ending with a
-#   failures block only when a suite failed, exit codes 0 / 1.
+#   failures block only when a suite failed (a failed suite with no FAIL line shows its RESULT line), exit codes 0 / 1.
 # The runner is copied into a fixture tree with stub suites, so this suite never runs the real harness.
 # shellcheck disable=SC2016  # check expressions are single-quoted so check evaluates them
 # shellcheck source=../lib/common.sh
@@ -212,6 +212,16 @@ check "-v lists a suite without a footer in the failures block with its log inde
   '[[ "$OUT" == *"== failures
 -- lint/broken
    crashed early" ]]' "$OUT"
+
+# A suite that prints its footer and exits non-zero without a FAIL line shows its RESULT line in the failures block.
+printf '#!/usr/bin/env bash\necho "ok   quiet check"\nprintf "\\nRESULT passed=1 failed=0 skipped=0 xfail=0\\n"\nexit 1\n' \
+  >"$FIXTURE_TESTS/lint/quiet.sh"
+only=$(selector_file only-quiet tests/lint/quiet.sh)
+run_all -v --only-file "$only"
+check "-v shows the RESULT line of a failed suite that has no FAIL line" \
+  '[[ "$OUT" == *"== failures
+-- lint/quiet
+       RESULT passed=1 failed=0 skipped=0 xfail=0" ]]' "$OUT"
 
 # Start order: the larger suite starts first, but output stays in glob order. late.sh is padded so it is the
 # larger file although its name sorts last; -j 1 makes the start order observable through a shared log.
