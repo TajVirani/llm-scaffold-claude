@@ -63,7 +63,7 @@ tasks:
     pr: null
   - id: T4
     title: "Bash functions and test exclusion in modules and entries"
-    status: pending
+    status: done
     capability: CAP-NEW-bash-graph-extractor
     depends_on: [T2, T3]
     touches_core: false
@@ -83,7 +83,7 @@ tasks:
     pr: null
   - id: T5
     title: "regenerate-caches docs for graph extractors"
-    status: pending
+    status: done
     capability: CAP-NEW-selectable-graph-extractor
     depends_on: [T1, T2]
     touches_core: false

@@ -212,3 +212,11 @@ Found at 1.2 by the `implementation` agent (phase-1-test-harness, [result](artif
 - 2026-10-23 wave 1: task PRs skipped for T1, T3, T8 (gh not installed); merged locally.
 - 2026-10-23 T2 (3.4) reported `cache-frontmatter.md:101-108` still describing three architecture sections: already T5's scope, not filed.
 - 2026-10-23 wave 2: task PRs skipped for T2, T6, T7 (gh not installed); merged locally.
+
+## 2026-10-23 Discovered work: all-none-no-architecture
+
+- Found at 3.4 by the `implementation` agent for T5 ([result](artifacts/T5/implementation.yaml)); kind bug.
+- Problem: with every profile naming `none`, `--print-generator` prints an empty line and `publish-cache.sh:68` rejects an empty `--generator`, so no architecture cache can be published.
+- Assessment: can wait; no capability success line or journey uses an all-`none` project. Ruling: can be solved later; filed without a ruling, offered at 5.9.
+- Item: [003-bash-cache-extractor-disc-001.md](../work-backlog/003-bash-cache-extractor-disc-001.md)
+- 2026-10-23 wave 3: task PRs skipped for T4, T5 (gh not installed); merged locally.
