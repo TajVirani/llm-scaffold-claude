@@ -1,5 +1,5 @@
 <!--
-File: Template for .workflow/specs/NNN-slug/proposals.md: the 5.2 proposed updates to Tier A and the profiles, each approved line by line at 5.3. No frontmatter.
+File: Template for .workflow/specs/NNN-slug/proposals.md: the 5.2 proposed updates to Tier A and the profiles, all approved in one round at 5.3 (approve all as written, or name exceptions by id). No frontmatter.
 Written by modules/sign-off.md at 5.2; the Status column is updated at 5.3, and only `approved` and `modified` lines are applied. Also the landing place for writes tier-a-write-guard redirected mid-feature: record them here as they happen, with the step in Origin.
 
 Rules:
@@ -7,7 +7,7 @@ Rules:
   - Target: the file and section, e.g. `.workflow/rules.md` § Cross-cutting policy, `.workflow/profiles/<work-type>.md` § Approved libraries per concern.
   - Proposed text: the exact line to add, or "remove: <exact line>" / "replace: <old> -> <new>". Escape a literal pipe as \|.
   - Why: what an agent would do differently if this line were absent. A line that changes no behaviour, or restates what the code already shows, is not proposed.
-  - Status: `proposed` until 5.3, then `approved`, `modified` (Decision column holds the text as modified) or `rejected` (Decision column holds the reason). Set by the human, line by line.
+  - Status: `proposed` until 5.3, then `approved`, `modified` (Decision column holds the text as modified) or `rejected` (Decision column holds the reason). Set from the human's one 5.3 answer: a row not named is `approved`; `P<n>: modify <text>` and `P<n>: reject <reason>` name the exceptions.
   - Tool rules: a mini-review finding that recurred is proposed as a tool rule (lint rule, boundary constraint, type-check setting), paired with removing the checklist line it replaces from the profile.
   - A rule conflict found at 0.3.5 lands here as a proposal, never as a mid-feature override.
   - Delete empty groups and this comment in the finished file.

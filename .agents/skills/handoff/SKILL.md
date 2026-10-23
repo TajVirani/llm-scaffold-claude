@@ -39,10 +39,11 @@ Write each fact once, in the place that owns it. For each section of the templat
 
 Fill the two drift keys of the frontmatter, so the next session can see what landed on the main branch meanwhile:
 
-- **`main_sha`**: the main branch tip. Name the main branch, then resolve it (the script falls back to `main` outside a workflow project); outside a git repo, leave it `""`:
+- **`main_sha`**: the main branch tip; outside a git repo, leave it `""`. The main branch is the `main_branch` value in the yaml block under `## Workflow settings` in `.workflow/rules.md` at the main checkout (`$root` from step 1), or `main` when that file, block or key is absent:
 
   ```bash
-  main=$(.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch 2>/dev/null || echo main)
+  main=$(awk '/^## /{s=($0 ~ /^## Workflow settings[[:space:]]*$/); next} s && /^```ya?ml/{y=1; next} y && /^```/{exit} y' "$root/.workflow/rules.md" 2>/dev/null | yq '.main_branch // ""' 2>/dev/null)
+  main=${main:-main}
   git rev-parse "$main"
   ```
 
@@ -66,7 +67,7 @@ When the user picks a handoff (from the session-start offer, or by name):
 
 1. Read the file. Load the skills under **Load first**.
 2. If `spec` is set, load the `feature-workflow` skill for that spec. Its live `spec.md` status and `.step` win over `step_at_handoff`; if they differ, the spec moved on after the handoff: say so and trust the spec. Log any `not logged` decision through the module for the current step.
-3. **Main drift.** When `main_sha` is set, set `main` as Write step 2 does and compare. If `git rev-parse "$main"` still equals `main_sha`, say "main has not moved" and go on. Otherwise run, with the `affected_paths` as `<paths>` (none listed: leave `-- <paths>` off):
+3. **Main drift.** When `main_sha` is set, set `root` as Write step 1 does and `main` as Write step 2 does, then compare. If `git rev-parse "$main"` still equals `main_sha`, say "main has not moved" and go on. Otherwise run, with the `affected_paths` as `<paths>` (none listed: leave `-- <paths>` off):
 
    ```bash
    git log --oneline <main_sha>.."$main" -- <paths>
