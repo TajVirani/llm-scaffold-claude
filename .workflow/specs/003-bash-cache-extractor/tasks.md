@@ -153,6 +153,44 @@ tasks:
     mode: afk
     parallel_with: []
     pr: null
+  - id: T9
+    title: "Boundary check only when a profile selects dependency-cruiser"
+    status: pending
+    capability: CAP-004
+    depends_on: [T1, T2, T4]
+    touches_core: false
+    work_type: null
+    module: "regenerate-caches"
+    seam: "build-architecture.sh --cache architecture output (the Boundary violations section)"
+    file: tasks/T09-boundary-check-by-extractor.md
+    branch: task/003-bash-cache-extractor/T09-boundary-check-by-extractor
+    predicted_files:
+      - .agents/skills/regenerate-caches/scripts/build-architecture.sh
+      - tests/scripts/build-architecture.sh
+    size: {files: 2, est_lines: 40, points: S}
+    mode: afk
+    parallel_with: []
+    tests:
+      - tests/scripts/cache-boundary-check.sh
+    pr: null
+  - id: T10
+    title: "regenerate-caches docs for the boundary check rule"
+    status: pending
+    capability: CAP-004
+    depends_on: [T5]
+    touches_core: false
+    work_type: null
+    module: "regenerate-caches"
+    seam: "None: docs, checked by the agent-docs lint suites"
+    file: tasks/T10-boundary-check-docs.md
+    branch: task/003-bash-cache-extractor/T10-boundary-check-docs
+    predicted_files:
+      - .agents/skills/regenerate-caches/SKILL.md
+      - .agents/skills/regenerate-caches/assets/cache-frontmatter.md
+    size: {files: 2, est_lines: 10, points: S}
+    mode: afk
+    parallel_with: []
+    pr: null
 ---
 
 # Tasks: Tier B caches for bash projects
@@ -170,7 +208,9 @@ Spec: [spec.md](spec.md) · Data model: [data-model.md](data-model.md) · Task f
 | 2 | [T6](tasks/T06-discovery-publish-generator.md) | Discovery 0.2.8 publishes the extractor names | S (1 files, ~10 lines) | afk | none |
 | 2 | [T7](tasks/T07-cache-regeneration-generator.md) | cache-regeneration agent names the extractors | S (1 files, ~10 lines) | afk | none |
 | 3 | [T4](tasks/T04-bash-interface-and-entries.md) | Bash functions and test exclusion in modules and entries | S (1 files, ~80 lines) | afk | T1, T2: `build-architecture.sh`, edges |
-| 3 | [T5](tasks/T05-regenerate-caches-docs.md) | regenerate-caches docs for graph extractors | S (2 files, ~60 lines) | afk | none |
+| 3 | [T5](tasks/T05-regenerate-caches-docs.md) | regenerate-caches docs for graph extractors | S (2 files, ~60 lines) | afk | T10: SKILL.md, cache-frontmatter.md, edge |
+| 4 | [T9](tasks/T09-boundary-check-by-extractor.md) | Boundary check only when a profile selects dependency-cruiser | S (2 files, ~40 lines) | afk | T1, T2, T4: `build-architecture.sh`, edges (all done) |
+| 4 | [T10](tasks/T10-boundary-check-docs.md) | regenerate-caches docs for the boundary check rule | S (2 files, ~10 lines) | afk | T5: SKILL.md, cache-frontmatter.md, edge (done) |
 
 ## Dependency graph
 
@@ -183,4 +223,8 @@ graph LR
   T2 --> T5
   T1 --> T6
   T1 --> T7
+  T1 --> T9
+  T2 --> T9
+  T4 --> T9
+  T5 --> T10
 ```

@@ -315,3 +315,16 @@ Module audit: not rerun; the 2026-10-21 audit covers `build-architecture.sh:218-
 - 1.2: the implementation agent built `tests/scripts/cache-boundary-check.sh` and merged as `06671b8`. Its worktree was cut from main rather than the spec branch, so it made `phase1/003-jrn006` off `0035b63` itself. A worktree write guard stopped it writing its result file to the main checkout; at the stakeholder's call the main session saved `artifacts/phase-1-test-harness/implementation.yaml` from its report (the first round is kept as `implementation-r1.yaml`). Retrospective note for 5.7.
 - 1.3: not applicable (no browser suite).
 - 1.4: Run 4 in `artifacts/phase-1-known-bad/record.md`: both run 1 assertions fail, run 2 passes as a regression guard.
+
+## 2026-10-23 Discovered work: false-none-on-failed-depcruise
+
+- Found at: step 2.1 by the main session (open question carried from the 5.6 correction). Kind: bug
+- Problem and evidence: a depcruise boundary run that fails is hidden and renders `None.` (`build-architecture.sh:248-254,375,381-384`).
+- Assessment and ruling: can be solved later; stakeholder chose "File as discovered work (Recommended)" over folding it into T9; backlog item
+- Backlog item: [work-backlog/003-bash-cache-extractor-disc-004.md](../work-backlog/003-bash-cache-extractor-disc-004.md)
+
+## 2026-10-23 Task breakdown after the change request (2.1-2.4)
+
+- Stakeholder approved "Approve (Recommended)": T9 (build-architecture.sh boundary rule, D16-D17) and T10 (regenerate-caches docs), both wave 1, afk, no overlaps; T1-T8 stay done.
+- Size budget kept, "Keep it (Recommended)": `{max_tasks: 10, max_changed_files: 30}`; T9 and T10 bring the count to 10.
+- 2.2: both specifiable from D16-D18 and JRN-006. 2.3: seams are existing ones (T9 the `build-architecture.sh --cache architecture` output, as T2; T10 none, docs). 2.4: shared core checked below.
