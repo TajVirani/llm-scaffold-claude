@@ -1,20 +1,27 @@
 #!/usr/bin/env bash
-# File: Helper script (not a hook): derive the generated parts of the Tier B caches from one dependency-cruiser run.
+# File: Helper script (not a hook): derive the generated parts of the Tier B caches from the file graph the project's graph extractors print.
 # Purpose: Deterministic, sorted output for a given scope and commit, so a cache can be checked against its stamp. `--cache architecture` prints the whole
 #   .workflow/cache/architecture.md body; `--cache modules` prints the modules.md skeleton with one `<!-- slot: purpose -->`
 #   per module for the cache-regeneration agent to fill; `--cache entries` prints the flows.md entry-point candidates
 #   (files nothing in scope imports) with what each reaches, as JSON, for the agent to choose from (entry points are discovered each run; there is no config).
 #   Body shapes: assets/cache-frontmatter.md "Body shape per cache type".
+# Graph extractors: each work profile (.workflow/profiles/*.md, TEMPLATE.md skipped) names one in its Toolchain yaml block,
+#   `graph_extractor: <name>`, where <name> is `none` (a profile with no code) or a script scripts/extractors/<name>.sh
+#   (shipped: bash, dependency-cruiser). Every extractor the profiles name runs once as
+#   `extractors/<name>.sh --root <root> --scope PATH...` and prints dependency-cruiser-shaped JSON (modules[].source,
+#   modules[].dependencies[].resolved) for the files it claims; the graphs are merged, and a file claimed by two extractors is
+#   an error. A profile without the key is an error (a breaking change: add the key to every profile).
 # Called by: the cache-regeneration agent (.agents/agents/cache-regeneration.md), launched at 0.2.8 or by regenerate-caches.
 # Steps: 00.5-00.7, 0.2.8.
-# Sources: first-party, including the canonicalisation (depcruise JSON -> jq `unique` -> Mermaid, self-edges dropped, id
-#   collisions fatal). dependency-cruiser CLI flags (--no-config, --ts-config, --include-only, -T json)
-#   and JSON shape (modules[].source, dependencies[].resolved, summary.violations) from its doc/cli.md and
-#   doc/output-format.md (MIT; tool use only). Declarations via TypeScript --declaration --emitDeclarationOnly (Apache-2.0;
-#   tool use only). Script style after .agents/skills/regenerate-caches/scripts/publish-cache.sh.
+# Sources: first-party, including the canonicalisation (dependency-cruiser-shaped JSON -> jq `unique` -> Mermaid, self-edges
+#   dropped, id collisions fatal). dependency-cruiser CLI flags (--config, -T json) and JSON shape (modules[].source,
+#   dependencies[].resolved, summary.violations) from its doc/cli.md and doc/output-format.md (MIT; tool use only).
+#   Declarations via TypeScript --declaration --emitDeclarationOnly (Apache-2.0; tool use only). Script style after
+#   .agents/skills/regenerate-caches/scripts/publish-cache.sh.
 #
 # Usage:
 #   build-architecture.sh --cache architecture|modules|entries --scope PATH [--scope PATH]... [options]
+#   build-architecture.sh --print-generator [--extractor NAME] [--root DIR]
 #     --scope PATH          repo-relative file or directory, no globs, no '..' (repeatable, at least one; '.' = whole repo);
 #                           any path under .workflow/tools/boundaries/ is ignored with a stderr warning (stamp-only, never source)
 #     --module PATH         module root (repeatable). Default: the owns paths of .workflow/rules.md Ownership plus
@@ -24,16 +31,23 @@
 #     --out FILE            write here instead of stdout (refused under .workflow/cache/; use .workflow/.cache-staging/<type>.md)
 #     --root DIR            repo root override. Default: the MAIN checkout (git --git-common-dir), as publish-cache.sh
 #     --allow-dirty         skip the clean-tree check (output then is not tied to HEAD; for tests only)
-#     --from-json FILE      use this dependency-cruiser JSON (uncollapsed, -T json) instead of running depcruise
+#     --extractor NAME      run this graph extractor instead of the ones the profiles name; every profile still needs the key
+#     --print-generator     print the names of the extractors that would run, sorted and comma-joined (`none` left out), for
+#                           publish-cache.sh --generator; needs no --cache or --scope
+#     --from-json FILE      use this dependency-cruiser-shaped graph JSON instead of running extractors; profiles are not read
 #     --violations-json FILE  architecture only: boundary-check JSON instead of running depcruise --config
 #     --dts-dir DIR         modules only: declarations already emitted with --rootDir <root> instead of running tsc
-# Tools: depcruise is $DEPCRUISE, else <root>/node_modules/.bin/depcruise, else `npx --no-install depcruise`.
+# Tools: each extractor checks its own tools (the dependency-cruiser extractor: $DEPCRUISE, else
+#   <root>/node_modules/.bin/depcruise, else `npx --no-install depcruise`). The boundary check runs depcruise the same way
+#   when .workflow/tools/boundaries/dependency-cruiser.cjs exists.
 #   tsc is $TSC, else <root>/node_modules/.bin/tsc, else `npx --no-install tsc`. A missing tsc or tsconfig.json is not an
 #   error: Public interface then reads "Not generated: <reason>." for every module.
 # Determinism: every list is byte-sorted (LC_ALL=C); no timestamps or counts in the body; the scope paths must have no
 #   uncommitted or untracked changes, so the output is a function of HEAD (stamped by publish-cache.sh).
-# Exit codes: 0 = printed or written; 2 = usage error, dirty scope, missing depcruise, unparseable JSON, node-id collision.
-# Requires: git, jq, mikefarah yq v4 (only to read .workflow/rules.md); node tooling as above.
+# Exit codes: 0 = printed or written; 2 = usage error, dirty scope, a profile without graph_extractor or naming an unknown
+#   extractor, no work profiles, an extractor that failed or printed no graph, a file claimed by two extractors,
+#   unparseable JSON, node-id collision.
+# Requires: git, jq, mikefarah yq v4 (to read .workflow/rules.md and the work profiles); each extractor's own tools.
 set -euo pipefail
 
 # shellcheck source=../../../lib/workflow-paths.sh
@@ -48,7 +62,7 @@ resolve_root() { # main checkout, same rule as publish-cache.sh
   if [[ "$(basename "$common")" == ".git" ]]; then dirname "$common"; else git rev-parse --show-toplevel; fi
 }
 
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HERE="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cache=""
 root=""
 out=""
@@ -56,10 +70,14 @@ from_json=""
 viol_json=""
 dts_dir=""
 allow_dirty=0
+extractor_override=""
+print_generator=0
 scopes=()
 mods=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --extractor) [[ $# -ge 2 ]] || die "--extractor needs a value"; extractor_override="$2"; shift 2 ;;
+    --print-generator) print_generator=1; shift ;;
     --cache) [[ $# -ge 2 ]] || die "--cache needs a value"; cache="$2"; shift 2 ;;
     --scope) [[ $# -ge 2 ]] || die "--scope needs a value"; scopes+=("$2"); shift 2 ;;
     --module) [[ $# -ge 2 ]] || die "--module needs a value"; mods+=("$2"); shift 2 ;;
@@ -74,8 +92,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-case "$cache" in architecture|modules|entries) ;; *) die "--cache must be architecture, modules or entries" ;; esac
-[[ ${#scopes[@]} -gt 0 ]] || die "at least one --scope is required"
+if [[ $print_generator -eq 0 ]]; then
+  case "$cache" in architecture|modules|entries) ;; *) die "--cache must be architecture, modules or entries" ;; esac
+  [[ ${#scopes[@]} -gt 0 ]] || die "at least one --scope is required"
+fi
 command -v git >/dev/null 2>&1 || die "git not found on PATH"
 command -v jq >/dev/null 2>&1 || die "jq not found on PATH"
 
@@ -91,6 +111,88 @@ norm_path() { # strip ./ prefix and trailing /, reject absolute, '..' and globs
 [[ -n "$root" ]] || root="$(resolve_root)" || die "not in a git repository (use --root)"
 root="$(cd "$root" && pwd -P)" || die "root not found: $root"
 cd "$root"
+
+# ---------------------------------------------------------------- graph extractors
+EXTRACTORS_DIR="$HERE/extractors"
+
+# known_extractors : prints the names of the extractor scripts, comma-separated.
+known_extractors() {
+  local path names=""
+  for path in "$EXTRACTORS_DIR"/*.sh; do
+    [[ -f "$path" ]] || continue
+    names="${names:+$names, }$(basename "$path" .sh)"
+  done
+  echo "$names"
+}
+
+# require_extractor NAME WHERE : dies unless NAME is an extractor script; WHERE says who named it.
+require_extractor() {
+  local name="$1" where="$2"
+  [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*$ && -x "$EXTRACTORS_DIR/$name.sh" ]] \
+    || die "unknown graph extractor '$name' named by $where (use none or one of: $(known_extractors))"
+}
+
+# toolchain_block PROFILE : prints the yaml inside the profile's "## Toolchain" fence; nothing when it has none.
+toolchain_block() {
+  awk '
+    /^## /{ if (intool) exit; intool = ($0 ~ /^## Toolchain[[:space:]]*$/); next }
+    intool && !infence && /^```ya?ml[[:space:]]*$/ { infence=1; next }
+    intool && infence && /^```[[:space:]]*$/ { exit }
+    intool && infence { print }
+  ' "$1"
+}
+
+# profile_extractors : prints the extractor names the work profiles select, sorted and unique, `none` left out. Dies when
+#   a profile has no graph_extractor or names an unknown extractor, and when there are no profiles and no --extractor.
+profile_extractors() {
+  local path rel block tag value names="" missing="" found=0
+  command -v yq >/dev/null 2>&1 || die "yq (mikefarah v4) not found on PATH; it reads graph_extractor from $WF_PROFILES/*.md"
+  for path in "$root/$WF_PROFILES"/*.md; do
+    [[ -f "$path" && "$(basename "$path")" != TEMPLATE.md ]] || continue
+    found=1
+    rel="$WF_PROFILES/$(basename "$path")"
+    block="$(toolchain_block "$path")"
+    tag="$(printf '%s\n' "$block" | yq '.graph_extractor | tag' 2>/dev/null)" \
+      || die "the Toolchain yaml block does not parse in $rel"
+    if [[ "$tag" == "!!null" ]]; then
+      missing="$missing
+  $rel"
+      continue
+    fi
+    [[ "$tag" == "!!str" ]] || die "graph_extractor in $rel must be one name: none or one of: $(known_extractors)"
+    value="$(printf '%s\n' "$block" | yq '.graph_extractor')"
+    [[ "$value" == none ]] && continue
+    require_extractor "$value" "$rel"
+    names="$names$value
+"
+  done
+  [[ -z "$missing" ]] || die "breaking change: the file graph now comes from the graph extractor each work profile names, and these profiles name none:$missing
+Add this line to the Toolchain yaml block of each one:
+  graph_extractor: <name>
+where <name> is none for a profile with no code, or one of: $(known_extractors)."
+  [[ $found -eq 1 || -n "$extractor_override" ]] \
+    || die "no work profiles under $WF_PROFILES/: each profile names its graph extractor with graph_extractor (or pass --extractor NAME or --from-json FILE)"
+  printf '%s' "$names" | sort -u
+}
+
+# selected_extractors : prints the extractors this run uses, one per line: --extractor when given, else the profiles' choice.
+#   Every profile must carry graph_extractor either way.
+selected_extractors() {
+  local from_profiles
+  from_profiles="$(profile_extractors)" || exit 2
+  if [[ -n "$extractor_override" ]]; then
+    require_extractor "$extractor_override" "--extractor"
+    echo "$extractor_override"
+  elif [[ -n "$from_profiles" ]]; then
+    printf '%s\n' "$from_profiles"
+  fi
+}
+
+if [[ $print_generator -eq 1 ]]; then
+  generator="$(selected_extractors)" || exit 2
+  printf '%s\n' "$generator" | paste -sd, -
+  exit 0
+fi
 
 ns=()
 for s in "${scopes[@]}"; do
@@ -148,18 +250,43 @@ tool_cmd() { # tool_cmd ENVVAR_VALUE NAME -> sets the global array `cmd`; return
 }
 cmd=()
 
-ts_args=()
-[[ -f "$root/tsconfig.json" ]] && ts_args=(--ts-config tsconfig.json)
+# run_extractors NAME... : writes the merged graph of the named extractors to $cruise_json. Dies when an extractor fails or
+#   prints no .modules array, and when two extractors claim the same file, since the merge would then hold the file twice.
+run_extractors() {
+  local name rc s scope_args=() outputs=() claimed
+  for s in "${scopes[@]}"; do scope_args+=(--scope "$s"); done
+  for name in "$@"; do
+    rc=0
+    "$EXTRACTORS_DIR/$name.sh" --root "$root" "${scope_args[@]}" >"$tmpd/graph-$name.json" || rc=$?
+    [[ $rc -eq 0 ]] || die "graph extractor $name failed (exit $rc)"
+    jq -e '.modules | type == "array"' "$tmpd/graph-$name.json" >/dev/null 2>&1 \
+      || die "graph extractor $name printed no JSON with a .modules array"
+    outputs+=("$tmpd/graph-$name.json")
+  done
+  if [[ ${#outputs[@]} -eq 0 ]]; then echo '{"modules":[]}' >"$cruise_json"; return 0; fi
+  claimed="$(jq -rs '
+      [range(0; length) as $i | .[$i].modules[].source | {file: ., by: $ARGS.positional[$i]}] | unique
+      | group_by(.file) | map(select(length > 1) | "  \(.[0].file) (\(map(.by) | join(", ")))") | .[]' \
+    "${outputs[@]}" --args "$@")"
+  [[ -z "$claimed" ]] || die "files claimed by more than one graph extractor:
+$claimed"
+  jq -s '{modules: (map(.modules) | add)}' "${outputs[@]}" >"$cruise_json"
+}
 
 cruise_json="$tmpd/cruise.json"
 if [[ -n "$from_json" ]]; then
+  graph_origin="--from-json $from_json"
   cp "$from_json" "$cruise_json" || die "cannot read --from-json $from_json"
+  jq -e '.modules | type == "array"' "$cruise_json" >/dev/null 2>&1 || die "--from-json $from_json is not JSON with a .modules array"
 else
-  tool_cmd "${DEPCRUISE:-}" depcruise || die "depcruise not found (install dependency-cruiser, or set DEPCRUISE)"
-  "${cmd[@]}" --no-config ${ts_args[@]+"${ts_args[@]}"} --exclude '(^|/)node_modules/' -T json "${scopes[@]}" \
-    >"$cruise_json" 2>"$tmpd/cruise.err" || die "depcruise failed: $(head -5 "$tmpd/cruise.err")"
+  selected="$(selected_extractors)" || exit 2
+  extractors=()
+  while IFS= read -r name; do
+    [[ -n "$name" ]] && extractors+=("$name")
+  done <<<"$selected"
+  graph_origin="graph extractors: ${extractors[*]-none}"
+  run_extractors ${extractors[@]+"${extractors[@]}"}
 fi
-jq -e '.modules | type == "array"' "$cruise_json" >/dev/null 2>&1 || die "dependency-cruiser output is not JSON with .modules"
 
 # graph.json: files in scope, file edges, file -> node, collapsed node edges; ids checked for collisions
 graph="$tmpd/graph.json"
@@ -188,11 +315,11 @@ jq -S --argjson scopes "$scope_json" --argjson mods "$mods_json" '
   | ([$fedges[] | [$nodeof[.[0]], $nodeof[.[1]]] | select(.[0] != .[1])] | unique) as $edges
   | ([$nodes[] | {id: id, name: .}] | group_by(.id) | map(select(length > 1) | map(.name))) as $coll
   | {files: $files, file_edges: $fedges, node_of: $nodeof, nodes: $nodes, edges: $edges, collisions: $coll}
-' "$cruise_json" >"$graph" || die "could not canonicalise dependency-cruiser JSON"
+' "$cruise_json" >"$graph" || die "could not canonicalise the graph JSON ($graph_origin)"
 
 coll="$(jq -r '.collisions[] | join(" and ")' "$graph")"
 [[ -z "$coll" ]] || die "Mermaid node-id collision (rename or pass --module to separate): $coll"
-[[ "$(jq '.files | length' "$graph")" -gt 0 ]] || die "dependency-cruiser found no source files under the scope"
+[[ "$(jq '.files | length' "$graph")" -gt 0 ]] || die "no source files under the scope in the graph ($graph_origin)"
 
 # ---------------------------------------------------------------- renderers
 render_architecture() {
