@@ -1,0 +1,2 @@
+tests/scripts/cache-bash-project.sh
+tests/scripts/cache-mixed-extractors.sh
