@@ -242,3 +242,14 @@ Gaps (not findings): JRN-005 is the manual run at 5.3 (review-end-state `not_ver
 
 Failed lenses: none
 Outcome: rework 1 of 5
+- 2026-10-23 rework 1, T1 mini-review (3.7): `out_of_scope_noticed` on fixture names `cruise.json` / `write_cruise_json` (tests/fixtures/graph-extractors.sh:13,150; tests/scripts/build-architecture.sh:49) dismissed: they hold real dependency-cruiser output, so the names are accurate.
+- 2026-10-23 rework 1, T3 mini-review (3.7) passed with three `out_of_scope_noticed` entries. `bash --norc scripts/x.sh` is dropped (reproduced: `-e` and `--noprofile` are reported, `--norc` is not; `extractors/bash.sh:320-321`): a defect in T3's own rework code, so a behaviour fix round for T3, not discovered work. Dismissed: an unreadable tracked extensionless file left unclaimed (`bash.sh:296`; needs a tracked file git cannot read, and matches the existing read at `bash.sh:79`), and the PROVENANCE `dependency-cruiser.sh` wording (part of the F3 patch as briefed).
+- 2026-10-23 rework 1, T3 mini-review r4 failed item 3: detected calls still dropped (character-class filter at `bash.sh:324`, unreadable claimed file at `bash.sh:296`), plus `bash -o pipefail ./x.sh` and the garbled `$(` module text noticed. The unreadable-file case, dismissed in the previous round, is reversed: dropping it silently breaks D3. One behaviour fix round closes the class: a detected call is resolved or reported unresolved, never dropped.
+
+## 2026-10-23 Discovered work: case-patterns-as-calls
+
+- Found at: step 3.4 (rework 1) by the `implementation` agent for T3. Kind: bug
+- Problem and evidence: `case` pattern alternatives (`../*` at `install.sh:133,187`) are reported as unresolved cwd-relative calls once the character filter was removed.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/003-bash-cache-extractor-disc-003.md](../work-backlog/003-bash-cache-extractor-disc-003.md)
+- 2026-10-23 rework 1: task PRs skipped for T1, T3 (gh not installed); merged locally.

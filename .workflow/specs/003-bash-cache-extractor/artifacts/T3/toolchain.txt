@@ -5,7 +5,7 @@
 == scripts/extractor-bash
 
 == summary
-PASS scripts/extractor-bash                 passed=28   failed=0   skipped=0   xfail=0   1s
-TOTAL passed=28 failed=0 skipped=0 xfail=0 (1 suites)
+PASS scripts/extractor-bash                 passed=31   failed=0   skipped=0   xfail=0   2s
+TOTAL passed=31 failed=0 skipped=0 xfail=0 (1 suites)
 == test exit 0
 

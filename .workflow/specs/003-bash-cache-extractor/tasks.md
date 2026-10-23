@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Graph extractor per work profile"
-    status: in-progress
+    status: done
     capability: CAP-NEW-selectable-graph-extractor
     depends_on: []
     touches_core: false
@@ -44,7 +44,7 @@ tasks:
     pr: null
   - id: T3
     title: "Bash graph extractor"
-    status: in-progress
+    status: done
     capability: CAP-NEW-bash-graph-extractor
     depends_on: []
     touches_core: false

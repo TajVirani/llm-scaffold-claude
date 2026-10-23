@@ -1,0 +1,66 @@
+verdict: "pass"
+task_id: "T3"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3@3d15e3dc35373b356869b81f76afe59cbd6de466..HEAD"
+tool_output: ".workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to (bash.sh and the test edits add no .workflow/ path)"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to (bash.sh is a helper script, not a hook; header line 2)"
+  - n: 3
+    verdict: "pass"
+    location: "bash.sh:29 die, bash.sh:61 and 68 git ls-files failures, bash.sh:360 awk and jq failures reach die; bash.sh:296 getline miss is silent, see out_of_scope_noticed"
+  - n: 4
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to (no exit code added or changed; bash.sh:21-22 Exit header unchanged)"
+  - n: 5
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to (the extractor sources no sibling file)"
+  - n: 6
+    verdict: "pass"
+    location: "bash.sh:2-24 helper header has File, Purpose, Usage, Output, Exit, Requires and Sources lines; no decision ID in the header"
+  - n: 7
+    verdict: "pass"
+    location: "bash.sh:25 set -euo pipefail and bash.sh:34-54 use [[ ]] unchanged; the diff adds no new file and no [ ] test in shell code"
+  - n: 8
+    verdict: "pass"
+    location: "bash.sh:279-280 resolve_anchored, bash.sh:288-289 is_claimed_script, bash.sh:302-303 report_cwd_relative_calls each have their name ARGS : line; the diff adds no shellcheck directive"
+  - n: "R1"
+    verdict: "pass"
+    location: "bash.sh:281 resolve_anchored, bash.sh:290 is_claimed_script, bash.sh:296-297 has_shebang and shebang_checked, bash.sh:306 report_cwd_relative_calls, bash.sh:317 script"
+  - n: "R2"
+    verdict: "pass"
+    location: "bash.sh:302-305 gives the reason for the quote handling and the =( rewrite; bash.sh:321 guard keeps only relative paths, which bash.sh:302-303 states"
+  - n: "R3"
+    verdict: "pass"
+    location: "bash.sh:279-280, bash.sh:288-289 and bash.sh:302-305 state reasons; no added comment restates the line below it"
+  - n: "R4"
+    verdict: "pass"
+    location: "bash.sh:2-24 header and the test header and comment lines in the diff name no decision, ADR, spec or task ID"
+  - n: "R5"
+    verdict: "pass"
+    location: "bash.sh:279-280 uses readings, which bash.sh:10-12 defines before use"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 rules and the 3.7 checking lines (main checkout)"
+  - ".workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.json: tool keys that ran (lint and test passed; typecheck, format and boundary skipped)"
+out_of_scope_noticed:
+  - kind: "bug"
+    summary: "A long option containing the letter c (for example --norc) ends the flag scan in report_cwd_relative_calls, so a cwd-relative script after it, as in bash --norc scripts/x.sh, is not reported as unresolved. Found by reading, not run."
+    evidence: "bash.sh:320-321"
+    blocker_assessment: "can-wait"
+    reason: "Narrow flag set, but it is the exact case the rework was meant to report."
+  - kind: "bug"
+    summary: "An out-of-scope extensionless file that git lists but cannot be read is silently left unclaimed by the shebang check, so an anchored call to it drops out with no unresolved entry."
+    evidence: "bash.sh:296"
+    blocker_assessment: "can-wait"
+    reason: "Needs an unreadable tracked file, which is rare; the awk side has no die path, the same as the existing read at bash.sh:79."
+  - kind: "scope-expansion"
+    summary: "PROVENANCE.md:19 also changes dependency-cruiser.sh from stubbed to implemented, which the rework did not name. Not verified here."
+    evidence: "PROVENANCE.md:19"
+    blocker_assessment: "can-wait"
+    reason: "That file belongs to another task, so its status claim is outside this review."
