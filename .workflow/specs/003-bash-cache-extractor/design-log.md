@@ -200,3 +200,13 @@ Found at 1.2 by the `implementation` agent (phase-1-test-harness, [result](artif
 
 - Stakeholder approved 8 tasks in 3 waves (T1, T3, T8; T2, T6, T7; T4, T5), seams as listed in tasks.md, all `afk`, no shared core.
 - Size budget: project default, `max_tasks: 10`, `max_changed_files: 30`.
+
+## 2026-10-23 T1 mini-review round 1 (3.7)
+
+- Fail on items 3, 4 (unguarded duplicate-claim jq exits 5 on a non-object module entry) and R2 (two unexplained lines); behaviour fix, fresh agent in the same worktree.
+- The reviewer's three `out_of_scope_noticed` entries (a `[ ]` test in a new suite, the `Exit codes` vs `Exit` header label, a printf-written fixture) are all in files T1 created, so they were folded into the same fix round rather than filed.
+
+## 2026-10-23 T1 mini-review round 2 (3.7)
+
+- Pass. Two `out_of_scope_noticed` entries: the fixture-path wording question went to proposals.md P2 for 5.3; the "profile with no Toolchain section gets the wrong message" entry was dismissed after a run showed the breaking-change message naming the profile, exit 2.
+- 2026-10-23 wave 1: task PRs skipped for T1, T3, T8 (gh not installed); merged locally.

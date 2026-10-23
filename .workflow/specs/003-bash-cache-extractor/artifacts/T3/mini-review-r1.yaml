@@ -1,0 +1,52 @@
+verdict: "fail"
+task_id: "T3"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3@e0cf15b6b2ff4ec89e99438edea4bbb988eaaa8d..HEAD"
+tool_output: ".workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: "no code in the diff the item applies to; the added lines contain no .workflow/ path string"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook file in the diff; .agents/skills/regenerate-caches/scripts/extractors/bash.sh is a helper script"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:46, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:58, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:65, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:309, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:311"
+  - n: 4
+    verdict: "fail"
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:58, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:65, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:309, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:311"
+    note: "These lines exit 2 when git ls-files, awk or jq fails mid-run, but the Exit line at bash.sh:19-20 lists only usage and setup cases after the old 'or tool error' wording was dropped, so a caller reading the header cannot tell a broken run from bad arguments; add a tool-failure clause to the Exit line."
+  - n: 5
+    verdict: "not-applicable"
+    location: "no sibling file is sourced or resolved in the diff; $0 is read only by the -h branch"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:1-22; header has File, Purpose, Usage, Output, Exit, Requires and Sources, and no decision ID or ADR appears in the diff"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:23 (set -euo pipefail), .agents/skills/regenerate-caches/scripts/extractors/bash.sh:31 and onward use [[ ]]; no single-bracket test in the added lines; new test lines in tests/scripts/extractor-bash.sh use the eq and t helpers"
+  - n: 8
+    verdict: "fail"
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:26"
+    note: "die() is a new function at line 26 with no '# die MESSAGE... : ...' line above it, so a reader cannot see its contract from the code; add one line above it saying it prints its arguments to stderr and exits 2."
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:230-235 (eval_path), :258 (normalize), :272 (add_edge); names such as dir_vars, root_vars and holder_dir say what each thing holds"
+  - n: "R2"
+    verdict: "fail"
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:146"
+    note: "The double-paren guard on line 146 has no reason; a reader who sees it as redundant and drops it turns a shift such as (( n = 1 << k )) into a heredoc start, so every later line up to a line reading k is skipped and its edges vanish without an error; add a one-line comment saying the guard keeps arithmetic shifts from opening a heredoc."
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:230, :258, :272; the function-doc lines state the contract and no body comment restates the line below it"
+  - n: "R4"
+    verdict: "pass"
+    location: "no body comment in the diff names a decision ID, a doc or workflow path, or a task ID; the Sources line at bash.sh:22 names an upstream doc path, but the header block is exempt under readable-code.md R4"
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:230-233 defines anchor and run-time root in plain words; the comments use no undefined project shorthand"
+read_outside_diff: [".agents/skills/feature-workflow/references/readable-code.md: the rules R1 to R5 and the Checking table", ".workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.json: lint and test keys passed"]
+out_of_scope_noticed: []

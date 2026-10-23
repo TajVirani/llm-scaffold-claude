@@ -1,0 +1,5 @@
+tests/scripts/cache-missing-extractor-key.sh
+tests/scripts/build-architecture.sh
+tests/scripts/cache-js-unchanged.sh
+tests/scripts/cache-bash-project.sh
+tests/scripts/cache-mixed-extractors.sh

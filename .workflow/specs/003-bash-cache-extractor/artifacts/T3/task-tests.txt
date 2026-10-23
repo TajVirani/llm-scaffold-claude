@@ -1,0 +1,1 @@
+tests/scripts/extractor-bash.sh

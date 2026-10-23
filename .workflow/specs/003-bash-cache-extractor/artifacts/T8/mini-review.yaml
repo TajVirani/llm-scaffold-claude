@@ -1,0 +1,37 @@
+verdict: pass
+task_id: T8
+work_type: agent-docs
+mode: re-check
+previous: .workflow/specs/003-bash-cache-extractor/artifacts/T8/mini-review-r1.yaml
+diff: .workflow/.worktrees/s003_t8@e0cf15b6b2ff4ec89e99438edea4bbb988eaaa8d..dcdc674e84d3f8521a8cd3dbd1f80e535eadc7b1
+tool_output: .workflow/specs/003-bash-cache-extractor/artifacts/T8/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    carried_from: r1
+  - n: 2
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    carried_from: r1
+  - n: R1
+    verdict: pass
+    location: .agents/skills/project-setup/assets/profiles/TEMPLATE.md:35, .agents/skills/project-setup/assets/profiles/examples/e2e-browser.md:104, .agents/skills/project-setup/assets/profiles/examples/test-harness.md:53
+  - n: R2
+    verdict: pass
+    location: .agents/skills/project-setup/assets/profiles/TEMPLATE.md:35, .agents/skills/project-setup/assets/profiles/examples/e2e-browser.md:104, .agents/skills/project-setup/assets/profiles/examples/test-harness.md:53
+  - n: R3
+    verdict: pass
+    location: .agents/skills/project-setup/assets/profiles/TEMPLATE.md:35, .agents/skills/project-setup/assets/profiles/examples/e2e-browser.md:104, .agents/skills/project-setup/assets/profiles/examples/test-harness.md:53
+  - n: R4
+    verdict: pass
+    location: .agents/skills/project-setup/assets/profiles/TEMPLATE.md:35, .agents/skills/project-setup/assets/profiles/examples/e2e-browser.md:104, .agents/skills/project-setup/assets/profiles/examples/test-harness.md:53
+  - n: R5
+    verdict: pass
+    location: .agents/skills/project-setup/assets/profiles/TEMPLATE.md:35, .agents/skills/project-setup/assets/profiles/examples/e2e-browser.md:104, .agents/skills/project-setup/assets/profiles/examples/test-harness.md:53
+read_outside_diff:
+  - ".workflow/GLOSSARY.md:14: 'generated caches' defines module map, flow diagrams and architecture structure, so the new wording matches the glossary"
+  - ".workflow/GLOSSARY.md:63: 'Flow' term, to confirm 'flow' is a defined term and not undefined shorthand"
+  - ".agents/skills/project-setup/assets/profiles/TEMPLATE.md:1-12: header block, to confirm no undefined project term remains in the changed comment"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking table"
+out_of_scope_noticed: []

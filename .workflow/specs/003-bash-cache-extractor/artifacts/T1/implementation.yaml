@@ -1,0 +1,24 @@
+status: done
+summary: "Fix round r1. run_extractors now checks every .modules entry is an object with a string source and dies with exit 2 naming the extractor, instead of exiting 5 with a raw jq error. Added the bash 3.2 empty-array comment, the unset DEPCRUISE and hand-written blank profile comments, [[ ! -e ]] in the test, and changed the build-architecture.sh header label to '# Exit:' to match the extractor and the profile."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t1"
+branch: "task/003-bash-cache-extractor/T01-graph-extractor-per-profile"
+base_commit: "c9cda04a05de127228f91893cbb6c94c7080566d"
+head_commit: "10ec9972357a0774ce9b81f9823637c761d8c646"
+files_changed:
+  - ".agents/skills/regenerate-caches/scripts/build-architecture.sh"
+  - "tests/scripts/graph-extractor-selection.sh"
+tests_added:
+  - {file: "tests/scripts/graph-extractor-selection.sh", test: "extractor module-not-object exits 2 / the error for module-not-object names the extractor and not dependency-cruiser", kind: "negative"}
+  - {file: "tests/scripts/graph-extractor-selection.sh", test: "extractor source-not-string exits 2 / the error for source-not-string names the extractor and not dependency-cruiser", kind: "negative"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/graph-extractor-selection; FAIL extractor module-not-object exits 2 got=5 want=2"
+  green: "tests/run-all.sh --suite scripts/graph-extractor-selection; 38/38 passed"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/003-bash-cache-extractor --task-id T1 --cwd <worktree>; lint exit 0, test (scoped: scripts/cache-missing-extractor-key) 9/9 passed. scripts/build-architecture run separately: 77 passed, 3 failed (chk-arch-unresolved-*, T2's Phase 1 tests, red by design)"
+  toolchain: ".workflow/specs/003-bash-cache-extractor/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Checking dependencies[] entry shapes: not asked for by the review; out of this fix's scope"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

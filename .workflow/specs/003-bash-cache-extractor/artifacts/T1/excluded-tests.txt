@@ -1,0 +1,5 @@
+tests/scripts/build-architecture.sh
+tests/scripts/cache-js-unchanged.sh
+tests/scripts/extractor-bash.sh
+tests/scripts/cache-bash-project.sh
+tests/scripts/cache-mixed-extractors.sh
