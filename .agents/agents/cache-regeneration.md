@@ -41,7 +41,7 @@ Run every command from the main checkout root. `S=.agents/skills/regenerate-cach
 $S/build-architecture.sh --cache architecture --scope <path> [--scope <path> ...] --out .workflow/.cache-staging/architecture.md
 ```
 
-The script writes the whole body. Do not edit it. Go to step 4.
+The script writes the whole body. Do not edit it. Then run `$S/build-architecture.sh --print-generator` and keep its output line for `generator:` in your return. Go to step 4.
 
 ### modules
 
@@ -98,7 +98,7 @@ Otherwise check each block against `.agents/skills/visual-change-report/referenc
 - staged: .workflow/.cache-staging/<type>.md
 - scope: <paths>
 - commit: <sha>
-- generator: <dependency-cruiser for architecture; cache-regeneration otherwise>
+- generator: <architecture: the output of `$S/build-architecture.sh --print-generator`; cache-regeneration otherwise>
 - check: ok
 - mermaid: <validated | not machine-validated: <reason> | no diagrams>
 - not determinable: <modules whose Purpose is "Not determinable from code.", dropped candidates with the reason, or none>
