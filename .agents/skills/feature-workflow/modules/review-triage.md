@@ -93,7 +93,7 @@ Route each entry into exactly one bucket. An entry with a verified `high`, `medi
 
 - **decision needed**: the correct fix depends on intent the spec does not settle: two plausible readings, a fix that changes what a capability, constraint or non-goal says, or a fix that adds public surface. Record each plausible option in one line, the one you recommend, and why. These become questions at 0.3.8.
 - **patch**: caused by this change; the smallest fix is unambiguous, adds no public surface and guards no state you did not demonstrate. Name the task that owns the location (step 6.3).
-- **discovered work**: the entries from 4.4 item 5. Record the evidence (file:line, the lens id and its claim) and your assessment, **blocker** for the current work or **can be solved later**, with a recommendation; `modules/discovered-work.md` presents them in step 6.0.
+- **discovered work**: the entries from 4.4 item 5. Record the evidence (file:line, the lens id and its claim) and your assessment, **blocker** for the current work or **can be solved later**, with a recommendation; `modules/discovered-work.md` files or presents them in step 6.0.
 - **defer**: real, but not this change's problem: pre-existing behaviour on lines this change did not cause, or an all-`maybe-false` entry that would be `medium` or `high` if true (record that severity, marked unverified, and what would settle it). An entry this change caused with a verified `high`, `medium` or `low` member is never defer: it is patch or decision needed.
 - **defer as a proposal**: an entry whose only fix edits Tier A (`.workflow/rules.md`, an ADR, a glossary, a profile) or agent instructions. Tier A changes only at 5.3, so add a row to `.workflow/specs/NNN-slug/proposals.md` (template `assets/proposals.md`; Origin `F<n>`, Status `proposed`) and route it `defer (proposal P<n>)`.
 
@@ -112,11 +112,13 @@ Take the first exit that applies, in this order. Any deferred entries are writte
 
 ### 6.0 Discovered work first (4.4 → 00.21)
 
-If any entry is **discovered work**, load `modules/discovered-work.md` once with every such entry, each with origin node `4.4`, found by (the lens and `F<n>` with its lens id), the problem, the evidence, the kind and your assessment. It blocks the spec (`blocked_condition: "discovered work: <slug>"`), presents all of them in one round and records each answer (an ignore line in `design-log.md`, or a backlog item under `.workflow/specs/work-backlog/`). Name the outcome in the entry's Route cell.
+If any entry is **discovered work**, load `modules/discovered-work.md` once with every such entry, each with origin node `4.4`, found by (the lens and `F<n>` with its lens id), the problem, the evidence, the kind and your assessment. The module assesses each entry first. Name the outcome in the entry's Route cell: `discovered work (filed: <backlog item, or the shelf file or item a line was appended to>)` for a can-wait entry, `discovered work (<ruling>)` for a blocker.
 
-- **It returns at 00.28** (the spec is back at `in-review`): drop the entry from this pass's open work and continue with the next exit below.
-- **It ends at 00.24** (the spec is `draft`, back to 0.3.8): run 4.8 for the deferred entries, set the outcome line to `loop back (00.24 discovered work)` and stop; the questioning loop owns the next step. Patch entries in this pass are moot, as in 6.1.
-- **It leaves the spec `blocked`** for a human: stop here. When the human resolves it, 00.28 returns the spec to `in-review` and you resume at 6.1 from the logged pass.
+- **Can wait.** The module files the entry at once (a backlog item under `.workflow/specs/work-backlog/`, or one line appended to a matching shelf file or open backlog item) and returns without blocking. Set the step back with `.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 4.4`, drop the entry from this pass's open work and continue with the next exit below.
+- **Blocker.** The module blocks the spec (`blocked_condition: "discovered work: <slug>"`), presents every blocker in one round and records each answer (an ignore line in `design-log.md`, or a backlog item). Then:
+  - **It returns at 00.28** (the spec is back at `in-review`): drop the entry from this pass's open work and continue with the next exit below.
+  - **It ends at 00.24** (the spec is `draft`, back to 0.3.8): run 4.8 for the deferred entries, set the outcome line to `loop back (00.24 discovered work)` and stop; the questioning loop owns the next step. Patch entries in this pass are moot, as in 6.1.
+  - **It leaves the spec `blocked`** for a human: stop here. When the human resolves it, 00.28 returns the spec to `in-review` and you resume at 6.1 from the logged pass.
 
 ### 6.1 Decision needed: back to 0.3.8 (4.5)
 

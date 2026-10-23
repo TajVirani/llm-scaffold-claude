@@ -8,7 +8,7 @@ kind: bug                           # bug | requirement | refactor | scope-expan
 ---
 <!--
 File: Template for .workflow/specs/work-backlog/<NNN-slug>-disc-<###>.md, one discovered-work item. <NNN-slug> is the origin spec; <###> increments per origin spec. The file sits outside the origin spec's folder because that spec will not solve it.
-Written by the main session only: at 00.26 (user chose to tackle it as a next feature, or a size-budget split), at 5.9 (the `moved-to-deferred` status update only; 5.9 offers and hands off, it does not delete) and by the new spec's 0.1.4 (status `promoted` and promoted_to). Deletion of a promoted item happens at the new spec's 0.6 (0.3.20 on the light path). Sub-agents are denied (check-write.sh). Not the .workflow/deferred/ shelf (00.8-00.10), which holds out-of-scope work decided during discovery or review.
+Written by the main session only: at 00.26 (a can-wait item filed without a ruling, a blocker the stakeholder routed to the backlog as a next feature, or a size-budget split; a later report of the same concept from this spec appends one `- Also seen:` line under Evidence instead of a new item), at 5.9 (the `moved-to-deferred` status update only; 5.9 offers and hands off, it does not delete) and by the new spec's 0.1.4 (status `promoted` and promoted_to). Deletion of a promoted item happens at the new spec's 0.6 (0.3.20 on the light path). Sub-agents are denied (check-write.sh). Not the .workflow/deferred/ shelf (00.8-00.10), which holds out-of-scope work decided during discovery or review.
 
 Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`):
   - origin_spec: repo-relative spec folder. origin_step: string. discovered_at: ISO date.
