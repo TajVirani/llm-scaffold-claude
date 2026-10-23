@@ -3,7 +3,8 @@
 # Purpose: Deterministic, sorted output for a given scope and commit, so a cache can be checked against its stamp. `--cache architecture` prints the whole
 #   .workflow/cache/architecture.md body; `--cache modules` prints the modules.md skeleton with one `<!-- slot: purpose -->`
 #   per module for the cache-regeneration agent to fill; `--cache entries` prints the flows.md entry-point candidates
-#   (files nothing in scope imports) with what each reaches, as JSON, for the agent to choose from (entry points are discovered each run; there is no config).
+#   (files nothing in scope imports, minus test files: the JS/TS test and declaration names and the work profiles' Toolchain
+#   `test_patterns`, matched as the step that counts a change's files against its size limit matches them) with what each reaches, as JSON, for the agent to choose from (entry points are discovered each run; there is no config).
 #   Body shapes: assets/cache-frontmatter.md "Body shape per cache type". The architecture body ends with "## Unresolved edges":
 #   one sorted bullet `- \`<file>:<line>\` \`<source text>\`` (`<file>` alone without a line) per dependency of an in-scope file
 #   marked couldNotResolve, the source text taken from its `module`; or `None.`.
@@ -36,19 +37,21 @@
 #     --extractor NAME      run this graph extractor instead of the ones the profiles name; every profile still needs the key
 #     --print-generator     print the names of the extractors that would run, sorted and comma-joined (`none` left out), for
 #                           publish-cache.sh --generator; needs no --cache or --scope
-#     --from-json FILE      use this dependency-cruiser-shaped graph JSON instead of running extractors; profiles are not read
+#     --from-json FILE      use this dependency-cruiser-shaped graph JSON instead of running extractors; profiles are not read for
+#                           graph_extractor (entries still reads their test_patterns)
 #     --violations-json FILE  architecture only: boundary-check JSON instead of running depcruise --config
 #     --dts-dir DIR         modules only: declarations already emitted with --rootDir <root> instead of running tsc
 # Tools: each extractor checks its own tools (the dependency-cruiser extractor: $DEPCRUISE, else
 #   <root>/node_modules/.bin/depcruise, else `npx --no-install depcruise`). The boundary check runs depcruise the same way
 #   when .workflow/tools/boundaries/dependency-cruiser.cjs exists.
 #   tsc is $TSC, else <root>/node_modules/.bin/tsc, else `npx --no-install tsc`. A missing tsc or tsconfig.json is not an
-#   error: Public interface then reads "Not generated: <reason>." for every module.
+#   error: Public interface then lists the functions the graph JSON `exports` gives for the module's files, sorted and unique,
+#   `- \`name\` (function)`, and reads "Not generated: <reason>." for a module none of whose files has an `exports` entry.
 # Determinism: every list is byte-sorted (LC_ALL=C); no timestamps or counts in the body; the scope paths must have no
 #   uncommitted or untracked changes, so the output is a function of HEAD (stamped by publish-cache.sh).
 # Exit: 0 = printed or written; 2 = usage error, dirty scope, a profile without graph_extractor or naming an unknown
 #   extractor, no work profiles, an extractor that failed or printed no graph, a file claimed by two extractors,
-#   unparseable JSON, node-id collision.
+#   unparseable JSON, node-id collision, a test_patterns that is not a list of strings.
 # Requires: git, jq, mikefarah yq v4 (to read .workflow/rules.md and the work profiles); each extractor's own tools.
 set -euo pipefail
 
@@ -274,7 +277,7 @@ run_extractors() {
     "${outputs[@]}" --args "$@")"
   [[ -z "$claimed" ]] || die "files claimed by more than one graph extractor:
 $claimed"
-  jq -s '{modules: (map(.modules) | add)}' "${outputs[@]}" >"$cruise_json"
+  jq -s '{modules: (map(.modules) | add), exports: (map(.exports // {}) | add)}' "${outputs[@]}" >"$cruise_json"
 }
 
 cruise_json="$tmpd/cruise.json"
@@ -323,8 +326,9 @@ jq -S --argjson scopes "$scope_json" --argjson mods "$mods_json" '
       | "- `\($f)\(if .line != null then ":\(.line)" else "" end)` `\(.module // "")`"]
      | unique) as $unresolved
   | ([$nodes[] | {id: id, name: .}] | group_by(.id) | map(select(length > 1) | map(.name))) as $coll
+  | ((.exports // {}) | with_entries(select($in[.key]))) as $exports
   | {files: $files, file_edges: $fedges, node_of: $nodeof, nodes: $nodes, edges: $edges, unresolved: $unresolved,
-     collisions: $coll}
+     exports: $exports, collisions: $coll}
 ' "$cruise_json" >"$graph" || die "could not canonicalise the graph JSON ($graph_origin)"
 
 coll="$(jq -r '.collisions[] | join(" and ")' "$graph")"
@@ -453,6 +457,20 @@ dts_for() { # dts_for NODE -> path of the entry declaration under $dts_dir, or e
   return 0
 }
 
+# render_function_interface MODULE NOT_GENERATED : prints the module's Public interface line from the graph's exports, the
+#   sorted union of its files' functions; NOT_GENERATED when none of its files has an exports entry.
+render_function_interface() {
+  local functions
+  functions="$(jq -r --arg n "$1" '
+      .exports as $exports
+      | [.node_of | to_entries[] | select(.value == $n) | .key | select($exports[.] != null)] as $files
+      | if ($files | length) == 0 then "not generated"
+        else [$files[] | $exports[.][]] | unique | .[] | "  - `\(.)` (function)" end' "$graph")"
+  if [[ "$functions" == "not generated" ]]; then echo "- Public interface: $2"
+  elif [[ -z "$functions" ]]; then echo "- Public interface: none exported"
+  else echo "- Public interface:"; printf '%s\n' "$functions"; fi
+}
+
 render_modules() {
   local no_dts="" n f lines
   if [[ -z "$dts_dir" ]]; then
@@ -483,7 +501,7 @@ render_modules() {
     lines="$(jq -r --arg n "$n" '[.edges[] | select(.[1] == $n) | .[0]] | unique | .[] | "  - `\(.)`"' "$graph")"
     if [[ -z "$lines" ]]; then echo "- Used by: none"; else echo "- Used by:"; printf '%s\n' "$lines"; fi
     if [[ -n "$no_dts" ]]; then
-      echo "- Public interface: $no_dts"
+      render_function_interface "$n" "$no_dts"
     else
       f="$(dts_for "$n")"
       if [[ -z "$f" ]]; then
@@ -496,9 +514,68 @@ render_modules() {
   done < <(jq -r '.nodes[]' "$graph")
 }
 
+# Same defaults and matching as the step that counts a change's files against its size limit, so a file that step counts as a test is never an entry candidate.
+DEFAULT_TEST_PATTERNS='*.test.*
+*.spec.*
+__tests__/
+tests/
+test/
+e2e/
+*_test.go
+test_*.py
+*_test.py'
+
+# test_patterns : prints the test_patterns of every work profile, one per line, sorted and unique; a profile without the key
+#   or with [] contributes the defaults, as do no profiles at all. Dies when a profile's test_patterns is not a list of strings.
+test_patterns() {
+  local path rel block tag patterns all=""
+  for path in "$root/$WF_PROFILES"/*.md; do
+    [[ -f "$path" && "$(basename "$path")" != TEMPLATE.md ]] || continue
+    rel="$WF_PROFILES/$(basename "$path")"
+    command -v yq >/dev/null 2>&1 || die "yq (mikefarah v4) not found on PATH; it reads test_patterns from $rel"
+    block="$(toolchain_block "$path")"
+    tag="$(printf '%s\n' "$block" | yq '.test_patterns | tag' 2>/dev/null)" \
+      || die "the Toolchain yaml block does not parse in $rel"
+    patterns=""
+    if [[ "$tag" != "!!null" ]]; then
+      [[ "$tag" == "!!seq" && "$(printf '%s\n' "$block" | yq '[.test_patterns[] | select(tag != "!!str" or . == "")] | length')" == 0 ]] \
+        || die "test_patterns in $rel must be a list of non-empty path patterns"
+      patterns="$(printf '%s\n' "$block" | yq '.test_patterns[]')"
+    fi
+    all="$all${patterns:-$DEFAULT_TEST_PATTERNS}
+"
+  done
+  printf '%s\n' "${all:-$DEFAULT_TEST_PATTERNS}" | sed '/^$/d' | sort -u
+}
+
+# is_test_file PATH PATTERNS : succeeds when PATH matches a pattern: `dir/` a folder of that name at any depth, a pattern
+#   holding another / the whole path, any other pattern the file name (shell globs).
+is_test_file() {
+  local path="$1" pattern
+  while IFS= read -r pattern; do
+    if [[ "$pattern" == */ ]]; then
+      [[ "/$path" == *"/${pattern%/}/"* ]] && return 0
+    elif [[ "$pattern" == */* ]]; then
+      # shellcheck disable=SC2053 # the pattern is a glob on purpose
+      [[ "$path" == $pattern ]] && return 0
+    else
+      # shellcheck disable=SC2053 # the pattern is a glob on purpose
+      [[ "${path##*/}" == $pattern ]] && return 0
+    fi
+  done <<<"$2"
+  return 1
+}
+
 render_entries() {
-  jq -S '
-    (reduce .file_edges[] as $e ({}; .[$e[0]] += [$e[1]])) as $adj
+  local patterns file test_files=""
+  patterns="$(test_patterns)" || exit 2
+  while IFS= read -r file; do
+    if is_test_file "$file" "$patterns"; then test_files="$test_files$file
+"; fi
+  done < <(jq -r '.files[]' "$graph")
+  jq -S --argjson test_files "$(printf '%s' "$test_files" | jq -R . | jq -s .)" '
+    (reduce $test_files[] as $f ({}; .[$f] = true)) as $is_test
+    | (reduce .file_edges[] as $e ({}; .[$e[0]] += [$e[1]])) as $adj
     | (reduce .file_edges[] as $e ({}; .[$e[1]] = true)) as $imported
     | .node_of as $nodeof
     | def reach:
@@ -510,6 +587,7 @@ render_entries() {
     {candidates: [
       .files[]
       | select($imported[.] | not)
+      | select($is_test[.] | not)
       | select(test("(^|/)(__tests__|__mocks__)/|\\.(test|spec)\\.[cm]?[jt]sx?$|\\.d\\.[cm]?ts$") | not)
       | . as $f | (reach) as $r
       | {file: $f, module: $nodeof[$f], reaches_files: $r, reaches_modules: ([$r[] | $nodeof[.]] | unique)}
