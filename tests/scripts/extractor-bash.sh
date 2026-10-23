@@ -92,6 +92,8 @@ bash -c "./inline.sh"
 echo 'a; ./quoted.sh'
 cat "$here/../skill/scripts/notes.txt"
 FOO=1 ./run-me
+bash --norc tools/norc.sh
+bash -ec "./inline-e.sh"
 OUTER
 printf 'notes\n' >"$E/skill/scripts/notes.txt"
 git_commit_all "$E" init
@@ -99,9 +101,9 @@ edges=$("$X" --root "$E" --scope hooks --scope skill)
 eq "a run-time variable set from another one plus a tail resolves through one hop" \
   "$(jq -r '[.modules[] | select(.source == "hooks/adapter.sh") | .dependencies[] | .resolved // empty] | join(",")' <<<"$edges" 2>/dev/null)" \
   "skill/scripts/check.sh"
-eq "heredoc bodies, redirection targets, bash -c strings, quoted text and data files add nothing; a missing file and a cwd-relative call are unresolved at their lines" \
+eq "heredoc bodies, redirection targets, bash -c and -ec strings, quoted text and data files add nothing; a missing file and cwd-relative calls, after a long option too, are unresolved at their lines" \
   "$(jq -r '[.modules[] | select(.source == "hooks/adapter.sh") | .dependencies[] | select(.couldNotResolve) | "\(.line) \(.module)"] | join(",")' <<<"$edges" 2>/dev/null)" \
-  '8 $here/missing.sh,12 ./run-me'
+  '8 $here/missing.sh,12 ./run-me,13 tools/norc.sh'
 eq "a file nothing sources has no exports entry" "$(jq -c '.exports' <<<"$edges" 2>/dev/null)" '{}'
 
 shellcheck_files "shellcheck: extractors/bash.sh" "$X"

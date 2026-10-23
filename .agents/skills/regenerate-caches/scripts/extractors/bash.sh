@@ -302,7 +302,8 @@ function is_claimed_script(path,   first_line) {
 # report_cwd_relative_calls TEXT : prints an unresolved E record for each script TEXT runs by a path relative to the
 # working directory (`./x`, `../x`, `bash x`, `sh x`), since that directory is only known at run time.
 # Quoted text is not a command, so single-quoted strings are dropped, and a quote left open starts a string that runs
-# on past this line. An array assignment `=(` and a closing `)` do not start a command.
+# on past this line. An array assignment `=(` and a closing `)` do not start a command. Only a short-option cluster holding
+# `c` (`-c`, `-ec`) makes bash read a command string; long options such as `--norc` are skipped like other flags.
 function report_cwd_relative_calls(text,   command_count, commands, c, command, word_count, words, w, script) {
   gsub(/\047[^\047]*\047/, "", text)
   sub(/\047.*$/, "", text)
@@ -317,7 +318,7 @@ function report_cwd_relative_calls(text,   command_count, commands, c, command, 
     script = ""
     if (words[1] ~ /^\.\.?\/[^\/]/) script = words[1]
     else if (words[1] == "bash" || words[1] == "sh") {
-      for (w = 2; w <= word_count && words[w] ~ /^-/; w++) if (words[w] ~ /c/) break
+      for (w = 2; w <= word_count && words[w] ~ /^-/; w++) if (words[w] ~ /^-[^-]*c/) break
       if (w <= word_count && words[w] !~ /^[-$\/~]/ && (words[w] ~ /\// || words[w] ~ /\.sh$/)) script = words[w]
     }
     if (script ~ /^[A-Za-z0-9_.\/${}-]+$/) add_edge(script, 0)
