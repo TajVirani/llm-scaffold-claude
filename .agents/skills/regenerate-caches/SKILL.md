@@ -30,12 +30,19 @@ A scope the human gives (repo-relative paths, no globs) overrides the default sc
 
 ```bash
 command -v git && command -v jq && command -v yq && yq --version
-test -x node_modules/.bin/depcruise || npx --no-install depcruise --version
+.agents/skills/regenerate-caches/scripts/build-architecture.sh --print-generator
 ```
 
-`yq` must be mikefarah v4. If dependency-cruiser is missing, stop and tell the human to add it as a dev dependency (it is in the TS/JS work profile's toolchain); nothing can be generated without it.
+`yq` must be mikefarah v4; the build reads `.workflow/rules.md` and the work profiles with it. `--print-generator` reads the `graph_extractor` key of every work profile in `.workflow/profiles/` and prints the graph extractors the build will run, sorted and comma-joined (`none` left out). Keep that line for step 7. An empty line means every profile names `none`: `publish-cache.sh` rejects an empty `--generator`, so do not select `architecture`, and report it as `failed: no graph extractor`. Exit 2 means a profile has no `graph_extractor` key or names an unknown extractor: stop and show the human its message; it names each profile and the line to add.
 
-Done when git, jq, yq v4 and depcruise all answer.
+Then check the tools of each extractor it named:
+
+- `bash`: git, awk and jq.
+- `dependency-cruiser`: depcruise, through `test -x node_modules/.bin/depcruise || npx --no-install depcruise --version`. If it is missing, stop and tell the human to add dependency-cruiser as a dev dependency.
+
+depcruise is also needed for the `architecture` cache whenever `.workflow/tools/boundaries/dependency-cruiser.cjs` exists, because its Boundary violations section runs depcruise against that config, whatever extractors the profiles name. Otherwise a project whose profiles do not name `dependency-cruiser` needs no depcruise.
+
+Done when git, jq, yq v4 and the tools of every named extractor answer, and depcruise answers when `architecture` will be built with a boundary config present.
 
 ### 2. Read the stamps
 
@@ -63,7 +70,7 @@ In this order:
    ```
 4. If that list is empty or `.workflow/rules.md` is missing, ask the human for the scope paths, recommending the source root (for example `src`).
 
-**`architecture` also covers the boundary config.** Its Boundary violations section comes from `.workflow/tools/boundaries/dependency-cruiser.cjs`, which lies outside the source paths. So when that file exists, the `architecture` scope always includes the file path `.workflow/tools/boundaries/dependency-cruiser.cjs`, whichever rule above chose the rest. A `.workflow/rules.md` change regenerates the config, and that marks `architecture` stale. It is a stamp-only path: keep it out of the agent's `Scope` line, because `build-architecture.sh` would analyse it as a source file, and add it back when publishing (step 7). When rule 2 reads the current scope, split it off the same way.
+**`architecture` also covers the boundary config.** Its Boundary violations section comes from `.workflow/tools/boundaries/dependency-cruiser.cjs`, which lies outside the source paths. So when that file exists, the `architecture` scope always includes the file path `.workflow/tools/boundaries/dependency-cruiser.cjs`, whichever rule above chose the rest. A `.workflow/rules.md` change regenerates the config, and that marks `architecture` stale. It is a stamp-only path: keep it out of the agent's `Scope` line, because it is not source (`build-architecture.sh` drops it from `--scope` with a warning), and add it back when publishing (step 7). When rule 2 reads the current scope, split it off the same way.
 
 Every scope path must exist. Then check that the scope is committed, since a cache describes `HEAD`:
 
@@ -120,10 +127,11 @@ Copy the staged file aside (`cp .workflow/.cache-staging/<type>.md .workflow/.ca
 ### 7. Publish
 
 ```bash
-.agents/skills/regenerate-caches/scripts/publish-cache.sh .workflow/.cache-staging/<type>.md <type> <scope path> [<scope path> ...] [--generator dependency-cruiser]
+.agents/skills/regenerate-caches/scripts/publish-cache.sh .workflow/.cache-staging/<type>.md <type> <scope path> [<scope path> ...] \
+  [--generator "$(.agents/skills/regenerate-caches/scripts/build-architecture.sh --print-generator)"]
 ```
 
-Pass `--generator dependency-cruiser` for `architecture` only (the agent's return names the generator). For `architecture`, the scope paths are the source paths plus `.workflow/tools/boundaries/dependency-cruiser.cjs` when that file exists (step 3). Exit 0 prints the published path; exit 1 means the staged file is missing, empty or fails the schema, and nothing in `.workflow/cache/` changed.
+Pass `--generator` for `architecture` only, with the output of `--print-generator` (the same line the agent's return gives as `generator`); the other caches keep the default, `cache-regeneration`. For `architecture`, the scope paths are the source paths plus `.workflow/tools/boundaries/dependency-cruiser.cjs` when that file exists (step 3). Exit 0 prints the published path; exit 1 means the staged file is missing, empty or fails the schema, and nothing in `.workflow/cache/` changed.
 
 ### 8. Confirm and report
 
