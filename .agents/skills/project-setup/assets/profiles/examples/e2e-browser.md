@@ -101,6 +101,7 @@ e2e: "npx playwright test"           # evidence-capture matches commands that st
 # Descriptive keys (not commands; run-toolchain.sh never runs them):
 serve: "npm run start"               # start command for the built app (review-targets, 4.3)
 serve_ready: "http://localhost:3000" # URL polled until the app answers
+graph_extractor: "dependency-cruiser"  # TS/JS; builds the generated module, flow and architecture caches
 e2e_report: "test-results/e2e-results.json"   # JSON reporter outputFile, relative to the run directory; read by evidence-capture
 config:
   lint: ".oxlintrc.json"
