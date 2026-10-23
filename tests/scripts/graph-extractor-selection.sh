@@ -4,7 +4,7 @@
 # Covers: extractors named by the profiles' `graph_extractor` run with `--root` and the scopes and their graphs merged
 #   (TEMPLATE.md and `none` skipped); `--extractor NAME` running NAME alone; `--print-generator` (sorted, comma-joined,
 #   `none` left out, `--extractor` honoured, no `--cache` needed); refusals with exit 2: a file claimed by two extractors,
-#   an extractor that fails or prints no `.modules`, an unknown `--extractor`, an empty `graph_extractor`, no profiles,
+#   an extractor that fails, prints no `.modules` or prints an entry that is not an object with a string `source`, an unknown `--extractor`, an empty `graph_extractor`, no profiles,
 #   yq missing; the dependency-cruiser extractor's usage errors, tool lookup, tsconfig flag and `depcruise failed:` message.
 #   Extractors other than dependency-cruiser are stand-ins written into the fixture's copy of the scripts.
 # shellcheck disable=SC2016  # literal Markdown backticks in single quotes; check expressions are eval'd on purpose
@@ -31,6 +31,8 @@ stand_in_extractor beta '{"modules":[{"source":"b/three.txt","dependencies":[{"r
 stand_in_extractor claims-a '{"modules":[{"source":"a/two.txt","dependencies":[]}]}'
 stand_in_extractor not-json 'this is not json'
 stand_in_extractor no-modules '{"files":[]}'
+stand_in_extractor module-not-object '{"modules":["x"]}'
+stand_in_extractor source-not-string '{"modules":[{"source":1,"dependencies":[]}]}'
 printf '#!/usr/bin/env bash\necho "broken tool" >&2\nexit 2\n' >"$S/extractors/broken.sh"
 chmod +x "$S/extractors/broken.sh"
 
@@ -70,7 +72,7 @@ echo "== --extractor overrides which extractor runs"
 rm -f "$WORK/alpha.args"
 arch=$("$B" --cache architecture --scope a --scope b --extractor beta 2>&1); rc=$?
 eq "--extractor beta exits 0" "$rc" 0
-check "--extractor beta does not run alpha" '[ ! -e "$WORK/alpha.args" ]'
+check "--extractor beta does not run alpha" '[[ ! -e "$WORK/alpha.args" ]]'
 eq "--extractor beta graphs only beta's files" "$(section "$arch" Edges)" 'None.'
 
 echo "== refusals"
@@ -87,13 +89,14 @@ check "the error names the file and both extractors, and no body is printed" \
 write_profile "$R" scripts-two alpha
 git_commit_all "$R" "restore alpha"
 
-for name in not-json no-modules broken; do
+for name in not-json no-modules module-not-object source-not-string broken; do
   out=$("$B" --cache architecture --scope a --extractor "$name" 2>&1); rc=$?
   eq "extractor $name exits 2" "$rc" 2
   check "the error for $name names the extractor and not dependency-cruiser" \
     'printf "%s" "$out" | grep -qF "$name" && ! printf "%s" "$out" | grep -qF dependency-cruiser' "$out"
 done
 
+# write_profile cannot write an empty graph_extractor value, so this profile is written by hand.
 printf '# Profile: blank\n\n## Toolchain\n\n```yaml\ntest: "true"\ngraph_extractor: ""\n```\n' >"$R/.workflow/profiles/blank.md"
 git_commit_all "$R" "profile with an empty graph_extractor"
 out=$("$B" --cache architecture --scope a 2>&1); rc=$?
@@ -140,6 +143,7 @@ echo '{"modules":[]}' >"$WORK/empty-graph.json"
 mkdir -p "$R/node_modules/.bin"
 depcruise_stub "$R/node_modules/.bin/depcruise" "$WORK/empty-graph.json" "$WORK/local-depcruise.args"
 echo '{}' >"$R/tsconfig.json"
+# unset DEPCRUISE so a value in the developer's shell cannot pick the depcruise this test expects to be looked up.
 out=$(unset DEPCRUISE; "$X" --root "$R" --scope a 2>&1); rc=$?
 eq "without DEPCRUISE the project's node_modules depcruise runs" "$rc" 0
 eq "a tsconfig.json at the root adds --ts-config" "$(cat "$WORK/local-depcruise.args" 2>/dev/null)" '--no-config

@@ -44,7 +44,7 @@
 #   error: Public interface then reads "Not generated: <reason>." for every module.
 # Determinism: every list is byte-sorted (LC_ALL=C); no timestamps or counts in the body; the scope paths must have no
 #   uncommitted or untracked changes, so the output is a function of HEAD (stamped by publish-cache.sh).
-# Exit codes: 0 = printed or written; 2 = usage error, dirty scope, a profile without graph_extractor or naming an unknown
+# Exit: 0 = printed or written; 2 = usage error, dirty scope, a profile without graph_extractor or naming an unknown
 #   extractor, no work profiles, an extractor that failed or printed no graph, a file claimed by two extractors,
 #   unparseable JSON, node-id collision.
 # Requires: git, jq, mikefarah yq v4 (to read .workflow/rules.md and the work profiles); each extractor's own tools.
@@ -251,7 +251,7 @@ tool_cmd() { # tool_cmd ENVVAR_VALUE NAME -> sets the global array `cmd`; return
 cmd=()
 
 # run_extractors NAME... : writes the merged graph of the named extractors to $cruise_json. Dies when an extractor fails or
-#   prints no .modules array, and when two extractors claim the same file, since the merge would then hold the file twice.
+#   prints no .modules array of objects with a string .source, and when two extractors claim the same file, since the merge would then hold the file twice.
 run_extractors() {
   local name rc s scope_args=() outputs=() claimed
   for s in "${scopes[@]}"; do scope_args+=(--scope "$s"); done
@@ -261,6 +261,8 @@ run_extractors() {
     [[ $rc -eq 0 ]] || die "graph extractor $name failed (exit $rc)"
     jq -e '.modules | type == "array"' "$tmpd/graph-$name.json" >/dev/null 2>&1 \
       || die "graph extractor $name printed no JSON with a .modules array"
+    jq -e 'all(.modules[]; type == "object" and (.source | type == "string"))' "$tmpd/graph-$name.json" >/dev/null \
+      || die "graph extractor $name printed a .modules entry that is not an object with a string .source"
     outputs+=("$tmpd/graph-$name.json")
   done
   if [[ ${#outputs[@]} -eq 0 ]]; then echo '{"modules":[]}' >"$cruise_json"; return 0; fi
@@ -285,6 +287,7 @@ else
     [[ -n "$name" ]] && extractors+=("$name")
   done <<<"$selected"
   graph_origin="graph extractors: ${extractors[*]-none}"
+  # bash 3.2 treats an empty array as unset under set -u, so the expansion is guarded.
   run_extractors ${extractors[@]+"${extractors[@]}"}
 fi
 
