@@ -195,3 +195,8 @@ Found at 1.2 by the `implementation` agent (phase-1-test-harness, [result](artif
 - Task-breakdown note: profile resolution must skip `.workflow/profiles/TEMPLATE.md` (it has no `graph_extractor` key), or the 5.3 build on this repo fails.
 - Task-breakdown note: `arch-golden` and `viol-sorted-unique` in `tests/scripts/build-architecture.sh` expect today's three-section architecture body; the task that adds Unresolved edges updates them.
 - "Source text" in an unresolved bullet or `module` may be the whole line or the path; the tests require only that it contains the path text.
+
+## 2026-10-23 Task breakdown approved (2.1)
+
+- Stakeholder approved 8 tasks in 3 waves (T1, T3, T8; T2, T6, T7; T4, T5), seams as listed in tasks.md, all `afk`, no shared core.
+- Size budget: project default, `max_tasks: 10`, `max_changed_files: 30`.
