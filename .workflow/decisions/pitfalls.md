@@ -14,6 +14,12 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Assign capability ids in the same step as re-reading capabilities.md
+- What happened: at 5.3 the orchestrator assigned CAP-001 and CAP-002 to this spec's capabilities while CAP-001 already belonged to spec 004; the unguarded files were corrected by sed and `tasks.md` with `yq --front-matter=process -i`, because `set-task` rewrites only a provisional id.
+- Where: sign-off 5.3, capability assignment (`modules/sign-off.md`)
+- Spec: .workflow/specs/002-review-lessons
+- Prevented by: none yet (the module says to re-read `capabilities.md` immediately before each assignment; the read and the assignment were batched)
+
 ## Keep a work type's lint key free of suites another task's Phase 1 pin can turn red
 - What happened: an agent-docs task in the same wave as a step-list change could not pass its toolchain: the agent-docs `lint` key ran `lint/step-list` unscoped while that suite carried the sibling task's red Phase 1 pin, and the `&&` chain hid the later lint suites (T3, `profile-wrong` at 3.3).
 - Where: `.workflow/profiles/agent-docs.md` § Toolchain, `lint`

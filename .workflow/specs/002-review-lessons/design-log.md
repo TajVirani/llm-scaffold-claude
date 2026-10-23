@@ -235,3 +235,9 @@ Outcome: rework 1 of 5
 
 - 5.5: approved. Stakeholder: "Yes, approve (Recommended)".
 - 5.9: both open backlog items moved to the shelf as duplicates of existing items (the F9 finding): `002-review-lessons-disc-001` → [.workflow/deferred/research-model-map.md](../../deferred/research-model-map.md) (Later requests line); `002-review-lessons-disc-002` → [.workflow/deferred/concurrency-check-timing.md](../../deferred/concurrency-check-timing.md) (Later requests line). Stakeholder: "Move it to the shelf (Recommended)" for both.
+
+## 2026-10-22 Retrospective notes
+
+- The cheap-tier lens's judgement is a sample: JRN-001 passed, failed and passed across three live runs, the miss on an unchanged definition before the T3 fix; a later feature could run each live journey twice or adopt an n-of-m rule, see .workflow/decisions/retrospectives/002-review-lessons.md
+- Launching the real lens against a fixture works by building the fixture under the gitignored `.workflow/.worktrees/` and moving the shell into it, so the launch hook resolves the fixture's own spec folder and model map; `artifacts/review-lessons/record.md` documents the technique, see .workflow/decisions/retrospectives/002-review-lessons.md
+- This repo now carries `.workflow/model-map/review-lessons.md` (written at the first launch) and, from this retrospective, `.workflow/review-lessons.md` with RL-001, see .workflow/decisions/retrospectives/002-review-lessons.md
