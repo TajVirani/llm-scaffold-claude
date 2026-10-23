@@ -119,11 +119,11 @@ _Avoid_: Ticket, task section
 ### Scope control
 
 **Discovered work**:
-Work found outside a spec's agreed scope while the feature is under way. Agents report it and never fix it; it is ruled on by the user before anything continues.
+Work found outside a spec's agreed scope while the feature is under way. Agents report it and never fix it; a blocker is ruled on by the user before anything continues, and a can-wait item is filed to the **Work backlog** without a ruling and offered at sign-off.
 _Avoid_: Scope creep, side quest
 
 **Work backlog**:
-The project-level folder of small work items created from discovered work that is not a blocker and that the user wants as a next feature.
+The project-level folder of small work items created from discovered work that is not a blocker: filed without a ruling, or chosen by the user as a next feature, and offered at sign-off.
 _Avoid_: Deferred shelf, issue tracker
 
 **Size budget**:
