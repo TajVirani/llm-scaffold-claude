@@ -4,7 +4,8 @@
 #   dropped, module roots from .workflow/rules.md, --module override), order-independence of the input JSON, boundary
 #   violations, modules.md skeleton (files, depends on, used by, public interface from .d.ts with export * expanded),
 #   flows entry candidates, id collisions, dirty-scope refusal, --out guard, input rejections; the staged-body checker
-#   for all three shapes and its Mermaid HTML wrapper. No node needed: dependency-cruiser and tsc output are fixtures.
+#   for all three shapes (architecture with a sorted "Unresolved edges" section after Boundary violations, and an older
+#   body without it) and its Mermaid HTML wrapper. No node needed: dependency-cruiser and tsc output are fixtures.
 # shellcheck disable=SC2016,SC2034  # literal Markdown backticks in single quotes; check expressions read vars through eval
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -285,6 +286,21 @@ printf '# Flows\n\n## Entry points\n\nNone.\n\n## src/x.ts\n' >"$WORK/f8.md"
 t chk-flows-none-with-sections 1 "$C" flows "$WORK/f8.md"
 printf '# Architecture\n\n## Edges\n\nNone.\n' >"$WORK/a1.md"
 t chk-arch-sections 1 "$C" architecture "$WORK/a1.md"
+unresolved_sorted='- `bin/build.sh:10` `source "$PLUGIN_DIR/$PLUGIN.sh"`
+- `bin/build.sh:16` `bash "$ROOT/ops/gone.sh"`'
+printf '%s\n\n## Unresolved edges\n\n%s\n' "$expected_arch" "$unresolved_sorted" >"$WORK/a2.md"
+t chk-arch-unresolved-ok 0 "$C" architecture "$WORK/a2.md"
+printf '%s\n\n## Unresolved edges\n\nNone.\n' "$expected_arch" >"$WORK/a3.md"
+t chk-arch-unresolved-none-ok 0 "$C" architecture "$WORK/a3.md"
+printf '%s\n\n## Unresolved edges\n\n%s\n' "$expected_arch" "$(printf '%s\n' "$unresolved_sorted" | sort -r)" >"$WORK/a4.md"
+out=$("$C" architecture "$WORK/a4.md" 2>&1); rc=$?
+eq chk-arch-unresolved-unsorted-rc "$rc" 1
+check chk-arch-unresolved-unsorted-names-section 'printf "%s" "$out" | grep -q "Unresolved edges" && ! printf "%s" "$out" | grep -q "sections must be"' "$out"
+printf '%s## Unresolved edges\n\n%s\n\n## Boundary violations%s\n' "${expected_arch%%## Boundary violations*}" "$unresolved_sorted" \
+  "${expected_arch#*## Boundary violations}" >"$WORK/a5.md"
+t chk-arch-unresolved-before-violations 1 "$C" architecture "$WORK/a5.md"
+printf '%s\n' "$expected_arch" >"$WORK/a6.md"
+t chk-arch-without-unresolved-still-ok 0 "$C" architecture "$WORK/a6.md"
 : >"$WORK/empty.md"
 t chk-empty 1 "$C" modules "$WORK/empty.md"
 t chk-wrong-title 1 "$C" flows .workflow/.cache-staging/architecture.md
