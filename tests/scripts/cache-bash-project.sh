@@ -2,7 +2,7 @@
 # Suite: JRN-001 "Bash project builds all three caches": build-architecture.sh on a bash fixture project whose profile names
 #   `graph_extractor: bash`, with no dependency-cruiser available.
 # Covers: architecture.md module edges from `source` lines and script calls, the dynamic `source` and the runtime-root call
-#   with a missing tail listed under "## Unresolved edges" as sorted `- \`<file>:<line>\` \`<source text>\`` bullets after
+#   with a missing tail and the cwd-relative calls listed under "## Unresolved edges" as sorted `- \`<file>:<line>\` \`<source text>\`` bullets after
 #   "## Boundary violations"; modules.md Public interface as the sorted union of the functions of a module's sourced files,
 #   "Not generated" for modules with none and "none exported" for an empty exports entry; flows entry candidates without files
 #   matching the profile's test_patterns, `[]` falling back to the defaults, a malformed test_patterns exiting 2;
@@ -42,11 +42,15 @@ eq "JRN-001 edges for the sourced libs and the script calls" "$(section "$arch" 
 eq "JRN-001 Unresolved edges follows Boundary violations as the last section" \
   "$(printf '%s\n' "$arch" | grep '^## ' | tr '\n' '|')" "## Module graph|## Edges|## Boundary violations|## Unresolved edges|"
 unres=$(section "$arch" "Unresolved edges")
-eq "JRN-001 two unresolved edges" "$(printf '%s\n' "$unres" | grep -c .)" 2
+eq "JRN-001 four unresolved edges" "$(printf '%s\n' "$unres" | grep -c .)" 4
 check "JRN-001 the dynamic source is listed with its file, line and source text" \
   'printf "%s\n" "$unres" | grep -F -- "- \`bin/build.sh:$BASH_DYNAMIC_SOURCE_LINE\` \`" | grep -qF -- "$BASH_DYNAMIC_SOURCE_TEXT"' "$unres"
 check "JRN-001 the runtime-root call with a missing tail is listed with its file, line and source text" \
   'printf "%s\n" "$unres" | grep -F -- "- \`bin/build.sh:$BASH_MISSING_CALL_LINE\` \`" | grep -qF -- "$BASH_MISSING_CALL_TEXT"' "$unres"
+check "JRN-001 the cwd-relative ./ call is listed with its file, line and source text" \
+  'printf "%s\n" "$unres" | grep -qxF -- "- \`tools/deploy.sh:$BASH_DOT_SLASH_CALL_LINE\` \`$BASH_DOT_SLASH_CALL_TEXT\`"' "$unres"
+check "JRN-001 the cwd-relative bash call is listed with its file, line and source text" \
+  'printf "%s\n" "$unres" | grep -qxF -- "- \`tools/deploy.sh:$BASH_BASH_CWD_CALL_LINE\` \`$BASH_BASH_CWD_CALL_TEXT\`"' "$unres"
 check "JRN-001 every unresolved bullet has the \`file:line\` \`text\` shape" \
   '[ -n "$unres" ] && ! printf "%s\n" "$unres" | grep -qv "^- \`[^\`]*:[0-9][0-9]*\` \`.*\`\$"' "$unres"
 check "JRN-001 unresolved bullets are byte-sorted" '[ -n "$unres" ] && printf "%s\n" "$unres" | LC_ALL=C sort -c 2>/dev/null'
@@ -78,7 +82,7 @@ check "JRN-001 the test file is not an entry candidate" \
   'jq -e "[.candidates[].file] | index(\"tests/build-test.sh\") == null" <<<"$ent" >/dev/null 2>&1'
 eq "JRN-001 build.sh reaches the files it sources and calls" \
   "$(jq -r '.candidates[] | select(.file == "bin/build.sh") | .reaches_files | join(",")' <<<"$ent" 2>/dev/null)" \
-  "bin/build.sh,lib/paths.sh,lib/strings.sh,ops/report.sh,tools/deploy.sh"
+  "bin/build.sh,lib/paths.sh,lib/strings.sh,ops/report.sh,tools/deploy.sh,tools/publish"
 
 echo "== modules Public interface edges"
 cat >"$WORK/exports.json" <<'EOF'

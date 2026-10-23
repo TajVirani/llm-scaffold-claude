@@ -2,8 +2,9 @@
 # Suite: regenerate-caches extractors/bash.sh, the bash graph extractor, run directly on a bash fixture project.
 # Covers: dependency-cruiser-shaped JSON (modules[].source, dependencies[]); the files it claims (*.sh and bash-shebang
 #   files, not python or markdown); an edge for each `source`/`.` form (dir-anchored inline, a `$here` variable, one variable
-#   hop) and each call form (dir-anchored, runtime-root with an existing tail); `couldNotResolve: true` with the source text in
-#   `module` and no `resolved` for a dynamic `source` and a runtime-root call whose tail does not exist; every resolved path an
+#   hop) and each call form (dir-anchored, runtime-root with an existing tail, an extensionless script claimed by its shebang);
+#   `couldNotResolve: true` with the source text in `module` and no `resolved` for a dynamic `source`, a runtime-root call
+#   whose tail does not exist and cwd-relative `./x` and `bash x` calls; every resolved path an
 #   existing file; the `exports` map of sorted unique top-level functions of sourced files only; deterministic output; usage
 #   errors. CAP-NEW-bash-graph-extractor.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -30,10 +31,11 @@ resolved_of() { jq -r --arg f "$1" '[.modules[] | select(.source == $f) | .depen
 unresolved_of() { jq -r --arg f "$1" '.modules[] | select(.source == $f) | .dependencies[] | select(.couldNotResolve == true) | .module' <<<"$graph" 2>/dev/null; }
 
 eq "claims *.sh files and bash-shebang files only, sorted" "$(jq -r '[.modules[].source] | join(",")' <<<"$graph" 2>/dev/null)" \
-  "bin/build.sh,bin/release,lib/paths.sh,lib/strings.sh,ops/report.sh,tests/build-test.sh,tools/deploy.sh"
+  "bin/build.sh,bin/release,lib/paths.sh,lib/strings.sh,ops/report.sh,tests/build-test.sh,tools/deploy.sh,tools/publish"
 eq "build.sh: edges for dir-anchored and \$here sources, a dir-anchored call and a runtime-root call with an existing tail" \
   "$(resolved_of bin/build.sh)" "lib/paths.sh,lib/strings.sh,ops/report.sh,tools/deploy.sh"
-eq "deploy.sh: edge through one variable hop" "$(resolved_of tools/deploy.sh)" "lib/strings.sh"
+eq "deploy.sh: edges through one variable hop and to an extensionless script claimed by its shebang" \
+  "$(resolved_of tools/deploy.sh)" "lib/strings.sh,tools/publish"
 eq "paths.sh: edge for an inline dirname source" "$(resolved_of lib/paths.sh)" "lib/strings.sh"
 eq "test file: edge to the lib it sources" "$(resolved_of tests/build-test.sh)" "lib/strings.sh"
 
@@ -43,6 +45,9 @@ check "dynamic source is couldNotResolve with its source text in module" \
   'printf "%s\n" "$unres" | grep -qF -- "$BASH_DYNAMIC_SOURCE_TEXT"'
 check "runtime-root call with a missing tail is couldNotResolve with its source text in module" \
   'printf "%s\n" "$unres" | grep -qF -- "$BASH_MISSING_CALL_TEXT"'
+eq "deploy.sh: cwd-relative ./ and bash script calls are couldNotResolve at their lines, never guessed" \
+  "$(jq -r '[.modules[] | select(.source == "tools/deploy.sh") | .dependencies[] | select(.couldNotResolve == true) | "\(.line) \(.module)"] | join(",")' <<<"$graph" 2>/dev/null)" \
+  "$BASH_DOT_SLASH_CALL_LINE $BASH_DOT_SLASH_CALL_TEXT,$BASH_BASH_CWD_CALL_LINE $BASH_BASH_CWD_CALL_TEXT"
 eq "an unresolved dependency carries no resolved path" \
   "$(jq '[.modules[].dependencies[] | select(.couldNotResolve == true and has("resolved"))] | length' <<<"$graph" 2>/dev/null)" 0
 
@@ -68,7 +73,7 @@ t "a missing scope path is an error" 2 "$X" --root "$R" --scope nowhere
 t "an unknown argument is a usage error" 2 "$X" --root "$R" --scope bin --verbose
 t "a root outside git is an error" 2 "$X" --root "$WORK/scaffold/.agents" --scope hooks
 
-# Edge forms: heredoc bodies and redirection targets are data, a run-time variable set from another one is followed one
+# Edge forms: heredoc bodies, redirection targets, quoted text and files that are not scripts are data, a run-time variable set from another one is followed one
 # hop, and a dir-anchored path to a missing file is never turned into an edge.
 E="$WORK/edges"
 git_init_repo "$E"
@@ -83,15 +88,20 @@ cat >"$here/generated.sh" <<'EOF'
 source "$here/../skill/scripts/check.sh"
 EOF
 bash "$here/missing.sh"
+bash -c "./inline.sh"
+echo 'a; ./quoted.sh'
+cat "$here/../skill/scripts/notes.txt"
+FOO=1 ./run-me
 OUTER
+printf 'notes\n' >"$E/skill/scripts/notes.txt"
 git_commit_all "$E" init
 edges=$("$X" --root "$E" --scope hooks --scope skill)
 eq "a run-time variable set from another one plus a tail resolves through one hop" \
   "$(jq -r '[.modules[] | select(.source == "hooks/adapter.sh") | .dependencies[] | .resolved // empty] | join(",")' <<<"$edges" 2>/dev/null)" \
   "skill/scripts/check.sh"
-eq "a heredoc body and a redirection target add no edge; a dir-anchored missing file is unresolved at its line" \
+eq "heredoc bodies, redirection targets, bash -c strings, quoted text and data files add nothing; a missing file and a cwd-relative call are unresolved at their lines" \
   "$(jq -r '[.modules[] | select(.source == "hooks/adapter.sh") | .dependencies[] | select(.couldNotResolve) | "\(.line) \(.module)"] | join(",")' <<<"$edges" 2>/dev/null)" \
-  '8 $here/missing.sh'
+  '8 $here/missing.sh,12 ./run-me'
 eq "a file nothing sources has no exports entry" "$(jq -c '.exports' <<<"$edges" 2>/dev/null)" '{}'
 
 shellcheck_files "shellcheck: extractors/bash.sh" "$X"
