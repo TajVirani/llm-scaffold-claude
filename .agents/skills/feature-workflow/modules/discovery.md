@@ -67,15 +67,15 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 
    When `.workflow/tools/boundaries/dependency-cruiser.cjs` exists, also pass `--area .workflow/tools/boundaries/dependency-cruiser.cjs`. It is in the `architecture` scope (its Boundary violations come from it), and `--area` checks only the scope paths that intersect an area.
 
-   It prints one JSON object (`.stale`, `.stamps`, `.caches[] | {cache_type, status, stale_paths, reason}`). Exit 0: every cache is fresh. Exit 1: some are `stale` or `missing` and need step 4. Exit 2 → read `.caches[].reason`: an `invalid` cache is treated like a stale one; a tooling or usage error stops the step and is reported to the stakeholder. Otherwise go to step 3.
+   It prints one JSON object (`.stale`, `.stamps`, `.caches[] | {cache_type, status, stale_paths, reason}`). Exit 0: every cache is fresh. Exit 1: some are `stale` or `missing` and need 0.2.8. Exit 2 → read `.caches[].reason`: an `invalid` cache is treated like a stale one; a tooling or usage error stops the step and is reported to the stakeholder. Every exit except a tooling or usage error goes to step 3, which sends the launches this result needs beside the term gate.
 3. **0.2.2 Term gate, with the launches beside it.** Does the request use a new, ambiguous or conflicting term? Note each raised term with the name you would propose. Then send the launches below in the same message as the gate's first question, so the agents run while the stakeholder answers:
    - **Every cache fresh (0.2.7 exit 0):** launch `retrieval` and `library-evaluation` as step 5 says, their briefs carrying the raised terms as `proposed, pending the 0.2.2 gate`.
    - **Some cache needs 0.2.8:** launch the `cache-regeneration` agents as step 4 says. `retrieval` and `library-evaluation` launch at step 5, once the caches are published.
    - **The ask:** with a term raised, invoke the `domain-modeling` skill for gate 0.2.2; it agrees each term with the stakeholder and writes the glossary under step `0.2.3` as each answer lands. With none raised, there is no ask; send the launches alone.
 
    Done when every raised term is agreed or confirmed as an existing entry, and the launches for this cache state are out.
-4. **0.2.8 Regenerate and restamp** each cache whose status is `stale`, `missing` or `invalid`.
-   - Launch one `cache-regeneration` per cache type (parallel). On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `cache_regeneration`, `task_name` `s<NNN>_cache_<type>` (for example `s007_cache_modules`), `fork_turns: "none"`. It receives no Tier A and not the previous cache. The prompt is the launch header followed by exactly the four task lines `.agents/agents/cache-regeneration.md` defines:
+4. **0.2.8 Regenerate and restamp** each cache whose status is `stale`, `missing` or `invalid`. When the agents launched at step 3 return, check and publish each staged body as the second bullet says. Launch here only when step 3 did not, for example when 0.2.7 found nothing stale at the time and a later check does.
+   - The launch: one `cache-regeneration` per cache type (parallel). On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `cache_regeneration`, `task_name` `s<NNN>_cache_<type>` (for example `s007_cache_modules`), `fork_turns: "none"`. It receives no Tier A and not the previous cache. The prompt is the launch header followed by exactly the four task lines `.agents/agents/cache-regeneration.md` defines:
 
      ````markdown
      ```yaml launch-header
