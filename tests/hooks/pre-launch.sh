@@ -2,7 +2,9 @@
 # Suite: hooks/pre-launch.sh (PreToolUse on Agent/Task).
 # Covers: non-Agent and non-workflow launches pass silently, valid launches get the full updatedInput rewrite
 #   (model, header, profile), legacy Task tool name, deny paths (missing header, task_type mismatch, unresolved model,
-#   env error with no yq, no jq, invalid payload), worktree cwd, CLAUDE_PROJECT_DIR fallback, workflow absent / not set up.
+#   env error with no yq, no jq, invalid payload), worktree cwd, CLAUDE_PROJECT_DIR fallback, workflow absent / not set up;
+#   JRN-005: a review-lessons launch allowed with its model from the model map, denied naming 00.14 without one, and denied
+#   when the header lacks spec_dir.
 # shellcheck disable=SC2016,SC2015  # jq programs use single quotes; A && B || C is deliberate in ok/ko lines
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -108,6 +110,30 @@ FH=$'```yaml launch-header\ntask_type: fact-lookup\nspec_dir: .workflow/specs/00
 run "$(payload Agent fact-lookup "$FH" "$FX")"
 jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.permissionDecisionReason|test("00.14"))' <<<"$out" >/dev/null \
   && ok "model unresolved -> deny 00.14" || ko "00.14" "$out"
+
+# 5b: the review-lessons lens launch
+cat > "$FX/.workflow/model-map/review-lessons.md" <<'M'
+---
+tier: cheap
+claude: haiku
+codex: gpt-6-luna
+---
+# review-lessons
+M
+LH=$'```yaml launch-header\ntask_type: review-lessons\nspec_dir: .workflow/specs/001-demo\n```\nReview pass 1 of .workflow/specs/001-demo. Write the review-findings block to your pass file and return the summary block.'
+run "$(payload Agent review-lessons "$LH" "$FX")"
+jq -e --arg p "$LH" '.hookSpecificOutput.permissionDecision=="allow" and .hookSpecificOutput.updatedInput.model=="haiku"
+  and .hookSpecificOutput.updatedInput.subagent_type=="review-lessons" and .hookSpecificOutput.updatedInput.prompt==$p' <<<"$out" >/dev/null \
+  && ok "JRN-005 review-lessons with a header -> allow, model haiku from the model map" || ko "JRN-005 review-lessons allow" "rc=$rc out=$out"
+mv "$FX/.workflow/model-map/review-lessons.md" "$T/review-lessons.model-map.md"
+run "$(payload Agent review-lessons "$LH" "$FX")"
+jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.permissionDecisionReason|test("00.14"))' <<<"$out" >/dev/null \
+  && ok "JRN-005 review-lessons with no model-map entry -> deny 00.14" || ko "JRN-005 review-lessons 00.14" "rc=$rc out=$out"
+mv "$T/review-lessons.model-map.md" "$FX/.workflow/model-map/review-lessons.md"
+LH_NO_SPEC=$'```yaml launch-header\ntask_type: review-lessons\n```\nReview pass 1.'
+run "$(payload Agent review-lessons "$LH_NO_SPEC" "$FX")"
+jq -e '.hookSpecificOutput.permissionDecision=="deny"' <<<"$out" >/dev/null \
+  && ok "JRN-005 review-lessons header without spec_dir -> deny" || ko "JRN-005 review-lessons no spec_dir" "rc=$rc out=$out"
 
 # 6 resolve env error deny (yq missing: PATH without yq)
 NOYQ=$T/noyq; mkdir -p "$NOYQ"; for b in bash jq git cat sed tr grep mktemp rm dirname head awk env wc; do ln -sf "$(command -v $b)" "$NOYQ/$b"; done

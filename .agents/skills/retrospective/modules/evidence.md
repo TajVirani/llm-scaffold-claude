@@ -15,6 +15,7 @@ List what the feature produced so every later step works from artifacts rather t
 | `.workflow/specs/NNN-slug/artifacts/` | Toolchain output per task, browser evidence per journey |
 | `.workflow/deferred/*.md` whose `origin_spec` is this spec | What was shelved, and why |
 | Git, from `baseline_revision` to `HEAD` | `git log --oneline <baseline>..HEAD` and `git diff --stat <baseline>..HEAD`: commits and change volume |
+| `.workflow/review-lessons.md`, when present | Recorded review lessons: a new candidate that repeats one is "already present", and one this feature's approved 5.3 proposals now enforce is a retirement candidate |
 | The previous retrospective | The highest-numbered other file in `.workflow/decisions/retrospectives/` |
 | Session logs, when they exist | Why a session took an unexpected turn. They are the evidence most likely to expire, so capture references now. |
 

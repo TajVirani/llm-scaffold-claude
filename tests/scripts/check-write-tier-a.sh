@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Suite: check-write.sh (feature-workflow/scripts): Tier A.
 # Covers: Tier A writes per step (the glossary, rules.md, capabilities.md, ADRs, profiles new and existing), sub-agent
-#   denials, the newest marker across specs in flight, no feature in flight, and a missing yq.
+#   denials, the newest marker across specs in flight, no feature in flight, and a missing yq; JRN-004: the review-lessons
+#   file allowed at 5.7 only (denied at 0.3.7, 5.3, 4.9 and 0.1.4, and to a sub-agent at 5.7).
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures
 # shellcheck source=../lib/common.sh
@@ -103,6 +104,34 @@ t "no feature in flight, sub-agent deny"    2 CW --cwd "$R" --path .workflow/rul
 t "empty --agent still counts as sub-agent" 2 CW --cwd "$R" --path .workflow/rules.md --agent ""
 t "yq missing -> clear error (check-write)" 1 env PATH=/usr/bin:/bin /bin/bash "$SRC/scripts/check-write.sh" --cwd "$R" --path .workflow/rules.md
 t "yq missing -> clear error (status-tr.)"  1 env PATH=/usr/bin:/bin /bin/bash "$SRC/scripts/status-transition.sh" step $B 0.1.6
+
+echo "== JRN-004: the review-lessons file is written at 5.7 only"
+# Its own repo with one spec in flight, so that spec's marker alone decides.
+git_init_repo "$F/lessons-repo"
+LR=$F/lessons-repo
+LS=.workflow/specs/001-fixture
+mkdir -p "$LR/$LS"
+cp "$SRC/assets/spec.md" "$LR/$LS/spec.md"
+echo '.workflow/specs/*/.step' >"$LR/.gitignore"
+git_commit_all "$LR" init
+t "JRN-004 setup: the spec is a draft" 0 ST status $LS draft --cwd "$LR"
+# lessons_at STEP : set the fixture spec's marker to STEP through status-transition.sh.
+lessons_at() { t "JRN-004 setup: .step set to $1" 0 ST step $LS "$1" --cwd "$LR"; }
+lessons_at 5.7
+t "JRN-004 review-lessons.md at 5.7 allow" 0 CW --cwd "$LR" --path .workflow/review-lessons.md
+t "JRN-004 review-lessons.md at 5.7 sub-agent deny" 2 CW --cwd "$LR" --path .workflow/review-lessons.md --agent impl
+for s in 0.3.7 5.3 4.9 0.1.4; do
+  lessons_at $s
+  t "JRN-004 review-lessons.md at $s deny" 2 CW --cwd "$LR" --path .workflow/review-lessons.md
+  err=$(CW --cwd "$LR" --path .workflow/review-lessons.md 2>&1 >/dev/null)
+  check "JRN-004 review-lessons.md at $s: a deny naming 5.7 on stderr" '[[ $err == "deny: "*5.7* ]]' "$err"
+done
+lessons_at 5.3
+t "review-lessons.md in another case at 5.3 deny" 2 CW --cwd "$LR" --path .workflow/Review-Lessons.md
+yq --front-matter=process -i '.status="done"' "$LR/$LS/spec.md"
+t "review-lessons.md with no feature in flight deny" 2 CW --cwd "$LR" --path .workflow/review-lessons.md
+err=$(CW --cwd "$LR" --path .workflow/review-lessons.md 2>&1 >/dev/null)
+check "review-lessons.md with no feature in flight: a deny naming 5.7 on stderr" '[[ $err == "deny: "*5.7* ]]' "$err"
 
 shellcheck_files "shellcheck: scripts under test" "$SRC/scripts/check-write.sh"
 finish

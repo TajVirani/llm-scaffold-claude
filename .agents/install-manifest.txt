@@ -17,7 +17,7 @@ skills/deeper-prompt
 skills/handoff
 skills/project-standards
 
-# --- Agents (13)
+# --- Agents (14)
 agents/cache-regeneration.md
 agents/fact-lookup.md
 agents/implementation.md
@@ -28,6 +28,7 @@ agents/profile-mini-review.md
 agents/research.md
 agents/retrieval.md
 agents/review-end-state.md
+agents/review-lessons.md
 agents/review-standards.md
 agents/review-targets.md
 agents/standards-discovery.md

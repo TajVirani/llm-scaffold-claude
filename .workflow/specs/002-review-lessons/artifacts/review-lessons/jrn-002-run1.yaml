@@ -1,0 +1,12 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "562c6a97ce6c32b7690a6ca0805bc767cc2876ab"
+head: "892a834dddbd6d1166580d6f61d7a2ec0729b4c8"
+findings: []
+checked:
+  - ".workflow/review-lessons.md"
+  - ".workflow/decisions/pitfalls.md"
+not_checked:
+  - ".workflow/decisions/retrospectives/*.md: folder missing; no retrospective lessons to compare"
+  - "RL-001 (src/**): matched src/report.sh, but the script tests -f \"$1\" before cat, so the symptom is not repeated; disproved, not a finding"

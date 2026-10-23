@@ -11,3 +11,5 @@ Rules:
 | ID | Description | Introduced by |
 | --- | --- | --- |
 | CAP-001 | Scoped and parallel harness runs: `tests/run-all.sh` runs the suites a selector file names, or every suite minus an exclude file, in parallel by default with the same report as a serial run | [.workflow/specs/004-scoped-test-runs](specs/004-scoped-test-runs/spec.md) |
+| CAP-002 | Review lessons lens: the Phase 4 review checks every change since `baseline_revision` against the project's recorded review lessons, pitfalls and retrospectives (step 4.9, cheap tier, read-only) | [.workflow/specs/002-review-lessons](specs/002-review-lessons/spec.md) |
+| CAP-003 | Review lessons written by the retrospective: an approved "watch for X in Y" lesson becomes one entry in `.workflow/review-lessons.md` at 5.7, retired in place once a rule, lint or profile line enforces it | [.workflow/specs/002-review-lessons](specs/002-review-lessons/spec.md) |

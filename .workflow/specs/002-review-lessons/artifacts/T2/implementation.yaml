@@ -1,0 +1,20 @@
+status: done
+summary: >-
+  Rework 1 (review pass 1, F2): removed the spec journey ids (JRN-007, JRN-005, JRN-003) from the three body comments F2 named; each keeps its plain description. The `# Covers:` headers and every test-name string are unchanged. No behaviour change: the three suites report the same counts before and after. The wave-1 result is kept beside this file as implementation-wave1.yaml.
+task_id: T2
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t2
+branch: task/002-review-lessons/T02-launch-row-lens-table-step
+base_commit: be7638e87ae5146fcf2d85f2d059d079d85ae628
+head_commit: d5ecb8e12cf8abb35b809ef12454fc5625015975
+files_changed: [tests/scripts/step-progress.sh, tests/hooks/pre-launch.sh, tests/scripts/check-review-findings.sh]
+tests_added: []
+evidence:
+  red: "n/a (comment-only rewording)"
+  green: "step-progress 66/66, pre-launch 20/20, check-review-findings 119/119 before and after"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/002-review-lessons --task-id T2 --cwd $PWD; exit 0, TOTAL passed=336 failed=0 (5 own suites, 2 excluded)"
+  toolchain: .workflow/specs/002-review-lessons/artifacts/T2/toolchain.txt (pass)
+considered_not_built: []
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

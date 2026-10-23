@@ -1,0 +1,26 @@
+status: done
+summary: Phase 4 now runs four lenses. review-triage.md launches review-lessons at 4.9 in the same message as the other three, with the same task line and the Codex form; it keeps the lessons lens on the light path, names the review-lessons.yaml pass file (prefix RL) and how a failed lessons lens is handled, and says a category lesson finding carries the lesson's id in `lesson:` and that its severity is only a claim. The SKILL.md module row reads 4.1–4.9, the design-log Source lens column lists review-lessons, and the sign-off 5.7 sentence names the review-lessons write and retirement and points at the retrospective's routing.md.
+task_id: T4
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t4
+branch: task/002-review-lessons/T04-triage-four-lenses
+base_commit: 68c0b4e575679e5261a14524e5609d9b3e9bc32f
+head_commit: 0d93d7ef0f6b039aa1cd46e7925a1e166417f044
+files_changed:
+  - .agents/skills/feature-workflow/modules/review-triage.md
+  - .agents/skills/feature-workflow/modules/sign-off.md
+  - .agents/skills/feature-workflow/assets/design-log.md
+  - .agents/skills/feature-workflow/SKILL.md
+tests_added: []   # prose only; no harness seam (task file: Seam none)
+evidence:
+  red: "No harness seam; no red step."
+  green: "bash tests/lint/step-list.sh; RESULT passed=36 failed=0. bash tests/lint/frontmatter.sh exited 0."
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/002-review-lessons --task-id T4 --cwd $PWD; lint pass; test (scoped, own 0, excluded 1) TOTAL passed=2555 failed=0 (43 suites)"
+  toolchain: .workflow/specs/002-review-lessons/artifacts/T4/toolchain.txt (pass)
+considered_not_built:
+  - "A step 2 paragraph on what review-lessons reads: the lens definition says it; the writing rules forbid saying it twice"
+  - "A required format for the lesson id in the triage row: the criteria ask only that step 4 say the finding carries it in lesson:"
+  - "A `step <spec> 4.9` status call: the module makes none for 4.1-4.3 either"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

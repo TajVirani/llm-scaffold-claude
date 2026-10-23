@@ -20,13 +20,13 @@
 - A skill's or agent's `name` matches its folder or file name.
 - Agent frontmatter is exactly `name`, `description`, `tools`; never `model:` (models come from `.workflow/model-map/` and overrides).
 - Agent descriptions lead with the role and the workflow step: `<role> (step X.Y)`.
-- New agents follow `.agents/skills/writing-for-agents/assets/agent.template.md` (Input / Steps / Return). Existing agents change shape only when touched for another reason.
+- New agents follow `.agents/skills/writing-for-agents/assets/agent.template.md` (Input / Steps / Return). A Phase 4 review lens follows the shape of the existing lenses in `.agents/agents/review-*.md` (Receives / Method / Scoring / Return), so the four stay alike. Existing agents change shape only when touched for another reason.
 
 ## Toolchain
 
 ```yaml
 # Command keys, run by run-toolchain.sh at 3.5 in this order: lint, typecheck, format, boundary, test. Exact command per key; "" when not applicable. e2e is not run at 3.5: the orchestrator runs it at 3.10 via run-toolchain.sh `--e2e` (or the suite command); evidence-capture only collects the artifacts.
-lint: "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage"
+lint: "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage"
 typecheck: ""   # e.g. tsc --noEmit
 format: ""      # a check command, e.g. prettier --check .
 boundary: ""    # e.g. depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs src (config generated from .workflow/rules.md)

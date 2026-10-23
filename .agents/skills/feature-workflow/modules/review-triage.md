@@ -1,6 +1,6 @@
 # Review and triage (Phase 4)
 
-Three lenses review the whole change independently; you then verify, grade and route every finding yourself in the main session. You are done with Phase 4 when one exit in step 6 has run: rework, loop back, or hand-off to sign-off.
+Four lenses review the whole change independently; you then verify, grade and route every finding yourself in the main session. You are done with Phase 4 when one exit in step 6 has run: rework, loop back, or hand-off to sign-off.
 
 `.workflow/specs/NNN-slug` is this feature's folder. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix (SKILL.md, "Conventions every module follows"). Every status, task-record and step change goes through `status-transition.sh`, with the exact `--step` shown. Exit 0 is done; exit 2 is a refused transition with the reason on stderr: stop and report it rather than working around it. On Codex, run `check-write.sh` before the spec.md write at 4.6 as SKILL.md "Host notes" says.
 
@@ -16,11 +16,11 @@ Phase 4 runs once per **pass**. Read `.workflow/specs/NNN-slug/design-log.md` be
 
 **Resuming.** If any task record in `tasks.md` is `in-progress`, a rework is under way whatever `.step` says (the orchestrator's gates move it off 4.7): load `modules/implementation-orchestrator.md` for those tasks instead, as the router does. Otherwise, if the newest triage entry has an `Outcome:` line and `.step` names 4.5 to 4.8, that pass is already decided: finish its exit instead of starting a new pass; for a pending 4.8, run step 7. If `.step` names a node from 00.21 to 00.28, a discovered-work entry was being handled: finish it through `modules/discovered-work.md`, then continue at 6.0 with the next one.
 
-## 2. Launch the three lenses (4.1-4.3)
+## 2. Launch the four lenses (4.1-4.3, 4.9)
 
-**Light path: no targets lens.** When `.workflow/specs/NNN-slug/verification-plan.md` does not exist, there are no targets to measure: launch only `review-standards` and `review-end-state`, and write `no targets (light path)` in the triage entry where the targets lens would be named.
+**Light path: no targets lens.** When `.workflow/specs/NNN-slug/verification-plan.md` does not exist, there are no targets to measure: launch only `review-standards`, `review-end-state` and `review-lessons`, and write `no targets (light path)` in the triage entry where the targets lens would be named.
 
-Launch `review-standards`, `review-end-state` and `review-targets` together in one message, in the foreground, and wait for every one before reading any result. Give each the same minimal prompt: the header, then one line of task. Pass nothing else: no diff, no other lens's output, no summary of the feature. Each lens reads its own inputs.
+Launch `review-standards`, `review-end-state`, `review-targets` and `review-lessons` together in one message, in the foreground, and wait for every one before reading any result. Give each the same minimal prompt: the header, then one line of task. Pass nothing else: no diff, no other lens's output, no summary of the feature. Each lens reads its own inputs.
 
 ````text
 ```yaml launch-header
@@ -31,7 +31,7 @@ spec_dir: .workflow/specs/NNN-slug
 Review pass <n> of .workflow/specs/NNN-slug. Write the review-findings block to your pass file and return the summary block.
 ````
 
-Repeat with `task_type: review-end-state` and `task_type: review-targets`; `subagent_type` matches `task_type`. On Claude the `pre-launch` hook resolves the model through `resolve-launch.sh` and denies a malformed header. On Codex, build each prompt yourself and launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `review_standards`, `review_end_state`, `review_targets`, `task_name` `s<NNN>_<lens>` (`s007_review_standards`, `s007_review_end_state`, `s007_review_targets`), `fork_turns: "none"`:
+Repeat with `task_type: review-end-state`, `task_type: review-targets` and `task_type: review-lessons`; `subagent_type` matches `task_type`. On Claude the `pre-launch` hook resolves the model through `resolve-launch.sh` and denies a malformed header. On Codex, build each prompt yourself and launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `review_standards`, `review_end_state`, `review_targets`, `review_lessons`, `task_name` `s<NNN>_<lens>` (`s007_review_standards`, `s007_review_end_state`, `s007_review_targets`, `s007_review_lessons`), `fork_turns: "none"`:
 
 ```bash
 echo "Review pass <n> of .workflow/specs/NNN-slug. Write the review-findings block to your pass file and return the summary block." |
@@ -59,6 +59,8 @@ Each lens writes its full `review-findings` block to `.workflow/specs/NNN-slug/a
    - **`review-targets` only, after exit 0:** the script does not read the spec, so check that `measurements:` has one row per `## Targets` row of `verification-plan.md`, in table order: `yq '.measurements | length' <file>` must equal `awk '/^## /{s=($0=="## Targets")} s && /^\|/' .workflow/specs/NNN-slug/verification-plan.md | tail -n +3 | wc -l`. A mismatch is a shape error: relaunch the lens once with the two counts, as for exit 1.
 3. **Read the status:** `yq '.status, .blocked_reason' <file>`. `status: blocked`: fix the cause it names (usually an empty or unresolvable `baseline_revision`) and relaunch. If you cannot fix it, it is a failed lens.
 
+The four pass files are `review-standards.yaml`, `review-end-state.yaml`, `review-targets.yaml` and `review-lessons.yaml`, with finding ids prefixed `RS`, `RE`, `RT` and `RL`. A `review-lessons` file that fails the check twice, or stays `blocked`, is a failed lens like any other: the pass goes on with the other lenses' findings.
+
 `review-targets` findings use `category: target` (one per failed target: `claim` names the measured value and the threshold, `evidence.basis` the raw output path). Its `measurements:` table is not triaged; 5.4 copies it into "Targets vs measured", and every `not_measurable` row is a gap, never a pass.
 
 A failed lens is named in the triage entry and the 5.4 report. A pass with a failed lens is never reported as clean.
@@ -68,6 +70,8 @@ Done when every launched lens has a file that passed the check or is recorded as
 ## 4. Triage each finding (4.4)
 
 Work on one combined list: the rows of the step 3 tables. Read a finding's full entry only when you triage it, by id: `yq '.findings[] | select(.id == "RS-2")' <file>` gives its `claim`, `consequence`, `evidence` and `suggested_fix`, or, for discovered work, its `kind`, `summary`, `evidence`, `blocker_assessment` and `reason`. Read `not_checked` and `not_verifiable` too (`yq '.not_checked, .not_verifiable' <file>`): they are gaps, never passes. Give each finding the next `F<n>` and keep its lens id beside it (`F7 (RS-2)`). Treat the lens's `severity` as a claim only: the lens lacks the context to grade, and your verdict replaces it.
+
+A `review-lessons` finding has `category: lesson`. When it repeats a review lesson its `lesson:` field carries that lesson's id (`RL-001`). Its claimed `high` (a review lesson repeated) or `medium` (a pitfall or retrospective lesson repeated) is a claim like any other severity: verify, grade and route it as below.
 
 1. **Carry what was settled.** On pass 2 or later, compare each finding with the earlier triage rows. Same location, same claim, and the code there still reads as the row describes: keep that row's verdict and route, write `carried from F<m>` as the evidence, and skip verification. A carried finding is never patched or deferred a second time.
 2. **Verify the claim.** At the cited file and line, does the bad outcome the lens describes actually occur? Read beyond the changed lines (callers, guards upstream, the spec line or rule it quotes) until you can answer yes or no. Judge whether the problem is real, not whether the suggested fix is plausible. Code that fails loudly on a situation the program cannot be shown to reach is correct behaviour.

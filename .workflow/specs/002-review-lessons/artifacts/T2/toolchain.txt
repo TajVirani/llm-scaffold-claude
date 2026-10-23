@@ -1,0 +1,19 @@
+== lint: git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+== lint exit 0
+
+== test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
+== scripts/check-review-findings
+== scripts/resolve-launch
+== scripts/step-progress
+== hooks/pre-launch
+== lint/step-list
+
+== summary
+PASS scripts/check-review-findings          passed=119  failed=0   skipped=0   xfail=0   4s
+PASS scripts/resolve-launch                 passed=95   failed=0   skipped=0   xfail=0   11s
+PASS scripts/step-progress                  passed=66   failed=0   skipped=0   xfail=0   3s
+PASS hooks/pre-launch                       passed=20   failed=0   skipped=0   xfail=0   5s
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   6s
+TOTAL passed=336 failed=0 skipped=0 xfail=0 (5 suites)
+== test exit 0
+

@@ -1,0 +1,28 @@
+verdict: fail
+task_id: T1
+work_type: shell-scripts
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t1@be7638e87ae5146fcf2d85f2d059d079d85ae628..HEAD (rework 1, round 2)
+tool_output: .workflow/specs/002-review-lessons/artifacts/T1/toolchain.json
+items:
+  - {n: 1, verdict: pass, location: "review-lessons.sh:1-121 (only the origin_spec regex at :79-80 mentions .workflow/specs, as data)", note: ""}
+  - {n: 2, verdict: not-applicable, location: "helper, not a hook", note: ""}
+  - {n: 3, verdict: pass, location: "review-lessons.sh:25,28,31,38-42,49-50,93,105,115-116", note: ""}
+  - {n: 4, verdict: pass, location: "review-lessons.sh:13-14 against the exits", note: ""}
+  - {n: 5, verdict: pass, location: "no sibling path", note: ""}
+  - {n: 6, verdict: pass, location: "review-lessons.sh:2-18", note: ""}
+  - {n: 7, verdict: pass, location: "review-lessons.sh:20, :94, :108, :115; tests/scripts/review-lessons.sh:30, :38 ([[ ]]); the suite inherits set -uo pipefail from tests/lib/common.sh like its siblings", note: ""}
+  - {n: 8, verdict: fail, location: "tests/scripts/review-lessons.sh:8, :10", note: "Both `# shellcheck source=` directives carry no reason, against the profile's rule that each directive has its reason; append one to each (the sibling suite has the same bare form; this item covers the new file)."}
+  - {n: R1, verdict: pass, location: "review-lessons.sh:47, :90, :98, :55; tests/scripts/review-lessons.sh:20, :28", note: ""}
+  - {n: R2, verdict: pass, location: "review-lessons.sh:55, :49", note: ""}
+  - {n: R3, verdict: pass, location: "review-lessons.sh:54; tests/scripts/review-lessons.sh:7", note: ""}
+  - {n: R4, verdict: pass, location: "body comments only, under the 3.8 ruling", note: ""}
+  - {n: R5, verdict: pass, location: "review-lessons.sh:54-55; tests/scripts/review-lessons.sh:20-27", note: ""}
+read_outside_diff:
+  - ".workflow/profiles/shell-scripts.md:19-28, 59-63; readable-code.md; check-review-findings.sh:1-20; tests/lib/common.sh:15; tests/scripts/check-review-findings.sh:9-12; probe: next-id on a file with no yaml block prints RL-001 exit 0"
+out_of_scope_noticed:
+  - kind: decision
+    summary: "next-id on a file with no fenced yaml block prints RL-001 and exits 0 silently; the no-block case is tested only for validate."
+    evidence: "review-lessons.sh:47-52, :97-105; tests/scripts/review-lessons.sh:53-66"
+    blocker_assessment: can-wait
+    reason: "The retrospective's validate step catches the broken file on the same pass."
+# Orchestrator: item 8 is a wording-only fix round (round 3 next). The next-id note is inside T1's own deliverable and guarded by validate on the same retrospective pass; behaviour kept, note recorded in the design log for the retrospective, no discovered-work round.

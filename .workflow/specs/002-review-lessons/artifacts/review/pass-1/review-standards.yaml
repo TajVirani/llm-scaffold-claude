@@ -1,0 +1,54 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "7289fbf78919ba022f59aa336370e2fca50806bf"
+head: "be7638e87ae5146fcf2d85f2d059d079d85ae628"
+findings:
+  - id: RS-1
+    category: profile
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/feature-workflow/assets/review-lessons.md:15-16"
+    claim: "The validate: and next-id: commands are executable bash/yq/jq logic stored in an asset template's HTML comment. The retrospective skill pulls them out with sed and runs them with bash -c, so they bypass the skill's scripts/ folder."
+    consequence: "The shellcheck lint only covers scripts/*.sh, so nothing lints this code. It also escapes the shell-scripts profile: no header block, no die(), no documented exit codes, and pipefail without set -eu. A later edit to the one-line jq program can break the retrospective's 5.7 write with no lint catching it, and another skill now runs feature-workflow logic by scraping text instead of calling a script."
+    evidence:
+      basis: ".workflow/profiles/shell-scripts.md File locations: \"`.agents/skills/<s>/scripts/`: the skill's executable logic.\"; .workflow/profiles/agent-docs.md: \"`assets/`: templates.\""
+      diff: "+validate: set -o pipefail; awk '/^```yaml$/{f=1;next} /^```$/{if(f)exit} f' \"$1\" | yq -o=json '.' - | jq -e '...' >/dev/null || { echo \"review lessons: $1 breaks the entry rules in its header\" >&2; exit 1; }\n+next-id: set -o pipefail; awk '/^```yaml$/{f=1;next} /^```$/{if(f)exit} f' \"$1\" | yq -o=json '.' - | jq -r '...'"
+    suggested_fix: "Move both commands into a feature-workflow script (e.g. scripts/review-lessons.sh validate|next-id FILE) that follows the profile and is covered by the shellcheck glob. The template header and routing.md then name that script. The task file chose the in-template form, so triage may record it as an accepted deviation instead."
+  - id: RS-2
+    category: standard
+    severity: medium
+    confidence: 80
+    location: "tests/scripts/step-progress.sh:8,90; tests/hooks/pre-launch.sh:114; tests/scripts/check-review-findings.sh:245"
+    claim: "New body comments label tests by spec journey IDs (JRN-003, JRN-005, JRN-007). These are IDs from the spec's verification plan, not reasons. JRN-007 already names a different journey from spec 001 in the same file."
+    consequence: "A reader of step-progress.sh sees two unrelated 'JRN-007' blocks, one about the large path from spec 001 and one about review lessons from spec 002, and cannot tell which spec defines either one. The same IDs also collide in tests/README.md (JRN-004, JRN-005, JRN-008). These references go stale exactly as R4 warns."
+    evidence:
+      basis: ".agents/skills/feature-workflow/references/readable-code.md R4: \"A comment never points at a decision record or a document: no decision or ADR IDs ..., no paths to docs or workflow files (... a spec, a task ID)\"; Checking table: R4 breach is standard, medium."
+      diff: "+# JRN-007 (review lessons): the 4.9 lens runs fourth in Phase 4, right after 4.3, on both paths.\n+# 5b JRN-005: the review-lessons lens launch\n+# --- JRN-003: the review-lessons lens file the lens writes for a change that repeats lesson RL-001"
+    suggested_fix: "Drop the JRN ids from the new comments and keep the plain description, e.g. '# The review-lessons lens runs fourth in Phase 4, right after 4.3, on both paths.' The test-name strings can keep or drop them as the suite convention decides."
+  - id: RS-3
+    category: profile
+    severity: low
+    confidence: 80
+    location: ".agents/agents/review-lessons.md:24-139"
+    claim: "The new agent uses the sibling lenses' Receives / Method / Scoring / Return headings instead of the agent template's Input / Steps / Return."
+    consequence: "The profile rule that every new agent follows the template weakens with each lens copied from an older one. Agents written from the template and agents copied from the lenses drift further apart in shape."
+    evidence:
+      basis: ".workflow/profiles/agent-docs.md: \"New agents follow `.agents/skills/writing-for-agents/assets/agent.template.md` (Input / Steps / Return).\""
+      diff: "+## Receives\n+## Method\n+## Scoring"
+    suggested_fix: "Rename the sections to Input / Steps / Return, with Scoring under Steps, or record an exception in the profile for Phase 4 lenses so the rule matches practice. T3's task file asked for review-standards as the model, so this may be an accepted deviation."
+checked:
+  - "AGENTS.md (root; CLAUDE.md imports it). No CODING_STANDARDS.md or CONTRIBUTING.md in the repo; no nested AGENTS.md/CLAUDE.md governs the changed files"
+  - ".workflow/rules.md (all sections)"
+  - ".workflow/profiles/shell-scripts.md (T1, T2)"
+  - ".workflow/profiles/agent-docs.md (T3, T4, T5, T6)"
+  - ".workflow/profiles/test-harness.md (governs the tests/ files in the diff)"
+  - ".workflow/decisions/adr/0002-review-lessons-placement.md (linked from the design-log Placement entry), plus design-log D9 and D10"
+  - ".workflow/GLOSSARY.md (the only glossary; no GLOSSARY-MAP.md in the repo)"
+  - ".agents/skills/feature-workflow/references/readable-code.md"
+  - ".agents/skills/writing-for-agents/assets/agent.template.md"
+  - "tests/README.md Conventions"
+  - "toolchain.json for T1, T2, T3, T4, T5, T6 (lint and scoped test passed for every task)"
+not_checked:
+  - "typecheck, format and boundary keys: skipped (no command) for T1-T6 in their toolchain.json. Module boundaries were checked by hand against the rules.md Ownership block; no breach found"
+  - "Possible Shotgun Surgery: adding one lens means editing hard-coded task-type and agent counts in about six files (project-setup SKILL.md and model-map.md, install-manifest, PROVENANCE, resolve-launch test, step-list lint). Scored under 80 because the pattern predates this change; backlog item 002-review-lessons-disc-001 already records one count it got wrong"

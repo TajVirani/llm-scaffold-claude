@@ -121,7 +121,7 @@ Run after 5.9 has decided every open backlog item.
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.7
 ```
 
-Invoke the `retrospective` skill for `.workflow/specs/NNN-slug` with the stakeholder present. It writes `.workflow/decisions/retrospectives/NNN-slug.md`, process lessons and pitfalls, feature notes in `design-log.md`, and model observations as a `.workflow/model-map/` entry or a proposed `.workflow/agent-overrides.yaml` entry. It changes no status. When it returns, read its verdict:
+Invoke the `retrospective` skill for `.workflow/specs/NNN-slug` with the stakeholder present. It writes `.workflow/decisions/retrospectives/NNN-slug.md`, process lessons and pitfalls, feature notes in `design-log.md`, each approved review lesson to `.workflow/review-lessons.md` (created from `assets/review-lessons.md` when the file is missing, and retiring a lesson a rule, lint or profile line now enforces; `.agents/skills/retrospective/modules/routing.md`, "Review lessons", has the procedure), and model observations as a `.workflow/model-map/` entry or a proposed `.workflow/agent-overrides.yaml` entry. It changes no status. When it returns, read its verdict:
 
 ```bash
 yq --front-matter=extract '.verdict' .workflow/decisions/retrospectives/NNN-slug.md

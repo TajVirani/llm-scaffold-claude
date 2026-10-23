@@ -41,3 +41,7 @@ The spec assumed this repo would record the research model in its model map, but
 ## Out of scope
 
 - Choosing the model in target projects: their own 00.14 flow handles it.
+
+## Later requests
+
+- .workflow/specs/002-review-lessons, 5.9: backlog item `002-review-lessons-disc-001` (found at 2.1): project-setup's model-map tier table and counts also omit `research` (`modules/model-map.md`, `SKILL.md`), so a new project gets no entry either; the item was moved here as the same concept.

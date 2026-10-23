@@ -1,0 +1,29 @@
+verdict: pass
+task_id: T2
+work_type: shell-scripts
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t2@917842de2713814d80ef67f2cce56284279c78a7..HEAD
+tool_output: .workflow/specs/002-review-lessons/artifacts/T2/toolchain.json
+items:
+  - {n: 1, verdict: not-applicable, location: "", note: ""}
+  - {n: 2, verdict: not-applicable, location: "", note: ""}
+  - {n: 3, verdict: not-applicable, location: "", note: ""}
+  - {n: 4, verdict: not-applicable, location: "", note: ""}
+  - {n: 5, verdict: not-applicable, location: "", note: ""}
+  - {n: 6, verdict: pass, location: ".agents/skills/feature-workflow/scripts/check-review-findings.sh:2-3, 5-6, 15, 17 (helper header shape kept; no decision ID added)", note: ""}
+  - {n: 7, verdict: pass, location: ".agents/skills/feature-workflow/scripts/check-review-findings.sh:39 (set -euo pipefail kept); no new file, no new test syntax", note: ""}
+  - {n: 8, verdict: not-applicable, location: "", note: ""}
+  - {n: R1, verdict: pass, location: ".agents/skills/feature-workflow/scripts/check-review-findings.sh:76 (review-lessons lens and RL prefix follow the RS/RE/RT pattern)", note: ""}
+  - {n: R2, verdict: pass, location: ".agents/skills/feature-workflow/scripts/check-review-findings.sh:5-6, 15, 17 (added text documents the contract)", note: ""}
+  - {n: R3, verdict: pass, location: ".agents/skills/feature-workflow/scripts/check-review-findings.sh:5-6, 15, 17 (header lines do not restate the code)", note: ""}
+  - {n: R4, verdict: pass, location: ".agents/skills/feature-workflow/scripts/check-review-findings.sh:5-6, 15, 17 (no decision ID, ADR or doc path)", note: ""}
+  - {n: R5, verdict: pass, location: ".agents/skills/feature-workflow/scripts/check-review-findings.sh:5-6, 15, 17 (plain English; RL defined beside review-lessons)", note: ""}
+read_outside_diff:
+  - ".agents/skills/feature-workflow/scripts/check-review-findings.sh: lines 1-20 and grep for set/die (helper header shape, error-path convention)"
+  - ".agents/skills/feature-workflow/scripts/resolve-launch.sh: grep for review-lessons (D31_TABLE row at line 82 is a data row)"
+out_of_scope_noticed:
+  - kind: scope-expansion
+    summary: "The diff also edits PLAN/ docs (decision-flow-reference.md, decision-flow.mermaid) and steps.tsv to add step 4.9: markdown and mermaid, not shell; no checklist item covers them."
+    evidence: "PLAN/decision-flow-reference.md:476; PLAN/decision-flow.mermaid:160; .agents/skills/feature-workflow/references/steps.tsv:103"
+    blocker_assessment: can-wait
+    reason: "Outside the shell-scripts profile checklist; the Phase 4 lenses or the docs checks cover this."
+# Orchestrator note: these files are in T2's predicted_files and were granted at the 2.1 quiz; the note is a checklist-coverage remark, not work outside the agreed scope, so no discovered-work round was opened (design-log 2026-10-22 wave 1).

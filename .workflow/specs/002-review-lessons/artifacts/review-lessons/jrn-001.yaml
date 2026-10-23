@@ -1,0 +1,23 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "38f69ec68147c0970ade4620bc4b2244589860bb"
+head: "7c8397153615e0ca21cc081ed8357120ebca2d2d"
+findings:
+  - id: RL-1
+    category: lesson
+    severity: high
+    lesson: "RL-001"
+    confidence: 85
+    location: "src/report.sh:4"
+    claim: "The new src/report.sh opens the file named by its first argument with cat and never checks that the file exists first, the mistake RL-001 records for scripts under src/."
+    consequence: "A caller who passes a missing report path gets the failure only from cat at the call, not from an up-front check that names the argument. The error is milder than RL-001 describes, but the missing check is the repeated mistake and any caller hitting it has to dig into the script to see what went wrong."
+    evidence:
+      basis: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/live-repeat/.workflow/review-lessons.md, RL-001 symptom: A script under src/ opens a file path taken from its arguments without first checking the file exists."
+      diff: "+set -euo pipefail\n+cat \"$1\""
+    suggested_fix: "Before the cat, test that \"$1\" is set and is a readable file, and exit with a message that names the path. The file is new, so the fix belongs in this change."
+checked:
+  - ".workflow/review-lessons.md"
+  - ".workflow/decisions/pitfalls.md"
+not_checked:
+  - ".workflow/decisions/retrospectives/*.md: folder missing (path tried: .workflow/decisions/retrospectives/); no retrospective lessons to compare."

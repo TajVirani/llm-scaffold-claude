@@ -60,9 +60,9 @@ What the workflow did well or badly on this feature. Lessons about how we work, 
 
 | Lesson | Kind | Recorded in |
 | --- | --- | --- |
-| <lesson> | tool rule (mechanical) / checklist line (judgement) / rule / profile / skill change | <proposals.md line, rules.md section, profile checklist, or "not recorded: reason"> |
+| <lesson> | tool rule (mechanical) / checklist line (judgement) / review lesson / rule / profile / skill change | <proposals.md line, rules.md section, profile checklist, .workflow/review-lessons.md RL-003, or "not recorded: reason"> |
 
-Mechanical lessons become a tool rule; lessons that need judgement become a checklist line.
+Mechanical lessons become a tool rule; lessons that need judgement become a checklist line; a lesson whose symptom shows in a diff becomes a review lesson in `.workflow/review-lessons.md`, recorded here with its id (and "(retired)" when this retrospective retired it).
 
 ## Pitfalls
 

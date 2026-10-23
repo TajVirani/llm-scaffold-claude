@@ -1,0 +1,21 @@
+status: done
+summary: >-
+  Fix round after 3.11 (JRN-001 failed on its second live run): the lens now matches a lesson on the mistake it names, not on its consequence clause. Step 4 says a symptom is usually "<mistake>, so <consequence>" and only the mistake is matched; step 6 says a consequence the diff does not show never disproves a repeat; the 50 anchor describes a partial match (a guard in the hunk, or the mistake in a path the lesson does not cover); a new "These score 80 or above" list mirrors the below-80 list: a hunk that makes the lesson's mistake in a covered path with no guard is reported. Frontmatter, Receives, Return and the summary block unchanged. The wave-1 result is kept as implementation-wave1.yaml.
+task_id: T3
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t3
+branch: task/002-review-lessons/T03-review-lessons-lens
+base_commit: 069b0a4b07f22194a76b408cba5c8f6007316cd3
+head_commit: c135205e8c211d4d9278d74746af271bee70764a
+files_changed: [.agents/agents/review-lessons.md]
+tests_added: []
+evidence:
+  red: "None in the harness; the failing evidence is the JRN-001 live run 2 (artifacts/review-lessons/jrn-001-run2-after-rework.yaml)."
+  green: "tests/lint/frontmatter.sh 40/40; tests/lint/review-lessons.sh 33/33; tests/scripts/generate-codex-agents.sh 44/44"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/002-review-lessons --task-id T3 --cwd $PWD, re-run after the adjustment: exit 0; lint and test pass"
+  toolchain: .workflow/specs/002-review-lessons/artifacts/T3/toolchain.txt (pass)
+considered_not_built: []
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+# Commits: 0b75655 (rule rewording), c135205 (the 80-or-above adjustment).

@@ -38,3 +38,7 @@ The parallel runner shipped with checks that time stub suites sleeping 2 s each 
 ## Out of scope
 
 - The intermittent codex-adapters check under parallel load (work item `001-large-path-disc-004`).
+
+## Later requests
+
+- .workflow/specs/002-review-lessons, 5.9: backlog item `002-review-lessons-disc-002` (found at 3.9): the "with no -j, suites run concurrently" assertion failed when a 3.9 gate overlapped an agent's full-harness run (`artifacts/gate-3.9-w1b`); the item suggests comparing with a serial run or observing overlapping timestamps instead of a fixed bound; moved here as the same concept.
