@@ -44,11 +44,29 @@ work_type: backend-api
 
 ## Evidence and the ledger
 
-Evidence lives under `.workflow/specs/NNN-slug/artifacts/` in the main checkout: `<task-id>/` per task, `integration-<work_type>/` per integration batch. The toolchain evidence is written by `run-toolchain.sh` (`toolchain.json`, `toolchain.txt`, `toolchain-digest.txt`) and the stop audit (`audit.json`, `audit-loop.json`). Beside them, save each agent's final result block as you receive it: `implementation.yaml`, `mini-review.yaml`, `integration.yaml`. With `tasks.md` statuses, these files are your ledger: after compaction or on resume, trust them and `git log` over memory.
+Evidence lives under `.workflow/specs/NNN-slug/artifacts/` in the main checkout: `<task-id>/` per task, `integration-<work_type>/` per integration batch. The toolchain evidence is written by `run-toolchain.sh` (`toolchain.json`, `toolchain.txt`, `toolchain-digest.txt`) and the stop audit (`audit.json`, `audit-loop.json`). Beside them, each agent files its own result block: the implementation agent writes `<task-id>/implementation.yaml`, `profile-mini-review` writes `<task-id>/mini-review.yaml`, an integration batch writes `integration-<work_type>/integration.yaml` (the fields are in each agent's Return section under `.agents/agents/`). The agent's final message is only a summary block naming that file. With `tasks.md` statuses, these files are your ledger: after compaction or on resume, trust them and `git log` over memory.
 
-**Rework entry (4.7).** `review-triage` reopens tasks (`set-task --status in-progress --step 4.7`) and loads this module with one patch line per finding, spec status still `in-review`. Skip 3.1's status change (`in-review` cannot go back to `in-progress`); launch each reopened task fresh with its patch lines in the brief, in a new task branch and worktree off the spec-branch tip ([wave start](#wave-start-task-branches-and-worktrees)), run the gates, then 3.16, 3.15, 3.9 and 3.10-3.11 as below, and set `in-review` again at 3.11 (or 3.14), which returns to `review-triage`.
+**Reading a result file.** You never retype a block. When an agent returns, check the file its summary names:
 
-**On resume** (status `in-progress`): skip `done` tasks. For an `in-progress` task, its worktree is `.workflow/.worktrees/<task_name>` on the record's `branch` (or see `implementation.yaml`, or the `cwd` in `toolchain.json`). If the worktree has commits and a clean audit, continue at 3.7; otherwise launch it again (a fresh launch; the task stays `in-progress`). If `.step` says 3.16 or 3.15, the wave's merges may be done but its budget check is not: run 3.15 before the next frontier. After `modules/discovered-work.md` unblocks the spec at 00.28, resume the same way, at the point the block interrupted.
+```bash
+.agents/skills/feature-workflow/scripts/check-task-result.sh .workflow/specs/NNN-slug/artifacts/T3/implementation.yaml
+```
+
+- **Exit 0:** it prints a header line (the status or verdict and the counts) and a short tab-separated table: discovered-work rows, integration request rows, mini-review `fail` and `tool-covered` rows, and the stop field for a stop status. Route on that output. Read any other single field with `yq`, for example `yq '.head_commit' <file>`.
+- **Exit 1** (one line per shape error, each naming the field), **exit 2 for a missing file or YAML that does not parse**, or no summary at all: resume the same agent once, with the checker's lines (or "write your result file as your Return section says"). If the file is still missing or invalid, it is a [stop](#stops).
+- **Exit 2 for a usage error or a missing `jq` or `yq`:** fix the cause and run it again.
+
+**Keep earlier rounds.** Before a fix round, a re-check, a rework launch or a later integration batch of the same work type, rename each result file that already exists in that folder to `<name>-r<k>.yaml`, `k` being 1 + the count of existing `<name>-r*.yaml` files of that name, so the plain name is always the newest round (sign-off and the retrospective read the plain names). For example, for `mini-review.yaml`:
+
+```bash
+d=.workflow/specs/NNN-slug/artifacts/T3; k=$(( $(find "$d" -maxdepth 1 -name 'mini-review-r*.yaml' | wc -l) + 1 )); mv "$d/mini-review.yaml" "$d/mini-review-r$k.yaml"
+```
+
+The one resume for a missing or invalid file renames nothing: the agent rewrites the same file.
+
+**Rework entry (4.7).** `review-triage` reopens tasks (`set-task --status in-progress --step 4.7`) and loads this module with one patch line per finding, spec status still `in-review`. Skip 3.1's status change (`in-review` cannot go back to `in-progress`); rename each reopened task's `implementation.yaml` and `mini-review.yaml` first ([keep earlier rounds](#evidence-and-the-ledger)), then launch it fresh with its patch lines in the brief (its mini-review is a full one), in a new task branch and worktree off the spec-branch tip ([wave start](#wave-start-task-branches-and-worktrees)), run the gates, then 3.16, 3.15, 3.9 and 3.10-3.11 as below, and set `in-review` again at 3.11 (or 3.14), which returns to `review-triage`.
+
+**On resume** (status `in-progress`): skip `done` tasks. For an `in-progress` task, its worktree is `.workflow/.worktrees/<task_name>` on the record's `branch` (or `yq '.worktree'` on the newest `implementation.yaml`, or the `cwd` in `toolchain.json`). If the worktree has commits and a clean audit, continue at 3.7; otherwise launch it again (a fresh launch; the task stays `in-progress`). If `.step` says 3.16 or 3.15, the wave's merges may be done but its budget check is not: run 3.15 before the next frontier. After `modules/discovered-work.md` unblocks the spec at 00.28, resume the same way, at the point the block interrupted.
 
 ## 3.1 Classify each task and start
 
@@ -83,7 +101,11 @@ An empty frontier with tasks still pending means they wait on a `blocked` task: 
 
 Before launching the wave, collect its shared-core change requests: the **Notes** request of every frontier task with `touches_core: true`, plus shared-core requests from `scope-expansion` results. Group them by the requesting task's `work_type`, one batch per work type, so each launch carries exactly one profile. Launch the batches one at a time (header `task_type: integration`, `spec_dir`, `work_type`); each brief is a numbered list of requests, each stating the change and the contract its consumer needs, without task context.
 
-When a batch returns:
+When a batch returns, check its result file ([Reading a result file](#evidence-and-the-ledger)) and route on the printed table:
+
+```bash
+.agents/skills/feature-workflow/scripts/check-task-result.sh .workflow/specs/NNN-slug/artifacts/integration-<work_type>/integration.yaml
+```
 
 - **Batch `status`** (top level; `.agents/agents/integration.md` "Return"). `done` or `partial`: handle each request by its verdict below (`partial` means some requests were rejected or conflict). `discovered-work`: out-of-scope work stopped the batch and nothing was applied; go to [Discovered work](#discovered-work-0021) at step 3.2 with its `discovered_work[]` entries. `profile-wrong`: a [stop](#stops) at step 3.2, quoting `profile_wrong.line`. `blocked`: read `blocked.reason`; a fact you look up and resume the agent, a decision you put to the stakeholder, or block the spec at step 3.2 when no answer is available.
 - **`discovered_work[]`.** A non-empty list goes to [Discovered work](#discovered-work-0021) at step 3.2 whatever the status, `done` and `partial` included. While that module has the spec `blocked`, hold this batch's merge as 3.16 does; merge the `applied` work once it returns at 00.28.
@@ -119,7 +141,7 @@ Launch all of the wave's tasks before handling any return. Results arrive on the
 
 ### Per-task gates (3.4-3.8)
 
-For each returned implementation, save `implementation.yaml`, then:
+For each returned implementation, check the `implementation.yaml` the agent wrote ([Reading a result file](#evidence-and-the-ledger)): `.agents/skills/feature-workflow/scripts/check-task-result.sh .workflow/specs/NNN-slug/artifacts/<task-id>/implementation.yaml`. Then:
 
 1. **Route the result `status`.** `done` continues below. `discovered-work` goes to [Discovered work](#discovered-work-0021). `profile-wrong`, `scope-expansion` and `blocked` go to [Stops](#stops). Separately, a non-empty `discovered_work[]` goes to [Discovered work](#discovered-work-0021) whatever the status, `done` included (a `can-wait` item may accompany a finished task); a `done` task keeps going through its gates while that module handles it.
 2. **3.4 Negative and edge cases.** `tests_added` includes `negative` or `edge` tests, or the summary says why none apply. Otherwise resume the agent to add them.
@@ -133,13 +155,21 @@ For each returned implementation, save `implementation.yaml`, then:
    The scoping comes from the records: each record's `tests` lists the Phase 1 tests that task turns green (assigned at 2.5). `run-toolchain.sh` runs the profile's `test_scoped` command whenever the task's own list or the excluded set (the `tests` of every other task not yet `done`) is non-empty, with the task's own in `$WF_TASK_TESTS` and the excluded in `$WF_EXCLUDE_TESTS`. With own tests listed, only the task's own suites run; with none, every suite minus the excluded ones. Only when both are empty does it run `test` whole. The `test` result in `toolchain.json` records `own` (the count of the task's own selectors), `excluded`, and `scoped: true` whenever `test_scoped` ran. The full harness, and with it regressions outside the task's suites, is the 3.9 gate's job. A profile without `test_scoped` cannot be scoped: a failing `test` is then reported as `unscoped` with a warning in `toolchain.json` and does not block, so check that output yourself and add `test_scoped` to the profile.
 
    No agent looks at the diff until this is clean.
-4. **3.7 Mini-review.** Launch `profile-mini-review` (header `spec_dir`, `task_id`, `work_type`). Hand over the diff as the task worktree path and the base commit from `implementation.yaml` (`git -C <worktree> diff <base_commit>...HEAD`), plus `.workflow/specs/NNN-slug/artifacts/<task-id>/toolchain.json`; no diff file is written. Save its return as `mini-review.yaml`. Each item is a number (the profile checklist's position, or `R1`-`R5` for the readable-code lines), a verdict, a location and, for `fail` and `tool-covered`, a one-line note; `tool-covered` items and `fail` notes ending `(rule candidate)` feed the 5.2 proposals. A non-empty `out_of_scope_noticed` never changes the verdict: hand each entry to [Discovered work](#discovered-work-0021) with origin node `3.7`, as for `discovered_work[]`.
-5. **3.8 Mini-review passes?** `verdict: fail` is a fix round with the failed items (`n`, `location`, `note`). `pass`: the task is ready to merge at 3.16.
+4. **3.7 Mini-review.** Launch `profile-mini-review` (header `spec_dir`, `task_id`, `work_type`). Hand over the diff as the task worktree path and the base commit (`yq '.base_commit'` on `implementation.yaml`; the reviewer runs `git -C <worktree> diff <base_commit>...HEAD`), plus `.workflow/specs/NNN-slug/artifacts/<task-id>/toolchain.json`; no diff file is written. After a wording-only fix round the launch is a re-check instead (see Fix rounds below). When it returns, check the `mini-review.yaml` it wrote: `.agents/skills/feature-workflow/scripts/check-task-result.sh .workflow/specs/NNN-slug/artifacts/<task-id>/mini-review.yaml`. Each item is a number (the profile checklist's position, or `R1`-`R5` for the readable-code lines), a verdict, a location and, for `fail` and `tool-covered`, a one-line note; `tool-covered` items and `fail` notes ending `(rule candidate)` feed the 5.2 proposals. A non-empty `out_of_scope_noticed` never changes the verdict: hand each entry to [Discovered work](#discovered-work-0021) with origin node `3.7`, as for `discovered_work[]`.
+5. **3.8 Mini-review passes?** `verdict: fail` is a fix round with the failed items (`n`, `location`, `note`: the checker's `fail` rows). `pass`: the task is ready to merge at 3.16.
 
 **Fix rounds.** A fix round hands the implementer the failing gate's output, followed by the gates again from 3.5 (the stop audit fires on its next stop). 3.6, 3.8, 3.9 and 3.11 failures all count. For a 3.8 failure, what must change decides how it reaches the implementer:
 
-- **Wording only.** Every failed item is a comment, a name or another readable-code item, and fixing it changes no behaviour: resume the same agent with the failed items as a list, one line each, `<n> <location>: <note>`. Its profile is already in its prompt, so the number names the checklist line.
-- **Behaviour fix.** Any failed item needs the code to behave differently: launch a fresh agent with the same header, and add to the brief "first merge branch `<branch>` into yours, then fix: <failed items>".
+- **Wording only.** Every failed item is a comment, a name or another readable-code item, and fixing it changes no behaviour. Rename `mini-review.yaml` to `mini-review-r<k>.yaml` and `implementation.yaml` to `implementation-r<k>.yaml` ([keep earlier rounds](#evidence-and-the-ledger); each name counts its own `k`), then resume the same agent with the failed items as a list, one line each, `<n> <location>: <note>`. Its profile is already in its prompt, so the number names the checklist line. When it returns with a clean check and a clean audit (3.5-3.6), launch `profile-mini-review` as a **re-check**: the header, then these three lines in place of the diff pointer, the previous `head_commit` from the `implementation-r<k>.yaml` you just renamed, the new one and `base_commit` from the new `implementation.yaml`:
+
+  ```text
+  re-check of: .workflow/specs/NNN-slug/artifacts/<task-id>/mini-review-r<k>.yaml
+  fix diff: <worktree> <previous head_commit>..<new head_commit>
+  full diff: <worktree> <base_commit>..<new head_commit>
+  ```
+
+  The reviewer judges only what the fix touched plus the items that failed before, and copies every other verdict through (`.agents/agents/profile-mini-review.md`, Re-check rule).
+- **Behaviour fix.** Any failed item needs the code to behave differently: rename both files as above, launch a fresh agent with the same header, and add to the brief "first merge branch `<branch>` into yours, then fix: <failed items>". Its next mini-review is a full one.
  Five rounds per task at most; at the cap, go to [Stops](#stops).
 
 ### 3.16 Merge the wave
@@ -239,9 +269,10 @@ Discovered work is report-only: an agent found work outside the agreed scope (a 
 - a non-empty `discovered_work[]` on an implementation or integration result of **any** status, `done` and `partial` included;
 - a non-empty `out_of_scope_noticed` in a `profile-mini-review` return (3.7).
 
-Never fold it into a task or brief. Load `modules/discovered-work.md` once with every entry that has arrived, each with what its "What the caller hands you" table asks: origin node `3.4` for an implementation return, `3.2` for integration, `3.7` for a mini-review; found by (the agent, task id and its return); the problem (the entry's `summary`); the evidence (its `evidence`: `path:line` or a failing test); the kind (its `kind`); and its `blocker_assessment` and `reason` as your starting assessment. It blocks the spec (`blocked_condition: "discovered work: <slug>"`), presents it to the user and records the answer.
+Never fold it into a task or brief. **Assess each entry first**, with the blocker rule of 00.22 in `modules/discovered-work.md`; the agent's `blocker_assessment` and `reason` are your starting point, not the answer. Then load `modules/discovered-work.md` once with every entry that has arrived, each with what its "What the caller hands you" table asks: origin node `3.4` for an implementation return, `3.2` for integration, `3.7` for a mini-review; found by (the agent, task id and its result file); the problem (the entry's `summary`); the evidence (its `evidence`: `path:line` or a failing test); the kind (its `kind`); and your assessment. What happens next depends on it:
 
-While it waits: tasks already running finish and pass through their gates (3.4-3.8), but you merge nothing and start no new launch (3.2 or 3.3) until the user answers. When it returns at 00.28, the spec is back at `blocked_from` and you continue the wave loop unchanged: resume the reporting task on its own scope only. If it ends at 00.24 (the spec is `draft`, back to 0.3.8) or leaves the spec `blocked` for a human, this module ends; leave the worktrees in place so a later resume finds them.
+- **Can wait.** The module files the entry without a ruling and returns at once: it appends one line to a matching shelf file or open backlog item, or writes a new work item with `status: open`, and records it in `design-log.md`. Nothing is blocked and no launch is held: continue the wave where you were, and resume the reporting task on its own scope when it stopped for the entry. The stakeholder sees every filed item at 5.9.
+- **Blocker.** The module blocks the spec (`blocked_condition: "discovered work: <slug>"`), presents every blocker that has arrived in one call and records the ruling. While it waits: tasks already running finish and pass through their gates (3.4-3.8), but you merge nothing and start no new launch (3.2 or 3.3) until the user answers. When it returns at 00.28, the spec is back at `blocked_from` and you continue the wave loop unchanged: resume the reporting task on its own scope only. If it ends at 00.24 (the spec is `draft`, back to 0.3.8) or leaves the spec `blocked` for a human, this module ends; leave the worktrees in place so a later resume finds them.
 
 ## Stops
 
@@ -251,8 +282,9 @@ A stop halts the task. Let the rest of the wave finish its gates and merge what 
 | --- | --- | --- |
 | `profile-wrong` | Stop; never work around the profile. Quote the profile line in the condition. An existing profile changes only at 5.3. | 3.3 (3.2 for an integration batch) |
 | `scope-expansion` into shared core | Not a stop: the request joins the next integration batch (3.2); resume the task once it is merged. | none |
-| `scope-expansion` into another module | Work outside the task's agreed scope: handle it as [discovered work](#discovered-work-0021), kind `scope-expansion`, with the paths and the reason as evidence. `tasks.md` is rewritten only at 2.5, so the task is never widened. | 00.21 (via the module) |
-| `discovered-work` | [Discovered work](#discovered-work-0021). | 00.21 (via the module) |
+| `scope-expansion` into another module | Work outside the task's agreed scope: handle it as [discovered work](#discovered-work-0021), kind `scope-expansion`, with the paths and the reason as evidence. `tasks.md` is rewritten only at 2.5, so the task is never widened. | 00.21 (via the module) for a blocker; none for a can-wait entry |
+| `discovered-work` | [Discovered work](#discovered-work-0021). | 00.21 (via the module) for a blocker; none for a can-wait entry |
+| Result file missing or invalid after one resume ([Reading a result file](#evidence-and-the-ledger)) | Block with the agent, the task and the checker's first error line. | the node that read it (3.2, 3.4, 3.7) |
 | Budget over at 3.15 | [3.15](#315-within-the-size-budget). | 00.21 (via the module) |
 | `blocked` on a fact | Not a stop: look it up in the code, answer, resume the agent. | none |
 | `blocked` on a decision | Ask the stakeholder; with no answer available, block with the decision as the condition. | 3.3 |
