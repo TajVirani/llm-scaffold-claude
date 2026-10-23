@@ -1,0 +1,34 @@
+# Verification plan: Tier B caches for bash projects
+
+Spec: [spec.md](spec.md)
+
+## End state
+
+- [ ] CAP-NEW-selectable-graph-extractor: with profiles naming `bash`, `dependency-cruiser` or `none`, `build-architecture.sh` runs each named graph extractor and renders all three caches from the merged graph.
+- [ ] CAP-NEW-selectable-graph-extractor: on the existing JS/TS fixtures with a profile naming `dependency-cruiser`, the rendered architecture, modules and entries output is byte-identical to the output at `baseline_revision`, apart from architecture's new "Unresolved edges" section reading `None.`.
+- [ ] CAP-NEW-selectable-graph-extractor: a profile without `graph_extractor` makes `build-architecture.sh` exit 2 with a message that says it is a breaking change, names that profile and gives the line to add; `--extractor NAME` does not bypass this, `--from-json` does (D12).
+- [ ] CAP-NEW-bash-graph-extractor: on bash fixtures, `extractors/bash.sh` prints dependency-cruiser-shaped JSON with an edge for every `source`/`.` line and script call whose path resolves, `couldNotResolve: true` with the source text for each that does not, and an `exports` map of top-level functions of sourced files.
+- [ ] CAP-NEW-bash-graph-extractor: architecture.md lists unresolved edges under "Unresolved edges" (or `None.`) and passes `check-staged-cache.sh`; modules.md Public interface is the union of each module's functions; flows candidates exclude files matching any profile's `test_patterns`.
+- [ ] CAP-NEW-bash-graph-extractor: at 5.3, after this repo's profile keys are applied, its three caches are built, pass `check-staged-cache.sh`, publish through `publish-cache.sh` with `generator` naming the extractors, and `cache-stamp-check.sh` exits 0 (all fresh).
+
+## Journeys
+
+There is no browser UI; every journey runs in the bash harness (`tests/run-all.sh`).
+
+| Id | Journey | Proves | Steps | Expected outcome | Check |
+| --- | --- | --- | --- | --- | --- |
+| JRN-001 | Bash project builds all three caches | CAP-NEW-bash-graph-extractor, CAP-NEW-selectable-graph-extractor | 1. Fixture repo with bash scripts, a sourced lib, a script call, a dynamic `source`, a test file and a profile with `graph_extractor: bash` and `test_patterns`. 2. Run `build-architecture.sh --cache architecture`, `modules`, `entries`. 3. Run `check-staged-cache.sh` on the rendered architecture and modules bodies. | Edges for the lib and the call; the dynamic `source` under Unresolved edges; lib functions as Public interface; the test file absent from entries; both bodies pass the check | MISSING |
+| JRN-002 | JS/TS project unchanged once keyed | CAP-NEW-selectable-graph-extractor | 1. Existing depcruise and tsc fixtures plus a profile with `graph_extractor: dependency-cruiser`. 2. Render all three outputs. 3. Compare with the outputs from `baseline_revision`. | Byte-identical, apart from architecture's new `Unresolved edges` section reading `None.` | MISSING |
+| JRN-003 | Missing key is a breaking-change error | CAP-NEW-selectable-graph-extractor | 1. Fixture with one profile lacking `graph_extractor`. 2. Run `build-architecture.sh`, then again with `--extractor bash`, then with `--from-json`. | Exit 2 naming the profile and the line to add for the first two runs; the `--from-json` run succeeds | MISSING |
+| JRN-004 | Mixed extractors merge | CAP-NEW-selectable-graph-extractor | 1. Fixture with a `bash` profile, a `dependency-cruiser` profile (`DEPCRUISE` pointed at a stub printing fixture JSON) and a `none` profile. 2. Render architecture. | One graph with both languages' files; `generator` names `bash,dependency-cruiser` | MISSING |
+| JRN-005 | This repo's caches are fresh | CAP-NEW-bash-graph-extractor | 1. At 5.3 apply the profile keys from proposals.md. 2. Run regenerate-caches (three cache-regeneration launches, check, publish). 3. Run `cache-stamp-check.sh`. | Exit 0; `.workflow/cache/{modules,flows,architecture}.md` exist with 40-hex stamps | Manual at 5.3, evidence in `artifacts/` |
+
+## Fixtures and oracles
+
+| Fixture or oracle | What it provides | Source | Used by |
+| --- | --- | --- | --- |
+| Bash fixture repo | Scripts covering each `source` form (dir-anchored, `$here` variable, one variable hop), a dir-anchored call, a runtime-root call with an existing tail and one without, a dynamic `source`, a test file, a sourced lib with functions | Built in the test under a temp dir, modelled on the forms the fact lookup found (design-log round 1 facts) | JRN-001, JRN-003, JRN-004 |
+| depcruise and tsc fixture JSON | Today's JS/TS inputs | Existing `tests/scripts/build-architecture.sh` fixtures | JRN-002, JRN-004 |
+| Baseline renders | Oracle for byte-identity | Rendered from the fixtures with `build-architecture.sh` at `baseline_revision` and stored as expected output | JRN-002 |
+| Profile fixtures | `graph_extractor`, `test_patterns`, one profile without the key | Written in the test | JRN-001, JRN-003, JRN-004 |
+| `check-staged-cache.sh`, `cache-stamp-check.sh` | Shape and freshness oracles | The module's own gates | JRN-001, JRN-005 |
