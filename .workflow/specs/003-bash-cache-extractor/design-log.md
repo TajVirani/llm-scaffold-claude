@@ -303,3 +303,8 @@ Came off the shelf: [.workflow/deferred/archive/boundary-check-wording.md](../..
 | regenerate-caches `SKILL.md` step 1 and `assets/cache-frontmatter.md` Boundary violations text | doc | extend | regenerate-caches |
 
 Module audit: not rerun; the 2026-10-21 audit covers `build-architecture.sh:218-228` (now `:366-380`). Correction to codebase-map.md "Project state in this repo": `.workflow/tools/boundaries/dependency-cruiser.cjs` now exists and is tracked (committed at `6cf0ac7`). No conflict with the goal or placement (0.4.7 No).
+
+## 2026-10-23 Correction to the 5.6 change-request entry
+
+- Re-run on this repo: `build-architecture.sh --cache architecture` exits 0 and Boundary violations reads `None.`; it does not die. `tool_cmd` picks `npx --no-install depcruise` whenever `npx` exists (`build-architecture.sh:248-254`) without checking it runs; the run fails (`npx --no-install depcruise --version` exits 1), `|| true` hides it (`:375`), and `jq` on the empty output prints nothing, so the section claims no violations although nothing was checked (`:381-384`).
+- D16 still removes the run for bash-only projects. The same false `None.` reaches a JS/TS project whose profile names `dependency-cruiser` but has no depcruise installed; whether that is in this change's scope (it predates the spec) is open for task breakdown, as a T9 acceptance criterion or as discovered work.
