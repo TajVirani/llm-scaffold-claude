@@ -184,3 +184,14 @@ Facts looked up instead of asked (0.3.10): None.
 
 - Changes on main in the affected area since 2026-10-21: discovery 0.2.7/0.2.8 now launch beside the term gate (`discovery.md:44-59`); its architecture publish line still passes `--generator dependency-cruiser` (`discovery.md:98`), as does `regenerate-caches/SKILL.md:123-126`. Profiles gained a filled `test_scoped` key and `-co --exclude-standard` in their lint commands; `workflow-paths.sh` gained `WF_INITIATIVES` and `WF_REVIEW_LESSONS`.
 - Effect on this spec: none to a contract it relies on. `test_patterns` is unchanged, and the two `--generator dependency-cruiser` lines are still the ones the generator assumption replaces.
+
+## 2026-10-23 Phase 1 harness reports (1.2)
+
+Found at 1.2 by the `implementation` agent (phase-1-test-harness, [result](artifacts/phase-1-test-harness/implementation.yaml)). All four are inside the agreed capabilities, so none grows `spec.md` or goes to the work backlog.
+
+- **D14** (decision, stakeholder 2026-10-23) `build-architecture.sh --print-generator` prints the sorted, comma-joined names of the extractors the profiles select (`none` left out) and exits 0; discovery and regenerate-caches pass that output to `publish-cache.sh --generator`. Evidence: `tests/scripts/cache-mixed-extractors.sh` (JRN-004).
+- **D15** (decision, stakeholder 2026-10-23) Graph JSON gains an optional integer `modules[].dependencies[].line`; the bash extractor sets it. An unresolved-edge bullet is `` - `<file>:<line>` `<source text>` ``, or `` - `<file>` `<source text>` `` when `line` is absent. Evidence: `tests/scripts/cache-bash-project.sh` (JRN-001).
+- Profile conflict: `.workflow/profiles/shell-scripts.md` § File locations stops skill-script depth at `scripts/<file>`, which conflicts with `scripts/extractors/` (D1). Filed as P1 in [proposals.md](proposals.md) for 5.3.
+- Task-breakdown note: profile resolution must skip `.workflow/profiles/TEMPLATE.md` (it has no `graph_extractor` key), or the 5.3 build on this repo fails.
+- Task-breakdown note: `arch-golden` and `viol-sorted-unique` in `tests/scripts/build-architecture.sh` expect today's three-section architecture body; the task that adds Unresolved edges updates them.
+- "Source text" in an unresolved bullet or `module` may be the whole line or the path; the tests require only that it contains the path text.

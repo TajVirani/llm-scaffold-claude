@@ -8,8 +8,9 @@ Spec: [spec.md](spec.md) · Placement: regenerate-caches
 | --- | --- | --- | --- |
 | Graph JSON (dependency-cruiser shape) | interface | unchanged | regenerate-caches |
 | Graph JSON `exports` | field | create | regenerate-caches |
+| Graph JSON `dependencies[].line` | field | create (D15) | regenerate-caches |
 | Graph extractor script interface | interface | create | regenerate-caches |
-| `build-architecture.sh` CLI (`--extractor`) | interface | extend | regenerate-caches |
+| `build-architecture.sh` CLI (`--extractor`, `--print-generator` D14) | interface | extend | regenerate-caches |
 | Work profile Toolchain `graph_extractor` | field | create | project-setup (template); each project (its profiles) |
 | Tier B frontmatter `generator` | field | extend | regenerate-caches |
 | Cache body shapes (`check-staged-cache.sh`) | interface | extend (architecture gains "Unresolved edges", D10) | regenerate-caches |
@@ -28,6 +29,7 @@ What every **graph extractor** prints on stdout for a scope (D2). `build-archite
 | `modules[].dependencies[].resolved` | string | yes when resolved | Repo-relative path of an existing file (CAP-NEW-bash-graph-extractor) | unchanged |
 | `modules[].dependencies[].couldNotResolve` | bool | no | `true` when the target path cannot be resolved statically; then `resolved` is absent and the edge is not drawn (D3, D9) | unchanged (now used by bash) |
 | `modules[].dependencies[].module` | string | yes when unresolved | The source text of the `source` line or call (D9) | unchanged (now used by bash) |
+| `modules[].dependencies[].line` | integer | no | 1-based line of the `source` line or call in `source`; rendered in Unresolved edges as `<file>:<line>`, or `<file>` alone when absent (D15) | create |
 | `summary.violations` | array | boundary run only | Unchanged; bash has no boundary run | unchanged |
 | `exports` | object, path -> string[] | no | Sorted unique function names per sourced file; read for Public interface only when tsc output is absent; a module's interface is the union over its files (D6, D9, D11) | create |
 
@@ -49,7 +51,7 @@ Still a free-text string (`cache-frontmatter.md:23`); now the sorted, comma-join
 
 ### architecture.md body (extend)
 
-Sections become `Module graph`, `Edges`, `Boundary violations`, `Unresolved edges`, in that order (D10). Unresolved edges: sorted bullets `` - `<file>:<line>` `<source text>` ``, or `None.`. `check-staged-cache.sh` accepts the section and checks it is sorted.
+Sections become `Module graph`, `Edges`, `Boundary violations`, `Unresolved edges`, in that order (D10). Unresolved edges: sorted bullets `` - `<file>:<line>` `<source text>` `` (`<file>` alone when the edge has no `line`, D15), or `None.`. `check-staged-cache.sh` accepts the section and checks it is sorted.
 
 ## Migrations
 

@@ -1,0 +1,218 @@
+== scripts/budget-check
+== scripts/build-architecture
+FAIL chk-arch-unresolved-ok
+       rc=1 want=0: check-staged-cache: sections must be exactly: Module graph, Edges, Boundary violations (in that order)
+FAIL chk-arch-unresolved-none-ok
+       rc=1 want=0: check-staged-cache: sections must be exactly: Module graph, Edges, Boundary violations (in that order)
+FAIL chk-arch-unresolved-unsorted-names-section
+       check-staged-cache: sections must be exactly: Module graph, Edges, Boundary violations (in that order)
+== scripts/cache-bash-project
+FAIL JRN-001 architecture renders without dependency-cruiser
+       got=2 want=0
+FAIL JRN-001 architecture run leaves stderr empty
+       build-architecture: depcruise failed: depcruise must not run for this project
+FAIL JRN-001 edges for the sourced libs and the script calls
+       got= want=- `bin` → `lib`
+FAIL JRN-001 Unresolved edges follows Boundary violations as the last section
+       got= want=## Module graph|## Edges|## Boundary violations|## Unresolved edges|
+FAIL JRN-001 two unresolved edges
+       got=0 want=2
+FAIL JRN-001 the dynamic source is listed with its file, line and source text
+FAIL JRN-001 the runtime-root call with a missing tail is listed with its file, line and source text
+FAIL JRN-001 every unresolved bullet has the `file:line` `text` shape
+FAIL JRN-001 unresolved bullets are byte-sorted
+FAIL JRN-001 check-staged-cache.sh passes the architecture body
+       rc=1 want=0: check-staged-cache: empty body
+FAIL JRN-001 modules renders without dependency-cruiser
+       got=2 want=0
+FAIL JRN-001 one section per module
+       got= want=## bin|## lib|## ops|## tests|## tools|
+FAIL JRN-001 lib Public interface is the union of its sourced files' functions
+       got= want=- Public interface:
+FAIL JRN-001 a module with no sourced file reads Not generated
+FAIL JRN-001 check-staged-cache.sh passes the modules body
+       rc=1 want=0: check-staged-cache: empty body
+FAIL JRN-001 entries renders without dependency-cruiser
+       got=2 want=0
+FAIL JRN-001 entry candidates are the scripts nothing sources or calls, test files left out
+       got= want=bin/build.sh,bin/release
+FAIL JRN-001 the test file is not an entry candidate
+FAIL JRN-001 build.sh reaches the files it sources and calls
+       got= want=bin/build.sh,lib/paths.sh,lib/strings.sh,ops/report.sh,tools/deploy.sh
+== scripts/cache-js-unchanged
+FAIL JRN-002 architecture is the baseline plus Unresolved edges reading None.
+       got=# Architecture
+FAIL JRN-002 extractor prints depcruise's JSON unchanged
+       got={
+        {
+          "resolved": "src/a/index.ts"
+        },
+        {
+          "coreModule": true,
+          "resolved": "fs"
+        }
+        {
+          "resolved": "src/a/x.ts"
+        }
+        {
+          "resolved": "src/b/y.ts"
+        },
+        {
+          "resolved": "src/a/x.ts"
+        },
+        {
+          "resolved": "node_modules/foo/index.js"
+FAIL JRN-002 extractor calls depcruise with today's flags
+       got= want=--no-config
+FAIL JRN-002 extractor exits 2 when depcruise fails
+       got=0 want=2
+FAIL JRN-002 extractor names depcruise when it fails
+       {"modules":[]}
+FAIL JRN-002 extractor with no arguments is a usage error
+       rc=0 want=2: {"modules":[]}
+== scripts/cache-missing-extractor-key
+FAIL JRN-003 the error calls it a breaking change, names agent-notes and gives the line to add
+       build-architecture: depcruise failed: depcruise must not run for this project
+FAIL JRN-003 --extractor bash gives the same breaking-change message
+       build-architecture: unknown argument: --extractor
+FAIL JRN-003 the error names the unknown extractor
+       build-architecture: depcruise failed: depcruise must not run for this project
+== scripts/cache-mixed-extractors
+FAIL JRN-004 one graph holds the bash and TS nodes
+       got=src_app_ts["src/app.ts"]|src_util_ts["src/util.ts"]| want=scripts_build_sh["scripts/build.sh"]|scripts_lib_sh["scripts/lib.sh"]|src_app_ts["src/app.ts"]|src_util_ts["src/util.ts"]|
+FAIL JRN-004 edges from both extractors
+       got=- `src/app.ts` → `src/util.ts` want=- `scripts/build.sh` → `scripts/lib.sh`
+FAIL JRN-004 --print-generator exits 0
+       got=2 want=0
+FAIL JRN-004 generator names bash,dependency-cruiser
+       got=build-architecture: unknown argument: --print-generator want=bash,dependency-cruiser
+FAIL JRN-004 a duplicate source across extractors exits 2
+       got=0 want=2
+FAIL JRN-004 the error names the duplicated file and no body is printed
+       # Architecture
+== scripts/cache-scripts
+== scripts/check-review-findings
+== scripts/check-task-result
+== scripts/check-write-paths
+== scripts/check-write-tier-a
+== scripts/commit-workflow-data
+== scripts/extractor-bash
+FAIL output is dependency-cruiser-shaped JSON
+FAIL claims *.sh files and bash-shebang files only, sorted
+       got= want=bin/build.sh,bin/release,lib/paths.sh,lib/strings.sh,ops/report.sh,tests/build-test.sh,tools/deploy.sh
+FAIL build.sh: edges for dir-anchored and $here sources, a dir-anchored call and a runtime-root call with an existing tail
+       got= want=lib/paths.sh,lib/strings.sh,ops/report.sh,tools/deploy.sh
+FAIL deploy.sh: edge through one variable hop
+       got= want=lib/strings.sh
+FAIL paths.sh: edge for an inline dirname source
+       got= want=lib/strings.sh
+FAIL test file: edge to the lib it sources
+       got= want=lib/strings.sh
+FAIL build.sh: two unresolved dependencies
+       got=0 want=2
+FAIL dynamic source is couldNotResolve with its source text in module
+FAIL runtime-root call with a missing tail is couldNotResolve with its source text in module
+FAIL at least one resolved edge was checked
+FAIL exports: sorted unique top-level functions of sourced files only
+       got=null want={"lib/paths.sh":["repo_root"],"lib/strings.sh":["join_by","trim","upper_case"]}
+FAIL a single-directory scope claims only its own files
+       got= want=ops/report.sh
+FAIL no arguments is a usage error
+       rc=0 want=2: {"modules":[]}
+FAIL --root without --scope is a usage error
+       rc=0 want=2: {"modules":[]}
+FAIL a missing root is an error
+       rc=0 want=2: {"modules":[]}
+== scripts/generate-boundary-config
+== scripts/generate-codex-agents
+== scripts/initiative-conversion
+== scripts/initiative-emission
+== scripts/initiative-merge
+== scripts/initiative-transition
+== scripts/install-claude-settings
+== scripts/install-codex-config
+== scripts/install-codex-tui
+== scripts/install-hosts
+== scripts/install-payload
+== scripts/install-upgrade
+== scripts/resolve-launch-initiative
+== scripts/resolve-launch
+== scripts/review-lessons
+== scripts/run-all-selection
+== scripts/run-toolchain
+== scripts/status-transition-specs
+== scripts/status-transition-tasks
+== scripts/step-progress
+== scripts/task-breakdown
+== scripts/upstream-diff
+== hooks/audit-sync-resume
+== hooks/block-destructive-git
+== hooks/codex-adapters
+== hooks/codex-pre-spawn-initiative
+== hooks/codex-shim
+== hooks/evidence-capture
+== hooks/initiative-write-guards
+== hooks/pre-launch
+== hooks/session-start-initiatives
+== hooks/worktree-guard
+== hooks/write-guards
+== lint/frontmatter
+== lint/review-lessons
+== lint/step-list
+== lint/symlinks
+== lint/upstream-lineage
+
+== summary
+PASS scripts/budget-check                   passed=69   failed=0   skipped=0   xfail=0   27s
+FAIL scripts/build-architecture             passed=77   failed=3   skipped=0   xfail=0   23s
+FAIL scripts/cache-bash-project             passed=1    failed=19  skipped=0   xfail=0   4s
+FAIL scripts/cache-js-unchanged             passed=7    failed=6   skipped=0   xfail=0   4s
+FAIL scripts/cache-missing-extractor-key    passed=6    failed=3   skipped=0   xfail=0   2s
+FAIL scripts/cache-mixed-extractors         passed=2    failed=6   skipped=0   xfail=0   2s
+PASS scripts/cache-scripts                  passed=36   failed=0   skipped=0   xfail=0   10s
+PASS scripts/check-review-findings          passed=119  failed=0   skipped=0   xfail=0   9s
+PASS scripts/check-task-result              passed=117  failed=0   skipped=0   xfail=0   20s
+PASS scripts/check-write-paths              passed=153  failed=0   skipped=0   xfail=0   72s
+PASS scripts/check-write-tier-a             passed=116  failed=0   skipped=0   xfail=0   67s
+PASS scripts/commit-workflow-data           passed=26   failed=0   skipped=0   xfail=0   6s
+FAIL scripts/extractor-bash                 passed=6    failed=15  skipped=0   xfail=0   2s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   9s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   30s
+PASS scripts/initiative-conversion          passed=28   failed=0   skipped=0   xfail=0   6s
+PASS scripts/initiative-emission            passed=22   failed=0   skipped=0   xfail=0   5s
+PASS scripts/initiative-merge               passed=63   failed=0   skipped=0   xfail=0   24s
+PASS scripts/initiative-transition          passed=65   failed=0   skipped=0   xfail=0   11s
+PASS scripts/install-claude-settings        passed=31   failed=0   skipped=0   xfail=0   53s
+PASS scripts/install-codex-config           passed=20   failed=0   skipped=0   xfail=0   54s
+PASS scripts/install-codex-tui              passed=8    failed=0   skipped=0   xfail=0   43s
+PASS scripts/install-hosts                  passed=17   failed=0   skipped=0   xfail=0   60s
+PASS scripts/install-payload                passed=55   failed=0   skipped=0   xfail=0   59s
+PASS scripts/install-upgrade                passed=12   failed=0   skipped=0   xfail=0   51s
+PASS scripts/resolve-launch-initiative      passed=19   failed=0   skipped=0   xfail=0   6s
+PASS scripts/resolve-launch                 passed=95   failed=0   skipped=0   xfail=0   32s
+PASS scripts/review-lessons                 passed=26   failed=0   skipped=0   xfail=0   3s
+PASS scripts/run-all-selection              passed=46   failed=0   skipped=0   xfail=0   33s
+PASS scripts/run-toolchain                  passed=69   failed=0   skipped=0   xfail=0   37s
+PASS scripts/status-transition-specs        passed=220  failed=0   skipped=0   xfail=0   42s
+PASS scripts/status-transition-tasks        passed=143  failed=0   skipped=0   xfail=0   46s
+PASS scripts/step-progress                  passed=66   failed=0   skipped=0   xfail=0   6s
+PASS scripts/task-breakdown                 passed=91   failed=0   skipped=0   xfail=0   22s
+PASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   7s
+PASS hooks/audit-sync-resume                passed=56   failed=0   skipped=0   xfail=0   75s
+PASS hooks/block-destructive-git            passed=144  failed=0   skipped=0   xfail=0   17s
+PASS hooks/codex-adapters                   passed=99   failed=0   skipped=0   xfail=0   58s
+PASS hooks/codex-pre-spawn-initiative       passed=17   failed=0   skipped=0   xfail=0   9s
+PASS hooks/codex-shim                       passed=38   failed=0   skipped=0   xfail=0   22s
+PASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   22s
+PASS hooks/initiative-write-guards          passed=21   failed=0   skipped=0   xfail=0   21s
+PASS hooks/pre-launch                       passed=20   failed=0   skipped=0   xfail=0   14s
+PASS hooks/session-start-initiatives        passed=26   failed=0   skipped=0   xfail=0   15s
+PASS hooks/worktree-guard                   passed=42   failed=0   skipped=0   xfail=0   26s
+PASS hooks/write-guards                     passed=101  failed=0   skipped=0   xfail=0   68s
+PASS lint/frontmatter                       passed=40   failed=0   skipped=0   xfail=0   8s
+PASS lint/review-lessons                    passed=33   failed=0   skipped=0   xfail=0   9s
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   21s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   1s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   4s
+TOTAL passed=2764 failed=52 skipped=0 xfail=0 (51 suites)
+FAILED suites: scripts/build-architecture scripts/cache-bash-project scripts/cache-js-unchanged scripts/cache-missing-extractor-key scripts/cache-mixed-extractors scripts/extractor-bash
