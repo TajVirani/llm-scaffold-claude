@@ -59,8 +59,7 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 ## 0.2 Retrieve existing system context
 
 1. **0.2.1 Affected area.** Read `.workflow/GLOSSARY.md` whole (and, with a `.workflow/GLOSSARY-MAP.md`, the context glossaries it maps to the area). Read the **Ownership** and **Shared core** YAML blocks of `.workflow/rules.md`. Name the affected area as module names plus repo-relative paths: the `owns` globs with any trailing `/**` or `*` removed, since the cache scripts take plain paths, never globs. Write it to yourself as the area list used below.
-2. **0.2.2 Term gate.** Does the request use a new, ambiguous or conflicting term? Yes → invoke the `domain-modeling` skill for gate 0.2.2; it agrees the term with the stakeholder and writes the glossary under step `0.2.3`. Done when every raised term is agreed or confirmed as an existing entry. The agreed terms go to `retrieval`.
-3. **0.2.7 Cache stamps match HEAD?** Run the check before any agent reads `.workflow/cache/`:
+2. **0.2.7 Cache stamps match HEAD?** Run the check before any agent reads `.workflow/cache/`, and before the term gate asks anything, since its result decides what launches beside that ask:
 
    ```bash
    .agents/skills/regenerate-caches/scripts/cache-stamp-check.sh --area <path> [--area <path> ...]
@@ -68,9 +67,15 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 
    When `.workflow/tools/boundaries/dependency-cruiser.cjs` exists, also pass `--area .workflow/tools/boundaries/dependency-cruiser.cjs`. It is in the `architecture` scope (its Boundary violations come from it), and `--area` checks only the scope paths that intersect an area.
 
-   It prints one JSON object (`.stale`, `.stamps`, `.caches[] | {cache_type, status, stale_paths, reason}`). Exit 0 all fresh → step 5. Exit 1 some `stale` or `missing` → step 4. Exit 2 → read `.caches[].reason`: an `invalid` cache is treated like a stale one; a tooling or usage error stops the step and is reported to the stakeholder.
-4. **0.2.8 Regenerate and restamp** each cache whose status is `stale`, `missing` or `invalid`.
-   - Launch one `cache-regeneration` per cache type (parallel). On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `cache_regeneration`, `task_name` `s<NNN>_cache_<type>` (for example `s007_cache_modules`), `fork_turns: "none"`. It receives no Tier A and not the previous cache. The prompt is the launch header followed by exactly the four task lines `.agents/agents/cache-regeneration.md` defines:
+   It prints one JSON object (`.stale`, `.stamps`, `.caches[] | {cache_type, status, stale_paths, reason}`). Exit 0: every cache is fresh. Exit 1: some are `stale` or `missing` and need 0.2.8. Exit 2 → read `.caches[].reason`: an `invalid` cache is treated like a stale one; a tooling or usage error stops the step and is reported to the stakeholder. Every exit except a tooling or usage error goes to step 3, which sends the launches this result needs beside the term gate.
+3. **0.2.2 Term gate, with the launches beside it.** Does the request use a new, ambiguous or conflicting term? Note each raised term with the name you would propose. Then send the launches below in the same message as the gate's first question, so the agents run while the stakeholder answers:
+   - **Every cache fresh (0.2.7 exit 0):** launch `retrieval` and `library-evaluation` as step 5 says, their briefs carrying the raised terms as `proposed, pending the 0.2.2 gate`.
+   - **Some cache needs 0.2.8:** launch the `cache-regeneration` agents as step 4 says. `retrieval` and `library-evaluation` launch at step 5, once the caches are published.
+   - **The ask:** with a term raised, invoke the `domain-modeling` skill for gate 0.2.2; it agrees each term with the stakeholder and writes the glossary under step `0.2.3` as each answer lands. With none raised, there is no ask; send the launches alone.
+
+   Done when every raised term is agreed or confirmed as an existing entry, and the launches for this cache state are out.
+4. **0.2.8 Regenerate and restamp** each cache whose status is `stale`, `missing` or `invalid`. When the agents launched at step 3 return, check and publish each staged body as the second bullet says. Launch here only when step 3 did not, for example when 0.2.7 found nothing stale at the time and a later check does.
+   - The launch: one `cache-regeneration` per cache type (parallel). On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `cache_regeneration`, `task_name` `s<NNN>_cache_<type>` (for example `s007_cache_modules`), `fork_turns: "none"`. It receives no Tier A and not the previous cache. The prompt is the launch header followed by exactly the four task lines `.agents/agents/cache-regeneration.md` defines:
 
      ````markdown
      ```yaml launch-header
@@ -95,7 +100,7 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 
      `check-staged-cache.sh` exit 0 → publish. Exit 1 (problems listed on stderr): resume the agent once with those lines; if it fails again, do not publish. `publish-cache.sh` exit 0 published; exit 1 means the staged file is missing, empty or fails validation. For any cache not published, carry it into the `retrieval` launch as stale (it then reads the code for it and reports its stamp as `null`) and tell the stakeholder which cache is out of date.
 
-5. **0.2.4 / 0.2.5 Launch `retrieval` and `library-evaluation`** in one message.
+5. **0.2.4 / 0.2.5 Launch `retrieval` and `library-evaluation`** in one message: beside the term-gate ask when every cache was fresh (step 3), else once step 4 has published. `Agreed terms` is the terms agreed at 0.2.2 when the gate has finished, else each raised term followed by `(proposed, pending the 0.2.2 gate)`.
 
    ````markdown
    ```yaml launch-header
@@ -104,7 +109,7 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
    ```
 
    Affected area: <modules and paths>
-   Agreed terms: <terms from 0.2.2, or "none raised">
+   Agreed terms: <terms from 0.2.2 | <term> (proposed, pending the 0.2.2 gate), ... | "none raised">
    Stale caches (read the code for these, stamp null): <types, or "none">
    ````
 
@@ -115,13 +120,13 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
    ```
 
    Affected area: <modules and paths>
-   Agreed terms: <terms>
+   Agreed terms: <as for retrieval>
    External systems: .workflow/rules.md, section "External systems"
    ````
 
    On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `retrieval` and `library_evaluation`, `task_name` `s<NNN>_<agent>` (for example `s007_retrieval`, `s007_library_evaluation`), `fork_turns: "none"`.
 
-6. **0.2.6 Write `codebase-map.md`** from [../assets/codebase-map.md](../assets/codebase-map.md) and the two returns only:
+6. **0.2.6 Write `codebase-map.md`** from [../assets/codebase-map.md](../assets/codebase-map.md) and the two returns only, each part as its return lands. Use the name agreed at 0.2.2 wherever a return used a proposed term the stakeholder renamed:
    - `cache_stamps` frontmatter ← the `cache_stamps` block of the `retrieval` return (after 0.2.8 these are the freshly published stamps).
    - **Affected area** ← the 0.2.1 list. **Relevant code**, **Seams and interfaces**, **Prior decisions**, **Not found** ← the same-named sections of the `retrieval` return.
    - **Library options** ← the `library-evaluation` report, pasted whole in place of the template table, with its Evidence URLs intact. A `Hold` or `Blocked: missing context` return goes in as returned and its missing items become questions for the loop.

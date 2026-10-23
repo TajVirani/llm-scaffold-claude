@@ -44,9 +44,15 @@ Done when the document exists and you know which step to start from.
 
 ### 2. Gather the evidence
 
-Read [modules/evidence.md](modules/evidence.md) and fill **Summary**. Then ask the stakeholder for their going-in concerns ("anything you want weighed: a task that felt rushed, a review finding that worried you?"). A concern directs the analysis, but it becomes a finding only once you can tie it to a source.
+Read [modules/evidence.md](modules/evidence.md) and fill **Summary**. Then take the stakeholder's going-in concerns from the newest sign-off entry in `.workflow/specs/NNN-slug/design-log.md`, its `Going-in concerns:` line (sign-off asks for them at 5.5; `none` means there are none):
 
-Done when Summary lists every evidence source as available or missing.
+```bash
+grep '^- Going-in concerns:' .workflow/specs/NNN-slug/design-log.md | tail -1
+```
+
+Only when there is no such line (standalone, or a log written before sign-off asked), ask them ("anything you want weighed: a task that felt rushed, a review finding that worried you?"). A concern directs the analysis, but it becomes a finding only once you can tie it to a source.
+
+Done when Summary lists every evidence source as available or missing, and you hold the going-in concerns (or `none`).
 
 ### 3. Judge the result against the spec
 

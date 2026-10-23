@@ -1,6 +1,6 @@
 # Sign-off (Phase 5)
 
-You reconcile the spec with what shipped, get Tier A changes approved line by line, report real results, and close the feature with the stakeholder. The steps run in the order 5.1-5.5, 5.9, 5.7, 5.8: the backlog offer comes before the retrospective sets `done`. You are done when the spec is `done` and merged (5.8), or when a change request has sent it back to 0.3.8 (5.6).
+You reconcile the spec with what shipped, get Tier A changes approved in one round with exceptions named by row, report real results, and close the feature with the stakeholder. The steps run in the order 5.1-5.5, 5.9, 5.7, 5.8: the backlog offer comes before the retrospective sets `done`. You are done when the spec is `done` and merged (5.8), or when a change request has sent it back to 0.3.8 (5.6).
 
 `.workflow/specs/NNN-slug` is this feature's folder. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix (SKILL.md, "Conventions every module follows"). Every status, task-record and step change goes through `status-transition.sh` with the exact `--step` shown; exit 2 is a refused transition: stop and report it. Protected files are written with Write or Edit after the matching step is set, so the write guards can check them. If a guard denies a write, stop and show the stakeholder the denial and the text you meant to write. On Codex, run `check-write.sh` before each protected write as SKILL.md "Host notes" says.
 
@@ -29,9 +29,16 @@ Copy `assets/proposals.md` to `.workflow/specs/NNN-slug/proposals.md` if it does
 
 Every row starts at Status `proposed`. Done when every candidate is a row or was dropped for changing no behaviour.
 
-## 5.3 Approve line by line, then apply
+## 5.3 Approve, then apply
 
-**Approve.** Walk the stakeholder through the rows one at a time: approve, modify, or reject. Record each answer in the row: `approved`; `modified` with the new text in Decision; `rejected` with the reason in Decision. A modified line is shown again in its new wording and applied only once the stakeholder confirms it. Apply nothing until every row has an answer.
+**Approve, in one round.** List every row as `P<n>`, its target (the file it writes) and a one-phrase gist, link `.workflow/specs/NNN-slug/proposals.md` for the full text, and ask one question: "Approve all as written, or name exceptions?" Exceptions are one per line:
+
+```text
+P<n>: modify <new text>
+P<n>: reject <reason>
+```
+
+Record each answer in its row: a row not named is `approved`; `modified` with the new text in Decision; `rejected` with the reason in Decision. Only modified rows get a second round: show them together in their new wording and ask the same question about them; apply a modified row only once the stakeholder confirms it. Apply nothing until every row has an answer.
 
 **Apply.** Then set the step once and write each `approved` or `modified` row:
 
@@ -85,10 +92,28 @@ Done when every PASS links evidence, every number is measured or marked "not mea
 
 ## 5.5 Stakeholder approves the work?
 
-Present a short summary: what changed, the verification and review result, what was deferred, and the most important gap, with links to `report.md` and `proposals.md`. Ask whether they approve the work.
+Ask the sign-off questions together: the approval, the 5.9 ruling on each open backlog item, and the retrospective's going-in concerns.
 
-- **Yes**: go to 5.9.
-- **No, change requested**: go to 5.6.
+1. **List this spec's open backlog items:**
+
+   ```bash
+   for f in .workflow/specs/work-backlog/NNN-slug-disc-*.md; do [ -f "$f" ] && [ "$(yq --front-matter=extract '.status' "$f")" = open ] && echo "$f"; done
+   ```
+
+2. **Present a short summary:** what changed, the verification and review result, what was deferred, and the most important gap, with links to `report.md` and `proposals.md`.
+3. **Ask, in this order:**
+   1. "Do you approve the work?" Yes, or No with the change requested.
+   2. One question per open backlog item: its title, **Problem**, **Suggested scope and size** and origin step, with the options "Start it as the next feature", "Keep it open" and "Move it to `.workflow/deferred/`".
+   3. "Anything you want weighed in the retrospective?" with the option "Nothing in particular"; any other answer is the concern, in the stakeholder's words.
+
+   - **Claude Code:** one AskUserQuestion call holding every question. Past its limit of four questions per call, put the rest in a second call straight after, in the same order.
+   - **Codex, or chat:** one message with the questions numbered, then wait.
+4. **Log the answers** in `.workflow/specs/NNN-slug/design-log.md` with the "Sign-off" shape in [../assets/design-log.md](../assets/design-log.md): the approval, each backlog ruling, and `Going-in concerns: <text | none>` with the stakeholder's words verbatim.
+
+- **Yes**: go to 5.9 with the logged rulings.
+- **No, change requested**: go to 5.6. The backlog rulings and the concerns stay logged and change no file; when the spec comes back to 5.5, offer them as the recommended answers.
+
+Done when the stakeholder has answered every question and the design-log entry records all of the answers.
 
 ## 5.6 Change requested: re-enter at 0.3.8
 
@@ -96,14 +121,13 @@ Append a dated entry to `.workflow/specs/NNN-slug/design-log.md` quoting the req
 
 ## 5.9 Offer this spec's open backlog items as the next feature
 
-This runs after 5.5 Yes and before 5.7, so every work item this spec discovered is decided before the spec is `done` (node ids are kept, so 5.9 comes before 5.7). Set the step, then list this spec's open items:
+This runs after 5.5 Yes and before 5.7, so every work item this spec discovered is decided before the spec is `done` (node ids are kept, so 5.9 comes before 5.7). The stakeholder ruled on each open item at 5.5; here you carry the rulings out without asking again. No open items: go to 5.7. Otherwise set the step:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.9
-for f in .workflow/specs/work-backlog/NNN-slug-disc-*.md; do [ -f "$f" ] && [ "$(yq --front-matter=extract '.status' "$f")" = open ] && echo "$f"; done
 ```
 
-No open items: go to 5.7. Otherwise, for each item show the stakeholder its title, **Problem**, **Suggested scope and size** and origin step, and offer three choices. Backlog files are written only in the main session at this step; edit only the keys and lines named here.
+Then apply each item's ruling from the 5.5 design-log entry. Backlog files are written only in the main session at this step; edit only the keys and lines named here.
 
 - **Start it as the next feature.** Seed a new spec from the item: run 0.1.1-0.1.6 of `modules/discovery.md` ("Seeded from a work item") with the item as the request. It creates `.workflow/specs/<new NNN-slug>/` at `draft`, marks the item promoted at the new spec's 0.1.4 and deletes it once that spec finishes discovery, and hands the folder name back. Do not edit the item yourself. Set this spec's step again (`.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.9`) and append one line to `.workflow/specs/NNN-slug/design-log.md`: `Backlog item <item file> started as .workflow/specs/<new NNN-slug> (5.9)`. The new spec waits in `draft` and resumes through the router after this one closes; this spec never absorbs the item.
 - **Keep it open.** Change nothing; it stays listed for the stakeholder by the router.

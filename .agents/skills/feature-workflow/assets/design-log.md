@@ -1,6 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter. An initiative keeps the same log at .workflow/initiatives/NNN-slug/design-log.md: conversion moves the spec's log there and replaces its `Spec:` line with `Initiative: [initiative.md](initiative.md)`.
-Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4, 0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off / retrospective (5.x, 5.7) and the large path (Conversion at 0.3.23; Initiative round at 6.8 and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
+Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4, 0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off (5.5 Sign-off entry, 5.6, 5.9) / retrospective (5.7), the handoff skill on resume (a `Main moved since handoff` entry; its shape is in that skill's Resume step 3) and the large path (Conversion at 0.3.23; Initiative round at 6.8 and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
 
 Rules:
   - Append only. Never edit or delete an earlier entry. A reversal is a new entry that names what it supersedes; the old entry stays.
@@ -151,7 +151,7 @@ Still researching: <IQ<n> (<task_type>)>, or "none".
 
 | Id | Source lens | Finding | Location | Verdict | Evidence | Route |
 | --- | --- | --- | --- | --- | --- | --- |
-| F<n> | review-standards / review-end-state / review-targets / review-lessons | <one line> | `<path:line>` | high / medium / low / false / maybe-false | <what verified or disproved it; for maybe-false, what would settle it> | patch / defer ([.workflow/deferred/<slug>.md](../../deferred/<slug>.md)) / decision needed (Q<n>) / discovered work (see "Discovered work" entry) / none (dismissed: <reason>) |
+| F<n> | review-standards / review-end-state / review-targets / review-lessons | <one line> | `<path:line>` | high / medium / low / false / maybe-false | <what verified or disproved it; for maybe-false, what would settle it> | patch / defer ([.workflow/deferred/<slug>.md](../../deferred/<slug>.md)) / decision needed (Q<n>) / discovered work (filed: <backlog item or shelf file>, or the blocker's ruling; see its Discovered work record) / none (dismissed: <reason>) |
 
 Failed lenses: none
 Outcome: <rework k of 5 | loop back (4.5 decision needed) | loop back (4.6 third pass) | loop back (00.24 discovered work) | loop back (00.29 budget re-scope) | blocked (4.7) | deferred, to sign-off | clean, to sign-off>
@@ -160,12 +160,18 @@ Outcome: <rework k of 5 | loop back (4.5 decision needed) | loop back (4.6 third
 
 ## YYYY-MM-DD Discovered work: <slug>
 
-<!-- 00.21-00.29. Work found outside the agreed scope and the size-budget halt. Use one of the three records below; the first is the full entry, the others are short. -->
+<!-- 00.21-00.29. Work found outside the agreed scope and the size-budget halt. Use one of the four records below; the first is the full entry, the others are short. A can-wait item filed at 00.26 without asking the stakeholder takes the full entry with the ruling "can be solved later; filed without a ruling, offered at 5.9". -->
 
 - Found at: step <n> by <agent or reviewer>. Kind: bug / requirement / refactor / scope-expansion / decision / budget-split
 - Problem and evidence: <one line; `path:line` or failing test>
-- Assessment and ruling: blocker / can be solved later; <to discovery (spec back to draft) | stays blocked, human resolves | backlog item | ignored | split | re-scoped | overrun approved>
+- Assessment and ruling: blocker / can be solved later; <to discovery (spec back to draft) | stays blocked, human resolves | backlog item | ignored | split | re-scoped | overrun approved | filed without a ruling, offered at 5.9>
 - Backlog item: [work-backlog/<NNN-slug>-disc-<###>.md](../work-backlog/<NNN-slug>-disc-<###>.md)
+
+Duplicate discovered work (00.26, matched a shelf file or an open backlog item by concept), one line only:
+
+- Duplicate discovered work: <slug> matches <file>; line appended.
+
+<!-- When the matching backlog item belongs to another spec, the write guard refuses the append: end the line "; not appended, item of <its origin spec>" instead. -->
 
 Dismissed item (00.25 No), one line only:
 
@@ -174,6 +180,14 @@ Dismissed item (00.25 No), one line only:
 Approved budget overrun (00.29 Approve):
 
 - Approved budget overrun: <max_tasks | max_changed_files> reached <n> against <limit>. Reason: "<stakeholder's words>". Budget raised to <new value> for this spec only (spec.md `budget`).
+
+## YYYY-MM-DD Sign-off: stakeholder approval (5.5)
+
+<!-- 5.5. One entry for the batched sign-off ask: the approval, the 5.9 ruling on each open backlog item and the going-in concerns for the retrospective, all answered in one round. The retrospective (5.7) reads the `Going-in concerns:` line instead of asking again. A change request (5.6) appends its own entry after this one. -->
+
+- Approval: yes / change requested: "<stakeholder's words, verbatim>"
+- Backlog <NNN-slug>-disc-<###>.md: start it as the next feature / keep it open / move it to .workflow/deferred/ (one line per open item, or "Backlog: no open items")
+- Going-in concerns: <the stakeholder's words, verbatim | none>
 
 ## YYYY-MM-DD Retrospective notes
 

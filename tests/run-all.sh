@@ -9,7 +9,8 @@
 #   tests/run-all.sh --exclude-file G leave out the suites G names (same format); with --only-file, runs F minus G
 #   tests/run-all.sh -j N             run N suites at once (default: the number of CPUs, else 4; -j 1 runs serially)
 #   tests/run-all.sh --list           list suite names
-#   tests/run-all.sh -v               print each suite's full output (default: only failures and xfail lines)
+#   tests/run-all.sh -v               print each suite's full output (default: only failures and xfail lines); when a suite
+#                                     failed, the run ends with a "== failures" block of every FAIL line and its detail
 # Output is printed suite by suite in --list order whatever -j is, so a parallel run reads like a serial one.
 # Exit: 0 all suites passed; 1 any suite failed; 2 missing prerequisite, unknown suite or selector, or bad argument.
 # Requires: bash 3.2+, git, jq, mikefarah yq v4, shellcheck (a missing shellcheck fails the run here;
@@ -173,6 +174,8 @@ total_fail=0
 total_skip=0
 total_xfail=0
 failed_suites=()
+# The index of each failed suite, in step with failed_suites, so its log can be read again after the summary.
+failed_indexes=()
 rows=()
 
 # start_suite INDEX FILE : run one suite in the background. Its log goes to INDEX.log; INDEX.done appears last,
@@ -223,7 +226,10 @@ report_suite() {
     xf=0
     rc=1
   fi
-  [ "$rc" -eq 0 ] || failed_suites+=("$label")
+  if [ "$rc" -ne 0 ]; then
+    failed_suites+=("$label")
+    failed_indexes+=("$index")
+  fi
   total_pass=$((total_pass + p))
   total_fail=$((total_fail + fl))
   total_skip=$((total_skip + sk))
@@ -231,6 +237,25 @@ report_suite() {
   status=PASS
   [ "$rc" -eq 0 ] || status=FAIL
   rows+=("$(printf '%-4s %-38s passed=%-4s failed=%-3s skipped=%-3s xfail=%-3s %ss' "$status" "$label" "$p" "$fl" "$sk" "$xf" "$secs")")
+}
+
+# print_failures LOG RC : print each FAIL line of a suite log with the indented detail lines under it. A log without a
+# result footer is printed whole and indented, as the default output shows it. When that leaves nothing to show (the
+# suite exited non-zero without a FAIL line), print its RESULT line, or its exit code when it has no RESULT line.
+print_failures() {
+  local log=$1 rc=$2 out
+  if grep -q '^RESULT ' "$log"; then
+    out=$(awk '/^FAIL / { in_fail = 1; print; next } /^       / { if (in_fail) print; next } { in_fail = 0 }' "$log")
+  else
+    out=$(sed 's/^/   /' "$log")
+  fi
+  if [ -n "$out" ]; then
+    printf '%s\n' "$out"
+  elif grep -q '^RESULT ' "$log"; then
+    grep '^RESULT ' "$log" | tail -1 | sed 's/^/       /'
+  else
+    printf '       exited %s with no FAIL line\n' "$rc"
+  fi
 }
 
 # Keep up to $jobs suites running and print each one as soon as it and every suite before it have finished.
@@ -266,6 +291,15 @@ for r in ${rows[@]+"${rows[@]}"}; do printf '%s\n' "$r"; done
 printf 'TOTAL passed=%s failed=%s skipped=%s xfail=%s (%s suites)\n' "$total_pass" "$total_fail" "$total_skip" "$total_xfail" "$suite_count"
 if [ "${#failed_suites[@]}" -gt 0 ]; then
   printf 'FAILED suites: %s\n' "${failed_suites[*]}"
+  # A verbose log is long, so it ends with every failure gathered in one place.
+  if [ "$verbose" -eq 1 ]; then
+    printf '\n== failures\n'
+    for i in "${!failed_suites[@]}"; do
+      printf -- '-- %s\n' "${failed_suites[$i]}"
+      read -r rc _ <"$results/${failed_indexes[$i]}.done"
+      print_failures "$results/${failed_indexes[$i]}.log" "$rc"
+    done
+  fi
   exit 1
 fi
 exit 0

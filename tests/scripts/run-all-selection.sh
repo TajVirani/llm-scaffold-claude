@@ -2,9 +2,10 @@
 # Suite: tests/run-all.sh suite selection and parallel runs.
 # Covers: --only-file and --exclude-file (repo-relative and label selectors, F minus G, empty or missing files),
 #   unknown selectors and --suite conflicts exiting 2, repeated --suite (only the named suites, in glob order; one
-#   unknown name exits 2), -j validation, concurrent runs by default and serial with -j 1,
-#   output in glob order identical to a serial run apart from timings, largest-file-first start order with glob-order output,
-#   -v printing full logs, exit codes 0 / 1.
+#   unknown name exits 2), -j validation, concurrent runs by default and serial with -j 1 (judged by whether the
+#   suites' recorded run times overlap, never by elapsed time), output in glob order identical to a serial run apart
+#   from timings, largest-file-first start order with glob-order output, -v printing full logs and ending with a
+#   failures block only when a suite failed (a failed suite with no FAIL line shows its RESULT line), exit codes 0 / 1.
 # The runner is copied into a fixture tree with stub suites, so this suite never runs the real harness.
 # shellcheck disable=SC2016  # check expressions are single-quoted so check evaluates them
 # shellcheck source=../lib/common.sh
@@ -17,14 +18,20 @@ mkdir -p "$FIXTURE_TESTS/lib" "$FIXTURE_TESTS/scripts" "$FIXTURE_TESTS/hooks" "$
 cp "$TESTS_DIR/run-all.sh" "$FIXTURE_TESTS/run-all.sh"
 cp "$TESTS_DIR/lib/common.sh" "$FIXTURE_TESTS/lib/common.sh"
 RUNNER=$FIXTURE_TESTS/run-all.sh
+MARKERS=$WORK/markers
+mkdir -p "$MARKERS"
 
 # stub_suite PATH SLEEP_SECONDS PASSED FAILED : a suite that sleeps, then prints its checks and the result footer.
+# It writes its start and end times in epoch seconds to MARKERS/<name>.start and .end, so a test can tell whether
+# two suites ran at the same time without timing the whole run.
 stub_suite() {
   local path=$1 pause=$2 passed=$3 failed=$4 name
   name=$(basename "$path" .sh)
   {
     printf '#!/usr/bin/env bash\n'
+    printf 'date +%%s >"%s/%s.start"\n' "$MARKERS" "$name"
     printf 'sleep %s\n' "$pause"
+    printf 'date +%%s >"%s/%s.end"\n' "$MARKERS" "$name"
     printf 'echo "ok   %s check"\n' "$name"
     [ "$failed" -eq 0 ] || printf 'echo "FAIL %s check"; echo "       %s detail"\n' "$name" "$name"
     printf 'echo "xfail %s known (reason)"\n' "$name"
@@ -126,19 +133,30 @@ for bad in 0 -1 two 1.5 ""; do
   eq "-j '$bad' exits 2" "$RC" 2
 done
 
-# Parallel and serial runs: alpha and beta each sleep 2 seconds.
-only=$(selector_file only-sleepers tests/scripts/alpha.sh tests/scripts/beta.sh tests/hooks/gamma.sh)
-start=$(date +%s)
-run_all --only-file "$only"
-parallel_secs=$(($(date +%s) - start))
-parallel_out=$(without_timings)
-check "with no -j, suites run concurrently" '[ "$parallel_secs" -lt 4 ]' "took ${parallel_secs}s for 4s of sleeping suites"
+# alpha_beta_overlap : print "overlap" when the recorded run times of alpha and beta overlap, else "apart", followed
+# by the intervals so a failure shows them. Whole seconds are enough because each suite sleeps 2 seconds.
+alpha_beta_overlap() {
+  local a_start a_end b_start b_end verdict=apart
+  a_start=$(cat "$MARKERS/alpha.start") a_end=$(cat "$MARKERS/alpha.end")
+  b_start=$(cat "$MARKERS/beta.start") b_end=$(cat "$MARKERS/beta.end")
+  if [ "$a_start" -lt "$b_end" ] && [ "$b_start" -lt "$a_end" ]; then verdict=overlap; fi
+  printf '%s (alpha %s-%s, beta %s-%s)' "$verdict" "$a_start" "$a_end" "$b_start" "$b_end"
+}
 
-start=$(date +%s)
+# Parallel and serial runs: alpha and beta each sleep 2 seconds. Concurrency is judged by whether their recorded
+# run times overlap, not by how long the whole run took, so a loaded machine cannot fail these checks.
+only=$(selector_file only-sleepers tests/scripts/alpha.sh tests/scripts/beta.sh tests/hooks/gamma.sh)
+rm -f "$MARKERS"/*
+run_all --only-file "$only"
+parallel_out=$(without_timings)
+intervals=$(alpha_beta_overlap)
+check "with no -j, suites run concurrently" '[[ $intervals == overlap* ]]' "$intervals"
+
+rm -f "$MARKERS"/*
 run_all -j 1 --only-file "$only"
-serial_secs=$(($(date +%s) - start))
 serial_out=$(without_timings)
-check "-j 1 runs one suite at a time" '[ "$serial_secs" -ge 4 ]' "took ${serial_secs}s for 4s of sleeping suites"
+intervals=$(alpha_beta_overlap)
+check "-j 1 runs one suite at a time" '[[ $intervals == apart* ]]' "$intervals"
 
 eq "a parallel run prints the same report as a serial run, apart from timings" "$parallel_out" "$serial_out"
 expected_report='== scripts/alpha
@@ -155,6 +173,7 @@ eq "suite output appears in glob order with failure and xfail detail" "${paralle
 check "the summary rows and totals follow in glob order" \
   '[[ "$parallel_out" == *"TOTAL passed=6 failed=1 skipped=0 xfail=3 (3 suites)
 FAILED suites: hooks/gamma" ]]' "$parallel_out"
+check "the default output has no failures block" '[[ "$parallel_out" != *"== failures"* ]]' "$parallel_out"
 
 # -v prints each suite's full log in glob order.
 only=$(selector_file only-verbose tests/hooks/gamma.sh tests/lint/delta.sh)
@@ -166,12 +185,43 @@ FAIL gamma check"*"== lint/delta
 ok   delta check
 xfail delta known (reason)"* ]]' "$OUT"
 
+# -v with a failed suite ends with a failures block: each failed suite's FAIL lines and their detail.
+check "-v ends with a failures block holding the failed suite's FAIL line and detail" \
+  '[[ "$OUT" == *"FAILED suites: hooks/gamma
+
+== failures
+-- hooks/gamma
+FAIL gamma check
+       gamma detail" ]]' "$OUT"
+check "the failures block leaves out ok and xfail lines" \
+  '[[ "${OUT##*== failures}" != *"ok   gamma"* && "${OUT##*== failures}" != *xfail* ]]' "$OUT"
+eq "a failed -v run still exits 1" "$RC" 1
+
+run_all -v --suite delta
+check "-v with no failed suite prints no failures block" '[[ "$OUT" != *"== failures"* ]]' "$OUT"
+eq "a passing -v run exits 0" "$RC" 0
+
 # A suite that dies before its footer still fails and its log is shown.
 printf '#!/usr/bin/env bash\necho "crashed early"\nexit 3\n' >"$FIXTURE_TESTS/lint/broken.sh"
 only=$(selector_file only-broken tests/lint/broken.sh)
 run_all --only-file "$only"
 eq "a suite without a result footer makes the run exit 1" "$RC" 1
 check "the log of a suite without a footer is printed indented" '[[ "$OUT" == *"   crashed early"* ]]' "$OUT"
+run_all -v --only-file "$only"
+check "-v lists a suite without a footer in the failures block with its log indented" \
+  '[[ "$OUT" == *"== failures
+-- lint/broken
+   crashed early" ]]' "$OUT"
+
+# A suite that prints its footer and exits non-zero without a FAIL line shows its RESULT line in the failures block.
+printf '#!/usr/bin/env bash\necho "ok   quiet check"\nprintf "\\nRESULT passed=1 failed=0 skipped=0 xfail=0\\n"\nexit 1\n' \
+  >"$FIXTURE_TESTS/lint/quiet.sh"
+only=$(selector_file only-quiet tests/lint/quiet.sh)
+run_all -v --only-file "$only"
+check "-v shows the RESULT line of a failed suite that has no FAIL line" \
+  '[[ "$OUT" == *"== failures
+-- lint/quiet
+       RESULT passed=1 failed=0 skipped=0 xfail=0" ]]' "$OUT"
 
 # Start order: the larger suite starts first, but output stays in glob order. late.sh is padded so it is the
 # larger file although its name sorts last; -j 1 makes the start order observable through a shared log.
