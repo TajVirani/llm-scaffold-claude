@@ -220,3 +220,25 @@ Found at 1.2 by the `implementation` agent (phase-1-test-harness, [result](artif
 - Assessment: can wait; no capability success line or journey uses an all-`none` project. Ruling: can be solved later; filed without a ruling, offered at 5.9.
 - Item: [003-bash-cache-extractor-disc-001.md](../work-backlog/003-bash-cache-extractor-disc-001.md)
 - 2026-10-23 wave 3: task PRs skipped for T4, T5 (gh not installed); merged locally.
+
+## 2026-10-23 Discovered work: shared-test-patterns
+
+- Found at: step 4.4 by review-standards (F1, RS-1). Kind: refactor
+- Problem and evidence: the default test patterns and matcher are copied between `budget-check.sh:60-68,155-170` and `build-architecture.sh:518-567`; moving them to `.agents/lib/` spreads into feature-workflow and shared core.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/003-bash-cache-extractor-disc-002.md](../work-backlog/003-bash-cache-extractor-disc-002.md)
+
+## 2026-10-23 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 | review-standards (RS-1) | Default test patterns and matcher copied from budget-check.sh instead of shared through `.agents/lib/` | `.agents/skills/regenerate-caches/scripts/build-architecture.sh:518-567` | medium | `diff` of `budget-check.sh:60-68` and `build-architecture.sh:518-526` is empty; shell-scripts profile File locations requires shared code in `.agents/lib/` | discovered work (filed: [003-bash-cache-extractor-disc-002.md](../work-backlog/003-bash-cache-extractor-disc-002.md)) |
+| F2 | review-standards (RS-2) | depcruise lookup in the extractor repeats `tool_cmd` in build-architecture.sh | `.agents/skills/regenerate-caches/scripts/extractors/dependency-cruiser.sh:34-41` | low | Both look up `$DEPCRUISE`, `node_modules/.bin/depcruise`, `npx --no-install` in the same order (`build-architecture.sh:248,373`) | none (dismissed: identical today and unlikely to drift; the fix adds a new sourced file for one lookup) |
+| F3 | review-standards (RS-3) | PROVENANCE.md calls the two finished extractors "stubbed" | `PROVENANCE.md:19` | low | Line 19 reads "... `scripts/extractors/dependency-cruiser.sh` stubbed"; both are implemented | patch (T3) |
+| F4 | review-standards (RS-4) | `cruise_json` / `cruise.json` now hold the merged graph of every extractor | `.agents/skills/regenerate-caches/scripts/build-architecture.sh:258-287` | low | `run_extractors` writes bash output into `$cruise_json` (:273, :280) | patch (T1) |
+| F5 | review-end-state (RE-1) | Calls to extensionless claimed scripts are dropped; cwd-relative calls are neither edges nor unresolved | `.agents/skills/regenerate-caches/scripts/extractors/bash.sh:573-580` | medium | Fixture run: `"$here/../bin/release"`, `bash scripts/build.sh` and `./scripts/build.sh` in `bin/main.sh` gave no dependency; only `"$here/../scripts/build.sh"` was an edge. Breaks the CAP-NEW-bash-graph-extractor success line and D3 | patch (T3) |
+
+Gaps (not findings): JRN-005 is the manual run at 5.3 (review-end-state `not_verifiable`); this repo's profile keys are P3-P5 in proposals.md. review-lessons `not_checked`: commit subjects do not follow Conventional Commits (retrospective 004 lesson), owned by `.workflow/pr-quality/commit-hygiene.md`.
+
+Failed lenses: none
+Outcome: rework 1 of 5
