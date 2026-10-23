@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-selectable-graph-extractor
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "build-architecture.sh CLI (profile resolution, --extractor, --print-generator, --from-json) and the extractors/dependency-cruiser.sh contract"
     file: tasks/T01-graph-extractor-per-profile.md
@@ -26,7 +26,7 @@ tasks:
     capability: CAP-NEW-bash-graph-extractor
     depends_on: [T1]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "build-architecture.sh --cache architecture output, and check-staged-cache.sh on an architecture body"
     file: tasks/T02-unresolved-edges-section.md
@@ -48,7 +48,7 @@ tasks:
     capability: CAP-NEW-bash-graph-extractor
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "extractors/bash.sh --root DIR --scope PATH... and its Graph JSON on stdout"
     file: tasks/T03-bash-graph-extractor.md
@@ -67,7 +67,7 @@ tasks:
     capability: CAP-NEW-bash-graph-extractor
     depends_on: [T2, T3]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "build-architecture.sh --cache modules and --cache entries output"
     file: tasks/T04-bash-interface-and-entries.md
@@ -87,7 +87,7 @@ tasks:
     capability: CAP-NEW-selectable-graph-extractor
     depends_on: [T1, T2]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "regenerate-caches"
     seam: "None: docs, checked by the agent-docs lint suites"
     file: tasks/T05-regenerate-caches-docs.md
@@ -105,7 +105,7 @@ tasks:
     capability: CAP-NEW-selectable-graph-extractor
     depends_on: [T1]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "None: docs, checked by the agent-docs lint suites"
     file: tasks/T06-discovery-publish-generator.md
@@ -122,7 +122,7 @@ tasks:
     capability: CAP-NEW-selectable-graph-extractor
     depends_on: [T1]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "agents"
     seam: "None: docs, checked by the agent-docs lint suites"
     file: tasks/T07-cache-regeneration-generator.md
@@ -139,7 +139,7 @@ tasks:
     capability: CAP-NEW-selectable-graph-extractor
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "project-setup"
     seam: "None: docs, checked by the agent-docs lint suites"
     file: tasks/T08-profile-graph-extractor-key.md
