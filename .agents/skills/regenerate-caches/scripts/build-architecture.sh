@@ -4,7 +4,9 @@
 #   .workflow/cache/architecture.md body; `--cache modules` prints the modules.md skeleton with one `<!-- slot: purpose -->`
 #   per module for the cache-regeneration agent to fill; `--cache entries` prints the flows.md entry-point candidates
 #   (files nothing in scope imports) with what each reaches, as JSON, for the agent to choose from (entry points are discovered each run; there is no config).
-#   Body shapes: assets/cache-frontmatter.md "Body shape per cache type".
+#   Body shapes: assets/cache-frontmatter.md "Body shape per cache type". The architecture body ends with "## Unresolved edges":
+#   one sorted bullet `- \`<file>:<line>\` \`<source text>\`` (`<file>` alone without a line) per dependency of an in-scope file
+#   marked couldNotResolve, the source text taken from its `module`; or `None.`.
 # Graph extractors: each work profile (.workflow/profiles/*.md, TEMPLATE.md skipped) names one in its Toolchain yaml block,
 #   `graph_extractor: <name>`, where <name> is `none` (a profile with no code) or a script scripts/extractors/<name>.sh
 #   (shipped: bash, dependency-cruiser). Every extractor the profiles name runs once as
@@ -291,7 +293,7 @@ else
   run_extractors ${extractors[@]+"${extractors[@]}"}
 fi
 
-# graph.json: files in scope, file edges, file -> node, collapsed node edges; ids checked for collisions
+# graph.json: files in scope, file edges, file -> node, collapsed node edges, unresolved-edge bullets; ids checked for collisions
 graph="$tmpd/graph.json"
 jq -S --argjson scopes "$scope_json" --argjson mods "$mods_json" '
   def under($p): $p == "." or . == $p or startswith($p + "/");
@@ -316,8 +318,13 @@ jq -S --argjson scopes "$scope_json" --argjson mods "$mods_json" '
   | (reduce $files[] as $f ({}; .[$f] = ($f | node))) as $nodeof
   | ([$files[] | $nodeof[.]] | unique) as $nodes
   | ([$fedges[] | [$nodeof[.[0]], $nodeof[.[1]]] | select(.[0] != .[1])] | unique) as $edges
+  | ([.modules[] | select($in[.source]) | .source as $f
+      | .dependencies[]? | select(.couldNotResolve == true)
+      | "- `\($f)\(if .line != null then ":\(.line)" else "" end)` `\(.module // "")`"]
+     | unique) as $unresolved
   | ([$nodes[] | {id: id, name: .}] | group_by(.id) | map(select(length > 1) | map(.name))) as $coll
-  | {files: $files, file_edges: $fedges, node_of: $nodeof, nodes: $nodes, edges: $edges, collisions: $coll}
+  | {files: $files, file_edges: $fedges, node_of: $nodeof, nodes: $nodes, edges: $edges, unresolved: $unresolved,
+     collisions: $coll}
 ' "$cruise_json" >"$graph" || die "could not canonicalise the graph JSON ($graph_origin)"
 
 coll="$(jq -r '.collisions[] | join(" and ")' "$graph")"
@@ -326,7 +333,6 @@ coll="$(jq -r '.collisions[] | join(" and ")' "$graph")"
 
 # ---------------------------------------------------------------- renderers
 render_architecture() {
-  local vfile="" vlines
   echo "# Architecture"
   echo
   echo "## Module graph"
@@ -345,6 +351,17 @@ render_architecture() {
   echo
   echo "## Boundary violations"
   echo
+  render_boundary_violations
+  echo
+  echo "## Unresolved edges"
+  echo
+  if [[ "$(jq '.unresolved | length' "$graph")" -eq 0 ]]; then echo "None."
+  else jq -r '.unresolved[]' "$graph"; fi
+}
+
+# render_boundary_violations : prints the body of the Boundary violations section.
+render_boundary_violations() {
+  local vfile="" vlines
   if [[ -n "$viol_json" ]]; then
     vfile="$viol_json"
   elif [[ -f "$root/$WF_BOUNDARIES/dependency-cruiser.cjs" ]]; then
