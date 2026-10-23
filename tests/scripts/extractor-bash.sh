@@ -63,6 +63,36 @@ eq "a single-directory scope claims only its own files" "$("$X" --root "$R" --sc
 t "no arguments is a usage error" 2 "$X"
 t "--root without --scope is a usage error" 2 "$X" --root "$R"
 t "a missing root is an error" 2 "$X" --root "$WORK/nope" --scope bin
+t "a scope that climbs out of the root is a usage error" 2 "$X" --root "$R" --scope ../repo
+t "a missing scope path is an error" 2 "$X" --root "$R" --scope nowhere
+t "an unknown argument is a usage error" 2 "$X" --root "$R" --scope bin --verbose
+t "a root outside git is an error" 2 "$X" --root "$WORK/scaffold/.agents" --scope hooks
+
+# Edge forms: heredoc bodies and redirection targets are data, a run-time variable set from another one is followed one
+# hop, and a dir-anchored path to a missing file is never turned into an edge.
+E="$WORK/edges"
+git_init_repo "$E"
+mkdir -p "$E/hooks" "$E/skill/scripts"
+printf '#!/usr/bin/env bash\necho check\n' >"$E/skill/scripts/check.sh"
+cat >"$E/hooks/adapter.sh" <<'OUTER'
+#!/usr/bin/env bash
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+scripts=$main_root/skill/scripts
+"$scripts/check.sh"
+cat >"$here/generated.sh" <<'EOF'
+source "$here/../skill/scripts/check.sh"
+EOF
+bash "$here/missing.sh"
+OUTER
+git_commit_all "$E" init
+edges=$("$X" --root "$E" --scope hooks --scope skill)
+eq "a run-time variable set from another one plus a tail resolves through one hop" \
+  "$(jq -r '[.modules[] | select(.source == "hooks/adapter.sh") | .dependencies[] | .resolved // empty] | join(",")' <<<"$edges" 2>/dev/null)" \
+  "skill/scripts/check.sh"
+eq "a heredoc body and a redirection target add no edge; a dir-anchored missing file is unresolved at its line" \
+  "$(jq -r '[.modules[] | select(.source == "hooks/adapter.sh") | .dependencies[] | select(.couldNotResolve) | "\(.line) \(.module)"] | join(",")' <<<"$edges" 2>/dev/null)" \
+  '8 $here/missing.sh'
+eq "a file nothing sources has no exports entry" "$(jq -c '.exports' <<<"$edges" 2>/dev/null)" '{}'
 
 shellcheck_files "shellcheck: extractors/bash.sh" "$X"
 finish
