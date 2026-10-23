@@ -50,7 +50,7 @@ e2e: ""
 # Descriptive keys (not commands; run-toolchain.sh never runs them):
 serve: ""                            # the harness needs no running app
 serve_ready: ""
-graph_extractor: "dependency-cruiser"  # TS/JS; builds the Tier B caches
+graph_extractor: "dependency-cruiser"  # TS/JS; builds the generated module, flow and architecture caches
 config:
   lint: ".oxlintrc.json"
   typecheck: "tsconfig.json"

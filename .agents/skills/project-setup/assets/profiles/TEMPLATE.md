@@ -32,7 +32,7 @@ e2e: ""         # run at 3.10 by the orchestrator (run-toolchain.sh --e2e); empt
 # Descriptive keys (not commands; run-toolchain.sh never runs them):
 serve: ""       # start command for the built app, used by review-targets (4.3), e.g. npm run start
 serve_ready: "" # URL polled until the app answers, e.g. http://localhost:3000
-graph_extractor: "" # REQUIRED (never ""); reads this work type's code into the Tier B caches (build-architecture.sh): dependency-cruiser (TS/JS), bash (shell scripts), or none when the work type has no code graph
+graph_extractor: "" # REQUIRED (never ""); reads this work type's code into the generated module, flow and architecture caches: dependency-cruiser (TS/JS), bash (shell scripts), or none when the work type has no code graph
 # e2e_report: "test-results/e2e-results.json"  # e2e work types only: path to the Playwright JSON report (json reporter outputFile), relative to the run directory; read by evidence-capture
 config:         # config file path per tool
   lint: ""
