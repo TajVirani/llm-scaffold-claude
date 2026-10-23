@@ -1,4 +1,5 @@
 ---
+superseded_by: .workflow/specs/003-bash-cache-extractor
 origin_spec: .workflow/specs/003-bash-cache-extractor
 created: 2026-10-22
 ---

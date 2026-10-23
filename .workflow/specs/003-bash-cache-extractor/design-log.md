@@ -254,3 +254,52 @@ Outcome: rework 1 of 5
 - Backlog item: [work-backlog/003-bash-cache-extractor-disc-003.md](../work-backlog/003-bash-cache-extractor-disc-003.md)
 - 2026-10-23 rework 1: task PRs skipped for T1, T3 (gh not installed); merged locally.
 - 2026-10-23 rework 1: T3 was merged before its mini-review.yaml passed the shape check (the checker's exit was hidden by a pipe; `items[0].location` missing). The reviewer rewrote the file once; it then checked clean with verdict pass, so the merge stands. Full harness on the merged branch: 2881 passed, 0 failed.
+
+## 2026-10-23 Sign-off: change requested (5.5, 5.6)
+
+- Found at 5.3 while running JRN-005: this repo commits `.workflow/tools/boundaries/dependency-cruiser.cjs` (generated from `.workflow/rules.md` Ownership by the rules-sync hook, committed at spec 002 sign-off), and `build-architecture.sh` runs depcruise for Boundary violations whenever that file exists (`build-architecture.sh:371-373`). With no depcruise installed the architecture build dies "depcruise not found", although spec Non-goals say "Boundary violations stays \"Not checked\" for bash". codebase-map.md had recorded no boundary config at the repo root; it was added after discovery.
+- Approval: No, change requested. Stakeholder's choice, verbatim: "Fix it in this spec (Recommended)" — run the depcruise boundary check only when a profile names dependency-cruiser; otherwise print "Not checked".
+- Backlog rulings and going-in concerns: not asked yet; asked at the next 5.5.
+- Proposals P1-P12 stay applied (5.3).
+
+Outcome: loop back (5.6 change request)
+
+## 2026-10-23 Questioning round 4 (after 5.6 change request)
+
+Seed (5.6, verbatim): "Fix it in this spec (Recommended)" — run the depcruise boundary check only when a profile names dependency-cruiser; otherwise print "Not checked".
+
+**Q13. When should the architecture build run the depcruise boundary check?**
+
+- Options: A: only when the boundary config exists and a profile names `dependency-cruiser` · B: whenever the config exists and depcruise is found · defer
+- Recommended: A, because it matches the change request and the Non-goal "Boundary violations stays \"Not checked\" for bash" (`build-architecture.sh:371-373` runs it whenever the config exists)
+- Answer: "Only if a profile names it (Recommended)"
+- Decision: **D16** The Boundary violations check runs depcruise only when `.workflow/tools/boundaries/dependency-cruiser.cjs` exists and some work profile selects `dependency-cruiser`; `--violations-json` still overrides. With `--from-json` no profiles are read (D12), so the check keeps today's rule: it runs when the config exists.
+
+**Q14. Bring the shelved boundary-check-wording item into this fix?**
+
+- Options: A: yes, a line saying the project's graph extractors have no boundary checker · B: keep it shelved · defer
+- Recommended: A, because the fix touches the same branch and today's line would wrongly say the config is missing
+- Answer: "Yes, fix the wording too (Recommended)"
+- Decision: **D17** When no selected extractor has a boundary checker, Boundary violations reads `Not checked: no boundary checker for this project's graph extractors (<names>).` (`<names>` from `--print-generator`, or `none`). When `dependency-cruiser` is selected and the config is missing, today's line stays. The shelf file is archived, superseded by this spec.
+
+**Q15. Keep the boundary config in the architecture stamp scope when the check does not run?**
+
+- Options: A: keep as is · B: only when the check runs · defer
+- Recommended: A, because a rules.md change is rare and harmless to re-stamp, and B would change SKILL.md, discovery 0.2.7 and the agent docs again
+- Answer: "Keep as is (Recommended)"
+- Decision: **D18** The architecture stamp scope keeps `.workflow/tools/boundaries/dependency-cruiser.cjs` whenever the file exists, whether or not the check runs.
+
+Facts looked up instead of asked (0.3.10): the config is tracked (`git ls-files .workflow/tools`), committed at `6cf0ac7` (spec 002 sign-off); the build's boundary branch is `build-architecture.sh:366-380`.
+
+Came off the shelf: [.workflow/deferred/archive/boundary-check-wording.md](../../deferred/archive/boundary-check-wording.md)
+
+## 2026-10-23 Impact classification (0.4.4, after round 4)
+
+| Part | Kind | Classification | Owning module |
+| --- | --- | --- | --- |
+| `build-architecture.sh` Boundary violations rule (when depcruise runs) | interface | extend (D16) | regenerate-caches |
+| Boundary violations "Not checked" line | interface | extend (D17) | regenerate-caches |
+| Architecture stamp scope | interface | unchanged (D18) | regenerate-caches |
+| regenerate-caches `SKILL.md` step 1 and `assets/cache-frontmatter.md` Boundary violations text | doc | extend | regenerate-caches |
+
+Module audit: not rerun; the 2026-10-21 audit covers `build-architecture.sh:218-228` (now `:366-380`). Correction to codebase-map.md "Project state in this repo": `.workflow/tools/boundaries/dependency-cruiser.cjs` now exists and is tracked (committed at `6cf0ac7`). No conflict with the goal or placement (0.4.7 No).

@@ -14,6 +14,7 @@ Spec: [spec.md](spec.md) · Placement: regenerate-caches
 | Work profile Toolchain `graph_extractor` | field | create | project-setup (template); each project (its profiles) |
 | Tier B frontmatter `generator` | field | extend | regenerate-caches |
 | Cache body shapes (`check-staged-cache.sh`) | interface | extend (architecture gains "Unresolved edges", D10) | regenerate-caches |
+| Boundary violations section (when depcruise runs, "Not checked" wording) | interface | extend (D16, D17) | regenerate-caches |
 | Cache stamp | interface | unchanged | regenerate-caches |
 
 ## Entities
@@ -62,3 +63,7 @@ Sections become `Module graph`, `Edges`, `Boundary violations`, `Unresolved edge
 | M3 | This repo's three profiles gain `graph_extractor` (`bash` for shell-scripts and test-harness, `none` for agent-docs) via proposals.md at 5.3 | extend | yes | M1 | none |
 | M3b | Published architecture caches gain the "Unresolved edges" section on their next regeneration; an old cache without it still validates until then | extend | yes | - | Regenerated, never edited |
 | M4 | This repo's three caches are built and published at 5.3 | create | yes (delete `.workflow/cache/*.md`) | M3 | none |
+
+### Boundary violations section (extend)
+
+The depcruise boundary check runs only when `.workflow/tools/boundaries/dependency-cruiser.cjs` exists and a work profile selects `dependency-cruiser`, or with `--violations-json`; under `--from-json` it runs whenever the config exists (D16). When no selected extractor has a boundary checker the section reads `Not checked: no boundary checker for this project's graph extractors (<names>).`, `<names>` being the `--print-generator` list or `none`; with `dependency-cruiser` selected and no config, today's `Not checked: no boundary config at ...` line stays (D17). Both forms stay valid for `check-staged-cache.sh`.

@@ -34,6 +34,7 @@ All three caches are missing (`.workflow/cache/` is empty), so every extract bel
 | Tests: cache-scripts | Covers `publish-cache.sh` and `cache-stamp-check.sh` only (fresh, stale, missing, invalid, worktree). Does not run build-architecture.sh. | `tests/scripts/cache-scripts.sh:2-4, 26-60` |
 | Test suite map | `scripts/build-architecture` suite: "no node needed: dependency-cruiser and tsc output are fixtures". | `tests/README.md:53` |
 | Project state in this repo | No `package.json`, `tsconfig.json`, `node_modules/.bin/depcruise` or `.workflow/tools/boundaries/` at the repo root. | repo root (Glob) |
+| Project state in this repo (2026-10-23 correction) | `.workflow/tools/boundaries/dependency-cruiser.cjs` exists and is tracked (committed at spec 002 sign-off, `6cf0ac7`), so the Boundary violations branch runs depcruise here. | `git ls-files .workflow/tools` |
 
 ## Seams and interfaces
 

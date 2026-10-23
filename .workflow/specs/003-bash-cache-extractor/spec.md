@@ -1,11 +1,11 @@
 ---
-status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "86609a64711682747a07bea99a7ed442cf5a827c" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/003-bash-cache-extractor # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "8649720c48726c937fac91bc3597d91b680ad6fd" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
-deferred: [.workflow/deferred/boundary-check-wording.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
+deferred: [] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 # origin: NNN-slug-disc-001.md       # optional; filename of the work-backlog item this spec was seeded from; the item is deleted after discovery
 budget: {max_tasks: 10, max_changed_files: 30} # absent until written; written at 2.5 (0.3.20 on the light path) from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
 # blocked_condition: "<what a human must decide or do before work can continue>"   # present only while status is blocked; forms: "discovered work: <slug>", "size budget: <what>", or free text
@@ -21,7 +21,7 @@ The Tier B caches (module map, flows, architecture) can only be built for JS/TS 
 
 - **CAP-004** Graph extractor per work profile
   - **intent:** The cache build runs the graph extractor each work profile names, so caches can be built for any language that has an extractor.
-  - **success:** With profiles naming `dependency-cruiser`, `bash` or `none`, `build-architecture.sh` runs each named extractor, merges their graphs and renders all three caches; a JS/TS fixture renders output identical to today's, apart from architecture's new "Unresolved edges" section reading `None.`, once its profile names `dependency-cruiser`; a profile without the key fails with a message that says it is a breaking change, names the profile and gives the line to add.
+  - **success:** With profiles naming `dependency-cruiser`, `bash` or `none`, `build-architecture.sh` runs each named extractor, merges their graphs and renders all three caches; a JS/TS fixture renders output identical to today's, apart from architecture's new "Unresolved edges" section reading `None.`, once its profile names `dependency-cruiser`; a profile without the key fails with a message that says it is a breaking change, names the profile and gives the line to add; the depcruise boundary check runs only when a profile names `dependency-cruiser` (D16), and otherwise Boundary violations reads `Not checked: no boundary checker for this project's graph extractors (<names>).` (D17), so a project with a committed boundary config but no `dependency-cruiser` profile builds architecture without depcruise.
 - **CAP-005** Bash graph extractor
   - **intent:** A bash project gets a file graph from its `source`/`.` lines and script-to-script calls, with entry-point candidates and the functions of sourced files.
   - **success:** On fixtures, the bash extractor prints dependency-cruiser-shaped JSON with every statically resolvable edge, `couldNotResolve: true` for each path it cannot resolve, and an `exports` map of top-level functions for sourced files; architecture.md lists each unresolved edge under "Unresolved edges", modules.md shows each module's functions as Public interface, and flows.md lists no file matching a profile's `test_patterns` as an entry point; run on this repo at 5.3, the three caches pass `check-staged-cache.sh`, publish, and `cache-stamp-check.sh` reports them fresh.
@@ -37,15 +37,15 @@ The Tier B caches (module map, flows, architecture) can only be built for JS/TS 
 ## Non-goals
 
 - Graph extractors for languages other than bash.
-- A boundary checker for bash (enforcing `.workflow/rules.md` Ownership); Boundary violations stays "Not checked" for bash.
+- A boundary checker for bash (enforcing `.workflow/rules.md` Ownership); Boundary violations stays "Not checked" for bash, with the D17 wording.
 - A markdown extractor for skill-to-script path references.
 - Changes to `install.sh`, including an update-time notice (D8).
 - Editing target projects' profiles; the error tells the user what to add (D5).
-- Rewording the Boundary violations "Not checked" line for non-JS projects: shelved as [.workflow/deferred/boundary-check-wording.md](../../deferred/boundary-check-wording.md).
+- Leaving the boundary config out of the architecture stamp scope when the check does not run (D18).
 
 ## Success signal
 
-A bash project whose profiles name `graph_extractor: bash` gets all three Tier B caches from `regenerate-caches`, a JS/TS project keyed to `dependency-cruiser` renders exactly as before, and this repo's discovery stamp check reports modules, flows and architecture fresh instead of missing (objectives and journeys JRN-001 to JRN-005 in [verification-plan.md](verification-plan.md)).
+A bash project whose profiles name `graph_extractor: bash` gets all three Tier B caches from `regenerate-caches`, a JS/TS project keyed to `dependency-cruiser` renders exactly as before, and this repo's discovery stamp check reports modules, flows and architecture fresh instead of missing, without depcruise although the repo commits a boundary config (objectives and journeys JRN-001 to JRN-006 in [verification-plan.md](verification-plan.md)).
 
 ## Assumptions
 
