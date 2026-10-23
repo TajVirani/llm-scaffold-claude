@@ -32,9 +32,12 @@
 #     reject-other-work-type, conflict or blocked, reason non-empty; partial needs at least one verdict other than applied.
 #   - files_changed is a list; evidence.toolchain is non-empty; profile_wrong and blocked are each null or a mapping;
 #     discovered_work is a list of discovered-work entries.
+#   - profile-wrong needs profile_wrong.line; blocked needs blocked.reason; discovered-work needs a non-empty
+#     discovered_work.
 #   mini-review:
 #   - verdict is pass or fail, and is fail exactly when an item is fail; task_id, work_type, diff and tool_output are
 #     non-empty strings; mode is full or re-check; previous is a non-empty string in re-check mode, else null.
+#   - task_id equals the folder name when the file sits in artifacts/<folder>/.
 #   - items is a non-empty list of {n, verdict, location}: n an integer or R1 to R5; verdict pass, fail, tool-covered or
 #     not-applicable; location a string; a non-empty note on fail and tool-covered; carried_from, when present, is r<k>
 #     and is allowed only in re-check mode.
@@ -140,13 +143,29 @@ def check_strings_list($k):
   if (.[$k] | is_list) | not then "\($k): not a list"
   else .[$k] | to_entries[] | select((.value | type) != "string") | "\($k)[\(.key)]: not a string" end;
 
+def check_task_id($folder):
+  if (.task_id | str_filled) | not then "task_id: missing or not a non-empty string"
+  elif $folder != "" and .task_id != $folder then "task_id: '\(.task_id)' does not match the artifacts folder \($folder)"
+  else empty end;
+
+# A stop status is only useful to the orchestrator when the field explaining it is filled in.
+def check_stop_fields:
+  (.status | text) as $s
+  | if $s == "profile-wrong" and ((.profile_wrong.line? // null) | str_filled | not) then
+      "profile_wrong.line: missing or empty, required when status is profile-wrong"
+    elif $s == "scope-expansion" and (((.scope_expansion.requested_paths? // null) | is_list and length > 0) | not) then
+      "scope_expansion.requested_paths: missing or empty, required when status is scope-expansion"
+    elif $s == "blocked" and ((.blocked.reason? // null) | str_filled | not) then
+      "blocked.reason: missing or empty, required when status is blocked"
+    elif $s == "discovered-work" and ((.discovered_work | list_len) == 0) then
+      "discovered_work: empty, required when status is discovered-work"
+    else empty end;
+
 def check_implementation($folder):
   (.status | text) as $s
   | need_enum("status"; ["done", "profile-wrong", "scope-expansion", "discovered-work", "blocked"]),
     need_str("summary"),
-    (if (.task_id | str_filled) | not then "task_id: missing or not a non-empty string"
-     elif $folder != "" and .task_id != $folder then "task_id: '\(.task_id)' does not match the artifacts folder \($folder)"
-     else empty end),
+    check_task_id($folder),
     need_str("worktree"), need_str("base_commit"), check_branch,
     check_head($s == "blocked" or $s == "profile-wrong"),
     check_strings_list("files_changed"),
@@ -165,15 +184,7 @@ def check_implementation($folder):
     need_list("considered_not_built"),
     null_or_map("profile_wrong"), null_or_map("scope_expansion"), null_or_map("blocked"),
     check_dw_list("discovered_work"),
-    (if $s == "profile-wrong" and ((.profile_wrong.line? // null) | str_filled | not) then
-       "profile_wrong.line: missing or empty, required when status is profile-wrong"
-     elif $s == "scope-expansion" and (((.scope_expansion.requested_paths? // null) | is_list and length > 0) | not) then
-       "scope_expansion.requested_paths: missing or empty, required when status is scope-expansion"
-     elif $s == "blocked" and ((.blocked.reason? // null) | str_filled | not) then
-       "blocked.reason: missing or empty, required when status is blocked"
-     elif $s == "discovered-work" and ((.discovered_work | list_len) == 0) then
-       "discovered_work: empty, required when status is discovered-work"
-     else empty end);
+    check_stop_fields;
 
 def check_integration:
   (.status | text) as $s
@@ -197,7 +208,8 @@ def check_integration:
     need_list("files_changed"),
     (if ((.evidence | type) == "object" and (.evidence.toolchain | str_filled)) then empty else "evidence.toolchain: missing or empty" end),
     check_dw_list("discovered_work"),
-    null_or_map("profile_wrong"), null_or_map("blocked");
+    null_or_map("profile_wrong"), null_or_map("blocked"),
+    check_stop_fields;
 
 def check_item($recheck; $i):
   "items[\($i)]" as $at
@@ -217,10 +229,10 @@ def check_item($recheck; $i):
        else "\($at).carried_from: '\(.carried_from | text)' is not r<k>" end)
     end;
 
-def check_mini_review:
+def check_mini_review($folder):
   (.mode == "re-check") as $recheck
   | need_enum("verdict"; ["pass", "fail"]),
-    need_str("task_id"), need_str("work_type"), need_str("diff"), need_str("tool_output"),
+    check_task_id($folder), need_str("work_type"), need_str("diff"), need_str("tool_output"),
     need_enum("mode"; ["full", "re-check"]),
     (if $recheck then (if (.previous | str_filled) then empty else "previous: missing or empty, required when mode is re-check" end)
      elif .previous != null then "previous: must be null when mode is not re-check"
@@ -241,7 +253,7 @@ else .[0]
   | if type != "object" then "root: not a mapping"
     elif $kind == "implementation" then check_implementation($folder)
     elif $kind == "integration" then check_integration
-    else check_mini_review end
+    else check_mini_review($folder) end
 end
 JQ
 

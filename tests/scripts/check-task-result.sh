@@ -2,7 +2,8 @@
 # Suite: check-task-result.sh (feature-workflow/scripts).
 # Covers: one valid file per kind (implementation, integration, mini-review) with its header line and rows, a stop status's
 #   line, the kind taken from the file name and from --kind, one malformed file per shape rule (exit 1, the message names
-#   the field), task_id against the artifacts folder, a mini-review verdict that disagrees with its items, carried_from
+#   the field), task_id against the artifacts folder for implementation and mini-review files, the stop-status fields for
+#   implementation and integration, a mini-review verdict that disagrees with its items, carried_from
 #   outside re-check mode, a multi-document file, and the exit-2 cases: no argument, missing file, YAML that does not parse,
 #   a name that implies no kind, an unknown --kind.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -296,10 +297,18 @@ expect_error "integration: evidence without toolchain" "$INTEG" '.evidence.toolc
 expect_error "integration: discovered_work entry bad kind" "$INTEG" '.discovered_work[0].kind = "x"' "discovered_work\\[0\\].kind: "
 expect_error "integration: profile_wrong a list" "$INTEG" '.profile_wrong = []' "profile_wrong: not null or a mapping"
 expect_error "integration: blocked a string" "$INTEG" '.blocked = "b"' "blocked: not null or a mapping"
+expect_error "integration: blocked without blocked.reason" "$INTEG" '.status = "blocked"' "blocked.reason: "
+expect_error "integration: profile-wrong without profile_wrong.line" "$INTEG" '.status = "profile-wrong"' "profile_wrong.line: "
+expect_error "integration: discovered-work with no entries" "$INTEG" '.status = "discovered-work" | .discovered_work = []' \
+  "discovered_work: empty, required"
 
 # --- mini-review shape rules
 expect_error "mini-review: unknown verdict" "$MINI" '.verdict = "ok"' "verdict: 'ok' is not one of"
 expect_error "mini-review: missing task_id" "$MINI" 'del(.task_id)' "task_id: "
+variant "$MINI" "$ART/T8/mini-review.yaml" '.task_id = "T1"'
+run_ctr "$ART/T8/mini-review.yaml"
+check "mini-review: a task_id other than the artifacts folder is refused" \
+  '[[ $RC == 1 && $OUT == "task_id: '"'"'T1'"'"' does not match the artifacts folder T8" ]]' "$OUT"
 expect_error "mini-review: missing work_type" "$MINI" 'del(.work_type)' "work_type: "
 expect_error "mini-review: empty diff" "$MINI" '.diff = ""' "diff: "
 expect_error "mini-review: missing tool_output" "$MINI" 'del(.tool_output)' "tool_output: "
