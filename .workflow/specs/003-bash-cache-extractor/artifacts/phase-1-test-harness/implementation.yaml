@@ -1,94 +1,26 @@
-status: done
-summary: "Phase 1 harness for 003-bash-cache-extractor: interface stubs extractors/bash.sh and extractors/dependency-cruiser.sh (print {\"modules\":[]}, exit 0, in PROVENANCE), shared fixture builders tests/fixtures/graph-extractors.sh, five new suites (scripts/extractor-bash, scripts/cache-bash-project JRN-001, scripts/cache-js-unchanged JRN-002, scripts/cache-missing-extractor-key JRN-003, scripts/cache-mixed-extractors JRN-004) and six new check-staged-cache cases in scripts/build-architecture. Harness command: tests/run-all.sh (profile test key); CI check: none, this repo has no CI. 52 new assertions fail on assertions at HEAD (extractor-bash 15, cache-bash-project 19, cache-js-unchanged 6, cache-missing-extractor-key 3, cache-mixed-extractors 6, build-architecture 3); all 45 pre-existing suites pass."
+status: "done"
+summary: "Added tests/scripts/cache-boundary-check.sh for JRN-006 (harness: tests/run-all.sh --suite scripts/cache-boundary-check; no CI). On current code run 1 fails two assertions (depcruise runs; Boundary violations reads None.), run 2 passes as a regression guard. Built on branch phase1/003-jrn006 off spec/003-bash-cache-extractor (0035b63) because the worktree branch was cut from main."
 task_id: "phase-1-test-harness"
-worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-a6b988fda8197354e"
-branch: "worktree-agent-a6b988fda8197354e"
-base_commit: "ceeecf13da83ef4da95b23c52d78c89cab5cce82"
-head_commit: "1801bb79801608ff77f5c3769fe4e813c3c91155"
-files_changed:
-  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh"
-  - ".agents/skills/regenerate-caches/scripts/extractors/dependency-cruiser.sh"
-  - "PROVENANCE.md"
-  - "tests/README.md"
-  - "tests/fixtures/graph-extractors.sh"
-  - "tests/scripts/build-architecture.sh"
-  - "tests/scripts/cache-bash-project.sh"
-  - "tests/scripts/cache-js-unchanged.sh"
-  - "tests/scripts/cache-missing-extractor-key.sh"
-  - "tests/scripts/cache-mixed-extractors.sh"
-  - "tests/scripts/extractor-bash.sh"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-a916df243a7a4c89c"
+branch: "phase1/003-jrn006"
+base_commit: "0035b6382bfae839bd84525cc978ff4f798f4dce"
+head_commit: "6ec99fbab2ef6540eb032fd52422519b2927cf2b"
+files_changed: ["tests/scripts/cache-boundary-check.sh", "tests/README.md"]
 tests_added:
-  - {file: "tests/scripts/extractor-bash.sh", test: "output is dependency-cruiser-shaped JSON", kind: behaviour}
-  - {file: "tests/scripts/extractor-bash.sh", test: "claims *.sh files and bash-shebang files only, sorted", kind: behaviour}
-  - {file: "tests/scripts/extractor-bash.sh", test: "build.sh: edges for dir-anchored and $here sources, a dir-anchored call and a runtime-root call with an existing tail", kind: behaviour}
-  - {file: "tests/scripts/extractor-bash.sh", test: "deploy.sh: edge through one variable hop", kind: behaviour}
-  - {file: "tests/scripts/extractor-bash.sh", test: "paths.sh: edge for an inline dirname source", kind: behaviour}
-  - {file: "tests/scripts/extractor-bash.sh", test: "test file: edge to the lib it sources", kind: behaviour}
-  - {file: "tests/scripts/extractor-bash.sh", test: "dynamic source is couldNotResolve with its source text in module", kind: behaviour}
-  - {file: "tests/scripts/extractor-bash.sh", test: "runtime-root call with a missing tail is couldNotResolve with its source text in module", kind: behaviour}
-  - {file: "tests/scripts/extractor-bash.sh", test: "an unresolved dependency carries no resolved path", kind: negative}
-  - {file: "tests/scripts/extractor-bash.sh", test: "every resolved path is an existing repo file", kind: negative}
-  - {file: "tests/scripts/extractor-bash.sh", test: "exports: sorted unique top-level functions of sourced files only", kind: behaviour}
-  - {file: "tests/scripts/extractor-bash.sh", test: "output is deterministic", kind: edge}
-  - {file: "tests/scripts/extractor-bash.sh", test: "a scope with no bash files gives an empty modules list", kind: edge}
-  - {file: "tests/scripts/extractor-bash.sh", test: "a single-directory scope claims only its own files", kind: edge}
-  - {file: "tests/scripts/extractor-bash.sh", test: "no arguments / --root without --scope / a missing root exit 2", kind: negative}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 architecture renders without dependency-cruiser", kind: behaviour}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 edges for the sourced libs and the script calls", kind: behaviour}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 Unresolved edges follows Boundary violations as the last section", kind: behaviour}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 the dynamic source / the runtime-root call with a missing tail is listed with its file, line and source text", kind: behaviour}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 every unresolved bullet has the file:line text shape; bullets are byte-sorted", kind: edge}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 check-staged-cache.sh passes the architecture body / the modules body", kind: behaviour}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 lib Public interface is the union of its sourced files' functions", kind: behaviour}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 a module with no sourced file reads Not generated", kind: edge}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 entry candidates are the scripts nothing sources or calls, test files left out", kind: behaviour}
-  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 build.sh reaches the files it sources and calls", kind: behaviour}
-  - {file: "tests/scripts/cache-js-unchanged.sh", test: "JRN-002 architecture is the baseline plus Unresolved edges reading None.", kind: behaviour}
-  - {file: "tests/scripts/cache-js-unchanged.sh", test: "JRN-002 modules / entries is byte-identical to the baseline", kind: behaviour}
-  - {file: "tests/scripts/cache-js-unchanged.sh", test: "JRN-002 extractor prints depcruise's JSON unchanged", kind: behaviour}
-  - {file: "tests/scripts/cache-js-unchanged.sh", test: "JRN-002 extractor calls depcruise with today's flags", kind: behaviour}
-  - {file: "tests/scripts/cache-js-unchanged.sh", test: "JRN-002 extractor exits 2 when depcruise fails and names depcruise; no arguments exits 2", kind: negative}
-  - {file: "tests/scripts/cache-missing-extractor-key.sh", test: "JRN-003 the error calls it a breaking change, names agent-notes and gives the line to add", kind: negative}
-  - {file: "tests/scripts/cache-missing-extractor-key.sh", test: "JRN-003 --extractor bash still exits 2 with the same breaking-change message", kind: negative}
-  - {file: "tests/scripts/cache-missing-extractor-key.sh", test: "JRN-003 --from-json succeeds with a profile missing the key", kind: edge}
-  - {file: "tests/scripts/cache-missing-extractor-key.sh", test: "JRN-003 a profile naming an unknown extractor exits 2 naming it", kind: negative}
-  - {file: "tests/scripts/cache-mixed-extractors.sh", test: "JRN-004 one graph holds the bash and TS nodes; edges from both extractors", kind: behaviour}
-  - {file: "tests/scripts/cache-mixed-extractors.sh", test: "JRN-004 generator names bash,dependency-cruiser", kind: behaviour}
-  - {file: "tests/scripts/cache-mixed-extractors.sh", test: "JRN-004 a duplicate source across extractors exits 2 naming the file", kind: negative}
-  - {file: "tests/scripts/build-architecture.sh", test: "chk-arch-unresolved-ok, chk-arch-unresolved-none-ok", kind: behaviour}
-  - {file: "tests/scripts/build-architecture.sh", test: "chk-arch-unresolved-unsorted-rc, chk-arch-unresolved-unsorted-names-section, chk-arch-unresolved-before-violations", kind: negative}
-  - {file: "tests/scripts/build-architecture.sh", test: "chk-arch-without-unresolved-still-ok", kind: edge}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 1 architecture exits 0", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 1 never runs depcruise", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 1 Boundary violations names the extractors with no boundary checker", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 1 check-staged-cache.sh passes the architecture body", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 2 architecture exits 0", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 2 runs depcruise for the boundary check", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 2 Boundary violations lists the stub's violations", kind: "behaviour"}
 evidence:
-  red: "bash tests/scripts/extractor-bash.sh; FAIL claims *.sh files and bash-shebang files only, sorted got= want=bin/build.sh,bin/release,lib/paths.sh,lib/strings.sh,ops/report.sh,tests/build-test.sh,tools/deploy.sh (RESULT passed=6 failed=15). bash tests/scripts/cache-bash-project.sh; FAIL JRN-001 architecture renders without dependency-cruiser got=2 want=0 (passed=1 failed=19). bash tests/scripts/build-architecture.sh; FAIL chk-arch-unresolved-ok rc=1 want=0: sections must be exactly: Module graph, Edges, Boundary violations (passed=77 failed=3)"
-  green: "Not applicable at Phase 1: journey assertions are red by design. JRN-002's modules and entries byte-identity assertions already pass at HEAD, which confirms the stored baseline literals match the unchanged script."
-  suite: "tests/run-all.sh (run by hand): TOTAL passed=2764 failed=52 skipped=0 xfail=0 (51 suites); the only failing suites are the six new or extended ones. The Phase 1 toolchain ran with --skip test"
+  red: "tests/run-all.sh --suite scripts/cache-boundary-check; FAIL JRN-006 run 1 never runs depcruise (stub ran with: --config .workflow/tools/boundaries/dependency-cruiser.cjs -T json scripts); FAIL JRN-006 run 1 Boundary violations names the extractors with no boundary checker (got=None. want=Not checked: no boundary checker for this project's graph extractors (bash).)"
+  green: "Phase 1: passed=6 failed=2; run 2, run 1 exit 0, check-staged-cache.sh and shellcheck pass on current code"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/003-bash-cache-extractor --task-id phase-1-test-harness --work-type test-harness --skip test; lint pass, test skipped"
   toolchain: ".workflow/specs/003-bash-cache-extractor/artifacts/phase-1-test-harness/toolchain.txt (pass)"
-considered_not_built:
-  - "Updating the existing build-architecture suite's arch-golden and viol-sorted-unique: they encode today's three-section architecture body and will fail once Unresolved edges lands; the implementing task updates them with the renderer change"
-  - "Baseline renders as committed files under tests/: the test-harness profile forbids committed fixtures, so the outputs rendered at baseline_revision are kept as literals in cache-js-unchanged.sh"
-  - "Exact wording of the source text in unresolved bullets and module fields: the spec leaves open whether it is the whole line or the path argument, so tests only require it to contain the path text"
-  - "A regenerate-caches SKILL.md preflight check: markdown, verified at 5.3, not by the harness"
+considered_not_built: ["A shared marker-writing stub in tests/fixtures/graph-extractors.sh: only this suite needs it, so the two stubs live in the suite"]
 profile_wrong: null
 scope_expansion: null
 blocked: null
-discovered_work:
-  - kind: decision
-    summary: "The spec says the generator frontmatter names the extractors that ran, but no interface gives that name to the caller. The harness assumes build-architecture.sh --print-generator prints the sorted, comma-joined names (none left out) and exits 0."
-    evidence: "tests/scripts/cache-mixed-extractors.sh, JRN-004 generator names bash,dependency-cruiser; data-model.md Tier B frontmatter generator"
-    blocker_assessment: can-wait
-    reason: "It is needed by the implementing task, which can take the assumed flag or have the test changed when tasks are written."
-  - kind: decision
-    summary: "Architecture bullets need `file:line` for each unresolved edge, but the Graph JSON contract has no field for the line number. The harness checks the line only in the rendered architecture.md, not in the extractor JSON."
-    evidence: "data-model.md Graph JSON (no line field); tests/scripts/cache-bash-project.sh, JRN-001 the dynamic source is listed with its file, line and source text"
-    blocker_assessment: can-wait
-    reason: "The implementer can add an optional field such as `line`; it needs recording in the data model, not a decision before Phase 2."
-  - kind: requirement
-    summary: "shell-scripts profile File locations says skill script depth stops at scripts/<file> with no subfolders, which conflicts with the agreed extractors/ subfolder."
-    evidence: ".workflow/profiles/shell-scripts.md File locations: \"Depth stops at `.agents/skills/<s>/scripts/<file>`: no subfolders.\"; .agents/skills/regenerate-caches/scripts/extractors/"
-    blocker_assessment: can-wait
-    reason: "Lint globs still match the subfolder; the profile wording can be fixed through proposals.md at 5.3."
-  - kind: bug
-    summary: "This repo's .workflow/profiles/TEMPLATE.md has no graph_extractor key. If profile resolution reads every *.md in the profiles folder, the 5.3 build fails on the template unless it is skipped or given the key."
-    evidence: ".workflow/profiles/TEMPLATE.md"
-    blocker_assessment: can-wait
-    reason: "It only matters when the reader is built and run on this repo at 5.3."
+discovered_work: []

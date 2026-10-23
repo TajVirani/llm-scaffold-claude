@@ -1,0 +1,10 @@
+== scripts/cache-boundary-check
+FAIL JRN-006 run 1 never runs depcruise
+       --config .workflow/tools/boundaries/dependency-cruiser.cjs -T json scripts
+FAIL JRN-006 run 1 Boundary violations names the extractors with no boundary checker
+       got=None. want=Not checked: no boundary checker for this project's graph extractors (bash).
+
+== summary
+FAIL scripts/cache-boundary-check           passed=6    failed=2   skipped=0   xfail=0   3s
+TOTAL passed=6 failed=2 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/cache-boundary-check

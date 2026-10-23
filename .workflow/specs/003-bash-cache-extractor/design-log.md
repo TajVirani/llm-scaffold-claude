@@ -308,3 +308,10 @@ Module audit: not rerun; the 2026-10-21 audit covers `build-architecture.sh:218-
 
 - Re-run on this repo: `build-architecture.sh --cache architecture` exits 0 and Boundary violations reads `None.`; it does not die. `tool_cmd` picks `npx --no-install depcruise` whenever `npx` exists (`build-architecture.sh:248-254`) without checking it runs; the run fails (`npx --no-install depcruise --version` exits 1), `|| true` hides it (`:375`), and `jq` on the empty output prints nothing, so the section claims no violations although nothing was checked (`:381-384`).
 - D16 still removes the run for bash-only projects. The same false `None.` reaches a JS/TS project whose profile names `dependency-cruiser` but has no depcruise installed; whether that is in this change's scope (it predates the spec) is open for task breakdown, as a T9 acceptance criterion or as discovered work.
+
+## 2026-10-23 Phase 1 re-entry for JRN-006
+
+- 1.1: `spec_branch` and `baseline_revision` kept; no new target (the lint and script-coverage rows cover the `build-architecture.sh` change).
+- 1.2: the implementation agent built `tests/scripts/cache-boundary-check.sh` and merged as `06671b8`. Its worktree was cut from main rather than the spec branch, so it made `phase1/003-jrn006` off `0035b63` itself. A worktree write guard stopped it writing its result file to the main checkout; at the stakeholder's call the main session saved `artifacts/phase-1-test-harness/implementation.yaml` from its report (the first round is kept as `implementation-r1.yaml`). Retrospective note for 5.7.
+- 1.3: not applicable (no browser suite).
+- 1.4: Run 4 in `artifacts/phase-1-known-bad/record.md`: both run 1 assertions fail, run 2 passes as a regression guard.

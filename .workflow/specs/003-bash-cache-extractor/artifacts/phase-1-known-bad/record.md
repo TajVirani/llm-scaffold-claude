@@ -21,3 +21,14 @@ Not applicable: the project has no e2e work type and no browser UI; every journe
 ## Run 3: StrykerJS (step 1.4.3)
 
 Skipped: StrykerJS does not apply to bash, and the change's existing behaviour (JS/TS rendering) is pinned by the JRN-002 byte-identity oracle rendered at `baseline_revision`.
+
+## Run 4: JRN-006 re-entry (step 1.4.1, after the 5.6 change request)
+
+- Build: spec branch at `06671b8` (`0035b63` plus the merged JRN-006 suite only), run in a throwaway detached worktree.
+- Command: `tests/run-all.sh --suite scripts/cache-boundary-check`.
+- Exit: 1. `TOTAL passed=6 failed=2 skipped=0 xfail=0 (1 suites)`; full log [jrn-006.log](jrn-006.log).
+- Failing, both assertions:
+  - `JRN-006 run 1 never runs depcruise`: the stub was called with `--config .workflow/tools/boundaries/dependency-cruiser.cjs -T json scripts`.
+  - `JRN-006 run 1 Boundary violations names the extractors with no boundary checker`: `got=None. want=Not checked: no boundary checker for this project's graph extractors (bash).`
+- Passing, as intended: run 1 exits 0 and its body passes `check-staged-cache.sh`; run 2 (a `dependency-cruiser` profile) still runs the boundary check and lists the stub's violation. These are regression guards for behaviour D16 keeps.
+- Browser suite and StrykerJS: not applicable, as in Runs 2 and 3.
