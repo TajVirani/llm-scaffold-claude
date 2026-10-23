@@ -1,5 +1,5 @@
 flowchart TD
-    %% Reconciled with assetlist.md decisions D1-D79; names and paths follow assetlist.md
+    %% Reconciled with assetlist.md decisions D1-D101; names and paths follow assetlist.md
     intake(["0.0 - Feature request"])
     gTrivial{"0.0.1 - Trivial edit the stakeholder will review themselves?"}
     direct(["0.0.2 - Edit directly; no workflow"])
@@ -25,14 +25,14 @@ flowchart TD
     end
 
     subgraph DiscWork["Discovered work - scope-creep guardrail, run in the main session"]
-        dwBlock["00.21 - Set spec blocked at the current step: blocked_condition discovered work or size budget"]
-        dwPresent["00.22 - Present to the user: problem, evidence, assessment blocker or can wait, recommendation"]
+        dwBlock["00.21 - Blockers only, after the assessment: set spec blocked at the current step; blocked_condition discovered work or size budget"]
+        dwPresent["00.22 - Present every blocker that has arrived in one call: problem, evidence, assessment, recommendation"]
         gDwBlocker{"00.23 - Blocker for the current work?"}
         gDwDiscovery{"00.24 - Go to discovery to address it?"}
         gDwNext{"00.25 - Tackle it as the next feature?"}
-        dwWrite["00.26 - Write a work item to the backlog"]
+        dwWrite["00.26 - Duplicate check against the shelf and the open backlog, then append to the match or write a work item; can-wait items arrive here without a block"]
         dwItem[/"00.27 - .workflow/specs/work-backlog/NNN-slug-disc-###.md: origin, problem, evidence, size, status"/]
-        dwResume["00.28 - Unblock to blocked_from; continue the current work unchanged"]
+        dwResume["00.28 - Unblock a blocked spec to blocked_from; continue the current work unchanged; not run for a can-wait filing"]
         gDwBudget{"00.29 - Size budget crossed: split, re-scope or approve the overrun?"}
     end
 
@@ -144,7 +144,7 @@ flowchart TD
         selfreview["3.4 - Add negative and edge-case tests"]
         toolAudit["3.5 - On stop, run the profile's toolchain via run-toolchain.sh: lint with anti-slop rules, type-check, format, import-boundary check; reused when the tree is unchanged"]
         gTool{"3.6 - Tool audit clean?"}
-        miniReview["3.7 - Sub-agent: mini-review against the checklist items no tool can express, given the tool output; returns verdicts, not the checklist"]
+        miniReview["3.7 - Sub-agent: mini-review against the checklist items no tool can express, given the tool output; returns verdicts, not the checklist; files its verdict under artifacts itself; a re-check of failed items and changed lines after a wording-only fix round"]
         gMini{"3.8 - Mini-review passes?"}
         gSuites{"3.13 - Harness and browser suite both exist? Always yes on the full path"}
         skipSuites["3.14 - Light path only: skip only the gate of each missing suite; record the gap in spec.md and .workflow/deferred/"]
@@ -171,12 +171,12 @@ flowchart TD
     subgraph P5["Phase 5 - Sign-off"]
         reconcile["5.1 - Reconcile spec.md with what actually shipped"]
         propose["5.2 - Propose Tier A updates in proposals.md: new capabilities, changed rules, decisions, observed pitfalls, profile changes"]
-        gApproveDocs{"5.3 - Human approves or modifies the proposals?"}
+        gApproveDocs{"5.3 - Human approves or modifies the proposals? One round: approve all or name exceptions"}
         report["5.4 - report.md: test output (reuses the last passing run), metrics, known gaps"]
-        gApprove{"5.5 - Stakeholder approves the work?"}
+        gApprove{"5.5 - Stakeholder approves the work? Asked in one call with the backlog offer and the retrospective concerns"}
         reenter["5.6 - Read spec.md status; re-enter at the phase it names"]
         retro["5.7 - retrospective skill, run with stakeholder: judge the combined result against spec.md; agree process lessons"]
-        backlogOffer{"5.9 - Before done: offer each open work-backlog item from this spec as the next feature"}
+        backlogOffer{"5.9 - Before done: offer each open work-backlog item from this spec as the next feature; asked in the same call as 5.5"}
         done(["5.8 - Merge the spec branch into main through a PR and close"])
     end
 
