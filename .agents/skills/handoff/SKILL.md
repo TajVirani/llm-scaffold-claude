@@ -37,6 +37,17 @@ Write each fact once, in the place that owns it. For each section of the templat
 - **Only the conversation knows it**: write it in one line. A decision agreed in the conversation but not yet in `design-log.md` goes under Decisions marked `not logged`, so the next session logs it at its step.
 - **Nothing to say**: write `none`.
 
+Fill the two drift keys of the frontmatter, so the next session can see what landed on the main branch meanwhile:
+
+- **`main_sha`**: the main branch tip. Name the main branch, then resolve it (the script falls back to `main` outside a workflow project); outside a git repo, leave it `""`:
+
+  ```bash
+  main=$(.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch 2>/dev/null || echo main)
+  git rev-parse "$main"
+  ```
+
+- **`affected_paths`**: in a spec, the paths on the `Affected area:` line of `.workflow/specs/NNN-slug/codebase-map.md` (`grep '^Affected area:' .workflow/specs/NNN-slug/codebase-map.md`), module names dropped; with no codebase map, or outside a spec, the paths under **Files touched**. Repo-relative, one list item each.
+
 If the user passed an argument, it names what the next session is for: put what that work needs first and drop what it does not. Redact secrets, tokens, passwords and personal data; name where they live instead (`.env`, a vault entry).
 
 ### 3. Write the file
@@ -55,7 +66,25 @@ When the user picks a handoff (from the session-start offer, or by name):
 
 1. Read the file. Load the skills under **Load first**.
 2. If `spec` is set, load the `feature-workflow` skill for that spec. Its live `spec.md` status and `.step` win over `step_at_handoff`; if they differ, the spec moved on after the handoff: say so and trust the spec. Log any `not logged` decision through the module for the current step.
-3. Run the **Verify** check to confirm the state before the first change.
-4. Take the **Next action**.
+3. **Main drift.** When `main_sha` is set, set `main` as Write step 2 does and compare. If `git rev-parse "$main"` still equals `main_sha`, say "main has not moved" and go on. Otherwise run, with the `affected_paths` as `<paths>` (none listed: leave `-- <paths>` off):
+
+   ```bash
+   git log --oneline <main_sha>.."$main" -- <paths>
+   git diff --stat <main_sha>.."$main" -- <paths>
+   ```
+
+   Before the first action, tell the user what changed in the affected area: each commit and each file, one line each, or "main moved, but not in the affected area" when both print nothing. When `spec` is set and something changed, append a dated entry to `<spec>/design-log.md`, newest last:
+
+   ```markdown
+   ## YYYY-MM-DD Main moved since handoff
+
+   - Main: <main_sha short>..<new tip short> (<main branch>)
+   - Commit <sha> <subject>
+   - File <path> <+n -m>
+   ```
+
+   Done when the user has the drift report and, for a spec, the design log holds it.
+4. Run the **Verify** check to confirm the state before the first change.
+5. Take the **Next action**.
 
 The file stays while the work goes on; the next handoff for the same work replaces it. Delete it when its work is done or the user drops it.
