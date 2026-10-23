@@ -255,7 +255,7 @@ tool_cmd() { # tool_cmd ENVVAR_VALUE NAME -> sets the global array `cmd`; return
 }
 cmd=()
 
-# run_extractors NAME... : writes the merged graph of the named extractors to $cruise_json. Dies when an extractor fails or
+# run_extractors NAME... : writes the merged graph of the named extractors to $merged_graph_json. Dies when an extractor fails or
 #   prints no .modules array of objects with a string .source, and when two extractors claim the same file, since the merge would then hold the file twice.
 run_extractors() {
   local name rc s scope_args=() outputs=() claimed
@@ -270,21 +270,21 @@ run_extractors() {
       || die "graph extractor $name printed a .modules entry that is not an object with a string .source"
     outputs+=("$tmpd/graph-$name.json")
   done
-  if [[ ${#outputs[@]} -eq 0 ]]; then echo '{"modules":[]}' >"$cruise_json"; return 0; fi
+  if [[ ${#outputs[@]} -eq 0 ]]; then echo '{"modules":[]}' >"$merged_graph_json"; return 0; fi
   claimed="$(jq -rs '
       [range(0; length) as $i | .[$i].modules[].source | {file: ., by: $ARGS.positional[$i]}] | unique
       | group_by(.file) | map(select(length > 1) | "  \(.[0].file) (\(map(.by) | join(", ")))") | .[]' \
     "${outputs[@]}" --args "$@")"
   [[ -z "$claimed" ]] || die "files claimed by more than one graph extractor:
 $claimed"
-  jq -s '{modules: (map(.modules) | add), exports: (map(.exports // {}) | add)}' "${outputs[@]}" >"$cruise_json"
+  jq -s '{modules: (map(.modules) | add), exports: (map(.exports // {}) | add)}' "${outputs[@]}" >"$merged_graph_json"
 }
 
-cruise_json="$tmpd/cruise.json"
+merged_graph_json="$tmpd/merged-graph.json"
 if [[ -n "$from_json" ]]; then
   graph_origin="--from-json $from_json"
-  cp "$from_json" "$cruise_json" || die "cannot read --from-json $from_json"
-  jq -e '.modules | type == "array"' "$cruise_json" >/dev/null 2>&1 || die "--from-json $from_json is not JSON with a .modules array"
+  cp "$from_json" "$merged_graph_json" || die "cannot read --from-json $from_json"
+  jq -e '.modules | type == "array"' "$merged_graph_json" >/dev/null 2>&1 || die "--from-json $from_json is not JSON with a .modules array"
 else
   selected="$(selected_extractors)" || exit 2
   extractors=()
@@ -329,7 +329,7 @@ jq -S --argjson scopes "$scope_json" --argjson mods "$mods_json" '
   | ((.exports // {}) | with_entries(select($in[.key]))) as $exports
   | {files: $files, file_edges: $fedges, node_of: $nodeof, nodes: $nodes, edges: $edges, unresolved: $unresolved,
      exports: $exports, collisions: $coll}
-' "$cruise_json" >"$graph" || die "could not canonicalise the graph JSON ($graph_origin)"
+' "$merged_graph_json" >"$graph" || die "could not canonicalise the graph JSON ($graph_origin)"
 
 coll="$(jq -r '.collisions[] | join(" and ")' "$graph")"
 [[ -z "$coll" ]] || die "Mermaid node-id collision (rename or pass --module to separate): $coll"
