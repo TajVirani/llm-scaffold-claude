@@ -1,0 +1,50 @@
+{
+  "status": "pass",
+  "task_id": "T2",
+  "work_type": "shell-scripts",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t2/.workflow/profiles/shell-scripts.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t2",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/003-bash-cache-extractor/artifacts/T2",
+  "tree": "3407530a67ba69b069e3c083b6c915ea925f5a1c",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\"",
+      "status": "pass",
+      "exit_code": 0,
+      "scoped": true,
+      "own": 2,
+      "excluded": 2
+    }
+  ],
+  "digest": "",
+  "reused_from": "T2"
+}

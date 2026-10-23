@@ -1,0 +1,2 @@
+tests/scripts/build-architecture.sh
+tests/scripts/cache-js-unchanged.sh

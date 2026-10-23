@@ -22,7 +22,7 @@ tasks:
     pr: null
   - id: T2
     title: "Unresolved edges in architecture"
-    status: pending
+    status: done
     capability: CAP-NEW-bash-graph-extractor
     depends_on: [T1]
     touches_core: false
@@ -101,7 +101,7 @@ tasks:
     pr: null
   - id: T6
     title: "Discovery 0.2.8 publishes the extractor names"
-    status: pending
+    status: done
     capability: CAP-NEW-selectable-graph-extractor
     depends_on: [T1]
     touches_core: false
@@ -118,7 +118,7 @@ tasks:
     pr: null
   - id: T7
     title: "cache-regeneration agent names the extractors"
-    status: pending
+    status: done
     capability: CAP-NEW-selectable-graph-extractor
     depends_on: [T1]
     touches_core: false

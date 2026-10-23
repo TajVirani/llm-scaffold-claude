@@ -210,3 +210,5 @@ Found at 1.2 by the `implementation` agent (phase-1-test-harness, [result](artif
 
 - Pass. Two `out_of_scope_noticed` entries: the fixture-path wording question went to proposals.md P2 for 5.3; the "profile with no Toolchain section gets the wrong message" entry was dismissed after a run showed the breaking-change message naming the profile, exit 2.
 - 2026-10-23 wave 1: task PRs skipped for T1, T3, T8 (gh not installed); merged locally.
+- 2026-10-23 T2 (3.4) reported `cache-frontmatter.md:101-108` still describing three architecture sections: already T5's scope, not filed.
+- 2026-10-23 wave 2: task PRs skipped for T2, T6, T7 (gh not installed); merged locally.
