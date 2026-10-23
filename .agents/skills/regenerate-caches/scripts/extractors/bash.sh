@@ -17,12 +17,13 @@
 # Output: {"modules":[{"source","dependencies":[{"module","resolved"|"couldNotResolve","line"}]}],"exports":{}} on stdout,
 #   every list byte-sorted.
 # Exit: 0 = printed (an empty modules list is valid); 2 = usage error, missing root or scope, root not a git work tree,
-#   missing tool.
+#   missing tool, or a git ls-files, awk or jq failure.
 # Requires: git, awk, jq.
 # Sources: first-party. Output shape after dependency-cruiser's doc/output-format.md (MIT; shape only).
 set -euo pipefail
 export LC_ALL=C
 
+# die MESSAGE... : prints "extractors/bash: MESSAGE" to stderr and exits 2.
 die() { echo "extractors/bash: $*" >&2; exit 2; }
 
 usage_line="usage: extractors/bash.sh --root DIR --scope PATH [--scope PATH]..."
@@ -143,6 +144,7 @@ heredoc_end != "" {
     }
   }
 
+  # Without the (( guard an arithmetic shift such as (( n = 1 << k )) reads as a heredoc and skips the rest of the file.
   if (raw !~ /\(\(/ && match(raw, /(^|[^<])<<-?[ \t]*[\047"\\]?[A-Za-z_][A-Za-z0-9_]*/)) {
     marker = substr(raw, RSTART, RLENGTH)
     heredoc_strips_tabs = (marker ~ /<<-/)
