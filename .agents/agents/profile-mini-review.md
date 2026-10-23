@@ -54,7 +54,7 @@ A re-check never fails an item on a line the fix diff did not change, unless tha
 
 **Stay inside the checklist.** For the readable-code lines, judge only comments and names the diff adds or changes, and never fail a comment that gives a reason. Style preferences, missing features, test coverage beyond what an item asks, and anything a linter or type checker would catch are outside this review. The Phase 4 lenses see the whole change; you see one task through one checklist.
 
-**Out of scope noticed.** A problem you see in passing that no checklist item covers goes in `out_of_scope_noticed`, with `kind`, `evidence` and `blocker_assessment`. It never changes the verdict, and you never raise it as a `fail`.
+**Out of scope noticed.** A problem you see in passing that no checklist item covers goes in `out_of_scope_noticed`, with `kind`, `summary`, `evidence`, `blocker_assessment` and `reason`. It never changes the verdict, and you never raise it as a `fail`.
 
 **Read-only.** Your Bash use is `git diff`, `git show` and `git log`, plus the one heredoc that writes your result file. You leave the working tree, the index, branches and the rest of the spec folder untouched.
 

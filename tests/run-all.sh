@@ -239,13 +239,22 @@ report_suite() {
   rows+=("$(printf '%-4s %-38s passed=%-4s failed=%-3s skipped=%-3s xfail=%-3s %ss' "$status" "$label" "$p" "$fl" "$sk" "$xf" "$secs")")
 }
 
-# print_failures LOG : print each FAIL line of a suite log with the indented detail lines under it. A log without a
-# result footer is printed whole and indented, as the default output shows it.
+# print_failures LOG RC : print each FAIL line of a suite log with the indented detail lines under it. A log without a
+# result footer is printed whole and indented, as the default output shows it. When that leaves nothing to show (the
+# suite exited non-zero without a FAIL line), print its RESULT line, or its exit code when it has no RESULT line.
 print_failures() {
-  if grep -q '^RESULT ' "$1"; then
-    awk '/^FAIL / { in_fail = 1; print; next } /^       / { if (in_fail) print; next } { in_fail = 0 }' "$1"
+  local log=$1 rc=$2 out
+  if grep -q '^RESULT ' "$log"; then
+    out=$(awk '/^FAIL / { in_fail = 1; print; next } /^       / { if (in_fail) print; next } { in_fail = 0 }' "$log")
   else
-    sed 's/^/   /' "$1"
+    out=$(sed 's/^/   /' "$log")
+  fi
+  if [ -n "$out" ]; then
+    printf '%s\n' "$out"
+  elif grep -q '^RESULT ' "$log"; then
+    grep '^RESULT ' "$log" | tail -1 | sed 's/^/       /'
+  else
+    printf '       exited %s with no FAIL line\n' "$rc"
   fi
 }
 
@@ -287,7 +296,8 @@ if [ "${#failed_suites[@]}" -gt 0 ]; then
     printf '\n== failures\n'
     for i in "${!failed_suites[@]}"; do
       printf -- '-- %s\n' "${failed_suites[$i]}"
-      print_failures "$results/${failed_indexes[$i]}.log"
+      read -r rc _ <"$results/${failed_indexes[$i]}.done"
+      print_failures "$results/${failed_indexes[$i]}.log" "$rc"
     done
   fi
   exit 1
