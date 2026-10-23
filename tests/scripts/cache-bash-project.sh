@@ -4,7 +4,8 @@
 # Covers: architecture.md module edges from `source` lines and script calls, the dynamic `source` and the runtime-root call
 #   with a missing tail listed under "## Unresolved edges" as sorted `- \`<file>:<line>\` \`<source text>\`` bullets after
 #   "## Boundary violations"; modules.md Public interface as the sorted union of the functions of a module's sourced files,
-#   "Not generated" for modules with none; flows entry candidates without files matching the profile's test_patterns;
+#   "Not generated" for modules with none and "none exported" for an empty exports entry; flows entry candidates without files
+#   matching the profile's test_patterns, `[]` falling back to the defaults, a malformed test_patterns exiting 2;
 #   check-staged-cache.sh passing the rendered architecture and modules bodies. CAP-NEW-bash-graph-extractor,
 #   CAP-NEW-selectable-graph-extractor.
 # shellcheck disable=SC2016  # literal Markdown backticks in single quotes; check expressions are eval'd on purpose
@@ -78,6 +79,43 @@ check "JRN-001 the test file is not an entry candidate" \
 eq "JRN-001 build.sh reaches the files it sources and calls" \
   "$(jq -r '.candidates[] | select(.file == "bin/build.sh") | .reaches_files | join(",")' <<<"$ent" 2>/dev/null)" \
   "bin/build.sh,lib/paths.sh,lib/strings.sh,ops/report.sh,tools/deploy.sh"
+
+echo "== modules Public interface edges"
+cat >"$WORK/exports.json" <<'EOF'
+{"modules":[
+ {"source":"bin/build.sh","dependencies":[{"resolved":"lib/strings.sh"},{"resolved":"ops/report.sh"}]},
+ {"source":"lib/strings.sh","dependencies":[]},
+ {"source":"ops/report.sh","dependencies":[]}
+],"exports":{"lib/strings.sh":["upper_case","trim"],"ops/report.sh":[]}}
+EOF
+mods=$("$B" --cache modules --scope bin --scope lib --scope ops --module bin --module lib --module ops \
+  --from-json "$WORK/exports.json"); rc=$?
+eq "modules from exports JSON exits 0" "$rc" 0
+eq "a module whose files carry no exports reads Not generated" \
+  "$(section "$mods" bin | grep '^- Public interface')" "- Public interface: Not generated: no tsconfig.json."
+eq "a sibling module lists its files' functions, sorted" \
+  "$(section "$mods" lib | sed -n '/^- Public interface:/,$p')" '- Public interface:
+  - `trim` (function)
+  - `upper_case` (function)'
+eq "a module whose exports entry is empty reads none exported" \
+  "$(section "$mods" ops | grep '^- Public interface')" "- Public interface: none exported"
+
+echo "== entries test_patterns edges"
+write_profile "$R" shell-scripts bash '[]'
+ent=$("$B" --cache entries "${BASH_SCOPES[@]}" "${BASH_MODULES[@]}"); rc=$?
+eq "test_patterns [] runs entries" "$rc" 0
+eq "test_patterns [] falls back to the defaults, which leave tests/ out" \
+  "$(jq -r '[.candidates[].file] | join(",")' <<<"$ent" 2>/dev/null)" "bin/build.sh,bin/release"
+write_profile "$R" shell-scripts bash '"tests/"'
+out=$("$B" --cache entries "${BASH_SCOPES[@]}" "${BASH_MODULES[@]}" 2>&1); rc=$?
+eq "test_patterns that is a string, not a list, exits 2" "$rc" 2
+check "the error names the profile and the list rule" \
+  'printf "%s" "$out" | grep -qF "test_patterns in .workflow/profiles/shell-scripts.md must be a list of non-empty path patterns"' "$out"
+write_profile "$R" shell-scripts bash '["tests/", ""]'
+out=$("$B" --cache entries "${BASH_SCOPES[@]}" "${BASH_MODULES[@]}" 2>&1); rc=$?
+eq "test_patterns holding an empty string exits 2" "$rc" 2
+check "no entries JSON is printed on the error" '! printf "%s" "$out" | grep -q candidates' "$out"
+write_profile "$R" shell-scripts bash '["tests/"]'
 
 shellcheck_files "shellcheck: build-architecture.sh, check-staged-cache.sh, extractors/bash.sh" "$B" "$C" "$X"
 finish
