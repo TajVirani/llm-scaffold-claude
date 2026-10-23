@@ -4,7 +4,7 @@
 #   .workflow/cache/architecture.md body; `--cache modules` prints the modules.md skeleton with one `<!-- slot: purpose -->`
 #   per module for the cache-regeneration agent to fill; `--cache entries` prints the flows.md entry-point candidates
 #   (files nothing in scope imports, minus test files: the JS/TS test and declaration names and the work profiles' Toolchain
-#   `test_patterns`, matched as the budget check matches them) with what each reaches, as JSON, for the agent to choose from (entry points are discovered each run; there is no config).
+#   `test_patterns`, matched as the step that counts a change's files against its size limit matches them) with what each reaches, as JSON, for the agent to choose from (entry points are discovered each run; there is no config).
 #   Body shapes: assets/cache-frontmatter.md "Body shape per cache type". The architecture body ends with "## Unresolved edges":
 #   one sorted bullet `- \`<file>:<line>\` \`<source text>\`` (`<file>` alone without a line) per dependency of an in-scope file
 #   marked couldNotResolve, the source text taken from its `module`; or `None.`.
@@ -514,7 +514,7 @@ render_modules() {
   done < <(jq -r '.nodes[]' "$graph")
 }
 
-# Same defaults and matching as the budget check's test counting, so a file that check counts as a test is never an entry candidate.
+# Same defaults and matching as the step that counts a change's files against its size limit, so a file that step counts as a test is never an entry candidate.
 DEFAULT_TEST_PATTERNS='*.test.*
 *.spec.*
 __tests__/
