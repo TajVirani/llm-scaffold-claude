@@ -10,7 +10,7 @@
 # shellcheck disable=SC2016,SC2034  # literal Markdown backticks in single quotes; check expressions read vars through eval
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
-# shellcheck source=../fixtures/graph-extractors.sh
+# shellcheck source=../fixtures/graph-extractors.sh  # TESTS_DIR is set by common.sh, so shellcheck cannot follow the path alone
 source "$TESTS_DIR/fixtures/graph-extractors.sh"
 preflight
 
