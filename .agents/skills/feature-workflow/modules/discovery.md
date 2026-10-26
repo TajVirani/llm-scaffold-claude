@@ -95,7 +95,7 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
      ```bash
      .agents/skills/regenerate-caches/scripts/check-staged-cache.sh <type> .workflow/.cache-staging/<type>.md
      .agents/skills/regenerate-caches/scripts/publish-cache.sh .workflow/.cache-staging/<type>.md <type> <scope-path> [<scope-path> ...]
-     # architecture only: add --generator dependency-cruiser
+     # architecture only: add --generator "$(.agents/skills/regenerate-caches/scripts/build-architecture.sh --print-generator)"
      ```
 
      `check-staged-cache.sh` exit 0 → publish. Exit 1 (problems listed on stderr): resume the agent once with those lines; if it fails again, do not publish. `publish-cache.sh` exit 0 published; exit 1 means the staged file is missing, empty or fails validation. For any cache not published, carry it into the `retrieval` launch as stale (it then reads the code for it and reports its stamp as `null`) and tell the stakeholder which cache is out of date.

@@ -1,0 +1,32 @@
+status: "done"
+summary: "Mini-review round 1 fixed (die interface line, reason for the (( guard, tool-failure clause in # Exit:). extractors/bash.sh now claims *.sh and bash/sh-shebang files under the scopes (git-listed, symlinks skipped) and prints sorted, deterministic dependency-cruiser-shaped JSON: an edge per statically resolvable source/. line or $var/$(dirname ...) script path, couldNotResolve with module text and line otherwise, and an exports map of column-0 functions of sourced files. On this repo (--scope .agents --scope tests --scope scripts --scope install.sh) it runs in 0.33 s wall: 98 modules, 109 resolved edges, 220 unresolved (all under tests/, which call copies of scripts in temp dirs); every .agents and install.sh source line resolves."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3"
+branch: "task/003-bash-cache-extractor/T03-bash-graph-extractor"
+base_commit: "e0cf15b6b2ff4ec89e99438edea4bbb988eaaa8d"
+head_commit: "b27b1ac436f168e1c9fede81cdd1f40da20791fa"
+files_changed:
+  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh"
+  - "tests/scripts/extractor-bash.sh"
+tests_added:
+  - {file: "tests/scripts/extractor-bash.sh", test: "a scope that climbs out of the root is a usage error", kind: "negative"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a missing scope path is an error", kind: "negative"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "an unknown argument is a usage error", kind: "negative"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a root outside git is an error", kind: "negative"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a run-time variable set from another one plus a tail resolves through one hop", kind: "edge"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a heredoc body and a redirection target add no edge; a dir-anchored missing file is unresolved at its line", kind: "edge"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a file nothing sources has no exports entry", kind: "edge"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/extractor-bash on the stub: FAIL scripts/extractor-bash passed=6 failed=15 (e.g. 'FAIL claims *.sh files and bash-shebang files only, sorted got= want=bin/build.sh,...'); hop edge case on the pre-hop build: '[{\"module\":\"$scripts/check.sh\",\"couldNotResolve\":true,\"line\":3}]'"
+  green: "tests/run-all.sh --suite scripts/extractor-bash: PASS passed=28 failed=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/003-bash-cache-extractor --task-id T3 --cwd <worktree>: lint pass, test (scoped, own 1, excluded 5) pass 28/28"
+  toolchain: ".workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "find fallback for a root that is not a git work tree: build-architecture.sh already requires git and a clean tree; a non-git root exits 2"
+  - "brace-depth tracking for top-level functions: a function counts as top-level when its definition starts in column 0, which matches every file in this repo and the fixture"
+  - "following variables set in another (sourced) file, e.g. TESTS_DIR from tests/lib/common.sh: would need cross-file evaluation; such paths are reported couldNotResolve"
+  - "a literal relative call such as 'bash scripts/x.sh' (no variable anchor): cwd-relative, so it is not treated as a call; a literal relative source path is reported couldNotResolve"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

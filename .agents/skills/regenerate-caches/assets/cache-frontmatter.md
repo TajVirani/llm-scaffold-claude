@@ -20,7 +20,7 @@ Every file in `.workflow/cache/` starts with this YAML frontmatter. A cache is d
 | `generated_at` | yes | quoted string, UTC ISO 8601 (`"2026-10-15T09:30:00Z"`) | When the cache was published. Informational; staleness is decided by the commit, never by this date. |
 | `scope` | yes | list of repo-relative paths, at least one | Paths the cache covers (files or directories, no globs). A cache is stale when any path in `scope` changed between `generated_at_commit` and `HEAD`. `architecture` also lists `.workflow/tools/boundaries/dependency-cruiser.cjs` when it exists: a stamp-only path for its Boundary violations, never passed to `build-architecture.sh --scope`. |
 | `cache_type` | yes | `modules` \| `flows` \| `architecture` | Which cache this is; must match the file name (`.workflow/cache/<cache_type>.md`). |
-| `generator` | yes | string | What produced the body, for example `cache-regeneration` or `dependency-cruiser`. Free text, no version-sensitive values required. |
+| `generator` | yes | string, not empty | What produced the body. `modules` and `flows`: `cache-regeneration`. `architecture`: the names of the graph extractors that produced the file graph, sorted and comma-joined (`bash`, `dependency-cruiser`, `bash,dependency-cruiser`), as `build-architecture.sh --print-generator` prints them. Free text, no version-sensitive values required. |
 
 No other fields. Keep the frontmatter machine-read and the body human-read.
 
@@ -67,7 +67,7 @@ Output is identical for identical scope and commit, whether launched by 0.2.8 or
 
 ## Body shape per cache type
 
-A script generates whatever can be generated; the `cache-regeneration` agent writes only bounded text into fixed slots, so two runs at the same commit produce the same file. `scripts/build-architecture.sh` produces the generated parts from one dependency-cruiser run, and `scripts/check-staged-cache.sh` rejects a staged body that breaks the shapes below.
+A script generates whatever can be generated; the `cache-regeneration` agent writes only bounded text into fixed slots, so two runs at the same commit produce the same file. `scripts/build-architecture.sh` produces the generated parts from one file graph: it runs every graph extractor the work profiles name (`graph_extractor` in each profile's Toolchain block; shipped: `bash`, `dependency-cruiser`, or `none` for a profile with no code), each over the files it claims, and merges their graphs. `scripts/check-staged-cache.sh` rejects a staged body that breaks the shapes below.
 
 ### Rules for every body
 
@@ -78,7 +78,7 @@ A script generates whatever can be generated; the `cache-regeneration` agent wri
 - **From code at HEAD.** The scope paths must have no uncommitted or untracked changes; the build refuses otherwise.
 - **No slot left.** A generated `<!-- slot: ... -->` marker must be replaced before publishing.
 
-### `architecture.md` (fully generated, `generator: dependency-cruiser`)
+### `architecture.md` (fully generated, `generator:` the extractor names)
 
 `build-architecture.sh --cache architecture` writes the whole body; the agent does not change it. Its `scope` includes `.workflow/tools/boundaries/dependency-cruiser.cjs` when that file exists, so a boundary-config change marks it stale (see the `scope` field).
 
@@ -101,11 +101,16 @@ flowchart LR
 ## Boundary violations
 
 - `billing-not-to-ledger`: `src/billing/index.ts` → `src/ledger/index.ts`
+
+## Unresolved edges
+
+- `scripts/deploy.sh:12` `source "$CONFIG_DIR/env.sh"`
 ````
 
 - **Module graph:** every module node (sorted), then every module-to-module edge (sorted, self-edges dropped).
 - **Edges:** the same edges as text, or `None.`.
-- **Boundary violations:** `rule: from → to` from `depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs -T json`, sorted, or `None.`; `Not checked: no boundary config at .workflow/tools/boundaries/dependency-cruiser.cjs.` when the project has none.
+- **Boundary violations:** `rule: from → to` from `depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs -T json`, sorted, or `None.`. depcruise runs only when that config exists and a work profile names `dependency-cruiser` (`--violations-json` replaces the run; with `--from-json` it runs whenever the config exists). When no profile names `dependency-cruiser`, the section reads `Not checked: no boundary checker for this project's graph extractors (<names>).`, `<names>` being the `--print-generator` value, or `none`. When a profile names `dependency-cruiser` but the config is missing, it reads `Not checked: no boundary config at .workflow/tools/boundaries/dependency-cruiser.cjs.`.
+- **Unresolved edges:** one bullet per dependency of an in-scope file whose target the extractor could not resolve to an existing file (`couldNotResolve: true` in the graph JSON), sorted, or `None.`. A bullet is `` - `<file>:<line>` `<source text>` ``: `<file>` is the dependent file, `<line>` the 1-based `line` of the dependency in the graph JSON, and `<source text>` its `module` (the import or `source` text as written). When the extractor gives no `line`, the bullet is `` - `<file>` `<source text>` ``. These edges are not drawn in the Module graph or listed under Edges. A cache published before this section existed still validates until its next regeneration.
 
 ### `modules.md` (generated skeleton, agent-written Purpose)
 

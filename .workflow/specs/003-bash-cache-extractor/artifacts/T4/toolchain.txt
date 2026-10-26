@@ -1,0 +1,13 @@
+== lint: git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+== lint exit 0
+
+== test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
+== scripts/cache-bash-project
+== scripts/cache-mixed-extractors
+
+== summary
+PASS scripts/cache-bash-project             passed=30   failed=0   skipped=0   xfail=0   4s
+PASS scripts/cache-mixed-extractors         passed=8    failed=0   skipped=0   xfail=0   3s
+TOTAL passed=38 failed=0 skipped=0 xfail=0 (2 suites)
+== test exit 0
+

@@ -1,0 +1,23 @@
+lens: review-end-state
+status: "done"
+blocked_reason: ""
+baseline_revision: "86609a64711682747a07bea99a7ed442cf5a827c"
+head: "a4342de949aefb3ed8521b72c9f4c4a4b6a1249e"
+findings: []
+checked:
+  - "Diff pinned: git diff 86609a6...a4342de excluding the spec dir (35 files, +2038/-65) and git log (T1-T10 plus rework 1 and wave 4); read build-architecture.sh, extractors/bash.sh, extractors/dependency-cruiser.sh, check-staged-cache.sh in full diff, and the doc diffs (regenerate-caches SKILL.md, cache-frontmatter.md, cache-regeneration agent, discovery.md, project-setup TEMPLATE.md, examples, modules/profiles.md, PROVENANCE.md, this repo's profiles, GLOSSARY, capabilities.md)."
+  - "CAP-004 profile resolution: profile_extractors reads graph_extractor from every non-TEMPLATE profile's Toolchain block, skips none, rejects unknown names; selected_extractors always resolves profiles, so --extractor still requires the key (D12); --from-json bypasses profiles; run_extractors merges .modules and .exports and fails on a file claimed twice. Met."
+  - "CAP-004 missing key: the die message starts 'breaking change:', lists each profile and gives 'graph_extractor: <name>' to add (D5, D8); SKILL.md preflight runs --print-generator and tells the human to show its message. Met."
+  - "CAP-004 boundary rule (D16, D17): render_boundary_violations prints 'Not checked: no boundary checker for this project's graph extractors (<names>).' when no selected extractor is dependency-cruiser, before the config check; --violations-json still overrides; --from-json keeps today's rule as D16 says. D18: SKILL.md step 3 keeps the boundary config in the architecture stamp scope. Met."
+  - "CAP-004 generator (D14): --print-generator prints the sorted comma-joined names; discovery.md, cache-regeneration.md, SKILL.md step 7 and cache-frontmatter.md no longer hardcode dependency-cruiser. Met."
+  - "CAP-004 JS/TS byte-identity: extractors/dependency-cruiser.sh invokes depcruise with the baseline's exact flags (--no-config, --ts-config when tsconfig.json exists, --exclude node_modules, -T json); tests/scripts/cache-js-unchanged.sh keeps baseline renders from 86609a6 as literals. Met."
+  - "CAP-005 bash extractor: claims *.sh and bash/sh-shebang files, edges for source/. lines and anchored calls, couldNotResolve with module text and line for the rest including cwd-relative calls, exports for sourced files' column-0 functions (D3, D6, D9, D15). Met on fixtures per the suites."
+  - "CAP-005 renders: architecture '## Unresolved edges' bullets or None. (D10); check-staged-cache.sh changes only to accept that section and check its sort order (Constraint); modules Public interface is the union of exports when tsc output is absent (D11; data-model.md says exports are read 'only when tsc output is absent'); entries drop files matching any profile's test_patterns (D13). Met."
+  - "Constraints: no new runtime dependency (bash extractor needs git, awk, jq); every extractor prints dependency-cruiser's shape; this repo's profiles gained graph_extractor (agent-docs none, shell-scripts and test-harness bash) through the 5.3 proposals (dd3bfb9). Met."
+  - "Non-goals: install.sh untouched (not in the diff stat); no extractor for another language, no markdown extractor, no bash boundary checker, no edits to target projects' profiles. None crossed."
+  - "Journeys JRN-001, JRN-002, JRN-003, JRN-004, JRN-006: artifacts/gate-3.9-w4/toolchain.json status pass on tree 3eba1c3; toolchain.txt shows PASS for scripts/cache-bash-project (32), cache-js-unchanged (13), cache-missing-extractor-key (9), cache-mixed-extractors (8), cache-boundary-check (8), extractor-bash (31), graph-extractor-selection (38), build-architecture (87); TOTAL 2891 passed, 0 failed. Read tests/scripts/cache-boundary-check.sh in full and the head of cache-js-unchanged.sh."
+  - "Phase 1 known-bad evidence: artifacts/phase-1-known-bad/record.md, harness.log, jrn-006.log present and tracked."
+not_verifiable:
+  - "JRN-005 and the last CAP-005 success line (this repo's three caches built, passing check-staged-cache.sh, published with generator naming the extractors, cache-stamp-check.sh exit 0): manual at 5.3, which comes after this review. No evidence yet: grep for JRN-005 under artifacts/ finds only phase-1-known-bad/record.md and the pass-1 review file, and .workflow/cache/ does not exist. The orchestrator must run it at 5.3 and file the evidence under artifacts/; the profile keys it needs are already applied."
+not_checked:
+  - "Running build-architecture.sh or extractors/bash.sh on this repo: outside the read-only command set of this lens; relied on the gate-3.9-w4 harness evidence instead."

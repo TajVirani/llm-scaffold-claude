@@ -1,0 +1,48 @@
+{
+  "status": "pass",
+  "task_id": "phase-1-test-harness",
+  "work_type": "test-harness",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-a916df243a7a4c89c/.workflow/profiles/test-harness.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-a916df243a7a4c89c",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/003-bash-cache-extractor/artifacts/phase-1-test-harness",
+  "tree": "39a70a1cd73d56e6abf579768abfab4d12b37bb6",
+  "ran": 1,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "skipped by caller"
+    }
+  ],
+  "digest": "",
+  "reused_from": "phase-1-test-harness"
+}

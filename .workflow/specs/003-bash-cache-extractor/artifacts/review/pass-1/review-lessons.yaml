@@ -1,0 +1,16 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "86609a64711682747a07bea99a7ed442cf5a827c"
+head: "48d8646a806d8f0c37063c2d026bf9dcc141328f"
+findings: []
+checked:
+  - ".workflow/review-lessons.md"
+  - ".workflow/decisions/pitfalls.md"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md"
+not_checked:
+  - "RL-001 (hard-coded agent and task-type counts): no new agent or task type in the diff; the two new files are regenerate-caches extractors, and PROVENANCE's Agents (14) row and install-manifest's Agents (14) header are unchanged. Not a repeat."
+  - "Retrospective 004 process lesson, Conventional Commits subjects: the change's commit subjects (T1:, T3:, Merge T4:, etc.) do not follow the convention, and this repeats that lesson. Rules line .workflow/rules.md:145 states the rule and .workflow/pr-quality/commit-hygiene.md flags it (MEDIUM, report-only), so the repeat is owned by that check and scores under 80."
+  - "Pitfall 'Point at a folder instead of restating its tree in the README': tests/README.md gained suite and fixture rows. They describe suites and fixture purposes, not a tree of hooks or helpers, so the repeat is not shown. Score under 80."
+  - "Pitfalls 'Edit frontmatter with yq --front-matter=extract -i', 'Quote heredocs that write markdown', 'Never overlap a 3.9 gate', 'Assign capability ids': no matching hunk. The heredocs in the diff are quoted or are test fixtures, and the frontmatter and capability edits live in the excluded spec folder or in no diff hunk."

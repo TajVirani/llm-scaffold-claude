@@ -1,0 +1,26 @@
+status: "done"
+summary: "Added tests/scripts/cache-boundary-check.sh for JRN-006 (harness: tests/run-all.sh --suite scripts/cache-boundary-check; no CI). On current code run 1 fails two assertions (depcruise runs; Boundary violations reads None.), run 2 passes as a regression guard. Built on branch phase1/003-jrn006 off spec/003-bash-cache-extractor (0035b63) because the worktree branch was cut from main."
+task_id: "phase-1-test-harness"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-a916df243a7a4c89c"
+branch: "phase1/003-jrn006"
+base_commit: "0035b6382bfae839bd84525cc978ff4f798f4dce"
+head_commit: "6ec99fbab2ef6540eb032fd52422519b2927cf2b"
+files_changed: ["tests/scripts/cache-boundary-check.sh", "tests/README.md"]
+tests_added:
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 1 architecture exits 0", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 1 never runs depcruise", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 1 Boundary violations names the extractors with no boundary checker", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 1 check-staged-cache.sh passes the architecture body", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 2 architecture exits 0", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 2 runs depcruise for the boundary check", kind: "behaviour"}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "JRN-006 run 2 Boundary violations lists the stub's violations", kind: "behaviour"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/cache-boundary-check; FAIL JRN-006 run 1 never runs depcruise (stub ran with: --config .workflow/tools/boundaries/dependency-cruiser.cjs -T json scripts); FAIL JRN-006 run 1 Boundary violations names the extractors with no boundary checker (got=None. want=Not checked: no boundary checker for this project's graph extractors (bash).)"
+  green: "Phase 1: passed=6 failed=2; run 2, run 1 exit 0, check-staged-cache.sh and shellcheck pass on current code"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/003-bash-cache-extractor --task-id phase-1-test-harness --work-type test-harness --skip test; lint pass, test skipped"
+  toolchain: ".workflow/specs/003-bash-cache-extractor/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+considered_not_built: ["A shared marker-writing stub in tests/fixtures/graph-extractors.sh: only this suite needs it, so the two stubs live in the suite"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

@@ -73,8 +73,13 @@ mermaid_blocks() { awk '/^```mermaid[[:space:]]*$/ {m=1; next} m && /^```/ {m=0;
 
 case "$type" in
   architecture)
-    [[ "$headings" == "$(printf '%s\n' "Module graph" "Edges" "Boundary violations")" ]] \
-      || add "sections must be exactly: Module graph, Edges, Boundary violations (in that order)"
+    # A body published before Unresolved edges existed stays valid until its next regeneration.
+    if [[ "$headings" != "$(printf '%s\n' "Module graph" "Edges" "Boundary violations" "Unresolved edges")" \
+       && "$headings" != "$(printf '%s\n' "Module graph" "Edges" "Boundary violations")" ]]; then
+      add "sections must be exactly: Module graph, Edges, Boundary violations, Unresolved edges (in that order; Unresolved edges may be absent)"
+    fi
+    u="$(section "Unresolved edges" | sed '/^[[:space:]]*$/d')"
+    if [[ -n "$u" && "$u" != "None." ]]; then printf '%s\n' "$u" | sorted_unique || add "Unresolved edges list is not byte-sorted and unique"; fi
     g="$(section "Module graph" | mermaid_blocks)"
     [[ "$(printf '%s\n' "$g" | grep -c '^%%END$' || true)" -eq 1 ]] || add "Module graph must hold exactly one mermaid block"
     [[ "$(head -1 <<<"$g")" == "flowchart LR" ]] || add "Module graph block must start with 'flowchart LR'"

@@ -1,0 +1,65 @@
+verdict: fail
+task_id: T3
+work_type: shell-scripts
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3@32c3aa60bd938a569dd7cab0f0157ac1d4a2e5e7..HEAD
+tool_output: .workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: the diff adds no .workflow path to any script; the only docs-style strings are fixture text in tests/scripts/extractor-bash.sh
+  - n: 2
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: the change is in the regenerate-caches helper extractors/bash.sh, not in a hook
+  - n: 3
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: the diff adds no error path; the new continue branches at bash.sh:397 and bash.sh:400 classify commands and do not fail
+  - n: 4
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: no exit code is added or changed; the Exit header at bash.sh:20-21 is untouched
+  - n: 5
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: the diff resolves no sibling path
+  - n: 6
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:1-23
+    note: the helper header keeps its File, Purpose, Usage, Output, Exit, Requires and Sources shape; the one changed header line (bash.sh:7) names no decision ID
+  - n: 7
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:25, tests/scripts/extractor-bash.sh:109-150
+    note: no new file is added; the edited bash.sh keeps set -euo pipefail, and the test additions use the existing eq and quoted heredoc harness
+  - n: 8
+    verdict: pass
+    location: bash.sh:319 split_commands, bash.sh:341 report_cwd_relative_calls, bash.sh:365 unquoted_code, bash.sh:395 report_bare_relative_calls
+    note: each new or re-signed function has its name, ARGS and purpose line; the diff adds no shellcheck directive
+  - n: R1
+    verdict: pass
+    location: bash.sh:95, bash.sh:111-113, bash.sh:319, bash.sh:365, bash.sh:395
+    note: function and variable names say what they hold; opened is terse but the header at bash.sh:319-320 defines it, and continues_mid_command and continued_mid_command are distinct by role
+  - n: R2
+    verdict: fail
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:380
+    note: the clause || span_carried has no reason, and a reader who drops it makes a multi-line string tail such as ;scripts/x.sh" inside a string report a false call (a probe on hooks/fp.sh gains a dependency with the clause removed, none with it); add a comment on bash.sh:380 saying a quoted span that began on an earlier line counts as holding a space, so text inside the string never reads as a command
+  - n: R3
+    verdict: pass
+    location: bash.sh:112, bash.sh:324, bash.sh:397, tests/scripts/extractor-bash.sh:109-112
+    note: each added comment gives a reason or describes behaviour; none restates the line below it
+  - n: R4
+    verdict: pass
+    location: bash.sh:112, bash.sh:324, bash.sh:397, tests/scripts/extractor-bash.sh:109-112
+    note: no added comment names a decision ID, a doc or workflow path, a spec or task ID
+  - n: R5
+    verdict: pass
+    location: bash.sh:112, bash.sh:324, bash.sh:397, tests/scripts/extractor-bash.sh:109-112
+    note: the added comments use plain words; PATH, jq and case pattern are standard shell and tool terms
+read_outside_diff:
+  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh: full file, for the header shape, the set line and the sibling functions"
+  - "tests/scripts/extractor-bash.sh: fixture lines 109-150, for the expected outputs of the new forms"
+  - "scratch probes under /private/tmp/claude-502/-Users-tvirani-Desktop-Projects-llm-scaffold-claude/d6fca8e2-687e-4572-b63e-846fdf30085c/scratchpad/p1, p2 and bash-nocarry.sh: ran HEAD and a copy without the || span_carried clause on a multi-line quoted string, and ran a true && backslash continuation, which HEAD reports at line 3"
+out_of_scope_noticed: []

@@ -1,0 +1,53 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "86609a64711682747a07bea99a7ed442cf5a827c"
+head: "a4342de949aefb3ed8521b72c9f4c4a4b6a1249e"
+findings:
+  - id: RS-1
+    category: smell
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/regenerate-caches/scripts/build-architecture.sh:154-163,543-551"
+    claim: "Possible Duplicated Code: profile_extractors and test_patterns each repeat the same walk over the work profiles: the same glob, the same TEMPLATE.md skip, the same toolchain_block call, the same yq tag probe and the same 'does not parse' die."
+    consequence: "The rule for which files under the profiles folder count as work profiles now lives in two places in one script. If a later change skips another file there (an examples/ copy, a README.md), only one loop is likely to get the change. graph_extractor and test_patterns would then disagree about the profile set. For example, the extractor check would stop the build on a file that the test-pattern reader ignores."
+    evidence:
+      basis: "Smell baseline: Duplicated Code (the same logic shape appears in more than one hunk in the change)."
+      diff: "+  for path in \"$root/$WF_PROFILES\"/*.md; do\n+    [[ -f \"$path\" && \"$(basename \"$path\")\" != TEMPLATE.md ]] || continue\n+      || die \"the Toolchain yaml block does not parse in $rel\""
+    suggested_fix: "Extract one helper, for example work_profiles, that prints the profile paths to read (TEMPLATE.md skipped, the yq check done once), and have both functions loop over its output."
+  - id: RS-2
+    category: standard
+    severity: low
+    confidence: 85
+    location: ".workflow/profiles/shell-scripts.md:49-52, .workflow/profiles/test-harness.md:39-42, .workflow/profiles/agent-docs.md:44-47"
+    claim: "The new graph_extractor line sits between test_patterns and the two continuation comment lines that explain it. The default test-pattern list and 'A list replaces them for this profile' now read as notes on graph_extractor."
+    consequence: "Every implementing agent gets the whole profile in its launch. A reader of the Toolchain block can take graph_extractor to accept a list or to have those defaults, and can lose the explanation of test_patterns. The project's own TEMPLATE.md keeps the test_patterns comment together and puts graph_extractor after serve_ready."
+    evidence:
+      basis: ".agents/skills/project-setup/assets/profiles/TEMPLATE.md:35 places graph_extractor after serve_ready, and :41-43 keeps the test_patterns line and its two '# [\"*.test.*\", ...]. A list replaces them' continuation lines together. readable-code.md R5: write plainly."
+      diff: "+test_patterns: [\"tests/\"] # which paths are tests, kept out of the size-budget file count (budget-check.sh) and out of flow entry candidates. [] or absent: the defaults\n+graph_extractor: bash # the graph extractor the Tier B cache build runs for this work type: bash, dependency-cruiser or none\n                   # [\"*.test.*\", \"*.spec.*\", \"__tests__/\", \"tests/\", \"test/\", \"e2e/\", \"*_test.go\", \"test_*.py\", \"*_test.py\"]. A list replaces them"
+    suggested_fix: "In each of the three profiles, move the graph_extractor line above test_patterns (after serve_ready, as in TEMPLATE.md) so the continuation comments follow test_patterns again."
+  - id: RS-3
+    category: discovered-work
+    kind: decision
+    summary: "The agents module depends on regenerate-caches and visual-change-report, but .workflow/rules.md lets agents depend on feature-workflow only. cache-regeneration.md runs regenerate-caches scripts and visual-change-report's validate_mermaid.mjs by skills/<name>/ path, and rules.md counts that as a dependency. This change adds more calls through the same $S path (build-architecture.sh --print-generator), but the dependency itself was already there."
+    evidence: ".agents/agents/cache-regeneration.md:36 at baseline 86609a6 ('S=.agents/skills/regenerate-caches/scripts'), :85 and :88 (visual-change-report paths); .workflow/rules.md Ownership: 'agents: owns: [\".agents/agents/**\"] may_depend_on: [feature-workflow]' and 'a `source` line, a script call or a `skills/<name>/` path reference counts as a dependency.'"
+    blocker_assessment: can-wait
+    reason: "No boundary tool enforces the Ownership map here, and the agent has worked this way since before this spec. It needs a decision: either add regenerate-caches and standalone-skills to agents.may_depend_on, or change how the agent reaches the scripts. That decision is a change to rules.md, which is outside this feature."
+checked:
+  - "git diff 86609a6...HEAD (spec folder excluded), its --stat, and git log 86609a6..HEAD"
+  - ".workflow/rules.md (all sections: Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, External systems, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1, T2, T3, T4, T9)"
+  - ".workflow/profiles/agent-docs.md (T5, T6, T7, T8, T10)"
+  - ".workflow/profiles/test-harness.md (tests/ suites and fixtures in the diff; every new suite has # Suite:/# Covers:, preflight, new_workdir, a shellcheck_files assertion and finish, and has a tests/README.md row)"
+  - "AGENTS.md (CLAUDE.md is a one-line import of it)"
+  - ".workflow/decisions/adr/0003-graph-extractor-per-profile.md and the design-log.md Placement entry: build-architecture.sh stays the one reader of the graph shape, and extractors live under regenerate-caches/scripts/extractors/; no placement drift found"
+  - ".workflow/GLOSSARY.md (Graph extractor, Tier B, Cache stamp). Bare 'extractor' appears in prose right after 'graph extractor' and in the --extractor flag; dropped as a nitpick, under 80"
+  - ".agents/skills/feature-workflow/references/readable-code.md: no added body comment cites a decision, task, journey or doc path; JRN/CAP ids sit only in the exempt # Suite: header blocks, and the workflow paths sit only in # File: header blocks"
+  - ".agents/skills/project-setup/assets/profiles/TEMPLATE.md (key order and comment layout, for RS-2)"
+  - "toolchain.json for T1-T10: lint and test passed in each; typecheck, format and boundary were skipped because the profiles have no command for them"
+  - "Pass-1 findings already triaged in design-log.md were not raised again: F1 (test patterns copied from budget-check.sh, filed as disc-002), F2 (duplicate depcruise lookup, dismissed), F3 (PROVENANCE 'stubbed', now reads 'implemented'), F4 (cruise_json, now merged_graph_json)"
+not_checked:
+  - "CODING_STANDARDS.md: not present at the repo root"
+  - "CONTRIBUTING.md: not present at the repo root"
+  - ".workflow/GLOSSARY-MAP.md: not present in the repo"
+  - "Typecheck, format and boundary keys: skipped in every task's toolchain.json (no command; dependency-cruiser cannot read bash). Module ownership was checked by hand against rules.md Ownership"

@@ -1,0 +1,33 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "86609a64711682747a07bea99a7ed442cf5a827c"
+head: "48d8646a806d8f0c37063c2d026bf9dcc141328f"
+findings:
+  - id: RE-1
+    category: missing
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:573-580"
+    claim: "Script calls are only detected as `$var/...sh` tokens: a call to an extensionless script (a shebang file the extractor itself claims, e.g. \"$here/../bin/release\") or a cwd-relative call (`bash scripts/build.sh`, `./run.sh`) produces neither an edge nor a couldNotResolve entry."
+    consequence: "A bash project whose scripts call extensionless bin/ helpers or call scripts by cwd-relative path gets a graph with silently missing edges: architecture.md under-reports module dependencies, Unresolved edges does not flag them, and flows.md lists the called scripts as entry-point candidates. Not hit in this repo (all call sites are `$var/...sh`), but hit by other bash target projects."
+    evidence:
+      basis: "CAP-NEW-bash-graph-extractor success: \"the bash extractor prints dependency-cruiser-shaped JSON with every statically resolvable edge, `couldNotResolve: true` for each path it cannot resolve\"; Constraints: \"An unresolvable path is reported as unresolved, never guessed (D3)\"."
+      diff: "+      if (token ~ /^[$\\034]/ && token ~ /\\.sh$/) add_edge(token, 1)   (the only call-site path; tokens without a leading $ or a .sh suffix are dropped)"
+    suggested_fix: "Treat any anchored path token whose target is a claimed file (by .sh or shebang) as a call, and report cwd-relative script paths on command position as couldNotResolve; add both forms to the bash fixture."
+checked:
+  - "Diff pinned: git diff 86609a6...48d8646 excluding the spec dir (23 files, +1637/-58) and git log (36 commits); read build-architecture.sh, check-staged-cache.sh, extractors/bash.sh, extractors/dependency-cruiser.sh hunks in full, and all doc hunks (cache-regeneration.md, discovery.md, project-setup TEMPLATE/examples/profiles.md, regenerate-caches SKILL.md and cache-frontmatter.md, PROVENANCE.md, tests/README.md)."
+  - "CAP-NEW-selectable-graph-extractor: profile_extractors/selected_extractors/run_extractors read graph_extractor per profile (TEMPLATE.md skipped), run each named extractor, merge modules and exports, refuse double-claimed files; none left out. Met."
+  - "CAP-NEW-selectable-graph-extractor missing-key error: message starts 'breaking change', lists each profile, gives 'graph_extractor: <name>'; exit 2. --extractor still runs profile_extractors first (D12); --from-json skips it. Met."
+  - "CAP-NEW-selectable-graph-extractor JS/TS byte-identity: extractors/dependency-cruiser.sh keeps today's flags (--no-config, --ts-config, node_modules exclude, -T json); tests/scripts/cache-js-unchanged.sh compares against literals rendered at baseline with only Unresolved edges None. added. Met."
+  - "CAP-NEW-bash-graph-extractor: extractor emits modules/dependencies with resolved or couldNotResolve+module+line, exports for sourced files; architecture gains Unresolved edges; modules Public interface from exports union (D11); entries exclude profile test_patterns (D13). Met except RE-1."
+  - "Constraints: bash 3.2/awk/jq only (no new tool); dependency-cruiser JSON shape is the contract and the canonicaliser is the one reader; check-staged-cache.sh change is limited to accepting (and sort-checking, per data-model D10) the new section; .workflow/profiles/ untouched in the diff."
+  - "Non-goals: no extractor for other languages, no bash boundary checker, no markdown extractor, install.sh not in the diff, no target profile edits, Boundary violations wording unchanged (render_boundary_violations is a pure move)."
+  - "Assumptions: generator now from --print-generator in discovery.md, SKILL.md step 7 and cache-regeneration.md; no remaining '--generator dependency-cruiser' under .agents (rg). TEMPLATE.md and both examples (only e2e-browser.md and test-harness.md exist) gain the key; profiles.md asks for it."
+  - "JRN-001..JRN-004: artifacts/gate-3.9-w3/toolchain.json status pass; toolchain.txt shows PASS for scripts/cache-bash-project (30), cache-js-unchanged (13), cache-missing-extractor-key (9), cache-mixed-extractors (8), extractor-bash (28), graph-extractor-selection (38), build-architecture (85). No code changed between d35a3a7 (wave 3 merge) and HEAD (only workflow data). Read tests/scripts/cache-bash-project.sh, the head of cache-js-unchanged.sh and tests/fixtures/graph-extractors.sh."
+  - "Discovered work already filed: .workflow/specs/work-backlog/003-bash-cache-extractor-disc-001.md (all-none profiles cannot publish architecture); not re-reported."
+not_verifiable:
+  - "JRN-005 / last end-state objective of CAP-NEW-bash-graph-extractor (this repo's three caches built, pass check-staged-cache.sh, published with generator naming the extractors, cache-stamp-check.sh exit 0) is manual at 5.3; no evidence exists yet. proposals.md currently holds only P1 and P2: the orchestrator must add graph_extractor rows for .workflow/profiles/agent-docs.md (none), shell-scripts.md and test-harness.md (bash) at 5.2, or the 5.3 build exits 2 on the missing key."
+  - "Extractor wall-time target (<30 s on this repo) is the targets lens's to measure; not run here (read-only)."
+not_checked:
+  - "Suspicion below 80 (medium, not reported): in a project with tsconfig.json and tsc (mixed JS/TS + bash), render_modules takes the dts branch and bash modules read 'Not generated: no declaration entry' instead of their exports functions; the impact classification says exports are read 'when tsc output is absent', D9 says 'when present'. Settle by asking the stakeholder whether mixed projects should show bash functions."

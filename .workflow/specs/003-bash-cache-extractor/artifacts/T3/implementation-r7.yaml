@@ -1,0 +1,24 @@
+status: "done"
+summary: "Rework 2 fix round: a line continued after an operator (&&, ||, |, ; or open paren then a backslash) now starts a new command, so a bare relative call on it is reported; a line continued after a word still is not a call. The record-separator marker in split_commands now has its reason comment. The extractor output over this repo (.agents, tests, scripts, install.sh) is byte-identical to the spec branch's."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3"
+branch: "task/003-bash-cache-extractor/T03-bash-graph-extractor"
+base_commit: "c06533dbe6f266ee0ee3a946440dece61d251cc6"
+head_commit: "f39e4fe664530eb2f5b700b6be9c301a7f7ca616"
+files_changed:
+  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh"
+  - "tests/scripts/extractor-bash.sh"
+tests_added:
+  - {file: "tests/scripts/extractor-bash.sh", test: "subshell, substitution, glob, option-value, unreadable-target, bare source and bare relative calls are each unresolved with the path text (fixture lines 28-29: true && backslash, then scripts/b.sh is a call)", kind: "edge"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "same assertion (fixture lines 30-31: foo backslash, then scripts/c.sh is not a call)", kind: "negative"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/extractor-bash; FAIL ... got=...,27 scripts/z.sh want=...,27 scripts/z.sh,29 scripts/b.sh"
+  green: "tests/run-all.sh --suite scripts/extractor-bash; PASS scripts/extractor-bash passed=31 failed=0"
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/003-bash-cache-extractor --task-id T3 --cwd $PWD; lint exit 0, test pass (scoped, own=1, excluded=0)"
+  toolchain: ".workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "a lone & or |& before the backslash: not in the requested operator list; & is covered only as part of &&"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

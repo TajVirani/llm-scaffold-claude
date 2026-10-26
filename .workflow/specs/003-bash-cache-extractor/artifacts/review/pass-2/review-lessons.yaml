@@ -1,0 +1,53 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "86609a64711682747a07bea99a7ed442cf5a827c"
+head: "a4342de949aefb3ed8521b72c9f4c4a4b6a1249e"
+findings:
+  - id: RL-1
+    category: lesson
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:136-137"
+    claim: "Repeats the pitfall 'Report a detected call as unresolved; never filter it out': a source or dot line whose target has no slash and no .sh suffix (for example `source lib`) is dropped, not reported as couldNotResolve."
+    consequence: "For whoever reads the architecture cache: a sourced file the extractor cannot resolve is missing from the module graph and from the Unresolved edges section, so the cache reports no unresolved dependency where the script has one."
+    evidence:
+      basis: "pitfalls.md 'Report a detected call as unresolved; never filter it out' (its What happened names dropped extensionless targets); bash.sh header line 5: each source or dot line is an edge."
+      diff: "    if (target ~ /^[$\\034]/) add_edge(target, 1)\n    else if (target ~ /\\// || target ~ /\\.sh$/) add_edge(target, 0)"
+    suggested_fix: "Call add_edge(target, 0) for any other non-empty target so it is reported as unresolved; add a bare `source lib` line to the bash fixture and a case to tests/scripts/extractor-bash.sh. Then record it as a review lesson at the next 5.7."
+  - id: RL-2
+    category: lesson
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:145 and :331"
+    claim: "Repeats the pitfall 'Report a detected call as unresolved; never filter it out' for cwd-relative paths: a command whose first word is a relative path with a slash but no leading ./ (for example `scripts/build-docs.sh`) is skipped, because only ./ and ../ words reach the cwd-relative check."
+    consequence: "A script run relative to the working directory, which the header says is always couldNotResolve, is absent from Unresolved edges and from the module graph, so the cache hides a call whose target depends on where the job runs."
+    evidence:
+      basis: "pitfalls.md 'Report a detected call as unresolved; never filter it out' (its What happened lists cwd-relative paths as dropped); bash.sh header lines 6-7: a script run by a path relative to the working directory is always couldNotResolve."
+      diff: "    if (token !~ /^[$\\034]/) continue\n    if (words[1] ~ /^\\.\\.?\\/[^\\/]/) script = words[1]"
+    suggested_fix: "In report_cwd_relative_calls, accept a first word that contains a slash and does not start with $, / or ~ as the script, as the bash and sh branch already does; add a bare `scripts/x.sh` command line to the bash fixture and the extractor-bash suite."
+  - id: RL-3
+    category: lesson
+    severity: medium
+    confidence: 80
+    location: "commit subjects in 86609a64711682747a07bea99a7ed442cf5a827c..a4342de (for example 5b7f95d, 5cc1147)"
+    claim: "Repeats the retrospective 004 process lesson 'The implementer used T1: commit subjects instead of Conventional Commits': this change's commits use task-id subjects such as 'T9: run the boundary check only when a profile selects dependency-cruiser' and 'T3: report every detected bash call, never drop one', against rules.md's Conventional Commits rule."
+    consequence: "The spec's history breaks the project's commit-subject rule (rules.md, commits section), so any tooling or reviewer that reads subjects for changelog or release notes sees non-conventional entries."
+    evidence:
+      basis: "retrospectives/004-scoped-test-runs.md Process lessons row on T1: commit subjects (recorded as not recorded: the action item was rejected); rules.md line 145: Commit subjects are Conventional Commits. Mitigating context: implementation.md step 4 tells the agent to name the task id in its commit message, which the rule does not allow."
+      diff: "5b7f95d T9: run the boundary check only when a profile selects dependency-cruiser | 5cc1147 T3: report every detected bash call, never drop one"
+    suggested_fix: "Decide which rule governs task commits: either reword implementation.md step 4 to a Conventional Commits subject that names the task id, or rewrite the rule's exception; then record the 004 lesson as a review lesson at the next 5.7 so the next review checks it."
+checked:
+  - ".workflow/review-lessons.md"
+  - ".workflow/decisions/pitfalls.md"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md"
+  - ".workflow/rules.md (line 145 only, for the commit-subject rule)"
+  - ".agents/agents/implementation.md (step 4 only, for the commit-subject instruction)"
+  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh (whole file, for the pitfall and RL-001 paths)"
+  - ".agents/skills/regenerate-caches/scripts/build-architecture.sh (unresolved-edge handling, for the pitfall)"
+  - "git diff 86609a64711682747a07bea99a7ed442cf5a827c...HEAD for PROVENANCE.md, cache-regeneration.md, project-setup, profiles, tests/README.md, capabilities.md, and the added lines matched against the pitfalls' patterns"
+not_checked:
+  - "RL-001 (review lesson, paths .agents/agents/**, install-manifest, PROVENANCE.md, project-setup/**): the diff adds no agent and no task type, so no hard-coded count could go stale; no suspicion, nothing to settle."
+  - "RL-1 and RL-2 were settled by reading bash.sh, not by running it: the lens is read-only and was not allowed to execute the extractor. A run on the bash fixture with `source lib` and `scripts/x.sh` command lines would confirm both as dropped."
+  - "Pitfall 'Point at a folder instead of restating its tree in the README': skipped, because its Prevented by names rules.md cross-cutting policy, which is the rule that catches it."

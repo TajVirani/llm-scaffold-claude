@@ -1,0 +1,19 @@
+status: "done"
+summary: "The profile TEMPLATE lists graph_extractor among the descriptive keys (contract comment and Toolchain block, with a comment naming dependency-cruiser, bash and none); both example profiles set it to dependency-cruiser. modules/profiles.md asks the human for the key per work type and requires dependency-cruiser only when a profile names it or a boundary command runs depcruise. Mini-review round R5: the three profile comments now say 'the generated module, flow and architecture caches' instead of 'Tier B caches'."
+task_id: "T8"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t8"
+branch: "task/003-bash-cache-extractor/T08-profile-graph-extractor-key"
+base_commit: "e0cf15b6b2ff4ec89e99438edea4bbb988eaaa8d"
+head_commit: "dcdc674e84d3f8521a8cd3dbd1f80e535eadc7b1"
+files_changed: [".agents/skills/project-setup/assets/profiles/TEMPLATE.md", ".agents/skills/project-setup/assets/profiles/examples/test-harness.md", ".agents/skills/project-setup/assets/profiles/examples/e2e-browser.md", ".agents/skills/project-setup/modules/profiles.md"]
+tests_added: []
+evidence:
+  red: "n/a: docs task with no seam; checked by the agent-docs lint suites"
+  green: "n/a: see suite"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/003-bash-cache-extractor --task-id T8 --cwd <worktree>; exit 0 (lint pass, scoped test pass)"
+  toolchain: ".workflow/specs/003-bash-cache-extractor/artifacts/T8/toolchain.txt (pass)"
+considered_not_built: ["Editing this repo's own .workflow/profiles/: goes through proposals.md at 5.3 (D7, M3)"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

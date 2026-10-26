@@ -1,0 +1,34 @@
+verdict: pass
+task_id: T5
+work_type: agent-docs
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t5@7ce6886222a8b4951beb5a28e7ac56f2f58b7a1e..HEAD
+tool_output: .workflow/specs/003-bash-cache-extractor/artifacts/T5/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: no frontmatter description line is added or changed in the diff; SKILL.md hunks start at line 30 (body only)
+  - n: 2
+    verdict: not-applicable
+    location: no agent file is added in the diff (only SKILL.md and assets/cache-frontmatter.md change)
+  - n: R1
+    verdict: pass
+    location: .agents/skills/regenerate-caches/SKILL.md:131, .agents/skills/regenerate-caches/assets/cache-frontmatter.md:105
+    note: new names (graph extractor, generator, Unresolved edges, couldNotResolve) match the fields and sections they describe
+  - n: R2
+    verdict: pass
+    location: .agents/skills/regenerate-caches/SKILL.md:33, .agents/skills/regenerate-caches/SKILL.md:131
+    note: the added instructions give the reason for the non-obvious choices (empty generator rejected by publish-cache.sh; boundary config kept out of Scope because it is not source)
+  - n: R3
+    verdict: pass
+    location: no code comment added; added prose is instruction, not restatement, in SKILL.md:33 and cache-frontmatter.md:101-116
+  - n: R4
+    verdict: not-applicable
+    location: the diff adds no comment; the .workflow paths it names (rules.md, profiles, dependency-cruiser.cjs) are instructions the skill acts on, not comments
+  - n: R5
+    verdict: pass
+    location: .agents/skills/regenerate-caches/SKILL.md:33, .agents/skills/regenerate-caches/assets/cache-frontmatter.md:101-116
+    note: plain sentences; "stamp-only path" is existing skill vocabulary defined in the same paragraph
+read_outside_diff: []
+out_of_scope_noticed: []

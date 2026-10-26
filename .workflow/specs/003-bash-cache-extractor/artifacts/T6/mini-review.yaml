@@ -1,0 +1,32 @@
+verdict: pass
+task_id: T6
+work_type: agent-docs
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t6@f84d86f4222268bb78e1b5a5a98567d0c7675b85..HEAD
+tool_output: .workflow/specs/003-bash-cache-extractor/artifacts/T6/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: ".agents/skills/feature-workflow/modules/discovery.md (only file in diff; no skill frontmatter description added or changed)"
+  - n: 2
+    verdict: not-applicable
+    location: "no agent file added or changed in the diff"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery.md:98"
+  - n: R2
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery.md:98 (no workaround or trade-off added)"
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery.md:98 (comment gives the condition 'architecture only', which the command line does not say)"
+  - n: R4
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery.md:98 (no decision ID, doc path, spec or task ID, or URL in the comment)"
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery.md:98 (plain words only)"
+read_outside_diff:
+  - ".agents/skills/regenerate-caches/scripts/build-architecture.sh: confirmed --print-generator flag exists (lines 24, 35, 80), so the new command in discovery.md:98 is valid"
+out_of_scope_noticed: []

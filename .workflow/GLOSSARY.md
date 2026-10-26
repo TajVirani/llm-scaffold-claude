@@ -19,7 +19,7 @@ The commit a **Tier B** cache was derived from, plus the paths it covers. A cach
 _Avoid_: Cache timestamp, cache version
 
 **Graph extractor**:
-The per-language tool that reads a scope's source files and outputs the file graph (files, their import or `source` edges, and candidate entry points) that the **Tier B** caches are built from. Each **work profile** names one; dependency-cruiser is the JS/TS one. Not the boundary-config adapter, which generates lint config from `.workflow/rules.md`.
+The per-language tool that reads a scope's source files and outputs the file graph (files, their import or `source` edges, and candidate entry points) that the **Tier B** caches are built from. Each **work profile** names one with `graph_extractor`: `dependency-cruiser` for JS/TS, `bash` for shell scripts, or `none`. Not the boundary-config adapter, which generates lint config from `.workflow/rules.md`.
 _Avoid_: Extractor, parser, cache adapter
 
 **Placement ADR**:

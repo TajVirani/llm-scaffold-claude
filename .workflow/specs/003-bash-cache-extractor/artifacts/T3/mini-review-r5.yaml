@@ -1,0 +1,58 @@
+verdict: pass
+task_id: T3
+work_type: shell-scripts
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3@3d15e3dc35373b356869b81f76afe59cbd6de466..HEAD"
+tool_output: .workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: "n/a: no added code line spells a .workflow/ path"
+    note: "The only .workflow mention in the diff is in PROVENANCE.md, which is markdown."
+  - n: 2
+    verdict: not-applicable
+    location: "n/a: no hook in the diff"
+    note: "bash.sh is a helper, not a hook."
+  - n: 3
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:301-303, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:149-150"
+  - n: 4
+    verdict: not-applicable
+    location: "n/a: no exit code added or changed"
+    note: "The Exit header (bash.sh:21-22) and die() (bash.sh:29) are untouched."
+  - n: 5
+    verdict: not-applicable
+    location: "n/a: no sibling path resolution added"
+    note: "The only BASH_SOURCE use added is inside a test fixture heredoc."
+  - n: 6
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:2-23"
+  - n: 7
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:25, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:34-54"
+  - n: 8
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:283-284, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:292, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:309"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:283-307, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:315-341"
+  - n: R2
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:292-294, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:309-314, tests/fixtures/graph-extractors.sh:39"
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:283-314, tests/scripts/extractor-bash.sh:76-77, tests/scripts/extractor-bash.sh:109-110"
+  - n: R4
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:2-14, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:283-314, tests/scripts/extractor-bash.sh:76-77, tests/scripts/extractor-bash.sh:109-110"
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:2-14, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:309-314, tests/scripts/extractor-bash.sh:76-77, tests/scripts/extractor-bash.sh:109-110"
+read_outside_diff:
+  - ".workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.json: which toolchain keys ran"
+  - ".workflow/specs/003-bash-cache-extractor/artifacts/T3/toolchain.txt: lint exit 0, test PASS 31/0"
+  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh: whole file, to judge the added functions with their callers"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 rules and Checking at 3.7"
+  - ".workflow/profiles/shell-scripts.md: read beyond the checklist section by mistake; no verdict relies on it beyond the checklist text"
+out_of_scope_noticed: []

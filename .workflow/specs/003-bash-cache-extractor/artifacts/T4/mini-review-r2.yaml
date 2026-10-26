@@ -1,0 +1,60 @@
+verdict: fail
+task_id: T4
+work_type: shell-scripts
+mode: re-check
+previous: .workflow/specs/003-bash-cache-extractor/artifacts/T4/mini-review-r1.yaml
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t4@7ce6886222a8b4951beb5a28e7ac56f2f58b7a1e..fcfdc5d32cf724dce3768c25ea918eb9f6164b00
+tool_output: .workflow/specs/003-bash-cache-extractor/artifacts/T4/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:59 sources workflow-paths.sh; test_patterns uses $WF_PROFILES at build-architecture.sh:532-534; the fix diff adds no path
+    carried_from: r1
+  - n: 2
+    verdict: not-applicable
+    location: no hook file in the diff
+    carried_from: r1
+  - n: 3
+    verdict: pass
+    location: build-architecture.sh:112, :115, :118, :150, :62 unchanged by the fix diff
+    carried_from: r1
+  - n: 4
+    verdict: pass
+    location: build-architecture.sh:36 documents the exit 2 cases; die at :62 exits 2; the fix diff adds no exit code
+    carried_from: r1
+  - n: 5
+    verdict: not-applicable
+    location: no sibling path resolution added; the BASH_SOURCE line at build-architecture.sh:59 is unchanged
+    carried_from: r1
+  - n: 6
+    verdict: pass
+    location: build-architecture.sh:7 header line reworded with no decision ID or file name; header block shape unchanged
+  - n: 7
+    verdict: pass
+    location: no new files; build-architecture.sh keeps set -euo pipefail and [[ ]]; the fix diff adds no test syntax
+    carried_from: r1
+  - n: 8
+    verdict: pass
+    location: build-architecture.sh:460 render_function_interface, :528 test_patterns, :551 is_test_file; shellcheck disables at :559 and :562 carry reasons; the fix diff adds no function or directive
+    carried_from: r1
+  - n: R1
+    verdict: pass
+    location: build-architecture.sh:528-530 test_patterns, :551-553 is_test_file, :569-590 render_entries; the fix diff changes comment wording only, no names
+    carried_from: r1
+  - n: R2
+    verdict: pass
+    location: build-architecture.sh:517 gives the reason for the copied defaults: the same matching as the test count, so a file counted as a test is never an entry candidate
+  - n: R3
+    verdict: pass
+    location: build-architecture.sh:517 states why the defaults match another step; it does not restate the defaults below it
+  - n: R4
+    verdict: pass
+    location: build-architecture.sh:7 and :517 name no workflow path, file or decision ID; full diff body comments at :460, :528, :551, :559, :562 name none either; the test file header adds prose only
+  - n: R5
+    verdict: fail
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:7, .agents/skills/regenerate-caches/scripts/build-architecture.sh:517
+    note: "budget check" is project shorthand that neither this code nor .workflow/GLOSSARY.md defines, so a newcomer cannot tell what it counts or where its rule lives, and a maintainer editing the defaults here will not know the other copy must match. Reword both to the plain thing, for example "the step that counts a change's files against its size limit", keeping "so a file that step counts as a test is never an entry candidate" at :517.
+read_outside_diff:
+  - ".workflow/GLOSSARY.md and .agents/ (rg for budget check): the term is not defined; only budget-check.sh file name appears, so the shorthand is undefined in code and glossary"
+  - ".agents/skills/feature-workflow/scripts/budget-check.sh:34-36, 58-68, 125-151: default test_patterns and matching still match build-architecture.sh (checked in r1, unchanged by fix)"
+out_of_scope_noticed: []

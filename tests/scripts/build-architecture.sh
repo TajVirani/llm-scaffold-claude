@@ -4,10 +4,14 @@
 #   dropped, module roots from .workflow/rules.md, --module override), order-independence of the input JSON, boundary
 #   violations, modules.md skeleton (files, depends on, used by, public interface from .d.ts with export * expanded),
 #   flows entry candidates, id collisions, dirty-scope refusal, --out guard, input rejections; the staged-body checker
-#   for all three shapes and its Mermaid HTML wrapper. No node needed: dependency-cruiser and tsc output are fixtures.
+#   for all three shapes (architecture with a sorted "Unresolved edges" section after Boundary violations, and an older
+#   body without it) and its Mermaid HTML wrapper; for a bash-only project with a boundary config, --violations-json and
+#   --from-json still reach the boundary check. No node needed: dependency-cruiser and tsc output are fixtures.
 # shellcheck disable=SC2016,SC2034  # literal Markdown backticks in single quotes; check expressions read vars through eval
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/graph-extractors.sh  # TESTS_DIR is set by common.sh, so shellcheck cannot follow the path alone
+source "$TESTS_DIR/fixtures/graph-extractors.sh"
 preflight
 
 new_workdir
@@ -85,10 +89,17 @@ flowchart LR
 
 Not checked: no boundary config at .workflow/tools/boundaries/dependency-cruiser.cjs.'
 
+# section_of BODY NAME : the non-blank lines of the "## NAME" section of BODY.
+section_of() { printf '%s\n' "$1" | awk -v h="## $2" '/^## / { on = ($0 == h); next } on && NF'; }
+
 # ---------------------------------------------------------------- architecture
 arch=$("$B" --cache architecture --scope src --from-json "$WORK/cruise.json"); rc=$?
 eq arch-rc "$rc" 0
-eq arch-golden "$arch" "$expected_arch"
+eq arch-golden "$arch" "$expected_arch
+
+## Unresolved edges
+
+None."
 eq arch-order-independent "$("$B" --cache architecture --scope src --from-json "$WORK/cruise-rev.json")" "$arch"
 eq arch-scope-dot-slash "$("$B" --cache architecture --scope ./src/ --from-json "$WORK/cruise.json")" "$arch"
 one=$("$B" --cache architecture --scope src --module src --from-json "$WORK/cruise.json")
@@ -104,9 +115,31 @@ cat >"$WORK/viol.json" <<'EOF'
 EOF
 v=$("$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --violations-json "$WORK/viol.json" | sed -n '/^## Boundary violations/,$p' | sed '1,2d')
 eq viol-sorted-unique "$v" '- `alpha-not-to-main`: `src/a/x.ts` → `src/main.ts`
-- `beta-not-to-alpha`: `src/b/y.ts` → `src/a/x.ts`'
-v=$("$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --violations-json "$WORK/cruise.json" | tail -1)
-eq viol-none "$v" "None."
+- `beta-not-to-alpha`: `src/b/y.ts` → `src/a/x.ts`
+
+## Unresolved edges
+
+None.'
+v=$("$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --violations-json "$WORK/cruise.json")
+eq viol-none "$(section_of "$v" "Boundary violations")" "None."
+
+# Unresolved dependencies of in-scope files, listed out of order, one without a line, one from an out-of-scope file.
+jq '.modules |= map(
+      if .source == "src/b/y.ts" then .dependencies += [
+        {"module": "\"$ROOT/ops/gone.sh\"", "couldNotResolve": true, "line": 16},
+        {"module": "\"$PLUGIN_DIR/$PLUGIN.sh\"", "couldNotResolve": true, "line": 10}]
+      elif .source == "src/a/x.ts" then .dependencies += [{"module": "./generated.js", "couldNotResolve": true}]
+      elif .source == "lib/other.ts" then .dependencies += [{"module": "./missing.js", "couldNotResolve": true, "line": 3}]
+      else . end)' "$WORK/cruise.json" >"$WORK/unresolved.json"
+u=$("$B" --cache architecture --scope src --from-json "$WORK/unresolved.json"); rc=$?
+eq unres-rc "$rc" 0
+eq unres-last-section "$(printf '%s\n' "$u" | grep '^## ' | tr '\n' '|')" "## Module graph|## Edges|## Boundary violations|## Unresolved edges|"
+eq unres-sorted-with-lines "$(section_of "$u" "Unresolved edges")" '- `src/a/x.ts` `./generated.js`
+- `src/b/y.ts:10` `"$PLUGIN_DIR/$PLUGIN.sh"`
+- `src/b/y.ts:16` `"$ROOT/ops/gone.sh"`'
+eq unres-graph-unchanged "${u%%## Unresolved edges*}" "${arch%%## Unresolved edges*}"
+printf '%s\n' "$u" >"$WORK/unres-arch.md"
+t unres-passes-checker 0 "$C" architecture "$WORK/unres-arch.md"
 echo '{"modules":[]}' >"$WORK/noviol.json"
 t viol-bad-json 2 "$B" --cache architecture --scope src --from-json "$WORK/cruise.json" --violations-json "$WORK/noviol.json"
 
@@ -207,6 +240,26 @@ out=$(cd "$R2" && "$B" --cache architecture --scope src --from-json "$WORK/coll.
 eq collision-rc "$rc" 2
 check collision-names 'printf "%s" "$out" | grep -q "src/a-b and src/a_b"'
 
+# ---------------------------------------------------------------- boundary check without a dependency-cruiser profile
+# A bash-only project with a committed boundary config: --violations-json still overrides, and --from-json reads no
+#   profiles, so the config alone still runs depcruise.
+R3="$WORK/repo3"
+git_init_repo "$R3"
+mkdir -p "$R3/scripts" "$R3/.workflow/tools/boundaries"
+printf '#!/usr/bin/env bash\necho hi\n' >"$R3/scripts/run.sh"
+printf 'module.exports = { forbidden: [] };\n' >"$R3/.workflow/tools/boundaries/dependency-cruiser.cjs"
+write_profile "$R3" shell-scripts bash
+git_commit_all "$R3" init
+v=$(cd "$R3" && "$B" --cache architecture --scope scripts --violations-json "$WORK/viol.json")
+eq bash-only-violations-json-overrides "$(section_of "$v" "Boundary violations")" '- `alpha-not-to-main`: `src/a/x.ts` → `src/main.ts`
+- `beta-not-to-alpha`: `src/b/y.ts` → `src/a/x.ts`'
+printf '#!/usr/bin/env bash\ncat %q\n' "$WORK/viol.json" >"$WORK/depcruise-violations"
+chmod +x "$WORK/depcruise-violations"
+echo '{"modules":[{"source":"scripts/run.sh","dependencies":[]}]}' >"$WORK/run-graph.json"
+v=$(cd "$R3" && DEPCRUISE="$WORK/depcruise-violations" "$B" --cache architecture --scope scripts --from-json "$WORK/run-graph.json")
+eq from-json-config-runs-depcruise "$(section_of "$v" "Boundary violations")" '- `alpha-not-to-main`: `src/a/x.ts` → `src/main.ts`
+- `beta-not-to-alpha`: `src/b/y.ts` → `src/a/x.ts`'
+
 # ---------------------------------------------------------------- check-staged-cache
 t chk-arch-ok 0 "$C" architecture .workflow/.cache-staging/architecture.md
 printf '%s\n' "$mods" >.workflow/.cache-staging/modules.md
@@ -285,6 +338,21 @@ printf '# Flows\n\n## Entry points\n\nNone.\n\n## src/x.ts\n' >"$WORK/f8.md"
 t chk-flows-none-with-sections 1 "$C" flows "$WORK/f8.md"
 printf '# Architecture\n\n## Edges\n\nNone.\n' >"$WORK/a1.md"
 t chk-arch-sections 1 "$C" architecture "$WORK/a1.md"
+unresolved_sorted='- `bin/build.sh:10` `source "$PLUGIN_DIR/$PLUGIN.sh"`
+- `bin/build.sh:16` `bash "$ROOT/ops/gone.sh"`'
+printf '%s\n\n## Unresolved edges\n\n%s\n' "$expected_arch" "$unresolved_sorted" >"$WORK/a2.md"
+t chk-arch-unresolved-ok 0 "$C" architecture "$WORK/a2.md"
+printf '%s\n\n## Unresolved edges\n\nNone.\n' "$expected_arch" >"$WORK/a3.md"
+t chk-arch-unresolved-none-ok 0 "$C" architecture "$WORK/a3.md"
+printf '%s\n\n## Unresolved edges\n\n%s\n' "$expected_arch" "$(printf '%s\n' "$unresolved_sorted" | sort -r)" >"$WORK/a4.md"
+out=$("$C" architecture "$WORK/a4.md" 2>&1); rc=$?
+eq chk-arch-unresolved-unsorted-rc "$rc" 1
+check chk-arch-unresolved-unsorted-names-section 'printf "%s" "$out" | grep -q "Unresolved edges" && ! printf "%s" "$out" | grep -q "sections must be"' "$out"
+printf '%s## Unresolved edges\n\n%s\n\n## Boundary violations%s\n' "${expected_arch%%## Boundary violations*}" "$unresolved_sorted" \
+  "${expected_arch#*## Boundary violations}" >"$WORK/a5.md"
+t chk-arch-unresolved-before-violations 1 "$C" architecture "$WORK/a5.md"
+printf '%s\n' "$expected_arch" >"$WORK/a6.md"
+t chk-arch-without-unresolved-still-ok 0 "$C" architecture "$WORK/a6.md"
 : >"$WORK/empty.md"
 t chk-empty 1 "$C" modules "$WORK/empty.md"
 t chk-wrong-title 1 "$C" flows .workflow/.cache-staging/architecture.md

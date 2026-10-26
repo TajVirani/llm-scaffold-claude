@@ -1,0 +1,65 @@
+verdict: "pass"
+task_id: "T1"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t1@e0cf15b6b2ff4ec89e99438edea4bbb988eaaa8d..HEAD"
+tool_output: ".workflow/specs/003-bash-cache-extractor/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/skills/regenerate-caches/scripts/build-architecture.sh:150,153,174 (paths built from WF_PROFILES); no literal .workflow/ path in code added by extractors/dependency-cruiser.sh"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no file under .agents/hooks/ is in the diff"
+  - n: 3
+    verdict: "pass"
+    location: "build-architecture.sh:149,162,174 (profile dies), 182,192,284 (exit 2 after profile_extractors), 261,263,265 (run_extractors dies), 281-282 (--from-json dies); extractors/dependency-cruiser.sh:17 (die), 50 (depcruise not found), 51-52 (depcruise failed); unguarded set -e steps at dependency-cruiser.sh:47 (mktemp) and build-architecture.sh:269,275 (jq) exit non-zero with the tool's own stderr, and their inputs were validated first, so nothing is swallowed"
+  - n: 4
+    verdict: "pass"
+    location: "build-architecture.sh:47 documents 0 and 2 and die at line 57 exits 2; build-architecture.sh:182,192,284 exit 2; extractors/dependency-cruiser.sh:11 documents 0 and 2, die at line 17 exits 2; the --help branch at dependency-cruiser.sh:25 exits 0 without printing a graph, which the Exit line does not mention, but 0 is the success code and the path is not an error"
+  - n: 5
+    verdict: "pass"
+    location: "build-architecture.sh:65 (HERE resolved with cd -P from BASH_SOURCE, EXTRACTORS_DIR at line 118 builds on it); extractors/dependency-cruiser.sh resolves no sibling path, so the item is vacuous there"
+  - n: 6
+    verdict: "pass"
+    location: "build-architecture.sh:1-51 (helper header: File 'Helper script (not a hook)', Purpose, Usage, Exit, Sources); extractors/dependency-cruiser.sh:1-13 (same shape); no decision ID in either header or in the body comments added"
+  - n: 7
+    verdict: "pass"
+    location: "extractors/dependency-cruiser.sh:14 set -euo pipefail, new [[ ]] tests at build-architecture.sh:97,124,166; tests/scripts/graph-extractor-selection.sh runs under the harness's set -uo pipefail (tests/lib/common.sh:15) without -e, which the suite needs because it captures exit codes with 'out=$(...); rc=$?' at lines 55 and 60; file name is kebab-case"
+  - n: 8
+    verdict: "pass"
+    location: "function comment lines build-architecture.sh:118,128,135,145,178,253 and extractors/dependency-cruiser.sh:16,34 and tests/scripts/graph-extractor-selection.sh:23,51 all match the 'name ARGS : what it does' form; the one shellcheck disable (tests/scripts/graph-extractor-selection.sh:10) carries its reason; the bare source= directives at tests/scripts/graph-extractor-selection.sh:11,13 are path hints that disable nothing, and the sibling tests/scripts/cache-js-unchanged.sh:12,14 uses the same form"
+  - n: "R1"
+    verdict: "pass"
+    location: "build-architecture.sh:147 profile_extractors, 255 run_extractors, 268 outputs, 275 claimed; names say what each holds"
+  - n: "R2"
+    verdict: "pass"
+    location: "build-architecture.sh:290 gives the reason for the array guard; tests/scripts/graph-extractor-selection.sh:99 gives the reason for the hand-written profile; tests/scripts/graph-extractor-selection.sh:146 gives the reason for unsetting DEPCRUISE"
+  - n: "R3"
+    verdict: "pass"
+    location: "build-architecture.sh:118,128,135,145,178,253,290 and tests/scripts/graph-extractor-selection.sh:99,146 each say why or what the code cannot; none restates the next line"
+  - n: "R4"
+    verdict: "pass"
+    location: "build-architecture.sh:290 and tests/scripts/graph-extractor-selection.sh:99,146 name no decision ID, doc path, spec or task ID, or URL; the .workflow/ paths in the header block of build-architecture.sh are header interface doc, which R4 allows"
+  - n: "R5"
+    verdict: "pass"
+    location: "build-architecture.sh:290 and tests/scripts/graph-extractor-selection.sh:99,146 use plain English; depcruise is defined in the header as the dependency-cruiser CLI"
+read_outside_diff:
+  - "tests/lib/common.sh: line 15 sets set -uo pipefail, the mode the new test file runs under (item 7)"
+  - "tests/scripts/cache-js-unchanged.sh: lines 12 and 14 use bare shellcheck source= directives, the sibling form (item 8)"
+  - "tests/hooks/pre-launch.sh: line 19 spells .workflow/ literally in a fixture, the test convention (item 1)"
+  - "tests/scripts/check-review-findings.sh: line 81 quotes a recorded constraint of no WF_* in tests/ (item 1)"
+  - "build-architecture.sh at base commit e0cf15b: its test syntax is [[ ]] throughout (item 7)"
+  - "tests/fixtures/graph-extractors.sh: header and write_profile at lines 2-15 and 191-200 (item 1, the fixture writes .workflow/profiles literally)"
+out_of_scope_noticed:
+  - kind: "decision"
+    summary: "The new test file spells .workflow/profiles/blank.md literally at two lines, while checklist item 1 says a new .workflow/ path is never spelled out. The test convention spells such paths in every suite, so item 1 passes here; the question of whether test fixtures follow the runtime rule is for 5.3."
+    evidence: "tests/scripts/graph-extractor-selection.sh:100,105"
+    blocker_assessment: "can-wait"
+    reason: "Passed on the test convention, so the verdict does not depend on it, but the checklist wording and the convention disagree."
+  - kind: "bug"
+    summary: "Not run, read-only review: a profile with no Toolchain section gives yq an empty block, so the tag is empty rather than !!null. The check at line 162 then dies with the 'must be one name' message, not the breaking-change message that names missing graph_extractor keys. It still exits 2."
+    evidence: ".agents/skills/regenerate-caches/scripts/build-architecture.sh:162"
+    blocker_assessment: "can-wait"
+    reason: "The error path is reached and exits 2, so only the wording for this case is in doubt; the case needs a run to confirm."

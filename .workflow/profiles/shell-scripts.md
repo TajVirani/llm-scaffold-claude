@@ -3,7 +3,7 @@
 
 ## File locations
 
-- Organised by owner, not by layer. Depth stops at `.agents/skills/<s>/scripts/<file>`: no subfolders. Code a second skill needs moves to `.agents/lib/`.
+- Organised by owner, not by layer. Depth stops at `.agents/skills/<s>/scripts/<file>`, except `scripts/extractors/<name>.sh`, one graph extractor per file. Code a second skill needs moves to `.agents/lib/`.
 - `.agents/lib/`: sourced helpers shared by hooks, skills and `install.sh`. Never an executable entry point.
 - `.agents/hooks/`: thin host adapters (`_name.sh` = a sourced helper) and host config templates. Never business logic: call the owning skill's script instead.
 - `.agents/skills/<s>/scripts/`: the skill's executable logic. Never sourced by another skill; shared code goes through `.agents/lib/`.
@@ -46,18 +46,19 @@ config:         # config file path per tool
   lint: ""
   typecheck: ""
 rule_set: "shellcheck defaults"
-test_patterns: [] # which paths are tests, kept out of the size-budget file count (budget-check.sh). [] or absent: the defaults
+test_patterns: ["tests/"] # which paths are tests, kept out of the size-budget file count (budget-check.sh) and out of flow entry candidates. [] or absent: the defaults
                   # ["*.test.*", "*.spec.*", "__tests__/", "tests/", "test/", "e2e/", "*_test.go", "test_*.py", "*_test.py"]. A list replaces them
                   # for this profile. "dir/" matches that folder at any depth; a pattern with another / matches the repo-relative path; else the file name.
+graph_extractor: bash # the graph extractor the Tier B cache build runs for this work type: bash, dependency-cruiser or none
 ```
 
 ## Mini-review checklist
 
-- [ ] A new `.workflow/` path is built from `workflow-paths.sh`, never spelled out.
+- [ ] A new `.workflow/` path in a script is built from `workflow-paths.sh`, never spelled out; a test fixture under `tests/` may spell the paths it builds.
 - [ ] Hook logic stays thin: real work is in the owning skill's script.
 - [ ] Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed.
 - [ ] A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.
 - [ ] Sibling paths resolve from `BASH_SOURCE` with `cd -P`.
 - [ ] The header block has the shape for its kind (hook or helper) and names no decision ID.
 - [ ] New files are kebab-case, run under `set -euo pipefail` and use `[[ ]]`; edited files keep their existing test syntax.
-- [ ] Each new function has its `# name ARGS : what it does` line, and each shellcheck directive has its reason.
+- [ ] Each new function has its `# name ARGS : what it does` line, and each shellcheck `disable=` directive has its reason; a `source=` path hint needs none.
