@@ -2,8 +2,9 @@
 origin_spec: .workflow/specs/003-bash-cache-extractor
 origin_step: "3.4"
 discovered_at: 2026-10-23
-status: open
+status: promoted
 kind: bug
+promoted_to: .workflow/specs/006-bash-case-patterns
 ---
 
 # Bash graph extractor reads case patterns as script calls

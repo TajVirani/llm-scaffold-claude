@@ -2,8 +2,9 @@
 origin_spec: .workflow/specs/003-bash-cache-extractor
 origin_step: "4.4"
 discovered_at: 2026-10-26
-status: open
+status: promoted
 kind: decision
+promoted_to: .workflow/specs/008-agents-skill-dependencies
 ---
 
 # The agents module reaches skills that its ownership entry does not allow

@@ -2,8 +2,9 @@
 origin_spec: .workflow/specs/003-bash-cache-extractor
 origin_step: "4.4"
 discovered_at: 2026-10-23
-status: open
+status: promoted
 kind: refactor
+promoted_to: .workflow/specs/005-shared-test-patterns
 ---
 
 # One shared definition of which paths are tests

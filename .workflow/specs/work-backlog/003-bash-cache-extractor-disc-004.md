@@ -2,8 +2,9 @@
 origin_spec: .workflow/specs/003-bash-cache-extractor
 origin_step: "2.1"
 discovered_at: 2026-10-23
-status: open
+status: promoted
 kind: bug
+promoted_to: .workflow/specs/007-boundary-check-failure
 ---
 
 # A failed depcruise run reads as no boundary violations

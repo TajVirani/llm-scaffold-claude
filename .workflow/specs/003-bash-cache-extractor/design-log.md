@@ -363,3 +363,22 @@ Failed lenses: none
 Outcome: rework 2 of 5
 - 2026-10-26 rework 2, T3 mini-review (3.7) failed R2 (`bash.sh:323,326`, the `;\036` marker has no reason comment). Its `out_of_scope_noticed` (a bare relative call on a line continued after an operator, `true && \` then `scripts/b.sh`, is dropped; `bash.sh:396`) assessed as in scope: it is the F10 patch itself, not new work. Probe: the `./scripts/a.sh` form is still reported before and after, so no regression. Behaviour fix round with a fresh agent.
 - 2026-10-26 rework 2: T3 fix rounds r7 (behaviour: continued line after an operator) and r8 (wording: span_carried comment), re-check pass; task PR skipped (gh not installed); merged locally.
+
+## 2026-10-26 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes: "Yes, approve"
+- Backlog 003-bash-cache-extractor-disc-001.md: keep it open
+- Backlog 003-bash-cache-extractor-disc-002.md: start it as the next feature
+- Backlog 003-bash-cache-extractor-disc-003.md: start it as the next feature
+- Backlog 003-bash-cache-extractor-disc-004.md: start it as the next feature
+- Backlog 003-bash-cache-extractor-disc-005.md: start it as the next feature
+- Going-in concerns: none ("nothing in particular")
+- Backlog item 003-bash-cache-extractor-disc-002.md started as .workflow/specs/005-shared-test-patterns (5.9)
+- Backlog item 003-bash-cache-extractor-disc-003.md started as .workflow/specs/006-bash-case-patterns (5.9)
+- Backlog item 003-bash-cache-extractor-disc-004.md started as .workflow/specs/007-boundary-check-failure (5.9)
+- Backlog item 003-bash-cache-extractor-disc-005.md started as .workflow/specs/008-agents-skill-dependencies (5.9)
+
+## 2026-10-26 Retrospective notes
+
+- This repo's three Tier B caches were published for the first time at `e530f63` (architecture generator `bash`, Boundary violations "Not checked"); evidence in `artifacts/jrn-005/`, see .workflow/decisions/retrospectives/003-bash-cache-extractor.md
+- Backlog items disc-002 to disc-005 became specs 005-008 at 5.9; disc-001 stays open, see .workflow/decisions/retrospectives/003-bash-cache-extractor.md

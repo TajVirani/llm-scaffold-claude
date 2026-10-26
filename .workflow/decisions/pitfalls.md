@@ -14,6 +14,12 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Write a mini-review re-check to the plain mini-review.yaml
+- What happened: at 3.7 the T9 re-check reviewer wrote `artifacts/T9/mini-review-r2.yaml` instead of `mini-review.yaml`, so the newest round was not under the plain name sign-off and the retrospective read; the orchestrator renamed it. The same reviewer reported the `tree` in `toolchain.json` as stale by comparing it with the git tree id, though `tree` is run-toolchain's own content hash (a `--reuse` run matched it).
+- Where: `.agents/agents/profile-mini-review.md` (Re-check rule); `.workflow/specs/003-bash-cache-extractor/artifacts/T9/`
+- Spec: .workflow/specs/003-bash-cache-extractor
+- Prevented by: none yet (action item in the 003 retrospective); the orchestrator names the plain file in the re-check brief
+
 ## Fork a Phase 1 build's worktree from the spec branch
 - What happened: the 1.2 harness agent's `isolation: "worktree"` worktree started at `main`, without the spec folder; the agent fast-forwarded it to the spec branch, and the worktree guard then refused its result-file write to the main checkout, so the orchestrator copied the file in by hand.
 - Where: verification-setup 1.2 launch (`modules/verification-setup.md`)
