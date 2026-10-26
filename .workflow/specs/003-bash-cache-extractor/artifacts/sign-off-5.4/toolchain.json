@@ -1,0 +1,46 @@
+{
+  "status": "pass",
+  "task_id": "sign-off-5.4",
+  "work_type": "test-harness",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/profiles/test-harness.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/003-bash-cache-extractor/artifacts/sign-off-5.4",
+  "tree": "ebfd5576019e5d1c3d3a7bbbc2150e8236b0ef88",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh",
+      "status": "pass",
+      "exit_code": 0
+    }
+  ],
+  "digest": ""
+}
