@@ -4,7 +4,7 @@
 #   files, not python or markdown); an edge for each `source`/`.` form (dir-anchored inline, a `$here` variable, one variable
 #   hop) and each call form (dir-anchored, runtime-root with an existing tail, an extensionless script claimed by its shebang);
 #   `couldNotResolve: true` with the source text in `module` and no `resolved` for a dynamic `source`, a runtime-root call
-#   whose tail does not exist and cwd-relative `./x` and `bash x` calls; every resolved path an
+#   whose tail does not exist, a bare `source lib`, and cwd-relative `./x`, `dir/x` and `bash x` calls; every resolved path an
 #   existing file; the `exports` map of sorted unique top-level functions of sourced files only; deterministic output; usage
 #   errors. CAP-NEW-bash-graph-extractor.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -107,7 +107,9 @@ eq "heredoc bodies, redirection targets, bash -c and -ec strings, quoted text an
 eq "a file nothing sources has no exports entry" "$(jq -c '.exports' <<<"$edges" 2>/dev/null)" '{}'
 
 # Detected calls are never dropped: subshell and command-substitution calls, glob paths, calls after a bash option that
-# takes a value, and an anchored call to a file that cannot be read are each unresolved, with the path text as module.
+# takes a value, an anchored call to a file that cannot be read, a source target with no slash or .sh and a command run by a
+# bare relative path are each unresolved, with the path text as module. Assignments, arithmetic, quoted prose, case
+# patterns, continued lines, folder names, jq `. as $h` and multi-line quoted strings are not calls.
 cat >"$E/hooks/forms.sh" <<'OUTER'
 #!/usr/bin/env bash
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -119,6 +121,23 @@ w=$(./scripts/version.sh)
 "$here/../data/locked"
 bash --rcfile rc.sh ./rc-run.sh
 bash -O extglob ./ext.sh
+source lib
+scripts/x.sh --flag
+dir=lib/sub
+n=$((total/2))
+echo $((a/b)) /usr/bin/x
+echo "refused (docs/x.md)"
+  text/plain) echo t ;;
+printf %s a \
+  src/a.ts
+v=$(scripts/y.sh)
+. as $h
+tests/
+emit "$t" a "" '[]' "missing (assets/y.md)"
+jq '
+  `src/b.ts` -> `src/c.ts`
+'
+"scripts/z.sh"
 OUTER
 mkdir -p "$E/data"
 printf '#!/usr/bin/env bash\n' >"$E/data/locked"
@@ -126,9 +145,9 @@ chmod 000 "$E/data/locked"
 forms=$("$X" --root "$E" --scope hooks); rc=$?
 chmod 644 "$E/data/locked"
 eq "extractor exits 0 when an anchored call names an unreadable file" "$rc" 0
-eq "subshell, substitution, glob, option-value and unreadable-target calls are each unresolved with the path text" \
+eq "subshell, substitution, glob, option-value, unreadable-target, bare source and bare relative calls are each unresolved with the path text" \
   "$(jq -r '[.modules[] | select(.source == "hooks/forms.sh") | .dependencies[] | select(.couldNotResolve) | "\(.line) \(.module)"] | join(",")' <<<"$forms" 2>/dev/null)" \
-  '3 ./scripts/version.sh,4 scripts/version.sh,5 ./scripts/*.sh,6 ./opt.sh,7 ./scripts/version.sh,8 $here/../data/locked,9 ./rc-run.sh,10 ./ext.sh'
+  '3 ./scripts/version.sh,4 scripts/version.sh,5 ./scripts/*.sh,6 ./opt.sh,7 ./scripts/version.sh,8 $here/../data/locked,9 ./rc-run.sh,10 ./ext.sh,11 lib,12 scripts/x.sh,20 scripts/y.sh,27 scripts/z.sh'
 
 shellcheck_files "shellcheck: extractors/bash.sh" "$X"
 finish

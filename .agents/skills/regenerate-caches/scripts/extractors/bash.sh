@@ -4,7 +4,7 @@
 #   Claims every `*.sh` file and every file whose first line is a bash or sh shebang (git-listed, symlinks skipped).
 #   Edges: each `source`/`.` line, each `$var/...sh` or `$(dirname ...)/...sh` path on a code line, and each other anchored
 #   path on a code line that resolves to a file claimed by its shebang. A script run by a path relative to the working
-#   directory (`./x`, `bash x`, `sh x`) is always `couldNotResolve`. A path resolves
+#   directory (`./x`, `dir/x`, `bash x`, `sh x`) is always `couldNotResolve`. A path resolves
 #   statically when it is anchored to the script's own directory (`$(dirname "$0")`, `$(dirname "${BASH_SOURCE[0]}")`,
 #   `${BASH_SOURCE%/*}`, `$(cd [-P] X && pwd)`, or a variable assigned one of those, through any number of plain
 #   variable hops and `$(dirname "$var")`), or to a variable it cannot follow (a runtime root) whose literal tail is an
@@ -92,7 +92,7 @@ FNR == 1 {
   file_dir = file
   if (!sub(/\/[^\/]*$/, "", file_dir)) file_dir = ""
   split("", dir_vars); split("", root_vars)
-  heredoc_end = ""
+  heredoc_end = ""; line_continues = 0; open_quote = ""
 }
 
 { sub(/\r$/, "") }
@@ -108,6 +108,8 @@ heredoc_end != "" {
 
 {
   raw = $0
+  continued = line_continues
+  line_continues = (raw ~ /\\$/)
   if (match(raw, "^(function[ \t]+" var_name "|" var_name "[ \t]*\\(\\))")) {
     fn = substr(raw, 1, RLENGTH)
     sub(/^function[ \t]+/, "", fn)
@@ -135,6 +137,8 @@ heredoc_end != "" {
     sub(/[ \t;].*$/, "", target)
     if (target ~ /^[$\034]/) add_edge(target, 1)
     else if (target ~ /\// || target ~ /\.sh$/) add_edge(target, 0)
+    # A bare name is looked up on PATH at run time. A jq `. as $name` binding in a multi-line jq program reads the same way.
+    else if (target ~ /^[A-Za-z0-9_.+-]+$/ && line !~ /^[ \t]*\.[ \t]+as[ \t]+\$/) add_edge(target, 0)
   } else {
     token_count = split(line, tokens, /[ \t;|&<>=`]+/)
     for (t = 1; t <= token_count; t++) {
@@ -151,6 +155,7 @@ heredoc_end != "" {
       }
     }
     report_cwd_relative_calls(line)
+    report_bare_relative_calls(raw, continued)
   }
 
   # Without the (( guard an arithmetic shift such as (( n = 1 << k )) reads as a heredoc and skips the rest of the file.
@@ -306,23 +311,35 @@ function is_claimed_script(path,   first_line, read_status) {
   return (path in has_shebang)
 }
 
-# report_cwd_relative_calls TEXT : prints an unresolved E record for each script TEXT runs by a path relative to the
-# working directory (`./x`, `../x`, `bash x`, `sh x`), since that directory is only known at run time.
+# split_commands TEXT COMMANDS OPENED : the count of commands TEXT holds, each put in COMMANDS without its leading
+# keywords and variable assignments; OPENED[c] is 1 when command c starts inside `(` or `$(`.
 # Quoted text is not a command, so single-quoted strings are dropped, and a quote left open starts a string that runs
-# on past this line. An array assignment `=(` and a closing `)` do not start a command. Only a short-option cluster holding
-# `c` (`-c`, `-ec`) makes bash read a command string; other options are skipped, with the value of those that take one.
-# Every call found is reported, whatever its path holds, so a glob or an odd character is never dropped silently.
-function report_cwd_relative_calls(text,   command_count, commands, c, command, word_count, words, w, script) {
+# on past this line. An array assignment `=(` and an arithmetic `((...))` do not start a command.
+function split_commands(text, commands, opened,   command_count, c) {
   gsub(/\047[^\047]*\047/, "", text)
   sub(/\047.*$/, "", text)
   gsub(/=\(/, "= ", text)
-  command_count = split(text, commands, /;|&&|\|\||\||&|`|\$\(|\(/)
+  gsub(/\(\([^()]*\)\)/, " ", text)
+  gsub(/\$?\(/, ";\036", text)
+  command_count = split(text, commands, /;|&&|\|\||\||&|`/)
   for (c = 1; c <= command_count; c++) {
-    command = commands[c]
-    sub(/^[ \t{}]+/, "", command)
-    while (sub(/^(then|do|else|elif|if|while|until|exec|time|command|!)[ \t]+/, "", command) \
-      || sub("^" var_name "=[^ \t]*[ \t]+", "", command)) {}
-    word_count = split(command, words, /[ \t]+/)
+    opened[c] = sub(/^\036/, "", commands[c])
+    sub(/^[ \t{}]+/, "", commands[c])
+    while (sub(/^(then|do|else|elif|if|while|until|exec|time|command|!)[ \t]+/, "", commands[c]) \
+      || sub("^" var_name "=[^ \t]*[ \t]+", "", commands[c])) {}
+  }
+  return command_count
+}
+
+# report_cwd_relative_calls TEXT : prints an unresolved E record for each script TEXT runs by a path relative to the
+# working directory (`./x`, `../x`, `bash x`, `sh x`), since that directory is only known at run time.
+# A closing `)` does not start a command. Only a short-option cluster holding `c` (`-c`, `-ec`) makes bash read a
+# command string; other options are skipped, with the value of those that take one.
+# Every call found is reported, whatever its path holds, so a glob or an odd character is never dropped silently.
+function report_cwd_relative_calls(text,   command_count, commands, opened, c, word_count, words, w, script) {
+  command_count = split_commands(text, commands, opened)
+  for (c = 1; c <= command_count; c++) {
+    word_count = split(commands[c], words, /[ \t]+/)
     for (w = 1; w <= word_count; w++) {
       sub(/^\$?\(/, "", words[w])
       sub(/\)+$/, "", words[w])
@@ -337,6 +354,51 @@ function report_cwd_relative_calls(text,   command_count, commands, c, command, 
       if (w <= word_count && words[w] !~ /^[-$\/~]/ && (words[w] ~ /\// || words[w] ~ /\.sh$/)) script = words[w]
     }
     if (script != "") add_edge(script, 0)
+  }
+}
+
+# unquoted_code TEXT : raw line TEXT with single-quoted strings and double-quoted strings holding a space or tab dropped,
+# and the quotes of the other double-quoted strings removed. Quotes are paired left to right, and a string left open runs
+# on into the next lines, kept in open_quote; quote_opened_before is 1 when TEXT starts inside such a string.
+function unquoted_code(text,   out, span, span_carried, i, ch) {
+  out = ""; span = ""
+  quote_opened_before = (open_quote != "")
+  span_carried = quote_opened_before
+  for (i = 1; i <= length(text); i++) {
+    ch = substr(text, i, 1)
+    if (open_quote == "\047") {
+      if (ch == "\047") open_quote = ""
+    } else if (ch == "\\" && i < length(text)) {
+      i++
+      if (open_quote == "\"") span = span ch substr(text, i, 1)
+      else out = out ch substr(text, i, 1)
+    } else if (open_quote == "\"") {
+      if (ch != "\"") span = span ch
+      else {
+        out = out ((span ~ /[ \t]/ || span_carried) ? " " : span)
+        open_quote = ""; span = ""; span_carried = 0
+      }
+    } else if (ch == "\047" || ch == "\"") open_quote = ch
+    else out = out ch
+  }
+  return out
+}
+
+# report_bare_relative_calls TEXT CONTINUED : prints an unresolved E record for each command of raw line TEXT that is a
+# plain relative path with a folder and no leading `./` (`scripts/x.sh`), which also resolves against the working directory.
+# Such words are common in prose and data, so only a plain path counts (no glob, trailing `/`, `:` or `,`); quoted text
+# goes as unquoted_code says; a line CONTINUED from the one before, or one that starts inside a quoted string, does not
+# start a command; and a word closed by `)` is a case pattern unless the command opened with `(`.
+function report_bare_relative_calls(text, continued,   command_count, commands, opened, c, first_word) {
+  text = strip_redirections(unquoted_code(text))
+  command_count = split_commands(text, commands, opened)
+  for (c = 1; c <= command_count; c++) {
+    if (c == 1 && (continued || quote_opened_before)) continue
+    first_word = commands[c]
+    sub(/[ \t].*$/, "", first_word)
+    if (first_word ~ /\)$/ && !opened[c]) continue
+    sub(/\)+$/, "", first_word)
+    if (first_word ~ /^[A-Za-z0-9_][A-Za-z0-9_.+-]*(\/[A-Za-z0-9_.+-]+)+$/) add_edge(first_word, 0)
   }
 }
 
