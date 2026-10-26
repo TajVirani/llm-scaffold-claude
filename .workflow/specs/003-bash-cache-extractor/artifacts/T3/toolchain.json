@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/003-bash-cache-extractor/artifacts/T3",
-  "tree": "dfb30105f6bfbf1ba724afd2672d12aad7f71004",
+  "tree": "a221d5a04a58593b59b7d1921ecfd75b0883c940",
   "ran": 2,
   "results": [
     {
@@ -42,7 +42,7 @@
       "exit_code": 0,
       "scoped": true,
       "own": 1,
-      "excluded": 1
+      "excluded": 0
     }
   ],
   "digest": "",

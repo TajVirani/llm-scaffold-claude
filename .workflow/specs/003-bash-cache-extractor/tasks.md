@@ -44,7 +44,7 @@ tasks:
     pr: null
   - id: T3
     title: "Bash graph extractor"
-    status: in-progress
+    status: done
     capability: CAP-005
     depends_on: []
     touches_core: false

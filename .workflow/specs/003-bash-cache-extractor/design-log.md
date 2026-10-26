@@ -361,3 +361,5 @@ Gaps (not findings): JRN-005 and the last CAP-005 line are the manual run at 5.3
 
 Failed lenses: none
 Outcome: rework 2 of 5
+- 2026-10-26 rework 2, T3 mini-review (3.7) failed R2 (`bash.sh:323,326`, the `;\036` marker has no reason comment). Its `out_of_scope_noticed` (a bare relative call on a line continued after an operator, `true && \` then `scripts/b.sh`, is dropped; `bash.sh:396`) assessed as in scope: it is the F10 patch itself, not new work. Probe: the `./scripts/a.sh` form is still reported before and after, so no regression. Behaviour fix round with a fresh agent.
+- 2026-10-26 rework 2: T3 fix rounds r7 (behaviour: continued line after an operator) and r8 (wording: span_carried comment), re-check pass; task PR skipped (gh not installed); merged locally.
