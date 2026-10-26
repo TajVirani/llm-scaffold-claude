@@ -336,3 +336,28 @@ Module audit: not rerun; the 2026-10-21 audit covers `build-architecture.sh:218-
 - T9: mini-review round 1 failed item 8 (`# shellcheck source=` hint at `tests/scripts/build-architecture.sh:13` had no reason); wording-only fix `014fa20`, re-check pass. Rule candidate for 5.2: say whether shell-scripts item 8 covers `source=` path hints or only `disable=` lines (sibling suites use bare `source=`).
 - Dismissed discovered work: toolchain-tree-mismatch: re-check reviewer compared `toolchain.json` `tree` with the git tree id (`artifacts/T9/toolchain.json`), not a blocker and not real; `tree` is run-toolchain's content hash, and a `--reuse` run on `014fa20` matched it.
 - The re-check reviewer wrote `mini-review-r2.yaml` instead of `mini-review.yaml`; renamed by the main session. Retrospective note for 5.7.
+
+## 2026-10-26 Discovered work: agents-module-dependencies
+
+- Found at: step 4.4 by review-standards (F8, RS-3). Kind: decision
+- Problem and evidence: `cache-regeneration.md:36,85,88` reaches regenerate-caches and visual-change-report by `skills/` path; `.workflow/rules.md:79-81` lets agents depend on feature-workflow only. Present at baseline `86609a6`.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/003-bash-cache-extractor-disc-005.md](../work-backlog/003-bash-cache-extractor-disc-005.md)
+
+## 2026-10-26 Triage, review pass 2
+
+Pass numbering continues the folder sequence after the 5.6 loop back (spec 001 precedent), so pass 1's files in `artifacts/review/pass-1/` stay; this is the first pass of the new cycle for the 4.6 count.
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F6 | review-standards (RS-1) | `profile_extractors` and `test_patterns` repeat the same walk over the work profiles | `.agents/skills/regenerate-caches/scripts/build-architecture.sh:154-163,543-551` | low | The shared part is the glob, the TEMPLATE.md skip and the parse `die` (about 5 lines); the loops differ after that (one dies on a missing key, the other falls back to defaults) | none (dismissed: a shared walker adds a function interface to save about 5 lines; both loops are in one file and covered by tests) |
+| F7 | review-standards (RS-2) | `graph_extractor:` line splits `test_patterns` from its continuation comments | `.workflow/profiles/shell-scripts.md:49-52`, `test-harness.md:39-42`, `agent-docs.md:44-47` | low | Read `shell-scripts.md:50-52`: the default list comments sit under `graph_extractor`. Shipped templates (`project-setup/assets/profiles/`) are laid out correctly | defer (proposal P13) |
+| F8 | review-standards (RS-3) | agents module depends on skills its ownership entry does not allow | `.agents/agents/cache-regeneration.md:36,85,88` | - | Present at baseline `86609a6`; `.workflow/rules.md:79-81` | discovered work (filed: [003-bash-cache-extractor-disc-005.md](../work-backlog/003-bash-cache-extractor-disc-005.md)) |
+| F9 | review-lessons (RL-1) | A `source`/`.` line whose target has no slash and no `.sh` (`source lib`) is dropped, not reported unresolved | `.agents/skills/regenerate-caches/scripts/extractors/bash.sh:136-137` | medium | Fixture run: `source lib` in `scripts/main.sh:2` gives no dependency. Repeats pitfall "Report a detected call as unresolved; never filter it out"; breaks the CAP-005 line "couldNotResolve ... for each that does not" | patch (T3) |
+| F10 | review-lessons (RL-2) | A command whose first word has a slash but no leading `./` (`scripts/x.sh`) is skipped, not reported unresolved | `.agents/skills/regenerate-caches/scripts/extractors/bash.sh:331` | medium | Fixture run: `scripts/x.sh` in `scripts/main.sh:3` gives no dependency, while `./scripts/x.sh` on line 4 gives `couldNotResolve`. Same pitfall and CAP-005 line | patch (T3) |
+| F11 | review-lessons (RL-3) | Task commit subjects are `T<n>:`, not Conventional Commits | commits `86609a6..a4342de` (e.g. `5b7f95d`, `014fa20`) | low | `.workflow/rules.md:145`; history cannot be fixed without a rewrite. The 5.8 merge takes a Conventional subject, as at spec 004 | defer (proposal P14) |
+
+Gaps (not findings): JRN-005 and the last CAP-005 line are the manual run at 5.3 (review-end-state `not_verifiable`). review-standards `not_checked`: typecheck, format and boundary keys have no command for bash; ownership checked by hand.
+
+Failed lenses: none
+Outcome: rework 2 of 5
