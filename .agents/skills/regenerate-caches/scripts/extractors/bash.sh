@@ -377,6 +377,7 @@ function unquoted_code(text,   out, span, span_carried, i, ch) {
     } else if (open_quote == "\"") {
       if (ch != "\"") span = span ch
       else {
+        # A span begun on an earlier line counts as holding a space, so the tail of a multi-line string is not read as a command.
         out = out ((span ~ /[ \t]/ || span_carried) ? " " : span)
         open_quote = ""; span = ""; span_carried = 0
       }
