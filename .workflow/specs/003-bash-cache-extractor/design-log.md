@@ -328,3 +328,11 @@ Module audit: not rerun; the 2026-10-21 audit covers `build-architecture.sh:218-
 - Stakeholder approved "Approve (Recommended)": T9 (build-architecture.sh boundary rule, D16-D17) and T10 (regenerate-caches docs), both wave 1, afk, no overlaps; T1-T8 stay done.
 - Size budget kept, "Keep it (Recommended)": `{max_tasks: 10, max_changed_files: 30}`; T9 and T10 bring the count to 10.
 - 2.2: both specifiable from D16-D18 and JRN-006. 2.3: seams are existing ones (T9 the `build-architecture.sh --cache architecture` output, as T2; T10 none, docs). 2.4: shared core checked below.
+
+## 2026-10-26 Wave 4 (T9, T10)
+
+- Task PRs skipped for T9, T10 (gh not installed); merged locally.
+- T10: mini-review pass, both agent-docs checklist items not applicable (no skill description or agent changed).
+- T9: mini-review round 1 failed item 8 (`# shellcheck source=` hint at `tests/scripts/build-architecture.sh:13` had no reason); wording-only fix `014fa20`, re-check pass. Rule candidate for 5.2: say whether shell-scripts item 8 covers `source=` path hints or only `disable=` lines (sibling suites use bare `source=`).
+- Dismissed discovered work: toolchain-tree-mismatch: re-check reviewer compared `toolchain.json` `tree` with the git tree id (`artifacts/T9/toolchain.json`), not a blocker and not real; `tree` is run-toolchain's content hash, and a `--reuse` run on `014fa20` matched it.
+- The re-check reviewer wrote `mini-review-r2.yaml` instead of `mini-review.yaml`; renamed by the main session. Retrospective note for 5.7.

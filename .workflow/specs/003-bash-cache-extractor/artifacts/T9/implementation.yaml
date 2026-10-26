@@ -1,0 +1,21 @@
+status: "done"
+summary: "build-architecture.sh now runs the depcruise boundary check only when the selected graph extractors include dependency-cruiser (with --from-json, when the config exists, as before); otherwise Boundary violations reads the 'no boundary checker for this project's graph extractors (<names>)' line with the --print-generator names, or none. --violations-json still overrides. Round 1 fix: the graph-extractors shellcheck source directive in tests/scripts/build-architecture.sh now carries its reason."
+task_id: "T9"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t9"
+branch: "task/003-bash-cache-extractor/T09-boundary-check-by-extractor"
+base_commit: "43422cb80e029b0c983340e84a222fe28b7bc102"
+head_commit: "014fa20ff5838ed84c1cf52981d6d0c0964e4a57"
+files_changed: [".agents/skills/regenerate-caches/scripts/build-architecture.sh", "tests/scripts/build-architecture.sh"]
+tests_added:
+  - {file: "tests/scripts/build-architecture.sh", test: "bash-only-violations-json-overrides", kind: "edge"}
+  - {file: "tests/scripts/build-architecture.sh", test: "from-json-config-runs-depcruise", kind: "edge"}
+evidence:
+  red: "bash tests/scripts/cache-boundary-check.sh; FAIL JRN-006 run 1 never runs depcruise (ran: --config .workflow/tools/boundaries/dependency-cruiser.cjs -T json scripts); FAIL JRN-006 run 1 Boundary violations names the extractors with no boundary checker (got=None.); RESULT passed=6 failed=2"
+  green: "bash tests/scripts/cache-boundary-check.sh: RESULT passed=8 failed=0; bash tests/scripts/build-architecture.sh: RESULT passed=87 failed=0 (after round 1 fix); tests/run-all.sh before the fix: TOTAL passed=2891 failed=0 (53 suites)"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/003-bash-cache-extractor --task-id T9 --cwd <worktree>; exit 0, test (scoped) pass"
+  toolchain: ".workflow/specs/003-bash-cache-extractor/artifacts/T9/toolchain.txt (pass)"
+considered_not_built: ["A failed depcruise run rendering None.: out of scope, already filed as work-backlog/003-bash-cache-extractor-disc-004.md", "The two added tests guard behaviour that already existed (AC3 'behave as before'), so they passed on first run rather than going red first"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

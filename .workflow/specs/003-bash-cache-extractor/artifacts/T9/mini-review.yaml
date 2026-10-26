@@ -1,0 +1,68 @@
+verdict: pass
+task_id: T9
+work_type: shell-scripts
+mode: re-check
+previous: .workflow/specs/003-bash-cache-extractor/artifacts/T9/mini-review-r1.yaml
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t9@43422cb80e029b0c983340e84a222fe28b7bc102..014fa20ff5838ed84c1cf52981d6d0c0964e4a57
+tool_output: .workflow/specs/003-bash-cache-extractor/artifacts/T9/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:384,388 (uses $root/$WF_BOUNDARIES), tests/scripts/build-architecture.sh:243-262 (fixture spells .workflow/tools/boundaries, allowed in tests)
+    carried_from: r1
+  - n: 2
+    verdict: not-applicable
+    location: no hook file in the diff; the change is in a skill script
+    carried_from: r1
+  - n: 3
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:303-305 (selected_extractors failure still exits 2, the new case block has no failing command that is unhandled)
+    carried_from: r1
+  - n: 4
+    verdict: not-applicable
+    location: no new or changed exit code in the diff
+    carried_from: r1
+  - n: 5
+    verdict: not-applicable
+    location: no new sibling path resolution in a script; the test file's source line for the fixture uses TESTS_DIR set in tests/lib/common.sh:18, and the fix commit does not touch that line
+    carried_from: r1
+  - n: 6
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:1-3 (helper header shape kept, Tools paragraph names no decision ID)
+    carried_from: r1
+  - n: 7
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:1 (set -euo pipefail pre-existing, new code uses [[ ]] at lines 303 and 381); tests/scripts/build-architecture.sh new block has no conditionals; no new files
+    carried_from: r1
+  - n: 8
+    verdict: pass
+    location: tests/scripts/build-architecture.sh:13 (the directive now carries its reason, "TESTS_DIR is set by common.sh, so shellcheck cannot follow the path alone"); the only other directives in the diff, tests/scripts/build-architecture.sh:10 and :11, already had reasons or were pre-existing without new additions
+  - n: R1
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:288 (extractors_without_checker says what it holds), :381-384 (render_boundary_violations branch names)
+    carried_from: r1
+  - n: R2
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:286-287 (the comment gives the reason the empty value means the check runs)
+    carried_from: r1
+  - n: R3
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:286-287, tests/scripts/build-architecture.sh:243-244 (no comment restates the next line)
+    carried_from: r1
+  - n: R4
+    verdict: pass
+    location: tests/scripts/build-architecture.sh:243-244, :247-248 (no decision ID, workflow path or doc link in body comments; the .workflow/tools path appears only in the header block at build-architecture.sh:46, which R4 allows)
+    carried_from: r1
+  - n: R5
+    verdict: pass
+    location: tests/scripts/build-architecture.sh:243-244 (profile is defined in the code by the work profile description in build-architecture.sh:11-12)
+    carried_from: r1
+read_outside_diff:
+  - "tests/scripts/build-architecture.sh: lines 1-20, to read the fixed directive at line 13 in place"
+  - "git diff 5b7f95d..014fa20: the fix round changes only the comment on tests/scripts/build-architecture.sh:13, so no item needed new code reads beyond that"
+out_of_scope_noticed:
+  - kind: bug
+    summary: "toolchain.json records tree 87ac7b6ed46365e5ecb1a84769467d7e854937c3, but the reviewed HEAD 014fa20 has tree 374865040f030804d82ce9fd03f36dd084860e9c. The lint and test results may predate the fix commit."
+    evidence: ".workflow/specs/003-bash-cache-extractor/artifacts/T9/toolchain.json (tree field)"
+    blocker_assessment: can-wait
+    reason: "The fix changes only a comment on tests/scripts/build-architecture.sh:13, so the result very likely still holds, but the record does not match the reviewed tree; the orchestrator should rerun the scoped checks on HEAD if it needs the evidence to match."

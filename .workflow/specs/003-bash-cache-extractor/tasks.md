@@ -155,7 +155,7 @@ tasks:
     pr: null
   - id: T9
     title: "Boundary check only when a profile selects dependency-cruiser"
-    status: pending
+    status: done
     capability: CAP-004
     depends_on: [T1, T2, T4]
     touches_core: false
@@ -175,7 +175,7 @@ tasks:
     pr: null
   - id: T10
     title: "regenerate-caches docs for the boundary check rule"
-    status: pending
+    status: done
     capability: CAP-004
     depends_on: [T5]
     touches_core: false

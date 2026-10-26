@@ -1,0 +1,38 @@
+verdict: pass
+task_id: T10
+work_type: agent-docs
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t10@43422cb80e029b0c983340e84a222fe28b7bc102..HEAD
+tool_output: .workflow/specs/003-bash-cache-extractor/artifacts/T10/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: .agents/skills/regenerate-caches/SKILL.md:40-48
+    note: The diff changes only body text of regenerate-caches/SKILL.md (hunks at lines 40 and 109 region of the skill file). The frontmatter description is untouched, so no skill description is added or changed.
+  - n: 2
+    verdict: not-applicable
+    location: .agents/skills/regenerate-caches/SKILL.md
+    note: No agent definition is added or changed in the diff.
+  - n: R1
+    verdict: not-applicable
+    location: .agents/skills/regenerate-caches/SKILL.md, .agents/skills/regenerate-caches/assets/cache-frontmatter.md
+    note: The diff adds no code, names or code comments; it edits two markdown files only.
+  - n: R2
+    verdict: not-applicable
+    location: .agents/skills/regenerate-caches/SKILL.md, .agents/skills/regenerate-caches/assets/cache-frontmatter.md
+    note: The diff adds no code comments; the added prose is skill instruction text.
+  - n: R3
+    verdict: not-applicable
+    location: .agents/skills/regenerate-caches/SKILL.md, .agents/skills/regenerate-caches/assets/cache-frontmatter.md
+    note: The diff adds no code comments.
+  - n: R4
+    verdict: not-applicable
+    location: .agents/skills/regenerate-caches/SKILL.md, .agents/skills/regenerate-caches/assets/cache-frontmatter.md
+    note: The diff adds no code comments. The added `.workflow/tools/boundaries/dependency-cruiser.cjs` path is a functional path the skill tells the agent to check, not a comment reference.
+  - n: R5
+    verdict: not-applicable
+    location: .agents/skills/regenerate-caches/SKILL.md, .agents/skills/regenerate-caches/assets/cache-frontmatter.md
+    note: The diff adds no code comments.
+read_outside_diff: []
+out_of_scope_noticed: []
