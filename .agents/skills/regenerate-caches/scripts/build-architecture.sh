@@ -43,7 +43,9 @@
 #     --dts-dir DIR         modules only: declarations already emitted with --rootDir <root> instead of running tsc
 # Tools: each extractor checks its own tools (the dependency-cruiser extractor: $DEPCRUISE, else
 #   <root>/node_modules/.bin/depcruise, else `npx --no-install depcruise`). The boundary check runs depcruise the same way
-#   when .workflow/tools/boundaries/dependency-cruiser.cjs exists.
+#   when .workflow/tools/boundaries/dependency-cruiser.cjs exists and the selected extractors include dependency-cruiser
+#   (with --from-json, when the config exists); when none of them has a boundary checker, Boundary violations reads
+#   "Not checked: no boundary checker for this project's graph extractors (<names>)." with the --print-generator names, or none.
 #   tsc is $TSC, else <root>/node_modules/.bin/tsc, else `npx --no-install tsc`. A missing tsc or tsconfig.json is not an
 #   error: Public interface then lists the functions the graph JSON `exports` gives for the module's files, sorted and unique,
 #   `- \`name\` (function)`, and reads "Not generated: <reason>." for a module none of whose files has an `exports` entry.
@@ -281,6 +283,9 @@ $claimed"
 }
 
 merged_graph_json="$tmpd/merged-graph.json"
+# The selected extractors joined as --print-generator prints them, set only when none of them has a boundary checker;
+#   empty means the boundary check runs when its config exists.
+extractors_without_checker=""
 if [[ -n "$from_json" ]]; then
   graph_origin="--from-json $from_json"
   cp "$from_json" "$merged_graph_json" || die "cannot read --from-json $from_json"
@@ -294,6 +299,11 @@ else
   graph_origin="graph extractors: ${extractors[*]-none}"
   # bash 3.2 treats an empty array as unset under set -u, so the expansion is guarded.
   run_extractors ${extractors[@]+"${extractors[@]}"}
+  case " ${extractors[*]-} " in
+    *" dependency-cruiser "*) ;;
+    *) extractors_without_checker="$(printf '%s\n' ${extractors[@]+"${extractors[@]}"} | paste -sd, -)"
+       extractors_without_checker="${extractors_without_checker:-none}" ;;
+  esac
 fi
 
 # graph.json: files in scope, file edges, file -> node, collapsed node edges, unresolved-edge bullets; ids checked for collisions
@@ -368,6 +378,9 @@ render_boundary_violations() {
   local vfile="" vlines
   if [[ -n "$viol_json" ]]; then
     vfile="$viol_json"
+  elif [[ -n "$extractors_without_checker" ]]; then
+    echo "Not checked: no boundary checker for this project's graph extractors ($extractors_without_checker)."
+    return 0
   elif [[ -f "$root/$WF_BOUNDARIES/dependency-cruiser.cjs" ]]; then
     vfile="$tmpd/violations.json"
     tool_cmd "${DEPCRUISE:-}" depcruise || die "depcruise not found (install dependency-cruiser, or set DEPCRUISE)"
