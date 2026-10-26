@@ -5,10 +5,13 @@
 #   violations, modules.md skeleton (files, depends on, used by, public interface from .d.ts with export * expanded),
 #   flows entry candidates, id collisions, dirty-scope refusal, --out guard, input rejections; the staged-body checker
 #   for all three shapes (architecture with a sorted "Unresolved edges" section after Boundary violations, and an older
-#   body without it) and its Mermaid HTML wrapper. No node needed: dependency-cruiser and tsc output are fixtures.
+#   body without it) and its Mermaid HTML wrapper; for a bash-only project with a boundary config, --violations-json and
+#   --from-json still reach the boundary check. No node needed: dependency-cruiser and tsc output are fixtures.
 # shellcheck disable=SC2016,SC2034  # literal Markdown backticks in single quotes; check expressions read vars through eval
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/graph-extractors.sh
+source "$TESTS_DIR/fixtures/graph-extractors.sh"
 preflight
 
 new_workdir
@@ -236,6 +239,26 @@ echo '{"modules":[{"source":"src/a-b/i.ts","dependencies":[]},{"source":"src/a_b
 out=$(cd "$R2" && "$B" --cache architecture --scope src --from-json "$WORK/coll.json" 2>&1); rc=$?
 eq collision-rc "$rc" 2
 check collision-names 'printf "%s" "$out" | grep -q "src/a-b and src/a_b"'
+
+# ---------------------------------------------------------------- boundary check without a dependency-cruiser profile
+# A bash-only project with a committed boundary config: --violations-json still overrides, and --from-json reads no
+#   profiles, so the config alone still runs depcruise.
+R3="$WORK/repo3"
+git_init_repo "$R3"
+mkdir -p "$R3/scripts" "$R3/.workflow/tools/boundaries"
+printf '#!/usr/bin/env bash\necho hi\n' >"$R3/scripts/run.sh"
+printf 'module.exports = { forbidden: [] };\n' >"$R3/.workflow/tools/boundaries/dependency-cruiser.cjs"
+write_profile "$R3" shell-scripts bash
+git_commit_all "$R3" init
+v=$(cd "$R3" && "$B" --cache architecture --scope scripts --violations-json "$WORK/viol.json")
+eq bash-only-violations-json-overrides "$(section_of "$v" "Boundary violations")" '- `alpha-not-to-main`: `src/a/x.ts` → `src/main.ts`
+- `beta-not-to-alpha`: `src/b/y.ts` → `src/a/x.ts`'
+printf '#!/usr/bin/env bash\ncat %q\n' "$WORK/viol.json" >"$WORK/depcruise-violations"
+chmod +x "$WORK/depcruise-violations"
+echo '{"modules":[{"source":"scripts/run.sh","dependencies":[]}]}' >"$WORK/run-graph.json"
+v=$(cd "$R3" && DEPCRUISE="$WORK/depcruise-violations" "$B" --cache architecture --scope scripts --from-json "$WORK/run-graph.json")
+eq from-json-config-runs-depcruise "$(section_of "$v" "Boundary violations")" '- `alpha-not-to-main`: `src/a/x.ts` → `src/main.ts`
+- `beta-not-to-alpha`: `src/b/y.ts` → `src/a/x.ts`'
 
 # ---------------------------------------------------------------- check-staged-cache
 t chk-arch-ok 0 "$C" architecture .workflow/.cache-staging/architecture.md
