@@ -40,9 +40,9 @@ Then check the tools of each extractor it named:
 - `bash`: git, awk and jq.
 - `dependency-cruiser`: depcruise, through `test -x node_modules/.bin/depcruise || npx --no-install depcruise --version`. If it is missing, stop and tell the human to add dependency-cruiser as a dev dependency.
 
-depcruise is also needed for the `architecture` cache whenever `.workflow/tools/boundaries/dependency-cruiser.cjs` exists, because its Boundary violations section runs depcruise against that config, whatever extractors the profiles name. Otherwise a project whose profiles do not name `dependency-cruiser` needs no depcruise.
+The `architecture` Boundary violations section runs depcruise against `.workflow/tools/boundaries/dependency-cruiser.cjs` only when that file exists and a work profile names `dependency-cruiser`, so the check above already covers it. A project whose profiles do not name `dependency-cruiser` needs no depcruise, even with a boundary config present.
 
-Done when git, jq, yq v4 and the tools of every named extractor answer, and depcruise answers when `architecture` will be built with a boundary config present.
+Done when git, jq, yq v4 and the tools of every named extractor answer.
 
 ### 2. Read the stamps
 
