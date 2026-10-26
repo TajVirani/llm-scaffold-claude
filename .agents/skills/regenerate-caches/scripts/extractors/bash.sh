@@ -92,7 +92,7 @@ FNR == 1 {
   file_dir = file
   if (!sub(/\/[^\/]*$/, "", file_dir)) file_dir = ""
   split("", dir_vars); split("", root_vars)
-  heredoc_end = ""; line_continues = 0; open_quote = ""
+  heredoc_end = ""; continues_mid_command = 0; open_quote = ""
 }
 
 { sub(/\r$/, "") }
@@ -108,8 +108,9 @@ heredoc_end != "" {
 
 {
   raw = $0
-  continued = line_continues
-  line_continues = (raw ~ /\\$/)
+  continued_mid_command = continues_mid_command
+  # After an operator such as `&& \` the next line starts a new command; after a word it carries on the same one.
+  continues_mid_command = (raw ~ /\\$/ && raw !~ /(&&|\|\||\||;|\()[ \t]*\\$/)
   if (match(raw, "^(function[ \t]+" var_name "|" var_name "[ \t]*\\(\\))")) {
     fn = substr(raw, 1, RLENGTH)
     sub(/^function[ \t]+/, "", fn)
@@ -155,7 +156,7 @@ heredoc_end != "" {
       }
     }
     report_cwd_relative_calls(line)
-    report_bare_relative_calls(raw, continued)
+    report_bare_relative_calls(raw, continued_mid_command)
   }
 
   # Without the (( guard an arithmetic shift such as (( n = 1 << k )) reads as a heredoc and skips the rest of the file.
@@ -320,6 +321,7 @@ function split_commands(text, commands, opened,   command_count, c) {
   sub(/\047.*$/, "", text)
   gsub(/=\(/, "= ", text)
   gsub(/\(\([^()]*\)\)/, " ", text)
+  # The \036 marker survives the split so a `)` closing a `$(` or `(` subshell can be told apart from the `)` ending a case pattern.
   gsub(/\$?\(/, ";\036", text)
   command_count = split(text, commands, /;|&&|\|\||\||&|`/)
   for (c = 1; c <= command_count; c++) {
@@ -384,16 +386,17 @@ function unquoted_code(text,   out, span, span_carried, i, ch) {
   return out
 }
 
-# report_bare_relative_calls TEXT CONTINUED : prints an unresolved E record for each command of raw line TEXT that is a
-# plain relative path with a folder and no leading `./` (`scripts/x.sh`), which also resolves against the working directory.
-# Such words are common in prose and data, so only a plain path counts (no glob, trailing `/`, `:` or `,`); quoted text
-# goes as unquoted_code says; a line CONTINUED from the one before, or one that starts inside a quoted string, does not
-# start a command; and a word closed by `)` is a case pattern unless the command opened with `(`.
-function report_bare_relative_calls(text, continued,   command_count, commands, opened, c, first_word) {
+# report_bare_relative_calls TEXT CONTINUED_MID_COMMAND : prints an unresolved E record for each command of raw line
+# TEXT that is a plain relative path with a folder and no leading `./` (`scripts/x.sh`), which also resolves against the
+# working directory. Such words are common in prose and data, so only a plain path counts (no glob, trailing `/`, `:` or
+# `,`); quoted text goes as unquoted_code says; a line CONTINUED_MID_COMMAND (the one before ended in `\` after a word,
+# not after an operator), or one that starts inside a quoted string, does not start a command; and a word closed by `)`
+# is a case pattern unless the command opened with `(`.
+function report_bare_relative_calls(text, continued_mid_command,   command_count, commands, opened, c, first_word) {
   text = strip_redirections(unquoted_code(text))
   command_count = split_commands(text, commands, opened)
   for (c = 1; c <= command_count; c++) {
-    if (c == 1 && (continued || quote_opened_before)) continue
+    if (c == 1 && (continued_mid_command || quote_opened_before)) continue
     first_word = commands[c]
     sub(/[ \t].*$/, "", first_word)
     if (first_word ~ /\)$/ && !opened[c]) continue
