@@ -42,9 +42,9 @@ config:         # config file path per tool
   typecheck: ""
 rule_set: "scaffold lint suites (frontmatter, step-list, symlinks, upstream-lineage)"
 test_patterns: [] # which paths are tests, kept out of the size-budget file count (budget-check.sh). [] or absent: the defaults
-graph_extractor: none # the graph extractor the Tier B cache build runs for this work type: bash, dependency-cruiser or none
                   # ["*.test.*", "*.spec.*", "__tests__/", "tests/", "test/", "e2e/", "*_test.go", "test_*.py", "*_test.py"]. A list replaces them
                   # for this profile. "dir/" matches that folder at any depth; a pattern with another / matches the repo-relative path; else the file name.
+graph_extractor: none # the graph extractor the Tier B cache build runs for this work type: bash, dependency-cruiser or none
 ```
 
 ## Mini-review checklist

@@ -50,13 +50,15 @@ A bash project whose profiles name `graph_extractor: bash` gets all three Tier B
 ## Assumptions
 
 - Confirmed: the `generator` frontmatter field records the names of the extractors that ran, comma-joined and sorted (e.g. `bash`, `bash,dependency-cruiser`). Callers read it from `build-architecture.sh --print-generator` (D14); discovery, the cache-regeneration agent and regenerate-caches no longer hardcode `--generator dependency-cruiser`.
-- Confirmed: the shipped profile template and example profiles (`project-setup/assets/profiles/`) carry the `graph_extractor` key, and project-setup asks for it when it writes a profile. dependency-cruiser stays required where a profile names it or a boundary config exists.
+- Confirmed: the shipped profile template and example profiles (`project-setup/assets/profiles/`) carry the `graph_extractor` key, and project-setup asks for it when it writes a profile. dependency-cruiser stays required only where a profile names it; a boundary config alone no longer needs it (D16).
 - Confirmed: the bash extractor claims `*.sh` files and files with a bash or sh shebang; dependency-cruiser claims what it does today. Unresolved edges carry an optional `line` (D15), and every script call the bash extractor detects is either an edge or an unresolved entry.
 
 ## Known gaps
 
 - With every profile naming `none`, no architecture cache can be published: [work-backlog/003-bash-cache-extractor-disc-001.md](../work-backlog/003-bash-cache-extractor-disc-001.md).
 - `case` pattern alternatives such as `../*` are listed as unresolved calls (two entries from `install.sh`): [work-backlog/003-bash-cache-extractor-disc-003.md](../work-backlog/003-bash-cache-extractor-disc-003.md).
+- When a profile names `dependency-cruiser` but depcruise fails to run, Boundary violations reads `None.` instead of an error (predates this spec): [work-backlog/003-bash-cache-extractor-disc-004.md](../work-backlog/003-bash-cache-extractor-disc-004.md).
+- The bash extractor does not detect a bare relative glob call (`scripts/*.sh`; the `./scripts/*.sh` form is reported), nor a call on a line continued after a lone `&` or `|&` (design-log "Triage, review pass 2", rework 2).
 
 ## Links
 

@@ -47,9 +47,9 @@ config:         # config file path per tool
   typecheck: ""
 rule_set: "shellcheck defaults"
 test_patterns: ["tests/"] # which paths are tests, kept out of the size-budget file count (budget-check.sh) and out of flow entry candidates. [] or absent: the defaults
-graph_extractor: bash # the graph extractor the Tier B cache build runs for this work type: bash, dependency-cruiser or none
                   # ["*.test.*", "*.spec.*", "__tests__/", "tests/", "test/", "e2e/", "*_test.go", "test_*.py", "*_test.py"]. A list replaces them
                   # for this profile. "dir/" matches that folder at any depth; a pattern with another / matches the repo-relative path; else the file name.
+graph_extractor: bash # the graph extractor the Tier B cache build runs for this work type: bash, dependency-cruiser or none
 ```
 
 ## Mini-review checklist
@@ -61,4 +61,4 @@ graph_extractor: bash # the graph extractor the Tier B cache build runs for this
 - [ ] Sibling paths resolve from `BASH_SOURCE` with `cd -P`.
 - [ ] The header block has the shape for its kind (hook or helper) and names no decision ID.
 - [ ] New files are kebab-case, run under `set -euo pipefail` and use `[[ ]]`; edited files keep their existing test syntax.
-- [ ] Each new function has its `# name ARGS : what it does` line, and each shellcheck directive has its reason.
+- [ ] Each new function has its `# name ARGS : what it does` line, and each shellcheck `disable=` directive has its reason; a `source=` path hint needs none.
