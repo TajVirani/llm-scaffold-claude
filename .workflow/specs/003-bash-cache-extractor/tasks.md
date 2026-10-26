@@ -159,7 +159,7 @@ tasks:
     capability: CAP-004
     depends_on: [T1, T2, T4]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "build-architecture.sh --cache architecture output (the Boundary violations section)"
     file: tasks/T09-boundary-check-by-extractor.md
@@ -179,7 +179,7 @@ tasks:
     capability: CAP-004
     depends_on: [T5]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "regenerate-caches"
     seam: "None: docs, checked by the agent-docs lint suites"
     file: tasks/T10-boundary-check-docs.md
