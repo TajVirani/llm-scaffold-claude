@@ -532,12 +532,13 @@ render_modules() {
 # entry_test_patterns : prints the merged test_patterns of the work profiles, one per line, so a file the step that counts a
 #   change's files against its size limit counts as a test is never an entry candidate. Dies when one is invalid.
 entry_test_patterns() {
-  local profile patterns
-  for profile in "$root/$WF_PROFILES"/*.md; do
-    [[ -f "$profile" && "$(basename "$profile")" != TEMPLATE.md ]] || continue
-    command -v yq >/dev/null 2>&1 || die "yq (mikefarah v4) not found on PATH; it reads test_patterns from $WF_PROFILES/$(basename "$profile")"
-    break
-  done
+  local profiles_dir="$root/$WF_PROFILES" first_profile="" patterns
+  if [[ -d "$profiles_dir" ]]; then
+    first_profile="$(find "$profiles_dir" -maxdepth 1 -name '*.md' ! -name TEMPLATE.md | sort | head -n 1)"
+  fi
+  if [[ -n "$first_profile" ]] && ! command -v yq >/dev/null 2>&1; then
+    die "yq (mikefarah v4) not found on PATH; it reads test_patterns from $WF_PROFILES/${first_profile##*/}"
+  fi
   # Loaded from the root so the reason names the profile by its repo-relative path.
   patterns="$(cd "$root" && wf_load_test_patterns "$WF_PROFILES")" || die "$patterns"
   printf '%s\n' "$patterns"
