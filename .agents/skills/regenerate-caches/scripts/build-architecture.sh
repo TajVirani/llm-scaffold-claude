@@ -59,6 +59,8 @@ set -euo pipefail
 
 # shellcheck source=../../../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
+# shellcheck source=../../../lib/test-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/test-paths.sh"
 export LC_ALL=C
 
 die() { echo "build-architecture: $*" >&2; exit 2; }
@@ -527,63 +529,25 @@ render_modules() {
   done < <(jq -r '.nodes[]' "$graph")
 }
 
-# Same defaults and matching as the step that counts a change's files against its size limit, so a file that step counts as a test is never an entry candidate.
-DEFAULT_TEST_PATTERNS='*.test.*
-*.spec.*
-__tests__/
-tests/
-test/
-e2e/
-*_test.go
-test_*.py
-*_test.py'
-
-# test_patterns : prints the test_patterns of every work profile, one per line, sorted and unique; a profile without the key
-#   or with [] contributes the defaults, as do no profiles at all. Dies when a profile's test_patterns is not a list of strings.
-test_patterns() {
-  local path rel block tag patterns all=""
-  for path in "$root/$WF_PROFILES"/*.md; do
-    [[ -f "$path" && "$(basename "$path")" != TEMPLATE.md ]] || continue
-    rel="$WF_PROFILES/$(basename "$path")"
-    command -v yq >/dev/null 2>&1 || die "yq (mikefarah v4) not found on PATH; it reads test_patterns from $rel"
-    block="$(toolchain_block "$path")"
-    tag="$(printf '%s\n' "$block" | yq '.test_patterns | tag' 2>/dev/null)" \
-      || die "the Toolchain yaml block does not parse in $rel"
-    patterns=""
-    if [[ "$tag" != "!!null" ]]; then
-      [[ "$tag" == "!!seq" && "$(printf '%s\n' "$block" | yq '[.test_patterns[] | select(tag != "!!str" or . == "")] | length')" == 0 ]] \
-        || die "test_patterns in $rel must be a list of non-empty path patterns"
-      patterns="$(printf '%s\n' "$block" | yq '.test_patterns[]')"
-    fi
-    all="$all${patterns:-$DEFAULT_TEST_PATTERNS}
-"
+# entry_test_patterns : prints the merged test_patterns of the work profiles, one per line, so a file the step that counts a
+#   change's files against its size limit counts as a test is never an entry candidate. Dies when one is invalid.
+entry_test_patterns() {
+  local profile patterns
+  for profile in "$root/$WF_PROFILES"/*.md; do
+    [[ -f "$profile" && "$(basename "$profile")" != TEMPLATE.md ]] || continue
+    command -v yq >/dev/null 2>&1 || die "yq (mikefarah v4) not found on PATH; it reads test_patterns from $WF_PROFILES/$(basename "$profile")"
+    break
   done
-  printf '%s\n' "${all:-$DEFAULT_TEST_PATTERNS}" | sed '/^$/d' | sort -u
-}
-
-# is_test_file PATH PATTERNS : succeeds when PATH matches a pattern: `dir/` a folder of that name at any depth, a pattern
-#   holding another / the whole path, any other pattern the file name (shell globs).
-is_test_file() {
-  local path="$1" pattern
-  while IFS= read -r pattern; do
-    if [[ "$pattern" == */ ]]; then
-      [[ "/$path" == *"/${pattern%/}/"* ]] && return 0
-    elif [[ "$pattern" == */* ]]; then
-      # shellcheck disable=SC2053 # the pattern is a glob on purpose
-      [[ "$path" == $pattern ]] && return 0
-    else
-      # shellcheck disable=SC2053 # the pattern is a glob on purpose
-      [[ "${path##*/}" == $pattern ]] && return 0
-    fi
-  done <<<"$2"
-  return 1
+  # Loaded from the root so the reason names the profile by its repo-relative path.
+  patterns="$(cd "$root" && wf_load_test_patterns "$WF_PROFILES")" || die "$patterns"
+  printf '%s\n' "$patterns"
 }
 
 render_entries() {
-  local patterns file test_files=""
-  patterns="$(test_patterns)" || exit 2
+  local file test_files=""
+  WF_TEST_PATTERNS="$(entry_test_patterns)" || exit 2
   while IFS= read -r file; do
-    if is_test_file "$file" "$patterns"; then test_files="$test_files$file
+    if wf_is_test_path "$file"; then test_files="$test_files$file
 "; fi
   done < <(jq -r '.files[]' "$graph")
   jq -S --argjson test_files "$(printf '%s' "$test_files" | jq -R . | jq -s .)" '
