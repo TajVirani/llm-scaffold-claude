@@ -180,3 +180,17 @@ Loop-back from 0.4.7: the regenerate-caches module audit reported two blocks-thi
 
 - Scope: Non-goals and `deferred` list every ruled-out item; Open Questions empty. System impact: module audits for lib, feature-workflow, regenerate-caches in codebase-map.md; no cache disagrees with code (two line-range drifts in retrieval rows noted, not cache problems). Data changes: data-model.md classifies every part; no migrations. Testable objectives: CAP-004 and CAP-005 each have objectives and journeys (JRN-001 to JRN-008).
 - Status `ready-for-dev`. Work items 003-bash-cache-extractor-disc-002.md to -005.md deleted, as agreed in "Combined into one spec".
+
+## 2026-10-28 Verification setup: targets and baseline (1.1)
+
+- Spec branch `spec/005-cache-build-followups`; baseline `1f59f20ee80efb50bfac85ba56afa22301eced56` (carries the spec folder, the two new shelf files, the shared-path-normaliser archive move and the four promoted work items' deletion).
+- Main has not moved since the handoff (`d6edbc9`); no contract change to note.
+- Targets TGT-001 to TGT-007 in verification-plan.md. Stakeholder decisions: TGT-001 architecture build ≤ 1.2 s best of 3 ("≤ 1.2s (no regression)"; baseline 1.16-1.26 s); TGT-007 coverage not measured ("Unmeasurable, record reason").
+- Stub interface for 1.2 (names not fixed by D4; set here so Phase 1 tests can call them): `.agents/lib/test-paths.sh` exports `wf_default_test_patterns` (prints the default list, one per line), `wf_load_test_patterns <profiles_dir>` (prints the merged list; on an invalid `test_patterns` returns 1 and prints the message) and `wf_is_test_path <path>` (reads the list from `WF_TEST_PATTERNS`, returns 0 for a test path, 1 otherwise). `.agents/lib/workflow-paths.sh` gains `wf_main_root` and `wf_norm_folder spec|initiative <arg>` (prints the normalised repo-relative folder; returns 1 and prints the message on reject). Each caller keeps its own `die` and exit code (D4).
+
+## 2026-10-28 Phase 1 harness (1.2-1.5)
+
+- 1.2: harness merged (`e302664`); 58 new cases red on assertions, 3001 existing pass. New suites `scripts/cache-repo-architecture`, `scripts/lib-test-paths`, `scripts/lib-workflow-paths`; oracle `tests/fixtures/architecture-oracle.sh` (236 entries, matched on file plus source text). Pre-change normaliser behaviour in `artifacts/phase-1-test-harness/normaliser-baseline.md`.
+- JRN-003 "not found" is tested as `DEPCRUISE` naming a missing path, so the Phase 3 code checks the path before running it (else it reports "exited 127").
+- Not pinned by the spec: what `check-staged-cache.sh` does when the Mermaid validator itself fails (node exits 1). Settle at task breakdown (2.2).
+- 1.3: not applicable (no browser suite). 1.4: record in `artifacts/phase-1-known-bad/record.md`.

@@ -19,14 +19,14 @@ The scaffold has no running application or browser suite. Each journey is an end
 
 | Id | Journey | Proves | Steps | Expected outcome | Check |
 | --- | --- | --- | --- | --- | --- |
-| JRN-001 | `case` patterns are not calls | CAP-005 | 1. Build a fixture repo whose scripts hold every `case` form in End state 1 plus real calls inside arm bodies. 2. Run `extractors/bash.sh --root <fixture> --scope .`. | No pattern text appears in `couldNotResolve` or as a resolved edge; every arm-body call is present. | MISSING (harness case in `tests/scripts/extractor-bash.sh`, built at 1.2-1.3) |
-| JRN-002 | This repo's architecture cache drops the false entries | CAP-005 | 1. Run `build-architecture.sh --cache architecture` on this repo's architecture scope at HEAD. 2. Compare Unresolved edges with the oracle. | No `install.sh:133` or `:187`; the remaining entries match the oracle. | MISSING (harness case, built at 1.2-1.3) |
-| JRN-003 | depcruise did not run | CAP-004 | 1. Fixture JS project with a boundary config. 2. Run the architecture build with `DEPCRUISE` set to each failing stand-in (not found, exits 3 with no output, JSON without `.summary.violations`). | Exit 0 each time; Boundary violations reads the matching fixed `Not checked: depcruise did not run (...)` line. | MISSING (harness case in `tests/scripts/cache-boundary-check.sh`) |
-| JRN-004 | depcruise ran | CAP-004 | 1. Same fixture. 2. Run with a stand-in that returns violations. 3. Run with `--violations-json` pointing at a file that is not JSON. | Step 2 lists the violations; step 3 exits 2. | MISSING (harness case in `tests/scripts/cache-boundary-check.sh`) |
-| JRN-005 | Budget and flows agree on test files | goal 3 | 1. Fixture repo with profiles setting `test_patterns` (a list, `[]`, absent, an invalid value) and files matching each matcher rule. 2. Run `budget-check.sh` and `build-architecture.sh --cache entries`. | The same paths count as tests in both; the invalid value exits 1 and 2 with each script's message; no copy of the defaults outside `.agents/lib/test-paths.sh` (grep). | MISSING (harness cases in `tests/scripts/budget-check.sh`, `tests/scripts/build-architecture.sh`) |
-| JRN-006 | Folder paths validate the same everywhere | goal 4 | 1. For each of the six scripts, pass a relative spec or initiative path, an absolute main-checkout path, a path from a worktree, a bare `NNN-slug`, and an absolute path elsewhere. | Accept and reject results, messages and exit codes match the pre-change behaviour, except that open-task-pr (spec dir and `--record`) now rejects the absolute path elsewhere. | MISSING (harness cases in the existing per-script suites and a lib case) |
-| JRN-007 | Cache-regeneration stays inside its ownership | goal 5 | 1. Grep `cache-regeneration.md` for `.agents/skills/` paths. 2. Run `check-staged-cache.sh flows <staged>` with node or the packages absent, and with a stand-in validator present. | Only regenerate-caches paths remain; `ok` and exit 0 on a valid body in both runs; the not-validated run prints the checklist path on stderr. | MISSING (harness case in `tests/scripts/cache-scripts.sh`) |
-| JRN-008 | Caches published after the change | CAP-004, CAP-005 | 1. After the last wave, run the regenerate-caches skill for this repo. | `check-staged-cache.sh` prints `ok` for all three caches; the published architecture cache passes JRN-002's oracle. | MISSING (run by hand at 5.x, evidence under `artifacts/`) |
+| JRN-001 | `case` patterns are not calls | CAP-005 | 1. Build a fixture repo whose scripts hold every `case` form in End state 1 plus real calls inside arm bodies. 2. Run `extractors/bash.sh --root <fixture> --scope .`. | No pattern text appears in `couldNotResolve` or as a resolved edge; every arm-body call is present. | `tests/scripts/extractor-bash.sh` (JRN-001 cases) |
+| JRN-002 | This repo's architecture cache drops the false entries | CAP-005 | 1. Run `build-architecture.sh --cache architecture` on this repo's architecture scope at HEAD. 2. Compare Unresolved edges with the oracle. | No `install.sh:133` or `:187`; the remaining entries match the oracle. | `tests/scripts/cache-repo-architecture.sh`, oracle `tests/fixtures/architecture-oracle.sh` |
+| JRN-003 | depcruise did not run | CAP-004 | 1. Fixture JS project with a boundary config. 2. Run the architecture build with `DEPCRUISE` set to each failing stand-in (not found, exits 3 with no output, JSON without `.summary.violations`). | Exit 0 each time; Boundary violations reads the matching fixed `Not checked: depcruise did not run (...)` line. | `tests/scripts/cache-boundary-check.sh` (JRN-003 cases) |
+| JRN-004 | depcruise ran | CAP-004 | 1. Same fixture. 2. Run with a stand-in that returns violations. 3. Run with `--violations-json` pointing at a file that is not JSON. | Step 2 lists the violations; step 3 exits 2. | `tests/scripts/cache-boundary-check.sh` (JRN-004 cases) |
+| JRN-005 | Budget and flows agree on test files | goal 3 | 1. Fixture repo with profiles setting `test_patterns` (a list, `[]`, absent, an invalid value) and files matching each matcher rule. 2. Run `budget-check.sh` and `build-architecture.sh --cache entries`. | The same paths count as tests in both; the invalid value exits 1 and 2 with each script's message; no copy of the defaults outside `.agents/lib/test-paths.sh` (grep). | `tests/scripts/lib-test-paths.sh` |
+| JRN-006 | Folder paths validate the same everywhere | goal 4 | 1. For each of the six scripts, pass a relative spec or initiative path, an absolute main-checkout path, a path from a worktree, a bare `NNN-slug`, and an absolute path elsewhere. | Accept and reject results, messages and exit codes match the pre-change behaviour, except that open-task-pr (spec dir and `--record`) now rejects the absolute path elsewhere. | `tests/scripts/lib-workflow-paths.sh`; JRN-006 cases in `status-transition-specs`, `budget-check`, `task-breakdown`, `commit-workflow-data`, `initiative-transition`; baseline `artifacts/phase-1-test-harness/normaliser-baseline.md` |
+| JRN-007 | Cache-regeneration stays inside its ownership | goal 5 | 1. Grep `cache-regeneration.md` for `.agents/skills/` paths. 2. Run `check-staged-cache.sh flows <staged>` with node or the packages absent, and with a stand-in validator present. | Only regenerate-caches paths remain; `ok` and exit 0 on a valid body in both runs; the not-validated run prints the checklist path on stderr. | `tests/scripts/cache-scripts.sh` (JRN-007 cases) |
+| JRN-008 | Caches published after the change | CAP-004, CAP-005 | 1. After the last wave, run the regenerate-caches skill for this repo. | `check-staged-cache.sh` prints `ok` for all three caches; the published architecture cache passes JRN-002's oracle. | Manual at 5.x (regenerate-caches run; evidence under `artifacts/`) |
 
 ## Fixtures and oracles
 
@@ -41,8 +41,27 @@ The scaffold has no running application or browser suite. Each journey is an end
 
 ## Targets
 
-<!-- 1.1. -->
+Run every command in bash from the repo root on a clean checkout of the feature's HEAD. TGT-001 and TGT-002 first set the published architecture scope, expanded unquoted so each `--scope PATH` splits into two words:
+
+```bash
+ARCH_SCOPE=$(yq --front-matter=extract '.scope[]' .workflow/cache/architecture.md | sed 's/^/--scope /')
+```
+
+Measured at the baseline `1f59f20`: TGT-001 1.16-1.26 s, TGT-002 2, TGT-004 2, TGT-005 5, TGT-006 2.
+
+| Id | Kind | Target | Threshold | Command | Source |
+| --- | --- | --- | --- | --- | --- |
+| TGT-001 | performance | Wall time of the architecture cache build for this repo's published scope | real ≤ 1.2 s, best of 3 | `{ for i in 1 2 3; do /usr/bin/time -p .agents/skills/regenerate-caches/scripts/build-architecture.sh --cache architecture $ARCH_SCOPE >/dev/null; done; } 2>&1 \| awk '/^real/{print $2}' \| sort -n \| head -1` | Stakeholder decision 2026-10-28 (1.1): no regression |
+| TGT-002 | errors | False `case`-pattern entries in this repo's rebuilt architecture cache | 0 lines | `.agents/skills/regenerate-caches/scripts/build-architecture.sh --cache architecture $ARCH_SCOPE 2>/dev/null \| grep -c -E 'install\.sh:(133\|187)'` | spec.md Goals 1, CAP-005 success |
+| TGT-003 | errors | shellcheck findings on shell files changed since the baseline | exit 0, no output | `git diff --name-only --diff-filter=d 1f59f20ee80efb50bfac85ba56afa22301eced56 HEAD -- '*.sh' \| xargs shellcheck -x -P SCRIPTDIR` | spec.md Constraints: shellcheck clean |
+| TGT-004 | errors | Shell files outside `.agents/lib/test-paths.sh` that hold the default test-pattern list | 0 files | `git grep -l -F '*_test.go' -- '.agents/*.sh' \| grep -v -x '.agents/lib/test-paths.sh' \| wc -l` | spec.md Goals 3 |
+| TGT-005 | errors | Local `main_root` / `norm_spec_dir` / `norm_initiative_dir` definitions left in the five scripts that define them today | 0 matches | `git grep -c -E '^(main_root\|norm_spec_dir\|norm_initiative_dir)\(\)' -- .agents/skills/feature-workflow/scripts/{status-transition,budget-check,task-waves,commit-workflow-data,initiative-transition}.sh \| wc -l` (open-task-pr has no named copy; JRN-006 covers it) | spec.md Goals 4 |
+| TGT-006 | errors | `.agents/skills/` paths outside `regenerate-caches` in the cache-regeneration agent | 0 lines | `grep -o -E '\.agents/skills/[a-z-]+' .agents/agents/cache-regeneration.md \| grep -v -c 'regenerate-caches'` | spec.md Goals 5 |
+| TGT-007 | coverage | Line coverage of changed shell code | not measured | Cannot be measured: no bash coverage tool is installed and spec.md Constraints ban new dependencies. The test-harness profile checklist (a suite per new or changed script) is checked at 3.7 instead. | Stakeholder decision 2026-10-28 (1.1) |
 
 ## Suites
 
-<!-- 1.2-1.4. -->
+| Suite | Profile key | Command (copied from the profile) | CI check | Known-bad-build evidence (1.4) |
+| --- | --- | --- | --- | --- |
+| Harness | `test` in `.workflow/profiles/test-harness.md` | `tests/run-all.sh` | none (no CI; the run by hand is the whole gate) | [artifacts/phase-1-known-bad/record.md](artifacts/phase-1-known-bad/record.md) Run 1, log [harness.log](artifacts/phase-1-known-bad/harness.log): 58 failures across 7 suites, all assertions |
+| Browser | `e2e`: not applicable (no e2e work type, no browser; JRN-001 to JRN-007 are harness suites, JRN-008 is manual at 5.x) | none | none | not applicable; see record.md Run 2 |

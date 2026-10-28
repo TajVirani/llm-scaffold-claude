@@ -1,0 +1,162 @@
+== scripts/extractor-bash
+FAIL JRN-001 every cwd-relative or bare call in an arm body is unresolved at its line, and no pattern is
+       got=5 ../*,6 ../*,7 ./x,8 ./x,9 ../up,9 ./down,10 ./bin/multi.sh,13 ./bin/fallback.sh,16 ../*,19 ./*,20 ../lib/*.sh want=4 ./bin/one-line.sh,5 lib.sh,8 ./bin/after-dot.sh,10 ./bin/multi.sh,13 ./bin/fallback.sh,16 ./bin/same-line.sh,19 ./bin/in-loop.sh
+FAIL JRN-001 no case pattern is reported as a call or an edge
+       got=../*,../*,./x,./x,../up,./down,../*,./*,../lib/*.sh want=
+
+== summary
+FAIL scripts/extractor-bash                 passed=33   failed=2   skipped=0   xfail=0   1s
+TOTAL passed=33 failed=2 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/extractor-bash
+suite=scripts/extractor-bash exit=1
+== scripts/cache-repo-architecture
+FAIL JRN-002 Unresolved edges has no install.sh:133 or install.sh:187 entry
+       got=- `install.sh:133` `../*`
+FAIL JRN-002 no install.sh case pattern is listed as a call
+       got=- `install.sh:133` `../*`
+
+== summary
+FAIL scripts/cache-repo-architecture        passed=4    failed=2   skipped=0   xfail=0   3s
+TOTAL passed=4 failed=2 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/cache-repo-architecture
+suite=scripts/cache-repo-architecture exit=1
+== scripts/cache-boundary-check
+FAIL JRN-003 depcruise not found: Boundary violations says the check was not made
+       got=None. want=Not checked: depcruise did not run (not found).
+FAIL JRN-003 depcruise exiting 3 with no output: Boundary violations says the check was not made
+       got=None. want=Not checked: depcruise did not run (exited 3 without a JSON report).
+FAIL JRN-003 depcruise printing JSON without .summary.violations: architecture exits 0
+       got=2 want=0
+FAIL JRN-003 depcruise printing JSON without .summary.violations: Boundary violations says the check was not made
+       got= want=Not checked: depcruise did not run (no .summary.violations in its output).
+
+== summary
+FAIL scripts/cache-boundary-check           passed=13   failed=4   skipped=0   xfail=0   4s
+TOTAL passed=13 failed=4 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/cache-boundary-check
+suite=scripts/cache-boundary-check exit=1
+== scripts/lib-test-paths
+FAIL JRN-005 the default patterns are the nine shared ones
+       got= want=*.spec.*
+FAIL JRN-005 no profiles folder gives the defaults
+       got= want=*.spec.*
+FAIL JRN-005 an empty profiles folder gives the defaults
+       got= want=*.spec.*
+FAIL JRN-005 a profile's list replaces the defaults, sorted and unique
+       got= want=*.check.sh
+FAIL JRN-005 TEMPLATE.md is skipped
+       got= want=*.check.sh
+FAIL JRN-005 a [] profile adds the defaults to another profile's list
+       got= want=*.check.sh
+FAIL JRN-005 a profile with test_patterns absent gives the defaults
+       got= want=*.spec.*
+FAIL JRN-005 a profile with test_patterns empty-list gives the defaults
+       got= want=*.spec.*
+FAIL JRN-005 a profile with test_patterns empty-block gives the defaults
+       got= want=*.spec.*
+FAIL JRN-005 test_patterns: "tests/" is refused with status 1 and a reason naming the profile
+       rc=0 
+FAIL JRN-005 test_patterns: ["tests/", ""] is refused with status 1 and a reason naming the profile
+       rc=0 
+FAIL JRN-005 test_patterns: [1] is refused with status 1 and a reason naming the profile
+       rc=0 
+FAIL JRN-005 test_patterns: {a: b} is refused with status 1 and a reason naming the profile
+       rc=0 
+FAIL JRN-005 wf_is_test_path: tests/unit.sh is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: pkg/tests/deep.sh is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: e2e/flow.sh is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: pkg/test/x.sh is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: checks/a.sh is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: pkg/run.check.sh is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: pkg/util.test.sh is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: pkg/x.spec.sh is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: pkg/foo_test.go is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: pkg/test_bar.py is test
+       got=not want=test
+FAIL JRN-005 wf_is_test_path: pkg/bar_test.py is test
+       got=not want=test
+FAIL JRN-005 no shell file under .agents/ outside lib/test-paths.sh lists the default test patterns
+       got=.agents/skills/feature-workflow/scripts/budget-check.sh
+
+== summary
+FAIL scripts/lib-test-paths                 passed=22   failed=25  skipped=0   xfail=0   3s
+TOTAL passed=22 failed=25 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/lib-test-paths
+suite=scripts/lib-test-paths exit=1
+== scripts/lib-workflow-paths
+FAIL JRN-006 wf_main_root from the main checkout prints its root
+       got=0| want=0|/private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.DSwhIf/p
+FAIL JRN-006 wf_main_root from a sub-folder prints the main checkout root
+       got=0| want=0|/private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.DSwhIf/p
+FAIL JRN-006 wf_main_root from a worktree prints the main checkout root
+       got=0| want=0|/private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.DSwhIf/p
+FAIL JRN-006 wf_main_root outside a git repository returns 1 and prints no root
+       got=0| want=1|
+FAIL JRN-006 wf_norm_folder spec maps the relative form to .workflow/specs/001-alpha
+       got=1| want=0|.workflow/specs/001-alpha
+FAIL JRN-006 wf_norm_folder spec maps the dot-relative form to .workflow/specs/001-alpha
+       got=1| want=0|.workflow/specs/001-alpha
+FAIL JRN-006 wf_norm_folder spec maps the absolute-main form to .workflow/specs/001-alpha
+       got=1| want=0|.workflow/specs/001-alpha
+FAIL JRN-006 wf_norm_folder spec maps the absolute-worktree form to .workflow/specs/001-alpha
+       got=1| want=0|.workflow/specs/001-alpha
+FAIL JRN-006 wf_norm_folder spec refuses the bare form with status 1 and a reason naming it
+       1|
+FAIL JRN-006 wf_norm_folder spec refuses the absolute-elsewhere form with status 1 and a reason naming it
+       1|
+FAIL JRN-006 wf_norm_folder spec refuses a folder of the other kind
+       1|
+FAIL JRN-006 wf_norm_folder initiative maps the relative form to .workflow/initiatives/001-ini
+       got=1| want=0|.workflow/initiatives/001-ini
+FAIL JRN-006 wf_norm_folder initiative maps the dot-relative form to .workflow/initiatives/001-ini
+       got=1| want=0|.workflow/initiatives/001-ini
+FAIL JRN-006 wf_norm_folder initiative maps the absolute-main form to .workflow/initiatives/001-ini
+       got=1| want=0|.workflow/initiatives/001-ini
+FAIL JRN-006 wf_norm_folder initiative maps the absolute-worktree form to .workflow/initiatives/001-ini
+       got=1| want=0|.workflow/initiatives/001-ini
+FAIL JRN-006 wf_norm_folder initiative refuses the bare form with status 1 and a reason naming it
+       1|
+FAIL JRN-006 wf_norm_folder initiative refuses the absolute-elsewhere form with status 1 and a reason naming it
+       1|
+FAIL JRN-006 wf_norm_folder initiative refuses a folder of the other kind
+       1|
+FAIL JRN-006 wf_norm_folder accepts a slug with dots, dashes and underscores
+       got=1| want=0|.workflow/specs/1234-a.b_c-d
+
+== summary
+FAIL scripts/lib-workflow-paths             passed=11   failed=19  skipped=0   xfail=0   0s
+TOTAL passed=11 failed=19 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/lib-workflow-paths
+suite=scripts/lib-workflow-paths exit=1
+== scripts/task-breakdown
+FAIL JRN-006 open-task-pr task mode takes the absolute-elsewhere spec folder as before, an absolute path elsewhere now refused
+       got=0|open-task-pr.sh: skipped: task branch task/001-alpha/T01-demo does not exist locally want=1|open-task-pr.sh: spec dir must be .workflow/specs/NNN-slug: /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.zJkrRj/folders-elsewhere/001-alpha
+FAIL JRN-006 open-task-pr --record takes the absolute-elsewhere initiative folder as before, an absolute path elsewhere now refused
+       got=0|open-task-pr.sh: skipped: no origin remote want=2|open-task-pr.sh: --record must be .workflow/initiatives/NNN-slug: /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.zJkrRj/folders-elsewhere/001-ini
+
+== summary
+FAIL scripts/task-breakdown                 passed=113  failed=2   skipped=0   xfail=0   12s
+TOTAL passed=113 failed=2 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/task-breakdown
+suite=scripts/task-breakdown exit=1
+== scripts/cache-scripts
+FAIL JRN-007 cache-regeneration.md names no skill path outside regenerate-caches
+       got=skills/regenerate-caches
+FAIL JRN-007 node on PATH, mermaid and jsdom absent: stderr says not machine-validated and names the checklist
+FAIL JRN-007 mermaid and jsdom present, node absent: stderr says not machine-validated and names the checklist
+FAIL JRN-007 validator present: node runs validate_mermaid.mjs
+
+== summary
+FAIL scripts/cache-scripts                  passed=46   failed=4   skipped=0   xfail=0   13s
+TOTAL passed=46 failed=4 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/cache-scripts
+suite=scripts/cache-scripts exit=1
