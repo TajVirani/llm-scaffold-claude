@@ -2,7 +2,8 @@
 origin_spec: .workflow/specs/005-cache-build-followups
 origin_step: "3.2"
 discovered_at: 2026-10-28
-status: open
+status: promoted
+promoted_to: .workflow/specs/006-result-file-guard
 kind: bug
 ---
 

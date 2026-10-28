@@ -242,3 +242,16 @@ Failed lenses: none
 Outcome: rework 1 of 5
 
 - 2026-10-28 Rework 1 (T1): task PR skipped (open-task-pr: gh not installed); merged locally.
+
+## 2026-10-28 Sign-off: stakeholder approval (5.5)
+
+- Approval: "Yes, approve (Recommended)"
+- Proposals (5.3): "Approve all (Recommended)": P1 and P2 approved and written.
+- Backlog `005-cache-build-followups-disc-001.md` (worktree guard blocks a sub-agent's own result file): "Start as next feature (Recommended)"
+- Backlog `005-cache-build-followups-disc-002.md` (TGT-001 inside timing noise): "Up to 2s and pass". TGT-001 raised to real ≤ 2 s in verification-plan.md; measured 1.17 s, pass. Item dismissed.
+- New issue from the JRN-008 run (bash extractor reads a multi-line single-quoted string as commands; `tests/scripts/extractor-bash.sh:205` `./x`): "File to backlog (Recommended)"
+- Going-in concerns: none
+
+Backlog item 005-cache-build-followups-disc-001.md started as .workflow/specs/006-result-file-guard (5.9)
+Backlog item 005-cache-build-followups-disc-002.md dismissed: TGT-001 raised to ≤ 2 s (5.9)
+Backlog item 005-cache-build-followups-disc-003.md filed open: bash extractor reads multi-line quoted text as commands (5.9)

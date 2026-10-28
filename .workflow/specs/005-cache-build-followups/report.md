@@ -38,7 +38,7 @@ Tool audit (3.5) per task:
 
 | Target | Threshold | Measured | Result | Command | Raw output |
 | --- | --- | --- | --- | --- | --- |
-| TGT-001 architecture build wall time | real ≤ 1.2 s, best of 3 | 1.17 s | PASS | `build-architecture.sh --cache architecture` (published scope), best of 3 | [E3] |
+| TGT-001 architecture build wall time | real ≤ 2 s, best of 3 (raised from 1.2 s at 5.5; disc-002) | 1.17 s | PASS | `build-architecture.sh --cache architecture` (published scope), best of 3 | [E3] |
 | TGT-002 false case-pattern entries | 0 lines | 0 | PASS | `build-architecture.sh ... \| grep -c -E 'install\.sh:(133\|187)'` | [E3] |
 | TGT-003 shellcheck on changed .sh | exit 0, no output | no output | PASS | `git diff --name-only ... -- '*.sh' \| xargs shellcheck -x -P SCRIPTDIR` | [E3] |
 | TGT-004 default test-pattern copies outside the lib | 0 files | 1 at review pass 1 (a header comment in budget-check.sh); 0 after rework 1 | PASS | `git grep -l -F '*_test.go' -- '.agents/*.sh' \| grep -v -x '.agents/lib/test-paths.sh' \| wc -l` | [E3] [E4] |

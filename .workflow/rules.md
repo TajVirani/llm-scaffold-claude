@@ -78,7 +78,7 @@ modules:
     may_depend_on: []
   agents:
     owns: [".agents/agents/**"]
-    may_depend_on: [feature-workflow]
+    may_depend_on: [feature-workflow, regenerate-caches]
   output-styles:
     owns: [".agents/output-styles/**"]
     may_depend_on: []

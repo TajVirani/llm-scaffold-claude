@@ -2,7 +2,7 @@
 origin_spec: .workflow/specs/005-cache-build-followups
 origin_step: "3.4"
 discovered_at: 2026-10-28
-status: open
+status: dismissed
 kind: decision
 ---
 

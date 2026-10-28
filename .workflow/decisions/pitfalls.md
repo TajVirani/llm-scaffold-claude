@@ -14,6 +14,12 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Flip a Phase 1 placeholder's PROVENANCE row when the task that implements it lands
+- What happened: Phase 1 added `lib/test-paths.sh` as a stub with a `placeholder` PROVENANCE row; T1 and T2 made it real and sourced it, no task brief named the row, and both review-standards and review-end-state flagged it (F2, medium), costing a rework.
+- Where: `PROVENANCE.md`; task briefs at 2.5 for tasks that replace a Phase 1 stub
+- Spec: .workflow/specs/005-cache-build-followups
+- Prevented by: none yet
+
 ## Write a mini-review re-check to the plain mini-review.yaml
 - What happened: at 3.7 the T9 re-check reviewer wrote `artifacts/T9/mini-review-r2.yaml` instead of `mini-review.yaml`, so the newest round was not under the plain name sign-off and the retrospective read; the orchestrator renamed it. The same reviewer reported the `tree` in `toolchain.json` as stale by comparing it with the git tree id, though `tree` is run-toolchain's own content hash (a `--reuse` run matched it).
 - Where: `.agents/agents/profile-mini-review.md` (Re-check rule); `.workflow/specs/003-bash-cache-extractor/artifacts/T9/`

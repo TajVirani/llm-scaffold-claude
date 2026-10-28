@@ -128,17 +128,6 @@ module.exports = {
       }
     },
     {
-      "name": "agents-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module agents may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/agents/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "agents-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module agents may not depend on module retrospective",
       "severity": "error",
