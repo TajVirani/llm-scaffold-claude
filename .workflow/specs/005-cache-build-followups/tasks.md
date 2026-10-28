@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Feature-workflow scripts use the shared folder-path and test-path helpers"
-    status: done
+    status: in-progress
     capability: CAP-004
     depends_on: []
     touches_core: true

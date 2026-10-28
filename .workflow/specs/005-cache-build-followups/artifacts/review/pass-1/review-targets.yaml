@@ -1,0 +1,91 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "1f59f20ee80efb50bfac85ba56afa22301eced56"
+head: "b98e62b85a86e15e11a7ebdc88ee6710f13be29b"
+measurements:
+  - target: 'TGT-001: Wall time of the architecture cache build for this repo''s published scope'
+    kind: performance
+    threshold: "real <= 1.2 s, best of 3"
+    command: 'for i in 1 2 3: /usr/bin/time -p build-architecture.sh --cache architecture (published scope); awk real; sort -n | head -1'
+    measured: "1.17 s"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/005-cache-build-followups/artifacts/review/pass-1/targets/tgt-001-wall-time-of-the-architecture-cache-build-for-this-repo-s-published-scope.txt"
+    reason: "The measurement command does not check the build exit status; a single build run by hand exited 0 with 309 output lines."
+  - target: 'TGT-002: False case-pattern entries in this repo''s rebuilt architecture cache'
+    kind: errors
+    threshold: "0 lines"
+    command: 'build-architecture.sh --cache architecture $ARCH_SCOPE 2>/dev/null | grep -c -E ''install\.sh:(133|187)'''
+    measured: "0"
+    result: pass
+    exit_code: 1
+    raw_output: ".workflow/specs/005-cache-build-followups/artifacts/review/pass-1/targets/tgt-002-false-case-pattern-entries-in-this-repo-s-rebuilt-architecture-cache.txt"
+    reason: "exit 1 is grep -c reporting zero matches, which agrees with the number; a separate build run exited 0 and its output had no install.sh:133 or install.sh:187 line."
+  - target: 'TGT-003: Shellcheck findings on shell files changed since the baseline'
+    kind: errors
+    threshold: "exit 0, no output"
+    command: 'git diff --name-only --diff-filter=d 1f59f20ee80efb50bfac85ba56afa22301eced56 HEAD -- ''*.sh'' | xargs shellcheck -x -P SCRIPTDIR'
+    measured: "no output"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/005-cache-build-followups/artifacts/review/pass-1/targets/tgt-003-shellcheck-findings-on-shell-files-changed-since-the-baseline.txt"
+    reason: ""
+  - target: 'TGT-004: Shell files outside .agents/lib/test-paths.sh that hold the default test-pattern list'
+    kind: errors
+    threshold: "0 files"
+    command: 'git grep -l -F ''*_test.go'' -- ''.agents/*.sh'' | grep -v -x ''.agents/lib/test-paths.sh'' | wc -l'
+    measured: "1 file (.agents/skills/feature-workflow/scripts/budget-check.sh)"
+    result: fail
+    exit_code: 0
+    raw_output: ".workflow/specs/005-cache-build-followups/artifacts/review/pass-1/targets/tgt-004-shell-files-outside-agent-lib-test-paths-sh-that-hold-the-default-test-pattern-list.txt"
+    reason: ""
+  - target: 'TGT-005: Local main_root / norm_spec_dir / norm_initiative_dir definitions left in the five scripts that define them today'
+    kind: errors
+    threshold: "0 matches"
+    command: 'git grep -c -E ''^(main_root|norm_spec_dir|norm_initiative_dir)\(\)'' -- .agents/skills/feature-workflow/scripts/{status-transition,budget-check,task-waves,commit-workflow-data,initiative-transition}.sh | wc -l'
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/005-cache-build-followups/artifacts/review/pass-1/targets/tgt-005-local-main-root-norm-spec-dir-norm-initiative-dir-definitions-left-in-the-five-scripts.txt"
+    reason: "wc -l counts files with a match; 0 means no file matches."
+  - target: 'TGT-006: .agents/skills/ paths outside regenerate-caches in the cache-regeneration agent'
+    kind: errors
+    threshold: "0 lines"
+    command: 'grep -o -E ''\.agents/skills/[a-z-]+'' .agents/agents/cache-regeneration.md | grep -v -c ''regenerate-caches'''
+    measured: "0"
+    result: pass
+    exit_code: 1
+    raw_output: ".workflow/specs/005-cache-build-followups/artifacts/review/pass-1/targets/tgt-006-agents-skills-paths-outside-regenerate-caches-in-the-cache-regeneration-agent.txt"
+    reason: "exit 1 is grep -v -c reporting zero lines, which agrees with the number."
+  - target: 'TGT-007: Line coverage of changed shell code'
+    kind: coverage
+    threshold: "not measured"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "Cannot be measured: no bash coverage tool is installed and spec.md Constraints ban new dependencies (verification-plan.md Targets row, stakeholder decision 2026-10-28)."
+findings:
+  - id: RT-1
+    category: target
+    severity: high
+    confidence: 100
+    location: "verification-plan.md#targets: TGT-004 Shell files outside .agents/lib/test-paths.sh that hold the default test-pattern list"
+    claim: "TGT-004 measured 1 file outside .agents/lib/test-paths.sh holding the default test-pattern list (.agents/skills/feature-workflow/scripts/budget-check.sh), threshold 0 files"
+    consequence: "The build does not meet the Goals 3 target that the default test-pattern list lives only in .agents/lib/test-paths.sh (source: spec.md Goals 3)."
+    evidence:
+      basis: ".workflow/specs/005-cache-build-followups/artifacts/review/pass-1/targets/tgt-004-shell-files-outside-agent-lib-test-paths-sh-that-hold-the-default-test-pattern-list.txt"
+      diff: ""
+    suggested_fix: ""
+checked:
+  - "TGT-001: Wall time of the architecture cache build for this repo's published scope"
+  - "TGT-002: False case-pattern entries in this repo's rebuilt architecture cache"
+  - "TGT-003: Shellcheck findings on shell files changed since the baseline"
+  - "TGT-004: Shell files outside .agents/lib/test-paths.sh that hold the default test-pattern list"
+  - "TGT-005: Local main_root / norm_spec_dir / norm_initiative_dir definitions left in the five scripts"
+  - "TGT-006: .agents/skills/ paths outside regenerate-caches in the cache-regeneration agent"
+not_checked:
+  - "TGT-007: Line coverage of changed shell code: not measurable: Cannot be measured: no bash coverage tool is installed and spec.md Constraints ban new dependencies"
+  - "serve: no serve command in the profiles for shell-scripts or agent-docs; no build started, so no server was measured"

@@ -226,3 +226,17 @@ Loop-back from 0.4.7: the regenerate-caches module audit reported two blocks-thi
 - T6 3.7: mini-review pass with all 7 items not-applicable (no skill description changed, not a new agent, no code); accepted. T3 3.4: resumed to add a test that depcruise stderr never reaches the cache body (criterion had no test).
 - 3.16 wave 2: T3, T6 merged; task PRs skipped (gh not installed).
 - 3.9 wave 2 (last): full harness 3072 passed, 0 failed, 56 suites, nothing excluded; shellcheck clean on every shell file. 3.10-3.11: no browser suite (Suites, Browser row: not applicable), so no e2e run; in-review at 3.11.
+
+## 2026-10-28 Triage, review pass 1
+
+Lenses: review-standards, review-end-state, review-targets, review-lessons (`artifacts/review/pass-1/`). Finding ids start at F1: the F1 and F8 cited earlier in this log are spec 003's triage ids.
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 | review-targets (RT-1) | TGT-004 measured 1 file outside `lib/test-paths.sh` holding the default test-pattern list, threshold 0 | `.agents/skills/feature-workflow/scripts/budget-check.sh:36` | low | The TGT-004 command is a substring `git grep -F '*_test.go'`; its only hit is the `# File:` header comment listing the nine defaults. No code copy: the script sources the lib (L57) and calls `wf_load_test_patterns` (L171); the harness check (`tests/scripts/lib-test-paths.sh:217`, whole-line `-x`) passes. Real as the target is written, and the comment can drift from the lib; developer-only harm | patch (T1): replace the listed defaults with a pointer to `.agents/lib/test-paths.sh` |
+| F2 | review-standards (RS-1), review-end-state (RE-1) | `PROVENANCE.md` row for `lib/test-paths.sh` still says placeholder that does no work | `PROVENANCE.md:29` | medium | Row reads "placeholder: ... do no work until spec 005 moves the rules in"; `budget-check.sh:57` and `build-architecture.sh` now source it. `.workflow/rules.md:142` requires PROVENANCE updated in the same change. Same root cause for both lens ids | patch (T1): mark the row implemented and say which scripts source it |
+
+Gaps: TGT-007 not measurable → defer ([.workflow/deferred/bash-line-coverage.md](../../deferred/bash-line-coverage.md)). review-end-state not_verifiable: JRN-008 is the manual regenerate-caches run at 5.x (checked there, no handoff); goal 5 depends on proposal P1 at 5.3 (lives in proposals.md). review-standards not_checked: T2's per-task toolchain.json is stale (the cross-task grep accepted at its gate); gate-3.9-w1/w2 pass.
+
+Failed lenses: none
+Outcome: rework 1 of 5

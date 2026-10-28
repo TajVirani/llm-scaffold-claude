@@ -1,0 +1,14 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "1f59f20ee80efb50bfac85ba56afa22301eced56"
+head: "b98e62b85a86e15e11a7ebdc88ee6710f13be29b"
+findings: []
+checked:
+  - ".workflow/review-lessons.md"
+  - ".workflow/decisions/pitfalls.md"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md"
+  - ".workflow/decisions/retrospectives/003-bash-cache-extractor.md"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md"
+  - ".workflow/rules.md (read only to confirm the Conventional Commits and README rules that retire two process lessons)"
+not_checked: []
