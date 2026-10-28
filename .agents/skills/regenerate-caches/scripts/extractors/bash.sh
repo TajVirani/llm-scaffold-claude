@@ -10,7 +10,8 @@
 #   variable hops and `$(dirname "$var")`), or to a variable it cannot follow (a runtime root) whose literal tail is an
 #   existing repo file. A variable set to a runtime root plus a tail is followed one hop when exactly one of its two
 #   readings (as a subfolder of that root, or as a root itself) names an existing file. Anything else, and any target that is not an existing file, is `couldNotResolve: true` with the
-#   path text in `module`. Every dependency carries its 1-based `line`. Heredoc bodies are data and are not read.
+#   path text in `module`. Every dependency carries its 1-based `line`. Heredoc bodies are data and are not read, and
+#   neither are `case` arm patterns (`../*|/*)`); the commands in an arm body are read like any other line.
 #   `exports` maps each claimed file that another claimed file sources to its sorted unique column-0 function names.
 # Usage:
 #   extractors/bash.sh --root DIR --scope PATH [--scope PATH]...
@@ -93,6 +94,7 @@ FNR == 1 {
   if (!sub(/\/[^\/]*$/, "", file_dir)) file_dir = ""
   split("", dir_vars); split("", root_vars)
   heredoc_end = ""; continues_mid_command = 0; open_quote = ""
+  case_depth = 0; split("", case_state)
 }
 
 { sub(/\r$/, "") }
@@ -118,7 +120,8 @@ heredoc_end != "" {
     functions[file, fn] = 1
   }
 
-  line = fold_dir_expressions(strip_redirections(unbrace(remove_double_quotes(raw))))
+  code = blank_case_patterns(raw)
+  line = fold_dir_expressions(strip_redirections(unbrace(remove_double_quotes(code))))
   if (match(line, "^[ \t]*(local|export|readonly|declare|typeset)?([ \t]+-[A-Za-z]+)*[ \t]*" var_name "=")) {
     assignment = substr(line, RSTART, RLENGTH)
     sub(/^[ \t]*(local|export|readonly|declare|typeset)?([ \t]+-[A-Za-z]+)*[ \t]*/, "", assignment)
@@ -156,7 +159,7 @@ heredoc_end != "" {
       }
     }
     report_cwd_relative_calls(line)
-    report_bare_relative_calls(raw, continued_mid_command)
+    report_bare_relative_calls(code, continued_mid_command)
   }
 
   # Without the (( guard an arithmetic shift such as (( n = 1 << k )) reads as a heredoc and skips the rest of the file.
@@ -310,6 +313,72 @@ function is_claimed_script(path,   first_line, read_status) {
     close(path)
   }
   return (path in has_shebang)
+}
+
+# blank_case_patterns TEXT : raw line TEXT with the pattern list of each `case` arm, up to and including its first unquoted
+# `)`, turned into blanks, so a pattern such as ../*|/*) is never read as a script call. Arm bodies are kept, since their
+# commands are calls. A pattern after other code on the line starts with `;` instead, so the body after it reads as a new
+# command. case_depth and case_state (head, pattern, in_pattern or body) carry the open case statements across lines.
+function blank_case_patterns(text,   out, n, i, ch, quote, at_command_start, word, state) {
+  if (case_depth == 0 && text !~ /(^|[ \t;&|({])case([ \t]|$)/) return text
+  out = ""; quote = open_quote; at_command_start = 1
+  n = length(text)
+  i = 1
+  while (i <= n) {
+    ch = substr(text, i, 1)
+    state = case_depth ? case_state[case_depth] : ""
+    if (state == "pattern" && quote == "") {
+      if (ch ~ /[ \t]/) { out = out ch; i++; continue }
+      if (word_at(text, i) == "esac") { out = out "esac"; i += 4; case_depth--; at_command_start = 0; continue }
+      out = out ((out ~ /[^ \t]/) ? ";" : " ")
+      case_state[case_depth] = "in_pattern"
+      if (ch == "\\") i++
+      else if (ch == "\047" || ch == "\"") quote = ch
+      else if (ch == ")") { case_state[case_depth] = "body"; at_command_start = 1 }
+      i++
+    } else if (state == "pattern" || state == "in_pattern") {
+      case_state[case_depth] = "in_pattern"
+      out = out " "
+      if (quote != "") { if (ch == quote) quote = "" }
+      else if (ch == "\\") { out = out " "; i++ }
+      else if (ch == "\047" || ch == "\"") quote = ch
+      else if (ch == ")") { case_state[case_depth] = "body"; at_command_start = 1 }
+      i++
+    } else if (quote != "") {
+      out = out ch
+      if (ch == "\\" && quote == "\"") { out = out substr(text, i + 1, 1); i++ }
+      else if (ch == quote) quote = ""
+      i++
+    } else if (ch == "\\") {
+      out = out substr(text, i, 2); i += 2; at_command_start = 0
+    } else if (ch == "\047" || ch == "\"") {
+      out = out ch; quote = ch; i++; at_command_start = 0
+    } else if (ch == "#" && (i == 1 || substr(text, i - 1, 1) ~ /[ \t]/)) {
+      return out substr(text, i)
+    } else if (ch == ";" && substr(text, i + 1, 1) == ";" && state == "body") {
+      out = out ";;"; i += 2; case_state[case_depth] = "pattern"
+    } else if (ch ~ /[;&|(){]/) {
+      out = out ch; i++; at_command_start = (ch != ")")
+    } else if (ch ~ /[ \t]/) {
+      out = out ch; i++
+    } else {
+      word = word_at(text, i)
+      if (word == "") word = ch
+      if (at_command_start && word == "case") case_state[++case_depth] = "head"
+      else if (at_command_start && word == "esac" && case_depth) case_depth--
+      else if (state == "head" && word == "in") case_state[case_depth] = "pattern"
+      at_command_start = at_command_start && word ~ /^(then|do|else|elif|if|while|until|time|!)$/
+      out = out word; i += length(word)
+    }
+  }
+  return out
+}
+
+# word_at TEXT I : the word of TEXT that starts at character I, up to the next blank, quote or shell operator.
+function word_at(text, i,   rest) {
+  rest = substr(text, i)
+  match(rest, /^[^ \t;&|()<>\047"]*/)
+  return substr(rest, 1, RLENGTH)
 }
 
 # split_commands TEXT COMMANDS OPENED : the count of commands TEXT holds, each put in COMMANDS without its leading

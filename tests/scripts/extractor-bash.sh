@@ -206,5 +206,40 @@ pattern_hits=$(jq -r '[.modules[] | select(.source == "scripts/arms.sh") | .depe
     or . == "./down" or . == "./*" or . == "../lib/*.sh" or . == "a")) | join(",")' <<<"$cases" 2>/dev/null)
 eq "JRN-001 no case pattern is reported as a call or an edge" "$pattern_hits" ""
 
+# Harder case forms: a case nested in an arm body, a `)` inside a quoted pattern, the word `case` as a plain argument
+# (which opens no case, so later calls are still read), and a whole case inside `$(...)`.
+cat >"$C/scripts/nested.sh" <<'OUTER'
+#!/usr/bin/env bash
+case "$a" in
+  "x)y" | 'q)') ./bin/quoted-arm.sh ;;
+  outer)
+    case "$b" in
+      ../in) ./bin/inner-arm.sh ;;
+    esac
+    ./bin/after-inner.sh
+    ;;
+esac
+echo just in case ./not-a-call
+./bin/after-argument.sh
+r=$(case "$c" in ../sub) echo n ;; esac)
+./bin/after-substitution.sh
+OUTER
+git_commit_all "$C" nested
+nested=$("$X" --root "$C" --scope scripts); rc=$?
+eq "JRN-001 extractor exits 0 on nested, quoted and substituted case forms" "$rc" 0
+# nested_deps FIRST LAST : "line module" of each scripts/nested.sh dependency on lines FIRST to LAST, comma-joined.
+nested_deps() {
+  jq -r --argjson first "$1" --argjson last "$2" '[.modules[] | select(.source == "scripts/nested.sh") | .dependencies[]
+    | select(.line >= $first and .line <= $last) | "\(.line) \(.module)"] | join(",")' <<<"$nested" 2>/dev/null
+}
+eq "JRN-001 a ) inside a quoted pattern ends no pattern early, and the arm body call is reported" \
+  "$(nested_deps 2 3)" '3 ./bin/quoted-arm.sh'
+eq "JRN-001 a case nested in an arm body hides its own pattern, and calls inside and after it are reported" \
+  "$(nested_deps 4 10)" '6 ./bin/inner-arm.sh,8 ./bin/after-inner.sh'
+eq "JRN-001 the word case as a plain argument opens no case, so the next line's call is reported" \
+  "$(nested_deps 11 12)" '12 ./bin/after-argument.sh'
+eq "JRN-001 a whole case inside \$(...) hides its pattern and closes, so the next line's call is reported" \
+  "$(nested_deps 13 14)" '14 ./bin/after-substitution.sh'
+
 shellcheck_files "shellcheck: extractors/bash.sh" "$X"
 finish
