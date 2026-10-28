@@ -1,0 +1,2 @@
+tests/scripts/cache-boundary-check.sh
+tests/scripts/cache-scripts.sh
