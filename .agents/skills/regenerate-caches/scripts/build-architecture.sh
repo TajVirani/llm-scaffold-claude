@@ -46,6 +46,9 @@
 #   when .workflow/tools/boundaries/dependency-cruiser.cjs exists and the selected extractors include dependency-cruiser
 #   (with --from-json, when the config exists); when none of them has a boundary checker, Boundary violations reads
 #   "Not checked: no boundary checker for this project's graph extractors (<names>)." with the --print-generator names, or none.
+#   depcruise counts as run only when its stdout parses as JSON with a .summary.violations array; otherwise Boundary violations
+#   reads "Not checked: depcruise did not run (<reason>).", the reason `not found`, `exited <n> without a JSON report` or
+#   `no .summary.violations in its output`, and the build goes on. A --violations-json file that does not parse is an error.
 #   tsc is $TSC, else <root>/node_modules/.bin/tsc, else `npx --no-install tsc`. A missing tsc or tsconfig.json is not an
 #   error: Public interface then lists the functions the graph JSON `exports` gives for the module's files, sorted and unique,
 #   `- \`name\` (function)`, and reads "Not generated: <reason>." for a module none of whose files has an `exports` entry.
@@ -375,6 +378,24 @@ render_architecture() {
   else jq -r '.unresolved[]' "$graph"; fi
 }
 
+# run_boundary_check OUT_FILE : runs depcruise --config into OUT_FILE; prints nothing when it ran, else why it did not
+#   (`not found`, `exited <n> without a JSON report`, `no .summary.violations in its output`).
+run_boundary_check() {
+  local out="$1" rc=0
+  if ! tool_cmd "${DEPCRUISE:-}" depcruise || ! command -v "${cmd[0]}" >/dev/null 2>&1; then
+    echo "not found"
+    return 0
+  fi
+  # depcruise exits non-zero when it finds violations, so the exit code alone does not say whether it ran; its stderr is
+  #   dropped because the cache body is built from stdout only.
+  "${cmd[@]}" --config "$WF_BOUNDARIES/dependency-cruiser.cjs" -T json "${scopes[@]}" >"$out" 2>/dev/null || rc=$?
+  if ! jq -e . "$out" >/dev/null 2>&1; then
+    echo "exited $rc without a JSON report"
+  elif ! jq -e '.summary.violations | type == "array"' "$out" >/dev/null 2>&1; then
+    echo "no .summary.violations in its output"
+  fi
+}
+
 # render_boundary_violations : prints the body of the Boundary violations section.
 render_boundary_violations() {
   local vfile="" vlines
@@ -385,9 +406,12 @@ render_boundary_violations() {
     return 0
   elif [[ -f "$root/$WF_BOUNDARIES/dependency-cruiser.cjs" ]]; then
     vfile="$tmpd/violations.json"
-    tool_cmd "${DEPCRUISE:-}" depcruise || die "depcruise not found (install dependency-cruiser, or set DEPCRUISE)"
-    # violations make depcruise exit non-zero; only unparseable output is an error
-    "${cmd[@]}" --config "$WF_BOUNDARIES/dependency-cruiser.cjs" -T json "${scopes[@]}" >"$vfile" 2>/dev/null || true
+    local not_run_reason
+    not_run_reason="$(run_boundary_check "$vfile")"
+    if [[ -n "$not_run_reason" ]]; then
+      echo "Not checked: depcruise did not run ($not_run_reason)."
+      return 0
+    fi
   fi
   if [[ -z "$vfile" ]]; then
     echo "Not checked: no boundary config at $WF_BOUNDARIES/dependency-cruiser.cjs."
