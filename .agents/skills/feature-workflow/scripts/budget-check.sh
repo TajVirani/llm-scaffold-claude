@@ -32,9 +32,8 @@
 #                  Neither set: changed files are not counted; changed_files is null and `note` says why.
 #                  With --predicted: the sum of size.files, less each record's predicted_files entries that are tests (no git diff).
 #   tests          a path is a test when it matches a pattern of `test_patterns` in a profile's Toolchain block (.workflow/profiles/*.md,
-#                  TEMPLATE.md skipped). A profile without the key, or with [], contributes the defaults:
-#                    *.test.*  *.spec.*  __tests__/  tests/  test/  e2e/  *_test.go  test_*.py  *_test.py
-#                  No profiles: the defaults. A pattern ending in / matches a folder of that name at any depth; one with another / is
+#                  TEMPLATE.md skipped). A profile without the key, or with [], contributes the defaults
+#                  (`wf_default_test_patterns` in .agents/lib/test-paths.sh). No profiles: the defaults. A pattern ending in / matches a folder of that name at any depth; one with another / is
 #                  matched against the whole repo-relative path; any other pattern is matched against the file name (shell glob).
 # stdout: one JSON object {max_tasks, tasks, max_changed_files, changed_files, over: ["tasks"|"changed_files"...], source: "spec"|"rules"|"default",
 #   basis: "predicted"|"impl_base_revision"|"baseline_revision"|null, target: <branch>|null, merge_base: <sha>|null,
