@@ -57,24 +57,6 @@ usage() {
   exit 1
 }
 
-main_root() {
-  local common
-  common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || die "not inside a git repository: $1"
-  if [[ "$(basename "$common")" == ".git" ]]; then dirname "$common"
-  else git -C "$1" worktree list --porcelain | sed -n '1s/^worktree //p'; fi
-}
-
-norm_spec_dir() {
-  local d=${1%/}
-  d=${d#./}
-  if [[ "$d" == /* ]]; then
-    [[ "$(dirname "$d")" == */"$WF_SPECS" ]] || die "spec dir must be $WF_SPECS/NNN-slug: $1"
-    d="$WF_SPECS/$(basename "$d")"
-  fi
-  [[ "$d" == "$WF_SPECS"/* && "${d#"$WF_SPECS"/}" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || die "spec dir must be $WF_SPECS/NNN-slug: $1"
-  printf '%s\n' "$d"
-}
-
 SPEC_ARG="" TASKS_FILE="" OPT_CWD=$PWD JSON=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -94,8 +76,9 @@ yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefar
 
 if [[ -n "$SPEC_ARG" ]]; then
   [[ -d "$OPT_CWD" ]] || die "--cwd is not a directory: $OPT_CWD"
-  ROOT=$(main_root "$OPT_CWD")
-  TASKS_FILE="$ROOT/$(norm_spec_dir "$SPEC_ARG")/tasks.md"
+  ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
+  SPEC_DIR=$(wf_norm_folder spec "$SPEC_ARG" 2>/dev/null) || die "spec dir must be $WF_SPECS/NNN-slug: $SPEC_ARG"
+  TASKS_FILE="$ROOT/$SPEC_DIR/tasks.md"
 fi
 [[ -f "$TASKS_FILE" ]] || die "tasks.md not found: $TASKS_FILE"
 TASKS_JSON=$(yq --front-matter=extract -o=json -I0 '.tasks' "$TASKS_FILE" 2>/dev/null) || die "cannot read the frontmatter of $TASKS_FILE"

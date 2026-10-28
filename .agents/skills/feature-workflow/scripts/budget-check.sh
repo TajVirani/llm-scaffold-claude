@@ -47,25 +47,18 @@
 #   invalid main_branch).
 # Called by: modules task-breakdown (2.6) and implementation-orchestrator (3.15); discovered-work at 00.29 after an approved overrun.
 # Notes: Requires git, jq and mikefarah yq v4. bash 3.2 compatible. Reads main_branch through rules-setting.sh (same folder).
-# Sources: first-party; formats from project-setup/assets/docs/rules.md "Size budget"; feature-workflow/assets/spec.md `budget`. Pattern: status-transition.sh (main-checkout resolution).
+# Sources: first-party; formats from project-setup/assets/docs/rules.md "Size budget"; feature-workflow/assets/spec.md `budget`. Main checkout, spec folder and test paths: .agents/lib/workflow-paths.sh and .agents/lib/test-paths.sh.
 
 set -euo pipefail
 
 # shellcheck source=../../../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
+# shellcheck source=../../../lib/test-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/test-paths.sh"
 
 PROG=budget-check.sh
 DEFAULT_MAX_TASKS=10
 DEFAULT_MAX_CHANGED_FILES=30
-DEFAULT_TEST_PATTERNS='*.test.*
-*.spec.*
-__tests__/
-tests/
-test/
-e2e/
-*_test.go
-test_*.py
-*_test.py'
 SCRIPTS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 1; }
@@ -73,30 +66,6 @@ die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 1; }
 usage() {
   echo "usage: budget-check.sh --spec-dir $WF_SPECS/NNN-slug [--cwd <dir>] [--predicted]" >&2
   exit 1
-}
-
-main_root() {
-  local common
-  common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
-    || die "not inside a git repository: $1"
-  if [[ "$(basename "$common")" == ".git" ]]; then
-    dirname "$common"
-  else
-    git -C "$1" worktree list --porcelain | sed -n '1s/^worktree //p'
-  fi
-}
-
-norm_spec_dir() {
-  local d=$1
-  d=${d%/}
-  d=${d#./}
-  if [[ "$d" == /* ]]; then
-    [[ "$(dirname "$d")" == */"$WF_SPECS" ]] || die "spec dir must be $WF_SPECS/NNN-slug: $1"
-    d="$WF_SPECS/$(basename "$d")"
-  fi
-  [[ "$d" == "$WF_SPECS"/* && "${d#"$WF_SPECS"/}" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
-    || die "spec dir must be $WF_SPECS/NNN-slug: $1"
-  printf '%s\n' "$d"
 }
 
 # read_budget <yq-expression yielding the budget map> <file> [front-matter]: prints "<max_tasks> <max_changed_files>",
@@ -120,53 +89,6 @@ read_budget() {
   [[ "$mt" =~ ^[0-9]+$ && "$mc" =~ ^[0-9]+$ ]] \
     || die "budget in $file needs non-negative integers max_tasks and max_changed_files (got '$mt', '$mc')"
   printf '%s %s\n' "$mt" "$mc"
-}
-
-# profile_test_patterns <profile>: prints the Toolchain block's test_patterns, one per line; nothing when the key is absent or [].
-profile_test_patterns() {
-  local block tag bad
-  block=$(awk '
-    /^## /{ if (intool) exit; intool = ($0 ~ /^## Toolchain[[:space:]]*$/); next }
-    intool && !infence && /^```ya?ml[[:space:]]*$/ { infence=1; next }
-    intool && infence && /^```[[:space:]]*$/ { exit }
-    intool && infence { print }
-  ' "$1")
-  [[ -n "$block" ]] || return 0
-  tag=$(printf '%s\n' "$block" | yq '.test_patterns | tag' 2>/dev/null) || die "the Toolchain yaml block does not parse in $1"
-  [[ "$tag" != "!!null" ]] || return 0
-  [[ "$tag" == "!!seq" ]] || die "test_patterns in $1 must be a list of path patterns"
-  bad=$(printf '%s\n' "$block" | yq '[.test_patterns[] | select(tag != "!!str" or . == "")] | length')
-  [[ "$bad" == 0 ]] || die "test_patterns in $1 must hold non-empty strings only"
-  printf '%s\n' "$block" | yq '.test_patterns[]'
-}
-
-load_test_patterns() {
-  local f pats all=""
-  for f in "$ROOT/$WF_PROFILES"/*.md; do
-    [[ -f "$f" && "$(basename "$f")" != TEMPLATE.md ]] || continue
-    pats=$(profile_test_patterns "$f") || exit 1
-    [[ -n "$pats" ]] || pats=$DEFAULT_TEST_PATTERNS
-    all="$all$pats"$'\n'
-  done
-  [[ -n "$all" ]] || all=$DEFAULT_TEST_PATTERNS
-  printf '%s\n' "$all" | sed '/^$/d' | LC_ALL=C sort -u
-}
-
-is_test_path() {
-  local path=$1 base=${1##*/} pat
-  while IFS= read -r pat; do
-    [[ -n "$pat" ]] || continue
-    if [[ "$pat" == */ ]]; then
-      [[ "/$path" == *"/${pat%/}/"* ]] && return 0
-    elif [[ "$pat" == */* ]]; then
-      # shellcheck disable=SC2053 # the pattern is a glob on purpose
-      [[ "$path" == $pat ]] && return 0
-    else
-      # shellcheck disable=SC2053 # the pattern is a glob on purpose
-      [[ "$base" == $pat ]] && return 0
-    fi
-  done <<<"$TEST_PATTERNS"
-  return 1
 }
 
 in_spec_or_backlog() {
@@ -206,8 +128,8 @@ command -v jq >/dev/null 2>&1 || die "jq not found on PATH"
 command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (the Python yq has different flags)"
 yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (the Python yq has different flags)"
 
-ROOT=$(main_root "${OPT_CWD:-$PWD}")
-SPEC_DIR=$(norm_spec_dir "$SPEC_ARG")
+ROOT=$(wf_main_root "${OPT_CWD:-$PWD}" 2>/dev/null) || die "not inside a git repository: ${OPT_CWD:-$PWD}"
+SPEC_DIR=$(wf_norm_folder spec "$SPEC_ARG" 2>/dev/null) || die "spec dir must be $WF_SPECS/NNN-slug: $SPEC_ARG"
 SPEC="$ROOT/$SPEC_DIR/spec.md"
 TASKS="$ROOT/$SPEC_DIR/tasks.md"
 RULES="$ROOT/$WF_RULES"
@@ -246,7 +168,16 @@ tag=$(yq --front-matter=extract '.tasks | tag' "$TASKS") || die "cannot read the
 TASK_COUNT=$(yq --front-matter=extract '[.tasks[] | select(.status != "split-out")] | length' "$TASKS")
 
 FILES_JSON=null NOTE="" BASIS=null TARGET_JSON=null MB_JSON=null EXCLUDED_JSON=null COUNTED_JSON=null TESTS_JSON=null
-TEST_PATTERNS=$(load_test_patterns) || exit 1
+if ! WF_TEST_PATTERNS=$(wf_load_test_patterns "$ROOT/$WF_PROFILES"); then
+  # Callers read this script's own wording for an invalid value, so only that reason is reworded; others pass through.
+  case "$WF_TEST_PATTERNS" in
+    "test_patterns in "*)
+      invalid_profile=${WF_TEST_PATTERNS#test_patterns in }
+      die "test_patterns in ${invalid_profile%% must be *} must be a list of path patterns"
+      ;;
+    *) die "$WF_TEST_PATTERNS" ;;
+  esac
+fi
 if [[ $PREDICTED -eq 1 ]]; then
   bad=$(yq --front-matter=extract '[.tasks[] | select(.status != "split-out") | select((.size.files | tag) != "!!int") | .id] | join(", ")' "$TASKS") \
     || die "cannot read the frontmatter of $TASKS"
@@ -259,7 +190,7 @@ if [[ $PREDICTED -eq 1 ]]; then
   test_ids="" test_entries="" raw=0 n=0
   while IFS= read -r line; do
     [[ -n "$line" ]] || continue
-    if is_test_path "${line#* }"; then
+    if wf_is_test_path "${line#* }"; then
       test_ids="$test_ids${line%% *}"$'\n'
       test_entries="$test_entries${line#* }"$'\n'
     fi
@@ -336,7 +267,7 @@ else
     [[ -n "$f" ]] || continue
     if in_spec_or_backlog "$f"; then
       n_spec=$((n_spec + 1))
-    elif is_test_path "$f"; then
+    elif wf_is_test_path "$f"; then
       test_files="$test_files$f"$'\n'
     else
       counted="$counted$f"$'\n'
