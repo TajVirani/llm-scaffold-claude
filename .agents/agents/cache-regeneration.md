@@ -74,20 +74,15 @@ Write `.workflow/.cache-staging/flows.md` with Write: `# Flows`, `## Entry point
 ## 4. Check before returning
 
 ```bash
-$S/check-staged-cache.sh <cache type> .workflow/.cache-staging/<cache type>.md --html-out .workflow/.cache-staging/<cache type>.html
+$S/check-staged-cache.sh <cache type> .workflow/.cache-staging/<cache type>.md
 ```
 
-Fix every problem it lists in the parts you wrote and run it again until it prints `ok`. If a problem is in a generated part, do not hand-edit it: return `REGENERATION ERROR: <the problem>`.
+The script checks the body's shape and, when node can load the `mermaid` and `jsdom` packages, validates every Mermaid diagram in it.
 
-For `architecture` and `flows`, validate the diagrams when the project has `node_modules/mermaid` and `node_modules/jsdom`:
+- **Exit 1**: it lists each problem, or the Mermaid validator's error, on stderr. Fix the staged body where you wrote it, the Mermaid blocks included, and run the check again until it prints `ok`. If a problem is in a generated part, do not hand-edit it: return `REGENERATION ERROR: <the problem>`.
+- **`ok` with a `not machine-validated` warning on stderr**: the diagrams could not be validated by machine. Check each Mermaid block by hand against the checklist path the warning names ("Mermaid syntax rules"), fix what breaks a rule, run the check again, and report `not machine-validated` with the warning's reason.
 
-```bash
-node .agents/skills/visual-change-report/scripts/validate_mermaid.mjs .workflow/.cache-staging/<cache type>.html
-```
-
-Otherwise check each block against `.agents/skills/visual-change-report/references/visual-library.md` "Mermaid syntax rules" and report `not machine-validated`. Delete the `.html` file afterwards.
-
-**Done when** the staged file exists, `check-staged-cache.sh` prints `ok`, every diagram is validated or reported as not machine-validated, and every slot is filled.
+**Done when** the staged file exists, `check-staged-cache.sh` prints `ok`, every diagram is validated or checked by hand and reported as not machine-validated, and every slot is filled.
 
 ## 5. Return exactly this
 
@@ -108,7 +103,7 @@ Or one line: `LAUNCH ERROR: ...` or `REGENERATION ERROR: ...` (including any bui
 
 ## Never
 
-- Write anywhere except `.workflow/.cache-staging/<type>.md` and its temporary `.html`. Never write under `.workflow/cache/` (`tier-b-write-guard` denies it); the caller publishes with `publish-cache.sh`.
+- Write anywhere except `.workflow/.cache-staging/<type>.md`. Never write under `.workflow/cache/` (`tier-b-write-guard` denies it); the caller publishes with `publish-cache.sh`.
 - Run `publish-cache.sh`, commit, or change git state.
 - Return cache content, or add text to the body that the shapes in `assets/cache-frontmatter.md` do not allow.
 - Launch sub-agents or ask the stakeholder anything.
