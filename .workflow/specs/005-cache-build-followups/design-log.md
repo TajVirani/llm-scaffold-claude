@@ -225,3 +225,4 @@ Loop-back from 0.4.7: the regenerate-caches module audit reported two blocks-thi
 - 3.16 wave 1: T1, T2, T4, T5 merged in id order; task PRs skipped (open-task-pr.sh: "gh not installed"), pr stays null.
 - T6 3.7: mini-review pass with all 7 items not-applicable (no skill description changed, not a new agent, no code); accepted. T3 3.4: resumed to add a test that depcruise stderr never reaches the cache body (criterion had no test).
 - 3.16 wave 2: T3, T6 merged; task PRs skipped (gh not installed).
+- 3.9 wave 2 (last): full harness 3072 passed, 0 failed, 56 suites, nothing excluded; shellcheck clean on every shell file. 3.10-3.11: no browser suite (Suites, Browser row: not applicable), so no e2e run; in-review at 3.11.
