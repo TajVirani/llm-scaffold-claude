@@ -12,6 +12,13 @@
 #   WF_<NAME>              each path below, relative to the project root, no trailing slash
 #   WF_SPECS, WF_INITIATIVES  the roots for feature specs and for initiatives (".workflow/specs", ".workflow/initiatives")
 #   wf_path <root> <rel>   prints <root>/<rel> (root's trailing slash dropped); e.g. wf_path "$ROOT" "$WF_SPECS"
+#   wf_main_root <dir>     prints the main checkout root for <dir>, inside the repo or one of its worktrees; status 1
+#                          when <dir> is not inside a git repository
+#   wf_norm_folder spec|initiative <arg>
+#                          prints <arg> as the repo-relative folder `$WF_SPECS/NNN-slug` or `$WF_INITIATIVES/NNN-slug`
+#                          (relative, or absolute with that parent); status 1 and the reason when <arg> is not one
+#   wf_main_root and wf_norm_folder are placeholders until the per-script copies move here: they keep the contract
+#   above but do no work yet.
 # Paths are repo-relative; the write guards compare them case-insensitively.
 # Sources: first-party.
 # shellcheck disable=SC2034 # the variables are the API; each sourcing script uses a subset
@@ -46,4 +53,12 @@ WF_DATA_STRUCTURE_AUDIT_STATE="$WF_DIR/data-structure-audit-state.jsonl"
 wf_path() {
   local root=${1%/}
   printf '%s/%s\n' "$root" "$2"
+}
+
+wf_main_root() {
+  return 0
+}
+
+wf_norm_folder() {
+  return 1
 }

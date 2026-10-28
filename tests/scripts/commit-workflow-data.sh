@@ -4,10 +4,13 @@
 #   .worktrees/ left out; another spec's draft folder and an initiative folder left untracked; other staged work left staged and
 #   uncommitted; a file name with spaces and non-ASCII committed; local state that is not gitignored refused;
 #   a deleted workflow file committed as a deletion; nothing to commit; a run from a task worktree committing in the
-#   main checkout; refusals off the spec branch and during a merge; usage errors.
+#   main checkout; refusals off the spec branch and during a merge; usage errors. JRN-006: each spec folder form gives the
+#   exit code and message it gave before the shared normaliser.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/workflow-folders.sh
+source "$TESTS_DIR/fixtures/workflow-folders.sh"
 preflight
 
 CW="$FW_SKILL/scripts/commit-workflow-data.sh"
@@ -110,5 +113,13 @@ t "a bad spec dir is a usage error" 2 bash "$CW" .workflow/specs/alpha -m x --cw
 t "a missing spec.md is an error" 2 bash "$CW" .workflow/specs/009-none -m x --cwd "$P"
 t "outside a git repository is an error" 2 bash "$CW" "$SPECD" -m x --cwd "$WORK"
 t "--help exits 0" 0 bash "$CW" --help
+
+echo "== JRN-006 spec folder forms"
+folder_fixture_repo "$WORK/folders"
+while IFS='|' read -r form cwd arg; do
+  eq "JRN-006 commit-workflow-data takes the $form spec folder as before" \
+    "$(folder_outcome bash "$CW" "$arg" -m "folder form $form" --cwd "$cwd")" \
+    "$(folder_expected "$form" "$cwd" "$arg" commit-workflow-data.sh 2 "spec dir must be .workflow/specs/NNN-slug" "0|")"
+done < <(folder_inputs spec)
 
 finish
