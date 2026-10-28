@@ -46,7 +46,7 @@ tasks:
     pr: null
   - id: T3
     title: "Boundary violations says Not checked when depcruise did not run"
-    status: pending
+    status: done
     capability: CAP-004
     depends_on: [T2]
     touches_core: false
@@ -102,7 +102,7 @@ tasks:
     pr: null
   - id: T6
     title: "Cache-regeneration agent calls only regenerate-caches"
-    status: pending
+    status: done
     capability: CAP-004
     depends_on: [T5]
     touches_core: false

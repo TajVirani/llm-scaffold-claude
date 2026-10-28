@@ -223,3 +223,5 @@ Loop-back from 0.4.7: the regenerate-caches module audit reported two blocks-thi
 - T5 3.7: mini-review pass with one out_of_scope entry on T5's own new code (temp file left on a write error, check-staged-cache.sh:176-178); handled as a behaviour fix round by resuming the T5 agent (one-line cleanup, its context kept), then a full mini-review. T2 3.8: re-check pass.
 - T1 3.4-3.6: toolchain pass; no tests added (the Phase 1 per-script JRN-006 cases hold the reject paths). One message change: budget-check now reports a list with empty or non-string entries as 'must be a list of path patterns' (was 'must hold non-empty strings only'); still exit 1. Accepted: the spec asks for each script's own exit code, and the Phase 1 test pins this wording.
 - 3.16 wave 1: T1, T2, T4, T5 merged in id order; task PRs skipped (open-task-pr.sh: "gh not installed"), pr stays null.
+- T6 3.7: mini-review pass with all 7 items not-applicable (no skill description changed, not a new agent, no code); accepted. T3 3.4: resumed to add a test that depcruise stderr never reaches the cache body (criterion had no test).
+- 3.16 wave 2: T3, T6 merged; task PRs skipped (gh not installed).

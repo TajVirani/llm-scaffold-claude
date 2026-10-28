@@ -1,0 +1,19 @@
+status: done
+summary: "cache-regeneration.md step 4 now runs only check-staged-cache.sh (no --html-out, no direct validate_mermaid.mjs call) and names no .agents/skills path outside regenerate-caches. It says exit 1 means fix the staged body, Mermaid included, and re-run; and that a not machine-validated warning means checking diagrams by hand against the checklist path the warning names. The Never list no longer allows a temporary .html write."
+task_id: "T6"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t6"
+branch: "task/005-cache-build-followups/T06-cache-regeneration-agent-ownership"
+base_commit: "2e32c3b04ab1abc36d5450486f080752f906fa60"
+head_commit: "b80288bf85dab6086b5a942f6a1434b648c7c5d9"
+files_changed: [".agents/agents/cache-regeneration.md"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/cache-scripts; FAIL JRN-007 cache-regeneration.md names no skill path outside regenerate-caches (passed=53 failed=1)"
+  green: "tests/run-all.sh --suite scripts/cache-scripts; 54/54 passed. tests/run-all.sh --suite lint/frontmatter; 40/40 passed. Acceptance grep prints 0."
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/005-cache-build-followups --task-id T6 --cwd <worktree>; test (scoped, own=1, excluded=1) pass, exit 0"
+  toolchain: ".workflow/specs/005-cache-build-followups/artifacts/T6/toolchain.txt (pass)"
+considered_not_built: ["Codex toml regeneration: no Codex tomls are checked in for this agent (install.sh generates them in target projects)"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
