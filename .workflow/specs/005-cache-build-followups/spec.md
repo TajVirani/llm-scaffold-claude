@@ -64,8 +64,8 @@ A rebuilt architecture cache for this repo lists only real calls and says `Not c
 
 ## Assumptions
 
-- The test-path helper is a new `.agents/lib/test-paths.sh` with the same status-and-message shape as the D4 normaliser (confirmed in the 0.3.19 summary, not asked as a question).
-- The shared test-path loader keeps budget-check's empty-Toolchain-block guard and its yq v4 check stays in each caller.
+- Confirmed: the test-path helper is a new `.agents/lib/test-paths.sh` with the same status-and-message shape as the D4 normaliser (`wf_load_test_patterns` returns status 1 with the reason in place of the list).
+- Confirmed: the shared test-path loader keeps budget-check's empty-Toolchain-block guard, and the yq v4 check stays in each caller (budget-check.sh and build-architecture.sh).
 
 ## Open Questions
 
