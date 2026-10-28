@@ -194,3 +194,10 @@ Loop-back from 0.4.7: the regenerate-caches module audit reported two blocks-thi
 - JRN-003 "not found" is tested as `DEPCRUISE` naming a missing path, so the Phase 3 code checks the path before running it (else it reports "exited 127").
 - Not pinned by the spec: what `check-staged-cache.sh` does when the Mermaid validator itself fails (node exits 1). Settle at task breakdown (2.2).
 - 1.3: not applicable (no browser suite). 1.4: record in `artifacts/phase-1-known-bad/record.md`.
+
+## 2026-10-28 Task breakdown (2.1-2.4)
+
+- Breakdown approved as proposed: T1 feature-workflow (six scripts on the shared folder-path and test-path helpers), T2 regenerate-caches (entry candidates via the test-path helper), T3 regenerate-caches (Not checked wording, after T2: same file), T4 regenerate-caches (`case` arms), T5 regenerate-caches (Mermaid check in check-staged-cache.sh), T6 agents (after T5). Waves {T1, T2, T4, T5}, {T3, T6}; all afk. Stakeholder: "Approve (Recommended)".
+- **D11 Mermaid validator fails on the staged body.** Options: invalid body, exit 1; warn, exit 0. Stakeholder: "Fix the validation project, that is low risk and can be done inline", clarified as "Exit 1; agent fixes Mermaid". Decision: `check-staged-cache.sh` exits 1 with the validator's error on stderr; the cache-regeneration agent fixes the Mermaid in its staged body and re-runs the check (T5, T6).
+- Size budget: project defaults, 10 tasks and 30 changed files. Stakeholder: "Defaults 10 / 30 (Recommended)".
+- 2.2: every slice specifiable (D11 settles the one open point). 2.3: every seam is an existing CLI or the new lib functions fixed at 1.1. 2.4: T1 and T2 touch shared core (`.agents/lib/`); their requests go to one shell-scripts integration batch before wave 1.
