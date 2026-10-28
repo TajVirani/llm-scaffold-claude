@@ -205,5 +205,11 @@ eq "JRN-007 validator rejects a diagram: no ok on stdout" "$(cat "$WORK/mc.out")
 check "JRN-007 validator rejects a diagram: its error is on stderr" 'grep -q "diagram 1: FAIL" "$WORK/mc.err"' \
   "$(cat "$WORK/mc.err")"
 
+mkdir -p "$WORK/validator-tmp"
+TMPDIR="$WORK/validator-tmp" staged_flows "$M/node-bin:$PATH"
+TMPDIR="$WORK/validator-tmp" staged_flows "$M/rejecting-node-bin:$PATH"
+eq "JRN-007 the validator's temporary HTML is removed after a pass and a rejection" \
+  "$(find "$WORK/validator-tmp" -type f | wc -l | tr -d ' ')" 0
+
 shellcheck_files "shellcheck: cache scripts" "$S"/*.sh
 finish

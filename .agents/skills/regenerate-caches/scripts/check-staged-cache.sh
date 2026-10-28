@@ -170,16 +170,15 @@ package_reachable() {
   done
 }
 
+validator_html=""
 # validate_mermaid : run the validator on the body's diagrams; on rejection print its output to stderr and exit 1
 validate_mermaid() {
-  local html report
-  html="$(mktemp "${TMPDIR:-/tmp}/check-staged-cache.XXXXXX")" || die "cannot create a temporary file"
-  write_mermaid_html "$html"
-  if report="$(node "$mermaid_validator" "$html" 2>&1)"; then
-    rm -f "$html"
-    return 0
-  fi
-  rm -f "$html"
+  local report
+  validator_html="$(mktemp "${TMPDIR:-/tmp}/check-staged-cache.XXXXXX")" || die "cannot create a temporary file"
+  # The trap removes the file on every way out, including a failed write that set -e turns into an exit.
+  trap 'rm -f "$validator_html"' EXIT
+  write_mermaid_html "$validator_html"
+  if report="$(node "$mermaid_validator" "$validator_html" 2>&1)"; then return 0; fi
   echo "check-staged-cache: the Mermaid validator rejected a diagram; fix it and re-run:" >&2
   printf '%s\n' "$report" >&2
   exit 1
