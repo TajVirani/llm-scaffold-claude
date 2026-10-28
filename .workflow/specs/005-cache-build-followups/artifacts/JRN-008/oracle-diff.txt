@@ -1,0 +1,134 @@
+1,3c1,3
+< - `.agents/skills/regenerate-caches/scripts/build-architecture.sh:128` `$EXTRACTORS_DIR/*.sh`
+< - `.agents/skills/regenerate-caches/scripts/build-architecture.sh:138` `$EXTRACTORS_DIR/$name.sh`
+< - `.agents/skills/regenerate-caches/scripts/build-architecture.sh:267` `$EXTRACTORS_DIR/$name.sh`
+---
+> - `.agents/skills/regenerate-caches/scripts/build-architecture.sh:133` `$EXTRACTORS_DIR/*.sh`
+> - `.agents/skills/regenerate-caches/scripts/build-architecture.sh:143` `$EXTRACTORS_DIR/$name.sh`
+> - `.agents/skills/regenerate-caches/scripts/build-architecture.sh:272` `$EXTRACTORS_DIR/$name.sh`
+107,111c107,112
+< - `tests/scripts/budget-check.sh:179` `$SRC/scripts/budget-check.sh`
+< - `tests/scripts/budget-check.sh:182` `$SRC/scripts/budget-check.sh`
+< - `tests/scripts/budget-check.sh:18` `$SRC/scripts/status-transition.sh`
+< - `tests/scripts/budget-check.sh:19` `$SRC/scripts/check-write.sh`
+< - `tests/scripts/budget-check.sh:20` `$SRC/scripts/budget-check.sh`
+---
+> - `tests/scripts/budget-check.sh:13` `$TESTS_DIR/fixtures/workflow-folders.sh`
+> - `tests/scripts/budget-check.sh:183` `$SRC/scripts/budget-check.sh`
+> - `tests/scripts/budget-check.sh:194` `$SRC/scripts/budget-check.sh`
+> - `tests/scripts/budget-check.sh:22` `$SRC/scripts/status-transition.sh`
+> - `tests/scripts/budget-check.sh:23` `$SRC/scripts/check-write.sh`
+> - `tests/scripts/budget-check.sh:24` `$SRC/scripts/budget-check.sh`
+123,127c124,128
+< - `tests/scripts/cache-boundary-check.sh:13` `$TESTS_DIR/fixtures/graph-extractors.sh`
+< - `tests/scripts/cache-boundary-check.sh:19` `$S/build-architecture.sh`
+< - `tests/scripts/cache-boundary-check.sh:20` `$S/check-staged-cache.sh`
+< - `tests/scripts/cache-boundary-check.sh:93` `$S/extractors/bash.sh`
+< - `tests/scripts/cache-boundary-check.sh:93` `$S/extractors/dependency-cruiser.sh`
+---
+> - `tests/scripts/cache-boundary-check.sh:154` `$S/extractors/bash.sh`
+> - `tests/scripts/cache-boundary-check.sh:154` `$S/extractors/dependency-cruiser.sh`
+> - `tests/scripts/cache-boundary-check.sh:16` `$TESTS_DIR/fixtures/graph-extractors.sh`
+> - `tests/scripts/cache-boundary-check.sh:22` `$S/build-architecture.sh`
+> - `tests/scripts/cache-boundary-check.sh:23` `$S/check-staged-cache.sh`
+137,141c138,143
+< - `tests/scripts/cache-scripts.sh:20` `$S/publish-cache.sh`
+< - `tests/scripts/cache-scripts.sh:21` `$S/publish-cache.sh`
+< - `tests/scripts/cache-scripts.sh:22` `$S/publish-cache.sh`
+< - `tests/scripts/cache-scripts.sh:26` `$S/cache-stamp-check.sh`
+< - `tests/scripts/cache-scripts.sh:32` `$S/cache-stamp-check.sh`
+---
+> - `tests/scripts/cache-repo-architecture.sh:12` `$TESTS_DIR/fixtures/architecture-oracle.sh`
+> - `tests/scripts/cache-scripts.sh:214` `$S/*.sh`
+> - `tests/scripts/cache-scripts.sh:24` `$S/publish-cache.sh`
+> - `tests/scripts/cache-scripts.sh:25` `$S/publish-cache.sh`
+> - `tests/scripts/cache-scripts.sh:26` `$S/publish-cache.sh`
+> - `tests/scripts/cache-scripts.sh:30` `$S/cache-stamp-check.sh`
+143,151c145,152
+< - `tests/scripts/cache-scripts.sh:41` `$S/cache-stamp-check.sh`
+< - `tests/scripts/cache-scripts.sh:47` `$S/cache-stamp-check.sh`
+< - `tests/scripts/cache-scripts.sh:51` `$S/publish-cache.sh`
+< - `tests/scripts/cache-scripts.sh:59` `$S/cache-stamp-check.sh`
+< - `tests/scripts/cache-scripts.sh:67` `$S/cache-stamp-check.sh`
+< - `tests/scripts/cache-scripts.sh:74` `$S/cache-stamp-check.sh`
+< - `tests/scripts/cache-scripts.sh:80` `$S/publish-cache.sh`
+< - `tests/scripts/cache-scripts.sh:81` `$S/publish-cache.sh`
+< - `tests/scripts/cache-scripts.sh:83` `$S/publish-cache.sh`
+---
+> - `tests/scripts/cache-scripts.sh:40` `$S/cache-stamp-check.sh`
+> - `tests/scripts/cache-scripts.sh:45` `$S/cache-stamp-check.sh`
+> - `tests/scripts/cache-scripts.sh:51` `$S/cache-stamp-check.sh`
+> - `tests/scripts/cache-scripts.sh:55` `$S/publish-cache.sh`
+> - `tests/scripts/cache-scripts.sh:63` `$S/cache-stamp-check.sh`
+> - `tests/scripts/cache-scripts.sh:71` `$S/cache-stamp-check.sh`
+> - `tests/scripts/cache-scripts.sh:78` `$S/cache-stamp-check.sh`
+> - `tests/scripts/cache-scripts.sh:84` `$S/publish-cache.sh`
+153,155c154,157
+< - `tests/scripts/cache-scripts.sh:86` `$S/publish-cache.sh`
+< - `tests/scripts/cache-scripts.sh:88` `$S/publish-cache.sh`
+< - `tests/scripts/cache-scripts.sh:93` `$S/*.sh`
+---
+> - `tests/scripts/cache-scripts.sh:87` `$S/publish-cache.sh`
+> - `tests/scripts/cache-scripts.sh:89` `$S/publish-cache.sh`
+> - `tests/scripts/cache-scripts.sh:90` `$S/publish-cache.sh`
+> - `tests/scripts/cache-scripts.sh:92` `$S/publish-cache.sh`
+171,173c173,177
+< - `tests/scripts/commit-workflow-data.sh:13` `$FW_SKILL/scripts/commit-workflow-data.sh`
+< - `tests/scripts/extractor-bash.sh:14` `$TESTS_DIR/fixtures/graph-extractors.sh`
+< - `tests/scripts/extractor-bash.sh:19` `$WORK/scaffold/.agents/skills/regenerate-caches/scripts/extractors/bash.sh`
+---
+> - `tests/scripts/commit-workflow-data.sh:13` `$TESTS_DIR/fixtures/workflow-folders.sh`
+> - `tests/scripts/commit-workflow-data.sh:16` `$FW_SKILL/scripts/commit-workflow-data.sh`
+> - `tests/scripts/extractor-bash.sh:16` `$TESTS_DIR/fixtures/graph-extractors.sh`
+> - `tests/scripts/extractor-bash.sh:205` `./x`
+> - `tests/scripts/extractor-bash.sh:21` `$WORK/scaffold/.agents/skills/regenerate-caches/scripts/extractors/bash.sh`
+190c194,195
+< - `tests/scripts/initiative-transition.sh:10` `$TESTS_DIR/fixtures/initiative.sh`
+---
+> - `tests/scripts/initiative-transition.sh:11` `$TESTS_DIR/fixtures/initiative.sh`
+> - `tests/scripts/initiative-transition.sh:13` `$TESTS_DIR/fixtures/workflow-folders.sh`
+195a201,206
+> - `tests/scripts/lib-test-paths.sh:14` `$TESTS_DIR/fixtures/graph-extractors.sh`
+> - `tests/scripts/lib-test-paths.sh:19` `$WORK/scaffold/.agents/lib/test-paths.sh`
+> - `tests/scripts/lib-test-paths.sh:20` `$WORK/scaffold/.agents/skills/feature-workflow/scripts/budget-check.sh`
+> - `tests/scripts/lib-test-paths.sh:21` `$WORK/scaffold/.agents/skills/regenerate-caches/scripts/build-architecture.sh`
+> - `tests/scripts/lib-workflow-paths.sh:12` `$TESTS_DIR/fixtures/workflow-folders.sh`
+> - `tests/scripts/lib-workflow-paths.sh:17` `$WORK/scaffold/.agents/lib/workflow-paths.sh`
+212,216c223,228
+< - `tests/scripts/status-transition-specs.sh:18` `$SRC/scripts/status-transition.sh`
+< - `tests/scripts/status-transition-specs.sh:19` `$SRC/scripts/check-write.sh`
+< - `tests/scripts/status-transition-specs.sh:20` `$SRC/scripts/budget-check.sh`
+< - `tests/scripts/status-transition-specs.sh:243` `$SRC/scripts/check-write.sh`
+< - `tests/scripts/status-transition-specs.sh:243` `$SRC/scripts/status-transition.sh`
+---
+> - `tests/scripts/status-transition-specs.sh:12` `$TESTS_DIR/fixtures/workflow-folders.sh`
+> - `tests/scripts/status-transition-specs.sh:21` `$SRC/scripts/status-transition.sh`
+> - `tests/scripts/status-transition-specs.sh:22` `$SRC/scripts/check-write.sh`
+> - `tests/scripts/status-transition-specs.sh:23` `$SRC/scripts/budget-check.sh`
+> - `tests/scripts/status-transition-specs.sh:255` `$SRC/scripts/check-write.sh`
+> - `tests/scripts/status-transition-specs.sh:255` `$SRC/scripts/status-transition.sh`
+226,235c238,250
+< - `tests/scripts/task-breakdown.sh:124` `$WORK/scaffold/.agents/skills/project-setup/scripts/generate-boundary-config.sh`
+< - `tests/scripts/task-breakdown.sh:14` `$S/task-waves.sh`
+< - `tests/scripts/task-breakdown.sh:15` `$S/rules-setting.sh`
+< - `tests/scripts/task-breakdown.sh:164` `$S/open-task-pr.sh`
+< - `tests/scripts/task-breakdown.sh:183` `$S/open-task-pr.sh`
+< - `tests/scripts/task-breakdown.sh:235` `$S/run-toolchain.sh`
+< - `tests/scripts/task-breakdown.sh:260` `$S/open-task-pr.sh`
+< - `tests/scripts/task-breakdown.sh:260` `$S/rules-setting.sh`
+< - `tests/scripts/task-breakdown.sh:260` `$S/run-toolchain.sh`
+< - `tests/scripts/task-breakdown.sh:260` `$S/task-waves.sh`
+---
+> - `tests/scripts/task-breakdown.sh:128` `$WORK/scaffold/.agents/skills/project-setup/scripts/generate-boundary-config.sh`
+> - `tests/scripts/task-breakdown.sh:12` `$TESTS_DIR/fixtures/workflow-folders.sh`
+> - `tests/scripts/task-breakdown.sh:168` `$S/open-task-pr.sh`
+> - `tests/scripts/task-breakdown.sh:187` `$S/open-task-pr.sh`
+> - `tests/scripts/task-breakdown.sh:18` `$S/task-waves.sh`
+> - `tests/scripts/task-breakdown.sh:19` `$S/rules-setting.sh`
+> - `tests/scripts/task-breakdown.sh:239` `$S/run-toolchain.sh`
+> - `tests/scripts/task-breakdown.sh:275` `$S/open-task-pr.sh`
+> - `tests/scripts/task-breakdown.sh:280` `$S/open-task-pr.sh`
+> - `tests/scripts/task-breakdown.sh:284` `$S/open-task-pr.sh`
+> - `tests/scripts/task-breakdown.sh:284` `$S/rules-setting.sh`
+> - `tests/scripts/task-breakdown.sh:284` `$S/run-toolchain.sh`
+> - `tests/scripts/task-breakdown.sh:284` `$S/task-waves.sh`

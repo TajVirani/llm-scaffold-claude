@@ -1,0 +1,12 @@
+== modules
+ok
+exit=0
+== flows
+check-staged-cache: Mermaid diagrams not machine-validated (needs node with the mermaid and jsdom packages); check them by hand against "Mermaid syntax rules" in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.agents/skills/visual-change-report/references/visual-library.md
+ok
+exit=0
+== architecture
+check-staged-cache: Mermaid diagrams not machine-validated (needs node with the mermaid and jsdom packages); check them by hand against "Mermaid syntax rules" in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.agents/skills/visual-change-report/references/visual-library.md
+ok
+exit=0
+HEAD 99801e506b428a1ac3c3f7fb0170191cb6fa45ae

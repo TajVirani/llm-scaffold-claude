@@ -1,6 +1,6 @@
 ---
-generated_at_commit: e530f63f7103b9286d32d21f6b9f75055ef8c5d8
-generated_at: "2026-10-26T15:23:01Z"
+generated_at_commit: 99801e506b428a1ac3c3f7fb0170191cb6fa45ae
+generated_at: "2026-10-28T20:06:35Z"
 scope:
   - ".agents/README.md"
   - ".agents/agents"
@@ -37,7 +37,7 @@ generator: "cache-regeneration"
 
 ## .agents/hooks
 
-- Purpose: Checks Claude and Codex tool calls and sub-agent launches against the workflow rules, denying disallowed writes, destructive git commands and malformed launches, and runs the boundary-config sync, toolchain audit, evidence capture and resume offer around them.
+- Purpose: Runs as Claude and Codex hooks that guard file writes, block destructive git commands, validate sub-agent launches, capture evidence and offer to resume in-flight work, plus a generator for Codex agent files.
 - Files:
   - `.agents/hooks/_codex-patch.sh`
   - `.agents/hooks/_guard-common.sh`
@@ -74,8 +74,9 @@ generator: "cache-regeneration"
 
 ## .agents/lib
 
-- Purpose: Defines the paths of workflow data under one workflow folder for hooks and skill scripts to source.
+- Purpose: Defines where workflow data lives in a target project and which repo paths count as tests, as sourced shell helpers.
 - Files:
+  - `.agents/lib/test-paths.sh`
   - `.agents/lib/workflow-paths.sh`
 - Depends on: none
 - Used by:
@@ -87,11 +88,18 @@ generator: "cache-regeneration"
   - `install.sh`
   - `tests`
 - Public interface:
+  - `wf_default_test_patterns` (function)
+  - `wf_is_test_path` (function)
+  - `wf_load_test_patterns` (function)
+  - `wf_main_root` (function)
+  - `wf_norm_folder` (function)
   - `wf_path` (function)
+  - `wf_profile_test_patterns` (function)
+  - `wf_toolchain_block` (function)
 
 ## .agents/skills/data-structure-audit
 
-- Purpose: Prints the files changed since the last audited commits and records the current commit as audited.
+- Purpose: Prints the files changed since the last audited commits and records the current HEAD as audited.
 - Files:
   - `.agents/skills/data-structure-audit/scripts/audit_scope.sh`
 - Depends on:
@@ -101,7 +109,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/feature-workflow
 
-- Purpose: Checks, writes and reports the state of specs, tasks, initiatives, launches and writes for the workflow orchestrator.
+- Purpose: Provides the feature-workflow helper scripts that check writes, launches, results, findings and size budgets, write status and step markers, run toolchains, derive task waves, open PRs and commit workflow data.
 - Files:
   - `.agents/skills/feature-workflow/scripts/budget-check.sh`
   - `.agents/skills/feature-workflow/scripts/check-review-findings.sh`
@@ -127,7 +135,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/project-setup
 
-- Purpose: Generates import-boundary tool config from the Ownership and Shared core blocks of `.workflow/rules.md`.
+- Purpose: Generates import-boundary tool config from the Ownership and Shared core blocks of .workflow/rules.md.
 - Files:
   - `.agents/skills/project-setup/scripts/generate-boundary-config.sh`
 - Depends on:
@@ -139,7 +147,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/regenerate-caches
 
-- Purpose: Builds, checks, stamps and publishes the Tier B caches from the file graphs its extractors print.
+- Purpose: Builds, checks, stamps and publishes the Tier B caches from the file graph that its graph extractors print.
 - Files:
   - `.agents/skills/regenerate-caches/scripts/build-architecture.sh`
   - `.agents/skills/regenerate-caches/scripts/cache-stamp-check.sh`
@@ -150,12 +158,13 @@ generator: "cache-regeneration"
 - Depends on:
   - `.agents/lib`
   - `.agents/skills/project-setup`
-- Used by: none
+- Used by:
+  - `tests`
 - Public interface: Not generated: no tsconfig.json.
 
 ## install.sh
 
-- Purpose: Installs the `.agents/` payload and the Claude and Codex host shims into a target project.
+- Purpose: Installs the .agents/ payload named by .agents/install-manifest.txt and the host shims into a target project.
 - Files:
   - `install.sh`
 - Depends on:
@@ -167,7 +176,7 @@ generator: "cache-regeneration"
 
 ## scripts
 
-- Purpose: Shows what changed upstream since the commit each `upstream-lineage.json` entry is based on.
+- Purpose: Shows what changed upstream for each upstream-lineage.json entry since the commit the local file was based on.
 - Files:
   - `scripts/upstream-diff.sh`
 - Depends on: none
@@ -177,11 +186,13 @@ generator: "cache-regeneration"
 
 ## tests
 
-- Purpose: Runs the test suites for the scaffold's hooks, scripts, installer and lint checks and prints a summary.
+- Purpose: Runs the scaffold's test suites for scripts, hooks and lint with shared test helpers and fixtures.
 - Files:
+  - `tests/fixtures/architecture-oracle.sh`
   - `tests/fixtures/graph-extractors.sh`
   - `tests/fixtures/initiative.sh`
   - `tests/fixtures/review-lessons.sh`
+  - `tests/fixtures/workflow-folders.sh`
   - `tests/hooks/audit-sync-resume.sh`
   - `tests/hooks/block-destructive-git.sh`
   - `tests/hooks/codex-adapters.sh`
@@ -207,6 +218,7 @@ generator: "cache-regeneration"
   - `tests/scripts/cache-js-unchanged.sh`
   - `tests/scripts/cache-missing-extractor-key.sh`
   - `tests/scripts/cache-mixed-extractors.sh`
+  - `tests/scripts/cache-repo-architecture.sh`
   - `tests/scripts/cache-scripts.sh`
   - `tests/scripts/check-review-findings.sh`
   - `tests/scripts/check-task-result.sh`
@@ -227,6 +239,8 @@ generator: "cache-regeneration"
   - `tests/scripts/install-hosts.sh`
   - `tests/scripts/install-payload.sh`
   - `tests/scripts/install-upgrade.sh`
+  - `tests/scripts/lib-test-paths.sh`
+  - `tests/scripts/lib-workflow-paths.sh`
   - `tests/scripts/resolve-launch-initiative.sh`
   - `tests/scripts/resolve-launch.sh`
   - `tests/scripts/review-lessons.sh`
@@ -241,6 +255,7 @@ generator: "cache-regeneration"
   - `.agents/hooks`
   - `.agents/lib`
   - `.agents/skills/feature-workflow`
+  - `.agents/skills/regenerate-caches`
   - `install.sh`
   - `scripts`
 - Used by: none
