@@ -118,32 +118,6 @@ require_yq() {
   yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (the Python yq has different flags): $(yq --version 2>&1 | head -1)"
 }
 
-# Main checkout root from any directory inside the repo or one of its worktrees.
-main_root() {
-  local common
-  common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
-    || die "not inside a git repository: $1"
-  if [[ "$(basename "$common")" == ".git" ]]; then
-    dirname "$common"
-  else
-    git -C "$1" worktree list --porcelain | sed -n '1s/^worktree //p'
-  fi
-}
-
-# Normalise <spec-dir> to `.workflow/specs/NNN-slug`.
-norm_spec_dir() {
-  local d=$1
-  d=${d%/}
-  d=${d#./}
-  if [[ "$d" == /* ]]; then
-    [[ "$(dirname "$d")" == */"$WF_SPECS" ]] || die "spec dir must be $WF_SPECS/NNN-slug: $1"
-    d="$WF_SPECS/$(basename "$d")"
-  fi
-  [[ "$d" == "$WF_SPECS"/* && "${d#"$WF_SPECS"/}" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
-    || die "spec dir must be $WF_SPECS/NNN-slug: $1"
-  printf '%s\n' "$d"
-}
-
 utc_now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 # Read one key of .step (format above); empty when absent.
@@ -222,8 +196,8 @@ if [[ "$MODE" != "set-spec" && -n "$OPT_SBRANCH$OPT_IBASE" ]]; then
   die "--spec-branch and --impl-base belong to set-spec mode"
 fi
 
-ROOT=$(main_root "$OPT_CWD")
-SPEC_DIR=$(norm_spec_dir "${POS[0]}")
+ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
+SPEC_DIR=$(wf_norm_folder spec "${POS[0]}" 2>/dev/null) || die "spec dir must be $WF_SPECS/NNN-slug: ${POS[0]}"
 ABS_DIR="$ROOT/$SPEC_DIR"
 SPEC="$ABS_DIR/spec.md"
 TASKS="$ABS_DIR/tasks.md"
