@@ -2,11 +2,14 @@
 # Suite: status-transition.sh (feature-workflow/scripts): spec status transitions.
 # Covers: spec status transitions and the .step marker, blocked/discovered-work paths,
 #   blocked -> draft at 00.24 / 00.29 only for the matching blocked_condition, no 3.16 merge while blocked,
-#   a fresh clone with no blocked_from, worktree resolution, a merged task reopened at 3.9 / 3.11.
+#   a fresh clone with no blocked_from, worktree resolution, a merged task reopened at 3.9 / 3.11. JRN-006: each spec folder
+#   form gives the exit code and message it gave before the shared normaliser.
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/workflow-folders.sh
+source "$TESTS_DIR/fixtures/workflow-folders.sh"
 preflight
 
 TEST_BASH=${TEST_BASH:-bash}
@@ -239,6 +242,15 @@ ST status $H ready-for-dev --step 0.6 >/dev/null; ST status $H in-progress >/dev
 t "eta budget block at 3.15"                0 ST status $H blocked --step 00.21 --blocked "size budget: changed files 31 > 30"
 t "re-scope via draft --step 00.29 (3.15)"  0 ST status $H draft --step 00.29
 eq "eta draft" "$(status 008-eta)" draft
+
+echo "== JRN-006 spec folder forms"
+folder_fixture_repo "$F/folders"
+while IFS='|' read -r form cwd arg; do
+  eq "JRN-006 status-transition step takes the $form spec folder as before" \
+    "$(folder_outcome ST step "$arg" 1.2 --cwd "$cwd")" \
+    "$(folder_expected "$form" "$cwd" "$arg" status-transition.sh 1 "spec dir must be .workflow/specs/NNN-slug" "0|")"
+done < <(folder_inputs spec)
+eq "JRN-006 status-transition writes the marker in the main checkout" "$(sed -n 's/^step: "\(.*\)"$/\1/p' "$FOLDER_REPO/$FOLDER_SPEC/.step")" 1.2
 
 shellcheck_files "shellcheck: scripts under test" "$SRC/scripts/status-transition.sh" "$SRC/scripts/check-write.sh"
 finish
