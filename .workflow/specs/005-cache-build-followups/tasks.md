@@ -6,7 +6,7 @@ tasks:
     capability: CAP-004
     depends_on: []
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "each script's CLI (exit code, stdout, stderr) in its suite; wf_norm_folder and wf_main_root sourced in tests/scripts/lib-workflow-paths.sh"
     file: tasks/T01-feature-workflow-shared-helpers.md
@@ -31,7 +31,7 @@ tasks:
     capability: CAP-004
     depends_on: []
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "build-architecture.sh --cache entries on the test-pattern profiles fixture; wf_*test* functions sourced in tests/scripts/lib-test-paths.sh"
     file: tasks/T02-entry-candidates-shared-test-paths.md
@@ -50,7 +50,7 @@ tasks:
     capability: CAP-004
     depends_on: [T2]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "build-architecture.sh --cache architecture on the JS fixture with DEPCRUISE stand-ins (tests/scripts/cache-boundary-check.sh)"
     file: tasks/T03-boundary-not-checked.md
@@ -69,7 +69,7 @@ tasks:
     capability: CAP-005
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "extractors/bash.sh JSON on the case forms fixture; build-architecture.sh --cache architecture over a copy of this repo"
     file: tasks/T04-bash-extractor-case-arms.md
@@ -89,7 +89,7 @@ tasks:
     capability: CAP-004
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "check-staged-cache.sh flows <staged body> CLI (stdout, stderr, exit) with a node stand-in and with node or packages absent"
     file: tasks/T05-staged-cache-mermaid-check.md
@@ -106,7 +106,7 @@ tasks:
     capability: CAP-004
     depends_on: [T5]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "agents"
     seam: "the agent doc's content, checked by the JRN-007 grep in tests/scripts/cache-scripts.sh"
     file: tasks/T06-cache-regeneration-agent-ownership.md
