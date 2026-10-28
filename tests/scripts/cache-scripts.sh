@@ -191,5 +191,25 @@ printf '# Flows\n\n## Entry points\n\n- `b`\n- `a`\n' >"$M/.workflow/.cache-stag
 t "JRN-007 validator present: a body with problems still exits 1" 1 env PATH="$M/node-bin:$PATH" "$MC" flows "$M/.workflow/.cache-staging/bad-flows.md"
 t "JRN-007 validator present: a usage error still exits 2" 2 env PATH="$M/node-bin:$PATH" "$MC" flows
 
+mkdir -p "$M/rejecting-node-bin"
+cat >"$M/rejecting-node-bin/node" <<'EOF'
+#!/usr/bin/env bash
+echo "diagram 1: FAIL — Parse error on line 3"
+echo "1 FAILURES"
+exit 1
+EOF
+chmod +x "$M/rejecting-node-bin/node"
+staged_flows "$M/rejecting-node-bin:$PATH"
+eq "JRN-007 validator rejects a diagram: exit 1" "$(cat "$WORK/mc.rc")" 1
+eq "JRN-007 validator rejects a diagram: no ok on stdout" "$(cat "$WORK/mc.out")" ""
+check "JRN-007 validator rejects a diagram: its error is on stderr" 'grep -q "diagram 1: FAIL" "$WORK/mc.err"' \
+  "$(cat "$WORK/mc.err")"
+
+mkdir -p "$WORK/validator-tmp"
+TMPDIR="$WORK/validator-tmp" staged_flows "$M/node-bin:$PATH"
+TMPDIR="$WORK/validator-tmp" staged_flows "$M/rejecting-node-bin:$PATH"
+eq "JRN-007 the validator's temporary HTML is removed after a pass and a rejection" \
+  "$(find "$WORK/validator-tmp" -type f | wc -l | tr -d ' ')" 0
+
 shellcheck_files "shellcheck: cache scripts" "$S"/*.sh
 finish
