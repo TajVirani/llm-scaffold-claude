@@ -201,3 +201,10 @@ Loop-back from 0.4.7: the regenerate-caches module audit reported two blocks-thi
 - **D11 Mermaid validator fails on the staged body.** Options: invalid body, exit 1; warn, exit 0. Stakeholder: "Fix the validation project, that is low risk and can be done inline", clarified as "Exit 1; agent fixes Mermaid". Decision: `check-staged-cache.sh` exits 1 with the validator's error on stderr; the cache-regeneration agent fixes the Mermaid in its staged body and re-runs the check (T5, T6).
 - Size budget: project defaults, 10 tasks and 30 changed files. Stakeholder: "Defaults 10 / 30 (Recommended)".
 - 2.2: every slice specifiable (D11 settles the one open point). 2.3: every seam is an existing CLI or the new lib functions fixed at 1.1. 2.4: T1 and T2 touch shared core (`.agents/lib/`); their requests go to one shell-scripts integration batch before wave 1.
+
+## 2026-10-28 Discovered work: result-file guard (3.2)
+
+- Found by: integration batch `integration-shell-scripts` (3.2); the worktree write guard denied its result file in the main checkout. Kind: bug. Assessment: can wait (CAP-004, CAP-005 and JRN-001 to JRN-008 unaffected).
+- Ruling: can be solved later; filed without a ruling, offered at 5.9: [005-cache-build-followups-disc-001.md](../work-backlog/005-cache-build-followups-disc-001.md).
+- Workaround, stakeholder answer "Save it; agents write in worktree (Recommended)": the main session saved the integration block verbatim from the agent's report and checked it with `check-task-result.sh` (exit 0) after verifying the two commits, the toolchain pass and both lib suites itself. Wave agents write their result file at the same relative path in their worktree; the main session copies it to the main checkout before checking it.
+- Integration merged (`23c0c58`). Interface notes for consumers: workflow-paths.sh refusals go to stderr with no program prefix (callers silence them and `die` with their own line); `wf_load_test_patterns` prints its reason on stdout in place of the list; budget-check keeps its own wording ("must be a list of path patterns").
