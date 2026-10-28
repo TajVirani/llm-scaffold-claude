@@ -240,3 +240,5 @@ Gaps: TGT-007 not measurable → defer ([.workflow/deferred/bash-line-coverage.m
 
 Failed lenses: none
 Outcome: rework 1 of 5
+
+- 2026-10-28 Rework 1 (T1): task PR skipped (open-task-pr: gh not installed); merged locally.

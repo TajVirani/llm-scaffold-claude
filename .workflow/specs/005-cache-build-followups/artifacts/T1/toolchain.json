@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t1/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t1",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/005-cache-build-followups/artifacts/T1",
-  "tree": "3f9400bb2c2feec1e0327a179eed6ba027586d77",
+  "tree": "7cc96050c4bfa52b142a31f011d1e082b2f9bbd2",
   "ran": 2,
   "results": [
     {
@@ -42,7 +42,7 @@
       "exit_code": 0,
       "scoped": true,
       "own": 2,
-      "excluded": 5
+      "excluded": 0
     }
   ],
   "digest": "",

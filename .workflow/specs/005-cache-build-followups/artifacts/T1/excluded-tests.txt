@@ -1,5 +1,0 @@
-tests/scripts/lib-test-paths.sh
-tests/scripts/cache-boundary-check.sh
-tests/scripts/extractor-bash.sh
-tests/scripts/cache-repo-architecture.sh
-tests/scripts/cache-scripts.sh
