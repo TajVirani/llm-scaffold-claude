@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Feature-workflow scripts use the shared folder-path and test-path helpers"
-    status: pending
+    status: done
     capability: CAP-004
     depends_on: []
     touches_core: true
@@ -27,7 +27,7 @@ tasks:
     pr: null
   - id: T2
     title: "Flow entry candidates read test files through the shared helper"
-    status: pending
+    status: done
     capability: CAP-004
     depends_on: []
     touches_core: true
@@ -65,7 +65,7 @@ tasks:
     pr: null
   - id: T4
     title: "Bash graph extractor skips case arm patterns"
-    status: pending
+    status: done
     capability: CAP-005
     depends_on: []
     touches_core: false
@@ -85,7 +85,7 @@ tasks:
     pr: null
   - id: T5
     title: "Staged-cache check runs the Mermaid validator"
-    status: pending
+    status: done
     capability: CAP-004
     depends_on: []
     touches_core: false

@@ -1,0 +1,5 @@
+tests/scripts/lib-workflow-paths.sh
+tests/scripts/task-breakdown.sh
+tests/scripts/lib-test-paths.sh
+tests/scripts/cache-boundary-check.sh
+tests/scripts/cache-scripts.sh

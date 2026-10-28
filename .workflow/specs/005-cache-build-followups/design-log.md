@@ -208,3 +208,18 @@ Loop-back from 0.4.7: the regenerate-caches module audit reported two blocks-thi
 - Ruling: can be solved later; filed without a ruling, offered at 5.9: [005-cache-build-followups-disc-001.md](../work-backlog/005-cache-build-followups-disc-001.md).
 - Workaround, stakeholder answer "Save it; agents write in worktree (Recommended)": the main session saved the integration block verbatim from the agent's report and checked it with `check-task-result.sh` (exit 0) after verifying the two commits, the toolchain pass and both lib suites itself. Wave agents write their result file at the same relative path in their worktree; the main session copies it to the main checkout before checking it.
 - Integration merged (`23c0c58`). Interface notes for consumers: workflow-paths.sh refusals go to stderr with no program prefix (callers silence them and `die` with their own line); `wf_load_test_patterns` prints its reason on stdout in place of the list; budget-check keeps its own wording ("must be a list of path patterns").
+
+## 2026-10-28 T2 gate 3.6 (3.5-3.6)
+
+- T2 toolchain: lint pass; test fails only on `JRN-005 no shell file under .agents/ outside lib/test-paths.sh lists the default test patterns` (`got=budget-check.sh`), which T1 turns green. The 2.5 assignment put the whole `lib-test-paths` suite on T2 though that one case needs both T1 and T2. Treated as clean for 3.6; 3.16 merges T1 before T2 (id order) and the 3.9 gate runs `lib-test-paths` on the merged branch.
+- 3.4: no tests added by T2; the Phase 1 `lib-test-paths` and `build-architecture` suites already hold the negative (invalid `test_patterns`, exit 2) and edge (empty Toolchain block, `[]`, absent) cases.
+
+## 2026-10-28 Discovered work: TGT-001 noise (3.4)
+
+- Found by: T4 implementation (`artifacts/T4/implementation-r1.yaml`). TGT-001 (≤ 1.2 s best of 3) is within run-to-run noise at the baseline; T4 itself adds nothing measurable. Kind: decision (agent said refactor). Assessment: can wait (CAP-005, JRN-001, JRN-002 unaffected; only the 4.3 number may flip).
+- Ruling: can be solved later; filed without a ruling, offered at 5.9: [005-cache-build-followups-disc-002.md](../work-backlog/005-cache-build-followups-disc-002.md).
+- T4 3.4: no edge tests added; resumed to add the nested, quoted-`)`, `case`-as-argument and `$(...)` cases it had tried by hand.
+- T5 3.7: mini-review result file did not parse (L20 C97); resumed once to rewrite it.
+- T5 3.7: mini-review pass with one out_of_scope entry on T5's own new code (temp file left on a write error, check-staged-cache.sh:176-178); handled as a behaviour fix round by resuming the T5 agent (one-line cleanup, its context kept), then a full mini-review. T2 3.8: re-check pass.
+- T1 3.4-3.6: toolchain pass; no tests added (the Phase 1 per-script JRN-006 cases hold the reject paths). One message change: budget-check now reports a list with empty or non-string entries as 'must be a list of path patterns' (was 'must hold non-empty strings only'); still exit 1. Accepted: the spec asks for each script's own exit code, and the Phase 1 test pins this wording.
+- 3.16 wave 1: T1, T2, T4, T5 merged in id order; task PRs skipped (open-task-pr.sh: "gh not installed"), pr stays null.

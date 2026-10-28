@@ -1,0 +1,49 @@
+{
+  "status": "fail",
+  "task_id": "T2",
+  "work_type": "shell-scripts",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t2/.workflow/profiles/shell-scripts.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t2",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/005-cache-build-followups/artifacts/T2",
+  "tree": "731c075d767d797bfb8a8710c05ed88bbc8246e0",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\"",
+      "status": "fail",
+      "exit_code": 1,
+      "scoped": true,
+      "own": 1,
+      "excluded": 6
+    }
+  ],
+  "digest": "Toolchain failed for task T2 (1 of 2 commands). Fix these in the same context, then stop again.\nFull output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/005-cache-build-followups/artifacts/T2/toolchain.txt\n\n[test] tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\" exited 1. Last 40 lines:\n== scripts/lib-test-paths\nFAIL JRN-005 no shell file under .agents/ outside lib/test-paths.sh lists the default test patterns\n       got=.agents/skills/feature-workflow/scripts/budget-check.sh want=\n\n== summary\nFAIL scripts/lib-test-paths                 passed=46   failed=1   skipped=0   xfail=0   3s\nTOTAL passed=46 failed=1 skipped=0 xfail=0 (1 suites)\nFAILED suites: scripts/lib-test-paths\n"
+}

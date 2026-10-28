@@ -1,0 +1,2 @@
+tests/scripts/extractor-bash.sh
+tests/scripts/cache-repo-architecture.sh
