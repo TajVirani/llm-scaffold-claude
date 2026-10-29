@@ -45,7 +45,16 @@ What the docs say ([permissions](https://code.claude.com/docs/en/permissions), "
 
 - No existing `<target>/.claude/settings.json`: write the template as is.
 - Existing file: deep-merge with `jq`.
-  - `hooks.<event>`: append the template's matcher groups. Skip a group whose `command` already appears under that event, so reinstalling is idempotent.
+  - `hooks.<event>`, on every event: append each template command not yet present under that event, in the template's matcher group. A command already present is not added again, so reinstalling is idempotent.
+  - Matcher rule: an existing group that runs a template command under a matcher not covering the template's is resolved on its own, per group. A matcher covers the template's when its `|` alternatives include all of the template's, so a re-run asks nothing.
+    - `merge`: union of both matchers' `|` alternatives in one group (`implementation|foo` with `implementation|integration` gives `implementation|foo|integration`). Offered only when both matchers are plain alternations (`[A-Za-z0-9_|]`).
+    - `replace`: the group takes the template's matcher. A match-all template matcher makes merge and replace drop the matcher.
+    - `keep`: the group stays as it is, with a line under Warnings.
+    - At a terminal (stdin and stdout), the installer asks per group: it names the event and the scaffold command, shows the current, replace and merge matchers, and lists every hook in the group. Enter merges.
+    - Without a terminal it never waits on input: it merges and prints a line under Warnings. A mixed group, one that also runs a non-template hook, is kept with a warning instead.
+    - `--matchers=merge|replace|keep` sets the outcome for every group without asking, mixed groups included.
+    - A match-all group (matcher absent, `""` or `"*"`) is never touched.
+    - `--dry-run` asks nothing and shows the matcher changes the run would make: without `--matchers`, the no-terminal outcome. `--force` does not change matchers.
   - `permissions.deny`: union, de-duplicated. Never remove user entries.
   - Other `permissions` keys and unrelated top-level keys (`enabledPlugins`, `env`, ...): keep the user's values.
   - `outputStyle`: set it if absent. If the user set a different style, keep theirs and warn, or overwrite with `--force`.
