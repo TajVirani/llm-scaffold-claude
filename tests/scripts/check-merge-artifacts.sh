@@ -82,11 +82,13 @@ expect_pass() {
 }
 # expect_refused NAME REV PATH... : the gate exits 1 with exactly one stdout line per PATH, each naming it.
 expect_refused() {
-  local name=$1 rev=$2 p missing=""
+  local name=$1 rev=$2 p missing="" want
   shift 2
   gate "$rev"
+  # shellcheck disable=SC2034 # read by the check expression, which check evals
+  want=$#
   for p in "$@"; do grep -qF -- "$p" <<<"$OUT" || missing="$missing $p"; done
-  check "$name" '[ "$RC" = 1 ] && [ -z "$missing" ] && [ "$(grep -c . <<<"$OUT")" = "$#" ]' "rc=$RC missing:$missing out=$OUT"
+  check "$name" '[ "$RC" = 1 ] && [ -z "$missing" ] && [ "$(grep -c . <<<"$OUT")" = "$want" ]' "rc=$RC missing:$missing out=$OUT"
 }
 
 echo "== task branches (JRN-007)"
