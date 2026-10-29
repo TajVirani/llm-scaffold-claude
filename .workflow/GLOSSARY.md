@@ -38,6 +38,10 @@ _Avoid_: Parking lot, TODO list
 A lesson a retrospective recorded for the Phase 4 review: a symptom to look for in a set of paths, with the spec it came from and the date, one entry per lesson in the project's review-lessons file (**Tier A**). The review-lessons lens checks every change against them. A lesson a rule, a lint or a profile checklist line already enforces is not one.
 _Avoid_: Pitfall, watch item, recurrence check, review rule
 
+**Term list**:
+The canonical term names from a glossary, without their definitions, printed by a script and loaded in place of the whole glossary. A definition is looked up by name only when a term in play matches one on the list.
+_Avoid_: Glossary index, term map (clash with the glossary map)
+
 ### Work classification
 
 **Work type**:
@@ -61,6 +65,18 @@ The fenced YAML block at the start of every sub-agent launch prompt, naming the 
 _Avoid_: Prompt preamble
 
 ### Flow
+
+**Router**:
+The feature-workflow `SKILL.md`: it finds the feature's state, sizes a new request and loads the one **Step file** the spec's status and **Step marker** name. It holds no phase logic.
+_Avoid_: Entry skill, dispatcher, main skill
+
+**Step file**:
+One file of feature-workflow steps that the **Router** or another step file loads when the work reaches those steps, read whole and followed. A file split into parts gives several step files.
+_Avoid_: Module, phase module, stage file
+
+**Workflow conventions**:
+The rules every **Step file** follows for status changes, the **Step marker**, guarded writes, the **Progress line** and sub-agent launches, kept in one file that the **Router** and the step files point to.
+_Avoid_: Common rules, shared rules (clash with shared core)
 
 **Light path**:
 The short route for a small, clear request: three facts clean (no intent gaps, no irreversible actions, small footprint) lead to a one-task plan and straight to implementation against the existing suites.
@@ -116,7 +132,31 @@ _Avoid_: Worktree branch, feature branch
 The Markdown file `tasks/Tnn-<slug>.md` that holds one task's body (what to build, seam, acceptance criteria, predicted files, size, mode). The `tasks.md` index holds the task's record; the task file holds what the implementer reads (D85).
 _Avoid_: Ticket, task section
 
+**Agent worktree**:
+The git worktree under `.workflow/.worktrees/<name>` that the orchestrator creates for one coding launch (a Phase 3 task, a Phase 1 build or an integration batch), named `s<NNN>_t<N>`, `s<NNN>_phase_1_<work type>` or `s<NNN>_integration_<work type>`. The worktree guard confines the agent to it.
+_Avoid_: Task worktree (Phase 1 and integration are not tasks), named worktree, isolation worktree (Claude Code's own `isolation: "worktree"`)
+
+**Result file**:
+The one YAML file a coding or review sub-agent (implementation, integration, profile-mini-review) writes under `<spec_dir>/artifacts/<id>/` in the main checkout, holding its structured result for the orchestrator to check by script. Not a Phase 4 lens's pass file.
+_Avoid_: Return file, output file, result block (the block is its content)
+
+**Done folder**:
+The folder `.workflow/specs/done/` that a spec moves into once its sign-off PR has merged, with the spec and every task record marked complete. Keeps the top level of `.workflow/specs/` to specs still in flight; a spec in it is read as context only and its number is never reused.
+_Avoid_: Spec archive, closed specs, z_ prefix
+
+**Sign-off PR**:
+The one PR/MR that merges a **Spec branch** into the main branch, opened at sign-off (5.8). Its description follows the **PR template**. Not a task PR, which only records a **Task branch** merging into the spec branch.
+_Avoid_: Feature PR, merge PR, final PR
+
+**PR template**:
+The fixed sections a **Sign-off PR** description must fill: link to issue, what changed, why the change, why this approach, things to note, step-by-step test instructions, **Blast radius**, risk and reversibility scores, the areas and seams that changed, and how to undo the PR. Each section is filled from evidence in the spec folder, not claims.
+_Avoid_: PR description template, PR body format, MR template
+
 ### Scope control
+
+**Blast radius**:
+Everything outside the changed files that a change can affect if it is wrong: the modules and scripts that call the changed code, the steps that run it, and the target projects that install it. Reported in the **PR template** so a reviewer knows where a failure would show up.
+_Avoid_: Impact area, footprint (the light-path test's size measure)
 
 **Discovered work**:
 Work found outside a spec's agreed scope while the feature is under way. Agents report it and never fix it; a blocker is ruled on by the user before anything continues, and a can-wait item is filed to the **Work backlog** without a ruling and offered at sign-off.
@@ -143,8 +183,10 @@ _Avoid_: Quota, cap
 - A spec whose discovery finds several features converts into an **Initiative**; a **Deferred handoff** item that grows large or unclear seeds one.
 - An **Initiative** holds many **Initiative questions** and many **Slices**; each **Slice** becomes exactly one spec, and an **Initiative question** may depend on an emitted spec.
 - A **Review lesson** is written by the retrospective of exactly one spec and checked by the review-lessons **Task type** on every later spec's review.
+- Each spec has one **Sign-off PR**, and its description follows the **PR template**, which reports the change's **Blast radius**.
 
 ## Flagged ambiguities
 
 - "medium path" was used for the **Full path**: resolved, the full path keeps its name; the **Large path** is a planning route, not a larger build route.
 - "map" was proposed for the **Initiative**: resolved, "map" already names the codebase map, the **Model map** and the glossary map, so the planning unit is an **Initiative**.
+- "module" was used both for a code module that owns paths (`.workflow/rules.md` Ownership) and for a file of workflow steps: resolved, bare "module" means the code module; a file of workflow steps is a **Step file**.
