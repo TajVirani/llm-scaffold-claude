@@ -6,13 +6,15 @@
 #   matched only implementation agents is left, after an upgrade, with one SubagentStop entry matching implementation and integration.
 #   Matcher resolution on an upgrade to a template whose stop audit matches implementation|integration, from an old install
 #   with user groups: JRN-011 without a terminal (template-only group merged, mixed group kept, match-all and covering groups
-#   untouched, a Warnings line per merged or kept group, a third run writes nothing); JRN-012 --matchers=merge|replace|keep,
-#   a bad mode, --dry-run with and without --matchers (writes nothing, previews, never reads stdin), --force alone, a
-#   matcher that is not a plain alternation never merged (also under a match-all template), a group running commands of
-#   two template groups (rewritten into the template's groups in every mode; kept with a warning when it also runs a user
-#   hook), --matchers with no value, a match-all template matcher dropped
-#   on merge and replace, a Codex hooks.json group under the same rule, a non-string matcher left alone; JRN-013 the prompt at a pseudo-terminal (script(1); skipped
-#   when no form of it works): its text, Enter merges, r replaces, k keeps, a mixed group's prompt lists every hook.
+#   untouched, a Warnings line per merged or kept group, a third run writes nothing); JRN-012 --matchers=merge|replace|keep
+#   (one Warnings line per group, naming the mode), a bad mode, --dry-run with and without --matchers (writes nothing,
+#   previews, never reads stdin), --force alone, a matcher that is not a plain alternation never merged (also under a
+#   match-all template), a group running commands of two template groups (rewritten into the template's groups with the
+#   template's hook settings in every mode; kept with a warning when it also runs a user hook), --matchers with no value,
+#   a match-all template matcher dropped on merge and replace, a Codex hooks.json group under the same rule, a non-string
+#   matcher kept with one Warnings line (also with --matchers=replace), a template matcher that is not a plain alternation
+#   never merged; JRN-013 the prompt at a pseudo-terminal (script(1); skipped when no form of it works): its text, Enter
+#   merges, r replaces, k keeps, a mixed group's prompt lists every hook, Enter keeps under a non-plain template matcher.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Every install.sh run reads stdin from /dev/null, an open pipe or a pseudo-terminal, never from the caller's terminal, and
 # the runs that could wait on input are killed after 20 s, so a prompting installer cannot hang the suite.
@@ -56,6 +58,14 @@ clone_target() { rm -rf "$2"; cp -R "$1" "$2"; }
 warning_lines() { printf '%s\n' "$1" | awk '/^Warnings:/ { w = 1; next } w && /^  - / { print; next } { w = 0 }'; }
 # shellcheck disable=SC2329
 warned_about() { warning_lines "$1" | grep -qF -- "$2"; }
+# warned_once OUTPUT STRING... : true when exactly one Warnings line names the first STRING, and it holds every STRING.
+# shellcheck disable=SC2329
+warned_once() {
+  local out=$1 lines
+  shift
+  lines=$(warning_lines "$out" | grep -F -- "$1")
+  [ "$(printf '%s\n' "$lines" | grep -c .)" = 1 ] && contains_all "$lines" "$@"
+}
 # contains_all TEXT STRING... : true when TEXT contains every STRING.
 # shellcheck disable=SC2329
 contains_all() {
@@ -279,9 +289,8 @@ for mode_and_matcher in 'merge implementation|foo|integration' 'replace implemen
   eq "JRN-012 --matchers=$mode exits 0" "$?" 0
   eq "JRN-012 --matchers=$mode leaves the stop-audit matcher $want" \
     "$(group_matchers "$X/.claude/settings.json" SubagentStop "$STOP_AUDIT")" "$want"
-  if [ "$mode" = keep ]; then
-    check "JRN-012 --matchers=keep warns about the kept matcher implementation|foo" 'warned_about "$out" "implementation|foo"' "$out"
-  fi
+  check "JRN-012 --matchers=$mode: one Warnings line names the stop-audit group, the mode and the matcher $want" \
+    'warned_once "$out" "$STOP_AUDIT" "--matchers=$mode" "$want"' "$out"
 done
 
 X=$WORK/matchers-bogus
@@ -362,6 +371,9 @@ warned_together() {
   while IFS= read -r line; do contains_all "$line" "${@:2}" && return 0; done < <(warning_lines "$1")
   return 1
 }
+# A rewritten group's hooks take the template's hook objects, so a timeout of the user's is replaced; the warning says so.
+# shellcheck disable=SC2034  # read by a check expression, which shellcheck cannot see into
+TEMPLATE_HOOK_SETTINGS="with the template hook settings"
 for split_case in 'no-terminal kept' 'merge kept' 'replace dropped' 'keep kept'; do
   how=${split_case%% *}
   session_start_outcome=${split_case#* }
@@ -380,8 +392,8 @@ for split_case in 'no-terminal kept' 'merge kept' 'replace dropped' 'keep kept';
     "$(group_matchers "$XS" PreToolUse "$WRITE_GUARD")" 'Write|Edit|NotebookEdit'
   check "JRN-012 two template groups in one group ($how): PreToolUse has one group per template group, no command twice" \
     'pre_tool_use_is_the_templates "$XS"' "$(jq -c .hooks.PreToolUse "$XS")"
-  check "JRN-012 two template groups in one group ($how): a Warnings line names PreToolUse and its commands" \
-    'warned_together "$out" hooks.PreToolUse "$GIT_GUARD" "$WRITE_GUARD"' "$out"
+  check "JRN-012 two template groups in one group ($how): one Warnings line names PreToolUse, its commands and the template hook settings" \
+    'warned_once "$out" "$GIT_GUARD" hooks.PreToolUse "$WRITE_GUARD" "$TEMPLATE_HOOK_SETTINGS"' "$out"
   if [ "$session_start_outcome" = kept ]; then
     eq "JRN-012 the non-plain SessionStart matcher under a match-all template is kept ($how)" \
       "$(group_matchers "$XS" SessionStart session-start-resume.sh)" "$SESSION_MATCHER"
@@ -457,13 +469,36 @@ eq "JRN-012 a Codex hooks.json group follows the same rule: Read with the templa
   "$(group_matchers "$X/.codex/hooks.json" PreToolUse block-destructive-git.sh)" 'Read|Bash'
 check "JRN-012 a Warnings line names the merged Codex matcher Read|Bash" 'warned_about "$out" "Read|Bash"' "$out"
 
-X=$WORK/non-string-matcher
-clone_target "$OLD_BASE" "$X"
-edit_settings "$X/.claude/settings.json" '.hooks.SubagentStop |= map(if runs($c) then .matcher = 5 else . end)' --arg c "$STOP_AUDIT"
-non_string_before=$(jq -c .hooks.SubagentStop "$X/.claude/settings.json")
-INSTW "$X" --host claude --matchers=replace >/dev/null 2>&1
-eq "JRN-012 a non-string matcher is left alone, even with --matchers=replace" \
-  "$(jq -c .hooks.SubagentStop "$X/.claude/settings.json")" "$non_string_before"
+NON_STRING_BASE=$WORK/non-string-base
+clone_target "$OLD_BASE" "$NON_STRING_BASE"
+edit_settings "$NON_STRING_BASE/.claude/settings.json" '.hooks.SubagentStop |= map(if runs($c) then .matcher = 5 else . end)' \
+  --arg c "$STOP_AUDIT"
+non_string_before=$(jq -c .hooks.SubagentStop "$NON_STRING_BASE/.claude/settings.json")
+for how in no-terminal replace; do
+  X=$WORK/non-string-$how
+  clone_target "$NON_STRING_BASE" "$X"
+  if [ "$how" = no-terminal ]; then
+    out=$(INSTW "$X" --host claude 2>&1)
+  else
+    out=$(INSTW "$X" --host claude "--matchers=$how" 2>&1)
+  fi
+  eq "JRN-012 a non-string matcher is left alone ($how)" "$(jq -c .hooks.SubagentStop "$X/.claude/settings.json")" "$non_string_before"
+  check "JRN-012 one Warnings line names the non-string matcher's event and hooks and says why it is kept ($how)" \
+    'warned_once "$out" "$STOP_AUDIT" hooks.SubagentStop "not a string"' "$out"
+done
+
+echo "== a template matcher that is not a plain | list is never merged (JRN-012)"
+SCN=$WORK/sc-non-plain-template
+NON_PLAIN_TEMPLATE_MATCHER='^(implementation|integration)$'
+cp -R "$SC" "$SCN"
+set_group_matcher "$SCN/.agents/hooks/claude-settings.template.json" SubagentStop "$STOP_AUDIT" "$NON_PLAIN_TEMPLATE_MATCHER"
+X=$WORK/non-plain-template
+clone_target "$FOO_BASE" "$X"
+out=$(INST_FROM "$SCN" "$X" --host claude --matchers=merge 2>&1)
+eq "JRN-012 --matchers=merge keeps implementation|foo under a non-plain template matcher" \
+  "$(group_matchers "$X/.claude/settings.json" SubagentStop "$STOP_AUDIT")" 'implementation|foo'
+check "JRN-012 one Warnings line says the template matcher is not a plain | list" \
+  'warned_once "$out" "$STOP_AUDIT" "since the template matcher" "not a plain | list"' "$out"
 
 echo "== the prompt at a terminal (JRN-013)"
 # pty_upgrade NAME ANSWER TARGET : upgrades a copy of TARGET at $WORK/pty-NAME on a pseudo-terminal, typing ANSWER.
@@ -479,7 +514,8 @@ MIXED_BASE=$WORK/mixed-base
 clone_target "$FOO_BASE" "$MIXED_BASE"
 add_user_hook "$MIXED_BASE/.claude/settings.json" SubagentStop "$STOP_AUDIT" "$USER_STOP_HOOK"
 if ! detect_pty_form; then
-  for case_name in "Enter merges" "r replaces" "k keeps" "a mixed group's prompt lists every hook"; do
+  for case_name in "Enter merges" "r replaces" "k keeps" "a mixed group's prompt lists every hook" \
+    "Enter keeps a group whose template matcher is not a plain | list"; do
     skip "JRN-013 $case_name" "neither script -qec (util-linux) nor script -q /dev/null (macOS) gives a pseudo-terminal here"
   done
 else
@@ -505,6 +541,15 @@ else
   eq "JRN-013 mixed group, k: the upgrade ends within 20 s with exit 0" "$RUN_RC" 0
   check "JRN-013 a mixed group's prompt lists every hook in it" 'contains_all "$PTY_OUT" "$STOP_AUDIT" "$USER_STOP_HOOK"' "$PTY_OUT"
   eq "JRN-013 k keeps the mixed group as it was" "$(group_json "$PTY_DIR/.claude/settings.json" SubagentStop "$STOP_AUDIT")" "$mixed_before"
+
+  PTY_DIR=$WORK/pty-non-plain-template
+  clone_target "$FOO_BASE" "$PTY_DIR"
+  run_on_pty 20 "" "$PTY_DIR.out" "$TEST_BASH" "$SCN/install.sh" "$PTY_DIR" --host claude
+  PTY_OUT=$(cat "$PTY_DIR.out")
+  eq "JRN-013 non-plain template matcher, Enter: the upgrade ends within 20 s with exit 0" "$RUN_RC" 0
+  check "JRN-013 the prompt says merge is not offered since the template matcher is not a plain | list" \
+    'contains_all "$PTY_OUT" "merge:   not offered, since the template matcher"' "$PTY_OUT"
+  eq "JRN-013 Enter keeps a group whose template matcher is not a plain | list" "$(pty_matcher)" 'implementation|foo'
 fi
 
 echo "== lint"

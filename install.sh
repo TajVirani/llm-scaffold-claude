@@ -9,7 +9,7 @@
 #     --matchers    how to resolve each hook group whose matcher differs from the template's (see "Hook matchers" below):
 #                   merge, replace or keep, for every group without asking. Without it, install.sh asks per group when stdin
 #                   and stdout are a terminal; without a terminal it merges and warns, but keeps a mixed group or a matcher
-#                   that is not a plain | list, with a warning.
+#                   that is not a plain | list, with a warning. A matcher that is not a string is kept in every mode.
 # What it does:
 #   1. Preflight: bash 3.2+, git, jq, mikefarah yq v4; the target is the top level of a git work tree.
 #   2. Payload: copies every file named by .agents/install-manifest.txt (first-party only; vendored skills,
@@ -39,20 +39,26 @@
 #   group (no matcher, "" or "*") is never touched, and a covering one is left as is, so a re-run asks nothing.
 #   merge: the group's alternatives in order, then the template's missing ones (implementation|foo with
 #     implementation|integration gives implementation|foo|integration); only when the group's matcher is a plain | list
-#     ([A-Za-z0-9_|]) and the template's is one too or matches all. Any other group is kept with a warning, whatever the
-#     template's matcher.
+#     ([A-Za-z0-9_|]) and the template's is one too or matches all. Otherwise merge keeps the group, with a warning
+#     naming the matcher that is not a plain | list.
 #   replace: the template's matcher. A match-all template matcher makes replace drop the matcher, and merge too for a
 #     plain | list.
-#   keep: the group stays as it is, with a warning.
-#   A group that runs commands of two or more template groups of one event is never asked about, whatever the mode:
-#   when all its hooks are template commands it is rewritten into the template's groups, each command under its template
-#   group's matcher; when it also runs a hook of your own it is kept as it is. Either way a warning names it.
+#   keep: the group stays as it is.
+#   Every group these modes change or keep gets one warning, except a change you chose at the prompt.
+#   A group whose matcher is not a string (malformed) is kept as it is in every mode, --matchers=replace included, with
+#   a warning naming the event and its hooks.
+#   A group that runs commands of two or more template groups of one event, under a matcher that does not cover all of
+#   their matchers, is never asked about, whatever the mode: when all its hooks are template commands it is rewritten
+#   into the template's groups, each command under its template group's matcher and with the template's hook settings
+#   (so a timeout you set on one of them is replaced); when it also runs a hook of your own it is kept as it is. Either
+#   way a warning names it.
 #   --matchers sets the mode for every group. Otherwise, at a terminal (stdin and stdout), install.sh asks per group once
 #   it knows the run will not refuse, naming the event and the scaffold command and showing the current, replace and
-#   merge matchers (and every hook of a mixed group); Enter merges, r replaces, k keeps. Without a terminal it never
-#   reads input: it merges with a warning, but keeps with a warning a mixed group (one that also runs a hook not in the
-#   template) and a matcher that is not a plain | list. --dry-run never asks and previews the no-terminal outcome, or the
-#   --matchers mode when given.
+#   merge matchers (and every hook of a mixed group); Enter merges, r replaces, k keeps. When merge is not possible the
+#   prompt says why and offers only replace and keep, and Enter keeps. Without a terminal it never reads input: it
+#   merges with a warning, but keeps with a warning a mixed group (one that also runs a hook not in the template) and a
+#   group that merge cannot take. --dry-run never asks and previews the no-terminal outcome, or the --matchers mode when
+#   given.
 # Conflicts: every check runs before anything is written. Without --force, install.sh refuses (exit 1, nothing written) when
 #   .claude/{skills,agents,output-styles} is a real directory or a symlink elsewhere, a settings/hooks key has the wrong type or
 #   a different value, .codex/config.toml has a different [permissions.workflow], or a marker block is damaged. With --force
@@ -251,10 +257,12 @@ fi
 # ------------------------------------------------------------------------------------------------------ JSON settings merge
 # On every hook event, each existing group that runs a command of a template group under a matcher not covering the
 # template's first has its matcher resolved by $matchers (merge, replace, keep, auto, or ask, which records a question
-# and counts the group as kept until $answers holds the reply). A group running commands of two or more template groups
-# gets no question, since one matcher cannot serve them all: when it runs only template commands it is removed, so the
-# append below puts each command back under its own template group; otherwise it is kept. Then the template's groups
-# are appended, minus hook commands already present under that event (idempotent).
+# and counts the group as kept until $answers holds the reply). A group whose matcher is not a string is kept, since it
+# cannot be compared. A group running commands of two or more template groups gets no question, since one matcher
+# cannot serve them all: when it runs only template commands it is removed, so the append below puts each command back
+# under its own template group with the template's hook object; otherwise it is kept. Each of these outcomes records one
+# matcher warning, except a change answered at the prompt. Then the template's groups are appended, minus hook commands
+# already present under that event (idempotent).
 # permissions.allow and permissions.deny are de-duplicated unions. Other template keys are set when absent; equal values are no-ops;
 # outputStyle or statusLine that differs is kept with a warning (overwritten with --force); any other difference is a conflict.
 # shellcheck disable=SC2016  # jq program, not shell
@@ -267,6 +275,7 @@ def merge_groups($cur; $new):
     | if ($miss | length) == 0 then . else . + [ $g | .hooks = $miss ] end);
 def group_cmds: [ (.hooks? // [])[]? | objects | .command? | strings ];
 def is_match_all: . == null or . == "" or . == "*";
+def is_malformed: type != "string" and type != "null";
 def is_plain: type == "string" and test("^[A-Za-z0-9_|]+$");
 def alternatives: split("|");
 def covers($tm): ($tm | is_match_all | not) and (alternatives as $have | all($tm | alternatives[]; . as $a | any($have[]; . == $a)));
@@ -283,27 +292,35 @@ def resolve_group($ev; $i; $j; $tg; $all_tcmds):
       ($tg.matcher | if is_match_all then null else . end) as $replaced
       | (($g.matcher | is_plain) and (($tg.matcher | is_match_all) or ($tg.matcher | is_plain))) as $mergeable
       | (if $replaced == null then null else $g.matcher | merged_with($replaced) end) as $merged
+      | (if $g.matcher | is_plain then "the template matcher \($tg.matcher | tojson) is not a plain | list of names"
+         else "\($g.matcher | tojson) is not a plain | list of names" end) as $why_not_mergeable
       | [ $gc[] | select(. as $c | any($tc[]; . == $c)) ] as $scaffold
       | [ $gc[] | select(. as $c | any($all_tcmds[]; . == $c) | not) ] as $own
       | "\($ev)/\($i)/\($j)" as $key
       | "hooks.\($ev): the group running \($scaffold | join(", ")) has matcher \($g.matcher | tojson), which does not cover the template matcher \($tg.matcher | shown)" as $what
+      | (if $matchers == "auto" then "(no terminal to ask; --matchers=merge|replace|keep chooses for every group)"
+         elif $matchers == "ask" then "(as you answered)"
+         else "(--matchers=\($matchers))" end) as $chosen_by
       | (if $matchers == "ask" then
            .questions += [{key: $key, event: $ev, scaffold: $scaffold, hooks: $gc, own: $own, current: $g.matcher,
-                           replace: $replaced, merge: $merged, mergeable: $mergeable}]
+                           replace: $replaced, merge: $merged, mergeable: $mergeable, why_not_mergeable: $why_not_mergeable}]
          else . end)
       | (if $matchers == "ask" then $answers[$key] // "keep"
          elif $matchers == "auto" then (if ($own | length) > 0 then "keep" else "merge" end)
          else $matchers end) as $choice
       | (if $choice == "merge" and ($mergeable | not) then "unmergeable" else $choice end) as $outcome
+      # A change the user answered at the prompt needs no warning; any other outcome gets exactly one.
       | if $outcome == "merge" then
           set_matcher($ev; $i; $merged)
-          | if $matchers == "auto" then .matcher_warnings += ["\($what); merged to \($merged | shown) (no terminal to ask; --matchers=merge|replace|keep chooses for every group)"] else . end
-        elif $outcome == "replace" then set_matcher($ev; $i; $replaced)
+          | if $matchers == "ask" then . else .matcher_warnings += ["\($what); merged to \($merged | shown) \($chosen_by)"] end
+        elif $outcome == "replace" then
+          set_matcher($ev; $i; $replaced)
+          | if $matchers == "ask" then . else .matcher_warnings += ["\($what); replaced with \($replaced | shown) \($chosen_by)"] end
         elif $outcome == "unmergeable" then
-          .matcher_warnings += ["\($what); kept, since it is not a plain | list of names and cannot be merged (--matchers=replace takes the template matcher)"]
+          .matcher_warnings += ["\($what); kept, since \($why_not_mergeable), so the two cannot be merged (--matchers=replace takes the template matcher)"]
         elif $outcome == "keep" and $matchers == "auto" then
           .matcher_warnings += ["\($what); kept, since it also runs your hooks (\($own | join(", "))) and there is no terminal to ask (--matchers=merge|replace|keep chooses for every group)"]
-        else .matcher_warnings += ["\($what); kept as it is"] end
+        else .matcher_warnings += ["\($what); kept as it is \($chosen_by)"] end
     end;
 def runs_any_of($tg): group_cmds as $gc | any($tg | group_cmds[]; . as $c | any($gc[]; . == $c));
 def unsettled($tg): type == "object" and (.matcher | type) == "string" and (.matcher | is_match_all | not)
@@ -316,7 +333,7 @@ def split_or_keep($ev; $i; $g; $all_tcmds; $count):
   "hooks.\($ev): the group with matcher \($g.matcher | tojson) runs commands of \($count) template groups" as $what
   | if $g | only_template_hooks($all_tcmds) then
       .rewritten += [$i]
-      | .matcher_warnings += ["\($what) (\($g | hook_names | join(", "))); rewritten into the template groups, each command under its template matcher"]
+      | .matcher_warnings += ["\($what) (\($g | hook_names | join(", "))); rewritten into the template groups, each command under its template matcher and with the template hook settings (a timeout you set on one of them is replaced)"]
     else
       .matcher_warnings += ["\($what) and hooks of your own, so no one matcher fits them all; kept as it is. Its hooks: \($g | hook_names | join(", "))"]
     end;
@@ -327,9 +344,13 @@ def resolve_matchers($ev):
   | reduce range(0; .out.hooks[$ev] // [] | length) as $i (.;
       .out.hooks[$ev][$i] as $g
       | [ range(0; $tgroups | length) as $j | select($g | runs_any_of($tgroups[$j])) | $j ] as $js
-      | if ($js | length) > 1 and any($js[]; . as $j | $g | unsettled($tgroups[$j])) then
+      | if ($js | length) > 0 and ($g.matcher | is_malformed) then
+          .matcher_warnings += ["hooks.\($ev): the group running \($g | hook_names | join(", ")) has matcher \($g.matcher | tojson), which is not a string; kept as it is in every mode, since a malformed matcher cannot be compared or merged (fix it by hand)"]
+        elif ($js | length) > 1 and any($js[]; . as $j | $g | unsettled($tgroups[$j])) then
           split_or_keep($ev; $i; $g; $all_tcmds; $js | length)
         else reduce $js[] as $j (.; resolve_group($ev; $i; $j; $tgroups[$j]; $all_tcmds)) end)
+  # Removing a rewritten group inside the loop above would shift the indices after it, so the next group would be
+  # skipped; the removal waits until every index has been visited.
   | .rewritten as $gone
   | (if ($gone | length) == 0 then . else
        .out.hooks[$ev] |= [ range(0; length) as $k | select(any($gone[]; . == $k) | not) | .[$k] ] end)
@@ -430,7 +451,7 @@ def shown: . // "(no matcher: matches everything)";
 "  current: \(.current)",
 "  replace: \(.replace | shown)",
 (if .mergeable then "  merge:   \(.merge | shown)"
- else "  merge:   not offered, since \(.current | tojson) is not a plain | list of names" end)
+ else "  merge:   not offered, since \(.why_not_mergeable)" end)
 '
 
 # ask_choice MERGEABLE : ask on the terminal until the reply is valid; sets MATCHER_CHOICE to merge, replace or keep.
