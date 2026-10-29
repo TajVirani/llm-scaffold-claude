@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: "hooks"
     seam: "hook JSON contract: PreToolUse payload -> deny JSON or nothing (worktree-guard JRN-002/003), SubagentStop payload with a toolchain stand-in (audit-agent-worktrees), lib functions sourced (lib-workflow-paths), settings matcher after install and upgrade"
     file: tasks/T01-hooks-agent-worktree-names.md
@@ -33,7 +33,7 @@ tasks:
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "check-merge-artifacts.sh CLI (exit code, stdout lines) on a fixture repo with a spec branch, task branches and detached commits (check-merge-artifacts JRN-007)"
     file: tasks/T02-artifacts-merge-gate.md
@@ -52,7 +52,7 @@ tasks:
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "agents"
     seam: "the brief's result-file command, extracted from the doc and run under the guard (worktree-guard JRN-002 to JRN-004), plus the brief-path cases in agent-worktree-docs JRN-008"
     file: tasks/T03-agent-briefs-main-checkout-result.md
@@ -70,7 +70,7 @@ tasks:
     capability: CAP-NEW-worktree-read-commands
     depends_on: [T1]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "check-worktree-scope.sh --command through a confined PreToolUse Bash payload, cwd in the main checkout (worktree-guard JRN-009)"
     file: tasks/T04-read-only-commands-pass-scope-check.md
@@ -89,7 +89,7 @@ tasks:
     capability: CAP-NEW-result-file-write
     depends_on: [T3]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "doc text of verification-setup.md and implementation-orchestrator.md, checked clause by clause (agent-worktree-docs JRN-008)"
     file: tasks/T05-orchestrator-agent-worktrees.md

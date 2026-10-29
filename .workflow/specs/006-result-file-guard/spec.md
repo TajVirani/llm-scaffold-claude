@@ -1,13 +1,13 @@
 ---
-status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "e049f4dde93474aca594212026144ed7006a917f" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/006-result-file-guard # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
-impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
+impl_base_revision: "5a7f8c9fdec8822cbd1955a655573f0acc5b0679" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
 deferred: [.workflow/deferred/worktree-name-parser.md, .workflow/deferred/codex-spawn-profile-lookup.md, .workflow/deferred/known-bad-evidence-path.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 origin: 005-cache-build-followups-disc-001.md # filename of the work-backlog item this spec was seeded from; the item is deleted after discovery
-budget: {max_tasks: 10, max_changed_files: 30}   # absent until written; written at 2.5 (0.3.20 on the light path) from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
+budget: {max_tasks: 10, max_changed_files: 30} # absent until written; written at 2.5 (0.3.20 on the light path) from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
 # blocked_condition: "<what a human must decide or do before work can continue>"   # present only while status is blocked; forms: "discovered work: <slug>", "size budget: <what>", or free text
 ---
 

@@ -179,3 +179,8 @@ Spec: [spec.md](spec.md)
 - T1 → T4 and T3 → T5 are gating edges for test ownership: `tests/run-all.sh` selects whole suite files, and `worktree-guard.sh` and `agent-worktree-docs.sh` each hold cases for two tasks.
 - Seams (2.3) as the Phase 1 suites drive them. Stakeholder: "Agree (Recommended)".
 - **D18 Size budget.** Recommended: project defaults, max_tasks 10, max_changed_files 30 (predicted 5 tasks, 12 non-test files). Answer: "Defaults 10 / 30".
+
+## 2026-10-29 Integration batch shell-scripts (3.2)
+
+- `wf_enc` and `wf_agent_worktree_name` applied (fd4a1d7, merged). Launched under `isolation: "worktree"` per the current module; isolation refused the main-checkout result-file write again (heredoc and Write), so the main session copied `integration.yaml` from the agent's worktree by hand. `check-task-result.sh` exit 0; `toolchain.json` pass. `lib-workflow-paths` 98 passed, 1 failed (the hooks' `codex_enc` check, owned by T1).
+- Task PRs: `origin` is a local path, so `open-task-pr.sh` skips before pushing ("origin host is neither GitHub nor GitLab"); task merges are local and `pr` stays null.
