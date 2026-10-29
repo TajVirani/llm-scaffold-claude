@@ -6,7 +6,8 @@
 #   it; two faults give two lines; every scale value is accepted and Irreversible passes with Risk: High; no argument and
 #   a missing file exit 2 with the message on stderr. Beyond those: an unknown option exits 2; a section left with only the
 #   template's guidance comment is empty; Irreversible without a Risk line gives both faults; a Risk line with no score is
-#   refused; punctuation after a score and trailing spaces after a heading are tolerated. JRN-003: project mode (`--project-template`) against a fixture
+#   refused; punctuation after a score and trailing spaces after a heading are tolerated; a workflow template whose Risk
+#   and reversibility heading is renamed exits 2. JRN-003: project mode (`--project-template`) against a fixture
 #   project's .github/pull_request_template.md with three headings: a filled body passes in any order and without risk
 #   lines, an empty or a missing heading exits 1 naming it, a missing project template or one with no `##` headings exits 2.
 #   Ends with shellcheck.
@@ -131,7 +132,7 @@ template_guidance() {
 }
 
 GUIDANCE=$(template_guidance 'Why this approach')
-check "JRN-002 the template guides Why this approach in an HTML comment" '[[ $GUIDANCE == "<!--"* ]]' "guidance=$GUIDANCE"
+check "JRN-002 the template guides Why this approach in an HTML comment" '[ "${GUIDANCE#"<!--"}" != "$GUIDANCE" ]' "guidance=$GUIDANCE"
 template_headings | PR_EMPTY_SECTION='Why this approach' pr_body_from_headings |
   GUIDANCE=$GUIDANCE awk '{ print } $0 == "## Why this approach" { print ENVIRON["GUIDANCE"] }' >"$BODIES/guidance-only.md"
 expect_faults "JRN-002 a section holding only the template's guidance comment is named as empty" 1 \
@@ -151,6 +152,15 @@ expect_pass "JRN-002 a score followed by punctuation reads as the score" "$BODIE
 
 sed 's/^## How to test$/## How to test   /' "$BODIES/filled.md" >"$BODIES/heading-trailing-spaces.md"
 expect_pass "JRN-002 trailing spaces after a heading still match it" "$BODIES/heading-trailing-spaces.md"
+
+# A renamed Risk heading in the installed template would otherwise switch the score checks off without a word.
+copy_agents "$WORK/renamed-risk"
+RENAMED_RISK_TEMPLATE="$WORK/renamed-risk/.agents/skills/feature-workflow/assets/pr-template.md"
+sed 's/^## Risk and reversibility$/## Risk and rollback/' "$TEMPLATE" >"$RENAMED_RISK_TEMPLATE"
+WORKFLOW_CPB=$CPB
+CPB="$WORK/renamed-risk/.agents/skills/feature-workflow/scripts/check-pr-body.sh"
+expect_usage_error "JRN-002 a workflow template without the Risk and reversibility heading exits 2" "$BODIES/filled.md"
+CPB=$WORKFLOW_CPB
 
 echo "== JRN-003: project mode checks the project's own headings"
 PROJ="$WORK/project"

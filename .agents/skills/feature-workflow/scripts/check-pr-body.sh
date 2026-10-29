@@ -22,7 +22,8 @@
 # stdout: nothing when the body is valid; otherwise one `<field>: <problem>` line per fault, every fault reported, the field
 #   being the section heading (problem "missing", "empty" or "out of order"), `Risk` or `Reversibility`.
 # Exit: 0 the body is valid; 1 one or more faults (one line each on stdout, nothing else); 2 usage error, missing or
-#   unreadable body or template, or a template with no `##` headings (message on stderr).
+#   unreadable body or template, a template with no `##` headings, or (workflow mode) an assets/pr-template.md without the
+#   Risk and reversibility heading, a broken install (message on stderr).
 # Called by: modules/sign-off.md (5.4 after filling pr-body.md, 5.8 before publishing it).
 # Notes: bash 3.2 compatible; needs only awk, grep and sed.
 # Sources: first-party.
@@ -157,6 +158,7 @@ check_score() {
 check_risk_scores() {
   local content risk reversibility
   content=$(section_content "$1" "$RISK_SECTION")
+  # check_sections_present already reports a missing or empty section, so there is nothing to score.
   [[ -n $content ]] || return 0
   check_score "$content" Risk "$RISK_SCALE"
   risk=$score
@@ -192,6 +194,10 @@ require_readable "$template"
 
 expected=$(headings_of "$(outline "$template")")
 [[ -n $expected ]] || die "no ## headings in template: $template"
+# The score checks find their section by this fixed name; without this guard a renamed heading would skip them silently.
+if [[ -z $project_template ]] && ! grep -Fxq -- "$RISK_SECTION" <<<"$expected"; then
+  die "broken install: no '## $RISK_SECTION' heading in template: $template"
+fi
 body_outline=$(outline "$body")
 
 faults=
