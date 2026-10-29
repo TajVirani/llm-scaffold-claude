@@ -28,8 +28,8 @@
 #   the launch used isolation: "worktree" (payload cwd is a linked worktree, e.g. .claude/worktrees/agent-<id>), so that cwd is audited.
 #   Neither (no agent worktree and the payload cwd is the main checkout): allowed with a warning naming the missing worktree.
 # Behaviour:
-#   - agent_type other than implementation or integration, a Codex integration agent, or no .agents/skills/feature-workflow in the main
-#     checkout: exit 0, no output.
+#   - agent_type other than implementation or integration, a Codex integration agent, an integration agent whose transcript is missing or
+#     unreadable (either host), or no .agents/skills/feature-workflow in the main checkout: exit 0, no output, no evidence file.
 #   - Task launch header (spec_dir, task_id[, work_type]): run-toolchain.sh --spec-dir --task-id --cwd <worktree> --reuse [--work-type] (Claude:
 #     .workflow/.worktrees/s<NNN>_t<N>, else the isolation-worktree payload cwd; Codex: .workflow/.worktrees/<task_name>). run-toolchain.sh
 #     scopes `test` to the task (other unfinished tasks' Phase 1 tests excluded). Without a
@@ -45,7 +45,7 @@
 #     of the last digest and a repeat count. The count restarts at 1 when stop_hook_active is false or the digest changed, and goes up by one
 #     when stop_hook_active is true and the digest is identical. At 3 identical failures in a row the stop is allowed, and the give-up is
 #     recorded in <spec>/artifacts/<task-id>/audit.json (toolchain.json keeps status "fail" for the orchestrator).
-#   - Missing or malformed header (resolve-launch.sh exit 2), unreadable transcript, run-toolchain.sh config error (exit 2: no profile, no
+#   - Missing or malformed header (resolve-launch.sh exit 2), an implementation agent's missing or unreadable transcript, run-toolchain.sh config error (exit 2: no profile, no
 #     Toolchain block, ...) or any environment error: the implementer cannot fix its own launch or the project setup, so the stop is ALLOWED
 #     with a warning for the orchestrator: a `systemMessage` in the output, the reason on stderr, and, when the spec dir is known, audit.json
 #     under artifacts/<task-id>/ (or artifacts/audit-warnings.jsonl when no task id is known). It deliberately does not block
@@ -118,7 +118,11 @@ warn_allow() {
   exit 0
 }
 
-[ -n "$transcript" ] && [ -f "$transcript" ] || warn_allow "agent_transcript_path missing or unreadable ('$transcript'); cannot identify the task"
+if [ -z "$transcript" ] || [ ! -f "$transcript" ]; then
+  # Nothing identifies an integration stop without its transcript; it passes silently, as integration stops did before they were audited.
+  [ "$agent_type" = implementation ] || exit 0
+  warn_allow "agent_transcript_path missing or unreadable ('$transcript'); cannot identify the task"
+fi
 
 # ── Codex: the task comes from the spawn task_name ──
 # A Codex rollout starts with a session_meta record whose payload.agent_path is /root/[<parent>/]<task_name> (verified 0.155.1).
@@ -229,7 +233,7 @@ else
 fi
 [ -z "$work_type" ] || args+=(--work-type "$work_type")
 
-# Claude: prefer the agent worktree the orchestrator made under .workflow/.worktrees/; fall back to an isolation worktree cwd.
+# The orchestrator makes the agent worktree; an isolation launch has none, so the payload cwd is the fallback.
 if [ -z "$agent_path" ]; then
   # A header the lib cannot name still leaves the isolation cwd to audit, so the reason only goes into the warning.
   if wt_name=$(wf_agent_worktree_name "$spec_dir" "$worktree_kind" "$worktree_value" 2>"$tmp/err"); then

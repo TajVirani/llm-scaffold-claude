@@ -95,6 +95,14 @@ check "JRN-005 integration stop with its agent worktree missing is allowed with 
   '[ "$RC" = 0 ] && [ -z "$(jq -r ".decision // empty" <<<"$OUT")" ] && jq -r ".systemMessage // empty" <<<"$OUT" | grep -q "s007_integration_test_harness"' \
   "rc=$RC out=$OUT"
 
+rm -rf "$P/.workflow/specs/007-demo/artifacts"   # the missing-worktree cases above file warnings there
+audit "$WORK/no-such-transcript.jsonl" integration
+check "integration stop with no transcript exits 0 silently and runs no toolchain" \
+  '[ "$RC" = 0 ] && [ -z "$OUT" ] && [ -z "$RUNS" ]' "rc=$RC out=$OUT runs=$RUNS"
+check "integration stop with no transcript writes no audit.json or audit-warnings.jsonl" \
+  '[ -z "$(find "$P/.workflow/specs" \( -name audit.json -o -name audit-warnings.jsonl \) -print)" ]' \
+  "$(find "$P/.workflow/specs" \( -name audit.json -o -name audit-warnings.jsonl \) -print)"
+
 echo "== other agents still skipped"
 audit "$WORK/ig.jsonl" fact-lookup
 check "a fact-lookup stop is ignored" '[ "$RC" = 0 ] && [ -z "$OUT" ] && [ -z "$RUNS" ]' "rc=$RC out=$OUT runs=$RUNS"
