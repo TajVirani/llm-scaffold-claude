@@ -409,3 +409,9 @@ Outcome: loop back (00.24 discovered work)
 ## 2026-10-29 Wave 2 merged (3.16, 3.15, 3.9)
 
 - T4 `9892695`, T5 `86d7b0a`, T6 `c3c0e7d`, in id order; task PRs skipped (local `origin`). These merges ran before T5's gate text was on the spec branch, so no artifacts gate was run for them; from T7 on the merged T5 text applies. Budget: 7 tasks, 16 of 30 changed files. Gate 3.9 w2: pass, `TOTAL passed=3452 failed=0 (59 suites)`, T7's suite excluded (`artifacts/gate-3.9-w2/`).
+
+## 2026-10-29 Wave 3 merged and implementation done (3.16, 3.15, 3.9, 3.11)
+
+- T7 `Merge T7`, after the artifacts gate (`check-merge-artifacts.sh --rev task/006-result-file-guard/T07-docs-upgrade-matcher-rule`, exit 0): the first merge run under T5's new 3.16 text. Budget: 7 tasks, 18 of 30 changed files.
+- 3.9 wave 3 (last): full harness 3472 passed, 0 failed, 60 suites, nothing excluded (`artifacts/gate-3.9-w3/`); lint clean. 3.10-3.11: no browser suite (Suites, Browser row: not applicable), so no e2e run; in-review at 3.11, as in spec 005.
+- JRN-010 (a real launch files its own result) is partly met already: every Phase 3 implementation and mini-review in this spec wrote its result file to the main checkout with no copy step. The Phase 1 and integration half needs the next spec's launch under the new T5 text.
