@@ -1,19 +1,25 @@
 #!/usr/bin/env bash
 # File: Hook (Claude adapter): keep an implementation or integration sub-agent inside its task worktree.
 # Goals:
-#   - A Claude Phase 3 implementation agent is launched WITHOUT `isolation` (the Agent tool has no working-directory input) and works
-#     in the worktree the orchestrator created, .workflow/.worktrees/s<NNN>_t<N>. Only the brief keeps it there, so parallel agents could edit the
-#     main checkout or each other's worktrees. This hook denies, for those agents, a Write/Edit/NotebookEdit outside the worktree and a Bash
-#     command that does not start with `cd <worktree> &&` (the brief's rule). Main-session calls are never affected.
+#   - A Claude implementation agent (Phase 3 task or Phase 1) and an integration agent are launched WITHOUT `isolation` (the Agent tool
+#     has no working-directory input) and work in the agent worktree the orchestrator created under .workflow/.worktrees/. Only the brief
+#     keeps them there, so parallel agents could edit the main checkout or each other's worktrees. This hook denies, for those agents, a
+#     Write/Edit/NotebookEdit outside the worktree and a Bash command that does not start with `cd <worktree> &&` (the brief's rule).
+#     Main-session calls are never affected.
 # Triggers/inputs: PreToolUse JSON for Write|Edit|NotebookEdit and Bash. Acts only when the payload carries agent_id (sub-agent calls only;
 #   verified 2.1.300) and agent_type is implementation or integration.
 #   The task comes from the launch header: PreToolUse carries no prompt and its transcript_path is the PARENT's transcript, so the
 #   sub-agent transcript is <transcript_path without .jsonl>/subagents/agent-<agent_id>.jsonl (the layout SubagentStop reports as
 #   agent_transcript_path, verified 2.1.300). Its first user message is parsed with resolve-launch.sh --parse-header, as
-#   post-implementation-audit.sh does; spec_dir .workflow/specs/<NNN>-<slug> and task_id T<N> give the worktree name s<NNN>_t<N>.
+#   post-implementation-audit.sh does. The header names the agent worktree through lib/workflow-paths.sh wf_agent_worktree_name, with
+#   spec_dir .workflow/specs/<NNN>-<slug>:
+#     task_id T<N>                                  s<NNN>_t<N>                    Phase 3 task
+#     implementation header, work_type, no task_id  s<NNN>_phase_1_<enc(work_type)>  Phase 1 (1.2, 1.3)
+#     integration header, work_type                 s<NNN>_integration_<enc(work_type)>
+#   enc is wf_enc: lowercase, every byte outside [a-z0-9] -> _ (the Codex task_name form).
 # Behaviour (rule logic in skills/feature-workflow/scripts/check-worktree-scope.sh):
-#   - Worktree .workflow/.worktrees/s<NNN>_t<N> exists: confine to it. Otherwise, a linked-worktree cwd (isolation launch, Phase 1, integration):
-#     confine to that worktree. Otherwise (no header, no task_id, no worktree, transcript not found): allow.
+#   - The named agent worktree exists: confine to it. Otherwise, a linked-worktree cwd (a launch with isolation: "worktree"): confine to
+#     that worktree. Otherwise (no header, a header the lib cannot name, no worktree, transcript not found): allow.
 #   - check-worktree-scope.sh exit 0: allow (no output); exit 2: deny with its reason; any other exit: deny, fail closed.
 #   - Not a sub-agent, another agent type, no workflow installed, or jq missing: allow silently (the other guards handle jq).
 # Outputs/handoff: stdout is nothing or one deny JSON {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny",...}}; exit 0.
@@ -84,10 +90,16 @@ if [ -n "$transcript" ] && [ -f "$transcript" ]; then
     header=$(bash "$scripts/resolve-launch.sh" --parse-header --task-type "$agent_type" --prompt-file "$TMP/prompt" 2>/dev/null); then
     spec_dir=$(jq -r '.spec_dir // ""' <<<"$header")
     task_id=$(jq -r '.task_id // ""' <<<"$header")
-    spec_num=${spec_dir%/}; spec_num=${spec_num##*/}; spec_num=${spec_num%%-*}
-    if [[ "$spec_num" =~ ^[0-9]+$ ]] && [[ "$task_id" =~ ^T[0-9]+$ ]]; then
-      name=s${spec_num}_t${task_id#T}
+    work_type=$(jq -r '.work_type // ""' <<<"$header")
+    if [ -n "$task_id" ]; then
+      kind=task value=$task_id
+    elif [ "$agent_type" = implementation ]; then
+      kind=phase_1 value=$work_type
+    else
+      kind=integration value=$work_type
     fi
+    # A header the lib cannot name leaves the name empty, so the linked-worktree cwd rule still applies.
+    name=$(wf_agent_worktree_name "$spec_dir" "$kind" "$value" 2>/dev/null) || name=""
   fi
 fi
 

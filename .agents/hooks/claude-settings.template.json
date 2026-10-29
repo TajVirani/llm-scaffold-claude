@@ -104,7 +104,7 @@
     ],
     "SubagentStop": [
       {
-        "matcher": "implementation",
+        "matcher": "implementation|integration",
         "hooks": [
           {
             "type": "command",
