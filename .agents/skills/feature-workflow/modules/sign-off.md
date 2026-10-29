@@ -99,8 +99,8 @@ Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write to
 
 1. **Read the template setting:** `.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template`. Exit 1 (a bad value, or a path whose file is gone): stop and show the stakeholder its message. They choose the workflow template for this PR, or a fixed path through a `pr_template` row (back to 5.2 and 5.3). Never fall back to a template on your own.
 2. **Fill the body.**
-   - `workflow`: copy `assets/pr-template.md` to `pr-body.md`. Replace each section's guidance comment with its text, drawn from the evidence the comment names (`report.md` as just written, `design-log.md`, `codebase-map.md`, `spec.md`, the `files` list of `budget-check.sh`), and delete the template's header comment. Name `report.md` and the task PRs/MRs (`pr` on the records) under Special things to note. When the change cannot be undone, How to undo this PR says why and Risk is High.
-   - A path: fill that host template's own `##` headings from the same evidence, in its order; the ten workflow sections are not added.
+   - `workflow`: copy `assets/pr-template.md` to `pr-body.md`. Replace each section's guidance comment with its text, drawn from the evidence the comment names (`report.md` as just written, `design-log.md`, `codebase-map.md`, `spec.md`, the `files` list of `budget-check.sh`), and delete the template's header comment. When the change cannot be undone, How to undo this PR says why and Risk is High.
+   - A path: fill every heading of that host template, `#` to `######`, at its own level and in its order, from the same evidence; the ten workflow sections are not added.
 3. **Check it:**
 
    ```bash
@@ -109,7 +109,7 @@ Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write to
 
    Exit 1 prints one `<field>: <problem>` line per fault: fix each and run it again.
 
-   Exit 2 whose message names the host template from `pr_template` means that template is unusable: unreadable, or it has no `##` headings. Stop and show the stakeholder the message, as for a failing setting in step 1. They choose the workflow template for this PR (fill it again from `assets/pr-template.md` and check without `--project-template`), or a fixed path through a `pr_template` row (back to 5.2 and 5.3). Never fall back to a template on your own. Any other exit 2 is a usage error or a broken install: stop and report it.
+   Exit 2 whose message names the host template from `pr_template` means that template is unusable: unreadable, or it has no headings at all. Stop and show the stakeholder the message, as for a failing setting in step 1. They choose the workflow template for this PR (fill it again from `assets/pr-template.md` and check without `--project-template`), or a fixed path through a `pr_template` row (back to 5.2 and 5.3). Never fall back to a template on your own. Any other exit 2 is a usage error or a broken install: stop and report it.
 
 Done when every PASS links evidence, every number is measured or marked "not measured" with the reason, every known gap is listed, and `check-pr-body.sh` exits 0 on `pr-body.md`.
 
