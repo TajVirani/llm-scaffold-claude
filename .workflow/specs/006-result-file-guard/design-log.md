@@ -405,3 +405,7 @@ Outcome: loop back (00.24 discovered work)
 - Problem and evidence: three "re-run writes nothing" checks in `tests/scripts/install-upgrade.sh` (`:280-281`, `:408-409`) do not assert exit 0, so a refusing re-run would pass.
 - Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
 - Backlog item: [work-backlog/006-result-file-guard-disc-007.md](../work-backlog/006-result-file-guard-disc-007.md)
+
+## 2026-10-29 Wave 2 merged (3.16, 3.15, 3.9)
+
+- T4 `9892695`, T5 `86d7b0a`, T6 `c3c0e7d`, in id order; task PRs skipped (local `origin`). These merges ran before T5's gate text was on the spec branch, so no artifacts gate was run for them; from T7 on the merged T5 text applies. Budget: 7 tasks, 16 of 30 changed files. Gate 3.9 w2: pass, `TOTAL passed=3452 failed=0 (59 suites)`, T7's suite excluded (`artifacts/gate-3.9-w2/`).
