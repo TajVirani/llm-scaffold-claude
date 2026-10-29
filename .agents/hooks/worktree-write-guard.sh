@@ -18,8 +18,10 @@
 #     integration header, work_type                 s<NNN>_integration_<enc(work_type)>
 #   enc is wf_enc: lowercase, every byte outside [a-z0-9] -> _ (the Codex task_name form).
 # Behaviour (rule logic in skills/feature-workflow/scripts/check-worktree-scope.sh):
+#   - A header the lib cannot name (e.g. a spec folder number under three digits): deny every call with the lib's reason, fail closed,
+#     with or without isolation.
 #   - The named agent worktree exists: confine to it. Otherwise, a linked-worktree cwd (a launch with isolation: "worktree"): confine to
-#     that worktree. Otherwise (no header, a header the lib cannot name, no worktree, transcript not found): allow.
+#     that worktree. Otherwise (no header, no worktree, transcript not found): allow.
 #   - check-worktree-scope.sh exit 0: allow (no output); exit 2: deny with its reason; any other exit: deny, fail closed.
 #   - Not a sub-agent, another agent type, no workflow installed, or jq missing: allow silently (the other guards handle jq).
 # Outputs/handoff: stdout is nothing or one deny JSON {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny",...}}; exit 0.
@@ -27,7 +29,8 @@
 #   per event, so the same command in two groups of one event would be installed only once). Codex: hooks/codex-write-guard.sh applies the
 #   same check to apply_patch paths, with the worktree named by the spawn task_name.
 # Notes: Accident prevention only, like the other guards: a Bash command can still reach outside after its leading cd.
-# Sources: first-party; hooks/post-implementation-audit.sh (transcript header parse), hooks/_guard-common.sh (deny shape).
+# Sources: first-party; hooks/post-implementation-audit.sh (transcript header parse), hooks/_guard-common.sh (deny shape),
+#   lib/workflow-paths.sh (agent worktree names).
 # Requires: bash 3.2+, jq, git; resolve-launch.sh needs mikefarah yq v4.
 
 set -euo pipefail
@@ -98,8 +101,8 @@ if [ -n "$transcript" ] && [ -f "$transcript" ]; then
     else
       kind=integration value=$work_type
     fi
-    # A header the lib cannot name leaves the name empty, so the linked-worktree cwd rule still applies.
-    name=$(wf_agent_worktree_name "$spec_dir" "$kind" "$value" 2>/dev/null) || name=""
+    name=$(wf_agent_worktree_name "$spec_dir" "$kind" "$value" 2>"$TMP/name-err") ||
+      deny_json "worktree guard: cannot name this agent's worktree from its launch header (denying, fail closed): $(cat "$TMP/name-err")"
   fi
 fi
 
