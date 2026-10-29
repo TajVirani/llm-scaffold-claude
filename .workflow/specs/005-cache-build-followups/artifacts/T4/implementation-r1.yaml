@@ -1,0 +1,27 @@
+status: "done"
+summary: "The bash graph extractor now tracks case/in/esac (nested, one-line and in loops) and blanks each arm's pattern list up to its first unquoted ), so patterns such as ../*|/*) are no longer reported as calls, while every command in an arm body is still reported at its line. On this repo the only change in extractor output is that the two false install.sh:133 and :187 entries are gone."
+task_id: "T4"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t4"
+branch: "task/005-cache-build-followups/T04-bash-extractor-case-arms"
+base_commit: "d4899749c45c99f32f8f539fed7a005e2649cc38"
+head_commit: "7e72a687a20458ee5671b257ce397796d9bb02a2"
+files_changed: [".agents/skills/regenerate-caches/scripts/extractors/bash.sh"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/extractor-bash; FAIL JRN-001 every cwd-relative or bare call in an arm body is unresolved at its line, and no pattern is (got=5 ../*,6 ../*,7 ./x,...) and FAIL JRN-001 no case pattern is reported as a call or an edge. tests/run-all.sh --suite scripts/cache-repo-architecture; FAIL JRN-002 Unresolved edges has no install.sh:133 or install.sh:187 entry (got=- `install.sh:133` `../*`)"
+  green: "tests/run-all.sh --suite scripts/extractor-bash: passed=35 failed=0; tests/run-all.sh --suite scripts/cache-repo-architecture: passed=6 failed=0"
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/005-cache-build-followups --task-id T4 --cwd $PWD; lint pass, test pass (scoped: own 2 suites, 5 excluded)"
+  toolchain: ".workflow/specs/005-cache-build-followups/artifacts/T4/toolchain.txt (pass)"
+considered_not_built:
+  - "Bash 4 ;& and ;;& terminators: out of scope per the task notes (deferred)."
+  - "Extra regression tests for nested case, quoted ) in a pattern and the word case used as an argument: probed ad hoc in a scratch repo (all correct) but not added, since the Phase 1 suites are the agreed tests and tests/ belongs to the test-harness profile."
+  - "Speeding up build-architecture.sh to widen the TGT-001 margin: the extractor change adds no measurable cost (old 0.83-0.90 s vs new 0.85-0.87 s alone), so this is outside the task."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: "refactor"
+    summary: "TGT-001 (architecture build for the published scope at or under 1.2 s, best of 3) is borderline on this machine already at the base commit, so timing noise can fail it whatever this task does. Measured best of 3 in identical scratch copies: base 1.15 s, this task 1.17 s; in the task worktree 1.21 s, and an earlier run under load gave 1.34 s."
+    evidence: "build-architecture.sh --cache architecture over architecture_oracle_scopes: HEAD~1 copy 1.59/1.15/1.22 s, HEAD copy 1.67/1.20/1.17 s; extractor alone old .90/.83/.84 s vs new .87/.86/.85 s"
+    blocker_assessment: "can-wait"
+    reason: "The extractor change itself costs nothing measurable; the margin is a property of the existing build, which another task or a target revision can address."

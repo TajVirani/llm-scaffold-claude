@@ -1,0 +1,14 @@
+== lint: git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+== lint exit 0
+
+== test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
+== scripts/lib-test-paths
+FAIL JRN-005 no shell file under .agents/ outside lib/test-paths.sh lists the default test patterns
+       got=.agents/skills/feature-workflow/scripts/budget-check.sh want=
+
+== summary
+FAIL scripts/lib-test-paths                 passed=46   failed=1   skipped=0   xfail=0   3s
+TOTAL passed=46 failed=1 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/lib-test-paths
+== test exit 1
+

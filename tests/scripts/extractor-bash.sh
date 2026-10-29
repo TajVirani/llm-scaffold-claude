@@ -6,7 +6,9 @@
 #   `couldNotResolve: true` with the source text in `module` and no `resolved` for a dynamic `source`, a runtime-root call
 #   whose tail does not exist, a bare `source lib`, and cwd-relative `./x`, `dir/x` and `bash x` calls; every resolved path an
 #   existing file; the `exports` map of sorted unique top-level functions of sourced files only; deterministic output; usage
-#   errors. CAP-NEW-bash-graph-extractor.
+#   errors. JRN-001: `case` arms in every form (one-line, `|` alternatives, `(pattern)`, `./x)`, a pattern on its own line,
+#   a whole case on one line, a case in a loop) give no pattern as a call or an edge, while every call in an arm body is
+#   still reported. CAP-NEW-bash-graph-extractor, CAP-005.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -153,6 +155,91 @@ eq "extractor exits 0 when an anchored call names an unreadable file" "$rc" 0
 eq "subshell, substitution, glob, option-value, unreadable-target, bare source and bare relative calls are each unresolved with the path text" \
   "$(jq -r '[.modules[] | select(.source == "hooks/forms.sh") | .dependencies[] | select(.couldNotResolve) | "\(.line) \(.module)"] | join(",")' <<<"$forms" 2>/dev/null)" \
   '3 ./scripts/version.sh,4 scripts/version.sh,5 ./scripts/*.sh,6 ./opt.sh,7 ./scripts/version.sh,8 $here/../data/locked,9 ./rc-run.sh,10 ./ext.sh,11 lib,12 scripts/x.sh,20 scripts/y.sh,27 scripts/z.sh,29 scripts/b.sh'
+
+echo "== JRN-001 case arms"
+# Every arm form a script can use: one-line, `|` alternatives (the install.sh shape, with and without spaces), a leading
+# `(`, a `./x` pattern, a pattern on its own line with the body below, a default arm, a whole case on one line, and a case
+# inside a loop. Only the commands in the arm bodies are calls.
+C="$WORK/cases"
+git_init_repo "$C"
+mkdir -p "$C/scripts" "$C/bin" "$C/lib"
+printf '#!/usr/bin/env bash\necho tool\n' >"$C/bin/tool.sh"
+printf '# Helpers sourced by the arms script.\nhelp_me() { :; }\n' >"$C/lib/helpers.sh"
+cat >"$C/scripts/arms.sh" <<'OUTER'
+#!/usr/bin/env bash
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+case "$1" in
+  a) ./bin/one-line.sh ;;
+  ../*|/*) source lib.sh ;;
+  /* | ../* | */../* | */.. | ..) echo "outside" ;;
+  (./x) "$here/../bin/tool.sh" ;;
+  ./x) ./bin/after-dot.sh ;;
+  ../up | ./down)
+    ./bin/multi.sh
+    ;;
+  *)
+    bash ./bin/fallback.sh
+    ;;
+esac
+case "$f" in /* | ../* | ..) echo skip ;; *) ./bin/same-line.sh ;; esac
+while read -r p; do
+  case "$p" in
+    ./*) ./bin/in-loop.sh "$p" ;;
+    ../lib/*.sh)
+      . "$here/../lib/helpers.sh"
+      ;;
+  esac
+done
+OUTER
+git_commit_all "$C" init
+cases=$("$X" --root "$C" --scope scripts --scope bin --scope lib); rc=$?
+eq "JRN-001 extractor exits 0 on every case arm form" "$rc" 0
+arm_unresolved=$(jq -r '[.modules[] | select(.source == "scripts/arms.sh") | .dependencies[] | select(.couldNotResolve) | "\(.line) \(.module)"] | join(",")' <<<"$cases" 2>/dev/null)
+eq "JRN-001 every cwd-relative or bare call in an arm body is unresolved at its line, and no pattern is" \
+  "$arm_unresolved" \
+  '4 ./bin/one-line.sh,5 lib.sh,8 ./bin/after-dot.sh,10 ./bin/multi.sh,13 ./bin/fallback.sh,16 ./bin/same-line.sh,19 ./bin/in-loop.sh'
+eq "JRN-001 anchored calls and sources in arm bodies are edges, after a ( pattern too" \
+  "$(jq -r '[.modules[] | select(.source == "scripts/arms.sh") | .dependencies[] | .resolved // empty] | unique | join(",")' <<<"$cases" 2>/dev/null)" \
+  "bin/tool.sh,lib/helpers.sh"
+pattern_hits=$(jq -r '[.modules[] | select(.source == "scripts/arms.sh") | .dependencies[] | (.module // ""), (.resolved // "")]
+  | map(select(. == "../*" or . == "/*" or . == "*/../*" or . == "*/.." or . == ".." or . == "./x" or . == "(./x" or . == "../up"
+    or . == "./down" or . == "./*" or . == "../lib/*.sh" or . == "a")) | join(",")' <<<"$cases" 2>/dev/null)
+eq "JRN-001 no case pattern is reported as a call or an edge" "$pattern_hits" ""
+
+# Harder case forms: a case nested in an arm body, a `)` inside a quoted pattern, the word `case` as a plain argument
+# (which opens no case, so later calls are still read), and a whole case inside `$(...)`.
+cat >"$C/scripts/nested.sh" <<'OUTER'
+#!/usr/bin/env bash
+case "$a" in
+  "x)y" | 'q)') ./bin/quoted-arm.sh ;;
+  outer)
+    case "$b" in
+      ../in) ./bin/inner-arm.sh ;;
+    esac
+    ./bin/after-inner.sh
+    ;;
+esac
+echo just in case ./not-a-call
+./bin/after-argument.sh
+r=$(case "$c" in ../sub) echo n ;; esac)
+./bin/after-substitution.sh
+OUTER
+git_commit_all "$C" nested
+nested=$("$X" --root "$C" --scope scripts); rc=$?
+eq "JRN-001 extractor exits 0 on nested, quoted and substituted case forms" "$rc" 0
+# nested_deps FIRST LAST : "line module" of each scripts/nested.sh dependency on lines FIRST to LAST, comma-joined.
+nested_deps() {
+  jq -r --argjson first "$1" --argjson last "$2" '[.modules[] | select(.source == "scripts/nested.sh") | .dependencies[]
+    | select(.line >= $first and .line <= $last) | "\(.line) \(.module)"] | join(",")' <<<"$nested" 2>/dev/null
+}
+eq "JRN-001 a ) inside a quoted pattern ends no pattern early, and the arm body call is reported" \
+  "$(nested_deps 2 3)" '3 ./bin/quoted-arm.sh'
+eq "JRN-001 a case nested in an arm body hides its own pattern, and calls inside and after it are reported" \
+  "$(nested_deps 4 10)" '6 ./bin/inner-arm.sh,8 ./bin/after-inner.sh'
+eq "JRN-001 the word case as a plain argument opens no case, so the next line's call is reported" \
+  "$(nested_deps 11 12)" '12 ./bin/after-argument.sh'
+eq "JRN-001 a whole case inside \$(...) hides its pattern and closes, so the next line's call is reported" \
+  "$(nested_deps 13 14)" '14 ./bin/after-substitution.sh'
 
 shellcheck_files "shellcheck: extractors/bash.sh" "$X"
 finish

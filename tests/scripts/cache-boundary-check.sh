@@ -5,7 +5,10 @@
 # Covers: with no profile selecting dependency-cruiser, the boundary check never runs depcruise and Boundary violations
 #   reads the "no boundary checker" line naming the `--print-generator` extractors, the body passing check-staged-cache.sh;
 #   with a profile selecting dependency-cruiser, depcruise runs the boundary check and its violations are listed.
-#   CAP-004.
+#   JRN-003 and JRN-004 on a JS project built from a recorded graph: a depcruise that is not found, exits 3 with no output,
+#   or prints JSON without `.summary.violations` leaves exit 0 and a fixed "Not checked: depcruise did not run (<reason>)."
+#   line; a depcruise that answers lists its violations; a `--violations-json` file that does not parse exits 2; a line depcruise writes to stderr, whether it fails or
+#   answers, never reaches the body. CAP-004.
 # shellcheck disable=SC2016  # literal Markdown backticks in single quotes; check expressions are eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -87,6 +90,64 @@ check "JRN-006 run 2 runs depcruise for the boundary check" \
   'grep -q -- "--config" "$WORK/depcruise-answering.ran" 2>/dev/null' \
   "$(cat "$WORK/depcruise-answering.ran" 2>/dev/null; cat "$WORK/run2.err")"
 eq "JRN-006 run 2 Boundary violations lists the stub's violations" \
+  "$(section "$arch" "Boundary violations")" '- `util-not-to-app`: `src/util.ts` → `src/app.ts`'
+
+echo "== JRN-003 depcruise did not run"
+# A JS project whose profile selects dependency-cruiser, built from a recorded graph, so the boundary check is the only
+#   depcruise run and each stand-in below decides how it ends.
+J="$WORK/js"
+js_project_repo "$J"
+mkdir -p "$J/.workflow/tools/boundaries"
+printf 'module.exports = { forbidden: [] };\n' >"$J/.workflow/tools/boundaries/dependency-cruiser.cjs"
+write_profile "$J" web dependency-cruiser
+git_commit_all "$J" "boundary config and the web profile"
+write_cruise_json "$WORK/js-cruise.json"
+printf '#!/usr/bin/env bash\nexit 3\n' >"$WORK/depcruise-silent"
+printf '#!/usr/bin/env bash\necho %s\n' "'{\"modules\":[],\"summary\":{\"error\":0}}'" >"$WORK/depcruise-no-violations-key"
+chmod +x "$WORK/depcruise-silent" "$WORK/depcruise-no-violations-key"
+# js_architecture DEPCRUISE_PATH ARGS... : the JS project's architecture body with DEPCRUISE set; the exit code goes to $WORK/js.rc.
+js_architecture() {
+  local stand_in=$1
+  shift
+  (cd "$J" && DEPCRUISE="$stand_in" "$B" --cache architecture --scope src --scope lib --from-json "$WORK/js-cruise.json" "$@" \
+    2>"$WORK/js.err")
+  echo $? >"$WORK/js.rc"
+}
+while IFS='|' read -r label stand_in reason; do
+  arch=$(js_architecture "$stand_in")
+  eq "JRN-003 depcruise $label: architecture exits 0" "$(cat "$WORK/js.rc")" 0
+  eq "JRN-003 depcruise $label: Boundary violations says the check was not made" \
+    "$(section "$arch" "Boundary violations")" "Not checked: depcruise did not run ($reason)."
+done <<EOF
+not found|$WORK/no-such-depcruise|not found
+exiting 3 with no output|$WORK/depcruise-silent|exited 3 without a JSON report
+printing JSON without .summary.violations|$WORK/depcruise-no-violations-key|no .summary.violations in its output
+EOF
+
+echo "== JRN-004 depcruise ran"
+arch=$(js_architecture "$WORK/depcruise-answering")
+eq "JRN-004 depcruise with violations: architecture exits 0" "$(cat "$WORK/js.rc")" 0
+eq "JRN-004 depcruise with violations: Boundary violations lists them" \
+  "$(section "$arch" "Boundary violations")" '- `util-not-to-app`: `src/util.ts` → `src/app.ts`'
+printf 'not json\n' >"$WORK/not-json.json"
+js_architecture "$WORK/depcruise-answering" --violations-json "$WORK/not-json.json" >/dev/null
+eq "JRN-004 a --violations-json file that does not parse exits 2" "$(cat "$WORK/js.rc")" 2
+
+echo "== depcruise stderr stays out of the cache body"
+stderr_marker="DEPCRUISE-STDERR-MARKER"
+printf '#!/usr/bin/env bash\necho %s >&2\nexit 4\n' "$stderr_marker" >"$WORK/depcruise-noisy-failing"
+printf '#!/usr/bin/env bash\necho %s >&2\ncat "%s"\nexit 1\n' "$stderr_marker" "$WORK/violations.json" \
+  >"$WORK/depcruise-noisy-answering"
+chmod +x "$WORK/depcruise-noisy-failing" "$WORK/depcruise-noisy-answering"
+arch=$(js_architecture "$WORK/depcruise-noisy-failing")
+check "depcruise failing with stderr: the stderr line is not in the body" \
+  '! printf "%s\n" "$arch" | grep -qF "$stderr_marker"' "$arch"
+eq "depcruise failing with stderr: Boundary violations says it exited without a JSON report" \
+  "$(section "$arch" "Boundary violations")" "Not checked: depcruise did not run (exited 4 without a JSON report)."
+arch=$(js_architecture "$WORK/depcruise-noisy-answering")
+check "depcruise answering with stderr: the stderr line is not in the body" \
+  '! printf "%s\n" "$arch" | grep -qF "$stderr_marker"' "$arch"
+eq "depcruise answering with stderr: Boundary violations lists the violations" \
   "$(section "$arch" "Boundary violations")" '- `util-not-to-app`: `src/util.ts` → `src/app.ts`'
 
 shellcheck_files "shellcheck: build-architecture.sh, check-staged-cache.sh, extractors/bash.sh, extractors/dependency-cruiser.sh" \

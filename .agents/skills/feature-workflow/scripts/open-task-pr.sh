@@ -108,17 +108,12 @@ else
   if ! command -v yq >/dev/null 2>&1 || ! yq --version 2>/dev/null | grep -q mikefarah; then die "mikefarah yq v4 not found on PATH"; fi
 fi
 
-common=$(git -C "$OPT_CWD" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || die "not inside a git repository: $OPT_CWD" $((GENERIC + 1))
-if [[ "$(basename "$common")" == ".git" ]]; then ROOT=$(dirname "$common")
-else ROOT=$(git -C "$OPT_CWD" worktree list --porcelain | sed -n '1s/^worktree //p'); fi
+ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD" $((GENERIC + 1))
 
 if [[ $GENERIC -eq 1 ]]; then
   if [[ $RECORD -eq 1 ]]; then
     record_arg=$RECORD_DIR
-    RECORD_DIR=${RECORD_DIR%/}; RECORD_DIR=${RECORD_DIR#./}
-    [[ "$RECORD_DIR" != /* ]] || RECORD_DIR="$WF_INITIATIVES/$(basename "$RECORD_DIR")"
-    initiative_slug=${RECORD_DIR#"$WF_INITIATIVES"/}
-    [[ "$RECORD_DIR" == "$WF_INITIATIVES"/* && "$initiative_slug" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
+    RECORD_DIR=$(wf_norm_folder initiative "$record_arg" 2>/dev/null) \
       || generic_usage "--record must be $WF_INITIATIVES/NNN-slug: $record_arg"
     [[ -f "$ROOT/$RECORD_DIR/initiative.md" ]] || generic_usage "--record is not an initiative directory (no initiative.md): $record_arg"
   fi
@@ -128,11 +123,8 @@ if [[ $GENERIC -eq 1 ]]; then
   [[ $BODY_SET -eq 0 ]] || PR_BODY=$BODY_ARG
   git -C "$ROOT" show-ref --verify --quiet "refs/heads/$HEAD" || skip "head branch $HEAD does not exist locally"
 else
-  d=${POS[0]%/}; d=${d#./}
-  [[ "$d" != /* ]] || d="$WF_SPECS/$(basename "$d")"
-  SLUG=${d#"$WF_SPECS"/}
-  [[ "$d" == "$WF_SPECS"/* && "$SLUG" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || die "spec dir must be $WF_SPECS/NNN-slug: ${POS[0]}"
-  SPEC_DIR=$d
+  SPEC_DIR=$(wf_norm_folder spec "${POS[0]}" 2>/dev/null) || die "spec dir must be $WF_SPECS/NNN-slug: ${POS[0]}"
+  SLUG=${SPEC_DIR#"$WF_SPECS"/}
   SPEC="$ROOT/$SPEC_DIR/spec.md" TASKS="$ROOT/$SPEC_DIR/tasks.md"
   [[ -f "$SPEC" ]] || die "spec.md not found: $SPEC"
   [[ -f "$TASKS" ]] || die "tasks.md not found: $TASKS"

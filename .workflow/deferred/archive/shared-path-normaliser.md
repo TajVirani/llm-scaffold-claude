@@ -1,4 +1,5 @@
 ---
+superseded_by: .workflow/specs/005-cache-build-followups
 origin_spec: .workflow/specs/001-large-path
 created: 2026-10-21
 ---

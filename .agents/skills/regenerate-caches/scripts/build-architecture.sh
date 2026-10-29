@@ -46,6 +46,9 @@
 #   when .workflow/tools/boundaries/dependency-cruiser.cjs exists and the selected extractors include dependency-cruiser
 #   (with --from-json, when the config exists); when none of them has a boundary checker, Boundary violations reads
 #   "Not checked: no boundary checker for this project's graph extractors (<names>)." with the --print-generator names, or none.
+#   depcruise counts as run only when its stdout parses as JSON with a .summary.violations array; otherwise Boundary violations
+#   reads "Not checked: depcruise did not run (<reason>).", the reason `not found`, `exited <n> without a JSON report` or
+#   `no .summary.violations in its output`, and the build goes on. A --violations-json file that does not parse is an error.
 #   tsc is $TSC, else <root>/node_modules/.bin/tsc, else `npx --no-install tsc`. A missing tsc or tsconfig.json is not an
 #   error: Public interface then lists the functions the graph JSON `exports` gives for the module's files, sorted and unique,
 #   `- \`name\` (function)`, and reads "Not generated: <reason>." for a module none of whose files has an `exports` entry.
@@ -59,6 +62,8 @@ set -euo pipefail
 
 # shellcheck source=../../../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
+# shellcheck source=../../../lib/test-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/test-paths.sh"
 export LC_ALL=C
 
 die() { echo "build-architecture: $*" >&2; exit 2; }
@@ -373,6 +378,24 @@ render_architecture() {
   else jq -r '.unresolved[]' "$graph"; fi
 }
 
+# run_boundary_check OUT_FILE : runs depcruise --config into OUT_FILE; prints nothing when it ran, else why it did not
+#   (`not found`, `exited <n> without a JSON report`, `no .summary.violations in its output`).
+run_boundary_check() {
+  local out="$1" rc=0
+  if ! tool_cmd "${DEPCRUISE:-}" depcruise || ! command -v "${cmd[0]}" >/dev/null 2>&1; then
+    echo "not found"
+    return 0
+  fi
+  # depcruise exits non-zero when it finds violations, so the exit code alone does not say whether it ran; its stderr is
+  #   dropped because the cache body is built from stdout only.
+  "${cmd[@]}" --config "$WF_BOUNDARIES/dependency-cruiser.cjs" -T json "${scopes[@]}" >"$out" 2>/dev/null || rc=$?
+  if ! jq -e . "$out" >/dev/null 2>&1; then
+    echo "exited $rc without a JSON report"
+  elif ! jq -e '.summary.violations | type == "array"' "$out" >/dev/null 2>&1; then
+    echo "no .summary.violations in its output"
+  fi
+}
+
 # render_boundary_violations : prints the body of the Boundary violations section.
 render_boundary_violations() {
   local vfile="" vlines
@@ -383,9 +406,12 @@ render_boundary_violations() {
     return 0
   elif [[ -f "$root/$WF_BOUNDARIES/dependency-cruiser.cjs" ]]; then
     vfile="$tmpd/violations.json"
-    tool_cmd "${DEPCRUISE:-}" depcruise || die "depcruise not found (install dependency-cruiser, or set DEPCRUISE)"
-    # violations make depcruise exit non-zero; only unparseable output is an error
-    "${cmd[@]}" --config "$WF_BOUNDARIES/dependency-cruiser.cjs" -T json "${scopes[@]}" >"$vfile" 2>/dev/null || true
+    local not_run_reason
+    not_run_reason="$(run_boundary_check "$vfile")"
+    if [[ -n "$not_run_reason" ]]; then
+      echo "Not checked: depcruise did not run ($not_run_reason)."
+      return 0
+    fi
   fi
   if [[ -z "$vfile" ]]; then
     echo "Not checked: no boundary config at $WF_BOUNDARIES/dependency-cruiser.cjs."
@@ -527,63 +553,26 @@ render_modules() {
   done < <(jq -r '.nodes[]' "$graph")
 }
 
-# Same defaults and matching as the step that counts a change's files against its size limit, so a file that step counts as a test is never an entry candidate.
-DEFAULT_TEST_PATTERNS='*.test.*
-*.spec.*
-__tests__/
-tests/
-test/
-e2e/
-*_test.go
-test_*.py
-*_test.py'
-
-# test_patterns : prints the test_patterns of every work profile, one per line, sorted and unique; a profile without the key
-#   or with [] contributes the defaults, as do no profiles at all. Dies when a profile's test_patterns is not a list of strings.
-test_patterns() {
-  local path rel block tag patterns all=""
-  for path in "$root/$WF_PROFILES"/*.md; do
-    [[ -f "$path" && "$(basename "$path")" != TEMPLATE.md ]] || continue
-    rel="$WF_PROFILES/$(basename "$path")"
-    command -v yq >/dev/null 2>&1 || die "yq (mikefarah v4) not found on PATH; it reads test_patterns from $rel"
-    block="$(toolchain_block "$path")"
-    tag="$(printf '%s\n' "$block" | yq '.test_patterns | tag' 2>/dev/null)" \
-      || die "the Toolchain yaml block does not parse in $rel"
-    patterns=""
-    if [[ "$tag" != "!!null" ]]; then
-      [[ "$tag" == "!!seq" && "$(printf '%s\n' "$block" | yq '[.test_patterns[] | select(tag != "!!str" or . == "")] | length')" == 0 ]] \
-        || die "test_patterns in $rel must be a list of non-empty path patterns"
-      patterns="$(printf '%s\n' "$block" | yq '.test_patterns[]')"
-    fi
-    all="$all${patterns:-$DEFAULT_TEST_PATTERNS}
-"
-  done
-  printf '%s\n' "${all:-$DEFAULT_TEST_PATTERNS}" | sed '/^$/d' | sort -u
-}
-
-# is_test_file PATH PATTERNS : succeeds when PATH matches a pattern: `dir/` a folder of that name at any depth, a pattern
-#   holding another / the whole path, any other pattern the file name (shell globs).
-is_test_file() {
-  local path="$1" pattern
-  while IFS= read -r pattern; do
-    if [[ "$pattern" == */ ]]; then
-      [[ "/$path" == *"/${pattern%/}/"* ]] && return 0
-    elif [[ "$pattern" == */* ]]; then
-      # shellcheck disable=SC2053 # the pattern is a glob on purpose
-      [[ "$path" == $pattern ]] && return 0
-    else
-      # shellcheck disable=SC2053 # the pattern is a glob on purpose
-      [[ "${path##*/}" == $pattern ]] && return 0
-    fi
-  done <<<"$2"
-  return 1
+# entry_test_patterns : prints the merged test_patterns of the work profiles, one per line, so a file the step that counts a
+#   change's files against its size limit counts as a test is never an entry candidate. Dies when one is invalid.
+entry_test_patterns() {
+  local profiles_dir="$root/$WF_PROFILES" first_profile="" patterns
+  if [[ -d "$profiles_dir" ]]; then
+    first_profile="$(find "$profiles_dir" -maxdepth 1 -name '*.md' ! -name TEMPLATE.md | sort | head -n 1)"
+  fi
+  if [[ -n "$first_profile" ]] && ! command -v yq >/dev/null 2>&1; then
+    die "yq (mikefarah v4) not found on PATH; it reads test_patterns from $WF_PROFILES/${first_profile##*/}"
+  fi
+  # Loaded from the root so the reason names the profile by its repo-relative path.
+  patterns="$(cd "$root" && wf_load_test_patterns "$WF_PROFILES")" || die "$patterns"
+  printf '%s\n' "$patterns"
 }
 
 render_entries() {
-  local patterns file test_files=""
-  patterns="$(test_patterns)" || exit 2
+  local file test_files=""
+  WF_TEST_PATTERNS="$(entry_test_patterns)" || exit 2
   while IFS= read -r file; do
-    if is_test_file "$file" "$patterns"; then test_files="$test_files$file
+    if wf_is_test_path "$file"; then test_files="$test_files$file
 "; fi
   done < <(jq -r '.files[]' "$graph")
   jq -S --argjson test_files "$(printf '%s' "$test_files" | jq -R . | jq -s .)" '

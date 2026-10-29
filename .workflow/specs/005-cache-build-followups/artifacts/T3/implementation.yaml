@@ -1,0 +1,21 @@
+status: done
+summary: "When the architecture build's boundary check finds depcruise missing, exiting without a JSON report, or printing JSON without .summary.violations, Boundary violations now reads 'Not checked: depcruise did not run (<reason>).' and the build exits 0; a stand-in with violations still lists them and an unparseable --violations-json still exits 2. The not-found check runs before depcruise (command -v on the resolved command), so a missing DEPCRUISE path reports 'not found' rather than 'exited 127'. Added a negative case to tests/scripts/cache-boundary-check.sh: depcruise stand-ins that write a marker to stderr while failing or answering with violations; the marker never reaches the body."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t3"
+branch: "task/005-cache-build-followups/T03-boundary-not-checked"
+base_commit: "2e32c3b04ab1abc36d5450486f080752f906fa60"
+head_commit: "081cc577a83ce373bc1cc67de81a8c6936c002ac"
+files_changed: [".agents/skills/regenerate-caches/scripts/build-architecture.sh", "tests/scripts/cache-boundary-check.sh"]
+tests_added:
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "depcruise failing with stderr: the stderr line is not in the body / Boundary violations says it exited without a JSON report", kind: negative}
+  - {file: "tests/scripts/cache-boundary-check.sh", test: "depcruise answering with stderr: the stderr line is not in the body / Boundary violations lists the violations", kind: negative}
+evidence:
+  red: "Phase 1: tests/run-all.sh --suite scripts/cache-boundary-check; FAIL JRN-003 depcruise not found: Boundary violations says the check was not made (got=None.); passed=13 failed=4. Stderr case, with build-architecture.sh temporarily changed to send depcruise stderr into its output (2>&1): FAIL depcruise answering with stderr: Boundary violations lists the violations; passed=20 failed=1"
+  green: "tests/run-all.sh --suite scripts/cache-boundary-check; passed=21 failed=0"
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/005-cache-build-followups --task-id T3 --cwd $PWD; exit 0, test (scoped, own suite) pass, lint pass"
+  toolchain: ".workflow/specs/005-cache-build-followups/artifacts/T3/toolchain.txt (pass)"
+considered_not_built: []
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

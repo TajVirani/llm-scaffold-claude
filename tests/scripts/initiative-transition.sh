@@ -2,12 +2,15 @@
 # Suite: initiative-transition.sh (feature-workflow/scripts), the single writer for initiatives; JRN-002 "Explore across sessions".
 # Covers: the frontier before and after a research question settles; set-question launch, reset and settle (launched map, settled
 #   line); a researching question surviving a session end and counted by the session-start offer; illegal question, slice and
-#   status transitions exit 2 with a reason; step and set-pr writes; usage errors exit 1.
+#   status transitions exit 2 with a reason; step and set-pr writes; usage errors exit 1. JRN-006 of spec 005: each
+#   initiative folder form gives the exit code and message it gave before the shared normaliser.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 # shellcheck source=../fixtures/initiative.sh
 source "$TESTS_DIR/fixtures/initiative.sh"
+# shellcheck source=../fixtures/workflow-folders.sh
+source "$TESTS_DIR/fixtures/workflow-folders.sh"
 preflight
 
 new_workdir
@@ -136,6 +139,15 @@ IT set-pr "$INI" https://github.com/o/r/pull/7 >/dev/null 2>&1
 err=$(IT set-pr "$INI" https://github.com/o/r/pull/9 2>&1 >/dev/null)
 check "JRN-002 replacing merge_pr warns on stderr" 'grep -q "warning: .*pull/7 replaced by .*pull/9" <<<"$err"' "$err"
 eq "JRN-002 the replacement is recorded" "$(fm "$P/$INI/initiative.md" .merge_pr)" https://github.com/o/r/pull/9
+
+echo "== JRN-006 initiative folder forms"
+folder_fixture_repo "$WORK/folders"
+while IFS='|' read -r form cwd arg; do
+  eq "JRN-006 initiative-transition step takes the $form initiative folder as before" \
+    "$(folder_outcome bash "$P/$IT_REL" step "$arg" 6.2 --cwd "$cwd")" \
+    "$(folder_expected "$form" "$cwd" "$arg" initiative-transition.sh 1 "initiative dir must be .workflow/initiatives/NNN-slug" "0|")"
+done < <(folder_inputs initiative)
+eq "JRN-006 initiative-transition writes the marker in the main checkout" "$(marker_step "$FOLDER_REPO/$FOLDER_INITIATIVE/.step")" 6.2
 
 shellcheck_files "JRN-002 shellcheck initiative-transition.sh" "$P/$IT_REL"
 finish

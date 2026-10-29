@@ -25,4 +25,9 @@ lessons:
     paths: [".agents/agents/**", ".agents/install-manifest.txt", "PROVENANCE.md", ".agents/skills/project-setup/**"]
     origin_spec: .workflow/specs/002-review-lessons
     date: 2026-10-22
+  - id: RL-002
+    symptom: "A change makes a Phase 1 stub or helper real, or starts sourcing it, but its PROVENANCE.md row still says placeholder or 'to be sourced by'."
+    paths: ["PROVENANCE.md", ".agents/lib/**"]
+    origin_spec: .workflow/specs/005-cache-build-followups
+    date: 2026-10-29
 ```

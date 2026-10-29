@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): check a staged Tier B cache body against its fixed shape before it is published.
 # Purpose: Catch drift in the agent-written parts (modules.md Purpose slots, flows.md sections and diagrams) and any
-#   hand-built architecture.md, so only canonical bodies reach publish-cache.sh. Optionally wraps the body's ```mermaid
-#   fences into an HTML file that .agents/skills/visual-change-report/scripts/validate_mermaid.mjs can parse, since that
-#   validator reads only <pre class="mermaid"> blocks in HTML.
+#   hand-built architecture.md, so only canonical bodies reach publish-cache.sh. When the body holds ```mermaid fences
+#   and node can load the mermaid and jsdom packages, it also runs
+#   .agents/skills/visual-change-report/scripts/validate_mermaid.mjs on them (wrapped as <pre class="mermaid"> blocks in
+#   a temporary HTML file, the only form that validator reads). When node or a package is missing it still prints "ok"
+#   but warns on stderr that the diagrams are not machine-validated and names the hand checklist,
+#   .agents/skills/visual-change-report/references/visual-library.md "Mermaid syntax rules".
 # Called by: the cache-regeneration agent before it returns, and regenerate-caches / discovery 0.2.8 before publishing.
 # Steps: 00.5-00.7, 0.2.8.
 # Sources: first-party. Shape rules: assets/cache-frontmatter.md "Body shape per cache type".
@@ -11,12 +14,17 @@
 # Usage:
 #   check-staged-cache.sh <modules|flows|architecture> <staged-file> [--html-out FILE]
 #     --html-out FILE   also write every ```mermaid block as <pre class="mermaid"> (HTML-escaped) into FILE
-# Output: "ok" on stdout, or one problem per line on stderr.
-# Exit codes: 0 = body matches the shape; 1 = problems found (listed); 2 = usage error or file missing.
+# Output: "ok" on stdout, or one problem per line on stderr (a validator rejection adds its own output there).
+# Exit codes: 0 = body matches the shape; 1 = problems found (listed) or the Mermaid validator rejected a diagram;
+#   2 = usage error or file missing.
 set -euo pipefail
 export LC_ALL=C
 
 die() { echo "check-staged-cache: $*" >&2; exit 2; }
+
+skills_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+mermaid_validator="$skills_dir/visual-change-report/scripts/validate_mermaid.mjs"
+mermaid_checklist="$skills_dir/visual-change-report/references/visual-library.md"
 
 html_out=""
 pos=()
@@ -137,7 +145,8 @@ case "$type" in
     ;;
 esac
 
-if [[ -n "$html_out" ]]; then
+# write_mermaid_html FILE : write every ```mermaid block of the body into FILE as an HTML-escaped <pre class="mermaid">
+write_mermaid_html() {
   {
     echo '<!DOCTYPE html><html><body>'
     printf '%s\n' "$body" | mermaid_blocks | awk '
@@ -146,11 +155,49 @@ if [[ -n "$html_out" ]]; then
       { if (!open) { printf "<pre class=\"mermaid\">"; open = 1 }
         gsub(/&/, "\\&amp;"); gsub(/</, "\\&lt;"); gsub(/>/, "\\&gt;"); print }'
     echo '</body></html>'
-  } >"$html_out"
-fi
+  } >"$1"
+}
+
+# package_reachable NAME : 0 when node_modules/NAME sits beside the validator or in a folder above it, where node's
+#   import lookup from the validator would find it
+package_reachable() {
+  local dir
+  dir="$(dirname "$mermaid_validator")"
+  while :; do
+    [[ -f "$dir/node_modules/$1/package.json" ]] && return 0
+    [[ "$dir" == / ]] && return 1
+    dir="$(dirname "$dir")"
+  done
+}
+
+validator_html=""
+# validate_mermaid : run the validator on the body's diagrams; on rejection print its output to stderr and exit 1
+validate_mermaid() {
+  local report
+  validator_html="$(mktemp "${TMPDIR:-/tmp}/check-staged-cache.XXXXXX")" || die "cannot create a temporary file"
+  # The trap removes the file on every way out, including a failed write that set -e turns into an exit.
+  trap 'rm -f "$validator_html"' EXIT
+  write_mermaid_html "$validator_html"
+  if report="$(node "$mermaid_validator" "$validator_html" 2>&1)"; then return 0; fi
+  echo "check-staged-cache: the Mermaid validator rejected a diagram; fix it and re-run:" >&2
+  printf '%s\n' "$report" >&2
+  exit 1
+}
+
+if [[ -n "$html_out" ]]; then write_mermaid_html "$html_out"; fi
 
 if [[ ${#problems[@]} -gt 0 ]]; then
   for p in "${problems[@]}"; do echo "check-staged-cache: $p" >&2; done
   exit 1
+fi
+
+if grep -q '^```mermaid[[:space:]]*$' <<<"$body"; then
+  if [[ -f "$mermaid_validator" ]] && command -v node >/dev/null 2>&1 \
+     && package_reachable mermaid && package_reachable jsdom; then
+    validate_mermaid
+  else
+    echo "check-staged-cache: Mermaid diagrams not machine-validated (needs node with the mermaid and jsdom packages);" \
+      "check them by hand against \"Mermaid syntax rules\" in $mermaid_checklist" >&2
+  fi
 fi
 echo ok

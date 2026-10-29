@@ -2,10 +2,14 @@
 # Suite: task-breakdown helpers (feature-workflow/scripts): task-waves.sh (predicted-file overlap, implied edges, parallel_with,
 #   cycles, waves, JSON), rules-setting.sh (## Workflow settings, task_review, main_branch), open-task-pr.sh (gh / glab stubs on PATH, skip paths,
 #   --record; never the network) and run-toolchain.sh test scoping (other unfinished tasks' Phase 1 tests excluded, test_scoped,
-#   --exclude-unfinished, unscoped warning).
+#   --exclude-unfinished, unscoped warning). JRN-006: each spec folder form for task-waves.sh and open-task-pr.sh task mode,
+#   and each initiative folder form for open-task-pr.sh --record, gives the exit code and message it gave before the shared
+#   normaliser, except that open-task-pr now refuses an absolute path outside the specs or initiatives root.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/workflow-folders.sh
+source "$TESTS_DIR/fixtures/workflow-folders.sh"
 preflight
 
 new_workdir
@@ -256,6 +260,26 @@ eq "unscoped status" "$(jq -r '.results[] | select(.key=="test") | .status' <<<"
 check "unscoped warning in json and stderr" 'jq -e ".warnings | length == 1" <<<"$out" >/dev/null && grep -q "test_scoped" "$WORK/err"' "$out"
 out=$(RT --spec-dir .workflow/specs/002-q --task-id T3 --cwd "$Q" --skip test 2>/dev/null)
 eq "--skip test still wins" "$(jq -r '.results[] | select(.key=="test") | .status' <<<"$out")" skipped
+
+echo "== JRN-006 spec and initiative folder forms"
+folder_fixture_repo "$WORK/folders"
+SPEC_REASON="spec dir must be .workflow/specs/NNN-slug"
+# The fixture has no task branch and no origin, so an accepted folder reaches the first skip after the folder is read.
+TASK_MODE_ACCEPTED="0|open-task-pr.sh: skipped: task branch task/001-alpha/T01-demo does not exist locally"
+RECORD_ACCEPTED="0|open-task-pr.sh: skipped: no origin remote"
+while IFS='|' read -r form cwd arg; do
+  eq "JRN-006 task-waves takes the $form spec folder as before" \
+    "$(folder_outcome TW --spec-dir "$arg" --cwd "$cwd")" \
+    "$(folder_expected "$form" "$cwd" "$arg" task-waves.sh 1 "$SPEC_REASON" "0|")"
+  eq "JRN-006 open-task-pr task mode takes the $form spec folder as before, an absolute path elsewhere now refused" \
+    "$(folder_outcome bash "$S/open-task-pr.sh" "$arg" T1 --cwd "$cwd" --dry-run)" \
+    "$(folder_expected "$form" "$cwd" "$arg" open-task-pr.sh 1 "$SPEC_REASON" "$TASK_MODE_ACCEPTED")"
+done < <(folder_inputs spec)
+while IFS='|' read -r form cwd arg; do
+  eq "JRN-006 open-task-pr --record takes the $form initiative folder as before, an absolute path elsewhere now refused" \
+    "$(folder_outcome bash "$S/open-task-pr.sh" --head spec/001-alpha --base main --title x --record "$arg" --cwd "$cwd" --dry-run)" \
+    "$(folder_expected "$form" "$cwd" "$arg" open-task-pr.sh 2 "--record must be .workflow/initiatives/NNN-slug" "$RECORD_ACCEPTED")"
+done < <(folder_inputs initiative)
 
 shellcheck_files "shellcheck: task-breakdown scripts" "$S/task-waves.sh" "$S/rules-setting.sh" "$S/open-task-pr.sh" "$S/run-toolchain.sh"
 finish

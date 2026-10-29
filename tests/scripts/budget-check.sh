@@ -3,10 +3,14 @@
 # Covers: the size budget source (spec, rules.md block, default) and its errors, the PR/MR file set (merge-base with the
 #   target, origin/<target>, fallback to impl_base..HEAD), worktree --cwd, spec folder and backlog exclusion, harness and
 #   test exclusion (profile test_patterns), --predicted, and refusals (unknown revisions, missing tasks.md, no git, no yq).
+#   JRN-006: each spec folder form (relative, absolute in the main checkout or a worktree, run from a worktree, bare,
+#   absolute elsewhere, outside git) gives the exit code and message it gave before the shared normaliser.
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/workflow-folders.sh
+source "$TESTS_DIR/fixtures/workflow-folders.sh"
 preflight
 
 TEST_BASH=${TEST_BASH:-bash}
@@ -178,6 +182,14 @@ mv "$F/eps-tasks.md" "$R/$E/tasks.md"
 t "not a git repo -> 1"                     1 BC --spec-dir $E --cwd /
 t "yq missing -> 1 (budget-check)"          1 env PATH=/usr/bin:/bin /bin/bash "$SRC/scripts/budget-check.sh" --spec-dir $E
 t "read-only: spec.md unchanged by check"   0 bash -c "a=\$(shasum '$R/$E/spec.md'); BC --spec-dir $E >/dev/null 2>&1; [ \"\$a\" = \"\$(shasum '$R/$E/spec.md')\" ]"
+
+echo "== JRN-006 spec folder forms"
+folder_fixture_repo "$F/folders"
+while IFS='|' read -r form cwd arg; do
+  eq "JRN-006 budget-check takes the $form spec folder as before" \
+    "$(folder_outcome BC --spec-dir "$arg" --cwd "$cwd")" \
+    "$(folder_expected "$form" "$cwd" "$arg" budget-check.sh 1 "spec dir must be .workflow/specs/NNN-slug" "0|")"
+done < <(folder_inputs spec)
 
 shellcheck_files "shellcheck: scripts under test" "$SRC/scripts/budget-check.sh"
 finish

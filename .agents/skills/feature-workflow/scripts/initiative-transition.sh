@@ -100,32 +100,6 @@ require_yq() {
   yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (the Python yq has different flags): $(yq --version 2>&1 | head -1)"
 }
 
-# main_root DIR : print the main checkout root for DIR, inside the repo or one of its worktrees
-main_root() {
-  local common
-  common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
-    || die "not inside a git repository: $1"
-  if [[ "$(basename "$common")" == ".git" ]]; then
-    dirname "$common"
-  else
-    git -C "$1" worktree list --porcelain | sed -n '1s/^worktree //p'
-  fi
-}
-
-# norm_initiative_dir DIR : print DIR as `<initiatives root>/NNN-slug`, or exit 1
-norm_initiative_dir() {
-  local d=$1
-  d=${d%/}
-  d=${d#./}
-  if [[ "$d" == /* ]]; then
-    [[ "$(dirname "$d")" == */"$WF_INITIATIVES" ]] || die "initiative dir must be $WF_INITIATIVES/NNN-slug: $1"
-    d="$WF_INITIATIVES/$(basename "$d")"
-  fi
-  [[ "$d" == "$WF_INITIATIVES"/* && "${d#"$WF_INITIATIVES"/}" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
-    || die "initiative dir must be $WF_INITIATIVES/NNN-slug: $1"
-  printf '%s\n' "$d"
-}
-
 # utc_now : print the current UTC time as ISO-8601
 utc_now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
@@ -225,8 +199,8 @@ done
   || die "--state, --settled and --launched belong to the set-question subcommand"
 [[ -d "$OPT_CWD" ]] || die "--cwd is not a directory: $OPT_CWD"
 
-ROOT=$(main_root "$OPT_CWD")
-INI_DIR=$(norm_initiative_dir "${POS[0]}")
+ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
+INI_DIR=$(wf_norm_folder initiative "${POS[0]}" 2>/dev/null) || die "initiative dir must be $WF_INITIATIVES/NNN-slug: ${POS[0]}"
 ABS_DIR="$ROOT/$INI_DIR"
 INITIATIVE="$ABS_DIR/initiative.md"
 QUESTIONS="$ABS_DIR/questions.md"

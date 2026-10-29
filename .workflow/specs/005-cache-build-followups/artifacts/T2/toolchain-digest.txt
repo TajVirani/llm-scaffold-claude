@@ -1,0 +1,12 @@
+Toolchain failed for task T2 (1 of 2 commands). Fix these in the same context, then stop again.
+Full output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/005-cache-build-followups/artifacts/T2/toolchain.txt
+
+[test] tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE" exited 1. Last 40 lines:
+== scripts/lib-test-paths
+FAIL JRN-005 no shell file under .agents/ outside lib/test-paths.sh lists the default test patterns
+       got=.agents/skills/feature-workflow/scripts/budget-check.sh want=
+
+== summary
+FAIL scripts/lib-test-paths                 passed=46   failed=1   skipped=0   xfail=0   3s
+TOTAL passed=46 failed=1 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/lib-test-paths

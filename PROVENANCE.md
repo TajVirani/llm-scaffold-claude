@@ -26,6 +26,7 @@ Inventory of everything under `.agents/`: what this repo built versus what it ve
 | Install manifest (the first-party payload `install.sh` copies, D72) | `install-manifest.txt` | implemented |
 | Destructive-git guard (PreToolUse `Bash` for Claude and Codex, wired by both settings templates; shipped in the payload by D72) | `hooks/block-destructive-git.sh` | implemented: first-party, adapted from mattpocock/skills `skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh` at 49dd158 (MIT; blocked-command list, extended here; plain `git push` stays allowed) and the user's earlier version of this script (stash rule, deny JSON, reason text). The shell tokenizer and per-subcommand rules are new, so heredoc bodies and quoted text are no longer matched. Tested in `tests/hooks/block-destructive-git.sh` |
 | Workflow path helper (sourced by hooks and skill scripts; the one home for target-project paths under `.workflow/`, D81) | `lib/workflow-paths.sh` | implemented: first-party |
+| Test path helper (sourced by budget-check.sh and build-architecture.sh; the one home for the default test patterns, profile `test_patterns` and the matcher, spec 005-cache-build-followups) | `lib/test-paths.sh` | implemented: first-party |
 | Status line and context bridge (`statusLine` in `claude-settings.template.json`; shipped in the payload by D79) | `hooks/context-bridge.cjs` | implemented: first-party, written by the user (classified 2026-10-19, D79). Prints a context-usage bar and writes `<tmpdir>/claude-ctx-<session_id>.json`; no shipped hook reads that file yet (the "PreToolUse gate hook" its header names does not exist) |
 
 ### Outside `.agents/` (scaffold repo)
@@ -88,7 +89,7 @@ Nothing is of unverified origin. Classified by the user: `pr-quality` and `visua
 | Claude hooks | `hooks/_guard-common.sh`, `evidence-capture.sh`, `post-implementation-audit.sh`, `pre-launch.sh`, `rules-boundary-config-sync.sh`, `session-start-resume.sh`, `spec-single-writer-guard.sh`, `tier-a-write-guard.sh`, `tier-b-write-guard.sh`, `worktree-write-guard.sh`, `block-destructive-git.sh` |
 | Codex | `hooks/_codex-patch.sh`, `codex-pre-spawn.sh`, `codex-rules-sync.sh`, `codex-write-guard.sh`, `generate-codex-agents.sh` |
 | Installer inputs (reference copies; `install.sh` merges from the scaffold's own copies) | `hooks/claude-settings.template.json`, `claude-settings.template.md`, `codex-hooks.template.json`, `codex-config.template.toml` |
-| Shared library | `lib/workflow-paths.sh` |
+| Shared library | `lib/workflow-paths.sh`, `lib/test-paths.sh` |
 | Status line | `hooks/context-bridge.cjs` |
 | Output style | `output-styles/concise-technical.md` |
 | Other first-party skills | `skills/data-structure-audit`, `pr-review-data`, `deps-audit`, `deps-update`, `design-pattern-doc`, `glab`, `pr-quality`, `visual-change-report`, `writing-for-agents` |

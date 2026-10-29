@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Suite: regenerate-caches scripts (publish-cache.sh, cache-stamp-check.sh).
+# Suite: regenerate-caches scripts (publish-cache.sh, cache-stamp-check.sh, the Mermaid check of check-staged-cache.sh).
 # Covers: publishing and stamping Tier B caches, fresh/stale/missing/invalid classification, area filter, worktree use
-#   of the main checkout, front-matter stripping, and input rejections.
+#   of the main checkout, front-matter stripping, and input rejections. JRN-007: the cache-regeneration agent names no skill
+#   path outside regenerate-caches; check-staged-cache.sh flows runs validate_mermaid.mjs when node, mermaid and jsdom are
+#   present (a node stand-in on PATH, stub packages), and otherwise still prints ok with exit 0 and says on stderr that the
+#   body is not machine-validated, naming the hand checklist; exit codes 1 and 2 unchanged.
+# shellcheck disable=SC2016,SC2034  # check expressions are single-quoted and read their variables through eval; literal Markdown backticks
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 preflight
@@ -89,6 +93,123 @@ t fm-strip 0 "$S/publish-cache.sh" .workflow/.cache-staging/modules.md modules s
 eq fm-strip-body "$(tail -1 .workflow/cache/modules.md)" real
 eq fm-no-foo "$(grep -c foo .workflow/cache/modules.md)" 0
 eq no-tmp-left "$(find .workflow/cache -name '.*' -type f | wc -l | tr -d ' ')" 0
+
+echo "== JRN-007 cache-regeneration stays inside its ownership"
+eq "JRN-007 cache-regeneration.md names no skill path outside regenerate-caches" \
+  "$(grep -o 'skills/[A-Za-z0-9_.-]*' "$WORK/scaffold/.agents/agents/cache-regeneration.md" | LC_ALL=C sort -u)" "skills/regenerate-caches"
+
+echo "== JRN-007 check-staged-cache.sh runs the Mermaid validator when it can"
+# The project holds its own .agents/ and node_modules/ at the root, so the validator script, the working directory and
+# the checkout root all lead to the same node_modules/.
+M="$WORK/mermaid"
+git_init_repo "$M"
+copy_agents "$M"
+mkdir -p "$M/.workflow/.cache-staging" "$M/node-bin"
+cat >"$M/.workflow/.cache-staging/flows.md" <<'EOF'
+# Flows
+
+## Entry points
+
+- `src/cli/main.ts`
+
+## src/cli/main.ts
+
+```mermaid
+sequenceDiagram
+  participant src_cli as src/cli
+  participant src_billing as src/billing
+  src_cli->>src_billing: charge()
+```
+
+Error branches:
+- none
+EOF
+cat >"$M/node-bin/node" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >>"$WORK/node.log"
+echo "all diagrams parse"
+EOF
+chmod +x "$M/node-bin/node"
+MC="$M/.agents/skills/regenerate-caches/scripts/check-staged-cache.sh"
+CHECKLIST=visual-change-report/references/visual-library.md
+git_commit_all "$M" init
+# path_without_node : PATH with every node hidden: a PATH folder holding one is replaced by links to its other programs.
+path_without_node() {
+  local dir out="" n=0 f mirror
+  local IFS=:
+  for dir in $PATH; do
+    if [ -x "$dir/node" ]; then
+      n=$((n + 1))
+      mirror="$WORK/no-node/$n"
+      mkdir -p "$mirror"
+      for f in "$dir"/*; do [ "${f##*/}" = node ] || ln -s "$f" "$mirror/${f##*/}"; done
+      dir=$mirror
+    fi
+    out="${out:+$out:}$dir"
+  done
+  printf '%s\n' "$out"
+}
+NO_NODE_PATH=$(path_without_node)
+# staged_flows PATH : run check-staged-cache.sh flows on the staged body from the project root with that PATH; stdout to
+#   $WORK/mc.out, stderr to $WORK/mc.err, exit code to $WORK/mc.rc.
+staged_flows() {
+  (cd "$M" && PATH=$1 "$MC" flows .workflow/.cache-staging/flows.md >"$WORK/mc.out" 2>"$WORK/mc.err")
+  echo $? >"$WORK/mc.rc"
+}
+# not_validated LABEL : the run printed ok, exited 0 and named the hand checklist on stderr.
+not_validated() {
+  eq "JRN-007 $1: ok on stdout" "$(cat "$WORK/mc.out")" ok
+  eq "JRN-007 $1: exit 0" "$(cat "$WORK/mc.rc")" 0
+  check "JRN-007 $1: stderr says not machine-validated and names the checklist" \
+    'grep -q "not machine-validated" "$WORK/mc.err" && grep -qF "$CHECKLIST" "$WORK/mc.err"' "$(cat "$WORK/mc.err")"
+}
+
+: >"$WORK/node.log"
+staged_flows "$M/node-bin:$PATH"
+not_validated "node on PATH, mermaid and jsdom absent"
+check "JRN-007 without the packages the validator is not run" '! grep -q validate_mermaid "$WORK/node.log"' "$(cat "$WORK/node.log")"
+
+mkdir -p "$M/node_modules/mermaid" "$M/node_modules/jsdom"
+printf '{"name":"mermaid","version":"11.0.0"}\n' >"$M/node_modules/mermaid/package.json"
+printf '{"name":"jsdom","version":"24.0.0"}\n' >"$M/node_modules/jsdom/package.json"
+if PATH=$NO_NODE_PATH command -v node >/dev/null 2>&1; then
+  skip "JRN-007 node absent" "node could not be hidden from PATH"
+else
+  staged_flows "$NO_NODE_PATH"
+  not_validated "mermaid and jsdom present, node absent"
+fi
+
+: >"$WORK/node.log"
+staged_flows "$M/node-bin:$PATH"
+eq "JRN-007 validator present: ok on stdout" "$(cat "$WORK/mc.out")" ok
+eq "JRN-007 validator present: exit 0" "$(cat "$WORK/mc.rc")" 0
+check "JRN-007 validator present: node runs validate_mermaid.mjs" 'grep -q "validate_mermaid\.mjs" "$WORK/node.log"' \
+  "$(cat "$WORK/node.log" "$WORK/mc.err")"
+check "JRN-007 validator present: stderr does not say not machine-validated" '! grep -q "not machine-validated" "$WORK/mc.err"' \
+  "$(cat "$WORK/mc.err")"
+printf '# Flows\n\n## Entry points\n\n- `b`\n- `a`\n' >"$M/.workflow/.cache-staging/bad-flows.md"
+t "JRN-007 validator present: a body with problems still exits 1" 1 env PATH="$M/node-bin:$PATH" "$MC" flows "$M/.workflow/.cache-staging/bad-flows.md"
+t "JRN-007 validator present: a usage error still exits 2" 2 env PATH="$M/node-bin:$PATH" "$MC" flows
+
+mkdir -p "$M/rejecting-node-bin"
+cat >"$M/rejecting-node-bin/node" <<'EOF'
+#!/usr/bin/env bash
+echo "diagram 1: FAIL — Parse error on line 3"
+echo "1 FAILURES"
+exit 1
+EOF
+chmod +x "$M/rejecting-node-bin/node"
+staged_flows "$M/rejecting-node-bin:$PATH"
+eq "JRN-007 validator rejects a diagram: exit 1" "$(cat "$WORK/mc.rc")" 1
+eq "JRN-007 validator rejects a diagram: no ok on stdout" "$(cat "$WORK/mc.out")" ""
+check "JRN-007 validator rejects a diagram: its error is on stderr" 'grep -q "diagram 1: FAIL" "$WORK/mc.err"' \
+  "$(cat "$WORK/mc.err")"
+
+mkdir -p "$WORK/validator-tmp"
+TMPDIR="$WORK/validator-tmp" staged_flows "$M/node-bin:$PATH"
+TMPDIR="$WORK/validator-tmp" staged_flows "$M/rejecting-node-bin:$PATH"
+eq "JRN-007 the validator's temporary HTML is removed after a pass and a rejection" \
+  "$(find "$WORK/validator-tmp" -type f | wc -l | tr -d ' ')" 0
 
 shellcheck_files "shellcheck: cache scripts" "$S"/*.sh
 finish

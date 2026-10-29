@@ -1,0 +1,33 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "1f59f20ee80efb50bfac85ba56afa22301eced56"
+head: "b98e62b85a86e15e11a7ebdc88ee6710f13be29b"
+findings:
+  - id: RS-1
+    category: rule
+    severity: medium
+    confidence: 90
+    location: PROVENANCE.md:29
+    claim: "The PROVENANCE.md row for lib/test-paths.sh still says the helper is a placeholder that does no work and is only 'to be sourced', but by HEAD it holds the real rules and budget-check.sh and build-architecture.sh source it."
+    consequence: "PROVENANCE.md is the record of what under .agents/ is implemented. Anyone using it to judge what is shipped (a maintainer, the installer manifest review, a later spec) is told a helper that every target project now depends on is a stub. The rule that PROVENANCE changes in the same change as .agents/ is met in form only."
+    evidence:
+      basis: ".workflow/rules.md Cross-cutting policy: \"Adding, vendoring or removing anything under `.agents/`: update `PROVENANCE.md` in the same change.\" The row was written by the Phase 1 harness commit 6a5644a and never updated after T1/T2 implemented the helper (b10a63d, f94d7c7, ea03be7)."
+      diff: "+| Test path helper (to be sourced by budget-check.sh and build-architecture.sh; ...) | `lib/test-paths.sh` | placeholder: first-party; the functions keep their contract but do no work until spec 005 moves the rules in |"
+    suggested_fix: "Change the row to 'implemented: first-party', say it is sourced by budget-check.sh and build-architecture.sh, and drop the placeholder wording."
+checked:
+  - "AGENTS.md (root; CLAUDE.md is an @AGENTS.md import)"
+  - ".workflow/rules.md (Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, External systems, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1-T5)"
+  - ".workflow/profiles/agent-docs.md (T6)"
+  - ".workflow/profiles/test-harness.md (tests/ changes in the diff)"
+  - ".workflow/specs/005-cache-build-followups/design-log.md 'Placement (0.3.4)' and 'Placement check (0.3.5-0.3.7)' entries (no placement ADR; the entry is the placement record)"
+  - ".workflow/GLOSSARY.md"
+  - ".agents/skills/feature-workflow/references/readable-code.md"
+  - "Smell baseline (Fowler) against the whole diff"
+  - "Tool output read: T1, T2, T3, T4, T5, T6 toolchain.json; gate-3.9-w1, gate-3.9-w2 and integration-shell-scripts toolchain.json"
+not_checked:
+  - "CODING_STANDARDS.md and CONTRIBUTING.md: not present at the repo root"
+  - ".workflow/GLOSSARY-MAP.md: not present"
+  - "typecheck, format and boundary keys: skipped ('no command') for every task in the shell-scripts and agent-docs profiles; import boundaries were checked by hand against rules.md Ownership only"
+  - "T2 toolchain.json: the last recorded per-task run has status fail (scripts/lib-test-paths JRN-005 flagged budget-check.sh); the later gate-3.9-w1, gate-3.9-w2 and integration-shell-scripts runs pass, including scripts/lib-test-paths, so T2's own record looks stale but was not re-run here"

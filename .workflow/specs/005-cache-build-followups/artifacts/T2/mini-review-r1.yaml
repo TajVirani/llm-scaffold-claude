@@ -1,0 +1,56 @@
+verdict: pass
+task_id: T2
+work_type: shell-scripts
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t2@d4899749c45c99f32f8f539fed7a005e2649cc38..HEAD
+tool_output: .workflow/specs/005-cache-build-followups/artifacts/T2/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:536, .agents/skills/regenerate-caches/scripts/build-architecture.sh:542
+  - n: 2
+    verdict: not-applicable
+    location: none
+  - n: 3
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:538, .agents/skills/regenerate-caches/scripts/build-architecture.sh:542, .agents/skills/regenerate-caches/scripts/build-architecture.sh:548
+  - n: 4
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:548, .agents/skills/regenerate-caches/scripts/build-architecture.sh:66
+  - n: 5
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:61, .agents/skills/regenerate-caches/scripts/build-architecture.sh:62
+  - n: 6
+    verdict: not-applicable
+    location: none
+  - n: 7
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:537
+  - n: 8
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:532
+  - n: R1
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:532, .agents/skills/regenerate-caches/scripts/build-architecture.sh:535, .agents/skills/regenerate-caches/scripts/build-architecture.sh:548
+  - n: R2
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:541
+  - n: R3
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:532, .agents/skills/regenerate-caches/scripts/build-architecture.sh:533
+  - n: R4
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:532, .agents/skills/regenerate-caches/scripts/build-architecture.sh:541
+  - n: R5
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:532, .agents/skills/regenerate-caches/scripts/build-architecture.sh:541
+read_outside_diff:
+  - .agents/lib/test-paths.sh: the shared helper the diff now calls (wf_load_test_patterns, wf_is_test_path), to check the error reason reaches stdout for die and the matcher status
+  - .agents/skills/regenerate-caches/scripts/build-architecture.sh lines 1-70: the header block and the source lines, to check the header is untouched and the sibling source pattern
+out_of_scope_noticed:
+  - kind: refactor
+    summary: entry_test_patterns wraps the yq availability check in a for loop that always breaks after the first profile, so the check runs once and the loop reads as if it iterates
+    evidence: .agents/skills/regenerate-caches/scripts/build-architecture.sh:536
+    blocker_assessment: can-wait
+    reason: the check behaves correctly as written since every profile needs yq when present; a plain if-check would read more clearly

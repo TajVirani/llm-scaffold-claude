@@ -12,6 +12,12 @@
 #   WF_<NAME>              each path below, relative to the project root, no trailing slash
 #   WF_SPECS, WF_INITIATIVES  the roots for feature specs and for initiatives (".workflow/specs", ".workflow/initiatives")
 #   wf_path <root> <rel>   prints <root>/<rel> (root's trailing slash dropped); e.g. wf_path "$ROOT" "$WF_SPECS"
+#   wf_main_root <dir>     prints the main checkout root for <dir>, inside the repo or one of its worktrees; status 1
+#                          and the reason on stderr when <dir> is not inside a git repository
+#   wf_norm_folder spec|initiative <arg>
+#                          prints <arg> as the repo-relative folder `$WF_SPECS/NNN-slug` or `$WF_INITIATIVES/NNN-slug`
+#                          (relative, or absolute with that parent); status 1 and the reason on stderr when <arg> is not one
+#   Neither function exits: each caller turns status 1 into its own error message and exit code.
 # Paths are repo-relative; the write guards compare them case-insensitively.
 # Sources: first-party.
 # shellcheck disable=SC2034 # the variables are the API; each sourcing script uses a subset
@@ -46,4 +52,49 @@ WF_DATA_STRUCTURE_AUDIT_STATE="$WF_DIR/data-structure-audit-state.jsonl"
 wf_path() {
   local root=${1%/}
   printf '%s/%s\n' "$root" "$2"
+}
+
+# wf_main_root DIR : print the main checkout root for DIR, from the repo or one of its worktrees; status 1 when DIR is
+#   not inside a git repository.
+wf_main_root() {
+  local common
+  if ! common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+    printf 'not inside a git repository: %s\n' "$1" >&2
+    return 1
+  fi
+  if [[ "$(basename "$common")" == ".git" ]]; then
+    dirname "$common"
+  else
+    # A common dir not named .git does not sit in the checkout; the worktree list always names the main one first.
+    git -C "$1" worktree list --porcelain | sed -n '1s/^worktree //p'
+  fi
+}
+
+# wf_norm_folder spec|initiative ARG : print ARG as the repo-relative folder `$WF_SPECS/NNN-slug` or
+#   `$WF_INITIATIVES/NNN-slug`; status 1 when ARG is not one.
+wf_norm_folder() {
+  local kind=$1 arg=$2 root label folder
+  case "$kind" in
+    spec) root=$WF_SPECS label="spec dir" ;;
+    initiative) root=$WF_INITIATIVES label="initiative dir" ;;
+    *)
+      printf 'unknown folder kind (want spec or initiative): %s\n' "$kind" >&2
+      return 1
+      ;;
+  esac
+  folder=${arg%/}
+  folder=${folder#./}
+  # An absolute path may point into the main checkout or any worktree, so only its last two parts name the folder.
+  if [[ "$folder" == /* ]]; then
+    if [[ "$(dirname "$folder")" != */"$root" ]]; then
+      printf '%s must be %s/NNN-slug: %s\n' "$label" "$root" "$arg" >&2
+      return 1
+    fi
+    folder="$root/$(basename "$folder")"
+  fi
+  if ! [[ "$folder" == "$root"/* && "${folder#"$root"/}" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    printf '%s must be %s/NNN-slug: %s\n' "$label" "$root" "$arg" >&2
+    return 1
+  fi
+  printf '%s\n' "$folder"
 }

@@ -1,0 +1,31 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "1f59f20ee80efb50bfac85ba56afa22301eced56"
+head: "b98e62b85a86e15e11a7ebdc88ee6710f13be29b"
+findings:
+  - id: RE-1
+    category: wrong
+    severity: low
+    confidence: 95
+    location: "PROVENANCE.md:29"
+    claim: "The PROVENANCE row for lib/test-paths.sh still reads 'placeholder ... the functions keep their contract but do no work until spec 005 moves the rules in', but the helper is now fully implemented and sourced by budget-check.sh and build-architecture.sh."
+    consequence: "Maintainers and reviewers who read the .agents/ inventory are told the shared test-path helper is a no-op stub and that its callers do not use it yet. That contradicts goal 3 ('read test files through one shared test-pattern helper')."
+    evidence:
+      basis: "spec.md Goals: 'The size budget and the flow entry candidates read test files through one shared test-pattern helper in .agents/lib/'; verification-plan End state 'Shared test-path helper ... budget-check.sh and build-architecture.sh source .agents/lib/test-paths.sh'"
+      diff: "+| Test path helper (to be sourced by budget-check.sh and build-architecture.sh; ...) | `lib/test-paths.sh` | placeholder: first-party; the functions keep their contract but do no work until spec 005 moves the rules in |"
+    suggested_fix: "Mark the row 'implemented: first-party', say it is sourced by budget-check.sh and build-architecture.sh, and drop the placeholder wording."
+checked:
+  - "CAP-005 (case arm patterns): extractors/bash.sh blank_case_patterns() blanks arm pattern lists up to the first unquoted ')' and keeps arm bodies, so detected calls are still reported (D3 constraint met). tests/scripts/extractor-bash.sh JRN-001 cases cover one-line, multi-line, (pattern), ./x), | alternation, a whole case on one line, a case in a loop, nested cases, a quoted ')' and case in $(...)."
+  - "CAP-005 / JRN-002: tests/scripts/cache-repo-architecture.sh rebuilds this repo's architecture over a copy and asserts there is no install.sh:133/187 entry and that the e530f63 oracle in tests/fixtures/architecture-oracle.sh is still listed (matched on file and source text)."
+  - "CAP-004 / JRN-003, JRN-004: build-architecture.sh run_boundary_check returns the fixed reasons 'not found', 'exited <n> without a JSON report' or 'no .summary.violations in its output', drops stderr (D9) and exits 0. The --violations-json parse error path is unchanged (exit 2). tests/scripts/cache-boundary-check.sh covers all three stand-ins, the answering stand-in, the non-JSON --violations-json, and checks that stderr stays out of the body. The npx fallback with depcruise absent gives 'exited <n> without a JSON report', which matches design-log D9 and the disc-004 motivation."
+  - "Goal 3 / JRN-005: .agents/lib/test-paths.sh holds the defaults, the profile loader (with the empty-Toolchain-block guard) and the matcher. budget-check.sh and build-architecture.sh source it and no longer hold copies. Exit codes stay 1 and 2. The budget-check message for a list with empty entries changed, and design-log line 224 records that as accepted. The entry-candidate JS regex in build-architecture.sh is not in the diff (D8)."
+  - "Goal 4 / JRN-006: status-transition, budget-check, task-waves, commit-workflow-data, initiative-transition and open-task-pr (spec dir and --record) call wf_main_root and wf_norm_folder in .agents/lib/workflow-paths.sh. The local main_root, norm_spec_dir and norm_initiative_dir copies are removed. Each caller keeps its own die message and exit code (D4). open-task-pr now rejects an absolute path outside the specs or initiatives root, as the End state allows."
+  - "Goal 5 / JRN-007: .agents/agents/cache-regeneration.md now names only .agents/skills/regenerate-caches/scripts (grep). check-staged-cache.sh runs validate_mermaid.mjs when node, mermaid and jsdom are reachable, and otherwise warns 'not machine-validated' with the checklist path; the ok, 0/1/2 contract is kept. regenerate-caches may depend on standalone-skills (visual-change-report) under .workflow/rules.md Ownership. P1 is in proposals.md with status proposed."
+  - "End state: .agents/install-manifest.txt lists lib/test-paths.sh."
+  - "Non-goals: no bash boundary checker, no full parser, no ;& / ;;& handling, no other main-checkout resolvers moved, no Node-version rules, and .workflow/rules.md is unchanged in the diff."
+  - "Artifacts read: artifacts/gate-3.9-w2/toolchain.json and toolchain.txt (tests/run-all.sh pass, 3072 passed, 0 failed, 56 suites, lint pass). Listed the artifacts/T1-T6 and integration-shell-scripts folders. Read the work-backlog disc-001 (worktree guard) and disc-002 (TGT-001 noise) items in the diff; both are filed discovered work, not unasked behaviour."
+not_verifiable:
+  - "JRN-008 (caches published after the change) is manual at 5.x: no regenerate-caches run or published .workflow/cache/architecture.md is in the diff or artifacts/ yet. The orchestrator should confirm at 5.x that check-staged-cache.sh prints ok for all three caches and that the published architecture cache passes the JRN-002 oracle."
+  - "Goal 5 'after P1 no reference in it breaks .workflow/rules.md Ownership' depends on P1 being approved at 5.3. Until then the agents module's call into regenerate-caches stays outside may_depend_on."
+not_checked: []

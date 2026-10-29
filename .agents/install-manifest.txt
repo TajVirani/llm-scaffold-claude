@@ -33,8 +33,9 @@ agents/review-standards.md
 agents/review-targets.md
 agents/standards-discovery.md
 
-# --- Shared path helper: the workflow root and every path under it, sourced by hooks and skill scripts
+# --- Shared helpers: the workflow root and every path under it, and which paths are tests; sourced by hooks and skill scripts
 lib/workflow-paths.sh
+lib/test-paths.sh
 
 # --- Claude hooks (9 workflow hooks + shared helper) and the destructive-git guard (wired by both templates; also the Codex Bash guard)
 hooks/_guard-common.sh

@@ -1,0 +1,27 @@
+status: "done"
+summary: "The six feature-workflow scripts validate folder paths through wf_norm_folder and find the main checkout through wf_main_root, each keeping its own die message and exit code; open-task-pr (task mode and --record) now refuses an absolute path outside the specs or initiatives root. budget-check loads and matches test patterns through lib/test-paths.sh with no local defaults or matcher, rewording an invalid test_patterns reason to its own 'must be a list of path patterns' (exit 1)."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t1"
+branch: "task/005-cache-build-followups/T01-feature-workflow-shared-helpers"
+base_commit: "d4899749c45c99f32f8f539fed7a005e2649cc38"
+head_commit: "ea03be749718d7ab94eeb40f922bcd9c236a0e1d"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/budget-check.sh"
+  - ".agents/skills/feature-workflow/scripts/commit-workflow-data.sh"
+  - ".agents/skills/feature-workflow/scripts/initiative-transition.sh"
+  - ".agents/skills/feature-workflow/scripts/open-task-pr.sh"
+  - ".agents/skills/feature-workflow/scripts/status-transition.sh"
+  - ".agents/skills/feature-workflow/scripts/task-waves.sh"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/task-breakdown; FAIL JRN-006 open-task-pr task mode takes the absolute-elsewhere spec folder as before, an absolute path elsewhere now refused (got=0|...skipped... want=1|open-task-pr.sh: spec dir must be .workflow/specs/NNN-slug: ...) and the matching --record row (got=0 want=2); tests/run-all.sh --suite scripts/lib-test-paths; FAIL JRN-005 no shell file under .agents/ outside lib/test-paths.sh lists the default test patterns (got=budget-check.sh)"
+  green: "task-breakdown 115/115, lib-workflow-paths 30/30, budget-check 77/77 (also under /bin/bash 3.2), status-transition-specs 229/229, status-transition-tasks 143/143, commit-workflow-data 34/34, initiative-transition 74/74; lib-test-paths 46/47, the one failure now naming only regenerate-caches/scripts/build-architecture.sh (outside this task)"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/005-cache-build-followups --task-id T1 --cwd <worktree>; test (scoped, own 2 suites) pass, exit 0"
+  toolchain: ".workflow/specs/005-cache-build-followups/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Adding new tests: the Phase 1 suites (task-breakdown, lib-workflow-paths, budget-check, lib-test-paths and the per-script JRN-006 rows) already pin every acceptance criterion at the agreed seams."
+  - "Keeping budget-check's separate 'must hold non-empty strings only' message for a list with empty or non-string entries: the shared loader reports both invalid shapes with one reason, so budget-check now gives 'must be a list of path patterns' for both (still exit 1, still names the profile)."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

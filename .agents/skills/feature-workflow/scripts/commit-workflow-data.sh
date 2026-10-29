@@ -32,32 +32,6 @@ USAGE="usage: commit-workflow-data.sh <spec-dir> -m <message> [--cwd <dir>]"
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit "${2:-2}"; }
 usage() { echo "$USAGE" >&2; exit 2; }
 
-# main_root DIR : print the main checkout root from any directory inside the repo or one of its worktrees.
-main_root() {
-  local common
-  common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
-    || die "not inside a git repository: $1"
-  if [[ "$(basename "$common")" == ".git" ]]; then
-    dirname "$common"
-  else
-    git -C "$1" worktree list --porcelain | sed -n '1s/^worktree //p'
-  fi
-}
-
-# norm_spec_dir DIR : print DIR as `.workflow/specs/NNN-slug`, or die.
-norm_spec_dir() {
-  local d=$1
-  d=${d%/}
-  d=${d#./}
-  if [[ "$d" == /* ]]; then
-    [[ "$(dirname "$d")" == */"$WF_SPECS" ]] || die "spec dir must be $WF_SPECS/NNN-slug: $1"
-    d="$WF_SPECS/$(basename "$d")"
-  fi
-  [[ "$d" == "$WF_SPECS"/* && "${d#"$WF_SPECS"/}" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
-    || die "spec dir must be $WF_SPECS/NNN-slug: $1"
-  printf '%s\n' "$d"
-}
-
 # has_paths PATHSPEC... : true when the pathspecs match a tracked or untracked, non-ignored file in the main checkout.
 has_paths() {
   [[ -n "$(git -C "$ROOT" ls-files -c -o --exclude-standard -- "$@" | head -1)" ]]
@@ -76,8 +50,8 @@ done
 [[ -n "$SPEC_ARG" && -n "$MSG" ]] || usage
 
 command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4"
-ROOT=$(main_root "$OPT_CWD")
-SPEC_DIR=$(norm_spec_dir "$SPEC_ARG")
+ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
+SPEC_DIR=$(wf_norm_folder spec "$SPEC_ARG" 2>/dev/null) || die "spec dir must be $WF_SPECS/NNN-slug: $SPEC_ARG"
 SPEC=$(wf_path "$ROOT" "$SPEC_DIR/spec.md")
 [[ -f "$SPEC" ]] || die "spec.md not found: $SPEC"
 

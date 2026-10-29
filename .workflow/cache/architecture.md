@@ -1,6 +1,6 @@
 ---
-generated_at_commit: e530f63f7103b9286d32d21f6b9f75055ef8c5d8
-generated_at: "2026-10-26T15:23:10Z"
+generated_at_commit: 65ae1c501fe154e76b5dea5a3372718b3510cde6
+generated_at: "2026-10-28T22:29:55Z"
 scope:
   - ".agents/README.md"
   - ".agents/agents"
@@ -62,6 +62,7 @@ flowchart LR
   tests --> _agents_hooks
   tests --> _agents_lib
   tests --> _agents_skills_feature_workflow
+  tests --> _agents_skills_regenerate_caches
   tests --> install_sh
   tests --> scripts
 ```
@@ -81,6 +82,7 @@ flowchart LR
 - `tests` → `.agents/hooks`
 - `tests` → `.agents/lib`
 - `tests` → `.agents/skills/feature-workflow`
+- `tests` → `.agents/skills/regenerate-caches`
 - `tests` → `install.sh`
 - `tests` → `scripts`
 
@@ -90,11 +92,9 @@ Not checked: no boundary checker for this project's graph extractors (bash).
 
 ## Unresolved edges
 
-- `.agents/skills/regenerate-caches/scripts/build-architecture.sh:128` `$EXTRACTORS_DIR/*.sh`
-- `.agents/skills/regenerate-caches/scripts/build-architecture.sh:138` `$EXTRACTORS_DIR/$name.sh`
-- `.agents/skills/regenerate-caches/scripts/build-architecture.sh:267` `$EXTRACTORS_DIR/$name.sh`
-- `install.sh:133` `../*`
-- `install.sh:187` `../*`
+- `.agents/skills/regenerate-caches/scripts/build-architecture.sh:133` `$EXTRACTORS_DIR/*.sh`
+- `.agents/skills/regenerate-caches/scripts/build-architecture.sh:143` `$EXTRACTORS_DIR/$name.sh`
+- `.agents/skills/regenerate-caches/scripts/build-architecture.sh:272` `$EXTRACTORS_DIR/$name.sh`
 - `tests/fixtures/graph-extractors.sh:128` `$r/bin/build.sh`
 - `tests/fixtures/graph-extractors.sh:128` `$r/ops/report.sh`
 - `tests/fixtures/graph-extractors.sh:128` `$r/tests/build-test.sh`
@@ -198,11 +198,12 @@ Not checked: no boundary checker for this project's graph extractors (bash).
 - `tests/run-all.sh:83` `$HERE/hooks/*.sh`
 - `tests/run-all.sh:83` `$HERE/lint/*.sh`
 - `tests/run-all.sh:83` `$HERE/scripts/*.sh`
-- `tests/scripts/budget-check.sh:179` `$SRC/scripts/budget-check.sh`
-- `tests/scripts/budget-check.sh:182` `$SRC/scripts/budget-check.sh`
-- `tests/scripts/budget-check.sh:18` `$SRC/scripts/status-transition.sh`
-- `tests/scripts/budget-check.sh:19` `$SRC/scripts/check-write.sh`
-- `tests/scripts/budget-check.sh:20` `$SRC/scripts/budget-check.sh`
+- `tests/scripts/budget-check.sh:13` `$TESTS_DIR/fixtures/workflow-folders.sh`
+- `tests/scripts/budget-check.sh:183` `$SRC/scripts/budget-check.sh`
+- `tests/scripts/budget-check.sh:194` `$SRC/scripts/budget-check.sh`
+- `tests/scripts/budget-check.sh:22` `$SRC/scripts/status-transition.sh`
+- `tests/scripts/budget-check.sh:23` `$SRC/scripts/check-write.sh`
+- `tests/scripts/budget-check.sh:24` `$SRC/scripts/budget-check.sh`
 - `tests/scripts/build-architecture.sh:138` `$PLUGIN_DIR/$PLUGIN.sh`
 - `tests/scripts/build-architecture.sh:139` `$ROOT/ops/gone.sh`
 - `tests/scripts/build-architecture.sh:14` `$TESTS_DIR/fixtures/graph-extractors.sh`
@@ -214,11 +215,11 @@ Not checked: no boundary checker for this project's graph extractors (bash).
 - `tests/scripts/cache-bash-project.sh:21` `$S/build-architecture.sh`
 - `tests/scripts/cache-bash-project.sh:22` `$S/check-staged-cache.sh`
 - `tests/scripts/cache-bash-project.sh:23` `$S/extractors/bash.sh`
-- `tests/scripts/cache-boundary-check.sh:13` `$TESTS_DIR/fixtures/graph-extractors.sh`
-- `tests/scripts/cache-boundary-check.sh:19` `$S/build-architecture.sh`
-- `tests/scripts/cache-boundary-check.sh:20` `$S/check-staged-cache.sh`
-- `tests/scripts/cache-boundary-check.sh:93` `$S/extractors/bash.sh`
-- `tests/scripts/cache-boundary-check.sh:93` `$S/extractors/dependency-cruiser.sh`
+- `tests/scripts/cache-boundary-check.sh:154` `$S/extractors/bash.sh`
+- `tests/scripts/cache-boundary-check.sh:154` `$S/extractors/dependency-cruiser.sh`
+- `tests/scripts/cache-boundary-check.sh:16` `$TESTS_DIR/fixtures/graph-extractors.sh`
+- `tests/scripts/cache-boundary-check.sh:22` `$S/build-architecture.sh`
+- `tests/scripts/cache-boundary-check.sh:23` `$S/check-staged-cache.sh`
 - `tests/scripts/cache-js-unchanged.sh:15` `$TESTS_DIR/fixtures/graph-extractors.sh`
 - `tests/scripts/cache-js-unchanged.sh:21` `$S/build-architecture.sh`
 - `tests/scripts/cache-js-unchanged.sh:22` `$S/extractors/dependency-cruiser.sh`
@@ -228,25 +229,26 @@ Not checked: no boundary checker for this project's graph extractors (bash).
 - `tests/scripts/cache-mixed-extractors.sh:17` `$S/build-architecture.sh`
 - `tests/scripts/cache-mixed-extractors.sh:64` `$S/extractors/bash.sh`
 - `tests/scripts/cache-mixed-extractors.sh:64` `$S/extractors/dependency-cruiser.sh`
-- `tests/scripts/cache-scripts.sh:20` `$S/publish-cache.sh`
-- `tests/scripts/cache-scripts.sh:21` `$S/publish-cache.sh`
-- `tests/scripts/cache-scripts.sh:22` `$S/publish-cache.sh`
-- `tests/scripts/cache-scripts.sh:26` `$S/cache-stamp-check.sh`
-- `tests/scripts/cache-scripts.sh:32` `$S/cache-stamp-check.sh`
+- `tests/scripts/cache-repo-architecture.sh:12` `$TESTS_DIR/fixtures/architecture-oracle.sh`
+- `tests/scripts/cache-scripts.sh:214` `$S/*.sh`
+- `tests/scripts/cache-scripts.sh:24` `$S/publish-cache.sh`
+- `tests/scripts/cache-scripts.sh:25` `$S/publish-cache.sh`
+- `tests/scripts/cache-scripts.sh:26` `$S/publish-cache.sh`
+- `tests/scripts/cache-scripts.sh:30` `$S/cache-stamp-check.sh`
 - `tests/scripts/cache-scripts.sh:36` `$S/cache-stamp-check.sh`
-- `tests/scripts/cache-scripts.sh:41` `$S/cache-stamp-check.sh`
-- `tests/scripts/cache-scripts.sh:47` `$S/cache-stamp-check.sh`
-- `tests/scripts/cache-scripts.sh:51` `$S/publish-cache.sh`
-- `tests/scripts/cache-scripts.sh:59` `$S/cache-stamp-check.sh`
-- `tests/scripts/cache-scripts.sh:67` `$S/cache-stamp-check.sh`
-- `tests/scripts/cache-scripts.sh:74` `$S/cache-stamp-check.sh`
-- `tests/scripts/cache-scripts.sh:80` `$S/publish-cache.sh`
-- `tests/scripts/cache-scripts.sh:81` `$S/publish-cache.sh`
-- `tests/scripts/cache-scripts.sh:83` `$S/publish-cache.sh`
+- `tests/scripts/cache-scripts.sh:40` `$S/cache-stamp-check.sh`
+- `tests/scripts/cache-scripts.sh:45` `$S/cache-stamp-check.sh`
+- `tests/scripts/cache-scripts.sh:51` `$S/cache-stamp-check.sh`
+- `tests/scripts/cache-scripts.sh:55` `$S/publish-cache.sh`
+- `tests/scripts/cache-scripts.sh:63` `$S/cache-stamp-check.sh`
+- `tests/scripts/cache-scripts.sh:71` `$S/cache-stamp-check.sh`
+- `tests/scripts/cache-scripts.sh:78` `$S/cache-stamp-check.sh`
+- `tests/scripts/cache-scripts.sh:84` `$S/publish-cache.sh`
 - `tests/scripts/cache-scripts.sh:85` `$S/publish-cache.sh`
-- `tests/scripts/cache-scripts.sh:86` `$S/publish-cache.sh`
-- `tests/scripts/cache-scripts.sh:88` `$S/publish-cache.sh`
-- `tests/scripts/cache-scripts.sh:93` `$S/*.sh`
+- `tests/scripts/cache-scripts.sh:87` `$S/publish-cache.sh`
+- `tests/scripts/cache-scripts.sh:89` `$S/publish-cache.sh`
+- `tests/scripts/cache-scripts.sh:90` `$S/publish-cache.sh`
+- `tests/scripts/cache-scripts.sh:92` `$S/publish-cache.sh`
 - `tests/scripts/check-review-findings.sh:13` `$TESTS_DIR/fixtures/review-lessons.sh`
 - `tests/scripts/check-review-findings.sh:18` `$WORK/scaffold/.agents/skills/feature-workflow/scripts/check-review-findings.sh`
 - `tests/scripts/check-review-findings.sh:294` `$TESTS_DIR/scripts/check-review-findings.sh`
@@ -262,9 +264,11 @@ Not checked: no boundary checker for this project's graph extractors (bash).
 - `tests/scripts/check-write-tier-a.sh:18` `$SRC/scripts/status-transition.sh`
 - `tests/scripts/check-write-tier-a.sh:19` `$SRC/scripts/check-write.sh`
 - `tests/scripts/check-write-tier-a.sh:20` `$SRC/scripts/budget-check.sh`
-- `tests/scripts/commit-workflow-data.sh:13` `$FW_SKILL/scripts/commit-workflow-data.sh`
-- `tests/scripts/extractor-bash.sh:14` `$TESTS_DIR/fixtures/graph-extractors.sh`
-- `tests/scripts/extractor-bash.sh:19` `$WORK/scaffold/.agents/skills/regenerate-caches/scripts/extractors/bash.sh`
+- `tests/scripts/commit-workflow-data.sh:13` `$TESTS_DIR/fixtures/workflow-folders.sh`
+- `tests/scripts/commit-workflow-data.sh:16` `$FW_SKILL/scripts/commit-workflow-data.sh`
+- `tests/scripts/extractor-bash.sh:16` `$TESTS_DIR/fixtures/graph-extractors.sh`
+- `tests/scripts/extractor-bash.sh:205` `./x`
+- `tests/scripts/extractor-bash.sh:21` `$WORK/scaffold/.agents/skills/regenerate-caches/scripts/extractors/bash.sh`
 - `tests/scripts/generate-boundary-config.sh:14` `$SETUP/scripts/generate-boundary-config.sh`
 - `tests/scripts/graph-extractor-selection.sh:14` `$TESTS_DIR/fixtures/graph-extractors.sh`
 - `tests/scripts/graph-extractor-selection.sh:20` `$S/build-architecture.sh`
@@ -281,12 +285,19 @@ Not checked: no boundary checker for this project's graph extractors (bash).
 - `tests/scripts/initiative-merge.sh:265` `$P/$SCRIPTS_REL/open-task-pr.sh`
 - `tests/scripts/initiative-merge.sh:265` `$P/$SCRIPTS_REL/rules-setting.sh`
 - `tests/scripts/initiative-merge.sh:50` `$P/$SCRIPTS_REL/rules-setting.sh`
-- `tests/scripts/initiative-transition.sh:10` `$TESTS_DIR/fixtures/initiative.sh`
+- `tests/scripts/initiative-transition.sh:11` `$TESTS_DIR/fixtures/initiative.sh`
+- `tests/scripts/initiative-transition.sh:13` `$TESTS_DIR/fixtures/workflow-folders.sh`
 - `tests/scripts/install-payload.sh:53` `$WORK/badsc/install.sh`
 - `tests/scripts/install-payload.sh:79` `$1/.agents/lib/workflow-paths.sh`
 - `tests/scripts/install-upgrade.sh:42` `$WORK/sc2/install.sh`
 - `tests/scripts/install-upgrade.sh:51` `$WORK/sc2/install.sh`
 - `tests/scripts/install-upgrade.sh:73` `$WORK/sc2/install.sh`
+- `tests/scripts/lib-test-paths.sh:14` `$TESTS_DIR/fixtures/graph-extractors.sh`
+- `tests/scripts/lib-test-paths.sh:19` `$WORK/scaffold/.agents/lib/test-paths.sh`
+- `tests/scripts/lib-test-paths.sh:20` `$WORK/scaffold/.agents/skills/feature-workflow/scripts/budget-check.sh`
+- `tests/scripts/lib-test-paths.sh:21` `$WORK/scaffold/.agents/skills/regenerate-caches/scripts/build-architecture.sh`
+- `tests/scripts/lib-workflow-paths.sh:12` `$TESTS_DIR/fixtures/workflow-folders.sh`
+- `tests/scripts/lib-workflow-paths.sh:17` `$WORK/scaffold/.agents/lib/workflow-paths.sh`
 - `tests/scripts/resolve-launch-initiative.sh:11` `$TESTS_DIR/fixtures/initiative.sh`
 - `tests/scripts/resolve-launch.sh:14` `$WORK/scaffold/.agents/skills/feature-workflow/scripts/resolve-launch.sh`
 - `tests/scripts/review-lessons.sh:11` `$TESTS_DIR/fixtures/review-lessons.sh`
@@ -303,11 +314,12 @@ Not checked: no boundary checker for this project's graph extractors (bash).
 - `tests/scripts/run-all-selection.sh:45` `$FIXTURE_TESTS/hooks/gamma.sh`
 - `tests/scripts/run-all-selection.sh:46` `$FIXTURE_TESTS/lint/delta.sh`
 - `tests/scripts/run-toolchain.sh:13` `$WORK/scaffold/.agents/skills/feature-workflow/scripts/run-toolchain.sh`
-- `tests/scripts/status-transition-specs.sh:18` `$SRC/scripts/status-transition.sh`
-- `tests/scripts/status-transition-specs.sh:19` `$SRC/scripts/check-write.sh`
-- `tests/scripts/status-transition-specs.sh:20` `$SRC/scripts/budget-check.sh`
-- `tests/scripts/status-transition-specs.sh:243` `$SRC/scripts/check-write.sh`
-- `tests/scripts/status-transition-specs.sh:243` `$SRC/scripts/status-transition.sh`
+- `tests/scripts/status-transition-specs.sh:12` `$TESTS_DIR/fixtures/workflow-folders.sh`
+- `tests/scripts/status-transition-specs.sh:21` `$SRC/scripts/status-transition.sh`
+- `tests/scripts/status-transition-specs.sh:22` `$SRC/scripts/check-write.sh`
+- `tests/scripts/status-transition-specs.sh:23` `$SRC/scripts/budget-check.sh`
+- `tests/scripts/status-transition-specs.sh:255` `$SRC/scripts/check-write.sh`
+- `tests/scripts/status-transition-specs.sh:255` `$SRC/scripts/status-transition.sh`
 - `tests/scripts/status-transition-tasks.sh:125` `$SRC/scripts/status-transition.sh`
 - `tests/scripts/status-transition-tasks.sh:18` `$SRC/scripts/status-transition.sh`
 - `tests/scripts/status-transition-tasks.sh:19` `$SRC/scripts/check-write.sh`
@@ -317,14 +329,17 @@ Not checked: no boundary checker for this project's graph extractors (bash).
 - `tests/scripts/status-transition-tasks.sh:264` `$SRC/scripts/status-transition.sh`
 - `tests/scripts/step-progress.sh:14` `$TESTS_DIR/fixtures/initiative.sh`
 - `tests/scripts/step-progress.sh:18` `$FW_SKILL/scripts/step-progress.sh`
-- `tests/scripts/task-breakdown.sh:124` `$WORK/scaffold/.agents/skills/project-setup/scripts/generate-boundary-config.sh`
-- `tests/scripts/task-breakdown.sh:14` `$S/task-waves.sh`
-- `tests/scripts/task-breakdown.sh:15` `$S/rules-setting.sh`
-- `tests/scripts/task-breakdown.sh:164` `$S/open-task-pr.sh`
-- `tests/scripts/task-breakdown.sh:183` `$S/open-task-pr.sh`
-- `tests/scripts/task-breakdown.sh:235` `$S/run-toolchain.sh`
-- `tests/scripts/task-breakdown.sh:260` `$S/open-task-pr.sh`
-- `tests/scripts/task-breakdown.sh:260` `$S/rules-setting.sh`
-- `tests/scripts/task-breakdown.sh:260` `$S/run-toolchain.sh`
-- `tests/scripts/task-breakdown.sh:260` `$S/task-waves.sh`
+- `tests/scripts/task-breakdown.sh:128` `$WORK/scaffold/.agents/skills/project-setup/scripts/generate-boundary-config.sh`
+- `tests/scripts/task-breakdown.sh:12` `$TESTS_DIR/fixtures/workflow-folders.sh`
+- `tests/scripts/task-breakdown.sh:168` `$S/open-task-pr.sh`
+- `tests/scripts/task-breakdown.sh:187` `$S/open-task-pr.sh`
+- `tests/scripts/task-breakdown.sh:18` `$S/task-waves.sh`
+- `tests/scripts/task-breakdown.sh:19` `$S/rules-setting.sh`
+- `tests/scripts/task-breakdown.sh:239` `$S/run-toolchain.sh`
+- `tests/scripts/task-breakdown.sh:275` `$S/open-task-pr.sh`
+- `tests/scripts/task-breakdown.sh:280` `$S/open-task-pr.sh`
+- `tests/scripts/task-breakdown.sh:284` `$S/open-task-pr.sh`
+- `tests/scripts/task-breakdown.sh:284` `$S/rules-setting.sh`
+- `tests/scripts/task-breakdown.sh:284` `$S/run-toolchain.sh`
+- `tests/scripts/task-breakdown.sh:284` `$S/task-waves.sh`
 - `tests/scripts/upstream-diff.sh:16` `$WORK/scaffold/scripts/upstream-diff.sh`
