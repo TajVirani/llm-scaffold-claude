@@ -123,7 +123,7 @@ tasks:
     pr: null
   - id: T7
     title: "Docs describe the upgrade matcher rule"
-    status: pending
+    status: done
     capability: CAP-NEW-result-file-write
     depends_on: [T6]
     touches_core: false

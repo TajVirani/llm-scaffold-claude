@@ -1,0 +1,1 @@
+tests/lint/install-matcher-docs.sh
