@@ -17,7 +17,7 @@ cp "$REPO_ROOT/install.sh" "$SC/install.sh"
 copy_agents "$SC"
 git_init_repo "$SC"
 git_commit_all "$SC" scaffold
-INST() { "$TEST_BASH" "$SC/install.sh" "$@"; }
+INST() { "$TEST_BASH" "$SC/install.sh" "$@" </dev/null; }
 
 # snap DIR : one line per file (cksum) and symlink (target) outside .git, sorted.
 snap() {

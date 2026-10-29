@@ -23,13 +23,19 @@ Index: [../tasks.md](../tasks.md) · Blocked by: None (can start immediately; ne
 - [ ] Every existing guard case for Phase 3, isolation (linked-worktree cwd), Codex and the main session keeps its verdict.
 - [ ] The stop audit for a Claude Phase 1 launch runs the toolchain once in `s<NNN>_phase_1_<enc>` with `--skip test`, and for an integration launch once in `s<NNN>_integration_<enc>` with no `--skip`. A failing integration toolchain blocks the stop. A missing worktree gives a warning and allows the stop. Codex and Phase 3 behaviour is unchanged.
 - [ ] `git grep -n codex_enc -- .agents/hooks` prints nothing (target codex-enc-copies). The Codex `task_name` checks in `codex-pre-spawn.sh` and the audit accept the same names as before.
-- [ ] The template and `.claude/settings.json` each have one SubagentStop entry whose matcher matches `implementation` and `integration`. An `install.sh` upgrade from the old template leaves exactly one entry.
+- [ ] The template and `.claude/settings.json` each have one SubagentStop entry whose matcher matches `implementation` and `integration`. The upgrade case moves to T06.
 - [ ] Hook headers and `claude-settings.template.md` describe the new confinement. The `isolation` wording goes, except where rule 2 (linked-worktree cwd) still applies.
-- [ ] The four suites under Phase 1 tests pass, the existing hook suites still pass, and shellcheck is clean.
+- [ ] The Merge rules of `claude-settings.template.md` state the upgrade matcher rule (spec Constraints, D19-D29):
+  - It applies to an existing group that runs a template command under a matcher not covering the template's.
+  - `--matchers=merge|replace|keep` sets the outcome. At a terminal the installer asks, and Enter merges. Without a terminal it merges with a Warnings line, but a mixed group is kept with a warning.
+  - A match-all group is never touched, and only plain `|` alternations are merged.
+  - The rule replaces the line that skips a group whatever its matcher.
+  - JRN-014 checks these lines in `tests/lint/install-matcher-docs.sh`, which T07 owns.
+- [ ] The three suites under Phase 1 tests pass, the existing hook suites still pass, and shellcheck is clean.
 
 **Predicted files:** `.agents/hooks/worktree-write-guard.sh`, `.agents/hooks/post-implementation-audit.sh`, `.agents/hooks/codex-pre-spawn.sh`, `.agents/hooks/claude-settings.template.json`, `.agents/hooks/claude-settings.template.md`, `.claude/settings.json`
 
-**Phase 1 tests:** `tests/scripts/lib-workflow-paths.sh`, `tests/hooks/audit-agent-worktrees.sh`, `tests/scripts/install-claude-settings.sh`, `tests/scripts/install-upgrade.sh`
+**Phase 1 tests:** `tests/scripts/lib-workflow-paths.sh`, `tests/hooks/audit-agent-worktrees.sh`, `tests/scripts/install-claude-settings.sh` (`tests/scripts/install-upgrade.sh` moved to T06 at the 2.5 re-run)
 
 **Size:** M (6 files, about 200 changed lines).
 

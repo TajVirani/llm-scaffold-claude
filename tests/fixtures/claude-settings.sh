@@ -1,14 +1,74 @@
 #!/usr/bin/env bash
 # File: Claude settings fixtures for the install and stop-audit suites: hooks/claude-settings.template.json as it was while the
-#   SubagentStop stop audit matched only implementation agents, so an upgrade from it can be tested, and readers for the
-#   SubagentStop groups that run the stop audit. Sourced after lib/common.sh; defines functions only. bash 3.2 compatible.
+#   SubagentStop stop audit matched only implementation agents, so an upgrade from it can be tested; the template the upgrade
+#   goes to, with the stop audit widened to integration agents; editors that turn an installed settings file into an upgrade
+#   target with user groups (changed matchers, mixed groups); and readers for the hook groups. Sourced after lib/common.sh;
+#   defines functions only. bash 3.2 compatible. A group "runs COMMAND" when one of its hooks has a command containing COMMAND.
 # Provides:
 #   old_claude_settings_template DEST          writes that template to DEST
 #   use_old_claude_settings SCAFFOLD           puts it in place of SCAFFOLD/.agents/hooks/claude-settings.template.json
+#   widen_stop_audit_matcher TEMPLATE          sets the matcher of TEMPLATE's stop-audit SubagentStop group to
+#                                              implementation|integration, whatever the repo's template ships today
 #   stop_audit_matchers SETTINGS               prints the matcher of each SubagentStop group in SETTINGS that runs
 #                                              post-implementation-audit.sh, one per line
 #   matcher_matches MATCHER AGENT_TYPE         true when MATCHER matches the whole of AGENT_TYPE, read as a regular expression
 #                                              the way Claude Code reads a matcher
+#   set_group_matcher SETTINGS EVENT COMMAND MATCHER
+#                                              sets the matcher of each EVENT group in SETTINGS that runs COMMAND
+#   drop_group_matcher SETTINGS EVENT COMMAND  removes the matcher of each such group, so it matches everything
+#   add_user_hook SETTINGS EVENT COMMAND USER_COMMAND
+#                                              appends a hook running USER_COMMAND to each such group, making it mixed
+#   add_stop_audit_group SETTINGS MATCHER USER_COMMAND
+#                                              appends a SubagentStop group under MATCHER running the stop audit hook already
+#                                              in SETTINGS, then USER_COMMAND
+#   group_matchers SETTINGS EVENT COMMAND      prints the matcher of each such group, one per line ("<none>" when it has none)
+#   group_json SETTINGS EVENT COMMAND          prints each such group as compact JSON, one per line
+
+# shellcheck disable=SC2016  # jq programs, not shell
+
+# runs_command_def : the jq function runs($c), true for a group with a hook whose command contains $c.
+runs_command_def() {
+  printf '%s\n' 'def runs($c): any(.hooks[]?; (.command // "") | contains($c));'
+}
+
+# edit_settings SETTINGS JQ_PROGRAM [JQ_ARGS...] : rewrites SETTINGS in place through JQ_PROGRAM, which may call runs($c).
+edit_settings() {
+  local file=$1 program=$2
+  shift 2
+  jq "$@" "$(runs_command_def) $program" "$file" >"$file.edited" && mv "$file.edited" "$file"
+}
+
+widen_stop_audit_matcher() {
+  set_group_matcher "$1" SubagentStop post-implementation-audit.sh 'implementation|integration'
+}
+
+set_group_matcher() {
+  edit_settings "$1" '.hooks[$e] |= map(if runs($c) then .matcher = $m else . end)' --arg e "$2" --arg c "$3" --arg m "$4"
+}
+
+drop_group_matcher() {
+  edit_settings "$1" '.hooks[$e] |= map(if runs($c) then del(.matcher) else . end)' --arg e "$2" --arg c "$3"
+}
+
+add_user_hook() {
+  edit_settings "$1" '.hooks[$e] |= map(if runs($c) then .hooks += [{type: "command", command: $u}] else . end)' \
+    --arg e "$2" --arg c "$3" --arg u "$4"
+}
+
+add_stop_audit_group() {
+  edit_settings "$1" '
+    [.hooks.SubagentStop[] | .hooks[] | select((.command // "") | contains("post-implementation-audit.sh"))][0] as $audit
+    | .hooks.SubagentStop += [{matcher: $m, hooks: [$audit, {type: "command", command: $u}]}]' --arg m "$2" --arg u "$3"
+}
+
+group_matchers() {
+  jq -r "$(runs_command_def)"' .hooks[$e][]? | select(runs($c)) | if has("matcher") then .matcher else "<none>" end' \
+    --arg e "$2" --arg c "$3" "$1"
+}
+
+group_json() {
+  jq -c "$(runs_command_def)"' .hooks[$e][]? | select(runs($c))' --arg e "$2" --arg c "$3" "$1"
+}
 
 stop_audit_matchers() {
   jq -r '.hooks.SubagentStop[]? | select(any(.hooks[]?; .command | test("post-implementation-audit.sh"))) | .matcher // ""' "$1"

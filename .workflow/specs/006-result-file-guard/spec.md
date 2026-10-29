@@ -1,5 +1,5 @@
 ---
-status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "e049f4dde93474aca594212026144ed7006a917f" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/006-result-file-guard # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "5a7f8c9fdec8822cbd1955a655573f0acc5b0679" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
@@ -23,7 +23,7 @@ After this change every one of those agents writes its result file straight to `
 
 - **CAP-NEW-result-file-write** Sub-agents file their own result file
   - **intent:** Implementation (Phase 1 and Phase 3), integration and profile-mini-review agents write their result file to `<main checkout>/<spec_dir>/artifacts/<id>/` themselves, so the orchestrator checks the file the agent wrote.
-  - **success:** On Claude, Phase 1 and integration launches run in agent worktrees the orchestrator creates (`s<NNN>_phase_1_<enc(work_type)>`, `s<NNN>_integration_<enc(work_type)>` on branch `wf/NNN-slug/<name>` off the spec-branch tip, reused on relaunch, removed after merge) with no `isolation`; the worktree guard confines them by name and the stop audit runs in them, integration agents included; each brief's prescribed result-file write passes the guard; and a new gate script, given a branch or the light-path commit, refuses the merge when it adds, modifies or deletes anything under `<spec_dir>/artifacts/` since the merge-base with the spec branch, each shown by suite cases in `tests/`.
+  - **success:** On Claude, Phase 1 and integration launches run in agent worktrees the orchestrator creates (`s<NNN>_phase_1_<enc(work_type)>`, `s<NNN>_integration_<enc(work_type)>` on branch `wf/NNN-slug/<name>` off the spec-branch tip, reused on relaunch, removed after merge) with no `isolation`; the worktree guard confines them by name and the stop audit runs in them, integration agents included, also in a target project upgraded by `install.sh` (an existing hook group that runs a template command under a differing matcher is merged, replaced or kept per group, asked at a terminal, merged with a warning without one, or set by `--matchers=merge|replace|keep`, on every hook event); each brief's prescribed result-file write passes the guard; and a new gate script, given a branch or the light-path commit, refuses the merge when it adds, modifies or deletes anything under `<spec_dir>/artifacts/` since the merge-base with the spec branch, each shown by suite cases in `tests/`.
 - **CAP-NEW-worktree-read-commands** Read-only commands pass the worktree guard
   - **intent:** A confined agent can run a read-only command from the main checkout without the leading `cd <worktree> &&`.
   - **success:** `check-worktree-scope.sh` allows a command made only of allowlisted read commands (cat, head, tail, grep, rg, ls, wc, `sed -n`, find, git log/show/diff/status, yq, jq) joined by `|` or `&&`, and denies it without the leading `cd` when any segment uses a writing or exec flag (`sed` `w`/`W`/`-i`; `find` `-delete`/`-exec`/`-execdir`/`-ok`/`-okdir`/`-fprint*`/`-fls`; `yq`/`jq` `-i`; `git --output`; `rg --pre`) or the command contains `$`, a backtick, `<`, `>`, `;`, a lone `&`, `||`, a newline or `tee`; every other command still needs the leading `cd`, each shown by suite cases in `tests/hooks/worktree-guard.sh`.
@@ -35,6 +35,9 @@ After this change every one of those agents writes its result file straight to `
 - Agent worktree names match the Codex `task_name` forms byte for byte, built by `wf_` functions in `.agents/lib/workflow-paths.sh` pinned to `LC_ALL=C` that replace both `codex_enc` copies (shared core, changed only through the integration agent).
 - The light path keeps its detached worktree and `--ff-only` merge.
 - Writes other than the agent's own result file stay confined to its worktree.
+- `install.sh` never waits on input without a terminal on stdin and stdout; `--dry-run` shows matcher changes and asks nothing; `--force` does not change matchers.
+- Matcher resolution touches only an existing group that runs a template command under a matcher not already covering the template's (re-runs ask nothing). A match-all group (absent, `""`, `"*"`) is never touched. Merge is offered only for plain `|` alternations. A group that also holds a non-template hook is never merged without a terminal or `--matchers`: it is kept with a warning, and its prompt lists every hook in it.
+- The matcher rule, the prompt and `--matchers` are documented in the `install.sh` header, README "Install and upgrade", the Merge rules of `claude-settings.template.md` and a CHANGELOG 2.0.0 Migration line.
 
 ## Non-goals
 
@@ -49,7 +52,7 @@ After this change every one of those agents writes its result file straight to `
 
 ## Success signal
 
-A Phase 1 build, an integration batch, a Phase 3 task and its mini-review each run under the guard and leave their result file in the main checkout's `artifacts/<id>/`, which `check-task-result.sh` accepts with no copy step; a branch carrying a stray `artifacts/` file is refused at merge; and a plain `cat file | head` from a confined agent is allowed while `echo x > file` without `cd` is still denied.
+A Phase 1 build, an integration batch, a Phase 3 task and its mini-review each run under the guard and leave their result file in the main checkout's `artifacts/<id>/`, which `check-task-result.sh` accepts with no copy step; a branch carrying a stray `artifacts/` file is refused at merge; a target upgraded from the old settings audits integration agents with one SubagentStop entry; and a plain `cat file | head` from a confined agent is allowed while `echo x > file` without `cd` is still denied.
 
 ## Assumptions
 

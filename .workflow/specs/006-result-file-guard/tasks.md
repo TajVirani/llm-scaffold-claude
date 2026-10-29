@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Hooks build agent worktree names from the shared lib"
-    status: pending
+    status: in-progress
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: true
@@ -25,11 +25,10 @@ tasks:
       - tests/scripts/lib-workflow-paths.sh
       - tests/hooks/audit-agent-worktrees.sh
       - tests/scripts/install-claude-settings.sh
-      - tests/scripts/install-upgrade.sh
     pr: null
   - id: T2
     title: "Artifacts merge gate"
-    status: pending
+    status: in-progress
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: false
@@ -48,7 +47,7 @@ tasks:
     pr: null
   - id: T3
     title: "Agent briefs write the result file to the main checkout"
-    status: pending
+    status: in-progress
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: false
@@ -103,6 +102,45 @@ tasks:
     tests:
       - tests/lint/agent-worktree-docs.sh
     pr: null
+  - id: T6
+    title: "Upgrade resolves hook matchers per group"
+    status: pending
+    capability: CAP-NEW-result-file-write
+    depends_on: [T1]
+    touches_core: false
+    work_type: null
+    module: "installer"
+    seam: "install.sh CLI on a fixture target: exit code, .claude/settings.json after the run, Warnings lines, the prompt under a pseudo-terminal (install-upgrade JRN-006, JRN-011 to JRN-013)"
+    file: tasks/T06-upgrade-matcher-resolution.md
+    branch: task/006-result-file-guard/T06-upgrade-matcher-resolution
+    predicted_files:
+      - install.sh
+    size: {files: 1, est_lines: 250, points: M}
+    mode: afk
+    parallel_with: []
+    tests:
+      - tests/scripts/install-upgrade.sh
+    pr: null
+  - id: T7
+    title: "Docs describe the upgrade matcher rule"
+    status: pending
+    capability: CAP-NEW-result-file-write
+    depends_on: [T6]
+    touches_core: false
+    work_type: null
+    module: "root-docs"
+    seam: "doc text of the four docs, checked by grep (lint/install-matcher-docs JRN-014)"
+    file: tasks/T07-docs-upgrade-matcher-rule.md
+    branch: task/006-result-file-guard/T07-docs-upgrade-matcher-rule
+    predicted_files:
+      - README.md
+      - CHANGELOG.md
+    size: {files: 2, est_lines: 25, points: S}
+    mode: afk
+    parallel_with: []
+    tests:
+      - tests/lint/install-matcher-docs.sh
+    pr: null
 ---
 
 # Tasks: Sub-agents can write their own result file
@@ -120,6 +158,8 @@ Before wave 1, one shell-scripts integration batch applies T1's shared-core requ
 | 1 | [T3](tasks/T03-agent-briefs-main-checkout-result.md) | Agent briefs write the result file to the main checkout | S (2 files, ~20 lines) | afk | none |
 | 2 | [T4](tasks/T04-read-only-commands-pass-scope-check.md) | Read-only commands pass the worktree scope check | S (1 file, ~120 lines) | afk | none (T1 → T4 is a gating edge: T4 owns `worktree-guard.sh`, which also holds T1's cases) |
 | 2 | [T5](tasks/T05-orchestrator-agent-worktrees.md) | Orchestrator steps launch Phase 1 and integration in agent worktrees | S (2 files, ~120 lines) | afk | none (T3 → T5 is a gating edge: T5 owns `agent-worktree-docs.sh`, which also holds T3's cases) |
+| 2 | [T6](tasks/T06-upgrade-matcher-resolution.md) | Upgrade resolves hook matchers per group | M (1 file, ~250 lines) | afk | none (T1 → T6 is a gating edge: T6 owns `install-upgrade.sh`, whose JRN-006 case needs T1's widened template) |
+| 3 | [T7](tasks/T07-docs-upgrade-matcher-rule.md) | Docs describe the upgrade matcher rule | S (2 files, ~25 lines) | afk | none (T6 → T7 is a gating edge: T7 owns `install-matcher-docs.sh`, which also checks T1's Merge rules and T6's `install.sh` header) |
 
 ## Dependency graph
 
@@ -127,5 +167,7 @@ Before wave 1, one shell-scripts integration batch applies T1's shared-core requ
 graph LR
   T1 --> T4
   T3 --> T5
+  T1 --> T6
+  T6 --> T7
   T2
 ```
