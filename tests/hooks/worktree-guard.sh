@@ -142,6 +142,11 @@ for cmd in 'cat src/a.ts |' '| cat src/a.ts' 'cat src/a.ts &&' 'cat src/a.ts && 
   "sed -n 'w/tmp/out.txt' src/a.ts" "sed -n 's/a/b/w out.txt' src/a.ts" 'find . -fprint0 out.txt' $'cat src/a.ts\r'; do
   expect "JRN-009 task agent edge '${cmd//$'\r'/ CR}' without cd -> deny with the cd hint" deny "$(pl Bash "$cmd" "$P" "$A3")" "cd .*s007_t3 &&"
 done
+for cmd in "sed -n 'wout.txt' src/a.ts" "sed -n '1wout.txt' src/a.ts" "sed -n '1,5wout.txt' src/a.ts" "sed -n '/x/,/y/Wout.txt' src/a.ts" \
+  "sed -n '1{p}wout.txt' src/a.ts" "sed -n '/x/{wout.txt' src/a.ts" "sed -n '1!wout.txt' src/a.ts" \
+  "sed -n '1 wout.txt' src/a.ts" "sed -n 's/a/b/wout.txt' src/a.ts" "sed -n 's/a/b/gpWout.txt' src/a.ts" "sed -n -e 1wout.txt src/a.ts"; do
+  expect "JRN-009 task agent sed write with the file name attached '$cmd' without cd -> deny with the cd hint" deny "$(pl Bash "$cmd" "$P" "$A3")" "cd .*s007_t3 &&"
+done
 
 echo "== Claude: result files from the briefs (JRN-002, JRN-003, JRN-004)"
 UNKNOWN_PLACEHOLDERS="" FILLED=""

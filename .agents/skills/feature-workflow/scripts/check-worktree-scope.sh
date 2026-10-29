@@ -22,7 +22,8 @@
 #            backtick cannot be checked and is denied. Accident prevention only: a command can still cd elsewhere later.
 #            Read-only commands need no `cd`: a command made only of allowlisted reads joined by `|` or `&&` is allowed from anywhere.
 #              Allowlist: cat, head, tail, grep, rg, ls, wc, find, yq, jq, `sed -n`, `git log|show|diff|status`.
-#              Denylist, per tool (the segment needs the `cd`): sed `w`/`W` (a w or W followed by a space or a slash), `-i`,
+#              Denylist, per tool (the segment needs the `cd`): sed `w`/`W` (a w or W followed by a space or a slash, after a
+#              non-letter, or after s-command flags, so an attached file name like `1wout.txt` counts), `-i`,
 #              `--in-place`; find -delete, -exec, -execdir, -ok, -okdir, -fprint*, -fls; yq -i, --inplace, -s, --split-exp;
 #              jq -i; git --output; rg --pre.
 #              Denylist, whole command: `$`, a backtick, `<`, `>`, `;`, a lone `&` (so `|&` too), `||`, a newline, `tee`, an empty segment.
@@ -130,14 +131,15 @@ if under "$c" "$root" || ! under "$c" "$main_root"; then
   exit 0
 fi
 
-# read_only_segment SEGMENT : true when SEGMENT is one allowlisted read whose flags neither write a file nor run a program.
+# read_only_segment SEGMENT : true when SEGMENT is one allowlisted read with none of the denylisted write or exec flags for its tool.
 read_only_segment() {
   local re_split='^[[:space:]]*([^[:space:]]+)(.*)$'
   local re_git_read='^[[:space:]]+(log|show|diff|status)([[:space:]]|$)'
   local re_git_write='[[:space:]]--output([=[:space:]]|$)'
   local re_sed_print='^[[:space:]]+-n([[:space:]]|$)'
-  # Spaces or a slash after w/W also match file names like src/view/, which only costs a needless cd.
-  local re_sed_write='[wW]([[:space:]]|/)|[[:space:]]-[[:alpha:]]*i|[[:space:]]--in-place'
+  # A w/W command may carry its file name with no space ('1wout.txt', 's/a/b/gwout.txt'), so any w/W after a non-letter or after
+  #   s-command flags counts. This also matches file names like src/view/ or words.txt, which only costs a needless cd.
+  local re_sed_write='[wW]([[:space:]]|/)|(^|[^[:alpha:]_.-])[wW]|/[gpiImMe0-9]*[wW]|[[:space:]]-[[:alpha:]]*i|[[:space:]]--in-place'
   local re_find_write='[[:space:]]-(delete|exec|execdir|ok|okdir|fprint[[:alnum:]]*|fls)([[:space:]]|$)'
   local re_yq_write='[[:space:]]-[[:alpha:]]*[is]|[[:space:]]--(inplace|split-exp)'
   local re_jq_write='[[:space:]]-[[:alpha:]]*i'
@@ -165,6 +167,7 @@ read_only_chain() {
   case "$chain" in *'$'*|*'`'*|*'<'*|*'>'*|*';'*|*'||'*|*$'\n'*|*$'\r'*) return 1 ;; esac
   [[ "$chain" =~ $re_tee ]] && return 1
   chain=${chain//&&/|}
+  # Runs after the && rewrite above, so any & left is a lone & (background or |&); checked earlier it would deny every && chain.
   case "$chain" in *'&'*) return 1 ;; esac
   rest="$chain|"
   while [ -n "$rest" ]; do
