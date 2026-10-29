@@ -73,7 +73,7 @@ tasks:
     capability: CAP-NEW-pr-template
     depends_on: [T2]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: feature-workflow
     seam: "check-pr-body.sh <file> --project-template <file> CLI, from the JRN-003 cases of tests/scripts/check-pr-body.sh"
     file: tasks/T05-project-mode-every-heading-level.md
@@ -90,7 +90,7 @@ tasks:
     capability: CAP-NEW-pr-template
     depends_on: [T4]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: feature-workflow
     seam: "sign-off and project-setup text checks, JRN-006 cases of tests/scripts/sign-off-pr.sh"
     file: tasks/T06-sign-off-host-template-route.md
