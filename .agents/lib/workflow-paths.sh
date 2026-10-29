@@ -18,12 +18,14 @@
 #                          prints <arg> as the repo-relative folder `$WF_SPECS/NNN-slug` or `$WF_INITIATIVES/NNN-slug`
 #                          (relative, or absolute with that parent); status 1 and the reason on stderr when <arg> is not one
 #   wf_enc <string>        prints <string> lowercased with every byte outside [a-z0-9] turned into `_`, no trailing newline;
-#                          the same bytes in every locale (run under LC_ALL=C), so Claude and Codex agree on worktree names
+#                          the same bytes in every locale (run under LC_ALL=C), so Claude and Codex agree on worktree names;
+#                          status 1 and the reason on stderr when not given exactly one argument
 #   wf_agent_worktree_name <spec_dir> task|phase_1|integration <value>
 #                          prints the agent worktree name under $WF_WORKTREES: task T<n> -> s<NNN>_t<n>, phase_1 <work_type>
 #                          -> s<NNN>_phase_1_<wf_enc work_type>, integration <work_type> -> s<NNN>_integration_<wf_enc work_type>,
-#                          <NNN> taken from the spec folder name NNN-slug; status 1 and the reason on stderr for a spec folder
-#                          that is not NNN-slug or an unknown kind
+#                          <NNN> taken from the spec folder name NNN-slug (relative, dot-relative, trailing-slash or absolute
+#                          spec dir), no trailing newline; status 1 and the reason on stderr for a spec folder that is not
+#                          NNN-slug, an unknown kind, a task value that is not T<digits> or an empty work type
 #   No function exits: each caller turns status 1 into its own error message and exit code.
 # Paths are repo-relative; the write guards compare them case-insensitively.
 # Sources: first-party.
@@ -106,12 +108,54 @@ wf_norm_folder() {
   printf '%s\n' "$folder"
 }
 
-# wf_enc STRING : not built yet; prints nothing.
+# wf_enc STRING : print STRING lowercased with every byte outside [a-z0-9] turned into `_`, no trailing newline; status 1
+#   when not given exactly one argument.
 wf_enc() {
-  return 0
+  if [[ $# -ne 1 ]]; then
+    printf 'wf_enc takes one string, got %s arguments\n' "$#" >&2
+    return 1
+  fi
+  # The C locale makes tr work byte by byte, so a multi-byte character becomes one `_` per byte whatever the caller's locale.
+  printf '%s' "$1" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -c 'a-z0-9' '_'
 }
 
-# wf_agent_worktree_name SPEC_DIR KIND VALUE : not built yet; prints nothing.
+# wf_agent_worktree_name SPEC_DIR task|phase_1|integration VALUE : print the agent worktree name, no trailing newline;
+#   status 1 when SPEC_DIR is not a NNN-slug folder, the kind is unknown, a task id is not T<digits> or a work type is empty.
 wf_agent_worktree_name() {
-  return 0
+  if [[ $# -ne 3 ]]; then
+    printf 'wf_agent_worktree_name takes a spec dir, a kind and a value, got %s arguments\n' "$#" >&2
+    return 1
+  fi
+  local spec_dir=$1 kind=$2 value=$3 folder spec_number slug task_number
+  folder=${spec_dir%/}
+  folder=${folder##*/}
+  spec_number=${folder%%-*}
+  slug=${folder#*-}
+  # Glob tests rather than =~ so the function leaves no BASH_REMATCH behind in the caller.
+  if [[ "$folder" != *-* || ${#spec_number} -lt 3 || "$spec_number" == *[!0-9]* ||
+    "$slug" != [A-Za-z0-9]* || "$slug" == *[!A-Za-z0-9._-]* ]]; then
+    printf 'spec dir must be a folder named NNN-slug: %s\n' "$spec_dir" >&2
+    return 1
+  fi
+  case "$kind" in
+    task)
+      task_number=${value#T}
+      if [[ "$value" != T* || -z "$task_number" || "$task_number" == *[!0-9]* ]]; then
+        printf 'task id must be T<digits>: %s\n' "$value" >&2
+        return 1
+      fi
+      printf 's%s_t%s' "$spec_number" "$task_number"
+      ;;
+    phase_1 | integration)
+      if [[ -z "$value" ]]; then
+        printf 'work type for a %s worktree name is empty\n' "$kind" >&2
+        return 1
+      fi
+      printf 's%s_%s_%s' "$spec_number" "$kind" "$(wf_enc "$value")"
+      ;;
+    *)
+      printf 'unknown worktree kind (want task, phase_1 or integration): %s\n' "$kind" >&2
+      return 1
+      ;;
+  esac
 }

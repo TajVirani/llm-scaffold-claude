@@ -6,8 +6,9 @@
 #   unknown kind; each refusal returns 1 with a reason naming the argument and prints no folder. The helpers run sourced
 #   under `set -euo pipefail` from a copy of .agents/, the way the scripts use them.
 #   JRN-001: wf_enc and wf_agent_worktree_name give the bytes the hooks' old codex_enc gave (recorded below) for work types and
-#   agent types, under LC_ALL=C and a UTF-8 locale; task, phase_1 and integration names; malformed spec folders and an unknown
-#   kind return 1 and print no name; neither hook keeps a codex_enc copy.
+#   agent types, under LC_ALL=C and a UTF-8 locale; task, phase_1 and integration names from each spec dir form; malformed
+#   spec folders, an unknown kind, a task id that is not T<digits> and an empty work type return 1 with a reason naming the
+#   argument and print no name; a missing argument returns 1 under set -u; neither hook keeps a codex_enc copy.
 # shellcheck disable=SC2016  # the bash -c programs are single-quoted on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -127,6 +128,28 @@ for bad in .workflow/specs/demo .workflow/specs/x07-demo .workflow/specs/007demo
 done
 eq "JRN-001 wf_agent_worktree_name refuses an unknown kind with status 1 and no name" \
   "$(stdout_and_status wf_agent_worktree_name .workflow/specs/007-demo review T3)" "1|"
+for spec_form in ./.workflow/specs/007-demo .workflow/specs/007-demo/ "$FOLDER_REPO/.workflow/specs/007-demo" 007-demo; do
+  eq "JRN-001 wf_agent_worktree_name reads the spec number from the spec dir form '$spec_form'" \
+    "$(stdout_and_status wf_agent_worktree_name "$spec_form" task T3)" "0|s007_t3"
+done
+for bad_task in T t3 3 T3a T-1 ""; do
+  eq "JRN-001 wf_agent_worktree_name refuses the task id '$bad_task' with status 1 and no name" \
+    "$(stdout_and_status wf_agent_worktree_name .workflow/specs/007-demo task "$bad_task")" "1|"
+done
+result=$(refusal wf_agent_worktree_name .workflow/specs/007-demo task T3a)
+check "JRN-001 wf_agent_worktree_name names the bad task id in its reason" '[[ "${result#*|}" == *T3a* ]]' "$result"
+result=$(refusal wf_agent_worktree_name .workflow/specs/x07-demo task T3)
+check "JRN-001 wf_agent_worktree_name names the bad spec dir in its reason" '[[ "${result#*|}" == *x07-demo* ]]' "$result"
+result=$(refusal wf_agent_worktree_name .workflow/specs/007-demo review T3)
+check "JRN-001 wf_agent_worktree_name names the unknown kind in its reason" '[[ "${result#*|}" == *review* ]]' "$result"
+eq "JRN-001 wf_agent_worktree_name refuses an empty work type with status 1 and no name" \
+  "$(stdout_and_status wf_agent_worktree_name .workflow/specs/007-demo phase_1 "")" "1|"
+eq "JRN-001 wf_agent_worktree_name prints no trailing newline" \
+  "$(lib_call wf_agent_worktree_name .workflow/specs/007-demo task T3 2>/dev/null | wc -c | tr -d ' ')" 7
+eq "JRN-001 wf_enc with no argument returns 1 under set -u instead of exiting the caller" \
+  "$(bash -c 'set -euo pipefail; . "$1"; wf_enc || echo "status $?"' _ "$LIB" 2>/dev/null)" "status 1"
+eq "JRN-001 wf_agent_worktree_name leaves BASH_REMATCH as the caller set it" \
+  "$(bash -c 'set -euo pipefail; . "$1"; [[ keep =~ (k)eep ]]; wf_agent_worktree_name .workflow/specs/007-demo task T3 >/dev/null; printf %s "${BASH_REMATCH[1]}"' _ "$LIB")" "k"
 check "JRN-001 neither hook keeps its own codex_enc copy" \
   '! grep -q "codex_enc()" "$WORK/scaffold/.agents/hooks/codex-pre-spawn.sh" "$WORK/scaffold/.agents/hooks/post-implementation-audit.sh"' \
   "$(grep -n "codex_enc()" "$WORK/scaffold/.agents/hooks/codex-pre-spawn.sh" "$WORK/scaffold/.agents/hooks/post-implementation-audit.sh")"
