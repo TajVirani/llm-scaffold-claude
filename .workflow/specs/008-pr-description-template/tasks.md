@@ -69,7 +69,7 @@ tasks:
     pr: null
   - id: T5
     title: "Project mode reads every heading level"
-    status: pending
+    status: done
     capability: CAP-NEW-pr-template
     depends_on: [T2]
     touches_core: false
@@ -86,7 +86,7 @@ tasks:
     pr: null
   - id: T6
     title: "Sign-off routes an unusable host template and points at one path list"
-    status: pending
+    status: done
     capability: CAP-NEW-pr-template
     depends_on: [T4]
     touches_core: false
