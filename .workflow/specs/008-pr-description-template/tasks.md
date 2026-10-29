@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-pr-template
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: feature-workflow
     seam: "rules-setting.sh pr_template [--cwd] [--rules] CLI, from the rules-setting block of tests/scripts/task-breakdown.sh"
     file: tasks/T01-pr-template-setting.md
@@ -23,7 +23,7 @@ tasks:
     capability: CAP-NEW-pr-template
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: feature-workflow
     seam: "check-pr-body.sh <file> [--project-template <file>] CLI plus the template headings, from tests/scripts/check-pr-body.sh"
     file: tasks/T02-pr-template-and-check.md
@@ -40,7 +40,7 @@ tasks:
     capability: CAP-NEW-pr-template
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: project-setup
     seam: "text checks of project-setup and its rules.md template in tests/scripts/sign-off-pr.sh (owned by T4)"
     file: tasks/T03-project-setup-asks-pr-template.md
@@ -56,7 +56,7 @@ tasks:
     capability: CAP-NEW-pr-template
     depends_on: [T1, T2, T3]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: feature-workflow
     seam: "the 5.8 publish block run against stand-in gh/glab plus sign-off, SKILL.md and project-setup text checks, in tests/scripts/sign-off-pr.sh"
     file: tasks/T04-sign-off-publishes-body.md
