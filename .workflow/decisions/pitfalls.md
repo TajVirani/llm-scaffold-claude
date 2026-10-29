@@ -14,6 +14,18 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Name no `.workflow/` path in an installed asset
+- What happened: the shipped `assets/pr-template.md` issue stub named `.workflow/deferred/spec-issue-creation.md`, a file only this scaffold repo holds, so every target project's Sign-off PR would cite a dead path (F1, medium, a rework); the T6 fix round then failed mini-review R4 for naming `.workflow/deferred/` in the same template's guidance.
+- Where: `.agents/skills/*/assets/` (installed into target projects)
+- Spec: .workflow/specs/008-pr-description-template
+- Prevented by: none yet (the shelved lint `.workflow/deferred/comment-id-lint.md`, widened at T6 to asset-template guidance comments)
+
+## Grep the modules for the old behaviour when a loop-back decision changes a script
+- What happened: D19 (from the 4.5 loop-back) made `check-pr-body.sh` project mode read every heading level, but `modules/sign-off.md` 5.4 still said a host template had only `##` headings and that exit 2 meant "no `##` headings"; both review lenses flagged it (F7, F8, medium), costing rework 1.
+- Where: `modules/sign-off.md` 5.4; the 0.5 re-entry and 2.5 task briefs after a loop-back
+- Spec: .workflow/specs/008-pr-description-template
+- Prevented by: none yet
+
 ## Flip a Phase 1 placeholder's PROVENANCE row when the task that implements it lands
 - What happened: Phase 1 added `lib/test-paths.sh` as a stub with a `placeholder` PROVENANCE row; T1 and T2 made it real and sourced it, no task brief named the row, and both review-standards and review-end-state flagged it (F2, medium), costing a rework.
 - Where: `PROVENANCE.md`; task briefs at 2.5 for tasks that replace a Phase 1 stub
@@ -29,7 +41,7 @@ Entry shape (newest first):
 ## Fork a Phase 1 build's worktree from the spec branch
 - What happened: the 1.2 harness agent's `isolation: "worktree"` worktree started at `main`, without the spec folder; the agent fast-forwarded it to the spec branch, and the worktree guard then refused its result-file write to the main checkout, so the orchestrator copied the file in by hand.
 - Where: verification-setup 1.2 launch (`modules/verification-setup.md`)
-- Spec: .workflow/specs/003-bash-cache-extractor
+- Spec: .workflow/specs/003-bash-cache-extractor; recurred in .workflow/specs/008-pr-description-template (the 1.2 result files stayed in the `isolation: "worktree"` worktree twice, and a stray `.claude/worktrees/` copy outlived Phase 4; the third 1.2 run, in a worktree under `.workflow/.worktrees/`, wrote its result file in place)
 - Prevented by: none yet (needs `worktree.baseRef: head` in `.claude/settings.json`, or a wave-start-style worktree for Phase 1 builds)
 
 ## Never pipe a gate checker into head inside a && chain

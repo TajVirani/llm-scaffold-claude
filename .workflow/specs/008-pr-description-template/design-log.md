@@ -5,7 +5,7 @@ Spec: [spec.md](spec.md)
 ## 2026-10-29 Term gate 0.2.2
 
 - Agreed and written to `.workflow/GLOSSARY.md`: **PR template** (chosen over "PR description template"), **Sign-off PR**, **Blast radius** (stakeholder chose a glossary entry over a plain section heading).
-- D1: no existing capability covers PR descriptions (`.workflow/capabilities.md:13-17`); the change is a new capability, `CAP-NEW-pr-template`.
+- D1: no existing capability covers PR descriptions (`.workflow/capabilities.md:13-17`); the change is a new capability, `CAP-006`.
 - D2: owning module is clear, feature-workflow (`.agents/skills/feature-workflow/**`); no placement ADR.
 
 ## 2026-10-29 Deeper prompt

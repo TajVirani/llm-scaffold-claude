@@ -20,7 +20,7 @@ Every Sign-off PR should tell a reviewer, human or AI, what the change is for, p
 
 ## Capabilities
 
-- **CAP-NEW-pr-template** PR template for the Sign-off PR
+- **CAP-006** PR template for the Sign-off PR
   - **intent:** Sign-off fills a fixed PR template from the spec's evidence, the stakeholder approves the exact text, and 5.8 publishes it as the Sign-off PR description (or the local merge message), so reviewers see intent, evidence, blast radius, risk and undo steps without reading the spec folder.
   - **success:** For a spec reaching 5.8, `pr-body.md` holds the ten sections in order (link to issue; what changed; why the change; why this approach; special things to note; how to test, step by step; blast radius; risk and reversibility; areas, concepts and seams changed; how to undo), the check script passes it, and the PR is opened with that file as its body; a body with a missing or empty section, an off-scale score, or Reversibility: Irreversible without Risk: High fails the check.
 
@@ -46,12 +46,12 @@ The next spec to sign off shows the stakeholder a filled PR template at 5.5, and
 
 ## Assumptions
 
-- "Link to issue" holds a fixed stub line naming the shelved issue-creation item until that item ships.
-- `pr_template` is `workflow` or a repo-relative path to the host PR/MR template (`.md`); `rules-setting.sh` rejects a path of the wrong shape or one whose file is missing from the main checkout. With a path, the check script only requires that each of that template's headings, at any level `#` to `######`, appears in the body at the same level with the same text and is non-empty, a section running to the next heading of the same or a higher level; the ten-section order and score checks apply to the workflow template.
-- A `pr_template` path whose file is gone, or a host template the check cannot use (unreadable, or no headings), stops 5.4; the stakeholder chooses the workflow template for that PR or a fixed path through a 5.2/5.3 proposal. Never a silent fallback.
-- Host templates are looked for only at `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md` and `.gitlab/merge_request_templates/*.md`; the choice offers each path found plus `workflow`.
-- With `pr_template` unset and no host template in the repo, the workflow template is used and nothing is asked.
-- The template lives at `.agents/skills/feature-workflow/assets/pr-template.md`; the filled copy is `pr-body.md` in the spec folder, committed with it.
+- Confirmed, reworded by F1: "Link to issue" holds a fixed, project-neutral stub line ("No tracker issue yet: the workflow does not create one when a spec starts.") until the shelved issue-creation item ships; it names no `.workflow/` path, since target projects lack this repo's shelf.
+- Confirmed: `pr_template` is `workflow` or a repo-relative path to the host PR/MR template (`.md`); `rules-setting.sh` rejects a path of the wrong shape or one whose file is missing from the main checkout. With a path, the check script only requires that each of that template's headings, at any level `#` to `######`, appears in the body at the same level with the same text and is non-empty, a section running to the next heading of the same or a higher level; the ten-section order and score checks apply to the workflow template.
+- Confirmed: a `pr_template` path whose file is gone, or a host template the check cannot use (unreadable, or no headings), stops 5.4; the stakeholder chooses the workflow template for that PR or a fixed path through a 5.2/5.3 proposal. Never a silent fallback.
+- Confirmed: host templates are looked for only at `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md` and `.gitlab/merge_request_templates/*.md`; the choice offers each path found plus `workflow`.
+- Confirmed: with `pr_template` unset and no host template in the repo, the workflow template is used and nothing is asked.
+- Confirmed: the template lives at `.agents/skills/feature-workflow/assets/pr-template.md`; the filled copy is `pr-body.md` in the spec folder, committed with it.
 
 ## Links
 

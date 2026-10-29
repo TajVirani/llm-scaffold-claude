@@ -22,7 +22,7 @@ The fixed sections a **Sign-off PR** description must fill (`.workflow/GLOSSARY.
 
 | Field | Type | Required | Validation rule | Change |
 | --- | --- | --- | --- | --- |
-| Link to issue | section | yes | non-empty; a URL or the fixed stub line (CAP-NEW-pr-template) | create |
+| Link to issue | section | yes | non-empty; a URL or the fixed stub line (CAP-006) | create |
 | What changed | section, bullets | yes | at least one bullet | create |
 | Why the change | section, bullets | yes | at least one bullet | create |
 | Why this approach | section | yes | non-empty | create |

@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "pr_template setting reads workflow or a host template path"
     status: done
-    capability: CAP-NEW-pr-template
+    capability: CAP-006
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -20,7 +20,7 @@ tasks:
   - id: T2
     title: "PR template and its check script"
     status: done
-    capability: CAP-NEW-pr-template
+    capability: CAP-006
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -37,7 +37,7 @@ tasks:
   - id: T3
     title: "project-setup asks pr_template"
     status: done
-    capability: CAP-NEW-pr-template
+    capability: CAP-006
     depends_on: []
     touches_core: false
     work_type: agent-docs
@@ -53,7 +53,7 @@ tasks:
   - id: T4
     title: "Sign-off fills, approves and publishes the PR body"
     status: done
-    capability: CAP-NEW-pr-template
+    capability: CAP-006
     depends_on: [T1, T2, T3]
     touches_core: false
     work_type: agent-docs
@@ -70,7 +70,7 @@ tasks:
   - id: T5
     title: "Project mode reads every heading level"
     status: done
-    capability: CAP-NEW-pr-template
+    capability: CAP-006
     depends_on: [T2]
     touches_core: false
     work_type: shell-scripts
@@ -87,7 +87,7 @@ tasks:
   - id: T6
     title: "Sign-off routes an unusable host template and points at one path list"
     status: done
-    capability: CAP-NEW-pr-template
+    capability: CAP-006
     depends_on: [T4]
     touches_core: false
     work_type: agent-docs
