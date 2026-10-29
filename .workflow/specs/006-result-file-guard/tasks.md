@@ -47,7 +47,7 @@ tasks:
     pr: null
   - id: T3
     title: "Agent briefs write the result file to the main checkout"
-    status: done
+    status: in-progress
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: false
@@ -84,7 +84,7 @@ tasks:
     pr: null
   - id: T5
     title: "Orchestrator steps launch Phase 1 and integration in agent worktrees"
-    status: done
+    status: in-progress
     capability: CAP-NEW-result-file-write
     depends_on: [T3]
     touches_core: false

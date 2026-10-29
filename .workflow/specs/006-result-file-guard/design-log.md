@@ -415,3 +415,18 @@ Outcome: loop back (00.24 discovered work)
 - T7 `Merge T7`, after the artifacts gate (`check-merge-artifacts.sh --rev task/006-result-file-guard/T07-docs-upgrade-matcher-rule`, exit 0): the first merge run under T5's new 3.16 text. Budget: 7 tasks, 18 of 30 changed files.
 - 3.9 wave 3 (last): full harness 3472 passed, 0 failed, 60 suites, nothing excluded (`artifacts/gate-3.9-w3/`); lint clean. 3.10-3.11: no browser suite (Suites, Browser row: not applicable), so no e2e run; in-review at 3.11, as in spec 005.
 - JRN-010 (a real launch files its own result) is partly met already: every Phase 3 implementation and mini-review in this spec wrote its result file to the main checkout with no copy step. The Phase 1 and integration half needs the next spec's launch under the new T5 text.
+
+## 2026-10-29 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 | review-end-state (RE-1) | The integration and Phase 1 briefs still name "the checkout you were launched in" as the worktree; under the no-isolation launch that is the main checkout, so the prescribed result-file command `cd`s there and the guard denies it | `.agents/agents/integration.md:71`, `:79`, `:93`; `.agents/agents/implementation.md:30` | high | Read at HEAD `5fdfb89`: no `cd <worktree> &&` rule in integration.md, result-file command `cd <absolute path of the checkout you were launched in> && ...`; orchestrator `:29` launches without isolation from the main checkout; breaks the success line "each brief's prescribed result-file write passes the guard"; `tests/hooks/worktree-guard.sh:174` fills the placeholder with the agent worktree, so no test sees it | patch (T3) |
+| F2 | review-end-state (RE-2) | Orchestrator 3.2 says no stop audit fires for integration, but on Claude it now does | `.agents/skills/feature-workflow/modules/implementation-orchestrator.md:120` | low | `post-implementation-audit.sh` now runs for `implementation\|integration`; the orchestrator would not read `artifacts/integration-<wt>/audit.json`; text fix, no guard added | patch (T5) |
+| F3 | review-standards (RS-1) | Guard messages and headers say "task worktree", a glossary _Avoid_ alias, now shown to Phase 1 and integration agents | `check-worktree-scope.sh:2`, `:114`, `:125`, `:234`; `worktree-write-guard.sh:2` | low | Lines predate 006; the deny still names the right path and `cd` fix | discovered work (filed: work-backlog/006-result-file-guard-disc-008.md) |
+| F4 | review-standards (RS-2) | `assetlist.md` still gives the old matcher and the isolation fallback, with no amendment note | `assetlist.md:40`, `:234` | low | Scaffold-only record, never installed; no task owns it | discovered work (filed: work-backlog/006-result-file-guard-disc-009.md) |
+| F5 | review-lessons (RL-1) | The `yq --front-matter=extract:*` allow entry also matches `-i`, the in-place rewrite a pitfall records | `.agents/hooks/claude-settings.template.json:130`; `.claude/settings.json:141` | medium | Unchanged since baseline `e049f4d`; pre-existing | discovered work (filed: work-backlog/006-result-file-guard-disc-010.md) |
+
+Targets: 7 of 7 measurable pass (guard-time 0.04 s); line coverage not measurable (D17). Gaps: JRN-010 (a real no-isolation Phase 1 or integration launch, including whether Claude Code accepts the heredoc result-file command) is the manual 5.x check, run with F1 fixed. The end-state lens's third open item (wave 2 merged before the gate text) is settled: no merge from T1 to T7 changed anything under `artifacts/`.
+
+Failed lenses: none
+Outcome: rework 1 of 5
