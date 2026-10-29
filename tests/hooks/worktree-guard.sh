@@ -147,6 +147,13 @@ for cmd in "sed -n 'wout.txt' src/a.ts" "sed -n '1wout.txt' src/a.ts" "sed -n '1
   "sed -n '1 wout.txt' src/a.ts" "sed -n 's/a/b/wout.txt' src/a.ts" "sed -n 's/a/b/gpWout.txt' src/a.ts" "sed -n -e 1wout.txt src/a.ts"; do
   expect "JRN-009 task agent sed write with the file name attached '$cmd' without cd -> deny with the cd hint" deny "$(pl Bash "$cmd" "$P" "$A3")" "cd .*s007_t3 &&"
 done
+for cmd in "sed -n 'sxaxbxwout.txt' f" "sed -n '\\xaxwout.txt' f" 'sed -n -f script.sed f' "sed -n '1e touch x' f" \
+  "sed -n '/[/]wout.txt/p' f" "sed -n 1p -i f" "sed -n '1p' 'f' -e '1wout.txt'"; do
+  expect "JRN-009 task agent sed script that is not only addresses and p '$cmd' without cd -> deny with the cd hint" deny "$(pl Bash "$cmd" "$P" "$A3")" "cd .*s007_t3 &&"
+done
+for cmd in "sed -n '/w/p' f" "sed -n '1,5p' src/view.ts" "sed -n -e '1p' -e '5p' f" "sed -n '/a b/,/c/!p' words.txt" 'sed -nE 3p f'; do
+  expect "JRN-009 task agent sed print-only script '$cmd' from the main checkout -> allow" allow "$(pl Bash "$cmd" "$P" "$A3")"
+done
 
 echo "== Claude: result files from the briefs (JRN-002, JRN-003, JRN-004)"
 UNKNOWN_PLACEHOLDERS="" FILLED=""

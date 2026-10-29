@@ -21,12 +21,16 @@
 #            is a literal absolute path (quotes allowed) inside the root, as the implementation brief asks. A cd target with `$`, `~` or a
 #            backtick cannot be checked and is denied. Accident prevention only: a command can still cd elsewhere later.
 #            Read-only commands need no `cd`: a command made only of allowlisted reads joined by `|` or `&&` is allowed from anywhere.
-#              Allowlist: cat, head, tail, grep, rg, ls, wc, find, yq, jq, `sed -n`, `git log|show|diff|status`.
-#              Denylist, per tool (the segment needs the `cd`): sed `w`/`W` (a w or W followed by a space or a slash, after a
-#              non-letter, or after s-command flags, so an attached file name like `1wout.txt` counts), `-i`,
-#              `--in-place`; find -delete, -exec, -execdir, -ok, -okdir, -fprint*, -fls; yq -i, --inplace, -s, --split-exp;
+#              Allowlist: cat, head, tail, grep, rg, ls, wc, find, yq, jq, `git log|show|diff|status`, and sed that only prints:
+#                its options are -n (required), -E and -r, alone or combined (-nE), and -e SCRIPT; each script, given with -e or
+#                else as the first operand, is one optional address or `a,b` range (a number, `$`, or `/re/` with no `/`, `\` or `[`
+#                inside), an optional `!`, then `p`. Every sed word is plain or wholly quoted, with no backslash and, unquoted, no
+#                glob or brace character (*?[]{}~). The whole-command `$` denial below still applies to a `$` address.
+#              Denylist, per tool (the segment needs the `cd`): sed with anything else (s, w, W, e, r, a custom delimiter, -i, -f,
+#              --in-place, ...); find -delete, -exec, -execdir, -ok, -okdir, -fprint*, -fls; yq -i, --inplace, -s, --split-exp;
 #              jq -i; git --output; rg --pre.
-#              Denylist, whole command: `$`, a backtick, `<`, `>`, `;`, a lone `&` (so `|&` too), `||`, a newline, `tee`, an empty segment.
+#              Denylist, whole command: `$`, a backtick, `<`, `>`, `;`, a lone `&` (so `|&` too), `||`, a newline, a carriage return,
+#              `tee`, an empty segment.
 #              A regex check, not a shell parser: a `|`, `&&` or `;` inside quotes splits or denies too, which only costs a needless `cd`.
 # Outputs/handoff: exit 0 allow (reason on stdout); exit 2 deny (reason on stderr); exit 1 usage or environment error (adapters deny).
 # Called by: hooks/worktree-write-guard.sh (Claude, Write/Edit/NotebookEdit and Bash), hooks/codex-write-guard.sh (Codex apply_patch paths).
@@ -131,15 +135,51 @@ if under "$c" "$root" || ! under "$c" "$main_root"; then
   exit 0
 fi
 
+# sed_print_only ARGS : true when ARGS, the words after `sed`, hold -n, print-only scripts and file operands, as the header's sed
+#   allowlist describes; any other option or script means the sed call may write or run something.
+sed_print_only() {
+  local rest=$1 word value have_n=0 have_e=0 script_next=0 first_operand="" have_operand=0
+  local re_word="^('[^']*'|\"[^\"\\\\]*\"|[^[:space:]'\"\\\\]+)(.*)\$"
+  # BSD sed does not end a regex at a `/` inside a bracket expression, and `\/` ends none anywhere, so either would let a script hide
+  #   a `w` command from this address pattern.
+  local re_addr='([0-9]+|\$|/[^/\[]*/)'
+  local re_print="^[[:space:]]*(${re_addr}(,${re_addr})?)?[[:space:]]*!?[[:space:]]*p[[:space:]]*\$"
+  local re_quiet_flags='^-[nEr]+$' re_regex_flags='^-[Er]+$'
+  while :; do
+    rest=${rest#"${rest%%[![:space:]]*}"}
+    [ -n "$rest" ] || break
+    [[ "$rest" =~ $re_word ]] || return 1
+    word=${BASH_REMATCH[1]} rest=${BASH_REMATCH[2]}
+    [[ -z "$rest" || "$rest" == [[:space:]]* ]] || return 1
+    case "$word" in
+      \'*|\"*) value=${word:1:${#word}-2} ;;
+      # The shell would expand these into words this check never sees, such as a file named -i that GNU sed reads as an option.
+      *[]*?[{}~]*) return 1 ;;
+      *) value=$word ;;
+    esac
+    if [ "$script_next" -eq 1 ]; then
+      [[ "$value" =~ $re_print ]] || return 1
+      script_next=0
+      continue
+    fi
+    case "$value" in
+      -e) have_e=1 script_next=1 ;;
+      -*n*) [[ "$value" =~ $re_quiet_flags ]] || return 1; have_n=1 ;;
+      -*) [[ "$value" =~ $re_regex_flags ]] || return 1 ;;
+      *) [ "$have_operand" -eq 1 ] || first_operand=$value; have_operand=1 ;;
+    esac
+  done
+  [ "$have_n" -eq 1 ] || return 1
+  [ "$script_next" -eq 0 ] || return 1
+  # With an -e script every operand is a file; without one the first operand is the script.
+  [ "$have_e" -eq 1 ] || { [ "$have_operand" -eq 1 ] && [[ "$first_operand" =~ $re_print ]]; }
+}
+
 # read_only_segment SEGMENT : true when SEGMENT is one allowlisted read with none of the denylisted write or exec flags for its tool.
 read_only_segment() {
   local re_split='^[[:space:]]*([^[:space:]]+)(.*)$'
   local re_git_read='^[[:space:]]+(log|show|diff|status)([[:space:]]|$)'
   local re_git_write='[[:space:]]--output([=[:space:]]|$)'
-  local re_sed_print='^[[:space:]]+-n([[:space:]]|$)'
-  # A w/W command may carry its file name with no space ('1wout.txt', 's/a/b/gwout.txt'), so any w/W after a non-letter or after
-  #   s-command flags counts. This also matches file names like src/view/ or words.txt, which only costs a needless cd.
-  local re_sed_write='[wW]([[:space:]]|/)|(^|[^[:alpha:]_.-])[wW]|/[gpiImMe0-9]*[wW]|[[:space:]]-[[:alpha:]]*i|[[:space:]]--in-place'
   local re_find_write='[[:space:]]-(delete|exec|execdir|ok|okdir|fprint[[:alnum:]]*|fls)([[:space:]]|$)'
   local re_yq_write='[[:space:]]-[[:alpha:]]*[is]|[[:space:]]--(inplace|split-exp)'
   local re_jq_write='[[:space:]]-[[:alpha:]]*i'
@@ -153,7 +193,7 @@ read_only_segment() {
     find) ! [[ "$args" =~ $re_find_write ]] ;;
     yq) ! [[ "$args" =~ $re_yq_write ]] ;;
     jq) ! [[ "$args" =~ $re_jq_write ]] ;;
-    sed) [[ "$args" =~ $re_sed_print ]] && ! [[ "$args" =~ $re_sed_write ]] ;;
+    sed) sed_print_only "$args" ;;
     git) [[ "$args" =~ $re_git_read ]] && ! [[ "$args" =~ $re_git_write ]] ;;
     *) return 1 ;;
   esac
@@ -164,11 +204,13 @@ read_only_segment() {
 read_only_chain() {
   local chain=$1 rest seg
   local re_tee='(^|[[:space:]|&])tee([[:space:]]|$)'
+  # `<` covers `<(cmd)`, a process substitution that runs cmd, as well as an input redirect.
   case "$chain" in *'$'*|*'`'*|*'<'*|*'>'*|*';'*|*'||'*|*$'\n'*|*$'\r'*) return 1 ;; esac
   [[ "$chain" =~ $re_tee ]] && return 1
   chain=${chain//&&/|}
   # Runs after the && rewrite above, so any & left is a lone & (background or |&); checked earlier it would deny every && chain.
   case "$chain" in *'&'*) return 1 ;; esac
+  # The trailing | is what ends the loop below: without it the last segment never empties rest and the guard hangs.
   rest="$chain|"
   while [ -n "$rest" ]; do
     seg=${rest%%|*}
