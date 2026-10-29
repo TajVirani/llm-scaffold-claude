@@ -331,3 +331,77 @@ Outcome: loop back (00.24 discovered work)
 - Problem and evidence: the guard allows a non-isolated agent when the header cannot be parsed (`worktree-write-guard.sh:92-93`) or the named worktree is missing (`check-worktree-scope.sh:101-104` rule 3), against `.workflow/profiles/shell-scripts.md:25` "Guard hooks fail closed"; both predate 006 for Phase 3.
 - Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
 - Backlog item: [work-backlog/006-result-file-guard-disc-003.md](../work-backlog/006-result-file-guard-disc-003.md)
+
+## 2026-10-29 Wave 1 merged (3.16, 3.15, 3.9)
+
+- T1 `c8deecd`, T2 `a518317`, T3 `c2e1159`, in id order; task PRs skipped (local `origin`). Budget: 7 tasks, 12 of 30 changed files. Gate 3.9 w1: pass, `TOTAL passed=3138 failed=0 (56 suites)`, 4 unfinished tasks' suites excluded (`artifacts/gate-3.9-w1/`).
+- Wave 2 launched: T4, T5, T6 in `s006_t4`, `s006_t5`, `s006_t6` off `97b627c`.
+
+## 2026-10-29 Wave 2 gates (3.4-3.8), T4 and T5
+
+- T5: doc text; `tests_added` empty, its JRN-008 suite is the check (3.4 met as for T3). Mini-review r1 failed R4 (two added `# e.g.` lines naming a workflow path and spec folder). Wording-only round on the same agent also removed the older `# e.g.` line and added the no-relaunch reason (both reviewer notes, in T5's own files). Re-check launched.
+- T4: done with one negative and one edge entry (19 new edge cases), JRN-009 green; `yq -s`/`--split-exp` also denied; GNU sed `e` left out (`considered_not_built`). Guard-time on the plan's chain: 0.04 s best of 3 from the main checkout. Note for 4.3: the `guard-time` target command must run from the main checkout; from a linked worktree the scope check allows at the cwd step and never reaches the allowlist.
+
+## 2026-10-29 T4 mini-review round 1 (3.7-3.8)
+
+- Verdict fail, R2 `check-worktree-scope.sh:167-168` (the lone-`&` check relies on the `&&` rewrite above it, unexplained). The reviewer's note that `sed -n '1wout.txt'` (w with an attached file name) passes as read-only is T4's own acceptance criterion ("sed w/W denied"), not out-of-scope work, and the spec settles it: behaviour fix round with a fresh agent, full review next.
+
+## 2026-10-29 Discovered work: gnu-sed-exec-command
+
+- Found at: step 3.7 by profile-mini-review for T4 (`artifacts/T4/mini-review-r1.yaml` out_of_scope_noticed). Kind: bug
+- Problem and evidence: GNU sed's `e` command runs a shell command, and `check-worktree-scope.sh:140` does not deny it, so `sed -n '1e touch x'` passes as a read; not in the spec's deny list.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/006-result-file-guard-disc-004.md](../work-backlog/006-result-file-guard-disc-004.md)
+
+## 2026-10-29 T4 mini-review round 2 (3.7-3.8)
+
+- Verdict fail, R2 `check-worktree-scope.sh:167, 172` (no reason for the `<` denial, which stops `<(cmd)`, or for the trailing `|` that ends the segment loop). Reviewer notes: sed `w` still passes with a letter delimiter (`sxaxbxwout.txt`, `\xaxwout.txt`) and through `-f <script>`; header and comments differ from the code (carriage return missing from the header denylist; the "after a non-letter" comment).
+- **D31 sed reads.** A deny regex cannot close the sed write class. Options: allowlist sed scripts (only `sed -n` with line or `/regex/` addresses and `p` counts as a read; anything else needs the `cd`); keep the denylist; drop sed from the allowlist. Recommended: allowlist. Answer: "Allowlist sed scripts (Recommended)". This also covers backlog item disc-004 (GNU sed `e`); offer it as dismissed at 5.9. Behaviour fix round with a fresh agent covering D31, R2 and the doc mismatches; full review next.
+
+## 2026-10-29 Discovered work: quoted-dollar-reads
+
+- Found at: step 3.4 by the T4 implementation agent (`artifacts/T4/implementation.yaml` `discovered_work[0]`). Kind: decision
+- Problem and evidence: `read_only_chain` denies any `$`, so the sed `$` address the D31 allowlist accepts can never pass (`sed -n -e '1p' -e '$p' f` exits 2); the fix brief's allow case for it was replaced by `-e '1p' -e '5p'`.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/006-result-file-guard-disc-005.md](../work-backlog/006-result-file-guard-disc-005.md)
+
+## 2026-10-29 T6 mini-review round 1 (3.7-3.8)
+
+- Verdict fail, item 3 `install.sh:283, :296`: a group running commands of two template groups of one event gets a second question the first pass never asked; the missing answer leaves it unchanged, or one answer narrows it to one template's matcher, so the other hook silently loses coverage (e.g. `Write|Edit|NotebookEdit` holding the Write guard and the git guard, answered `r` for Bash).
+- Reviewer notes, both T6's own scope: a non-plain user matcher is dropped when the template matcher is match-all, against the spec constraint "Merge is offered only for plain `|` alternations" (fix: keep with a warning); the non-plain `--matchers=merge` test also accepts the replaced value (tighten).
+- **D32 Group running two template groups' commands.** Options: keep with a warning; merge both template matchers; split it. Recommended: keep with a warning. Answer: "Go with the repos matcher - I would imagine unless this is user created, we want whatever we ship in the update. IF its user created, keep the user created one with a warning." Read as: a group holding only template commands from two or more template groups is rewritten to the template's own groups and matchers, in every mode, with a Warnings line; a group that also holds a non-template hook is kept unchanged with a Warnings line. Behaviour fix round with a fresh agent; full review next.
+
+## 2026-10-29 T4 mini-review round 3 (3.7-3.8)
+
+- Verdict pass (10 of 10 applicable), full review of `97b627c...d612b9d`. T4 ready to merge.
+- Reviewer notes: the sed allowlist also accepts `-E`/`-r` (with `-n`), which D31 does not name; they do not change how an address parses and open no write or exec path, so accepted as within D31's intent. The header says sed words carry no backslash, but a single-quoted file operand may; no write passes through it (a file operand cannot write under `sed -n`). Left as a header-wording candidate for Phase 4 (review-standards), not a new round.
+
+## 2026-10-29 T6 mini-review round 2 (3.7-3.8)
+
+- Verdict fail: item 3 `install.sh:105, :117` (an empty `--matchers=` is taken as no flag, not exit 2); item 8 `tests/scripts/install-upgrade.sh:354, :359` (two `shellcheck disable=SC2329` lines without a reason); R1 `:367, :385` (loop variable `session` holds the expected SessionStart outcome). Behaviour fix round with a fresh agent; full review next.
+
+## 2026-10-29 Discovered work: prompt-eof-merges
+
+- Found at: step 3.7 by profile-mini-review for T6 (`artifacts/T6/mini-review-r2.yaml` out_of_scope_noticed). Kind: decision
+- Problem and evidence: end of input at the matcher prompt counts as Enter and merges with no Warnings line (`install.sh:440`, header `:434`).
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/006-result-file-guard-disc-006.md](../work-backlog/006-result-file-guard-disc-006.md)
+
+## 2026-10-29 T6 mini-review round 3 (3.7-3.8)
+
+- Verdict fail: item 3 `install.sh:280` (a group whose matcher is not a string is kept with no Warnings line, against the header's "kept with a warning"); R2 `install.sh:333-336` (no reason for removing rewritten groups after the reduce). Reviewer note: a D32 rewrite replaces the user's hook objects with the template's, so per-hook keys such as a custom timeout reset to the template's, and the warning does not say so. That follows D32 ("we want whatever we ship"); the warning will name it (T6's own scope). A non-string matcher is malformed: kept with a warning in every mode, `replace` included. Behaviour fix round 4 of 5 with a fresh agent, briefed to check every branch of the resolution against the header; full review next.
+
+## 2026-10-29 T6 mini-review round 4 (3.7-3.8)
+
+- Verdict fail, item 8 `tests/scripts/install-upgrade.sh:62` (the `warned_once` SC2329 disable has no reason; the block comment counts four readers). Reviewer note: `group_cmds` counts only hooks with a `command` string, so a user hook of another type (prompt-type) is not "own"; a group with one template command and such a hook is merged without a terminal, against D26 ("a mixed group is kept") and against `split_or_keep`, which does count it. T6's own rule, so it joins the round. Fix round 5 of 5 (behaviour, fresh agent, full review); a failing review after it is a stop.
+
+## 2026-10-29 T6 mini-review round 5 (3.7-3.8)
+
+- Verdict pass (11 of 11 applicable), full review of `97b627c...b78d868`. T6 ready to merge after five fix rounds.
+
+## 2026-10-29 Discovered work: rerun-checks-ignore-exit
+
+- Found at: step 3.7 by profile-mini-review for T6 (`artifacts/T6/mini-review.yaml` out_of_scope_noticed). Kind: bug
+- Problem and evidence: three "re-run writes nothing" checks in `tests/scripts/install-upgrade.sh` (`:280-281`, `:408-409`) do not assert exit 0, so a refusing re-run would pass.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/006-result-file-guard-disc-007.md](../work-backlog/006-result-file-guard-disc-007.md)

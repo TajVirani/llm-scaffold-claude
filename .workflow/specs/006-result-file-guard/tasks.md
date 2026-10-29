@@ -65,7 +65,7 @@ tasks:
     pr: null
   - id: T4
     title: "Read-only commands pass the worktree scope check"
-    status: pending
+    status: done
     capability: CAP-NEW-worktree-read-commands
     depends_on: [T1]
     touches_core: false
@@ -84,7 +84,7 @@ tasks:
     pr: null
   - id: T5
     title: "Orchestrator steps launch Phase 1 and integration in agent worktrees"
-    status: pending
+    status: done
     capability: CAP-NEW-result-file-write
     depends_on: [T3]
     touches_core: false
@@ -104,7 +104,7 @@ tasks:
     pr: null
   - id: T6
     title: "Upgrade resolves hook matchers per group"
-    status: pending
+    status: done
     capability: CAP-NEW-result-file-write
     depends_on: [T1]
     touches_core: false

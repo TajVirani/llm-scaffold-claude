@@ -1,0 +1,22 @@
+status: "done"
+summary: "Fix round 5. In resolve_group, any hook in a group that is not a template command now counts as the user's own, whatever its type, through a new own_hook_names that names hooks as hook_names does. So a SubagentStop group running the stop audit and a prompt-type hook is kept without a terminal with one Warnings line naming the prompt hook, and the prompt's hook list shows every hook. only_template_hooks (split_or_keep) now uses the same is_template_hook predicate, so the two paths agree. group_cmds still matches template commands. Item 8: the warned_once SC2329 disable has its reason, and the block comment counts five readers. The suite header's Covers line names the new case."
+task_id: "T6"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t6"
+branch: "task/006-result-file-guard/T06-upgrade-matcher-resolution"
+base_commit: "97b627c8cdcb3107b9a43a57911b2cc79b18a157"
+head_commit: "b78d86886fb55ae139c8936dab7ea8ce0ab6eb26"
+files_changed: ["install.sh", "tests/scripts/install-upgrade.sh"]
+tests_added:
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-011 a group running the stop audit and a prompt hook is kept as it was (no terminal)", kind: "edge"}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-011 one Warnings line names the kept group's prompt hook (no terminal)", kind: "edge"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/install-upgrade; 'FAIL JRN-011 a group running the stop audit and a prompt hook is kept as it was (no terminal)', 'FAIL JRN-011 one Warnings line names the kept group's prompt hook (no terminal)' (passed=120 failed=2)"
+  green: "tests/run-all.sh --suite scripts/install-upgrade; passed=122 failed=0 skipped=0"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/006-result-file-guard --task-id T6 --cwd <worktree>; lint pass, test pass (scoped: own 1, excluded 3; install-upgrade passed=122 failed=0 skipped=0)"
+  toolchain: ".workflow/specs/006-result-file-guard/artifacts/T6/toolchain.txt (pass)"
+considered_not_built:
+  - "A pseudo-terminal case showing the prompt hook in the prompt's hook list: the launch prompt asked for no new pseudo-terminal run; the list now comes from hook_names, the same names the no-terminal Warnings line shows."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
