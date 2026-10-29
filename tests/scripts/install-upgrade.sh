@@ -8,7 +8,8 @@
 #   with user groups: JRN-011 without a terminal (template-only group merged, mixed group kept, match-all and covering groups
 #   untouched, a Warnings line per merged or kept group, a third run writes nothing); JRN-012 --matchers=merge|replace|keep,
 #   a bad mode, --dry-run with and without --matchers (writes nothing, previews, never reads stdin), --force alone, a
-#   matcher that is not a plain alternation never merged; JRN-013 the prompt at a pseudo-terminal (script(1); skipped
+#   matcher that is not a plain alternation never merged, --matchers with no value, a match-all template matcher dropped
+#   on merge and replace, a Codex hooks.json group under the same rule, a non-string matcher left alone; JRN-013 the prompt at a pseudo-terminal (script(1); skipped
 #   when no form of it works): its text, Enter merges, r replaces, k keeps, a mixed group's prompt lists every hook.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Every install.sh run reads stdin from /dev/null, an open pipe or a pseudo-terminal, never from the caller's terminal, and
@@ -332,6 +333,41 @@ for how in no-terminal matchers-merge; do
     check "JRN-012 a Warnings line names the non-plain matcher (a|b)c (no terminal)" 'warned_about "$out" "(a|b)c"' "$out"
   fi
 done
+
+echo "== edges: --matchers with no value, a match-all template matcher, a Codex hooks.json group, a non-string matcher (JRN-012)"
+X=$WORK/matchers-no-value
+clone_target "$FOO_BASE" "$X"
+before=$(snap "$X")
+t "JRN-012 --matchers with no value exits 2" 2 INSTW "$X" --host claude --matchers
+eq "JRN-012 --matchers with no value writes nothing" "$(snap "$X")" "$before"
+
+SCM=$WORK/sc-match-all
+cp -R "$SC" "$SCM"
+drop_group_matcher "$SCM/.agents/hooks/claude-settings.template.json" SubagentStop "$STOP_AUDIT"
+for mode in merge replace; do
+  X=$WORK/match-all-template-$mode
+  clone_target "$FOO_BASE" "$X"
+  INST_FROM "$SCM" "$X" --host claude "--matchers=$mode" >/dev/null 2>&1
+  eq "JRN-012 a match-all template matcher: --matchers=$mode drops the stop-audit group's matcher" \
+    "$(group_matchers "$X/.claude/settings.json" SubagentStop "$STOP_AUDIT")" '<none>'
+done
+
+X=$WORK/codex-hooks
+new_target "$X"
+INSTW "$X" --host codex >/dev/null 2>&1
+set_group_matcher "$X/.codex/hooks.json" PreToolUse block-destructive-git.sh Read
+out=$(INSTW "$X" --host codex 2>&1)
+eq "JRN-012 a Codex hooks.json group follows the same rule: Read with the template's Bash merges to Read|Bash" \
+  "$(group_matchers "$X/.codex/hooks.json" PreToolUse block-destructive-git.sh)" 'Read|Bash'
+check "JRN-012 a Warnings line names the merged Codex matcher Read|Bash" 'warned_about "$out" "Read|Bash"' "$out"
+
+X=$WORK/non-string-matcher
+clone_target "$OLD_BASE" "$X"
+edit_settings "$X/.claude/settings.json" '.hooks.SubagentStop |= map(if runs($c) then .matcher = 5 else . end)' --arg c "$STOP_AUDIT"
+non_string_before=$(jq -c .hooks.SubagentStop "$X/.claude/settings.json")
+INSTW "$X" --host claude --matchers=replace >/dev/null 2>&1
+eq "JRN-012 a non-string matcher is left alone, even with --matchers=replace" \
+  "$(jq -c .hooks.SubagentStop "$X/.claude/settings.json")" "$non_string_before"
 
 echo "== the prompt at a terminal (JRN-013)"
 # pty_upgrade NAME ANSWER TARGET : upgrades a copy of TARGET at $WORK/pty-NAME on a pseudo-terminal, typing ANSWER.
