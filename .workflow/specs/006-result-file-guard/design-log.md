@@ -437,3 +437,13 @@ Outcome: rework 1 of 5
 - T5 (F2): the 3.2 Toolchain bullet says the Claude stop audit runs the full toolchain in the integration worktree (Codex none) and how to read `toolchain.json` and `audit.json`; one wording round on its own clause; re-check pass. A reviewer resume fixed a mini-review file missing an item `location`.
 - Both merged after the artifacts gate (exit 0): T3 `faeb1df`, T5 `9b30638`.
 - Gate 3.9 after rework 1: full harness pass, nothing excluded (`artifacts/gate-3.9-rework1/`); in-review at 3.11.
+
+## 2026-10-29 Triage, review pass 2
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+
+No findings from any lens. review-end-state confirms F1 and F2 fixed (rework 1). Targets: 7 of 7 measurable pass (guard-time 0.04 s); line coverage not measurable (D17). Gap: JRN-010 (a real no-isolation Phase 1 or integration launch filing its own result file, including whether Claude Code accepts the heredoc command) stays the manual 5.x check.
+
+Failed lenses: none
+Outcome: clean, to sign-off
