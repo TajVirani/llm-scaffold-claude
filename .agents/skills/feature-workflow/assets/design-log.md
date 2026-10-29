@@ -183,10 +183,10 @@ Approved budget overrun (00.29 Approve):
 
 ## YYYY-MM-DD Sign-off: stakeholder approval (5.5)
 
-<!-- 5.5. One entry for the batched sign-off ask: the approval, the PR description approval (5.8 publishes only the text whose hash is logged here), the 5.9 ruling on each open backlog item and the going-in concerns for the retrospective, all answered in one round. The retrospective (5.7) reads the `Going-in concerns:` line instead of asking again. A change request (5.6) appends its own entry after this one. -->
+<!-- 5.5. One entry for the batched sign-off ask: the approval, the PR description approval, the 5.9 ruling on each open backlog item and the going-in concerns for the retrospective, all answered in one round. The retrospective (5.7) reads the `Going-in concerns:` line instead of asking again. A change request (5.6) appends its own entry after this one. -->
 
 - Approval: yes / change requested: "<stakeholder's words, verbatim>"
-- PR description: approved, pr-body.md <hash from `git hash-object`> / not approved (change requested). Changes asked before approval: "<stakeholder's words, verbatim>" | none
+- PR description: approved / not approved (change requested). Changes asked before approval: "<stakeholder's words, verbatim>" | none
 - Backlog <NNN-slug>-disc-<###>.md: start it as the next feature / keep it open / move it to .workflow/deferred/ (one line per open item, or "Backlog: no open items")
 - Going-in concerns: <the stakeholder's words, verbatim | none>
 

@@ -130,7 +130,7 @@ Ask the sign-off questions together: the approval, the PR description, the 5.9 r
 
    - **Claude Code:** one AskUserQuestion call holding every question. Past its limit of four questions per call, put the rest in a second call straight after, in the same order.
    - **Codex, or chat:** one message with the questions numbered, then wait.
-4. **Log the answers** in `.workflow/specs/NNN-slug/design-log.md` with the "Sign-off" shape in [../assets/design-log.md](../assets/design-log.md): the approval, the PR description approval with the hash `git hash-object .workflow/specs/NNN-slug/pr-body.md` prints for the approved text, each backlog ruling, and `Going-in concerns: <text | none>` with the stakeholder's words verbatim.
+4. **Log the answers** in `.workflow/specs/NNN-slug/design-log.md` with the "Sign-off" shape in [../assets/design-log.md](../assets/design-log.md): the approval, the PR description approval, each backlog ruling, and `Going-in concerns: <text | none>` with the stakeholder's words verbatim.
 
 - **Yes**, and the PR description approved: go to 5.9 with the logged rulings.
 - **No, change requested**: go to 5.6. The backlog rulings and the concerns stay logged and change no file; when the spec comes back to 5.5, offer them as the recommended answers.
@@ -182,7 +182,7 @@ yq --front-matter=extract '.verdict' .workflow/decisions/retrospectives/NNN-slug
 
 Commit what is left on the spec branch (`git status --short`; the spec folder with `pr-body.md`, the approved Tier A writes and the retrospective).
 
-**Check the body again.** Run `check-pr-body.sh` on `pr-body.md` exactly as at 5.4, and `git hash-object .workflow/specs/NNN-slug/pr-body.md`. Publish only when the check exits 0 and the hash matches the one logged at 5.5. Otherwise the text is not the approved one: fix any fault the check names, show the stakeholder the full text, ask the 5.5 PR description question again, and log the answer and the new hash in the Sign-off entry, and commit both, before you publish.
+**Check the body again.** Run `check-pr-body.sh` on `pr-body.md` exactly as at 5.4; publish when it exits 0. On a fault, fix each line it names, show the stakeholder the full text, ask the 5.5 PR description question again, and log the answer in the Sign-off entry, then commit the fixed body and the log before you publish.
 
 **Publish** with the stakeholder's go-ahead: merge the spec branch into the main branch through a PR/MR carrying `pr-body.md` as its description, or by a local merge whose message holds it. Pick the line from the host of `git remote get-url origin`: one containing `github` runs the `gh` line, one containing `gitlab` the `glab` line. Without a remote or the CLI, on any other host, or when the stakeholder asks for one, run the last two lines, the local merge. Never pass `--template`: the approved body is the whole description. Run from the project root with the spec branch checked out, setting the variables in the same Bash command, since each Bash call starts a fresh shell:
 
