@@ -153,3 +153,4 @@ Facts used, not asked: `rules-setting.sh` validates a free-form value through an
 
 0.4.6: no new module audit. The changed part sits in lines the first audit already read (`rules-setting.sh:13-27, 41-48, 65, 83-105`: the five places a key appears and the generic validation), and its constraints still hold. 0.4.7: no conflict with the goal or the placement.
 - 0.5: verification-plan end state, JRN-003 (path argument), JRN-004 (path values, missing file, bad shapes, `project` now refused, outside git) and fixtures updated; JRN-004 Check set back to MISSING for the 1.2 re-entry. 0.6: all four checks clear.
+- 1.2 re-entry: JRN-004 reworked for D12/D16 and merged as `4907bca` (15 cases); `tests/README.md` row updated by hand to match. The agent's result files (`implementation.yaml`, `implementation-r1.yaml`) stayed in its worktree again; `check-task-result.sh` passed there. 1.4 Run 4: 67 new cases red on assertions.

@@ -23,3 +23,11 @@ Not applicable: no e2e work type and no browser; every journey is a harness suit
 ## Run 3: StrykerJS
 
 Skipped: StrykerJS mutates JS/TS only and the changed code is bash. Not a silent pass.
+
+## Run 4: harness after the 2.3 loop-back (JRN-004 rework)
+
+- Build: `4907bca` (Merge phase-1-test-harness, JRN-004 rework for D12/D16) in a throwaway detached worktree, removed afterwards.
+- Fault: none injected; the baseline is the known-bad build, as in Run 1.
+- Command: `tests/run-all.sh -v --suite <s>` for the same three suites; log [harness-r2.log](harness-r2.log).
+- Result: exit 1 for every suite; 67 failures, all assertions: check-pr-body 26, sign-off-pr 26, task-breakdown 15 (the JRN-004 cases; the 115 existing cases pass). The one `No such file` match in the log is the case name `JRN-004 pr_template .github/missing.md (no such file) -> 1 naming it`, not an error.
+- The build agent ran the reworked JRN-004 cases against a throwaway reference in a scratch copy: 130/130 passed.
