@@ -31,3 +31,10 @@ Skipped: StrykerJS mutates JS/TS only and the changed code is bash. Not a silent
 - Command: `tests/run-all.sh -v --suite <s>` for the same three suites; log [harness-r2.log](harness-r2.log).
 - Result: exit 1 for every suite; 67 failures, all assertions: check-pr-body 26, sign-off-pr 26, task-breakdown 15 (the JRN-004 cases; the 115 existing cases pass). The one `No such file` match in the log is the case name `JRN-004 pr_template .github/missing.md (no such file) -> 1 naming it`, not an error.
 - The build agent ran the reworked JRN-004 cases against a throwaway reference in a scratch copy: 130/130 passed.
+
+## Run 5: harness after the 4.5 loop-back (D19, D20, F2; F5 refactor)
+
+- Build: the merge of `d3a3614` onto the spec branch, in a throwaway detached worktree, removed afterwards.
+- Fault: none injected; today's feature code is the known-bad build for D19, D20 and F2.
+- Command: `tests/run-all.sh -v --suite <s>` for `scripts/check-pr-body` and `scripts/sign-off-pr`; log [harness-r3.log](harness-r3.log).
+- Result: exit 1 for both; 8 failures, all assertions (no `command not found`, `syntax error` or `unbound variable`): check-pr-body 5 (JRN-003 D19 cases), sign-off-pr 3 (JRN-006 D20 and F2 cases). New cases that pass today pin behaviour that must hold (filled mixed-level bodies, no-headings exit 2, project-setup lists the four paths). The agent's full run: `TOTAL passed=3155 failed=8 (58 suites)`; its throwaway reference passed check-pr-body 44/44 and sign-off-pr 30/30.

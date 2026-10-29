@@ -222,3 +222,4 @@ Seed: triage F4 (review-end-state RE-1), project mode reads only `##` headings.
 
 0.4.6: no new module audit; the changed parts are this spec's own new code, read in full by Phase 4 pass 1. 0.4.7: no conflict with the goal or the placement.
 - 0.5: verification-plan end state (project mode per D19; 5.4 per D20 and F2), JRN-003 and JRN-006 updated and set back to MISSING for the 1.2 re-entry. 0.6: all four checks clear.
+- 1.2 re-entry (4.5 loop-back): harness for D19, D20, F2 and the F5 `[[ ]]` refactor merged from `d3a3614`; result file written in the spec folder this time (worktree under `.workflow/.worktrees/`). 1.4 Run 5: 8 new cases red on assertions.
