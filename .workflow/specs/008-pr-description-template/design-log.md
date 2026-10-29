@@ -1,0 +1,107 @@
+# Design log: PR template
+
+Spec: [spec.md](spec.md)
+
+## 2026-10-29 Term gate 0.2.2
+
+- Agreed and written to `.workflow/GLOSSARY.md`: **PR template** (chosen over "PR description template"), **Sign-off PR**, **Blast radius** (stakeholder chose a glossary entry over a plain section heading).
+- D1: no existing capability covers PR descriptions (`.workflow/capabilities.md:13-17`); the change is a new capability, `CAP-NEW-pr-template`.
+- D2: owning module is clear, feature-workflow (`.agents/skills/feature-workflow/**`); no placement ADR.
+
+## 2026-10-29 Deeper prompt
+
+Revision rounds: 1. Draft goals shown; stakeholder answered downstream ("The review step may use some pieces of this template to help it understand what to review"), tools ("What you suggested") and gotchas (issue link required but a stub until issue creation exists, filed as its own item; a project's own pull_request_template is asked about once and the answer saved in config). Agreed with "go"; the issue-creation item goes to the deferred shelf at 0.3.17.
+
+**Ask:** Every Sign-off PR should tell a reviewer (human or AI) what the change is for, prove it works, and say what it could break and how to undo it, so nobody has to open the spec folder to judge it.
+
+**Goals:**
+- Every Sign-off PR opened at 5.8 carries all ten PR template sections, in a fixed order.
+- Each section is filled from evidence the spec folder already holds (commands run and their output, reviewer findings, report.md, design-log.md), not claims.
+- Risk and reversibility use a fixed scale (Risk: Low/Medium/High; Reversibility: Easy/Moderate/Hard), each with a one-line reason.
+- If "How to undo" can't be written, sign-off stops and flags it before opening the PR.
+- The body reaches GitHub/GitLab through a file (gh --body-file / glab --description-file); a local merge keeps the same body.
+- "Link to issue" is a required section. Until the workflow creates issues, it is a marked stub.
+- When the project has its own .github/pull_request_template.md (or GitLab MR template), the user is asked once whether to use it or ignore it, and the answer is saved in the project's workflow settings so it is never asked again.
+
+**Downstream:** The Phase 4 review may later read parts of the filled template (intent, blast radius, areas changed) to decide what to review. Keep the sections separately readable.
+
+**Tools and technologies:** Plain bash plus a Markdown template under feature-workflow/assets/. No new dependencies.
+
+**Gotchas:**
+- No issue is created at the start of a spec today, so the issue link has nothing to point to yet.
+- Workflow settings in .workflow/rules.md change only at 5.3, and the PR is opened at 5.8. Where the use-or-ignore answer gets saved needs settling.
+- gh errors if --template is passed together with --body-file.
+
+**Not asked for:**
+- Creating a tracker issue at spec start. This becomes its own item to be built later.
+- A REVIEW.md for AI review.
+- Changing task PR bodies (3.16).
+- Making the review step read the template.
+
+**Original request:** "At the end of a spec when the system is creating a PR, we need to follow a template for the PR. The headlines should cover: Link to issue, What changed (Bullets), Why the change (Bullets), Why this approach, Special things to note, How the user can test (Step by step instructions), The blast radius of the change, The change risk and reversibility (A general score ie Risk: High, Reversibility: Easy), Which areas / concepts / seams of the code changed, How to undo this PR"
+
+## 2026-10-29 Questioning round 1
+
+- Q1 Fill timing. Options: at 5.4 with approval at 5.5 / at 5.8 just before opening / defer. Recommended: 5.4 + 5.5 (stakeholder signs off on the exact PR text). Answer: "At 5.4, you approve at 5.5". **D3:** the main session fills `pr-body.md` in the spec folder at 5.4 beside `report.md`; the stakeholder approves it at 5.5; 5.8 sends it unchanged.
+- Q2 Meaning of "use the project's template". Options: project's headings filled, ours dropped / ours then project's / defer. Recommended: project's headings. Answer: "Project's headings, filled". **D4:** "use" fills the project's own headings from the same evidence; "ignore" uses the ten PR template sections only.
+- Q3 Undo cannot be written. Options: flag at 5.5 / hard stop / defer. Recommended: flag at 5.5. Answer: "State that under the "How to undo" and make sure the risk factor is flagged as HIGH". **D5:** the How to undo section states why it cannot be undone, and Risk is High.
+- Q4 Check script. Options: yes / prose only / defer. Recommended: yes. Answer: "Yes, check script". **D6:** a bash check validates the filled body (headings present in order, no empty section, scores on the fixed scale) at 5.4 and 5.8.
+
+Facts looked up (fact-lookup), not asked:
+- 5.3 asks only the proposals approval round, then applies rows; the main session may write `.workflow/rules.md` at 5.3 (`sign-off.md:32-72`, `check-write.sh:75`).
+- The light path runs 5.4 and 5.8 the same as the full path (`sign-off.md:85, 88, 161`; `references/steps.tsv:109-117`).
+- A new Workflow settings key needs a `setting_spec` case in `rules-setting.sh` (`rules-setting.sh:42-48, 65`); tests in `tests/scripts/task-breakdown.sh:97-122`.
+- The 5.8 local merge passes no message (`sign-off.md:161`); other workflow merges pass `-m`.
+- A new `pr-body.md` in the spec folder is unguarded (`check-write.sh:206-212, 228`).
+
+## 2026-10-29 Questioning round 2
+
+- Q1 Where the use-or-ignore answer is saved. Options: rules.md key via a 5.2 proposal approved at 5.3 / separate config file / defer. Recommended: rules.md key via 5.3. Answer: deferred to deep dive.
+- Q2 Irreversible value. Options: add Irreversible and enforce Risk: High / keep three values / defer. Recommended: enforce. Answer: "Yes, enforce it". **D7:** reversibility scale is Easy / Moderate / Hard / Irreversible; the check script fails when Reversibility is Irreversible and Risk is not High.
+- Q3 Local merge. Options: body in merge commit / PR route only / defer. Recommended: body in merge commit. Answer: "Yes, body in merge commit". **D8:** the 5.8 local merge uses `git merge --no-ff -F <file>` with a Conventional Commits subject followed by the approved `pr-body.md`.
+
+## 2026-10-29 Deep dive: where the use-or-ignore answer is saved
+
+- Facts: behaviour settings live in the `## Workflow settings` block of `.workflow/rules.md` (Tier A, written at 0.3.7, 5.3, 5.7; read by `rules-setting.sh`); models live in unguarded `.workflow/model-map/<type>.md` and `.workflow/agent-overrides.yaml`; state lives per spec in `spec.md` and `.step`. No single settings home exists.
+- Options: (1) rules.md key chosen through a 5.2 proposal at 5.3; (2) the same key, also asked by `project-setup` when it writes rules.md and a host template exists, with the 5.2/5.3 fallback; (3) a new unguarded settings file.
+- Recommended: (1) or (2). Answer: "Lets do 2 for now - add a backlog item to unify global settings to a central location".
+- **D9:** new Workflow settings key `pr_template: workflow | project` in rules.md, read by `rules-setting.sh`. `project-setup` asks it when it writes rules.md and the project has a host PR/MR template; sign-off 5.2 adds a proposal row when the key is unset and a host template exists, decided at 5.3, before 5.4 fills the body. Unset with no host template: the PR template is used.
+- Unifying workflow settings in one home is out of scope: shelved at 0.3.17.
+
+## 2026-10-29 Scope decision: spec issue creation
+
+- Item: create a tracker issue when a spec starts, so "Link to issue" has a target.
+- Ruling: shelved (HITL), per the deeper prompt's Not asked for. [.workflow/deferred/spec-issue-creation.md](../../deferred/spec-issue-creation.md)
+
+## 2026-10-29 Scope decision: workflow settings home
+
+- Item: one central home for project-wide workflow settings (behaviour settings and models).
+- Ruling: shelved (HITL); stakeholder: "add a backlog item to unify global settings to a central location". [.workflow/deferred/workflow-settings-home.md](../../deferred/workflow-settings-home.md)
+
+## 2026-10-29 Placement: feature-workflow
+
+- D10: feature-workflow owns the change (template, sign-off steps, check script, `rules-setting.sh` key). D9 adds one setup question to `project-setup`, which may depend on feature-workflow (`.workflow/rules.md` Ownership). No placement ADR: it fails the three-part test (easy to reverse, no real trade-off).
+- 0.3.19 summary confirmed by the stakeholder ("Yes, confirmed"). Light-path facts: intent gaps clean, no irreversible actions, footprint not small (two modules, new script and tests, about 8 files) → full path.
+
+## 2026-10-29 Impact classification
+
+0.4.2 term gate: no new concept; PR template, Sign-off PR and Blast radius were agreed at 0.2.2.
+
+| Part | Module | Class |
+| --- | --- | --- |
+| `assets/pr-template.md` (ten sections, per-section evidence guidance) | feature-workflow | create |
+| `scripts/check-pr-body.sh` (headings, order, non-empty, score scales, Irreversible → High; project mode: non-empty only) | feature-workflow | create |
+| `modules/sign-off.md` 5.2 (pr_template proposal row), 5.4 (fill and check `pr-body.md`), 5.5 (approve the text), 5.8 (`--body-file` / `--description-file`; local merge `-F`) | feature-workflow | extend |
+| `scripts/rules-setting.sh` (`pr_template` key: `workflow` / `project`, default `workflow`) | feature-workflow | extend |
+| `project-setup` setup flow and its `assets/docs/rules.md` Workflow settings template (ask when a host template exists) | project-setup | extend |
+| This repo's `.workflow/rules.md` Workflow settings (document the key) | Tier A | extend, via 5.3 proposal |
+| Tests: new check-pr-body suite; `pr_template` cases beside the `rules-setting.sh` tests | tests | create / extend |
+| `PROVENANCE.md` / `assetlist.md` entries for the new files | scaffold docs | extend |
+| `assets/report.md`, `open-task-pr.sh`, task PRs, `references/steps.tsv` | feature-workflow | unchanged |
+
+## 2026-10-29 Scope decision: initiative PR template
+
+- Item (module-audit, out of scope noticed, can-wait): the initiative PR into main has no body (`modules/large-path.md:218-221`).
+- Ruling: shelved (HITL) through the 0.3.17 scope gate. [.workflow/deferred/initiative-pr-template.md](../../deferred/initiative-pr-template.md)
+- The audit's second line (no issue identifier captured) is the already-shelved [spec-issue-creation.md](../../deferred/spec-issue-creation.md).
+- 0.4.7: no conflict with the goal or placement; audit gaps are covered by D3, D8, D9; stale-body and CAP-NEW constraints are met because 5.4 runs after 5.3 and refills `pr-body.md` on every pass.
