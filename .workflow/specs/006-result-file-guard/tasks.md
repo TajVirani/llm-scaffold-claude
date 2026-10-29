@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Hooks build agent worktree names from the shared lib"
-    status: in-progress
+    status: done
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: true
@@ -28,7 +28,7 @@ tasks:
     pr: null
   - id: T2
     title: "Artifacts merge gate"
-    status: in-progress
+    status: done
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: false
@@ -47,7 +47,7 @@ tasks:
     pr: null
   - id: T3
     title: "Agent briefs write the result file to the main checkout"
-    status: in-progress
+    status: done
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: false
@@ -108,7 +108,7 @@ tasks:
     capability: CAP-NEW-result-file-write
     depends_on: [T1]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "installer"
     seam: "install.sh CLI on a fixture target: exit code, .claude/settings.json after the run, Warnings lines, the prompt under a pseudo-terminal (install-upgrade JRN-006, JRN-011 to JRN-013)"
     file: tasks/T06-upgrade-matcher-resolution.md
@@ -127,7 +127,7 @@ tasks:
     capability: CAP-NEW-result-file-write
     depends_on: [T6]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "root-docs"
     seam: "doc text of the four docs, checked by grep (lint/install-matcher-docs JRN-014)"
     file: tasks/T07-docs-upgrade-matcher-rule.md

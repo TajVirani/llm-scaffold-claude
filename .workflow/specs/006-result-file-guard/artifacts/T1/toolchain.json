@@ -1,11 +1,11 @@
 {
-  "status": "fail",
+  "status": "pass",
   "task_id": "T1",
   "work_type": "shell-scripts",
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/specs/006-result-file-guard/artifacts/T1",
-  "tree": "77102263892d6e2de8579db3c13bcd41f3b695f0",
+  "tree": "cd336a0bede21edd31955d90d6d6f48528feb751",
   "ran": 2,
   "results": [
     {
@@ -38,12 +38,13 @@
     {
       "key": "test",
       "command": "tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\"",
-      "status": "fail",
-      "exit_code": 1,
+      "status": "pass",
+      "exit_code": 0,
       "scoped": true,
-      "own": 4,
-      "excluded": 3
+      "own": 3,
+      "excluded": 5
     }
   ],
-  "digest": "Toolchain failed for task T1 (1 of 2 commands). Fix these in the same context, then stop again.\nFull output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/specs/006-result-file-guard/artifacts/T1/toolchain.txt\n\n[test] tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\" exited 1. Last 40 lines:\n== scripts/install-claude-settings\n== scripts/install-upgrade\nFAIL JRN-006 after the upgrade: the stop audit matcher matches integration\n       [{\"matcher\":\"implementation\",\"hooks\":[{\"type\":\"command\",\"command\":\"\\\"$CLAUDE_PROJECT_DIR\\\"/.agents/hooks/post-implementation-audit.sh\",\"timeout\":600}]}]\n== scripts/lib-workflow-paths\n== hooks/audit-agent-worktrees\n\n== summary\nPASS scripts/install-claude-settings        passed=36   failed=0   skipped=0   xfail=0   22s\nFAIL scripts/install-upgrade                passed=17   failed=1   skipped=0   xfail=0   26s\nPASS scripts/lib-workflow-paths             passed=99   failed=0   skipped=0   xfail=0   2s\nPASS hooks/audit-agent-worktrees            passed=21   failed=0   skipped=0   xfail=0   3s\nTOTAL passed=173 failed=1 skipped=0 xfail=0 (4 suites)\nFAILED suites: scripts/install-upgrade\n"
+  "digest": "",
+  "reused_from": "T1"
 }

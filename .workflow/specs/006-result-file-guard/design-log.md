@@ -294,3 +294,40 @@ Outcome: loop back (00.24 discovered work)
 - T1-T5 records and statuses kept. T1 gains the Merge rules lines in `claude-settings.template.md` (D19-D29) and hands `tests/scripts/install-upgrade.sh` and its upgrade acceptance line to T6.
 - New: T6 "Upgrade resolves hook matchers per group" (installer, `install.sh`, M, depends on T1) owns `tests/scripts/install-upgrade.sh`; T7 "Docs describe the upgrade matcher rule" (root-docs, `README.md`, `CHANGELOG.md`, S, depends on T6) owns `tests/lint/install-matcher-docs.sh`. Both edges gate test ownership. Waves: 1 = T1, T2, T3; 2 = T4, T5, T6; 3 = T7. Stakeholder: "Approve (Recommended)".
 - Seams (2.3): T6 through the `install.sh` CLI on a fixture target; T7 through grep over the four docs. Stakeholder: "Agree (Recommended)". No new shared-core request (2.4). Budget D18 unchanged.
+
+## 2026-10-29 T1 fix round (3.4-3.6)
+
+- Fresh agent in `s006_t1` (the first T1 agent belonged to an earlier session). It merged the spec branch (`689fa8c`) and added the Merge rules lines (`fca013e`); round 1 kept as `artifacts/T1/implementation-r1.yaml`. The result file landed in the main checkout with no copy step. `check-task-result.sh` exit 0; `toolchain.json` pass (lint clean, 3 own suites, scoped), no `audit.json`.
+- 3.4 judged met: `tests_added` is empty in both rounds, and T1's Phase 1 suites already hold its negative and edge cases (malformed spec folder returns 1, outside writes denied, missing worktree warns, failing integration toolchain blocks).
+- 3.7 diff base: `implementation.yaml` `base_commit` is round 1's head (`52daec3`); the mini-review gets the spec-branch tip `4b66751` with a three-dot diff, so it judges the whole task change.
+
+- Duplicate discovered work: header-worktree-kind-mapping matches .workflow/deferred/worktree-name-parser.md; line appended.
+
+## 2026-10-29 Discovered work: codex-integration-missing-transcript
+
+- Found at: step 3.7 by profile-mini-review for T1 (`artifacts/T1/mini-review.yaml` out_of_scope_noticed). Kind: bug
+- Problem and evidence: `post-implementation-audit.sh:121` warns on a missing or unreadable transcript before the Codex integration exit at `:129`, so a Codex integration stop with no transcript now gets a warning (worded for an implementation stop at 3.7) where every integration stop used to exit silently; against T1's criterion "Codex and Phase 3 behaviour is unchanged".
+- Assessment and ruling: blocker (T1's acceptance criterion cannot be met as built); stays in T1. Stakeholder: "Fix in T1, silent exit (Recommended)": an integration stop with no readable transcript exits silently on both hosts, as before T1; fixed in T1's fix round with the R4 item. No loop back.
+
+## 2026-10-29 T1 mini-review round 2 (3.7-3.8)
+
+- Verdict fail, item 3 `worktree-write-guard.sh:102`: a header the lib cannot name left the name empty with no deny, so the agent ran unconfined (fail-open). Behaviour fix round with a fresh agent; the next review is full. The reviewer's Sources-line note (guard header omits `lib/workflow-paths.sh`) is T1's own file and goes into the same round.
+- Checklist item 3 wording against the silent-exit ruling: a profile change, so proposal P1 in `proposals.md` for 5.3.
+
+## 2026-10-29 Discovered work: spec-folder-digit-rule
+
+- Found at: step 3.7 by profile-mini-review for T1 (`artifacts/T1/mini-review-r2.yaml` out_of_scope_noticed). Kind: decision
+- Problem and evidence: `wf_agent_worktree_name` needs three or more digits in the spec number (`.agents/lib/workflow-paths.sh:135`), while `resolve-launch.sh --parse-header` and the pre-change guard accepted any count.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/006-result-file-guard-disc-002.md](../work-backlog/006-result-file-guard-disc-002.md)
+
+## 2026-10-29 T1 mini-review round 3 (3.7-3.8)
+
+- Verdict pass (13 of 13), full review of `4b66751...9e706b7`. T1 ready to merge.
+
+## 2026-10-29 Discovered work: guard-allows-without-confinement
+
+- Found at: step 3.7 by profile-mini-review for T1 (`artifacts/T1/mini-review.yaml` out_of_scope_noticed, two decision entries). Kind: decision
+- Problem and evidence: the guard allows a non-isolated agent when the header cannot be parsed (`worktree-write-guard.sh:92-93`) or the named worktree is missing (`check-worktree-scope.sh:101-104` rule 3), against `.workflow/profiles/shell-scripts.md:25` "Guard hooks fail closed"; both predate 006 for Phase 3.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/006-result-file-guard-disc-003.md](../work-backlog/006-result-file-guard-disc-003.md)

@@ -1,5 +1,5 @@
 ---
-status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "e049f4dde93474aca594212026144ed7006a917f" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/006-result-file-guard # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "5a7f8c9fdec8822cbd1955a655573f0acc5b0679" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten

@@ -1,0 +1,60 @@
+verdict: "fail"
+task_id: "T1"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1@4b66751..HEAD (HEAD fca013e)"
+tool_output: ".workflow/specs/006-result-file-guard/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:236,240 (paths built from $WF_WORKTREES); .agents/hooks/worktree-write-guard.sh:102 (name from wf_agent_worktree_name); the added .workflow/ literals are header or comment lines only (audit:25,34,232; guard:14-15)"
+  - n: 2
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:235,254 (name from the lib; toolchain run by run-toolchain.sh); .agents/hooks/worktree-write-guard.sh:102,119 (name from the lib; scope rule in check-worktree-scope.sh)"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:235-239,246 (lib rejection kept as the reason and reaches warn_allow); .agents/hooks/worktree-write-guard.sh:102 (lib reason dropped on purpose; falls back to the linked-worktree rule, as the unreadable-header allow at :88-90 does)"
+  - n: 4
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:129 (the only added exit, code 0, documented by the header Outputs/handoff line 53); .agents/hooks/worktree-write-guard.sh:25 (exit 0 documented); no exit code changed"
+  - n: 5
+    verdict: "pass"
+    location: ".agents/hooks/worktree-write-guard.sh:54,59; .agents/hooks/post-implementation-audit.sh:66-67; .agents/hooks/codex-pre-spawn.sh:65-66 (existing BASH_SOURCE and cd -P resolution, untouched; the diff adds no sibling path)"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/hooks/worktree-write-guard.sh:1-31 (File, Goals, Triggers/inputs, Behaviour, Outputs/handoff, Wiring, Notes, Sources, Requires); .agents/hooks/post-implementation-audit.sh:1-62 (same hook shape); no decision ID in an added header line"
+  - n: 7
+    verdict: "pass"
+    location: "no new files (diff name-status is all M); set -euo pipefail at .agents/hooks/worktree-write-guard.sh:33, post-implementation-audit.sh:64, codex-pre-spawn.sh:35; added tests use [ ] like the surrounding code (audit:129,218,225,240; guard:94,96)"
+  - n: 8
+    verdict: "pass"
+    location: "no function definition and no shellcheck disable directive among the added lines; codex_enc removed (git grep -n codex_enc -- .agents/hooks prints nothing)"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:215-226 (worktree_kind and worktree_value say what they hold); .agents/hooks/worktree-write-guard.sh:95-99 (kind and value mirror the lib's own argument names)"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:128 (why Codex integration stops exit), :221 (why the integration record is reused), :234 (why the lib reason only goes to the warning); .agents/hooks/worktree-write-guard.sh:101 (why an unnamed header keeps the linked-worktree rule)"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:232 (states the block's intent and why the orchestrator's worktree comes first, not a line-by-line restatement); :128, :221, :234 and guard:101 each give a reason"
+  - n: "R4"
+    verdict: "fail"
+    location: ".agents/hooks/post-implementation-audit.sh:232"
+    note: "Body comment names the workflow folder path .workflow/.worktrees/, which a reader of the hook cannot follow and which goes stale when the worktree folder moves; rewrite it as the reason, e.g. 'The orchestrator makes the agent worktree; an isolation launch has none, so the payload cwd is the fallback.' (rule candidate)"
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:221,234 (isolation and Phase 1 are defined in the file header at lines 28 and 38)"
+read_outside_diff: ["/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/lib/workflow-paths.sh: wf_enc and wf_agent_worktree_name, lines 111-161 (name rules and rejection cases)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/skills/feature-workflow/scripts/resolve-launch.sh: FORMATS and per-type header shapes, lines 57-103 (which headers reach the lib)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/skills/feature-workflow/scripts/run-toolchain.sh: CLI header, lines 11-25 and 60 (--exclude-unfinished and exit codes)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/hooks/worktree-write-guard.sh: whole file in the worktree (sourcing, name derivation, scope call)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/hooks/post-implementation-audit.sh: whole file in the worktree (sourcing, Codex exit and transcript check, Claude worktree choice)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/hooks/codex-pre-spawn.sh: sourcing and wf_enc call sites (lines 65-66, 75, 117)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/skills/feature-workflow/references/readable-code.md: rules R1-R5 and the Checking table", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/specs/006-result-file-guard/tasks/T01-hooks-agent-worktree-names.md: acceptance criteria, used to assess the out-of-scope item"]
+out_of_scope_noticed:
+  - kind: "bug"
+    summary: "On Codex, an integration stop whose transcript is missing now gets a warn_allow systemMessage that says the implementation stop was allowed. The transcript check at line 121 runs before the Codex integration exit at line 129, and the old top-level filter exited silently for every integration stop."
+    evidence: ".agents/hooks/post-implementation-audit.sh:121,129"
+    blocker_assessment: "blocks-this-task"
+    reason: "The task's acceptance criteria say Codex behaviour is unchanged, and this path changes it. Exiting for a Codex integration stop before the missing-transcript warning would restore the old behaviour."
+  - kind: "refactor"
+    summary: "The header-to-worktree-kind mapping (task, phase_1 or integration, from task_id and agent_type) is written twice, once in the guard and once in the audit."
+    evidence: ".agents/hooks/worktree-write-guard.sh:94-100; .agents/hooks/post-implementation-audit.sh:214-229"
+    blocker_assessment: "can-wait"
+    reason: "Both copies agree today, but a later change to one can leave the guard and the audit naming different worktrees for the same launch."
