@@ -4,9 +4,13 @@
 #   no output. JRN-002: one variant per fault (a section removed, two sections swapped, a section emptied, Risk: Severe,
 #   Reversibility: Never, Reversibility: Irreversible with Risk: Low, no Risk line) exits 1 with one stdout line naming
 #   it; two faults give two lines; every scale value is accepted and Irreversible passes with Risk: High; no argument and
-#   a missing file exit 2 with the message on stderr. JRN-003: project mode (`--project-template`) against a fixture
+#   a missing file exit 2 with the message on stderr. Beyond those: an unknown option exits 2; a section left with only the
+#   template's guidance comment is empty; Irreversible without a Risk line gives both faults; a Risk line with no score is
+#   refused; punctuation after a score and trailing spaces after a heading are tolerated; a workflow template whose Risk
+#   and reversibility heading is renamed exits 2. JRN-003: project mode (`--project-template`) against a fixture
 #   project's .github/pull_request_template.md with three headings: a filled body passes in any order and without risk
-#   lines, an empty or a missing heading exits 1 naming it, a missing project template exits 2. Ends with shellcheck.
+#   lines, an empty or a missing heading exits 1 naming it, a missing project template or one with no `##` headings exits 2.
+#   Ends with shellcheck.
 # shellcheck disable=SC2016,SC2034  # check expressions are single-quoted and eval'd on purpose, and read variables shellcheck cannot see
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -120,6 +124,43 @@ expect_pass "JRN-002 Reversibility: Irreversible with Risk: High is accepted" "$
 
 expect_usage_error "JRN-002 no argument exits 2"
 expect_usage_error "JRN-002 a missing file exits 2" "$BODIES/no-such-body.md"
+expect_usage_error "JRN-002 an unknown option exits 2" "$BODIES/filled.md" --no-such-option
+
+# template_guidance HEADING : print the non-blank lines under HEADING in the template, its guidance.
+template_guidance() {
+  awk -v wanted="$1" '/^## / { in_section = (substr($0, 4) == wanted); next } in_section && NF' "$TEMPLATE"
+}
+
+GUIDANCE=$(template_guidance 'Why this approach')
+check "JRN-002 the template guides Why this approach in an HTML comment" '[ "${GUIDANCE#"<!--"}" != "$GUIDANCE" ]' "guidance=$GUIDANCE"
+template_headings | PR_EMPTY_SECTION='Why this approach' pr_body_from_headings |
+  GUIDANCE=$GUIDANCE awk '{ print } $0 == "## Why this approach" { print ENVIRON["GUIDANCE"] }' >"$BODIES/guidance-only.md"
+expect_faults "JRN-002 a section holding only the template's guidance comment is named as empty" 1 \
+  '^Why this approach: .*[Ee]mpty' "$BODIES/guidance-only.md"
+
+sed -e '/^Risk: /d' -e 's/^Reversibility: Easy/Reversibility: Irreversible/' "$BODIES/filled.md" \
+  >"$BODIES/irreversible-no-risk.md"
+expect_faults "JRN-002 Irreversible without a Risk line names the missing Risk" 2 '^Risk: ' "$BODIES/irreversible-no-risk.md"
+expect_faults "JRN-002 Irreversible without a Risk line names the Irreversible rule" 2 '^Reversibility: .*Irreversible' \
+  "$BODIES/irreversible-no-risk.md"
+
+sed 's/^Risk:.*/Risk:/' "$BODIES/filled.md" >"$BODIES/risk-blank.md"
+expect_faults "JRN-002 a Risk line with no score is refused" 1 '^Risk: ' "$BODIES/risk-blank.md"
+
+sed 's/^Risk: Medium -/Risk: Medium,/' "$BODIES/filled.md" >"$BODIES/risk-comma.md"
+expect_pass "JRN-002 a score followed by punctuation reads as the score" "$BODIES/risk-comma.md"
+
+sed 's/^## How to test$/## How to test   /' "$BODIES/filled.md" >"$BODIES/heading-trailing-spaces.md"
+expect_pass "JRN-002 trailing spaces after a heading still match it" "$BODIES/heading-trailing-spaces.md"
+
+# A renamed Risk heading in the installed template would otherwise switch the score checks off without a word.
+copy_agents "$WORK/renamed-risk"
+RENAMED_RISK_TEMPLATE="$WORK/renamed-risk/.agents/skills/feature-workflow/assets/pr-template.md"
+sed 's/^## Risk and reversibility$/## Risk and rollback/' "$TEMPLATE" >"$RENAMED_RISK_TEMPLATE"
+WORKFLOW_CPB=$CPB
+CPB="$WORK/renamed-risk/.agents/skills/feature-workflow/scripts/check-pr-body.sh"
+expect_usage_error "JRN-002 a workflow template without the Risk and reversibility heading exits 2" "$BODIES/filled.md"
+CPB=$WORKFLOW_CPB
 
 echo "== JRN-003: project mode checks the project's own headings"
 PROJ="$WORK/project"
@@ -196,6 +237,13 @@ expect_faults "JRN-003 a missing project heading is named" 1 '^Checklist: ' \
   checklist-missing.md --project-template "$PROJECT_TEMPLATE"
 expect_usage_error "JRN-003 a missing project template exits 2" \
   filled.md --project-template .github/no_such_template.md
+cat >"$PROJ/.github/no_headings_template.md" <<'EOF'
+### Summary
+
+What does this change do?
+EOF
+expect_usage_error "JRN-003 a project template with no ## headings exits 2" \
+  filled.md --project-template .github/no_headings_template.md
 RUN_DIR=$WORK
 
 shellcheck_files "shellcheck: check-pr-body.sh" "$CPB"
