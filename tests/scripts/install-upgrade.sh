@@ -2,12 +2,15 @@
 # Suite: install.sh (repo root): upgrade and project-owned files.
 # Covers: upgrade that overwrites a changed file and removes a file dropped from the manifest while keeping files no
 #   install shipped; project-owned files untouched by install, --force and upgrade (incl. .workflow/design-pattern-doc/
-#   and .workflow/pr-quality/); .gitignore user lines kept.
+#   and .workflow/pr-quality/); .gitignore user lines kept. JRN-006: a project installed with the template whose stop audit
+#   matched only implementation agents is left, after an upgrade, with one SubagentStop entry matching implementation and integration.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Env: TEST_BASH=<bash binary> runs install.sh under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/claude-settings.sh
+source "$TESTS_DIR/fixtures/claude-settings.sh"
 preflight
 TEST_BASH=${TEST_BASH:-bash}
 
@@ -74,6 +77,23 @@ INST "$P" --force >/dev/null 2>&1
 eq "project-owned files byte-identical after install, --force and upgrade" "$(owned)" "$before"
 check "project-owned .workflow/ gained no files" '[ "$(find "$P/.workflow" -type f | wc -l | tr -d " ")" = 10 ]'
 check ".gitignore user lines kept, block added once" 'grep -qx "node_modules/" "$P/.gitignore" && grep -qx "\*.log" "$P/.gitignore" && [ "$(grep -c "^.workflow/specs/\*/.step$" "$P/.gitignore")" = 1 ] && [ "$(grep -c "^.workflow/initiatives/\*/.step$" "$P/.gitignore")" = 1 ]'
+
+echo "== upgrade from the template whose stop audit matched only implementation agents (JRN-006)"
+SCO=$WORK/sc-old
+cp -R "$SC" "$SCO"
+use_old_claude_settings "$SCO"
+O=$WORK/old-install
+new_target "$O"
+"$TEST_BASH" "$SCO/install.sh" "$O" --host claude >/dev/null 2>&1
+OS=$O/.claude/settings.json
+eq "JRN-006 the old install's stop audit matches implementation only" "$(stop_audit_matchers "$OS")" implementation
+t "JRN-006 the upgrade exits 0" 0 INST "$O" --host claude
+eq "JRN-006 after the upgrade: one SubagentStop entry in all" "$(jq '.hooks.SubagentStop | length' "$OS")" 1
+eq "JRN-006 after the upgrade: one SubagentStop group runs the stop audit" "$(stop_audit_matchers "$OS" | grep -c '')" 1
+for agent in implementation integration; do
+  check "JRN-006 after the upgrade: the stop audit matcher matches $agent" 'matcher_matches "$(stop_audit_matchers "$OS")" "$agent"' \
+    "$(jq -c .hooks.SubagentStop "$OS")"
+done
 
 echo "== lint"
 shellcheck_files "shellcheck: this suite" "${BASH_SOURCE[0]}"

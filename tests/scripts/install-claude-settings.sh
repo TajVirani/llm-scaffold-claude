@@ -3,11 +3,14 @@
 # Covers: settings merge over user settings (user keys, hooks and deny entries kept, deny unioned without duplicates,
 #   outputStyle and statusLine kept with a warning, --force replaces them); refusals that write nothing (real
 #   .claude/skills dir, symlink pointing elsewhere, wrong-type settings key, invalid JSON) and their --force paths.
+#   JRN-006: a fresh install has one SubagentStop entry, running the stop audit for implementation and integration agents.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Env: TEST_BASH=<bash binary> runs install.sh under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+# shellcheck source=../fixtures/claude-settings.sh
+source "$TESTS_DIR/fixtures/claude-settings.sh"
 preflight
 TEST_BASH=${TEST_BASH:-bash}
 
@@ -104,6 +107,18 @@ eq "...and nothing was written" "$(snap "$R3")" "$before"
 echo '{not json' >"$R3/.claude/settings.json"
 t "invalid settings JSON: exit 1" 1 INST "$R3" --host claude
 t "invalid settings JSON: exit 1 even with --force" 1 INST "$R3" --host claude --force
+
+echo "== SubagentStop stop audit after a fresh install (JRN-006)"
+F=$WORK/fresh
+new_target "$F"
+t "JRN-006 fresh Claude install exits 0" 0 INST "$F" --host claude
+FS=$F/.claude/settings.json
+eq "JRN-006 fresh install: one SubagentStop entry in all" "$(jq '.hooks.SubagentStop | length' "$FS")" 1
+eq "JRN-006 fresh install: one SubagentStop group runs the stop audit" "$(stop_audit_matchers "$FS" | grep -c '')" 1
+for agent in implementation integration; do
+  check "JRN-006 fresh install: the stop audit matcher matches $agent" 'matcher_matches "$(stop_audit_matchers "$FS")" "$agent"' \
+    "$(jq -c .hooks.SubagentStop "$FS")"
+done
 
 echo "== lint"
 shellcheck_files "shellcheck: this suite" "${BASH_SOURCE[0]}"
