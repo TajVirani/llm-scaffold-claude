@@ -17,7 +17,14 @@
 #   wf_norm_folder spec|initiative <arg>
 #                          prints <arg> as the repo-relative folder `$WF_SPECS/NNN-slug` or `$WF_INITIATIVES/NNN-slug`
 #                          (relative, or absolute with that parent); status 1 and the reason on stderr when <arg> is not one
-#   Neither function exits: each caller turns status 1 into its own error message and exit code.
+#   wf_enc <string>        prints <string> lowercased with every byte outside [a-z0-9] turned into `_`, no trailing newline;
+#                          the same bytes in every locale (run under LC_ALL=C), so Claude and Codex agree on worktree names
+#   wf_agent_worktree_name <spec_dir> task|phase_1|integration <value>
+#                          prints the agent worktree name under $WF_WORKTREES: task T<n> -> s<NNN>_t<n>, phase_1 <work_type>
+#                          -> s<NNN>_phase_1_<wf_enc work_type>, integration <work_type> -> s<NNN>_integration_<wf_enc work_type>,
+#                          <NNN> taken from the spec folder name NNN-slug; status 1 and the reason on stderr for a spec folder
+#                          that is not NNN-slug or an unknown kind
+#   No function exits: each caller turns status 1 into its own error message and exit code.
 # Paths are repo-relative; the write guards compare them case-insensitively.
 # Sources: first-party.
 # shellcheck disable=SC2034 # the variables are the API; each sourcing script uses a subset
@@ -97,4 +104,14 @@ wf_norm_folder() {
     return 1
   fi
   printf '%s\n' "$folder"
+}
+
+# wf_enc STRING : not built yet; prints nothing.
+wf_enc() {
+  return 0
+}
+
+# wf_agent_worktree_name SPEC_DIR KIND VALUE : not built yet; prints nothing.
+wf_agent_worktree_name() {
+  return 0
 }
