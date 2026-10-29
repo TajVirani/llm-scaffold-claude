@@ -21,11 +21,18 @@ Copy `assets/proposals.md` to `.workflow/specs/NNN-slug/proposals.md` if it does
 | Group | Where they come from |
 | --- | --- |
 | Capabilities | every `CAP-NEW-<slug>` in `.workflow/specs/NNN-slug/spec.md`: the Proposed text keeps the provisional id until 5.3 assigns `CAP-###`, plus the description and the spec link; an existing `CAP-###` this spec changed: add the spec link to its row |
-| Rules | rule conflicts found at 0.3.5; triage findings routed `defer (proposal P<n>)` |
+| Rules | rule conflicts found at 0.3.5; triage findings routed `defer (proposal P<n>)`; the `pr_template` row below |
 | Decisions | design-log decisions that pass the three-part ADR test in `.agents/skills/domain-modeling/SKILL.md` and were not written at 0.3.7; a term that should enter a glossary |
 | Pitfalls | observed failures only: verified `high` or `medium` findings, gates that failed, "profile is wrong" reports |
 | Profiles | libraries the project adopted, a location rule that proved wrong, a checklist line that kept catching the same thing or never caught anything |
 | Tool rules | a mini-review finding that recurred across tasks (in the `artifacts/<task-id>/` mini-review returns): propose the lint rule, boundary constraint or type-check setting, paired with removing the checklist line it replaces |
+
+**The `pr_template` row.** It picks the template the Sign-off PR description follows at 5.4. Add it when either holds:
+
+- The key is unset (`.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template` prints `workflow` and a note on stderr that the default is used) and the repo has a host PR/MR template at one of these paths only: `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md`, `.gitlab/merge_request_templates/*.md`. With no host template, add no row.
+- 5.4 stopped on a failing setting and the stakeholder chose to fix the path.
+
+Target `.workflow/rules.md` § Workflow settings; Proposed text `pr_template: <your recommendation>`. The row offers one choice: every host template path found, repo-relative, plus `workflow` (the workflow's own ten-section template). Name the alternatives in Why, so the stakeholder can pick one at 5.3 with `P<n>: modify pr_template: <choice>`.
 
 Every row starts at Status `proposed`. Done when every candidate is a row or was dropped for changing no behaviour.
 
@@ -88,11 +95,25 @@ Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write to
 - **Known gaps**: everything under `## Known gaps` in spec.md (light-path suite gaps from 3.14; open findings from 5.1), the lenses' `not_verifiable` and `not_checked` items, and unmeasured targets. A skipped gate is a gap, never a pass.
 - **Deferred**: every file in spec.md `deferred`, with its severity.
 
-Done when every PASS links evidence, every number is measured or marked "not measured" with the reason, and every known gap is listed.
+**Then fill the Sign-off PR description**, `.workflow/specs/NNN-slug/pr-body.md`, beside `report.md`. 5.8 publishes it unchanged, so fill it afresh on every pass through 5.4 (a 5.6 change request comes back through here).
+
+1. **Read the template setting:** `.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template`. Exit 1 (a bad value, or a path whose file is gone): stop and show the stakeholder its message. They choose the workflow template for this PR, or a fixed path through a `pr_template` row (back to 5.2 and 5.3). Never fall back to a template on your own.
+2. **Fill the body.**
+   - `workflow`: copy `assets/pr-template.md` to `pr-body.md`. Replace each section's guidance comment with its text, drawn from the evidence the comment names (`report.md` as just written, `design-log.md`, `codebase-map.md`, `spec.md`, the `files` list of `budget-check.sh`), and delete the template's header comment. Name `report.md` and the task PRs/MRs (`pr` on the records) under Special things to note. When the change cannot be undone, How to undo this PR says why and Risk is High.
+   - A path: fill that host template's own `##` headings from the same evidence, in its order; the ten workflow sections are not added.
+3. **Check it:**
+
+   ```bash
+   .agents/skills/feature-workflow/scripts/check-pr-body.sh .workflow/specs/NNN-slug/pr-body.md   # add --project-template <path> when pr_template is a path
+   ```
+
+   Exit 1 prints one `<field>: <problem>` line per fault: fix each and run it again. Exit 2 is a usage error or a broken install: stop and report it.
+
+Done when every PASS links evidence, every number is measured or marked "not measured" with the reason, every known gap is listed, and `check-pr-body.sh` exits 0 on `pr-body.md`.
 
 ## 5.5 Stakeholder approves the work?
 
-Ask the sign-off questions together: the approval, the 5.9 ruling on each open backlog item, and the retrospective's going-in concerns.
+Ask the sign-off questions together: the approval, the PR description, the 5.9 ruling on each open backlog item, and the retrospective's going-in concerns.
 
 1. **List this spec's open backlog items:**
 
@@ -100,17 +121,18 @@ Ask the sign-off questions together: the approval, the 5.9 ruling on each open b
    for f in .workflow/specs/work-backlog/NNN-slug-disc-*.md; do [ -f "$f" ] && [ "$(yq --front-matter=extract '.status' "$f")" = open ] && echo "$f"; done
    ```
 
-2. **Present a short summary:** what changed, the verification and review result, what was deferred, and the most important gap, with links to `report.md` and `proposals.md`.
+2. **Present a short summary:** what changed, the verification and review result, what was deferred, and the most important gap, with links to `report.md` and `proposals.md`. Then show the full text of `.workflow/specs/NNN-slug/pr-body.md`, as 5.8 will publish it.
 3. **Ask, in this order:**
    1. "Do you approve the work?" Yes, or No with the change requested.
-   2. One question per open backlog item: its title, **Problem**, **Suggested scope and size** and origin step, with the options "Start it as the next feature", "Keep it open" and "Move it to `.workflow/deferred/`".
-   3. "Anything you want weighed in the retrospective?" with the option "Nothing in particular"; any other answer is the concern, in the stakeholder's words.
+   2. "Do you approve this PR description?" Yes, or the changes wanted. On changes, edit `pr-body.md`, run `check-pr-body.sh` as at 5.4 until it exits 0, show the full text again and ask only this question again.
+   3. One question per open backlog item: its title, **Problem**, **Suggested scope and size** and origin step, with the options "Start it as the next feature", "Keep it open" and "Move it to `.workflow/deferred/`".
+   4. "Anything you want weighed in the retrospective?" with the option "Nothing in particular"; any other answer is the concern, in the stakeholder's words.
 
    - **Claude Code:** one AskUserQuestion call holding every question. Past its limit of four questions per call, put the rest in a second call straight after, in the same order.
    - **Codex, or chat:** one message with the questions numbered, then wait.
-4. **Log the answers** in `.workflow/specs/NNN-slug/design-log.md` with the "Sign-off" shape in [../assets/design-log.md](../assets/design-log.md): the approval, each backlog ruling, and `Going-in concerns: <text | none>` with the stakeholder's words verbatim.
+4. **Log the answers** in `.workflow/specs/NNN-slug/design-log.md` with the "Sign-off" shape in [../assets/design-log.md](../assets/design-log.md): the approval, the PR description approval, each backlog ruling, and `Going-in concerns: <text | none>` with the stakeholder's words verbatim.
 
-- **Yes**: go to 5.9 with the logged rulings.
+- **Yes**, and the PR description approved: go to 5.9 with the logged rulings.
 - **No, change requested**: go to 5.6. The backlog rulings and the concerns stay logged and change no file; when the spec comes back to 5.5, offer them as the recommended answers.
 
 Done when the stakeholder has answered every question and the design-log entry records all of the answers.
@@ -158,7 +180,27 @@ yq --front-matter=extract '.verdict' .workflow/decisions/retrospectives/NNN-slug
 
 ## 5.8 Merge and close
 
-Commit what is left on the spec branch (`git status --short`; the spec folder, the approved Tier A writes and the retrospective). With the stakeholder's go-ahead, merge the spec branch (`spec_branch` in `spec.md`, `spec/NNN-slug`) into the main branch (`rules-setting.sh main_branch`, `main` below) through a pull request: push it and open the PR with `gh pr create --base main --head spec/NNN-slug` or `glab mr create --target-branch main --source-branch spec/NNN-slug`, titled after the feature and linking `report.md` and the task PRs/MRs (`pr` on the records). Without a remote or CLI, or when the stakeholder asks for one, merge locally (`git merge --no-ff spec/NNN-slug` on main). Push only what the stakeholder asked for. Remove leftover worktrees (`git worktree list`, then `git worktree remove <path>` for each one under `.workflow/.worktrees/` this feature created). Close with a one- or two-sentence summary: what shipped, the merge commit, where the deferred items wait, and which backlog items were promoted (with their new spec folders) or kept open.
+Commit what is left on the spec branch (`git status --short`; the spec folder with `pr-body.md`, the approved Tier A writes and the retrospective).
+
+**Check the body again.** Run `check-pr-body.sh` on `pr-body.md` exactly as at 5.4; publish when it exits 0. On a fault, fix each line it names, show the stakeholder the full text, ask the 5.5 PR description question again, and log the answer in the Sign-off entry, then commit the fixed body and the log before you publish.
+
+**Publish** with the stakeholder's go-ahead: merge the spec branch into the main branch through a PR/MR carrying `pr-body.md` as its description, or by a local merge whose message holds it. Pick the line from the host of `git remote get-url origin`: one containing `github` runs the `gh` line, one containing `gitlab` the `glab` line. Without a remote or the CLI, on any other host, or when the stakeholder asks for one, run the last two lines, the local merge. Never pass `--template`: the approved body is the whole description. Run from the project root with the spec branch checked out, setting the variables in the same Bash command, since each Bash call starts a fresh shell:
+
+- `SPEC_DIR=.workflow/specs/NNN-slug`
+- `SPEC_BRANCH`: `spec_branch` in `spec.md` (`spec/NNN-slug`).
+- `MAIN`: `.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch`.
+- `SUBJECT`: a Conventional Commits subject naming the feature, e.g. `feat(<module>): <feature title>`; it is also the PR/MR title.
+
+<!-- 5.8 publish commands -->
+
+```bash
+git push -u origin "$SPEC_BRANCH" && gh pr create --base "$MAIN" --head "$SPEC_BRANCH" --title "$SUBJECT" --body-file "$SPEC_DIR/pr-body.md"
+git push -u origin "$SPEC_BRANCH" && glab mr create --target-branch "$MAIN" --source-branch "$SPEC_BRANCH" --title "$SUBJECT" --description-file "$SPEC_DIR/pr-body.md" --yes
+merge_message=$(mktemp) && { printf '%s\n\n' "$SUBJECT"; cat "$SPEC_DIR/pr-body.md"; } >"$merge_message"
+git switch "$MAIN" && git merge --no-ff -F "$merge_message" --cleanup=verbatim --no-edit "$SPEC_BRANCH" && rm -f "$merge_message"
+```
+
+The merge message is built before the switch because `pr-body.md` exists only on the spec branch; `--no-edit` and `--cleanup=verbatim` keep the approved text exactly: an editor session would strip the `##` heading lines as comments, and the default cleanup trims blank lines and trailing spaces. Push only what the stakeholder asked for: after a local merge, push the main branch only on request. Remove leftover worktrees (`git worktree list`, then `git worktree remove <path>` for each one under `.workflow/.worktrees/` this feature created). Close with a one- or two-sentence summary: what shipped, the merge commit, where the deferred items wait, and which backlog items were promoted (with their new spec folders) or kept open.
 
 **Close the initiative.** For a spec that carries `initiative:`, once the merge has landed on main, load [large-path](large-path.md#613-close-when-every-spec-is-done) at 6.13 for that initiative. 6.13 first reads the initiative's status on main, then at the tip of `initiative/NNN-slug` when that branch exists locally or on `origin`: while the initiative is still exploring (absent from main, `exploring` there, or `exploring` at the branch tip after a reopen), it tells the stakeholder so and writes nothing. A branch whose tip reads `planned`, left on `origin` by a merged PR, does not stop the close. When it is `planned` and every emitted spec is `done` on main, it moves the initiative to `done` through `initiative-transition.sh` on a re-created `initiative/NNN-slug` and merges that change into main the way `planned` was merged; otherwise it tells the stakeholder which specs are still open. While the PR/MR is still open, skip this: the initiative's next resume runs the same check.
 
