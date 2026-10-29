@@ -275,3 +275,16 @@ Outcome: loop back (00.24 discovered work)
 ## 2026-10-29 Targets (1.1), re-entry for JRN-011 to JRN-014
 
 - Baseline `e049f4d` and the existing Targets rows kept. **D30 Installer targets.** Options: none new; a no-hang row (upgrade with stdin an open pipe exits within 10 s); a no-op re-run time row. Recommended: none new (script-lint, script-coverage and agent-docs-lint already cover `install.sh`, README and the template doc; JRN-011 to 014 prove the behaviour). Answer: "None new (Recommended)".
+
+## 2026-10-29 Harness build (1.2), re-entry for JRN-011 to JRN-014
+
+- Launched under `isolation: "worktree"` as the current `verification-setup.md` says. The agent fast-forwarded to the spec branch first (base `b5f0e56`). Isolation refused the main-checkout result-file write again; the main session copied `implementation.yaml` from the agent's worktree by hand (the earlier round kept as `implementation-r1.yaml`). `check-task-result.sh` exit 0; stop audit clean (`toolchain.json` pass, no `audit.json`).
+- Merged `1058a0d` as `04aba50`; isolation worktree and branch removed. Adds JRN-011 to 013 cases to `tests/scripts/install-upgrade.sh`, the new JRN-014 suite `tests/lint/install-matcher-docs.sh`, fixture helpers in `tests/fixtures/claude-settings.sh`, and `</dev/null` on every `install.sh` call in the six `tests/scripts/install-*.sh` suites.
+- Agent notes: the JRN-011 to 013 cases upgrade to a copy of today's template with the SubagentStop matcher widened, so they do not depend on T1's merge order. Cases pinning behaviour that is already right (match-all, covered and mixed groups untouched, `keep`, `bogus` exit 2, dry runs write nothing, `(a|b)c` never merged, no hang under a pseudo-terminal) pass on today's `install.sh`.
+
+## 2026-10-29 Discovered work: slow-install-upgrade-suite
+
+- Found at: step 1.2 by the implementation agent (phase-1-test-harness, `artifacts/phase-1-test-harness/implementation.yaml`). Kind: refactor
+- Problem and evidence: `tests/scripts/install-upgrade.sh` takes about 66 s alone and 156 s in a parallel run, past `tests/README.md:29` "Every suite takes under a minute".
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/006-result-file-guard-disc-001.md](../work-backlog/006-result-file-guard-disc-001.md)

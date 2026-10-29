@@ -1,0 +1,80 @@
+== scripts/install-upgrade
+FAIL JRN-006 after the upgrade: the stop audit matcher matches integration
+       [{"matcher":"implementation","hooks":[{"type":"command","command":"\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/post-implementation-audit.sh","timeout":600}]}]
+FAIL JRN-011 the template-only stop-audit group is merged to implementation|integration, the mixed group keeps reviewer
+       got=implementation
+FAIL JRN-011 a Warnings line names the merged matcher implementation|integration
+       Installing workflow 2.0 scaffold 627db04-dirty into /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.8CY1CM/no-terminal (host: claude)
+FAIL JRN-011 a Warnings line names the kept mixed group's matcher reviewer
+       Installing workflow 2.0 scaffold 627db04-dirty into /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.8CY1CM/no-terminal (host: claude)
+FAIL JRN-012 --matchers=merge exits 0
+       got=2 want=0
+FAIL JRN-012 --matchers=merge leaves the stop-audit matcher implementation|foo|integration
+       got=implementation|foo want=implementation|foo|integration
+FAIL JRN-012 --matchers=replace exits 0
+       got=2 want=0
+FAIL JRN-012 --matchers=replace leaves the stop-audit matcher implementation|integration
+       got=implementation|foo want=implementation|integration
+FAIL JRN-012 --matchers=keep exits 0
+       got=2 want=0
+FAIL JRN-012 --matchers=keep warns about the kept matcher implementation|foo
+       install.sh: error: unknown option: --matchers=keep (see --help)
+FAIL JRN-012 the --matchers=bogus error names merge, replace and keep
+       install.sh: error: unknown option: --matchers=bogus (see --help)
+FAIL JRN-012 --dry-run without --matchers previews the matcher implementation|foo|integration
+       Dry run: would install workflow 2.0 scaffold 627db04-dirty into /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.8CY1CM/dry-default (host: claude)
+FAIL JRN-012 --dry-run --matchers=replace ends within 20 s on an open, empty stdin, with exit 0
+       got=2 want=0
+FAIL JRN-012 --dry-run --matchers=replace previews the matcher implementation|integration
+       install.sh: error: unknown option: --matchers=replace (see --help)
+FAIL JRN-012 --force alone sets the matcher as the no-terminal rule does (merged)
+       got=implementation|foo want=implementation|foo|integration
+FAIL JRN-012 a Warnings line names the non-plain matcher (a|b)c (no terminal)
+       Installing workflow 2.0 scaffold 627db04-dirty into /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.8CY1CM/non-plain-no-terminal (host: claude)
+FAIL JRN-013 the prompt names the event SubagentStop and the command post-implementation-audit.sh
+       
+FAIL JRN-013 the prompt shows the current, replace and merge lines
+       
+FAIL JRN-013 Enter merges
+       got=implementation|foo want=implementation|foo|integration
+FAIL JRN-013 r replaces
+       got=implementation|foo want=implementation|integration
+FAIL JRN-013 a mixed group's prompt lists every hook in it
+       k
+== lint/install-matcher-docs
+FAIL JRN-014 the install.sh header names the --matchers flag
+       # File: Scaffold install script (scaffold-only; not part of the .agents/ payload). Lives at the repo root, next to the payload it copies.
+FAIL JRN-014 the install.sh header names the merge, replace and keep modes
+       # File: Scaffold install script (scaffold-only; not part of the .agents/ payload). Lives at the repo root, next to the payload it copies.
+FAIL JRN-014 the install.sh header says what happens without a terminal
+       # File: Scaffold install script (scaffold-only; not part of the .agents/ payload). Lives at the repo root, next to the payload it copies.
+FAIL JRN-014 --help lists --matchers
+       Usage:
+FAIL JRN-014 --help names the merge, replace and keep modes
+       Usage:
+FAIL JRN-014 README "Install and upgrade" names the --matchers flag
+       
+FAIL JRN-014 README "Install and upgrade" names the merge, replace and keep modes
+       
+FAIL JRN-014 README "Install and upgrade" says what happens without a terminal
+       
+FAIL JRN-014 the claude-settings.template.md Merge rules names the --matchers flag
+       
+FAIL JRN-014 the claude-settings.template.md Merge rules names the merge, replace and keep modes
+       
+FAIL JRN-014 the claude-settings.template.md Merge rules says what happens without a terminal
+       
+FAIL JRN-014 the Merge rules no longer skip a group whose command is present, whatever its matcher
+       
+FAIL JRN-014 the CHANGELOG 2.0.0 Migration section names the --matchers flag
+       - No upgrade path from 1.x. Consumers on the 1.x wiki scaffold should stay on the `main` history from before the workflow 2.0 merge: `efb9263` is the last 1.x commit (the 1.3.3 release is `769973f`); workflow 2.0 is a fresh start.
+FAIL JRN-014 the CHANGELOG 2.0.0 Migration section names the merge, replace and keep modes
+       - No upgrade path from 1.x. Consumers on the 1.x wiki scaffold should stay on the `main` history from before the workflow 2.0 merge: `efb9263` is the last 1.x commit (the 1.3.3 release is `769973f`); workflow 2.0 is a fresh start.
+FAIL JRN-014 the CHANGELOG 2.0.0 Migration section says what happens without a terminal
+       - No upgrade path from 1.x. Consumers on the 1.x wiki scaffold should stay on the `main` history from before the workflow 2.0 merge: `efb9263` is the last 1.x commit (the 1.3.3 release is `769973f`); workflow 2.0 is a fresh start.
+
+== summary
+FAIL scripts/install-upgrade                passed=43   failed=21  skipped=0   xfail=0   64s
+FAIL lint/install-matcher-docs              passed=5    failed=15  skipped=0   xfail=0   1s
+TOTAL passed=48 failed=36 skipped=0 xfail=0 (2 suites)
+FAILED suites: scripts/install-upgrade lint/install-matcher-docs
