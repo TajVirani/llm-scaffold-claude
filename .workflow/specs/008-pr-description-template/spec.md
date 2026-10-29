@@ -47,7 +47,9 @@ The next spec to sign off shows the stakeholder a filled PR template at 5.5, and
 ## Assumptions
 
 - "Link to issue" holds a fixed stub line naming the shelved issue-creation item until that item ships.
-- With `pr_template: project`, the check script only requires that each of the project's headings is present and non-empty; the ten-section order and score checks apply to the workflow template.
+- `pr_template` is `workflow` or a repo-relative path to the host PR/MR template (`.md`); `rules-setting.sh` rejects a path of the wrong shape or one whose file is missing from the main checkout. With a path, the check script only requires that each of that template's headings is present and non-empty; the ten-section order and score checks apply to the workflow template.
+- A `pr_template` path whose file is gone stops 5.4; the stakeholder chooses the workflow template for that PR or a fixed path through a 5.2/5.3 proposal. Never a silent fallback.
+- Host templates are looked for only at `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md` and `.gitlab/merge_request_templates/*.md`; the choice offers each path found plus `workflow`.
 - With `pr_template` unset and no host template in the repo, the workflow template is used and nothing is asked.
 - The template lives at `.agents/skills/feature-workflow/assets/pr-template.md`; the filled copy is `pr-body.md` in the spec folder, committed with it.
 

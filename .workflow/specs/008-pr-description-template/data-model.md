@@ -8,7 +8,7 @@ Spec: [spec.md](spec.md) · Placement: feature-workflow
 | --- | --- | --- | --- |
 | PR template (`assets/pr-template.md`) | entity (document shape) | create | feature-workflow |
 | Filled body (`.workflow/specs/NNN-slug/pr-body.md`) | entity (document) | create | feature-workflow (written per spec) |
-| `pr_template` Workflow setting | field | extend (new key in an existing block) | feature-workflow (`rules-setting.sh`); project-setup writes it |
+| `pr_template` Workflow setting | field | extend (new key in an existing block; value `workflow` or a template path, D12) | feature-workflow (`rules-setting.sh`); project-setup writes it |
 | `check-pr-body.sh` | interface | create | feature-workflow |
 | `rules-setting.sh <key>` | interface | extend | feature-workflow |
 | Sign-off 5.8 PR call (`gh` / `glab` / local merge) | interface | extend (adds a body file) | feature-workflow |
@@ -37,7 +37,7 @@ Sections appear in this order, each as one `##` heading so later work (Phase 4 r
 
 ### Filled body `pr-body.md` (create)
 
-One per spec, filled at 5.4, approved at 5.5, sent unchanged at 5.8 (D3). Shape: the PR template when `pr_template` is `workflow` or unset; the project's own template headings, each non-empty, when `project` (D4).
+One per spec, filled at 5.4, approved at 5.5, sent unchanged at 5.8 (D3). Shape: the PR template when `pr_template` is `workflow` or unset; the headings of the template file `pr_template` names, each non-empty, when it holds a path (D4, D12).
 
 **State transitions:**
 
@@ -54,15 +54,16 @@ One per spec, filled at 5.4, approved at 5.5, sent unchanged at 5.8 (D3). Shape:
 
 | Field | Type | Required | Validation rule | Change |
 | --- | --- | --- | --- | --- |
-| `pr_template` | enum `workflow` \| `project` | no | default `workflow`; any other value exits 1 in `rules-setting.sh` | create (in the existing Workflow settings block) |
+| `pr_template` | `workflow` \| repo-relative path to a `.md` host template | no | default `workflow`; a path must be relative, end in `.md`, hold no `..`, not start with `/` or `-`, and exist under the main checkout root found from `--cwd` (D12, D16); anything else exits 1 in `rules-setting.sh` | create (in the existing Workflow settings block) |
 
 **State transitions:**
 
 | From | Event | To | Guard |
 | --- | --- | --- | --- |
-| unset | project-setup answer | `workflow` / `project` | the project has a host PR/MR template |
-| unset | 5.3 approves the 5.2 proposal row | `workflow` / `project` | key unset and a host template exists |
-| set | any later sign-off | unchanged | never asked again |
+| unset | project-setup answer | `workflow` / a found template path | the project has a host PR/MR template at one of the D15 locations; every found path is offered plus `workflow` (D14) |
+| unset | 5.3 approves the 5.2 proposal row | `workflow` / a found template path | key unset and a host template exists |
+| path set, file gone | 5.4 reads the setting (exit 1) | stops for a ruling: workflow template for this PR, or a new path through 5.2/5.3 | never a silent fallback (D13) |
+| set | any later sign-off | unchanged | never asked again while the setting reads clean |
 
 ## Migrations
 

@@ -116,3 +116,40 @@ Facts looked up (fact-lookup), not asked:
 - D11 (follows D10's "no new 5.8 script, `open-task-pr.sh` unchanged"): JRN-005 tests the 5.8 commands as written in `modules/sign-off.md`. 5.8 keeps its publish commands in one fenced `bash` block placed right after the marker line `<!-- 5.8 publish commands -->`, written against the variables `SPEC_DIR`, `SPEC_BRANCH`, `MAIN` and `SUBJECT`. The suite extracts that block, runs its `gh`, `glab` and `git merge` lines in a fixture repo with argument-recording stand-ins on `PATH`, and checks the arguments and the merge commit. The block's presence is the suite's first assertion, so today's prose fails on an assertion, not a setup error.
 - 1.2: harness merged as `c10742b` (suites `scripts/check-pr-body`, `scripts/sign-off-pr`, JRN-004 cases in `scripts/task-breakdown`; fixture `tests/fixtures/pr-template.sh`; stubs `assets/pr-template.md`, `scripts/check-pr-body.sh` exiting 3). Project mode shape fixed by the tests: `check-pr-body.sh <file> --project-template <template file>`. The tests also pin the 5.8 branch flags (`--base`/`--head`, `--target-branch`/`--source-branch`) and that the publish block passes shellcheck. The agent's result file stayed in its worktree (sandbox refused the main-checkout write); `check-task-result.sh` passed on it there.
 - 1.3: not applicable (no browser suite). 1.4: 60 new cases red on assertions; record in `artifacts/phase-1-known-bad/record.md`.
+
+## 2026-10-29 Task breakdown 2.1-2.3
+
+- Approved breakdown (stakeholder: "Approve as shown"): T1 `pr_template` setting (feature-workflow, `rules-setting.sh`); T2 PR template and `check-pr-body.sh` (feature-workflow); T4 project-setup asks `pr_template` (project-setup); T3 sign-off 5.2/5.4/5.5/5.8, `SKILL.md`, `assets/design-log.md` (feature-workflow), blocked by T1, T2, T4. Waves: T1, T2, T4 in wave 1; T3 in wave 2. All afk, all S, no shared core. T3 owns `tests/scripts/sign-off-pr.sh`, including T4's three JRN-006 cases (selectors are per suite).
+- Seams agreed: `rules-setting.sh pr_template` CLI; `check-pr-body.sh` CLI plus the template headings; project-setup text check; the 5.8 publish block against stand-ins plus sign-off text checks.
+- Budget: project default, max_tasks 10, max_changed_files 30 (predicted 4 tasks, 9 non-test files).
+- Q (project-mode host template): options were first found in a fixed order / record the path in the setting. Recommended: first found. Answer: "Record the path in the setting". This changes D9's setting shape (`workflow | project` → `workflow | <path>`), which discovery did not settle: loop back at 2.3 to the questioning loop with the new shape as its first frontier question.
+
+## 2026-10-29 Questioning round 3 (loop-back from 2.3)
+
+Seed: the stakeholder chose at 2.1 to record the host template's path in the setting instead of `project`.
+
+- Q1 Setting shape and validation. Options: `workflow` or a repo-relative `.md` path, shape checked only / also check the file exists / defer. Recommended: shape only (mirrors `main_branch`'s `@branch` check, `rules-setting.sh:51-53`). Answer: "Also check it exists". **D12** (supersedes D9's value set): `pr_template: workflow | <path>`, the path repo-relative, ending in `.md`, no `..`, no leading `/` or `-`; `rules-setting.sh pr_template` exits 1 when the shape is wrong or the file does not exist. Absent key still reads `workflow` with a default note. The value `project` is gone.
+- Q2 Path set but file gone at 5.4. Options: stop and ask / fall back to workflow / defer. Recommended: stop and ask. Answer: "Stop at 5.4 and ask". **D13:** 5.4 stops when `rules-setting.sh pr_template` fails, tells the stakeholder, who chooses the workflow template for this PR or a fixed path through a `pr_template` proposal (back through 5.2/5.3). Never a silent fallback.
+- Q3 Several host templates found. Options: each path plus `workflow` / defer. Recommended: each path plus workflow. Answer: "Each path plus workflow". **D14:** project-setup and the 5.2 row offer one choice: every found template path, plus `workflow`; the answer is the value written.
+- Q4 Where to look. Options: GitHub and GitLab paths including `docs/` and root / only `.github/` and `.gitlab/` / defer. Recommended: the wider list. Answer: "Only .github/ and .gitlab/". **D15:** the search covers `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md` and `.gitlab/merge_request_templates/*.md` only.
+
+Facts used, not asked: `rules-setting.sh` validates a free-form value through an `@`-pattern in `setting_spec` (`rules-setting.sh:42-53`); with `--rules` it never computes the repo root (`rules-setting.sh:73-82`).
+
+## 2026-10-29 Questioning round 4
+
+- Q1 Root for the existence check. Options: main checkout root from `--cwd` / two levels above the rules file / defer. Recommended: main checkout root. Answer: "Main checkout root from --cwd". **D16:** `rules-setting.sh pr_template` resolves the path against the main checkout root found from `--cwd` (git common dir, as for rules.md), also when `--rules` is passed; outside a git repo the path check exits 1.
+- 0.3.18: no question left open; no new term; no answer outside scope.
+
+## 2026-10-29 Impact classification (loop-back from 2.3)
+
+0.4.2 term gate: no new concept ("host template" stays plain prose, as in the first pass).
+
+| Part | Module | Class |
+| --- | --- | --- |
+| `scripts/rules-setting.sh` (`pr_template` key: `workflow` or a repo-relative `.md` path checked for shape and existence against the main checkout root, D12, D16) | feature-workflow | extend (was: enum `workflow` / `project`) |
+| `modules/sign-off.md` 5.2 (row offers each found host template path plus `workflow`, D14, D15), 5.4 (stop and ask when the setting fails, D13; project mode passes the path to `--project-template`) | feature-workflow | extend |
+| `project-setup` setup question (offers each found path plus `workflow`, D14, D15) | project-setup | extend |
+| All other rows of the first Impact classification | as before | unchanged |
+
+0.4.6: no new module audit. The changed part sits in lines the first audit already read (`rules-setting.sh:13-27, 41-48, 65, 83-105`: the five places a key appears and the generic validation), and its constraints still hold. 0.4.7: no conflict with the goal or the placement.
+- 0.5: verification-plan end state, JRN-003 (path argument), JRN-004 (path values, missing file, bad shapes, `project` now refused, outside git) and fixtures updated; JRN-004 Check set back to MISSING for the 1.2 re-entry. 0.6: all four checks clear.
