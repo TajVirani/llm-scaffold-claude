@@ -172,3 +172,10 @@ Spec: [spec.md](spec.md)
 - Launched under `isolation: "worktree"` as the current `verification-setup.md` says; the isolation worktree forked from main `16c72b1`, not the spec branch. Claude Code's isolation refused the main-checkout result-file Write ("This agent is isolated in the worktree ... Edit the worktree copy") and heredoc and `$(git …)` commands. The agent wrote `implementation.yaml` in its worktree; the main session copied it into `artifacts/phase-1-test-harness/` by hand (the defect this spec removes). `check-task-result.sh` exit 0; stop audit clean.
 - Merged `eb292c5` as `346b568`; isolation worktree and branch removed.
 - Agent decisions to note: the existing `worktree-guard` deny case "task agent Bash without cd" now uses `npm test` instead of `git status`, since `git status` joins the read-only allowlist (verdict and hint unchanged). JRN-001 expects `wf_enc` to replace every non-`[a-z0-9]` byte under both locales (`Wéb` → `w__b`), where the old `codex_enc` gave `w_b` under UTF-8; every work type and agent type used today is ASCII, so names stay byte-identical.
+
+## 2026-10-29 Task breakdown (2.1-2.5)
+
+- Five tasks, one module each: T1 hooks (touches shared core: `wf_enc`, `wf_agent_worktree_name`), T2 artifacts gate, T3 agent briefs, T4 scope-check allowlist, T5 orchestrator text. Waves: 1 = T1, T2, T3; 2 = T4, T5; one shell-scripts integration batch before wave 1. Stakeholder: "Approve (Recommended)".
+- T1 → T4 and T3 → T5 are gating edges for test ownership: `tests/run-all.sh` selects whole suite files, and `worktree-guard.sh` and `agent-worktree-docs.sh` each hold cases for two tasks.
+- Seams (2.3) as the Phase 1 suites drive them. Stakeholder: "Agree (Recommended)".
+- **D18 Size budget.** Recommended: project defaults, max_tasks 10, max_changed_files 30 (predicted 5 tasks, 12 non-test files). Answer: "Defaults 10 / 30".
