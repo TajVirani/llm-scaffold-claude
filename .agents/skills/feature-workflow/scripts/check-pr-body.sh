@@ -8,11 +8,12 @@
 #   note, How to test, Blast radius, Risk and reversibility, Areas, concepts and seams changed, How to undo this PR), each
 #   non-empty; the Risk and reversibility section holds `Risk: Low|Medium|High` and
 #   `Reversibility: Easy|Moderate|Hard|Irreversible`, and Irreversible needs Risk: High.
-#   Project mode (--project-template): every `##` heading of the project's own PR/MR template is present in the body and
-#   non-empty; no order or score checks.
-#   A section's content is its non-blank lines up to the next `##` heading, with HTML comments removed, so a section that
-#   still holds only the template's guidance comment counts as empty. Lines before the first heading are not checked, and
-#   headings the template does not name are ignored.
+#   Project mode (--project-template): every ATX heading (`#` to `######`) of the project's own PR/MR template is present
+#   in the body at the same level with the same text, and non-empty; no order or score checks.
+#   A section's content is its non-blank lines up to the next heading of the same or a higher level (workflow mode: the
+#   next `##` heading), with HTML comments removed, so a section that still holds only the template's guidance comment
+#   counts as empty, and a project heading holding only deeper subsections counts as filled. Lines before the first
+#   heading are not checked, and headings the template does not name are ignored.
 #   A score is the first word after `Risk:` or `Reversibility:` (`Risk: Medium - <reason>` reads Medium), taken from the
 #   first such line at the start of a line in the Risk and reversibility section.
 # Usage:
@@ -22,8 +23,8 @@
 # stdout: nothing when the body is valid; otherwise one `<field>: <problem>` line per fault, every fault reported, the field
 #   being the section heading (problem "missing", "empty" or "out of order"), `Risk` or `Reversibility`.
 # Exit: 0 the body is valid; 1 one or more faults (one line each on stdout, nothing else); 2 usage error, missing or
-#   unreadable body or template, a template with no `##` headings, or (workflow mode) an assets/pr-template.md without the
-#   Risk and reversibility heading, a broken install (message on stderr).
+#   unreadable body or template, a project template with no headings at all, or (workflow mode) an assets/pr-template.md
+#   with no `##` headings or without the Risk and reversibility heading, a broken install (message on stderr).
 # Called by: modules/sign-off.md (5.4 after filling pr-body.md, 5.8 before publishing it).
 # Notes: bash 3.2 compatible; needs only awk, grep and sed.
 # Sources: first-party.
@@ -34,6 +35,7 @@ PROG=check-pr-body.sh
 SCRIPT_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 WORKFLOW_TEMPLATE=$SCRIPT_DIR/../assets/pr-template.md
 RISK_SECTION='Risk and reversibility'
+RISK_HEADING=$'2\t'$RISK_SECTION
 RISK_SCALE='Low Medium High'
 REVERSIBILITY_SCALE='Easy Moderate Hard Irreversible'
 
@@ -52,10 +54,11 @@ require_readable() {
   [[ -r $1 ]] || die "cannot read: $1"
 }
 
-# outline FILE : print FILE's `##` headings as `## <heading>` (trailing spaces trimmed) and its content lines, with HTML
-#   comments removed and blank lines dropped. A `##` line that starts inside a comment is not a heading.
+# outline FILE MIN_LEVEL MAX_LEVEL : print FILE as one record per line: `H<tab><level><tab><text>` for an ATX heading
+#   whose level (its count of leading `#`) is MIN_LEVEL to MAX_LEVEL, its text trimmed; `C<tab><text>` for every other
+#   non-blank line, with HTML comments removed. A heading line that starts inside a comment is content, not a heading.
 outline() {
-  awk '
+  awk -v min_level="$2" -v max_level="$3" '
     {
       starts_in_comment = in_comment
       rest = $0
@@ -74,25 +77,40 @@ outline() {
           in_comment = 1
         }
       }
-      if (!starts_in_comment && $0 ~ /^## /) {
-        heading = $0
-        sub(/[[:space:]]+$/, "", heading)
-        print heading
+      level = 0
+      if (!starts_in_comment && match($0, /^#+[ \t]/) && RLENGTH - 1 >= min_level && RLENGTH - 1 <= max_level) {
+        level = RLENGTH - 1
+        text = substr($0, RLENGTH + 1)
+        sub(/^[ \t]+/, "", text)
+        sub(/[[:space:]]+$/, "", text)
+      }
+      if (level) {
+        print "H\t" level "\t" text
       } else if (kept ~ /[^[:space:]]/) {
-        print kept
+        print "C\t" kept
       }
     }
   ' "$1"
 }
 
-# headings_of OUTLINE : print the heading text of each `##` line in OUTLINE, one per line.
-headings_of() { sed -n 's/^## //p' <<<"$1"; }
+# headings_of OUTLINE : print each heading of OUTLINE as `<level><tab><text>`, one per line.
+headings_of() { awk '/^H\t/ { print substr($0, 3) }' <<<"$1"; }
 
-# section_content OUTLINE HEADING : print the content lines of the first section titled HEADING in OUTLINE.
+# heading_text HEADING : print the text of a `<level><tab><text>` heading, the name a fault line gives it.
+heading_text() { printf '%s\n' "${1#*$'\t'}"; }
+
+# section_content OUTLINE HEADING : print the content lines of the first section whose `<level><tab><text>` is HEADING in
+#   OUTLINE. The section runs to the next heading of the same or a higher level; a deeper heading inside it is content.
 section_content() {
   awk -v wanted="$2" '
-    /^## / { if (found) exit; found = (substr($0, 4) == wanted); next }
-    found
+    /^H\t/ {
+      level = substr($0, 3, 1) + 0
+      if (found && level <= found_level) exit
+      if (found) { print substr($0, 5); next }
+      if (substr($0, 3) == wanted) { found = 1; found_level = level }
+      next
+    }
+    found { print substr($0, 3) }
   ' <<<"$1"
 }
 
@@ -105,9 +123,9 @@ check_sections_present() {
   body_headings=$(headings_of "$1")
   while IFS= read -r heading; do
     if ! grep -Fxq -- "$heading" <<<"$body_headings"; then
-      fault "$heading" "missing"
+      fault "$(heading_text "$heading")" "missing"
     elif [[ -z $(section_content "$1" "$heading") ]]; then
-      fault "$heading" "empty"
+      fault "$(heading_text "$heading")" "empty"
     fi
   done <<<"$2"
 }
@@ -118,8 +136,9 @@ check_section_order() {
   misplaced=$(headings_of "$1" | awk '
     NR == FNR { rank[$0] = FNR; next }
     !($0 in rank) { next }
-    rank[$0] < highest_rank { print $0 ": out of order; the template puts it before " latest; next }
-    { highest_rank = rank[$0]; latest = $0 }
+    { text = $0; sub(/^[0-9]+\t/, "", text) }
+    rank[$0] < highest_rank { print text ": out of order; the template puts it before " latest; next }
+    { highest_rank = rank[$0]; latest = text }
   ' <(printf '%s\n' "$2") -)
   [[ -z $misplaced ]] || faults="$faults$misplaced"$'\n'
 }
@@ -157,7 +176,7 @@ check_score() {
 # check_risk_scores OUTLINE : fault off-scale or missing Risk and Reversibility scores, and Irreversible without Risk: High.
 check_risk_scores() {
   local content risk reversibility
-  content=$(section_content "$1" "$RISK_SECTION")
+  content=$(section_content "$1" "$RISK_HEADING")
   # check_sections_present already reports a missing or empty section, so there is nothing to score.
   [[ -n $content ]] || return 0
   check_score "$content" Risk "$RISK_SCALE"
@@ -188,17 +207,22 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -n $body ]] || usage
 
-template=${project_template:-$WORKFLOW_TEMPLATE}
+# The workflow template's sections are its `##` headings only, so a `###` a writer adds inside one stays content there.
+if [[ -n $project_template ]]; then
+  template=$project_template min_level=1 max_level=6 levels_named='headings'
+else
+  template=$WORKFLOW_TEMPLATE min_level=2 max_level=2 levels_named='## headings'
+fi
 require_readable "$body"
 require_readable "$template"
 
-expected=$(headings_of "$(outline "$template")")
-[[ -n $expected ]] || die "no ## headings in template: $template"
+expected=$(headings_of "$(outline "$template" "$min_level" "$max_level")")
+[[ -n $expected ]] || die "no $levels_named in template: $template"
 # The score checks find their section by this fixed name; without this guard a renamed heading would skip them silently.
-if [[ -z $project_template ]] && ! grep -Fxq -- "$RISK_SECTION" <<<"$expected"; then
+if [[ -z $project_template ]] && ! grep -Fxq -- "$RISK_HEADING" <<<"$expected"; then
   die "broken install: no '## $RISK_SECTION' heading in template: $template"
 fi
-body_outline=$(outline "$body")
+body_outline=$(outline "$body" "$min_level" "$max_level")
 
 faults=
 score=
