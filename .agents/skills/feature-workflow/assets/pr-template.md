@@ -32,7 +32,7 @@ classification (what is created, extended or refactored). Say why this shape ove
 ## Special things to note
 
 <!-- Always link the spec's report.md and each task PR/MR (`pr` on the task records). Then list, from report.md
-Known gaps and Deferred, skipped gates, known limits and follow-up items with their .workflow/deferred/ links;
+Known gaps and Deferred, skipped gates, known limits and follow-up items with their links to the deferred files;
 when both are empty, write "None." in place of that list, after the links. -->
 
 ## How to test
