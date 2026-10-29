@@ -5,8 +5,9 @@
 #   and .workflow/pr-quality/); .gitignore user lines kept. JRN-006: a project installed with the template whose stop audit
 #   matched only implementation agents is left, after an upgrade, with one SubagentStop entry matching implementation and integration.
 #   Matcher resolution on an upgrade to a template whose stop audit matches implementation|integration, from an old install
-#   with user groups: JRN-011 without a terminal (template-only group merged, mixed group kept, match-all and covering groups
-#   untouched, a Warnings line per merged or kept group, a third run writes nothing); JRN-012 --matchers=merge|replace|keep
+#   with user groups: JRN-011 without a terminal (template-only group merged, mixed group kept, also when its own hook is
+#   a prompt hook, match-all and covering groups untouched, a Warnings line per merged or kept group, a third run writes
+#   nothing); JRN-012 --matchers=merge|replace|keep
 #   (one Warnings line per group, naming the mode), a bad mode, --dry-run with and without --matchers (writes nothing,
 #   previews, never reads stdin), --force alone, a matcher that is not a plain alternation never merged (also under a
 #   match-all template), a group running commands of two template groups (rewritten into the template's groups with the
@@ -52,14 +53,14 @@ new_target() { rm -rf "$1"; git_init_repo "$1"; }
 # clone_target SOURCE DEST : DEST becomes a copy of the target SOURCE (its .claude symlinks stay links).
 clone_target() { rm -rf "$2"; cp -R "$1" "$2"; }
 
-# The four readers below are called from check expressions, which shellcheck cannot see into.
+# The five readers below are called from check expressions, which shellcheck cannot see into.
 # warning_lines OUTPUT : the "  - " lines of the Warnings block in install.sh output.
 # shellcheck disable=SC2329
 warning_lines() { printf '%s\n' "$1" | awk '/^Warnings:/ { w = 1; next } w && /^  - / { print; next } { w = 0 }'; }
 # shellcheck disable=SC2329
 warned_about() { warning_lines "$1" | grep -qF -- "$2"; }
 # warned_once OUTPUT STRING... : true when exactly one Warnings line names the first STRING, and it holds every STRING.
-# shellcheck disable=SC2329
+# shellcheck disable=SC2329  # called from check expressions, which shellcheck cannot see into
 warned_once() {
   local out=$1 lines
   shift
@@ -486,6 +487,18 @@ for how in no-terminal replace; do
   check "JRN-012 one Warnings line names the non-string matcher's event and hooks and says why it is kept ($how)" \
     'warned_once "$out" "$STOP_AUDIT" hooks.SubagentStop "not a string"' "$out"
 done
+
+X=$WORK/prompt-hook
+clone_target "$OLD_BASE" "$X"
+edit_settings "$X/.claude/settings.json" \
+  '.hooks.SubagentStop |= map(if runs($c) then .hooks += [{type: "prompt", prompt: "Check the summary"}] else . end)' \
+  --arg c "$STOP_AUDIT"
+prompt_hook_group_before=$(group_json "$X/.claude/settings.json" SubagentStop "$STOP_AUDIT")
+out=$(INSTW "$X" --host claude 2>&1)
+eq "JRN-011 a group running the stop audit and a prompt hook is kept as it was (no terminal)" \
+  "$(group_json "$X/.claude/settings.json" SubagentStop "$STOP_AUDIT")" "$prompt_hook_group_before"
+check "JRN-011 one Warnings line names the kept group's prompt hook (no terminal)" \
+  'warned_once "$out" "$STOP_AUDIT" kept "\"type\":\"prompt\""' "$out"
 
 echo "== a template matcher that is not a plain | list is never merged (JRN-012)"
 SCN=$WORK/sc-non-plain-template

@@ -274,6 +274,11 @@ def merge_groups($cur; $new):
     | [ $g.hooks[] | select(.command as $c | any($have[]; . == $c) | not) ] as $miss
     | if ($miss | length) == 0 then . else . + [ $g | .hooks = $miss ] end);
 def group_cmds: [ (.hooks? // [])[]? | objects | .command? | strings ];
+def hook_name: if type == "object" and (.command | type) == "string" then .command else tojson end;
+def hook_names: [ (.hooks? // [])[]? | hook_name ];
+def is_template_hook($all_tcmds): type == "object" and (.command | type) == "string" and (.command as $c | any($all_tcmds[]; . == $c));
+# Every hook that is not a template command belongs to the user, whatever its type (a prompt hook has no command).
+def own_hook_names($all_tcmds): [ (.hooks? // [])[]? | select(is_template_hook($all_tcmds) | not) | hook_name ];
 def is_match_all: . == null or . == "" or . == "*";
 def is_malformed: type != "string" and type != "null";
 def is_plain: type == "string" and test("^[A-Za-z0-9_|]+$");
@@ -295,14 +300,14 @@ def resolve_group($ev; $i; $j; $tg; $all_tcmds):
       | (if $g.matcher | is_plain then "the template matcher \($tg.matcher | tojson) is not a plain | list of names"
          else "\($g.matcher | tojson) is not a plain | list of names" end) as $why_not_mergeable
       | [ $gc[] | select(. as $c | any($tc[]; . == $c)) ] as $scaffold
-      | [ $gc[] | select(. as $c | any($all_tcmds[]; . == $c) | not) ] as $own
+      | ($g | own_hook_names($all_tcmds)) as $own
       | "\($ev)/\($i)/\($j)" as $key
       | "hooks.\($ev): the group running \($scaffold | join(", ")) has matcher \($g.matcher | tojson), which does not cover the template matcher \($tg.matcher | shown)" as $what
       | (if $matchers == "auto" then "(no terminal to ask; --matchers=merge|replace|keep chooses for every group)"
          elif $matchers == "ask" then "(as you answered)"
          else "(--matchers=\($matchers))" end) as $chosen_by
       | (if $matchers == "ask" then
-           .questions += [{key: $key, event: $ev, scaffold: $scaffold, hooks: $gc, own: $own, current: $g.matcher,
+           .questions += [{key: $key, event: $ev, scaffold: $scaffold, hooks: ($g | hook_names), own: $own, current: $g.matcher,
                            replace: $replaced, merge: $merged, mergeable: $mergeable, why_not_mergeable: $why_not_mergeable}]
          else . end)
       | (if $matchers == "ask" then $answers[$key] // "keep"
@@ -327,8 +332,7 @@ def unsettled($tg): type == "object" and (.matcher | type) == "string" and (.mat
   and (.matcher | covers($tg.matcher) | not);
 def only_template_hooks($all_tcmds):
   (.hooks | type) == "array"
-  and all(.hooks[]; type == "object" and (.command | type) == "string" and (.command as $c | any($all_tcmds[]; . == $c)));
-def hook_names: [ (.hooks? // [])[]? | if type == "object" and (.command | type) == "string" then .command else tojson end ];
+  and all(.hooks[]; is_template_hook($all_tcmds));
 def split_or_keep($ev; $i; $g; $all_tcmds; $count):
   "hooks.\($ev): the group with matcher \($g.matcher | tojson) runs commands of \($count) template groups" as $what
   | if $g | only_template_hooks($all_tcmds) then
