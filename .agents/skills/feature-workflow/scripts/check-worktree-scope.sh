@@ -20,6 +20,13 @@
 #   command  allow when --cwd is inside the root or outside the main checkout; otherwise the command must start with `cd <dir> &&` where <dir>
 #            is a literal absolute path (quotes allowed) inside the root, as the implementation brief asks. A cd target with `$`, `~` or a
 #            backtick cannot be checked and is denied. Accident prevention only: a command can still cd elsewhere later.
+#            Read-only commands need no `cd`: a command made only of allowlisted reads joined by `|` or `&&` is allowed from anywhere.
+#              Allowlist: cat, head, tail, grep, rg, ls, wc, find, yq, jq, `sed -n`, `git log|show|diff|status`.
+#              Denylist, per tool (the segment needs the `cd`): sed `w`/`W` (a w or W followed by a space or a slash), `-i`,
+#              `--in-place`; find -delete, -exec, -execdir, -ok, -okdir, -fprint*, -fls; yq -i, --inplace, -s, --split-exp;
+#              jq -i; git --output; rg --pre.
+#              Denylist, whole command: `$`, a backtick, `<`, `>`, `;`, a lone `&` (so `|&` too), `||`, a newline, `tee`, an empty segment.
+#              A regex check, not a shell parser: a `|`, `&&` or `;` inside quotes splits or denies too, which only costs a needless `cd`.
 # Outputs/handoff: exit 0 allow (reason on stdout); exit 2 deny (reason on stderr); exit 1 usage or environment error (adapters deny).
 # Called by: hooks/worktree-write-guard.sh (Claude, Write/Edit/NotebookEdit and Bash), hooks/codex-write-guard.sh (Codex apply_patch paths).
 # Sources: first-party.
@@ -120,6 +127,55 @@ fi
 c=$(canon "$cwd")
 if under "$c" "$root" || ! under "$c" "$main_root"; then
   echo "allow: cwd inside $root or outside the main checkout"
+  exit 0
+fi
+
+# read_only_segment SEGMENT : true when SEGMENT is one allowlisted read whose flags neither write a file nor run a program.
+read_only_segment() {
+  local re_split='^[[:space:]]*([^[:space:]]+)(.*)$'
+  local re_git_read='^[[:space:]]+(log|show|diff|status)([[:space:]]|$)'
+  local re_git_write='[[:space:]]--output([=[:space:]]|$)'
+  local re_sed_print='^[[:space:]]+-n([[:space:]]|$)'
+  # Spaces or a slash after w/W also match file names like src/view/, which only costs a needless cd.
+  local re_sed_write='[wW]([[:space:]]|/)|[[:space:]]-[[:alpha:]]*i|[[:space:]]--in-place'
+  local re_find_write='[[:space:]]-(delete|exec|execdir|ok|okdir|fprint[[:alnum:]]*|fls)([[:space:]]|$)'
+  local re_yq_write='[[:space:]]-[[:alpha:]]*[is]|[[:space:]]--(inplace|split-exp)'
+  local re_jq_write='[[:space:]]-[[:alpha:]]*i'
+  local re_rg_exec='[[:space:]]--pre([=[:space:]]|$)'
+  local tool args
+  [[ "$1" =~ $re_split ]] || return 1
+  tool=${BASH_REMATCH[1]} args=${BASH_REMATCH[2]}
+  case "$tool" in
+    cat|head|tail|grep|ls|wc) return 0 ;;
+    rg) ! [[ "$args" =~ $re_rg_exec ]] ;;
+    find) ! [[ "$args" =~ $re_find_write ]] ;;
+    yq) ! [[ "$args" =~ $re_yq_write ]] ;;
+    jq) ! [[ "$args" =~ $re_jq_write ]] ;;
+    sed) [[ "$args" =~ $re_sed_print ]] && ! [[ "$args" =~ $re_sed_write ]] ;;
+    git) [[ "$args" =~ $re_git_read ]] && ! [[ "$args" =~ $re_git_write ]] ;;
+    *) return 1 ;;
+  esac
+}
+
+# read_only_chain COMMAND : true when COMMAND is only read_only_segment reads joined by `|` or `&&`, with no shell form that could
+#   write, redirect or run something else.
+read_only_chain() {
+  local chain=$1 rest seg
+  local re_tee='(^|[[:space:]|&])tee([[:space:]]|$)'
+  case "$chain" in *'$'*|*'`'*|*'<'*|*'>'*|*';'*|*'||'*|*$'\n'*|*$'\r'*) return 1 ;; esac
+  [[ "$chain" =~ $re_tee ]] && return 1
+  chain=${chain//&&/|}
+  case "$chain" in *'&'*) return 1 ;; esac
+  rest="$chain|"
+  while [ -n "$rest" ]; do
+    seg=${rest%%|*}
+    rest=${rest#*|}
+    read_only_segment "$seg" || return 1
+  done
+}
+
+if read_only_chain "$command"; then
+  echo "allow: read-only command"
   exit 0
 fi
 re_dq='^[[:space:]]*cd[[:space:]]+"([^"]+)"[[:space:]]*&&'
