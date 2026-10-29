@@ -42,8 +42,17 @@ work_type: test-harness        # e2e-browser for 1.3
 <the build brief: see 1.2 or 1.3>
 ````
 
-- **Claude.** Call the Agent tool with `subagent_type: implementation`, `isolation: "worktree"` (each implementation launch gets its own worktree) and the prompt above. Leave out `model`: `hooks/pre-launch.sh` resolves the model and prepends the whole profile after the header.
-- **Codex** (advisory). Build the launch with the orchestrator mode (`--task-type implementation`), then spawn (`agent_type` = the definition name with `-` replaced by `_`; `--task-type` keeps the hyphen) with `.prompt` as the message, `.model` as the spawn's model (the generated `.codex/agents/*.toml` never carry `model`, so this is what selects it) `task_name` set to `s<NNN>_phase_1_<enc(work_type)>`, for example `s007_phase_1_test_harness` (`enc` lowercases and turns every character outside `[a-z0-9]` into `_`; Codex accepts only `[a-z0-9_]`, no `/`), so the stop audit can find the launch, and `fork_turns: "none"` so the model override applies. Codex has no `isolation` option, so first create the worktree yourself, named by the `task_name`: `git worktree add .workflow/.worktrees/<task_name> -b wf/NNN-slug/<task_name>` (for example `.workflow/.worktrees/s007_phase_1_test_harness`; `.workflow/.worktrees/` gitignored), and name it in the brief as the directory the agent works in; the stop audit runs the toolchain there and warns when it is missing:
+**The agent worktree.** On both hosts you create the build's worktree yourself before the launch, from the main checkout on the spec branch, on a `wf/` branch off the spec-branch tip. `<name>` is `s<NNN>_phase_1_<enc(work_type)>`, for example `s007_phase_1_test_harness` (`enc` lowercases and turns every character outside `[a-z0-9]` into `_`); the worktree guard and the stop audit find the worktree by this name:
+
+```bash
+git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
+# e.g. git worktree add .workflow/.worktrees/s007_phase_1_test_harness -b wf/007-checkout/s007_phase_1_test_harness spec/007-checkout
+```
+
+`.workflow/.worktrees/` is gitignored. Name the worktree's absolute path in the brief as the directory the agent works in: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside it. A resumed or relaunched build reuses the worktree while it exists. The merge removes it, so a 1.4 loop back creates it again with the same command, off a spec-branch tip that already holds the earlier round. 1.3 creates its worktree only after the 1.2 merge, so it starts from the harness.
+
+- **Claude.** Call the Agent tool with `subagent_type: implementation` and the prompt above, without `isolation`: the Agent tool has no working-directory option, so the brief keeps the agent in its worktree and `hooks/worktree-write-guard.sh` denies its writes outside it. Leave out `model`: `hooks/pre-launch.sh` resolves the model and prepends the whole profile after the header.
+- **Codex** (advisory). Build the launch with the orchestrator mode (`--task-type implementation`), then spawn (`agent_type` = the definition name with `-` replaced by `_`; `--task-type` keeps the hyphen) with `.prompt` as the message, `.model` as the spawn's model (the generated `.codex/agents/*.toml` never carry `model`, so this is what selects it), `task_name` set to the worktree `<name>` (Codex accepts only `[a-z0-9_]`, no `/`) so the stop audit can find the launch and run the toolchain in its worktree, and `fork_turns: "none"` so the model override applies:
 
   ```bash
   .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type implementation \
@@ -52,6 +61,7 @@ work_type: test-harness        # e2e-browser for 1.3
   EOF
   ```
 
+- **Denied outside its worktree.** An agent that keeps getting denied, or edits the main checkout through Bash, is never relaunched another way. Block the spec at its node: `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step <1.2 or 1.3> --blocked "phase-1-<work_type> cannot work inside its agent worktree: <the deny>"`.
 - **No profile.** A deny that names 00.19 means `.workflow/profiles/<work-type>.md` is missing. Create it with the human from `.workflow/profiles/TEMPLATE.md` (the shipped `test-harness` and `e2e-browser` examples are a starting point): `.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 00.19`, then Write the new profile, then launch again. With no human available, block the spec: `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step 00.19 --blocked "no <work-type> profile; a human must define .workflow/profiles/<work-type>.md"`.
 
 **When the launch returns.** The stop audit has run the profile toolchain under the evidence id `phase-1-<work_type>`, with the `test` key skipped: the new tests are red by design until the feature is built, and 1.4 is what proves they fail. `lint`, `typecheck`, `format` and `boundary` still run. The agent has written its result block to its result file and returned only a summary block; never retype the block. Check the file:
@@ -72,26 +82,39 @@ Route the result `status`:
 
 | Status | Action |
 | --- | --- |
-| `done` | Merge the worktree branch into the spec branch in the main checkout: `git merge --no-ff -m "Merge phase-1-<work_type>" <branch>` (`yq '.branch'` on the result file, or `worktreeBranch` in the Agent result). |
+| `done` | Gate, merge and clean up as in [Merging a finished build](#merging-a-finished-build) below. |
 | `profile-wrong` | Stop. Block the spec with the quoted profile line as the condition (`status-transition.sh status .workflow/specs/NNN-slug blocked --step <1.2 or 1.3> --blocked "<...>"`). Profiles are edited only at 5.3; the human decides how to continue. |
 | `discovered-work` | Work outside the agreed scope: never fold it into the suites. Assess each entry first with the blocker rule of 00.22 in `modules/discovered-work.md` (the agent's `blocker_assessment` is the starting point), then load that module with origin node `1.2` or `1.3`, found by (the agent and its result file), the problem, the evidence (`path:line`, a failing test, or the result quoted), the kind and your assessment. **Can wait:** the module files it to the shelf or the work backlog without a ruling and returns at once; set the step back with `.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug <origin node>` (1.2 or 1.3), so `.step` does not stay at 00.26, then resume the build on its own scope, with no block. **Blocker:** the module blocks the spec; when it returns at 00.28, resume the build on its own scope; if it ends at 00.24 (`draft`) or leaves the spec `blocked`, Phase 1 stops here. A non-empty `discovered_work` on a `done` result goes the same way. |
 | `blocked`, `scope-expansion` | Answer facts from the code and resume the agent. A decision the spec does not settle blocks the spec as above, with the decision as the condition. Scope that spreads into work the spec did not agree is discovered work (row above). |
 
 Phase 1 output gets no `profile-mini-review`: that task type requires a `task_id`, and Phase 1 has none. Its gates are the stop audit and 1.4.
 
+### Merging a finished build
+
+Merge in the main checkout on the spec branch. The branch is the one the result file names (`yq '.branch' <file>`): `wf/NNN-slug/<name>`, the branch you created. First run the artifacts gate, then merge, then remove the worktree and its branch. Run each line as its own command and never pipe the gate into another command, because a pipe hides its exit code:
+
+```bash
+.agents/skills/feature-workflow/scripts/check-merge-artifacts.sh --spec-dir .workflow/specs/NNN-slug --rev wf/NNN-slug/<name>
+git merge --no-ff -m "Merge phase-1-<work_type>" wf/NNN-slug/<name>
+git worktree remove .workflow/.worktrees/<name>
+git branch -d wf/NNN-slug/<name>
+```
+
+Merge only on gate exit 0. Exit 1 prints each path under `artifacts/` that the branch adds, changes or deletes: resume the agent with those lines to drop that change from its branch (its result file belongs in the main checkout only), then run the gate again. Exit 2 is a usage or environment error: fix the cause and run it again.
+
 ## 1.2 Harness and CI checks
 
 Launch under `work_type: test-harness`. The brief names what to build: the unit and integration harness for the modules this feature touches (from `codebase-map.md`), the CI checks that run it, the commands that measure the coverage targets from 1.1, and the fixtures and oracles from `verification-plan.md` (`## Fixtures and oracles`, pasted as rows). Ask for the harness command and the CI check name in the result `summary`. For each module listed as new in `codebase-map.md`, the brief also asks for a minimal interface stub first (the exported names and signatures from the `codebase-map.md` interface additions, returning a fixed placeholder value rather than throwing), so the new tests fail on an assertion at 1.4 instead of on an import error.
 
-**Done when:** the branch is merged, the stop audit is clean, and you can name the harness command and have run it once on the merged checkout.
+**Done when:** the branch is merged and its worktree and branch removed, the stop audit is clean, and you can name the harness command and have run it once on the merged checkout.
 
 ## 1.3 Browser suite from the journeys
 
-Launch under `work_type: e2e-browser`, after 1.2 is merged so the new worktree starts from it. The brief pastes the `## Journeys` rows (ids, steps, expected outcomes) and the fixtures they use, and asks for one test per journey, named or tagged by its `JRN-###` id, so evidence is filed by journey. It also asks for the fault switch 1.4 uses: the e2e fixture honours `E2E_INJECT_FAULT=1` by answering every app API request with a 500 (`page.route('**/api/**', r => r.fulfill({ status: 500 }))`). Journeys for behaviour not built yet fail now; that is expected.
+Launch under `work_type: e2e-browser`, after 1.2 is merged, in a worktree created only then so it starts from the harness. The brief pastes the `## Journeys` rows (ids, steps, expected outcomes) and the fixtures they use, and asks for one test per journey, named or tagged by its `JRN-###` id, so evidence is filed by journey. It also asks for the fault switch 1.4 uses: the e2e fixture honours `E2E_INJECT_FAULT=1` by answering every app API request with a 500 (`page.route('**/api/**', r => r.fulfill({ status: 500 }))`). Journeys for behaviour not built yet fail now; that is expected.
 
 After the merge, update the Check column of `## Journeys` from `MISSING` to the test name or tag, so every journey has an automated check.
 
-**Done when:** the branch is merged, the stop audit is clean, and no journey says `MISSING`.
+**Done when:** the branch is merged and its worktree and branch removed, the stop audit is clean, and no journey says `MISSING`.
 
 ## 1.4 Do both suites fail a known-bad build?
 
@@ -111,7 +134,7 @@ A suite that cannot go red proves nothing. For each suite, run it against a know
 Record each run (fault, command, exit code, each new test with its first error message) under `.workflow/specs/NNN-slug/artifacts/phase-1-known-bad/`.
 
 - **Yes, both fail on assertions:** go to 1.5.
-- **No, a suite passes the broken build, or fails only on setup errors:** back to 1.2 (or 1.3). Resume (or relaunch) the build for each such suite, with the tests that stayed green or errored and their output in the brief; re-run 1.4 after the merge.
+- **No, a suite passes the broken build, or fails only on setup errors:** back to 1.2 (or 1.3). Create the build's agent worktree again ([Launching a Phase 1 build](#launching-a-phase-1-build); the merge removed it), then resume (or relaunch) the build for each such suite in it, with the tests that stayed green or errored and their output in the brief; re-run 1.4 after the merge.
 - **The suites cannot be made to fail** (the agent reports it cannot, or five rounds for one suite still pass the broken build): block the spec.
 
   ```bash
