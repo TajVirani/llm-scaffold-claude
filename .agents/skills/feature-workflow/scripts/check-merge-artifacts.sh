@@ -26,7 +26,9 @@ set -euo pipefail
 
 PROG=check-merge-artifacts.sh
 USAGE="usage: check-merge-artifacts.sh --spec-dir <dir> --rev <branch or commit> [--cwd <dir>]"
+# die MSG [CODE] : print "<prog>: MSG" to stderr and exit CODE (default 2; 1 for a refused merge).
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit "${2:-2}"; }
+# usage : print the usage line to stderr and exit 2.
 usage() { echo "$USAGE" >&2; exit 2; }
 
 # commit_of REV : print the commit sha REV names in the main checkout; status 1 when it names none.
