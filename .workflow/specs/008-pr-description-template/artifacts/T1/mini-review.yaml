@@ -1,0 +1,62 @@
+verdict: "pass"
+task_id: "T1"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t1@3115dced23d9f09551b68f4ac99537766806b101..HEAD"
+tool_output: ".workflow/specs/008-pr-description-template/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:93 builds RULES from WF_RULES (.agents/lib/workflow-paths.sh:36); the added lines spell no .workflow/ path"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook code in the diff"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:65-66,71,120,122-123,128-130; line 120 is the r1 fix (an @-token is never a literal match), covered by the @branch case in tests/scripts/task-breakdown.sh after the main_branch invalid case and the @template_path case in the pr_template block"
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:28-29 documents the exit codes; every new exit is 1 via die at lines 71,123,129,130"
+  - n: 5
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:38-39 sources workflow-paths.sh with cd -P from BASH_SOURCE (unchanged); the diff adds no sibling path"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:1-34 has the helper header shape (File: Helper script, Purpose, Usage, Settings, stdout, Exit codes, Called by, Notes, Sources) and no decision ID in the added lines"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:36 set -euo pipefail; added code at lines 65,70,71,91,119-129 uses [[ ]]; no new file; the task-breakdown.sh additions use the file's existing t, eq and pt_refused helpers"
+  - n: 8
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:61 (valid_template_path PATH : ...), 68 (find_main_checkout_root WHY : ...); no shellcheck disable added (the one at :86 is pre-existing and carries its reason)"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:61,68,122; the names say what each does, and the existence check stays in the caller"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:119 gives the reason for the @-token guard; 61-63 gives the symlink trade-off"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:61 restates the conditions in words, but it is the name and args line item 8 requires and adds the repo-relative concept; 46-47 and 119 add meaning, not restatement"
+  - n: "R4"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:61-63,68,119 names no decision ID, spec, task ID, doc path or URL; the header lines 8-11, 21-26 and 28-32 name callers and paths, which R4 allows in the header block"
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/rules-setting.sh:46-47,61-63,119 use plain English; the @-token shorthand is defined by the setting_spec comment at 46-47"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh: WF_RULES (line 36) and wf_main_root (lines 57-71), which the diff now calls from find_main_checkout_root"
+  - ".agents/skills/feature-workflow/scripts/rules-setting.sh at base 3115dce (git show): lines 60-80, the inline root logic the diff replaces, to confirm the move keeps the same root"
+  - ".agents/skills/feature-workflow/scripts/budget-check.sh and open-task-pr.sh: headers (lines 1-12 and 1-3) for the helper header shape, and the Exit codes label (budget-check.sh:44, open-task-pr.sh:31)"
+  - "tests/scripts/task-breakdown.sh: header (lines 1-30) and the pr_template block (lines 150-200) for the test helpers and the cases the diff adds"
+  - ".workflow/specs/008-pr-description-template/tasks/T01-pr-template-setting.md: acceptance criteria 2, 3 and 4 (task_review and main_branch behave as before)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking at 3.7 lines"
+  - ".workflow/specs/008-pr-description-template/artifacts/T1/toolchain.json: its tree da25eee differs from HEAD tree 7d631a7 only under .workflow/; git diff of .agents, tests, install.sh and scripts between the two trees is empty, so the lint and test results cover the reviewed code"
+  - "grep of tests/ for the rules-setting stderr text: no assertion on the 'not inside a git repository' prefix for task_review or main_branch"
+out_of_scope_noticed:
+  - kind: requirement
+    summary: "For task_review and main_branch outside a git repository, the stderr text changed from 'not inside a git repository: DIR' to 'cannot find .workflow/rules.md: not inside a git repository: DIR', because find_main_checkout_root now passes a WHY prefix. Acceptance criterion 4 says these keys behave as before, and the seam names stderr."
+    evidence: ".agents/skills/feature-workflow/scripts/rules-setting.sh:71,92 (base 3115dce lines 70-71 had the old text)"
+    blocker_assessment: can-wait
+    reason: "Exit code and stdout are unchanged and no scoped test asserts the old text; the wording may be acceptable, but the criterion says as before, so the task owner should decide."

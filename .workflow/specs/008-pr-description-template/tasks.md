@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "pr_template setting reads workflow or a host template path"
-    status: pending
+    status: done
     capability: CAP-NEW-pr-template
     depends_on: []
     touches_core: false
@@ -19,7 +19,7 @@ tasks:
     pr: null
   - id: T2
     title: "PR template and its check script"
-    status: pending
+    status: done
     capability: CAP-NEW-pr-template
     depends_on: []
     touches_core: false
@@ -36,7 +36,7 @@ tasks:
     pr: null
   - id: T3
     title: "project-setup asks pr_template"
-    status: pending
+    status: done
     capability: CAP-NEW-pr-template
     depends_on: []
     touches_core: false

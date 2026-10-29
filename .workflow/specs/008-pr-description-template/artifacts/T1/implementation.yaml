@@ -1,0 +1,24 @@
+status: "done"
+summary: "Fix round 1: rules-setting.sh no longer accepts a value spelled like an @-token (pr_template \"@template_path\", main_branch \"@branch\"); both now exit 1. The valid_template_path comment now says it checks shape only and that the existence check follows symlinks, so a committed symlink may point outside the repo. Builds on b7e6975."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t1"
+branch: "task/008-pr-description-template/T01-pr-template-setting"
+base_commit: "b7e697506f63517a73bf8e227d78d9c09d67774d"
+head_commit: "ba690cd42c694e03468e5cb0069294d143d6e218"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/rules-setting.sh"
+  - "tests/scripts/task-breakdown.sh"
+tests_added:
+  - {file: "tests/scripts/task-breakdown.sh", test: "main_branch @branch (the spec token, not a branch name) -> 1", kind: "negative"}
+  - {file: "tests/scripts/task-breakdown.sh", test: "JRN-004 pr_template @template_path (the spec token, not a path) -> 1 naming it", kind: "negative"}
+evidence:
+  red: "bash tests/scripts/task-breakdown.sh; FAIL main_branch @branch (the spec token, not a branch name) -> 1 (rc=0 want=1: @branch); FAIL JRN-004 pr_template @template_path (the spec token, not a path) -> 1 naming it; RESULT passed=130 failed=2"
+  green: "bash tests/scripts/task-breakdown.sh; RESULT passed=132 failed=0 skipped=0 xfail=0"
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/008-pr-description-template --task-id T1 --cwd $PWD; lint pass, test pass (scoped: own 1, excluded 2)"
+  toolchain: ".workflow/specs/008-pr-description-template/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "A -L refusal on the template path: it would only check the last path component (a symlinked .github/ directory still passes), so it does not deliver the guarantee and would refuse legitimate in-repo symlinks; the comment now states the real guarantee instead."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
