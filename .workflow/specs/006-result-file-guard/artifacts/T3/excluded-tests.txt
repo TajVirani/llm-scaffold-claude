@@ -1,7 +1,1 @@
-tests/scripts/lib-workflow-paths.sh
-tests/hooks/audit-agent-worktrees.sh
-tests/scripts/install-claude-settings.sh
-tests/scripts/install-upgrade.sh
-tests/scripts/check-merge-artifacts.sh
-tests/hooks/worktree-guard.sh
 tests/lint/agent-worktree-docs.sh

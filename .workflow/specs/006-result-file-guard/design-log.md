@@ -430,3 +430,9 @@ Targets: 7 of 7 measurable pass (guard-time 0.04 s); line coverage not measurabl
 
 Failed lenses: none
 Outcome: rework 1 of 5
+
+## 2026-10-29 Rework 1 (4.7 → 3.x)
+
+- T3 (F1): integration.md gains a "Confirm the worktree" step naming `s<NNN>_integration_<enc>` with the `cd <worktree> &&` rule, and every "checkout you were launched in" now names that worktree; implementation.md names `s<NNN>_phase_1_<enc>` for Phase 1. `tests/hooks/worktree-guard.sh` now fills a `launched` placeholder with the main checkout and checks the filled result-file command starts with `cd <agent worktree> &&` (red on the old brief). Mini-review pass. Its note that `lint/agent-worktree-docs` was excluded from T3's run (T5 reopened) was settled by running it in T3's worktree: 27/27, guard suite 168/168.
+- T5 (F2): the 3.2 Toolchain bullet says the Claude stop audit runs the full toolchain in the integration worktree (Codex none) and how to read `toolchain.json` and `audit.json`; one wording round on its own clause; re-check pass. A reviewer resume fixed a mini-review file missing an item `location`.
+- Both merged after the artifacts gate (exit 0): T3 `faeb1df`, T5 `9b30638`.

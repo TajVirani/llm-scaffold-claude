@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t3/.workflow/profiles/agent-docs.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t3",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/specs/006-result-file-guard/artifacts/T3",
-  "tree": "2b11be21d7c433aa8e0dbeebd96f24c55b8cdd63",
+  "tree": "384c921642763cc64b467bbd0be92fcd3a5e808c",
   "ran": 2,
   "results": [
     {
@@ -42,7 +42,7 @@
       "exit_code": 0,
       "scoped": true,
       "own": 0,
-      "excluded": 7
+      "excluded": 1
     }
   ],
   "digest": "",

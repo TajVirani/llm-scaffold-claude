@@ -2,7 +2,7 @@
 == lint/frontmatter
 
 == summary
-PASS lint/frontmatter                       passed=40   failed=0   skipped=0   xfail=0   10s
+PASS lint/frontmatter                       passed=40   failed=0   skipped=0   xfail=0   5s
 TOTAL passed=40 failed=0 skipped=0 xfail=0 (1 suites)
 == lint/symlinks
 
@@ -12,7 +12,7 @@ TOTAL passed=45 failed=0 skipped=0 xfail=0 (1 suites)
 == lint/upstream-lineage
 
 == summary
-PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   4s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   2s
 TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
 == lint exit 0
 
