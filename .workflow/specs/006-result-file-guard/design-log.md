@@ -160,3 +160,15 @@ Spec: [spec.md](spec.md)
 
 - Scope: Non-goals and `deferred` list the three shelved items; Open Questions empty. System impact: module audits for feature-workflow, hooks and lib in `codebase-map.md`; no cache disagrees with code. Data changes: `data-model.md` classifies every part; one reversible migration (M1). Testable objectives: both capabilities have objectives and journeys.
 - Work item 005-cache-build-followups-disc-001.md deleted (origin kept in frontmatter and the Origin entry).
+
+## 2026-10-29 Targets (1.1)
+
+- Spec branch `spec/006-result-file-guard` created off main `16c72b1`; baseline `e049f4dde93474aca594212026144ed7006a917f`. Main moved since the handoff (`02bc218` to `16c72b1`) only in workflow data; nothing under `.agents/`, `tests/` or `install.sh` changed, so no contract the spec relies on moved.
+- **D16 Guard time.** Recommended: `check-worktree-scope.sh --command` on a long read-only chain, real ≤ 0.2 s best of 3 (baseline 0.04 s). Answer: "≤ 0.2 s".
+- **D17 Line coverage.** Recommended: not measured (no bash coverage tool; no new dependency). Answer: "Not measured".
+
+## 2026-10-29 Harness build (1.2)
+
+- Launched under `isolation: "worktree"` as the current `verification-setup.md` says; the isolation worktree forked from main `16c72b1`, not the spec branch. Claude Code's isolation refused the main-checkout result-file Write ("This agent is isolated in the worktree ... Edit the worktree copy") and heredoc and `$(git …)` commands. The agent wrote `implementation.yaml` in its worktree; the main session copied it into `artifacts/phase-1-test-harness/` by hand (the defect this spec removes). `check-task-result.sh` exit 0; stop audit clean.
+- Merged `eb292c5` as `346b568`; isolation worktree and branch removed.
+- Agent decisions to note: the existing `worktree-guard` deny case "task agent Bash without cd" now uses `npm test` instead of `git status`, since `git status` joins the read-only allowlist (verdict and hint unchanged). JRN-001 expects `wf_enc` to replace every non-`[a-z0-9]` byte under both locales (`Wéb` → `w__b`), where the old `codex_enc` gave `w_b` under UTF-8; every work type and agent type used today is ASCII, so names stay byte-identical.

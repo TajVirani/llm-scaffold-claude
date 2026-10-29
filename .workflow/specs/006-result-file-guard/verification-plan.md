@@ -40,3 +40,46 @@ The scaffold has no running application or browser suite. Each journey runs the 
 | Toolchain stand-in | A `run-toolchain.sh` substitute that records its cwd and flags | Harness-written, as in the existing audit suites | JRN-005 |
 | Old settings template | The pre-change `claude-settings.template.json` | `git show <baseline_revision>:.agents/hooks/claude-settings.template.json` | JRN-006 |
 | Gate branches | Spec branch plus task branches and detached commits with each `artifacts/` change kind | Harness-written fixture repo | JRN-007 |
+
+## Targets
+
+<!-- 1.1. Measured by review-targets (4.3); reported in report.md "Targets vs measured". -->
+
+Run every command in bash from the repo root on a clean checkout of the feature's HEAD. Measured at the baseline `e049f4d`: guard-time 0.04 s; codex-enc-copies 6.
+
+| Target | Kind | Threshold | How measured (exact command) | Source of the threshold |
+| --- | --- | --- | --- | --- |
+| Script lint clean | errors | exit 0; 0 shellcheck findings | the `script-lint` command below (the `lint` key of the shell-scripts profile) | `.workflow/profiles/shell-scripts.md` § Toolchain |
+| Harness lint clean | errors | exit 0; 0 shellcheck findings | the `harness-lint` command below (the `lint` key of the test-harness profile) | `.workflow/profiles/test-harness.md` § Toolchain |
+| Agent-docs lint clean | errors | exit 0; each of the four lint suites reports 0 failed | the `agent-docs-lint` command below (the `lint` key of the agent-docs profile) | `.workflow/profiles/agent-docs.md` § Toolchain |
+| Every script this spec adds or changes has a suite | coverage | `0` printed (no uncovered script) | the `script-coverage` command below: scripts under `.agents/` and `install.sh` added or modified since `baseline_revision` whose file name no file under `tests/` mentions | `.workflow/profiles/test-harness.md` § Mini-review checklist ("A new or changed script has a suite ending in a `shellcheck_files` assertion") |
+| Every new `.agents/` asset is in the manifest and `PROVENANCE.md` | coverage | `0` printed (no unlisted asset) | the `asset-coverage` command below: files added under `.agents/` since `baseline_revision` that are not a line of `.agents/install-manifest.txt` (or under a listed directory) or not named in `PROVENANCE.md` | `.workflow/rules.md` § Cross-cutting policy (manifest, PROVENANCE) |
+| No `codex_enc` copy left in the hooks | errors | `0` printed | the `codex-enc-copies` command below: lines under `.agents/hooks/` that mention `codex_enc` | `spec.md` Constraints ("`wf_` functions ... replace both `codex_enc` copies") |
+| Worktree scope check time on a long read-only chain | performance | real ≤ 0.2 s, best of 3 | the `guard-time` command below: `check-worktree-scope.sh --command` with a confinement root and the cwd in the main checkout, on a chain of every allowlisted read joined by `\|` and `&&` | stakeholder decision D16, 1.1 (2026-10-29) |
+| Line coverage of changed shell code | coverage | not measured | Cannot be measured: no bash coverage tool is installed and `spec.md` Constraints ban new dependencies. The script-coverage target and the test-harness checklist at 3.7 stand in. | stakeholder decision D17, 1.1 (2026-10-29) |
+
+Commands referenced above (pipes keep them out of the table cells); each runs from the project root:
+
+```bash
+# script-lint
+git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+# harness-lint
+git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+# agent-docs-lint
+tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage
+# script-coverage: prints the count of uncovered scripts; the threshold is 0
+git diff --name-only --diff-filter=AM "$(yq --front-matter=extract '.baseline_revision' .workflow/specs/006-result-file-guard/spec.md)"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- "$(basename "$f")" tests/ || echo "$f"; done | wc -l | tr -d ' '
+# asset-coverage: prints the count of new .agents/ files missing from the manifest or PROVENANCE.md; the threshold is 0
+git diff --name-only --diff-filter=A "$(yq --front-matter=extract '.baseline_revision' .workflow/specs/006-result-file-guard/spec.md)"..HEAD -- .agents | while read -r f; do r=${f#.agents/}; m=0; while IFS= read -r l; do case "$r" in "$l"|"${l%/}"/*) m=1;; esac; done < .agents/install-manifest.txt; [ "$m" = 1 ] || echo "manifest: $f"; grep -qF -- "$(basename "$f")" PROVENANCE.md || echo "provenance: $f"; done | wc -l | tr -d ' '
+# codex-enc-copies: the threshold is 0
+git grep -n 'codex_enc' -- .agents/hooks | wc -l | tr -d ' '
+# guard-time: the printed value is the best real time of 3 runs; the threshold is 0.2
+mkdir -p .workflow/.worktrees/s006_tgt && for i in 1 2 3; do /usr/bin/time -p .agents/skills/feature-workflow/scripts/check-worktree-scope.sh --cwd "$PWD" --worktree-name s006_tgt --command "cat spec.md | head -5 && grep -n x spec.md | wc -l && ls -la && git log --oneline -3 | sed -n 1p && git status --short && yq '.a' f.yaml | jq . && rg -n y . | tail -2 && find . -name '*.md'" 2>&1 >/dev/null; done | awk '/^real/{print $2}' | sort -n | head -1; rmdir .workflow/.worktrees/s006_tgt
+```
+
+## Suites
+
+| Suite | Profile key | Command (copied from the profile) | CI check | Known-bad-build evidence (1.4) |
+| --- | --- | --- | --- | --- |
+| Harness | `test` in `.workflow/profiles/test-harness.md` | `tests/run-all.sh` | none (no CI; the run by hand is the whole gate) | [artifacts/phase-1-known-bad/record.md](artifacts/phase-1-known-bad/record.md) Run 1, log [harness.log](artifacts/phase-1-known-bad/harness.log): 123 failures across 3 new suites and 4 extended ones, all assertions |
+| Browser | `e2e`: not applicable (no e2e work type, no browser; JRN-001 to JRN-009 are harness suites, JRN-010 is manual on the first real launch) | none | none | not applicable; see record.md Run 2 |
