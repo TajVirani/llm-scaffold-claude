@@ -134,6 +134,26 @@ for cmd in 'echo x > src/a.ts' 'rm src/a.ts' "sed 's/a/b/' src/a.ts" 'cat src/a.
   'git commit -m x' 'git checkout main'; do
   expect "JRN-009 task agent '$cmd' (not only allowlisted reads) without cd -> deny with the cd hint" deny "$(pl Bash "$cmd" "$P" "$A3")" "cd .*s007_t3 &&"
 done
+for cmd in 'jq -r .a f.json' 'jq -s . f.json' "yq -P '.a' f.yaml" "rg --pre-glob '*.gz' x src" 'git status --short && ls -la'; do
+  expect "JRN-009 task agent read-only edge '$cmd' from the main checkout -> allow" allow "$(pl Bash "$cmd" "$P" "$A3")"
+done
+for cmd in 'cat src/a.ts |' '| cat src/a.ts' 'cat src/a.ts &&' 'cat src/a.ts && && ls' 'cat src/a.ts |& head' 'git -C src log' \
+  "yq -s '.a' f.yaml" "yq --split-exp '.a' f.yaml" "yq --inplace '.a = 1' f.yaml" "sed -n '1p' --in-place src/a.ts" \
+  "sed -n 'w/tmp/out.txt' src/a.ts" "sed -n 's/a/b/w out.txt' src/a.ts" 'find . -fprint0 out.txt' $'cat src/a.ts\r'; do
+  expect "JRN-009 task agent edge '${cmd//$'\r'/ CR}' without cd -> deny with the cd hint" deny "$(pl Bash "$cmd" "$P" "$A3")" "cd .*s007_t3 &&"
+done
+for cmd in "sed -n 'wout.txt' src/a.ts" "sed -n '1wout.txt' src/a.ts" "sed -n '1,5wout.txt' src/a.ts" "sed -n '/x/,/y/Wout.txt' src/a.ts" \
+  "sed -n '1{p}wout.txt' src/a.ts" "sed -n '/x/{wout.txt' src/a.ts" "sed -n '1!wout.txt' src/a.ts" \
+  "sed -n '1 wout.txt' src/a.ts" "sed -n 's/a/b/wout.txt' src/a.ts" "sed -n 's/a/b/gpWout.txt' src/a.ts" "sed -n -e 1wout.txt src/a.ts"; do
+  expect "JRN-009 task agent sed write with the file name attached '$cmd' without cd -> deny with the cd hint" deny "$(pl Bash "$cmd" "$P" "$A3")" "cd .*s007_t3 &&"
+done
+for cmd in "sed -n 'sxaxbxwout.txt' f" "sed -n '\\xaxwout.txt' f" 'sed -n -f script.sed f' "sed -n '1e touch x' f" \
+  "sed -n '/[/]wout.txt/p' f" "sed -n 1p -i f" "sed -n '1p' 'f' -e '1wout.txt'"; do
+  expect "JRN-009 task agent sed script that is not only addresses and p '$cmd' without cd -> deny with the cd hint" deny "$(pl Bash "$cmd" "$P" "$A3")" "cd .*s007_t3 &&"
+done
+for cmd in "sed -n '/w/p' f" "sed -n '1,5p' src/view.ts" "sed -n -e '1p' -e '5p' f" "sed -n '/a b/,/c/!p' words.txt" 'sed -nE 3p f'; do
+  expect "JRN-009 task agent sed print-only script '$cmd' from the main checkout -> allow" allow "$(pl Bash "$cmd" "$P" "$A3")"
+done
 
 echo "== Claude: result files from the briefs (JRN-002, JRN-003, JRN-004)"
 UNKNOWN_PLACEHOLDERS="" FILLED=""
