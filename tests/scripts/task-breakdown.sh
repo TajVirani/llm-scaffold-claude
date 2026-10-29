@@ -5,6 +5,9 @@
 #   --exclude-unfinished, unscoped warning). JRN-006: each spec folder form for task-waves.sh and open-task-pr.sh task mode,
 #   and each initiative folder form for open-task-pr.sh --record, gives the exit code and message it gave before the shared
 #   normaliser, except that open-task-pr now refuses an absolute path outside the specs or initiatives root.
+#   JRN-004 (spec 008): rules-setting.sh pr_template reads workflow without a Workflow settings block or the key (with a
+#   default note on stderr), reads workflow and project, refuses any other value with exit 1, and reads workflow from the
+#   project-setup rules.md template.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -122,6 +125,25 @@ git -C "$MB" update-ref refs/remotes/origin/develop HEAD; git -C "$MB" symbolic-
 eq "main_branch default from origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" develop
 mkdir -p "$WORK/p/.workflow"; printf '## Workflow settings\n\n```yaml\ntask_review: local\n```\n' > "$WORK/p/.workflow/rules.md"
 eq "main checkout rules from worktree cwd" "$(RS task_review --cwd "$WORK/p-wt")" local
+
+echo "== rules-setting.sh pr_template (JRN-004, spec 008)"
+printf '## Ownership\n\n```yaml\nmodules: {}\n```\n' > "$WORK/pt.md"
+eq "JRN-004 pr_template without a Workflow settings block -> workflow" "$(RS pr_template --rules "$WORK/pt.md" 2>/dev/null)" workflow
+pt_note=$({ RS pr_template --rules "$WORK/pt.md" >/dev/null; } 2>&1)
+eq "JRN-004 pr_template without a Workflow settings block notes the default" "$(grep -q default <<<"$pt_note" && echo noted)" noted
+printf '## Workflow settings\n\n```yaml\ntask_review: local\n```\n' > "$WORK/pt.md"
+eq "JRN-004 pr_template key absent -> workflow" "$(RS pr_template --rules "$WORK/pt.md" 2>/dev/null)" workflow
+pt_note=$({ RS pr_template --rules "$WORK/pt.md" >/dev/null; } 2>&1)
+eq "JRN-004 pr_template key absent notes the default" "$(grep -q default <<<"$pt_note" && echo noted)" noted
+printf '## Workflow settings\n\n```yaml\npr_template: workflow\n```\n' > "$WORK/pt.md"
+eq "JRN-004 pr_template workflow read" "$(RS pr_template --rules "$WORK/pt.md")" workflow
+printf '## Workflow settings\n\n```yaml\npr_template: project\n```\n' > "$WORK/pt.md"
+eq "JRN-004 pr_template project read" "$(RS pr_template --rules "$WORK/pt.md")" project
+printf '## Workflow settings\n\n```yaml\npr_template: other\n```\n' > "$WORK/pt.md"
+pt_out=$(RS pr_template --rules "$WORK/pt.md" 2>&1)
+pt_rc=$?
+check "JRN-004 pr_template other -> 1 naming the value" '[ $pt_rc -eq 1 ] && grep -q "other" <<<"$pt_out"' "rc=$pt_rc: $pt_out"
+eq "JRN-004 the project-setup rules.md template reads pr_template workflow" "$(RS pr_template --rules "$RULES_T" 2>/dev/null)" workflow
 # generate-boundary-config ignores the section (reads Ownership and Shared core only)
 GB=$WORK/gb; mkdir -p "$GB/.workflow"; cp "$RULES_T" "$GB/.workflow/rules.md"
 printf '\n## Workflow settings\n\n```yaml\ntask_review: pr-blocking\n```\n' >> "$GB/.workflow/rules.md"
