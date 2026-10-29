@@ -4,7 +4,15 @@
 #   install shipped; project-owned files untouched by install, --force and upgrade (incl. .workflow/design-pattern-doc/
 #   and .workflow/pr-quality/); .gitignore user lines kept. JRN-006: a project installed with the template whose stop audit
 #   matched only implementation agents is left, after an upgrade, with one SubagentStop entry matching implementation and integration.
+#   Matcher resolution on an upgrade to a template whose stop audit matches implementation|integration, from an old install
+#   with user groups: JRN-011 without a terminal (template-only group merged, mixed group kept, match-all and covering groups
+#   untouched, a Warnings line per merged or kept group, a third run writes nothing); JRN-012 --matchers=merge|replace|keep,
+#   a bad mode, --dry-run with and without --matchers (writes nothing, previews, never reads stdin), --force alone, a
+#   matcher that is not a plain alternation never merged; JRN-013 the prompt at a pseudo-terminal (script(1); skipped
+#   when no form of it works): its text, Enter merges, r replaces, k keeps, a mixed group's prompt lists every hook.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
+# Every install.sh run reads stdin from /dev/null, an open pipe or a pseudo-terminal, never from the caller's terminal, and
+# the runs that could wait on input are killed after 20 s, so a prompting installer cannot hang the suite.
 # Env: TEST_BASH=<bash binary> runs install.sh under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -21,7 +29,13 @@ cp "$REPO_ROOT/install.sh" "$SC/install.sh"
 copy_agents "$SC"
 git_init_repo "$SC"
 git_commit_all "$SC" scaffold
-INST() { "$TEST_BASH" "$SC/install.sh" "$@"; }
+# INST_FROM SCAFFOLD ARGS... : runs SCAFFOLD's install.sh with no input; INST runs the scaffold under test.
+INST_FROM() {
+  local scaffold=$1
+  shift
+  "$TEST_BASH" "$scaffold/install.sh" "$@" </dev/null
+}
+INST() { INST_FROM "$SC" "$@"; }
 
 # snap DIR : one line per file (cksum) and symlink (target) outside .git, sorted.
 snap() {
@@ -30,6 +44,106 @@ snap() {
   done)
 }
 new_target() { rm -rf "$1"; git_init_repo "$1"; }
+# clone_target SOURCE DEST : DEST becomes a copy of the target SOURCE (its .claude symlinks stay links).
+clone_target() { rm -rf "$2"; cp -R "$1" "$2"; }
+
+# The four readers below are called from check expressions, which shellcheck cannot see into.
+# warning_lines OUTPUT : the "  - " lines of the Warnings block in install.sh output.
+# shellcheck disable=SC2329
+warning_lines() { printf '%s\n' "$1" | awk '/^Warnings:/ { w = 1; next } w && /^  - / { print; next } { w = 0 }'; }
+# shellcheck disable=SC2329
+warned_about() { warning_lines "$1" | grep -qF -- "$2"; }
+# contains_all TEXT STRING... : true when TEXT contains every STRING.
+# shellcheck disable=SC2329
+contains_all() {
+  local text=$1 s
+  shift
+  for s in "$@"; do printf '%s\n' "$text" | grep -qF -- "$s" || return 1; done
+}
+# mentions_words TEXT WORD... : true when TEXT has every WORD as a whole word, in any case.
+# shellcheck disable=SC2329
+mentions_words() {
+  local text=$1 w
+  shift
+  for w in "$@"; do printf '%s\n' "$text" | grep -qiw -- "$w" || return 1; done
+}
+
+# The bounded runs below feed CMD from a pipe that hold_open keeps open until CMD's exit code is in a file, so CMD can
+# wait on input without ever seeing the end of it. bash's wait on a background pipeline waits for every process in it,
+# so the feeder must be stopped (the file created) before the pipeline is reaped.
+RUN_SEQ=0
+# shellcheck disable=SC2016  # the wrapper's script, run by bash -c
+RECORD_RC='rc_file=$1; shift; "$@"; echo "$?" >"$rc_file"'
+# hold_open RC_FILE [LINE] : prints LINE and a newline when LINE is given, then keeps stdout open until RC_FILE exists.
+hold_open() {
+  [ $# -lt 2 ] || printf '%s\n' "$2"
+  while [ ! -e "$1" ]; do sleep 0.1; done
+}
+# finish_run PID SECS RC_FILE : waits up to SECS for the background pipeline ending in PID, killing PID on timeout; then
+#   ends its feeder and reaps it. Sets RUN_RC to the exit code in RC_FILE, 124 when killed, "none" when none was written.
+finish_run() {
+  local pid=$1 secs=$2 rc_file=$3 ticks=0
+  RUN_RC=""
+  while kill -0 "$pid" 2>/dev/null; do
+    if [ "$ticks" -ge $((secs * 10)) ]; then
+      kill "$pid" 2>/dev/null
+      RUN_RC=124
+      break
+    fi
+    sleep 0.1
+    ticks=$((ticks + 1))
+  done
+  [ -n "$RUN_RC" ] || RUN_RC=$(cat "$rc_file" 2>/dev/null || echo none)
+  touch "$rc_file"
+  wait
+}
+# run_with_open_stdin SECS OUT CMD... : runs CMD with stdin an empty pipe that stays open, so any read waits; output to OUT.
+#   Killed after SECS. Sets RUN_RC as finish_run does.
+run_with_open_stdin() {
+  local secs=$1 out=$2 rc_file
+  shift 2
+  RUN_SEQ=$((RUN_SEQ + 1))
+  rc_file=$WORK/run-$RUN_SEQ.rc
+  hold_open "$rc_file" | "$TEST_BASH" -c "$RECORD_RC" record-rc "$rc_file" "$@" >"$out" 2>&1 &
+  finish_run $! "$secs" "$rc_file"
+}
+
+# The form of script(1) that gives a command a pseudo-terminal on this host: util-linux (Linux) or bsd (macOS); "" for none.
+PTY_FORM=""
+# pty_script_args RC_FILE CMD... : sets PTY_ARGS to the script(1) arguments, in the PTY_FORM form, that run CMD on a
+#   pseudo-terminal and then write its exit code to RC_FILE (script(1) does not pass it on everywhere).
+pty_script_args() {
+  local rc_file=$1
+  shift
+  set -- "$TEST_BASH" -c "$RECORD_RC" record-rc "$rc_file" "$@"
+  case "$PTY_FORM" in
+    util-linux) PTY_ARGS=(-qec "$(printf '%q ' "$@")" /dev/null) ;;
+    bsd) PTY_ARGS=(-q /dev/null "$@") ;;
+  esac
+}
+# run_on_pty SECS ANSWER OUT CMD... : runs CMD on a pseudo-terminal, typing ANSWER and Enter, the terminal output in OUT.
+#   The typed line waits in the terminal until CMD reads it. macOS script(1) passes the end of its own input straight to
+#   CMD and does not exit before its input ends, which is why the input must stay open until CMD has finished.
+#   Killed after SECS. Sets RUN_RC as finish_run does.
+run_on_pty() {
+  local secs=$1 answer=$2 out=$3 rc_file
+  shift 3
+  RUN_SEQ=$((RUN_SEQ + 1))
+  rc_file=$WORK/pty-$RUN_SEQ.rc
+  pty_script_args "$rc_file" "$@"
+  hold_open "$rc_file" "$answer" | script "${PTY_ARGS[@]}" >"$out" 2>&1 &
+  finish_run $! "$secs" "$rc_file"
+}
+# detect_pty_form : sets PTY_FORM to the first script(1) form that gives a command a terminal on stdin and stdout.
+detect_pty_form() {
+  command -v script >/dev/null 2>&1 || return 1
+  for PTY_FORM in util-linux bsd; do
+    run_on_pty 10 "" "$WORK/pty-probe.out" "$TEST_BASH" -c 'test -t 0 && test -t 1 && echo on-a-terminal'
+    if [ "$RUN_RC" = 0 ] && grep -q on-a-terminal "$WORK/pty-probe.out"; then return 0; fi
+  done
+  PTY_FORM=""
+  return 1
+}
 
 echo "== upgrade: overwrite changed files, remove files dropped from the manifest"
 U=$WORK/up
@@ -42,7 +156,7 @@ echo "user note" >"$U/.agents/skills/deps-audit/NOTES.local.md"
 cp -R "$SC" "$WORK/sc2"
 sed -i.bak '/^skills\/glab$/d; /^skills\/deps-audit$/d' "$WORK/sc2/.agents/install-manifest.txt"
 rm -f "$WORK/sc2/.agents/install-manifest.txt.bak"
-out=$("$TEST_BASH" "$WORK/sc2/install.sh" "$U" 2>&1)
+out=$("$TEST_BASH" "$WORK/sc2/install.sh" "$U" 2>&1 </dev/null)
 eq "upgrade exits 0" "$?" 0
 check "dropped skill removed (dir gone)" '[ ! -e "$U/.agents/skills/glab" ]'
 check "dropped skill files removed, user file in it kept" '[ ! -e "$U/.agents/skills/deps-audit/SKILL.md" ] && [ -f "$U/.agents/skills/deps-audit/NOTES.local.md" ]'
@@ -51,7 +165,7 @@ check "locally edited scaffold file overwritten" 'cmp -s "$U/.agents/skills/feat
 check "file no install shipped is kept" '[ -f "$U/.workflow/data-structure-audit-state.jsonl" ]'
 check "VERSION no longer lists the dropped skill" '! grep -q "^skills/glab/" "$U/.agents/VERSION" && grep -q "^skills/feature-workflow/SKILL.md$" "$U/.agents/VERSION"'
 before=$(snap "$U")
-"$TEST_BASH" "$WORK/sc2/install.sh" "$U" >/dev/null 2>&1
+"$TEST_BASH" "$WORK/sc2/install.sh" "$U" >/dev/null 2>&1 </dev/null
 eq "upgrade re-run changes nothing" "$(snap "$U")" "$before"
 
 echo "== project-owned files untouched; .gitignore user lines kept"
@@ -73,7 +187,7 @@ owned() { (cd "$P" && cksum .workflow/agent-overrides.yaml .workflow/model-map/r
 before=$(owned)
 INST "$P" >/dev/null 2>&1
 INST "$P" --force >/dev/null 2>&1
-"$TEST_BASH" "$WORK/sc2/install.sh" "$P" --force >/dev/null 2>&1
+"$TEST_BASH" "$WORK/sc2/install.sh" "$P" --force >/dev/null 2>&1 </dev/null
 eq "project-owned files byte-identical after install, --force and upgrade" "$(owned)" "$before"
 check "project-owned .workflow/ gained no files" '[ "$(find "$P/.workflow" -type f | wc -l | tr -d " ")" = 10 ]'
 check ".gitignore user lines kept, block added once" 'grep -qx "node_modules/" "$P/.gitignore" && grep -qx "\*.log" "$P/.gitignore" && [ "$(grep -c "^.workflow/specs/\*/.step$" "$P/.gitignore")" = 1 ] && [ "$(grep -c "^.workflow/initiatives/\*/.step$" "$P/.gitignore")" = 1 ]'
@@ -84,7 +198,7 @@ cp -R "$SC" "$SCO"
 use_old_claude_settings "$SCO"
 O=$WORK/old-install
 new_target "$O"
-"$TEST_BASH" "$SCO/install.sh" "$O" --host claude >/dev/null 2>&1
+INST_FROM "$SCO" "$O" --host claude >/dev/null 2>&1
 OS=$O/.claude/settings.json
 eq "JRN-006 the old install's stop audit matches implementation only" "$(stop_audit_matchers "$OS")" implementation
 t "JRN-006 the upgrade exits 0" 0 INST "$O" --host claude
@@ -94,6 +208,172 @@ for agent in implementation integration; do
   check "JRN-006 after the upgrade: the stop audit matcher matches $agent" 'matcher_matches "$(stop_audit_matchers "$OS")" "$agent"' \
     "$(jq -c .hooks.SubagentStop "$OS")"
 done
+
+echo "== matcher resolution fixtures: the template upgraded to and the old install"
+# The template the upgrade goes to gets its stop audit widened here, so these cases hold whether or not the repo's own
+# template has been widened yet.
+SCW=$WORK/sc-widened
+cp -R "$SC" "$SCW"
+widen_stop_audit_matcher "$SCW/.agents/hooks/claude-settings.template.json"
+INSTW() { INST_FROM "$SCW" "$@"; }
+OLD_BASE=$WORK/old-base
+new_target "$OLD_BASE"
+INST_FROM "$SCO" "$OLD_BASE" --host claude >/dev/null 2>&1
+STOP_AUDIT=post-implementation-audit.sh
+USER_STOP_HOOK=./scripts/notify-stop.sh
+eq "the widened template's stop audit matches implementation|integration" \
+  "$(stop_audit_matchers "$SCW/.agents/hooks/claude-settings.template.json")" 'implementation|integration'
+FOO_BASE=$WORK/foo-base
+clone_target "$OLD_BASE" "$FOO_BASE"
+set_group_matcher "$FOO_BASE/.claude/settings.json" SubagentStop "$STOP_AUDIT" 'implementation|foo'
+eq "the implementation|foo target's stop audit matcher" "$(stop_audit_matchers "$FOO_BASE/.claude/settings.json")" 'implementation|foo'
+
+echo "== no terminal: template-only group merged, mixed group kept, match-all and covering groups untouched (JRN-011)"
+N=$WORK/no-terminal
+NS=$N/.claude/settings.json
+clone_target "$OLD_BASE" "$N"
+add_stop_audit_group "$NS" reviewer "$USER_STOP_HOOK"
+drop_group_matcher "$NS" PostToolUseFailure evidence-capture.sh
+set_group_matcher "$NS" PostToolUse evidence-capture.sh '*'
+set_group_matcher "$NS" PreToolUse pre-launch.sh ''
+set_group_matcher "$NS" PreToolUse worktree-write-guard.sh 'NotebookEdit|Edit|Write|Bash|MultiEdit'
+match_all_groups() {
+  group_json "$NS" PostToolUseFailure evidence-capture.sh
+  group_json "$NS" PostToolUse evidence-capture.sh
+  group_json "$NS" PreToolUse pre-launch.sh
+}
+mixed_before=$(group_json "$NS" SubagentStop "$USER_STOP_HOOK")
+match_all_before=$(match_all_groups)
+covering_before=$(group_json "$NS" PreToolUse worktree-write-guard.sh)
+check "JRN-011 the fixture has three match-all groups: no matcher, \"*\" and \"\"" \
+  '[ "$(printf "%s\n" "$match_all_before" | jq -s -c "map(.matcher)")" = "[null,\"*\",\"\"]" ]' "$match_all_before"
+out=$(INSTW "$N" --host claude 2>&1)
+eq "JRN-011 the upgrade without a terminal exits 0" "$?" 0
+eq "JRN-011 the template-only stop-audit group is merged to implementation|integration, the mixed group keeps reviewer" \
+  "$(group_matchers "$NS" SubagentStop "$STOP_AUDIT")" "$(printf '%s\n%s' 'implementation|integration' reviewer)"
+eq "JRN-011 no SubagentStop group is added" "$(jq '.hooks.SubagentStop | length' "$NS")" 2
+eq "JRN-011 one SubagentStop group runs the stop audit alone" \
+  "$(jq '[.hooks.SubagentStop[] | select(.hooks | length == 1 and (.[0].command | contains("post-implementation-audit.sh")))] | length' "$NS")" 1
+eq "JRN-011 the mixed group is kept as it was" "$(group_json "$NS" SubagentStop "$USER_STOP_HOOK")" "$mixed_before"
+eq "JRN-011 the match-all groups are untouched" "$(match_all_groups)" "$match_all_before"
+eq "JRN-011 the covering group is untouched" "$(group_json "$NS" PreToolUse worktree-write-guard.sh)" "$covering_before"
+check "JRN-011 a Warnings line names the merged matcher implementation|integration" \
+  'warned_about "$out" "implementation|integration"' "$out"
+check "JRN-011 a Warnings line names the kept mixed group's matcher reviewer" 'warned_about "$out" reviewer' "$out"
+check "JRN-011 no Warnings line names a hook of a match-all or covering group" \
+  '! warning_lines "$out" | grep -qE "evidence-capture|pre-launch|worktree-write-guard"' "$out"
+before=$(snap "$N")
+INSTW "$N" --host claude >/dev/null 2>&1
+eq "JRN-011 a third run writes nothing" "$(snap "$N")" "$before"
+
+echo "== --matchers answers every group; --dry-run previews; --force alone; a non-plain matcher (JRN-012)"
+for mode_and_matcher in 'merge implementation|foo|integration' 'replace implementation|integration' 'keep implementation|foo'; do
+  mode=${mode_and_matcher%% *}
+  want=${mode_and_matcher#* }
+  X=$WORK/matchers-$mode
+  clone_target "$FOO_BASE" "$X"
+  out=$(INSTW "$X" --host claude "--matchers=$mode" 2>&1)
+  eq "JRN-012 --matchers=$mode exits 0" "$?" 0
+  eq "JRN-012 --matchers=$mode leaves the stop-audit matcher $want" \
+    "$(group_matchers "$X/.claude/settings.json" SubagentStop "$STOP_AUDIT")" "$want"
+  if [ "$mode" = keep ]; then
+    check "JRN-012 --matchers=keep warns about the kept matcher implementation|foo" 'warned_about "$out" "implementation|foo"' "$out"
+  fi
+done
+
+X=$WORK/matchers-bogus
+clone_target "$FOO_BASE" "$X"
+before=$(snap "$X")
+out=$(INSTW "$X" --host claude --matchers=bogus 2>&1)
+eq "JRN-012 --matchers=bogus exits 2" "$?" 2
+check "JRN-012 the --matchers=bogus error names merge, replace and keep" 'mentions_words "$out" merge replace keep' "$out"
+eq "JRN-012 --matchers=bogus writes nothing" "$(snap "$X")" "$before"
+
+for dry_case in 'default implementation|foo|integration' 'replace implementation|integration'; do
+  mode=${dry_case%% *}
+  want=${dry_case#* }
+  X=$WORK/dry-$mode
+  clone_target "$FOO_BASE" "$X"
+  before=$(snap "$X")
+  if [ "$mode" = default ]; then
+    label="--dry-run without --matchers"
+    run_with_open_stdin 20 "$X.out" "$TEST_BASH" "$SCW/install.sh" "$X" --host claude --dry-run
+  else
+    label="--dry-run --matchers=$mode"
+    run_with_open_stdin 20 "$X.out" "$TEST_BASH" "$SCW/install.sh" "$X" --host claude --dry-run "--matchers=$mode"
+  fi
+  out=$(cat "$X.out")
+  eq "JRN-012 $label ends within 20 s on an open, empty stdin, with exit 0" "$RUN_RC" 0
+  eq "JRN-012 $label writes nothing" "$(snap "$X")" "$before"
+  check "JRN-012 $label previews the matcher $want" 'printf "%s\n" "$out" | grep -qF -- "$want"' "$out"
+done
+
+X=$WORK/force-alone
+clone_target "$FOO_BASE" "$X"
+t "JRN-012 --force alone exits 0" 0 INSTW "$X" --host claude --force
+eq "JRN-012 --force alone sets the matcher as the no-terminal rule does (merged)" \
+  "$(group_matchers "$X/.claude/settings.json" SubagentStop "$STOP_AUDIT")" 'implementation|foo|integration'
+
+NON_PLAIN_BASE=$WORK/non-plain-base
+clone_target "$OLD_BASE" "$NON_PLAIN_BASE"
+set_group_matcher "$NON_PLAIN_BASE/.claude/settings.json" SubagentStop "$STOP_AUDIT" '(a|b)c'
+for how in no-terminal matchers-merge; do
+  X=$WORK/non-plain-$how
+  clone_target "$NON_PLAIN_BASE" "$X"
+  if [ "$how" = no-terminal ]; then
+    out=$(INSTW "$X" --host claude 2>&1)
+  else
+    out=$(INSTW "$X" --host claude --matchers=merge 2>&1)
+  fi
+  got=$(group_matchers "$X/.claude/settings.json" SubagentStop "$STOP_AUDIT")
+  check "JRN-012 the non-plain matcher (a|b)c is never merged ($how)" \
+    '[ "$got" = "(a|b)c" ] || [ "$got" = "implementation|integration" ]' "got=$got"
+  if [ "$how" = no-terminal ]; then
+    check "JRN-012 a Warnings line names the non-plain matcher (a|b)c (no terminal)" 'warned_about "$out" "(a|b)c"' "$out"
+  fi
+done
+
+echo "== the prompt at a terminal (JRN-013)"
+# pty_upgrade NAME ANSWER TARGET : upgrades a copy of TARGET at $WORK/pty-NAME on a pseudo-terminal, typing ANSWER.
+#   Sets PTY_DIR and PTY_OUT (what the terminal showed), and RUN_RC.
+pty_upgrade() {
+  PTY_DIR=$WORK/pty-$1
+  clone_target "$3" "$PTY_DIR"
+  run_on_pty 20 "$2" "$PTY_DIR.out" "$TEST_BASH" "$SCW/install.sh" "$PTY_DIR" --host claude
+  PTY_OUT=$(cat "$PTY_DIR.out")
+}
+pty_matcher() { group_matchers "$PTY_DIR/.claude/settings.json" SubagentStop "$STOP_AUDIT"; }
+MIXED_BASE=$WORK/mixed-base
+clone_target "$FOO_BASE" "$MIXED_BASE"
+add_user_hook "$MIXED_BASE/.claude/settings.json" SubagentStop "$STOP_AUDIT" "$USER_STOP_HOOK"
+if ! detect_pty_form; then
+  for case_name in "Enter merges" "r replaces" "k keeps" "a mixed group's prompt lists every hook"; do
+    skip "JRN-013 $case_name" "neither script -qec (util-linux) nor script -q /dev/null (macOS) gives a pseudo-terminal here"
+  done
+else
+  pty_upgrade enter "" "$FOO_BASE"
+  eq "JRN-013 Enter: the upgrade ends within 20 s with exit 0" "$RUN_RC" 0
+  check "JRN-013 the prompt names the event SubagentStop and the command $STOP_AUDIT" \
+    'contains_all "$PTY_OUT" SubagentStop "$STOP_AUDIT"' "$PTY_OUT"
+  check "JRN-013 the prompt shows the current, replace and merge lines" \
+    'mentions_words "$PTY_OUT" current replace merge && contains_all "$PTY_OUT" "implementation|foo" "implementation|integration" "implementation|foo|integration"' \
+    "$PTY_OUT"
+  eq "JRN-013 Enter merges" "$(pty_matcher)" 'implementation|foo|integration'
+
+  pty_upgrade replace r "$FOO_BASE"
+  eq "JRN-013 r: the upgrade ends within 20 s with exit 0" "$RUN_RC" 0
+  eq "JRN-013 r replaces" "$(pty_matcher)" 'implementation|integration'
+
+  pty_upgrade keep k "$FOO_BASE"
+  eq "JRN-013 k: the upgrade ends within 20 s with exit 0" "$RUN_RC" 0
+  eq "JRN-013 k keeps" "$(pty_matcher)" 'implementation|foo'
+
+  mixed_before=$(group_json "$MIXED_BASE/.claude/settings.json" SubagentStop "$STOP_AUDIT")
+  pty_upgrade mixed-keep k "$MIXED_BASE"
+  eq "JRN-013 mixed group, k: the upgrade ends within 20 s with exit 0" "$RUN_RC" 0
+  check "JRN-013 a mixed group's prompt lists every hook in it" 'contains_all "$PTY_OUT" "$STOP_AUDIT" "$USER_STOP_HOOK"' "$PTY_OUT"
+  eq "JRN-013 k keeps the mixed group as it was" "$(group_json "$PTY_DIR/.claude/settings.json" SubagentStop "$STOP_AUDIT")" "$mixed_before"
+fi
 
 echo "== lint"
 shellcheck_files "shellcheck: this suite" "${BASH_SOURCE[0]}"
