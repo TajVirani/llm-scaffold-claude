@@ -7,7 +7,8 @@
 #   isolation (linked-worktree cwd) confinement; integration agents; Codex task_name from session_meta; settings wiring; shellcheck.
 #   JRN-002, JRN-003: a Phase 1 implementation agent (header work_type, no task_id) and an integration agent confined to their
 #   agent worktrees s007_phase_1_shell_scripts and s007_integration_shell_scripts. JRN-002 to JRN-004: the result-file command
-#   read from implementation.md and integration.md passes the guard from the main checkout, and run for real leaves the file in
+#   read from implementation.md and integration.md starts with `cd <agent worktree> &&` (a launch-checkout placeholder fills as
+#   the main checkout), passes the guard from the main checkout, and run for real leaves the file in
 #   the main checkout's artifacts/<id>/, where check-task-result.sh accepts it. JRN-009: read-only commands (allowlisted reads
 #   joined by | or &&) pass without the leading cd; writing or exec flags, shell forms and other commands still need it.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -171,7 +172,8 @@ fill_placeholders() {
       *spec_dir* | *"spec dir"*) value=.workflow/specs/007-demo ;;
       *task_id* | *"task id"*) value=$3 ;;
       *work_type* | *"work type"*) value=shell-scripts ;;
-      *worktree* | *checkout* | *launched*) value=$2 ;;
+      *launched*) value=$P ;; # agents launch without isolation from the main checkout
+      *worktree* | *checkout*) value=$2 ;;
       *) value="<$key>" UNKNOWN_PLACEHOLDERS="$UNKNOWN_PLACEHOLDERS <$key>" ;;
     esac
     out+=$value
@@ -202,6 +204,8 @@ result_journey() {
   fill_placeholders "$opening" "$wt" "$id"
   cmd="$FILLED"$'\n'"$body"$'\nEOF'
   eq "$jrn $label: every placeholder in the command names a known value" "$UNKNOWN_PLACEHOLDERS" ""
+  check "$jrn $label: the command's leading cd names the agent worktree, not the launch or main checkout" \
+    '[[ "$FILLED" == "cd $wt && "* ]]' "command: ${FILLED%%$'\n'*}"
   expect "$jrn $label: the brief's result-file command from the main checkout -> allow" allow "$(pl Bash "$cmd" "$P" "$agent")"
   landed=$P/.workflow/specs/007-demo/artifacts/$id/$file
   copy=$wt/.workflow/specs/007-demo/artifacts/$id/$file
