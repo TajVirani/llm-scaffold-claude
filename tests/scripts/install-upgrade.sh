@@ -351,12 +351,12 @@ set_group_matcher "$SPLIT_BASE/.claude/settings.json" SessionStart session-start
 eq "the split fixture runs the git guard in the Write|Edit|NotebookEdit group" \
   "$(group_matchers "$SPLIT_BASE/.claude/settings.json" PreToolUse "$GIT_GUARD")" 'Write|Edit|NotebookEdit'
 # pre_tool_use_is_the_templates SETTINGS : true when PreToolUse has the template's four groups and no command twice.
-# shellcheck disable=SC2329
+# shellcheck disable=SC2329  # called from check expressions, which shellcheck cannot see into
 pre_tool_use_is_the_templates() {
   jq -e '.hooks.PreToolUse | length == 4 and ([.[].hooks[].command] | length == (unique | length))' "$1" >/dev/null
 }
 # warned_together OUTPUT STRING... : true when one Warnings line holds every STRING.
-# shellcheck disable=SC2329
+# shellcheck disable=SC2329  # called from check expressions, which shellcheck cannot see into
 warned_together() {
   local line
   while IFS= read -r line; do contains_all "$line" "${@:2}" && return 0; done < <(warning_lines "$1")
@@ -364,7 +364,7 @@ warned_together() {
 }
 for split_case in 'no-terminal kept' 'merge kept' 'replace dropped' 'keep kept'; do
   how=${split_case%% *}
-  session=${split_case#* }
+  session_start_outcome=${split_case#* }
   X=$WORK/split-$how
   XS=$X/.claude/settings.json
   clone_target "$SPLIT_BASE" "$X"
@@ -382,7 +382,7 @@ for split_case in 'no-terminal kept' 'merge kept' 'replace dropped' 'keep kept';
     'pre_tool_use_is_the_templates "$XS"' "$(jq -c .hooks.PreToolUse "$XS")"
   check "JRN-012 two template groups in one group ($how): a Warnings line names PreToolUse and its commands" \
     'warned_together "$out" hooks.PreToolUse "$GIT_GUARD" "$WRITE_GUARD"' "$out"
-  if [ "$session" = kept ]; then
+  if [ "$session_start_outcome" = kept ]; then
     eq "JRN-012 the non-plain SessionStart matcher under a match-all template is kept ($how)" \
       "$(group_matchers "$XS" SessionStart session-start-resume.sh)" "$SESSION_MATCHER"
     check "JRN-012 a Warnings line names the kept SessionStart matcher ($how)" 'warned_about "$out" "$SESSION_MATCHER"' "$out"
@@ -420,6 +420,22 @@ clone_target "$FOO_BASE" "$X"
 before=$(snap "$X")
 t "JRN-012 --matchers with no value exits 2" 2 INSTW "$X" --host claude --matchers
 eq "JRN-012 --matchers with no value writes nothing" "$(snap "$X")" "$before"
+for empty_form in '--matchers=' "--matchers ''"; do
+  if [ "$empty_form" = '--matchers=' ]; then
+    X=$WORK/matchers-empty-joined
+    clone_target "$FOO_BASE" "$X"
+    before=$(snap "$X")
+    out=$(INSTW "$X" --host claude --matchers= 2>&1)
+  else
+    X=$WORK/matchers-empty-argument
+    clone_target "$FOO_BASE" "$X"
+    before=$(snap "$X")
+    out=$(INSTW "$X" --host claude --matchers '' 2>&1)
+  fi
+  eq "JRN-012 $empty_form exits 2" "$?" 2
+  check "JRN-012 the $empty_form error names merge, replace and keep" 'mentions_words "$out" merge replace keep' "$out"
+  eq "JRN-012 $empty_form writes nothing" "$(snap "$X")" "$before"
+done
 
 SCM=$WORK/sc-match-all
 cp -R "$SC" "$SCM"

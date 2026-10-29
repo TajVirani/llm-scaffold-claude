@@ -87,6 +87,7 @@ host=all
 force=0
 dry=0
 matchers=""
+matchers_given=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --host)
@@ -100,9 +101,10 @@ while [ $# -gt 0 ]; do
     --matchers)
       [ $# -ge 2 ] || die "--matchers needs a value (merge, replace or keep)"
       matchers=$2
+      matchers_given=1
       shift
       ;;
-    --matchers=*) matchers=${1#--matchers=} ;;
+    --matchers=*) matchers=${1#--matchers=}; matchers_given=1 ;;
     -h | --help) usage; exit 0 ;;
     -*) die "unknown option: $1 (see --help)" ;;
     *)
@@ -114,6 +116,7 @@ while [ $# -gt 0 ]; do
 done
 [ -n "$target" ] || { usage >&2; exit 2; }
 case "$host" in claude | codex | all) ;; *) die "--host must be claude, codex or all (got: $host)" ;; esac
+if [ "$matchers_given" -eq 1 ] && [ -z "$matchers" ]; then die "--matchers needs a value (merge, replace or keep), got an empty one"; fi
 case "$matchers" in "" | merge | replace | keep) ;; *) die "--matchers must be merge, replace or keep (got: $matchers)" ;; esac
 # How a hook group whose matcher differs from the template's is resolved: the --matchers mode, "ask" at a terminal, or
 # "auto" (merge a plain, template-only group; keep any other, with a warning). A dry run never asks, so it previews "auto".
