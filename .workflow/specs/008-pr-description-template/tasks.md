@@ -52,7 +52,7 @@ tasks:
     pr: null
   - id: T4
     title: "Sign-off fills, approves and publishes the PR body"
-    status: pending
+    status: done
     capability: CAP-NEW-pr-template
     depends_on: [T1, T2, T3]
     touches_core: false

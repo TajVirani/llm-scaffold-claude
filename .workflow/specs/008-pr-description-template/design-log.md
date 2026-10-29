@@ -169,3 +169,12 @@ Facts used, not asked: `rules-setting.sh` validates a free-form value through an
 - 3.8 T2 round 1: fail on item 7 (`tests/scripts/check-pr-body.sh:134` uses `[[ ]]` in a file of `[ ]`) and R2 (`check-pr-body.sh:160` early return without its reason). Its `out_of_scope_noticed` entry (`RISK_SECTION` hard-codes the Risk heading, so renaming it in `pr-template.md` silently disables score checks) is T2's own code, so it joins the round; that makes it a behaviour fix (fresh agent, full review).
 - 3.16 wave 1: T1, T2, T3 merged in id order; no task PRs (`task_review: pr`, but `open-task-pr.sh` skipped: origin /Users/tvirani/Desktop/Projects/llm-scaffold-claude is neither GitHub nor GitLab), so `pr` stays null and nothing was pushed.
 - 3.15 wave 1: within budget, 7 of 30 changed files. 3.9 wave 1: pass, `TOTAL passed=3126 failed=0` (57 suites; `sign-off-pr` excluded as T4's), evidence `artifacts/gate-3.9-w1/`.
+
+## 2026-10-29 Implementation wave 2: T4 design calls
+
+T4's first round went beyond the task file in two places; put to the stakeholder before the mini-review.
+
+- Q1 Hash check (5.5 logs `git hash-object` of the approved `pr-body.md`; 5.8 refuses to publish and re-asks when it changed). Options: keep / remove. Recommended: keep. Answer: "Remove it". **D17:** no hash; 5.8 reruns only the shape check, as `data-model.md` accepts (content drift between 5.5 and 5.8 is not detected).
+- Q2 Separate 5.5 question "Do you approve this PR description?", whose change answer edits `pr-body.md` in place, rechecks and re-asks without the 5.6 loop. Options: keep / fold into 5.6. Recommended: keep. Answer: "Keep it (Recommended)". **D18:** the PR description has its own 5.5 approval; a wording change to it is handled in place; the feature approval keeps 5.6 on No.
+- 3.8 T4: mini-review pass (5 pass, 2 n/a), full review after the D17 fix round. Its `out_of_scope_noticed` entry (the 5.8 merge-message temp file is removed only when the whole chain succeeds, so a failed switch or conflicted merge leaves it in `$TMPDIR`) is T4's own block: left as a known minor gap for Phase 4 triage, not filed.
+- 3.16 wave 2: T4 merged; no task PR (origin is neither GitHub nor GitLab).
