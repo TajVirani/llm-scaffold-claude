@@ -61,7 +61,7 @@ size_budget:
 
 ## Workflow settings
 
-Optional. How the orchestrator reviews each task branch before merging it into the spec branch at 3.16, and the branch each feature's PR/MR targets. Delete the section, or a key, to keep the default. Changed only at 5.3.
+Optional. How the orchestrator reviews each task branch before merging it into the spec branch at 3.16, the branch each feature's PR/MR targets, and the template its description follows. Delete the section, or a key, to keep the default. Changed only at 5.3, except `pr_template`, which project-setup also writes when it creates this file.
 
 ```yaml
 task_review: pr   # pr (default): open a PR/MR into the spec branch as a non-blocking review record, merge locally and continue
@@ -69,6 +69,9 @@ task_review: pr   # pr (default): open a PR/MR into the spec branch as a non-blo
                   # local: no push, no PR
 # main_branch: main   # the branch spec branches fork from and merge into at sign-off (the PR/MR target; the size budget counts from
                       # its merge-base). Default: the branch origin/HEAD names, else main. Read with rules-setting.sh main_branch.
+# pr_template: workflow   # the template the sign-off PR/MR description follows. workflow (default): the workflow's own ten-section
+                          # template. Or a repo-relative path to the project's host template, ending in .md and present in the
+                          # repo (e.g. .github/pull_request_template.md). Read with rules-setting.sh pr_template.
 ```
 
 ## Cross-cutting policy
