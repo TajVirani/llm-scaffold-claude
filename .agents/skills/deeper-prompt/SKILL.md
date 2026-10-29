@@ -22,14 +22,15 @@ Make the request **deeper, not bigger**: sharpen its intent, goals and constrain
 
 Your own work, done before asking anything.
 
-1. **Elevate the ask.** Name the problem behind the request, one level of abstraction up: "add a CSV export button" becomes "let users take their report data into their own tools". Keep the stakeholder's terms; use `.workflow/GLOSSARY.md` names where they exist.
-2. **Define the goals.** List the outcomes that would make the ask a success, each one observable in the result ("a user can open the export in a spreadsheet without fixing columns"). Two to five goals; each traces back to something the request said or clearly implied.
+1. **Summarise the change.** Write **What this changes**: one or two plain sentences on what will be different in the code or behaviour once it ships, from the request and, inside the workflow, `codebase-map.md`. Write **Why**: one sentence on the reason, from the draft **Why** in `spec.md` inside the workflow, or the request standalone.
+2. **Elevate the ask.** Name the problem behind the request, one level of abstraction up: "add a CSV export button" becomes "let users take their report data into their own tools". Keep the stakeholder's terms; use `.workflow/GLOSSARY.md` names where they exist.
+3. **Define the goals.** List the outcomes that would make the ask a success, each one observable in the result ("a user can open the export in a spreadsheet without fixing columns"). Two to five goals; each traces back to something the request said or clearly implied.
 
-Done when you have one elevated statement and a goal list, each goal traceable to the request.
+Done when you have the change summary, one elevated statement and a goal list, each goal traceable to the request.
 
 ## 2. Ask about downstream effects, tools and gotchas
 
-One message, these questions numbered, then wait for the answers:
+One message: open with the **What this changes** and **Why** lines from step 1 (inside the workflow, prefix them with the spec folder name, e.g. `007-done-folder`), so the stakeholder knows which feature the questions are about. Then these questions numbered, then wait for the answers:
 
 1. **Downstream:** Will other features be built on this one? Ask for their shape one level up (what will sit on this), so the architecture leaves room for them. Take the general sense and stop there; details of future work belong to that future work.
 2. **Tools and technologies:** Any tools, libraries or technologies you want used, or avoided, for this?
@@ -39,9 +40,13 @@ One message, these questions numbered, then wait for the answers:
 
 ## 3. Restate and revise
 
-Restate the whole ask back as the block below, with your elevation and goals from step 1 presented as proposals, and ask: "Is this ready to pass on, or what should change?"
+Restate the whole ask back as the block below, with your change summary, elevation and goals from step 1 presented as proposals, and ask: "Is this ready to pass on, or what should change?"
 
 ```markdown
+**What this changes:** <what will be different once this ships, one or two sentences>
+
+**Why:** <the reason for the change, one sentence>
+
 **Ask:** <the request, restated at the elevated level, one or two sentences>
 
 **Goals:**
@@ -71,5 +76,6 @@ Loop until agreement. Done when the stakeholder has explicitly agreed to the blo
 ## Done
 
 - The block was restated in full and the stakeholder explicitly agreed to it.
+- Every message to the stakeholder opened with **What this changes** and **Why**.
 - Every goal traces to the request; every addition the request did not ask for sits under **Not asked for**.
 - Inside the workflow, the agreed block is in `design-log.md` as a **Deeper prompt** entry.
