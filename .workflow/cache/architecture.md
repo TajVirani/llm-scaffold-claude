@@ -1,6 +1,6 @@
 ---
-generated_at_commit: 99801e506b428a1ac3c3f7fb0170191cb6fa45ae
-generated_at: "2026-10-28T20:06:36Z"
+generated_at_commit: 65ae1c501fe154e76b5dea5a3372718b3510cde6
+generated_at: "2026-10-28T22:29:55Z"
 scope:
   - ".agents/README.md"
   - ".agents/agents"
