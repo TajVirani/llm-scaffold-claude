@@ -10,7 +10,7 @@ Create every project-owned file the feature workflow assumes under `.workflow/`,
 
 ## Ground rules
 
-- **Never overwrite project data.** Every path below is created only when absent. An existing file is kept as is and listed as "kept" in the closing report, so a re-run is always safe. The one exception is a seeded `.workflow/model-map/` file that still holds a `<...>` placeholder: fill only those fields. Content changes to `.workflow/rules.md`, `.workflow/profiles/<work-type>.md`, ADRs, lint config and the `AGENTS.md` managed block go through `project-standards` and its approval ledger. The one profile section this skill writes is the Toolchain block, verbatim from approved ledger rows (step 7).
+- **Never overwrite project data.** Every path below is created only when absent. An existing file is kept as is and listed as "kept" in the closing report, so a re-run is always safe. The one exception is a seeded `.workflow/model-map/` file that still holds a `<...>` placeholder: fill only those fields. Content changes to `.workflow/rules.md`, `.workflow/profiles/<work-type>.md`, ADRs, lint config and the `AGENTS.md` managed block go through `project-standards` and its approval ledger, except the `pr_template` answer written into a rules.md created at step 3. The one profile section this skill writes is the Toolchain block, verbatim from approved ledger rows (step 7).
 - **Scan before you ask.** Read the repo (manifests, lockfiles, configs, CI, the directory layout) and ask the human only what no scan answers. Ask one section at a time and lead each question with your recommended answer; the human still answers each question.
 - **Write from the main session.** `tier-a-write-guard` allows Tier A writes (`.workflow/GLOSSARY.md`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/profiles/`) when no feature is in flight. Run this skill only when every `.workflow/specs/*/spec.md` has `status: done` or there are no specs. If a spec is in flight, a missing profile is created inside that feature at 00.19; everything else waits until the spec is done.
 - **Leave `install.sh`'s job alone.** Leave `.agents/`, `.claude/settings.json`, `.codex/` and `.gitignore` untouched. If `.agents/` is missing, stop and tell the human to run `install.sh <project>` first.
@@ -40,9 +40,9 @@ Done when the human has seen the present/missing list and confirmed the mode.
 
 ### 3. Create the `.workflow/` tree
 
-Read [modules/files.md](modules/files.md) and follow it: `.workflow/GLOSSARY.md`, `.workflow/capabilities.md`, `.workflow/rules.md` (copied from the template; `project-standards` fills it), `.workflow/decisions/pitfalls.md`, `.workflow/deferred/`, `.workflow/agent-overrides.yaml` and `.workflow/profiles/TEMPLATE.md`.
+Read [modules/files.md](modules/files.md) and follow it: `.workflow/GLOSSARY.md`, `.workflow/capabilities.md`, `.workflow/rules.md` (copied from the template; `project-standards` fills it), `.workflow/decisions/pitfalls.md`, `.workflow/deferred/`, `.workflow/agent-overrides.yaml` and `.workflow/profiles/TEMPLATE.md`. When rules.md is created now and the repo has a host PR/MR template (`.github/pull_request_template.md` and the other paths in "PR template" there), ask once which template sign-off PR/MR descriptions follow and record the answer as `pr_template`; with no host template, ask nothing.
 
-Done when each file exists, either created now or kept.
+Done when each file exists, either created now or kept, and a created rules.md holds the `pr_template` answer when a host template was found.
 
 ### 4. Seed the model map
 
@@ -107,7 +107,7 @@ Then point the human at `feature-workflow` as the way to start the first feature
 
 ## Done
 
-- Every persistent file the flow reads exists, and this skill changed no existing file except placeholder fields in `.workflow/model-map/`; standards content changed only through the `project-standards` ledger.
+- Every persistent file the flow reads exists, and this skill changed no existing file except placeholder fields in `.workflow/model-map/`; standards content changed only through the `project-standards` ledger, and `pr_template` only in a rules.md created at step 3.
 - Every work type has a profile written by `project-standards`, a Toolchain block traced to approved rows, and its toolchain installed or reported as not installed.
 - `project-standards` ran both phases and its lint proof found no config error.
 - `generate-boundary-config.sh` exited 0.
