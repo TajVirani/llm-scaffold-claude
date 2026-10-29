@@ -6,14 +6,16 @@
 #   it; two faults give two lines; every scale value is accepted and Irreversible passes with Risk: High; no argument and
 #   a missing file exit 2 with the message on stderr. Beyond those: an unknown option exits 2; a section left with only the
 #   template's guidance comment is empty; Irreversible without a Risk line gives both faults; a Risk line with no score is
-#   refused; punctuation after a score and trailing spaces after a heading are tolerated; a workflow template whose Risk
+#   refused; punctuation after a score, trailing spaces after a heading, and extra spaces or a tab after its `##` are
+#   tolerated; a workflow template whose Risk
 #   and reversibility heading is renamed exits 2. JRN-003: project mode (`--project-template`) reads every heading level
 #   of the project's template. Against a fixture .github/pull_request_template.md with three `##` headings, a filled body
 #   passes in any order and without risk lines, and an empty or a missing heading exits 1 naming it. Against a fixture
 #   template mixing levels (`# Title`; `## Summary` holding only `### Details` and `### Risks`; `### Testing`), a filled
 #   body passes, a `##` holding only subsections counts as filled, and an empty `###` heading, a missing one, a `###`
 #   heading written as `##` and an empty `###` subsection under a filled `##` each exit 1 naming it. A template with only
-#   `###` headings passes a filled body; a missing project template or one with no headings at all exits 2.
+#   `###` headings passes a filled body; a missing project template, one with no headings at all, and one whose only
+#   heading-like lines have seven `#` exit 2.
 #   Ends with shellcheck.
 # shellcheck disable=SC2016,SC2034  # check expressions are single-quoted and eval'd on purpose, and read variables shellcheck cannot see
 # shellcheck source=../lib/common.sh
@@ -156,6 +158,12 @@ expect_pass "JRN-002 a score followed by punctuation reads as the score" "$BODIE
 
 sed 's/^## How to test$/## How to test   /' "$BODIES/filled.md" >"$BODIES/heading-trailing-spaces.md"
 expect_pass "JRN-002 trailing spaces after a heading still match it" "$BODIES/heading-trailing-spaces.md"
+
+sed 's/^## How to test$/##   How to test/' "$BODIES/filled.md" >"$BODIES/heading-extra-spaces.md"
+expect_pass "JRN-002 extra spaces after the ## of a heading still match it" "$BODIES/heading-extra-spaces.md"
+
+sed $'s/^## How to test$/##\tHow to test/' "$BODIES/filled.md" >"$BODIES/heading-tab.md"
+expect_pass "JRN-002 a tab after the ## of a heading still matches it" "$BODIES/heading-tab.md"
 
 # A renamed Risk heading in the installed template would otherwise switch the score checks off without a word.
 copy_agents "$WORK/renamed-risk"
@@ -341,6 +349,13 @@ Thanks for the change. Say what it does and how you tested it.
 EOF
 expect_usage_error "JRN-003 a project template with no headings at all exits 2" \
   filled.md --project-template .github/no_headings_template.md
+cat >"$PROJ/.github/seven_hashes_template.md" <<'EOF'
+####### Summary
+
+What does this change do?
+EOF
+expect_usage_error "JRN-003 a project template whose only heading-like lines have seven # exits 2" \
+  filled.md --project-template .github/seven_hashes_template.md
 RUN_DIR=$WORK
 
 shellcheck_files "shellcheck: check-pr-body.sh" "$CPB"
