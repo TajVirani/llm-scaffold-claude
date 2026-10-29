@@ -1,0 +1,410 @@
+### suite scripts/check-pr-body
+== scripts/check-pr-body
+== JRN-001: the template and a well-filled body
+FAIL JRN-001 the template holds the ten sections in order
+       got= want=Link to issue
+What changed
+Why the change
+Why this approach
+Special things to note
+How to test
+Blast radius
+Risk and reversibility
+Areas, concepts and seams changed
+How to undo this PR
+FAIL JRN-001 every template section carries guidance
+       unguided: 
+FAIL JRN-001 a body filled from the template passes with no output
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+== JRN-002: each bad shape is caught
+FAIL JRN-002 a removed section is named as missing
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 two swapped sections are named as out of order
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 an emptied section is named as empty
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Risk: Severe is off the scale
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Never is off the scale
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Irreversible with Risk: Low is refused
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 a Risk and reversibility section without a Risk line is refused
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 two faults give two lines (the missing section)
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 two faults give two lines (the off-scale Risk)
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Risk: Low is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Risk: Medium is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Risk: High is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Easy is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Moderate is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Hard is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Irreversible with Risk: High is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 no argument exits 2
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 a missing file exits 2
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+== JRN-003: project mode checks the project's own headings
+FAIL JRN-003 a body filling every project heading passes without risk lines
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-003 project mode does not check the order of headings
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-003 an empty project heading is named
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-003 a missing project heading is named
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-003 a missing project template exits 2
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+ok   shellcheck: check-pr-body.sh
+
+RESULT passed=1 failed=26 skipped=0 xfail=0
+
+== summary
+FAIL scripts/check-pr-body                  passed=1    failed=26  skipped=0   xfail=0   0s
+TOTAL passed=1 failed=26 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/check-pr-body
+
+== failures
+-- scripts/check-pr-body
+FAIL JRN-001 the template holds the ten sections in order
+       got= want=Link to issue
+FAIL JRN-001 every template section carries guidance
+       unguided: 
+FAIL JRN-001 a body filled from the template passes with no output
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 a removed section is named as missing
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 two swapped sections are named as out of order
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 an emptied section is named as empty
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Risk: Severe is off the scale
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Never is off the scale
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Irreversible with Risk: Low is refused
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 a Risk and reversibility section without a Risk line is refused
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 two faults give two lines (the missing section)
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 two faults give two lines (the off-scale Risk)
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Risk: Low is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Risk: Medium is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Risk: High is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Easy is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Moderate is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Hard is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 Reversibility: Irreversible with Risk: High is accepted
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 no argument exits 2
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-002 a missing file exits 2
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-003 a body filling every project heading passes without risk lines
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-003 project mode does not check the order of headings
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-003 an empty project heading is named
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-003 a missing project heading is named
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+FAIL JRN-003 a missing project template exits 2
+       rc=3 stdout= stderr=check-pr-body.sh: not implemented
+### exit 1
+### suite scripts/sign-off-pr
+== scripts/sign-off-pr
+== JRN-005: the PR and the local merge carry the approved body
+FAIL JRN-005 sign-off 5.8 holds the publish block after its marker
+       no fenced bash block right after <!-- 5.8 publish commands --> in modules/sign-off.md
+FAIL JRN-005 the publish block has a gh pr create line
+FAIL JRN-005 the publish block has a glab mr create line
+FAIL JRN-005 the publish block has a git merge --no-ff -F line
+FAIL JRN-005 gh got --body-file pointing at the approved pr-body.md
+FAIL JRN-005 gh got no --template
+FAIL JRN-005 gh got the main branch as --base
+       got= want=main
+FAIL JRN-005 gh got the spec branch as --head
+       got= want=spec/008-demo
+FAIL JRN-005 glab got --description-file pointing at the approved pr-body.md
+FAIL JRN-005 glab got no --template
+FAIL JRN-005 glab got the main branch as --target-branch
+       got= want=main
+FAIL JRN-005 glab got the spec branch as --source-branch
+       got= want=spec/008-demo
+FAIL JRN-005 the local merge is a --no-ff merge of the spec branch into main
+FAIL JRN-005 the merge commit subject is a Conventional Commits subject
+       subject: init
+FAIL JRN-005 the merge commit body is the approved pr-body.md
+       got= want=## Link to issue
+
+No tracker issue: the workflow does not create one when a spec starts yet.
+
+## What changed
+
+- Sign-off fills the PR template at 5.4 and publishes it at 5.8.
+- A read-only check validates the filled description.
+
+## Why the change
+
+- Reviewers had to open the spec folder to judge a Sign-off PR.
+
+## Why this approach
+
+A fixed template filled from evidence the spec folder already holds needs no new dependency.
+
+## Special things to note
+
+None.
+
+## How to test
+
+1. Run tests/run-all.sh --suite scripts/check-pr-body.
+2. Confirm every case passes.
+
+## Blast radius
+
+Sign-o
+FAIL JRN-005 shellcheck: the 5.8 publish block
+       no publish block to check
+== JRN-006: sign-off and setup text say the new steps
+FAIL JRN-006 sign-off 5.2 adds the pr_template proposal row
+FAIL JRN-006 sign-off 5.4 fills pr-body.md from pr-template.md
+FAIL JRN-006 sign-off 5.4 runs check-pr-body.sh
+FAIL JRN-006 sign-off 5.5 shows the full text of pr-body.md for approval
+FAIL JRN-006 sign-off 5.8 reruns check-pr-body.sh
+FAIL JRN-006 sign-off 5.8 publishes with --body-file and --description-file
+FAIL JRN-006 project-setup asks the pr_template question
+FAIL JRN-006 project-setup names the host PR template it looks for
+FAIL JRN-006 the rules.md template documents pr_template under Workflow settings
+FAIL JRN-006 SKILL.md lists pr-template.md among the assets
+
+RESULT passed=0 failed=26 skipped=0 xfail=0
+
+== summary
+FAIL scripts/sign-off-pr                    passed=0    failed=26  skipped=0   xfail=0   1s
+TOTAL passed=0 failed=26 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/sign-off-pr
+
+== failures
+-- scripts/sign-off-pr
+FAIL JRN-005 sign-off 5.8 holds the publish block after its marker
+       no fenced bash block right after <!-- 5.8 publish commands --> in modules/sign-off.md
+FAIL JRN-005 the publish block has a gh pr create line
+FAIL JRN-005 the publish block has a glab mr create line
+FAIL JRN-005 the publish block has a git merge --no-ff -F line
+FAIL JRN-005 gh got --body-file pointing at the approved pr-body.md
+FAIL JRN-005 gh got no --template
+FAIL JRN-005 gh got the main branch as --base
+       got= want=main
+FAIL JRN-005 gh got the spec branch as --head
+       got= want=spec/008-demo
+FAIL JRN-005 glab got --description-file pointing at the approved pr-body.md
+FAIL JRN-005 glab got no --template
+FAIL JRN-005 glab got the main branch as --target-branch
+       got= want=main
+FAIL JRN-005 glab got the spec branch as --source-branch
+       got= want=spec/008-demo
+FAIL JRN-005 the local merge is a --no-ff merge of the spec branch into main
+FAIL JRN-005 the merge commit subject is a Conventional Commits subject
+       subject: init
+FAIL JRN-005 the merge commit body is the approved pr-body.md
+       got= want=## Link to issue
+FAIL JRN-005 shellcheck: the 5.8 publish block
+       no publish block to check
+FAIL JRN-006 sign-off 5.2 adds the pr_template proposal row
+FAIL JRN-006 sign-off 5.4 fills pr-body.md from pr-template.md
+FAIL JRN-006 sign-off 5.4 runs check-pr-body.sh
+FAIL JRN-006 sign-off 5.5 shows the full text of pr-body.md for approval
+FAIL JRN-006 sign-off 5.8 reruns check-pr-body.sh
+FAIL JRN-006 sign-off 5.8 publishes with --body-file and --description-file
+FAIL JRN-006 project-setup asks the pr_template question
+FAIL JRN-006 project-setup names the host PR template it looks for
+FAIL JRN-006 the rules.md template documents pr_template under Workflow settings
+FAIL JRN-006 SKILL.md lists pr-template.md among the assets
+### exit 1
+### suite scripts/task-breakdown
+== scripts/task-breakdown
+== task-waves.sh: overlap rule
+ok   overlap src/a.ts ~ src/a.ts
+ok   overlap src/a.ts ~ ./src/a.ts
+ok   overlap src/a.ts ~ src/b.ts
+ok   overlap src/*.ts ~ src/a.ts
+ok   overlap src/*.ts ~ src/x/a.ts
+ok   overlap src/** ~ src/x/a.ts
+ok   overlap src/**/a.ts ~ src/a.ts
+ok   overlap src/ ~ src/x/y.ts
+ok   overlap src/?.ts ~ src/a.ts
+ok   overlap src/?.ts ~ src/ab.ts
+ok   overlap src/[ab].ts ~ src/c.ts
+ok   overlap src/lib/** ~ src/lib/**/*.ts
+ok   overlap src/lib/** ~ src/*.css
+ok   overlap src/*.ts ~ src/*.css
+ok   overlap src/a* ~ src/*b
+ok   overlap a/** ~ b/**
+ok   overlap src/a.ts ~ src/a.ts.bak
+== task-waves.sh: graph
+ok   graph rc
+ok   waves
+ok   implied edge T2<-T1
+ok   T1/T3 parallel_with
+ok   T2/T4 ordered
+ok   split-out left out
+ok   T2 overlaps
+ok   no warnings
+ok   text: wave lines
+ok   text: dashed implied edge
+ok   text: quiz table row
+ok   text: overlap row
+ok   one-sided parallel_with -> edge
+ok   one-sided parallel_with warns
+ok   cycle -> 2
+ok   unknown depends_on -> 2
+ok   unknown parallel_with -> 2
+ok   duplicate id -> 2
+ok   numeric id order
+ok   usage: no args -> 1
+ok   missing file -> 1
+ok   --spec-dir from main
+ok   --spec-dir from a worktree
+ok   bad spec dir -> 1
+== rules-setting.sh
+ok   template default pr
+ok   local read
+ok   pr-blocking read
+ok   no block -> default
+ok   no key -> default
+ok   missing rules.md -> default
+ok   bad value -> 1
+ok   not a map -> 1
+ok   unknown key -> 1
+ok   main_branch default main (no git)
+ok   main_branch read
+ok   main_branch invalid -> 1
+ok   main_branch default main without origin/HEAD
+ok   main_branch default from origin/HEAD
+ok   main checkout rules from worktree cwd
+== rules-setting.sh pr_template (JRN-004, spec 008)
+FAIL JRN-004 pr_template without a Workflow settings block -> workflow
+       got= want=workflow
+FAIL JRN-004 pr_template without a Workflow settings block notes the default
+       got= want=noted
+FAIL JRN-004 pr_template key absent -> workflow
+       got= want=workflow
+FAIL JRN-004 pr_template key absent notes the default
+       got= want=noted
+rules-setting.sh: unknown setting 'pr_template' (known: task_review, main_branch)
+FAIL JRN-004 pr_template workflow read
+       got= want=workflow
+rules-setting.sh: unknown setting 'pr_template' (known: task_review, main_branch)
+FAIL JRN-004 pr_template project read
+       got= want=project
+FAIL JRN-004 pr_template other -> 1 naming the value
+       rc=1: rules-setting.sh: unknown setting 'pr_template' (known: task_review, main_branch)
+FAIL JRN-004 the project-setup rules.md template reads pr_template workflow
+       got= want=workflow
+ok   boundary generator ignores ## Workflow settings
+== open-task-pr.sh (stubbed gh / glab, no network)
+ok   no origin -> skipped
+ok   light-path task (branch null) -> skipped, rc 0
+ok   gh: url printed
+ok   gh: rc 0
+ok   gh: create args
+ok   gh: body names task file and mini-review
+ok   pushed both branches to origin
+ok   --record wrote pr
+ok   gh: existing PR reused
+ok   gh not logged in -> skipped rc 0
+ok   gh missing -> skipped
+ok   glab: url printed
+ok   glab: create args
+ok   unknown host -> skipped
+ok   task_review local -> skipped
+ok   dry run prints commands
+ok   bad task id -> 1
+ok   unknown task -> 1
+ok   --help prints the task-mode usage on stdout, rc 0
+== run-toolchain.sh test scoping
+ok   scoped: rc 0 (test_scoped used)
+ok   scoped: result flags
+ok   scoped: env passed
+ok   scoped: exclude file one per line
+ok   scoped: own tests file
+ok   gate: excludes all unfinished (T2,T3,T4)
+ok   gate without flag: full test runs, fails
+ok   gate without flag: not scoped
+ok   nothing unfinished, own tests listed: test_scoped runs, rc 0
+ok   nothing unfinished, own tests listed: scoped flags
+ok   no test_scoped + red unfinished tests: rc 0
+ok   unscoped status
+ok   unscoped warning in json and stderr
+ok   --skip test still wins
+== JRN-006 spec and initiative folder forms
+ok   JRN-006 task-waves takes the relative spec folder as before
+ok   JRN-006 open-task-pr task mode takes the relative spec folder as before, an absolute path elsewhere now refused
+ok   JRN-006 task-waves takes the dot-relative spec folder as before
+ok   JRN-006 open-task-pr task mode takes the dot-relative spec folder as before, an absolute path elsewhere now refused
+ok   JRN-006 task-waves takes the absolute-main spec folder as before
+ok   JRN-006 open-task-pr task mode takes the absolute-main spec folder as before, an absolute path elsewhere now refused
+ok   JRN-006 task-waves takes the absolute-worktree spec folder as before
+ok   JRN-006 open-task-pr task mode takes the absolute-worktree spec folder as before, an absolute path elsewhere now refused
+ok   JRN-006 task-waves takes the from-worktree spec folder as before
+ok   JRN-006 open-task-pr task mode takes the from-worktree spec folder as before, an absolute path elsewhere now refused
+ok   JRN-006 task-waves takes the bare spec folder as before
+ok   JRN-006 open-task-pr task mode takes the bare spec folder as before, an absolute path elsewhere now refused
+ok   JRN-006 task-waves takes the absolute-elsewhere spec folder as before
+ok   JRN-006 open-task-pr task mode takes the absolute-elsewhere spec folder as before, an absolute path elsewhere now refused
+ok   JRN-006 task-waves takes the outside-repo spec folder as before
+ok   JRN-006 open-task-pr task mode takes the outside-repo spec folder as before, an absolute path elsewhere now refused
+ok   JRN-006 open-task-pr --record takes the relative initiative folder as before, an absolute path elsewhere now refused
+ok   JRN-006 open-task-pr --record takes the dot-relative initiative folder as before, an absolute path elsewhere now refused
+ok   JRN-006 open-task-pr --record takes the absolute-main initiative folder as before, an absolute path elsewhere now refused
+ok   JRN-006 open-task-pr --record takes the absolute-worktree initiative folder as before, an absolute path elsewhere now refused
+ok   JRN-006 open-task-pr --record takes the from-worktree initiative folder as before, an absolute path elsewhere now refused
+ok   JRN-006 open-task-pr --record takes the bare initiative folder as before, an absolute path elsewhere now refused
+ok   JRN-006 open-task-pr --record takes the absolute-elsewhere initiative folder as before, an absolute path elsewhere now refused
+ok   JRN-006 open-task-pr --record takes the outside-repo initiative folder as before, an absolute path elsewhere now refused
+ok   shellcheck: task-breakdown scripts
+
+RESULT passed=115 failed=8 skipped=0 xfail=0
+
+== summary
+FAIL scripts/task-breakdown                 passed=115  failed=8   skipped=0   xfail=0   20s
+TOTAL passed=115 failed=8 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/task-breakdown
+
+== failures
+-- scripts/task-breakdown
+FAIL JRN-004 pr_template without a Workflow settings block -> workflow
+       got= want=workflow
+FAIL JRN-004 pr_template without a Workflow settings block notes the default
+       got= want=noted
+FAIL JRN-004 pr_template key absent -> workflow
+       got= want=workflow
+FAIL JRN-004 pr_template key absent notes the default
+       got= want=noted
+FAIL JRN-004 pr_template workflow read
+       got= want=workflow
+FAIL JRN-004 pr_template project read
+       got= want=project
+FAIL JRN-004 pr_template other -> 1 naming the value
+       rc=1: rules-setting.sh: unknown setting 'pr_template' (known: task_review, main_branch)
+FAIL JRN-004 the project-setup rules.md template reads pr_template workflow
+       got= want=workflow
+### exit 1

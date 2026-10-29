@@ -105,3 +105,14 @@ Facts looked up (fact-lookup), not asked:
 - Ruling: shelved (HITL) through the 0.3.17 scope gate. [.workflow/deferred/initiative-pr-template.md](../../deferred/initiative-pr-template.md)
 - The audit's second line (no issue identifier captured) is the already-shelved [spec-issue-creation.md](../../deferred/spec-issue-creation.md).
 - 0.4.7: no conflict with the goal or placement; audit gaps are covered by D3, D8, D9; stale-body and CAP-NEW constraints are met because 5.4 runs after 5.3 and refills `pr-body.md` on every pass.
+
+## 2026-10-29 Main moved since handoff
+
+- The handoff was written at `02bc218`; the spec branch forks from `16c72b1`. That commit adds glossary terms and `.workflow/deferred/` shelf files for specs 006-009 and deletes one work-backlog item. No file in the affected area (`.agents/skills/feature-workflow`, `glab`, `pr-quality`, `install-manifest.txt`) changed, so no contract the spec relies on moved.
+
+## 2026-10-29 Verification setup 1.1-1.2
+
+- Targets: stakeholder set `check-pr-body.sh` wall time at ≤ 1 s best of 3 and line coverage as not measured (no bash coverage tool; no new dependencies).
+- D11 (follows D10's "no new 5.8 script, `open-task-pr.sh` unchanged"): JRN-005 tests the 5.8 commands as written in `modules/sign-off.md`. 5.8 keeps its publish commands in one fenced `bash` block placed right after the marker line `<!-- 5.8 publish commands -->`, written against the variables `SPEC_DIR`, `SPEC_BRANCH`, `MAIN` and `SUBJECT`. The suite extracts that block, runs its `gh`, `glab` and `git merge` lines in a fixture repo with argument-recording stand-ins on `PATH`, and checks the arguments and the merge commit. The block's presence is the suite's first assertion, so today's prose fails on an assertion, not a setup error.
+- 1.2: harness merged as `c10742b` (suites `scripts/check-pr-body`, `scripts/sign-off-pr`, JRN-004 cases in `scripts/task-breakdown`; fixture `tests/fixtures/pr-template.sh`; stubs `assets/pr-template.md`, `scripts/check-pr-body.sh` exiting 3). Project mode shape fixed by the tests: `check-pr-body.sh <file> --project-template <template file>`. The tests also pin the 5.8 branch flags (`--base`/`--head`, `--target-branch`/`--source-branch`) and that the publish block passes shellcheck. The agent's result file stayed in its worktree (sandbox refused the main-checkout write); `check-task-result.sh` passed on it there.
+- 1.3: not applicable (no browser suite). 1.4: 60 new cases red on assertions; record in `artifacts/phase-1-known-bad/record.md`.
