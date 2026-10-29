@@ -1,0 +1,13 @@
+# changed scripts since BASE (cross-check of the TGT-005 count)
+.agents/skills/feature-workflow/scripts/check-pr-body.sh
+.agents/skills/feature-workflow/scripts/rules-setting.sh
+# files added under .agents since BASE (cross-check of TGT-006)
+.agents/skills/feature-workflow/assets/pr-template.md
+.agents/skills/feature-workflow/scripts/check-pr-body.sh
+# 'gh pr create' lines under .agents (cross-check of TGT-004)
+.agents/skills/feature-workflow/modules/implementation-orchestrator.md:187:   - `pr` (default): push the spec branch and the task branch (`git push -u origin spec/NNN-slug <branch>`; the setting is the stakeholder's standing consent to push these two branches) and open a PR/MR from the task branch into the spec branch, titled `T3: <task title>`, its body linking the task file and the mini-review verdict: `gh pr create --base spec/NNN-slug --head <branch> ...` when the `origin` remote is GitHub, `glab mr create --target-branch spec/NNN-slug --source-branch <branch> ...` when it is GitLab (the `glab` skill has the flags). It is a **non-blocking** review record: record its URL (`set-task ... T3 --pr <url> --step 3.16`) and continue without waiting. No remote, an unknown host or a missing CLI: skip the PR, leave `pr: null` and append one line to `design-log.md` saying why.
+.agents/skills/feature-workflow/modules/sign-off.md:197:git push -u origin "$SPEC_BRANCH" && gh pr create --base "$MAIN" --head "$SPEC_BRANCH" --title "$SUBJECT" --body-file "$SPEC_DIR/pr-body.md"
+.agents/skills/feature-workflow/scripts/open-task-pr.sh:25:# Host choice: `git remote get-url origin`; a host containing "github" -> gh (gh pr create --base <base> --head <head>), a host
+.agents/skills/feature-workflow/scripts/open-task-pr.sh:165:  if [[ $CLI == gh ]]; then echo "gh pr create --base $PR_BASE --head $PR_HEAD --title \"$PR_TITLE\" --body <body>"
+.agents/skills/feature-workflow/scripts/open-task-pr.sh:179:  [[ -n "$PR" ]] || PR=$(cd "$ROOT" && gh pr create --base "$PR_BASE" --head "$PR_HEAD" --title "$PR_TITLE" --body "$PR_BODY" 2>&1 | first_url)
+# exit codes of those greps are not part of the measurement

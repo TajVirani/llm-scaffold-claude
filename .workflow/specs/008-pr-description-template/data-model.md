@@ -37,7 +37,7 @@ Sections appear in this order, each as one `##` heading so later work (Phase 4 r
 
 ### Filled body `pr-body.md` (create)
 
-One per spec, filled at 5.4, approved at 5.5, sent unchanged at 5.8 (D3). Shape: the PR template when `pr_template` is `workflow` or unset; the headings of the template file `pr_template` names, each non-empty, when it holds a path (D4, D12).
+One per spec, filled at 5.4, approved at 5.5, sent unchanged at 5.8 (D3). Shape: the PR template when `pr_template` is `workflow` or unset; the headings of the template file `pr_template` names, at every level, each present at the same level with the same text and non-empty, a section running to the next heading of the same or a higher level, when it holds a path (D4, D12, D19).
 
 **State transitions:**
 
@@ -63,6 +63,7 @@ One per spec, filled at 5.4, approved at 5.5, sent unchanged at 5.8 (D3). Shape:
 | unset | project-setup answer | `workflow` / a found template path | the project has a host PR/MR template at one of the D15 locations; every found path is offered plus `workflow` (D14) |
 | unset | 5.3 approves the 5.2 proposal row | `workflow` / a found template path | key unset and a host template exists |
 | path set, file gone | 5.4 reads the setting (exit 1) | stops for a ruling: workflow template for this PR, or a new path through 5.2/5.3 | never a silent fallback (D13) |
+| path set, template unusable | `check-pr-body.sh` exits 2 on the host template at 5.4 (unreadable, or no headings) | stops for the same ruling as D13 | never a silent fallback (D20) |
 | set | any later sign-off | unchanged | never asked again while the setting reads clean |
 
 ## Migrations

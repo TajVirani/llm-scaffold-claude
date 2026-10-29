@@ -179,3 +179,46 @@ T4's first round went beyond the task file in two places; put to the stakeholder
 - 3.8 T4: mini-review pass (5 pass, 2 n/a), full review after the D17 fix round. Its `out_of_scope_noticed` entry (the 5.8 merge-message temp file is removed only when the whole chain succeeds, so a failed switch or conflicted merge leaves it in `$TMPDIR`) is T4's own block: left as a known minor gap for Phase 4 triage, not filed.
 - 3.16 wave 2: T4 merged; no task PR (origin is neither GitHub nor GitLab).
 - 3.15 wave 2: within budget, 10 of 30 changed files. 3.9 wave 2 (last): pass, `TOTAL passed=3152 failed=0` (58 suites, nothing excluded), evidence `artifacts/gate-3.9-w2/`. 3.10-3.11: no browser suite (Suites, Browser row: not applicable), so no e2e run; in-review at 3.11.
+
+## 2026-10-29 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 (RS-1) | review-standards | The shipped template's issue stub line names `.workflow/deferred/spec-issue-creation.md`, which exists only in this scaffold repo | `.agents/skills/feature-workflow/assets/pr-template.md:16-17` | medium | Read the lines; `skills/feature-workflow` is installed whole into target projects, whose `.workflow/deferred/` never holds this file, so every target project's Sign-off PR cites a dead path | patch (T2): make the stub line project-neutral |
+| F2 (RS-2) | review-standards | The host template path list is spelled out twice | `.agents/skills/feature-workflow/modules/sign-off.md:32`; `.agents/skills/project-setup/modules/files.md:32` | medium | Both lines list the same four paths; an edit to one lets setup and 5.2 find different templates (writing-for-agents single source of truth) | patch (T4): 5.2 points at the project-setup list, which keeps the paths (JRN-006 greps `pull_request_template` there) |
+| F3 (RS-3) | review-standards | Glossary **Sign-off PR** says the description always follows the PR template; a `pr_template` path makes it follow the host template | `.workflow/GLOSSARY.md:148` | medium | Read the entry against sign-off 5.4 step 2; caused by D12; the fix only edits Tier A | defer (proposal P1) |
+| F4 (RE-1) | review-end-state | Project mode reads only `##` headings: a host template with `#`/`###` headings exits 2 at 5.4 ("broken install: stop"), though project-setup, the 5.2 row and `rules-setting.sh` all offer and accept it | `.agents/skills/feature-workflow/scripts/check-pr-body.sh:403` | medium | `outline()` keeps only `^## ` lines; the JRN-003 case pins the exit 2; the D15 locations are offered with no heading check, and 5.4 gives no route back to a proposal for exit 2. Spec says "that template's headings" without a level, so two fixes are plausible | decision needed (Q1) |
+| F5 (RL-1) | review-lessons | New test files use single-bracket `[ ]` tests, the item retrospective 002 sent to the P13 lint | `tests/fixtures/pr-template.sh:51-53`; `tests/scripts/sign-off-pr.sh:51,66,139`; check strings in `tests/scripts/check-pr-body.sh`, `sign-off-pr.sh` | low | Read the lines and `002-review-lessons.md:79,115`; cosmetic, no behaviour; T2's round-1 mini-review asked for `[ ]` to match the file, so the lesson and that review disagree | patch (T2, T4): `[[ ]]` throughout the three files created by this spec |
+| F6 (RT-1) | review-targets | The agent-docs profile's `lint` key omits `lint/step-list`, which its `rule_set` names | `.workflow/profiles/agent-docs.md:29,43` | low | Read the lines; pre-existing (profile unchanged since baseline); T3 and T4 3.5 lint ran without step-list, the 3.9 full run covered it | defer (proposal P2) |
+
+Gaps read, not findings:
+- TGT-003 was reported `not_measurable` by review-targets, wrongly: it is the agent-docs lint command. Run in the main session on `f940b62`: frontmatter 40/40, step-list 36/36, symlinks 45/45, upstream-lineage 13/13, exit 0, so pass. TGT-008 stays not measured (stakeholder decision, 1.1).
+- `gh pr create --body-file` is not exercised live (gh not installed); the 0.2.5 library evaluation cites the gh manual for `--body-file`. `glab mr create --help` here lists `--description-file` and `--yes`.
+- JRN-007, the success signal and evidence-based filling are observable only at this spec's own 5.4-5.8; checked there.
+
+Failed lenses: none
+Carried to the re-derived work after the loop: F1, F2, F5 (patches made moot by the loop back, still to be done).
+Outcome: loop back (4.5 decision needed)
+
+## 2026-10-29 Questioning round 5 (loop-back from 4.5)
+
+Seed: triage F4 (review-end-state RE-1), project mode reads only `##` headings.
+
+- Q1 Which host template headings the body must fill. Options: every level, nested / `##` only, refused early / defer. Recommended: every level, nested. Answer: "Every level, nested". **D19:** project mode reads every ATX heading (`#` to `######`) of the host template; a body section runs to the next heading of the same or a higher level, so a heading whose content is only deeper subsections counts as filled; each template heading must appear in the body at the same level with the same text and be non-empty; no order check. `check-pr-body.sh` exits 2 only for a template with no headings at all (or unreadable).
+- Q2 Route for `check-pr-body.sh` exit 2 on the host template at 5.4. Options: same as D13 / keep stop and report / defer. Recommended: same as D13. Answer: "Yes, same as D13". **D20:** an exit 2 on the host template at 5.4 stops and asks as D13 does: the workflow template for this PR, or a fixed path through a 5.2/5.3 proposal.
+- 0.3.18: no question left open; no new term; no answer outside scope.
+
+## 2026-10-29 Impact classification (loop-back from 4.5)
+
+0.4.2 term gate: no new concept.
+
+| Part | Module | Class |
+| --- | --- | --- |
+| `scripts/check-pr-body.sh` project mode (every heading level, nested sections, same level and text, exit 2 only for no headings or unreadable; D19) | feature-workflow | extend |
+| `assets/pr-template.md` issue stub line made project-neutral (F1) | feature-workflow | extend |
+| `modules/sign-off.md` 5.4 (exit 2 on the host template stops and asks as D13; D20) and 5.2 (points at project-setup's host template list; F2) | feature-workflow | extend |
+| `tests/fixtures/pr-template.sh`, `tests/scripts/check-pr-body.sh`, `tests/scripts/sign-off-pr.sh` (`[[ ]]` throughout; F5) | tests | refactor |
+| All other parts | as before | unchanged |
+
+0.4.6: no new module audit; the changed parts are this spec's own new code, read in full by Phase 4 pass 1. 0.4.7: no conflict with the goal or the placement.
+- 0.5: verification-plan end state (project mode per D19; 5.4 per D20 and F2), JRN-003 and JRN-006 updated and set back to MISSING for the 1.2 re-entry. 0.6: all four checks clear.

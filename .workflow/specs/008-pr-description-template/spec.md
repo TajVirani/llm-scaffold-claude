@@ -1,5 +1,5 @@
 ---
-status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "a36d149d8cf9b181f1aaf5c3917fb75b7b536534" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/008-pr-description-template # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "103fe9d53a99442833b0e2dace9237e148c536f2" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
@@ -47,8 +47,8 @@ The next spec to sign off shows the stakeholder a filled PR template at 5.5, and
 ## Assumptions
 
 - "Link to issue" holds a fixed stub line naming the shelved issue-creation item until that item ships.
-- `pr_template` is `workflow` or a repo-relative path to the host PR/MR template (`.md`); `rules-setting.sh` rejects a path of the wrong shape or one whose file is missing from the main checkout. With a path, the check script only requires that each of that template's headings is present and non-empty; the ten-section order and score checks apply to the workflow template.
-- A `pr_template` path whose file is gone stops 5.4; the stakeholder chooses the workflow template for that PR or a fixed path through a 5.2/5.3 proposal. Never a silent fallback.
+- `pr_template` is `workflow` or a repo-relative path to the host PR/MR template (`.md`); `rules-setting.sh` rejects a path of the wrong shape or one whose file is missing from the main checkout. With a path, the check script only requires that each of that template's headings, at any level `#` to `######`, appears in the body at the same level with the same text and is non-empty, a section running to the next heading of the same or a higher level; the ten-section order and score checks apply to the workflow template.
+- A `pr_template` path whose file is gone, or a host template the check cannot use (unreadable, or no headings), stops 5.4; the stakeholder chooses the workflow template for that PR or a fixed path through a 5.2/5.3 proposal. Never a silent fallback.
 - Host templates are looked for only at `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md` and `.gitlab/merge_request_templates/*.md`; the choice offers each path found plus `workflow`.
 - With `pr_template` unset and no host template in the repo, the workflow template is used and nothing is asked.
 - The template lives at `.agents/skills/feature-workflow/assets/pr-template.md`; the filled copy is `pr-body.md` in the spec folder, committed with it.
