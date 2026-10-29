@@ -4,11 +4,13 @@
 #   exists; its gh and glab lines, run from the spec branch of a fixture repo with stand-in gh and glab on PATH, pass the
 #   approved pr-body.md with --body-file / --description-file, the main and spec branches, and no --template; its other
 #   lines make a --no-ff merge on main whose subject is a Conventional Commits subject and whose body is pr-body.md; the
-#   block is shellcheck-clean. JRN-006: sign-off 5.2 names the pr_template proposal row, 5.4 fills pr-body.md from
-#   pr-template.md and runs check-pr-body.sh, 5.5 shows the full text of pr-body.md for approval, 5.8 reruns the check and
-#   publishes with --body-file and --description-file; project-setup asks the pr_template question and names the host
-#   template; the rules.md template documents pr_template under Workflow settings; SKILL.md lists pr-template.md among the
-#   assets.
+#   block is shellcheck-clean. JRN-006: sign-off 5.2 names the pr_template proposal row, spells out none of the host
+#   template paths and points at project-setup's modules/files.md for them; 5.4 fills pr-body.md from pr-template.md, runs
+#   check-pr-body.sh, and on its exit 2 for the host template stops and offers the workflow template or a fixed path
+#   through 5.2; 5.5 shows the full text of pr-body.md for approval; 5.8 reruns the check and publishes with --body-file
+#   and --description-file; project-setup asks the pr_template question, names the host template, and its
+#   modules/files.md names all four host template paths; the rules.md template documents pr_template under Workflow
+#   settings; SKILL.md lists pr-template.md among the assets.
 # Contract read from sign-off.md: the publish block uses the variables SPEC_DIR, SPEC_BRANCH, MAIN and SUBJECT, puts each
 #   command on one line, and runs from the project root with the spec branch checked out.
 # shellcheck disable=SC2016,SC2034,SC2329  # check expressions are single-quoted and eval'd on purpose, read variables and call helpers shellcheck cannot see
@@ -23,6 +25,10 @@ copy_agents "$WORK/scaffold"
 FW="$WORK/scaffold/.agents/skills/feature-workflow"
 SIGN_OFF="$FW/modules/sign-off.md"
 SETUP="$WORK/scaffold/.agents/skills/project-setup"
+HOST_TEMPLATE_PATHS='.github/pull_request_template.md
+.github/PULL_REQUEST_TEMPLATE.md
+.github/PULL_REQUEST_TEMPLATE/*.md
+.gitlab/merge_request_templates/*.md'
 
 # publish_block FILE : print the fenced bash block that follows the 5.8 publish marker line (blank lines between are allowed).
 publish_block() {
@@ -48,7 +54,7 @@ step_section() {
 
 # flag_value ARGS_FILE FLAG : print the value a recorded argument list gave FLAG, as `FLAG value` or `FLAG=value`.
 flag_value() {
-  [ -f "$1" ] || return 0
+  [[ -f $1 ]] || return 0
   awk -v flag="$2" '
     take { print; exit }
     $0 == flag { take = 1; next }
@@ -63,7 +69,25 @@ is_approved_body() {
     /*) ;;
     *) path="$REPO/$path" ;;
   esac
-  [ "$(basename "$path")" = pr-body.md ] && cmp -s "$path" "$APPROVED_BODY"
+  [[ $(basename "$path") == pr-body.md ]] && cmp -s "$path" "$APPROVED_BODY"
+}
+
+# host_template_exit_2_paragraphs : print each paragraph of sign-off 5.4 that handles an exit 2 on the host template:
+#   it names an exit 2 and `pr_template` or the host template, says to stop, and offers the workflow template or a
+#   fixed path through 5.2.
+host_template_exit_2_paragraphs() {
+  step_section "$SIGN_OFF" 5.4 | awk '
+    BEGIN { RS = "" }
+    /[Ee]xit 2/ && /pr_template|host template/ && /[Ss]top/ && /workflow template/ && /5\.2/ { print; print "" }
+  '
+}
+
+# missing_host_template_paths FILE : print each host PR/MR template path that FILE does not name.
+missing_host_template_paths() {
+  local path
+  while IFS= read -r path; do
+    grep -Fq -- "$path" "$1" || echo "$path"
+  done <<<"$HOST_TEMPLATE_PATHS"
 }
 
 # has_template_flag ARGS_FILE : true when the recorded arguments hold --template or -T in any form.
@@ -77,7 +101,7 @@ run_publish_lines() {
 
 echo "== JRN-005: the PR and the local merge carry the approved body"
 BLOCK=$(publish_block "$SIGN_OFF")
-check "JRN-005 sign-off 5.8 holds the publish block after its marker" '[ -n "$BLOCK" ]' \
+check "JRN-005 sign-off 5.8 holds the publish block after its marker" '[[ -n $BLOCK ]]' \
   "no fenced bash block right after <!-- 5.8 publish commands --> in modules/sign-off.md"
 check "JRN-005 the publish block has a gh pr create line" 'grep -q "gh pr create" <<<"$BLOCK"'
 check "JRN-005 the publish block has a glab mr create line" 'grep -q "glab mr create" <<<"$BLOCK"'
@@ -113,30 +137,30 @@ done
 run_publish_lines "$(grep "gh pr create" <<<"$BLOCK")"
 GH_ARGS="$WORK/gh.args"
 check "JRN-005 gh got --body-file pointing at the approved pr-body.md" \
-  '[ -f "$GH_ARGS" ] && is_approved_body "$(flag_value "$GH_ARGS" --body-file)"' "$(cat "$WORK/publish.out")"
-check "JRN-005 gh got no --template" '[ -f "$GH_ARGS" ] && ! has_template_flag "$GH_ARGS"'
+  '[[ -f $GH_ARGS ]] && is_approved_body "$(flag_value "$GH_ARGS" --body-file)"' "$(cat "$WORK/publish.out")"
+check "JRN-005 gh got no --template" '[[ -f $GH_ARGS ]] && ! has_template_flag "$GH_ARGS"'
 eq "JRN-005 gh got the main branch as --base" "$(flag_value "$GH_ARGS" --base)" main
 eq "JRN-005 gh got the spec branch as --head" "$(flag_value "$GH_ARGS" --head)" "$SPEC_BRANCH"
 
 run_publish_lines "$(grep "glab mr create" <<<"$BLOCK")"
 GLAB_ARGS="$WORK/glab.args"
 check "JRN-005 glab got --description-file pointing at the approved pr-body.md" \
-  '[ -f "$GLAB_ARGS" ] && is_approved_body "$(flag_value "$GLAB_ARGS" --description-file)"' "$(cat "$WORK/publish.out")"
-check "JRN-005 glab got no --template" '[ -f "$GLAB_ARGS" ] && ! has_template_flag "$GLAB_ARGS"'
+  '[[ -f $GLAB_ARGS ]] && is_approved_body "$(flag_value "$GLAB_ARGS" --description-file)"' "$(cat "$WORK/publish.out")"
+check "JRN-005 glab got no --template" '[[ -f $GLAB_ARGS ]] && ! has_template_flag "$GLAB_ARGS"'
 eq "JRN-005 glab got the main branch as --target-branch" "$(flag_value "$GLAB_ARGS" --target-branch)" main
 eq "JRN-005 glab got the spec branch as --source-branch" "$(flag_value "$GLAB_ARGS" --source-branch)" "$SPEC_BRANCH"
 
 SPEC_TIP=$(git -C "$REPO" rev-parse "$SPEC_BRANCH")
 run_publish_lines "$(grep -v -e "gh pr create" -e "glab mr create" <<<"$BLOCK")"
 check "JRN-005 the local merge is a --no-ff merge of the spec branch into main" \
-  '[ "$(git -C "$REPO" rev-parse -q --verify "main^2" 2>/dev/null)" = "$SPEC_TIP" ]' "$(cat "$WORK/publish.out")"
+  '[[ $(git -C "$REPO" rev-parse -q --verify "main^2" 2>/dev/null) == "$SPEC_TIP" ]]' "$(cat "$WORK/publish.out")"
 check "JRN-005 the merge commit subject is a Conventional Commits subject" \
   'git -C "$REPO" log -1 --format=%s main | grep -Eq "^[a-z]+(\([^)]+\))?!?: .+"' \
   "subject: $(git -C "$REPO" log -1 --format=%s main)"
 eq "JRN-005 the merge commit body is the approved pr-body.md" \
   "$(git -C "$REPO" log -1 --format=%b main)" "$(cat "$APPROVED_BODY")"
 
-if [ -n "$BLOCK" ]; then
+if [[ -n $BLOCK ]]; then
   printf '#!/usr/bin/env bash\n%s\n' "$BLOCK" >"$WORK/publish-block.sh"
   shellcheck_files "JRN-005 shellcheck: the 5.8 publish block" "$WORK/publish-block.sh"
 else
@@ -145,9 +169,18 @@ fi
 
 echo "== JRN-006: sign-off and setup text say the new steps"
 check "JRN-006 sign-off 5.2 adds the pr_template proposal row" 'step_section "$SIGN_OFF" 5.2 | grep -q "pr_template"'
+SIGN_OFF_5_2=$(step_section "$SIGN_OFF" 5.2)
+check "JRN-006 sign-off 5.2 names none of the host template paths" \
+  '! grep -Eq "pull_request_template\.md|PULL_REQUEST_TEMPLATE|merge_request_templates" <<<"$SIGN_OFF_5_2"' \
+  "$(grep -E "pull_request_template\.md|PULL_REQUEST_TEMPLATE|merge_request_templates" <<<"$SIGN_OFF_5_2")"
+check "JRN-006 sign-off 5.2 points at project-setup modules/files.md for the host template paths" \
+  'grep -q "project-setup" <<<"$SIGN_OFF_5_2" && grep -q "modules/files\.md" <<<"$SIGN_OFF_5_2"'
 check "JRN-006 sign-off 5.4 fills pr-body.md from pr-template.md" \
   'step_section "$SIGN_OFF" 5.4 | grep -q "pr-template.md" && step_section "$SIGN_OFF" 5.4 | grep -q "pr-body.md"'
 check "JRN-006 sign-off 5.4 runs check-pr-body.sh" 'step_section "$SIGN_OFF" 5.4 | grep -q "check-pr-body.sh"'
+check "JRN-006 sign-off 5.4 stops and asks when check-pr-body.sh exits 2 on the host template" \
+  '[[ -n $(host_template_exit_2_paragraphs) ]]' \
+  "no 5.4 paragraph names an exit 2 on the host template with a stop, the workflow template and a fixed path via 5.2"
 check "JRN-006 sign-off 5.5 shows the full text of pr-body.md for approval" \
   'step_section "$SIGN_OFF" 5.5 | grep -q "pr-body.md" && step_section "$SIGN_OFF" 5.5 | grep -iq "full text"'
 check "JRN-006 sign-off 5.8 reruns check-pr-body.sh" 'step_section "$SIGN_OFF" 5.8 | grep -q "check-pr-body.sh"'
@@ -157,6 +190,9 @@ check "JRN-006 sign-off 5.8 publishes with --body-file and --description-file" \
 SETUP_TEXT=$(cat "$SETUP/SKILL.md" "$SETUP"/modules/*.md)
 check "JRN-006 project-setup asks the pr_template question" 'grep -q "pr_template" <<<"$SETUP_TEXT"'
 check "JRN-006 project-setup names the host PR template it looks for" 'grep -q "pull_request_template" <<<"$SETUP_TEXT"'
+check "JRN-006 project-setup modules/files.md names all four host template paths" \
+  '[[ -z $(missing_host_template_paths "$SETUP/modules/files.md") ]]' \
+  "missing: $(missing_host_template_paths "$SETUP/modules/files.md")"
 check "JRN-006 the rules.md template documents pr_template under Workflow settings" \
   'step_section "$SETUP/assets/docs/rules.md" "Workflow settings" | grep -q "pr_template"'
 check "JRN-006 SKILL.md lists pr-template.md among the assets" \

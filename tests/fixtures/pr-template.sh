@@ -48,9 +48,9 @@ pr_section_fill() {
 pr_body_from_headings() {
   local heading
   while IFS= read -r heading; do
-    [ -n "$heading" ] || continue
+    [[ -n $heading ]] || continue
     printf '## %s\n\n' "$heading"
-    if [ "$heading" != "${PR_EMPTY_SECTION:-}" ]; then
+    if [[ $heading != "${PR_EMPTY_SECTION:-}" ]]; then
       pr_section_fill "$heading"
       printf '\n'
     fi

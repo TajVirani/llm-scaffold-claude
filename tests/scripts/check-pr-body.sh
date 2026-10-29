@@ -7,9 +7,13 @@
 #   a missing file exit 2 with the message on stderr. Beyond those: an unknown option exits 2; a section left with only the
 #   template's guidance comment is empty; Irreversible without a Risk line gives both faults; a Risk line with no score is
 #   refused; punctuation after a score and trailing spaces after a heading are tolerated; a workflow template whose Risk
-#   and reversibility heading is renamed exits 2. JRN-003: project mode (`--project-template`) against a fixture
-#   project's .github/pull_request_template.md with three headings: a filled body passes in any order and without risk
-#   lines, an empty or a missing heading exits 1 naming it, a missing project template or one with no `##` headings exits 2.
+#   and reversibility heading is renamed exits 2. JRN-003: project mode (`--project-template`) reads every heading level
+#   of the project's template. Against a fixture .github/pull_request_template.md with three `##` headings, a filled body
+#   passes in any order and without risk lines, and an empty or a missing heading exits 1 naming it. Against a fixture
+#   template mixing levels (`# Title`; `## Summary` holding only `### Details` and `### Risks`; `### Testing`), a filled
+#   body passes, a `##` holding only subsections counts as filled, and an empty `###` heading, a missing one, a `###`
+#   heading written as `##` and an empty `###` subsection under a filled `##` each exit 1 naming it. A template with only
+#   `###` headings passes a filled body; a missing project template or one with no headings at all exits 2.
 #   Ends with shellcheck.
 # shellcheck disable=SC2016,SC2034  # check expressions are single-quoted and eval'd on purpose, and read variables shellcheck cannot see
 # shellcheck source=../lib/common.sh
@@ -37,7 +41,7 @@ expect_pass() {
   local name=$1
   shift
   run_cpb "$@"
-  check "$name" '[ "$RC" -eq 0 ] && [ -z "$OUT$ERR" ]' "rc=$RC stdout=$OUT stderr=$ERR"
+  check "$name" '[[ $RC -eq 0 && -z $OUT$ERR ]]' "rc=$RC stdout=$OUT stderr=$ERR"
 }
 
 # expect_faults NAME COUNT PATTERN ARG... : the check exits 1 with COUNT stdout lines, one of them matching the extended
@@ -46,7 +50,7 @@ expect_faults() {
   local name=$1 count=$2 pattern=$3
   shift 3
   run_cpb "$@"
-  check "$name" '[ "$RC" -eq 1 ] && [ "$(grep -c . <<<"$OUT")" -eq "$count" ] && grep -Eq -- "$pattern" <<<"$OUT"' \
+  check "$name" '[[ $RC -eq 1 && $(grep -c . <<<"$OUT") -eq $count ]] && grep -Eq -- "$pattern" <<<"$OUT"' \
     "rc=$RC stdout=$OUT stderr=$ERR"
 }
 
@@ -55,7 +59,7 @@ expect_usage_error() {
   local name=$1
   shift
   run_cpb "$@"
-  check "$name" '[ "$RC" -eq 2 ] && [ -z "$OUT" ] && [ -n "$ERR" ]' "rc=$RC stdout=$OUT stderr=$ERR"
+  check "$name" '[[ $RC -eq 2 && -z $OUT && -n $ERR ]]' "rc=$RC stdout=$OUT stderr=$ERR"
 }
 
 template_headings() { sed -n 's/^## *//p' "$TEMPLATE" | sed 's/[[:space:]]*$//'; }
@@ -72,7 +76,7 @@ sections_without_guidance() {
 echo "== JRN-001: the template and a well-filled body"
 eq "JRN-001 the template holds the ten sections in order" "$(template_headings)" "$PR_TEMPLATE_SECTIONS"
 check "JRN-001 every template section carries guidance" \
-  '[ -n "$(template_headings)" ] && [ -z "$(sections_without_guidance)" ]' "unguided: $(sections_without_guidance)"
+  '[[ -n $(template_headings) && -z $(sections_without_guidance) ]]' "unguided: $(sections_without_guidance)"
 
 # The filled body copies the template's headings and replaces each section's guidance with filled text.
 template_headings | pr_body_from_headings >"$BODIES/filled.md"
@@ -132,7 +136,7 @@ template_guidance() {
 }
 
 GUIDANCE=$(template_guidance 'Why this approach')
-check "JRN-002 the template guides Why this approach in an HTML comment" '[ "${GUIDANCE#"<!--"}" != "$GUIDANCE" ]' "guidance=$GUIDANCE"
+check "JRN-002 the template guides Why this approach in an HTML comment" '[[ ${GUIDANCE#"<!--"} != "$GUIDANCE" ]]' "guidance=$GUIDANCE"
 template_headings | PR_EMPTY_SECTION='Why this approach' pr_body_from_headings |
   GUIDANCE=$GUIDANCE awk '{ print } $0 == "## Why this approach" { print ENVIRON["GUIDANCE"] }' >"$BODIES/guidance-only.md"
 expect_faults "JRN-002 a section holding only the template's guidance comment is named as empty" 1 \
@@ -162,9 +166,9 @@ CPB="$WORK/renamed-risk/.agents/skills/feature-workflow/scripts/check-pr-body.sh
 expect_usage_error "JRN-002 a workflow template without the Risk and reversibility heading exits 2" "$BODIES/filled.md"
 CPB=$WORKFLOW_CPB
 
-echo "== JRN-003: project mode checks the project's own headings"
+echo "== JRN-003: project mode checks the project's own headings, at every level"
 PROJ="$WORK/project"
-mkdir -p "$PROJ/.github"
+mkdir -p "$PROJ/.github/PULL_REQUEST_TEMPLATE"
 cat >"$PROJ/.github/pull_request_template.md" <<'EOF'
 <!-- Thanks for the change. Fill every section. -->
 ## Summary
@@ -237,12 +241,105 @@ expect_faults "JRN-003 a missing project heading is named" 1 '^Checklist: ' \
   checklist-missing.md --project-template "$PROJECT_TEMPLATE"
 expect_usage_error "JRN-003 a missing project template exits 2" \
   filled.md --project-template .github/no_such_template.md
-cat >"$PROJ/.github/no_headings_template.md" <<'EOF'
+
+MIXED_TEMPLATE=.github/PULL_REQUEST_TEMPLATE/mixed_levels.md
+cat >"$PROJ/$MIXED_TEMPLATE" <<'EOF'
+# Title
+
+One line naming the change.
+
+## Summary
+
+### Details
+
+What changed?
+
+### Risks
+
+What could break?
+
+### Testing
+
+How did you test it?
+EOF
+
+# mixed_body [OPTION...] : print a body for the mixed template. --summary-text puts a line straight under Summary;
+#   --empty HEADING keeps HEADING with no text; --drop HEADING leaves HEADING and its text out; --as-level-2 HEADING
+#   writes HEADING one level too high, as `##`.
+mixed_body() {
+  local summary_text='' empty='' drop='' as_level_2='' heading
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --summary-text) summary_text=1; shift ;;
+      --empty) empty=$2; shift 2 ;;
+      --drop) drop=$2; shift 2 ;;
+      --as-level-2) as_level_2=$2; shift 2 ;;
+      *) echo "mixed_body: unknown option $1" >&2; return 2 ;;
+    esac
+  done
+  printf '# Title\n\nFill the Sign-off PR description from the spec evidence.\n\n## Summary\n\n'
+  [[ -z $summary_text ]] || printf 'Sign-off now writes the PR description itself.\n\n'
+  for heading in Details Risks Testing; do
+    [[ $heading != "$drop" ]] || continue
+    if [[ $heading == "$as_level_2" ]]; then
+      printf '## %s\n\n' "$heading"
+    else
+      printf '### %s\n\n' "$heading"
+    fi
+    [[ $heading != "$empty" ]] || continue
+    case $heading in
+      Details) printf 'Sign-off fills pr-body.md and publishes it unchanged.\n\n' ;;
+      Risks) printf 'A body that fails the check stops sign-off.\n\n' ;;
+      Testing) printf 'Ran tests/run-all.sh; every suite passed.\n\n' ;;
+    esac
+  done
+}
+
+mixed_body --summary-text >"$PROJ/mixed-filled.md"
+expect_pass "JRN-003 a body filling every heading of a template that mixes levels passes" \
+  mixed-filled.md --project-template "$MIXED_TEMPLATE"
+mixed_body >"$PROJ/mixed-summary-only-subsections.md"
+expect_pass "JRN-003 a ## heading holding only ### subsections counts as filled" \
+  mixed-summary-only-subsections.md --project-template "$MIXED_TEMPLATE"
+mixed_body --summary-text --empty Testing >"$PROJ/mixed-testing-empty.md"
+expect_faults "JRN-003 an empty ### heading is named" 1 '^Testing: ' \
+  mixed-testing-empty.md --project-template "$MIXED_TEMPLATE"
+mixed_body --summary-text --drop Risks >"$PROJ/mixed-risks-missing.md"
+expect_faults "JRN-003 a missing ### heading is named" 1 '^Risks: ' \
+  mixed-risks-missing.md --project-template "$MIXED_TEMPLATE"
+mixed_body --summary-text --as-level-2 Testing >"$PROJ/mixed-testing-as-level-2.md"
+expect_faults "JRN-003 a ### heading written as ## is named" 1 '^Testing: ' \
+  mixed-testing-as-level-2.md --project-template "$MIXED_TEMPLATE"
+mixed_body --summary-text --empty Risks >"$PROJ/mixed-risks-empty.md"
+expect_faults "JRN-003 an empty ### subsection under a filled ## is named" 1 '^Risks: ' \
+  mixed-risks-empty.md --project-template "$MIXED_TEMPLATE"
+
+cat >"$PROJ/.github/third_level_template.md" <<'EOF'
 ### Summary
 
 What does this change do?
+
+### Testing
+
+How did you test it?
 EOF
-expect_usage_error "JRN-003 a project template with no ## headings exits 2" \
+cat >"$PROJ/third-level-filled.md" <<'EOF'
+### Summary
+
+Sign-off fills the PR description from the spec's evidence.
+
+### Testing
+
+Ran tests/run-all.sh; every suite passed.
+EOF
+expect_pass "JRN-003 a project template with only ### headings passes a filled body" \
+  third-level-filled.md --project-template .github/third_level_template.md
+cat >"$PROJ/.github/no_headings_template.md" <<'EOF'
+Thanks for the change. Say what it does and how you tested it.
+
+- [ ] Tests added
+EOF
+expect_usage_error "JRN-003 a project template with no headings at all exits 2" \
   filled.md --project-template .github/no_headings_template.md
 RUN_DIR=$WORK
 
