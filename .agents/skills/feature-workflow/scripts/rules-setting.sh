@@ -58,7 +58,9 @@ valid_branch_name() {
   [[ "$1" =~ ^[A-Za-z0-9._/-]+$ && "$1" != *..* && "$1" != /* && "$1" != */ && "$1" != -* && "$1" != *.lock ]]
 }
 
-# valid_template_path PATH : true when PATH is a repo-relative .md path that cannot leave the repo or be read as an option.
+# valid_template_path PATH : true when PATH is shaped as a repo-relative .md path: no '..', not absolute, not read as an option.
+#   Shape only; the caller then checks the file exists under the main checkout, following symlinks, so a committed symlink may
+#   still point outside the repo.
 valid_template_path() {
   [[ "$1" == *.md && "$1" != *..* && "$1" != /* && "$1" != -* ]]
 }
@@ -114,7 +116,8 @@ val=$(printf '%s\n' "$block" | K=$KEY yq '.[strenv(K)] // "" | select(tag != "!!
   || die "cannot read $KEY from '## $HEADING' in $RULES"
 [[ -n "$val" ]] || default_out "$KEY is not set under '## $HEADING' in $RULES"
 for a in $ALLOWED; do
-  if [[ "$a" == "$val" ]] || { [[ "$a" == "@branch" ]] && valid_branch_name "$val"; }; then printf '%s\n' "$val"; exit 0; fi
+  # An @-token stands for a class of values, so a value spelled like the token itself is never a literal match.
+  if [[ "$a" != @* && "$a" == "$val" ]] || { [[ "$a" == "@branch" ]] && valid_branch_name "$val"; }; then printf '%s\n' "$val"; exit 0; fi
   if [[ "$a" == "@template_path" ]] && valid_template_path "$val"; then
     [[ -n "$ROOT" ]] || find_main_checkout_root "$KEY is '$val' and its file is checked in the main checkout"
     [[ -f "$ROOT/$val" ]] || die "$KEY in '## $HEADING' of $RULES is '$val'; no such file in the main checkout $ROOT"

@@ -121,6 +121,8 @@ printf '## Workflow settings\n\n```yaml\nmain_branch: release/2.x\n```\n' > "$WO
 eq "main_branch read" "$(RS main_branch --rules "$WORK/r.md")" release/2.x
 printf '## Workflow settings\n\n```yaml\nmain_branch: "-x"\n```\n' > "$WORK/r.md"
 t "main_branch invalid -> 1"       1 RS main_branch --rules "$WORK/r.md"
+printf '## Workflow settings\n\n```yaml\nmain_branch: "@branch"\n```\n' > "$WORK/r.md"
+t "main_branch @branch (the spec token, not a branch name) -> 1" 1 RS main_branch --rules "$WORK/r.md"
 MB=$WORK/mb; git_init_repo "$MB"; git_commit_all "$MB" init
 eq "main_branch default main without origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" main
 git -C "$MB" update-ref refs/remotes/origin/develop HEAD; git -C "$MB" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/develop
@@ -170,6 +172,7 @@ pt_refused "JRN-004 pr_template -t.md (leading dash) -> 1 naming it" -t.md
 pt_refused "JRN-004 pr_template .github/t.txt (not .md) -> 1 naming it" .github/t.txt
 pt_refused "JRN-004 pr_template project -> 1 naming it" project
 pt_refused "JRN-004 pr_template other -> 1 naming it" other
+pt_refused "JRN-004 pr_template @template_path (the spec token, not a path) -> 1 naming it" @template_path
 pt_rules .github/pull_request_template.md
 pt_out=$(GIT_CEILING_DIRECTORIES=$WORK RS pr_template --cwd "$PT_OUTSIDE_GIT" --rules "$WORK/pt.md" 2>&1)
 pt_rc=$?
