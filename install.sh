@@ -38,9 +38,15 @@
 #   not cover the template's (its | alternatives do not include all of the template's) is resolved on its own. A match-all
 #   group (no matcher, "" or "*") is never touched, and a covering one is left as is, so a re-run asks nothing.
 #   merge: the group's alternatives in order, then the template's missing ones (implementation|foo with
-#     implementation|integration gives implementation|foo|integration); only when both are plain | lists ([A-Za-z0-9_|]).
-#   replace: the template's matcher. A match-all template matcher makes merge and replace drop the matcher.
+#     implementation|integration gives implementation|foo|integration); only when the group's matcher is a plain | list
+#     ([A-Za-z0-9_|]) and the template's is one too or matches all. Any other group is kept with a warning, whatever the
+#     template's matcher.
+#   replace: the template's matcher. A match-all template matcher makes replace drop the matcher, and merge too for a
+#     plain | list.
 #   keep: the group stays as it is, with a warning.
+#   A group that runs commands of two or more template groups of one event is never asked about, whatever the mode:
+#   when all its hooks are template commands it is rewritten into the template's groups, each command under its template
+#   group's matcher; when it also runs a hook of your own it is kept as it is. Either way a warning names it.
 #   --matchers sets the mode for every group. Otherwise, at a terminal (stdin and stdout), install.sh asks per group once
 #   it knows the run will not refuse, naming the event and the scaffold command and showing the current, replace and
 #   merge matchers (and every hook of a mixed group); Enter merges, r replaces, k keeps. Without a terminal it never
@@ -241,9 +247,11 @@ fi
 
 # ------------------------------------------------------------------------------------------------------ JSON settings merge
 # On every hook event, each existing group that runs a command of a template group under a matcher not covering the
-# template's first has its matcher resolved by $matchers (merge, replace, keep, auto, or ask, which only records a
-# question until $answers holds the reply). Then the template's groups are appended, minus hook commands already present
-# under that event (idempotent).
+# template's first has its matcher resolved by $matchers (merge, replace, keep, auto, or ask, which records a question
+# and counts the group as kept until $answers holds the reply). A group running commands of two or more template groups
+# gets no question, since one matcher cannot serve them all: when it runs only template commands it is removed, so the
+# append below puts each command back under its own template group; otherwise it is kept. Then the template's groups
+# are appended, minus hook commands already present under that event (idempotent).
 # permissions.allow and permissions.deny are de-duplicated unions. Other template keys are set when absent; equal values are no-ops;
 # outputStyle or statusLine that differs is kept with a warning (overwritten with --force); any other difference is a conflict.
 # shellcheck disable=SC2016  # jq program, not shell
@@ -270,7 +278,7 @@ def resolve_group($ev; $i; $j; $tg; $all_tcmds):
        or (any($gc[]; . as $c | any($tc[]; . == $c)) | not) or ($g.matcher | covers($tg.matcher)) then .
     else
       ($tg.matcher | if is_match_all then null else . end) as $replaced
-      | (($tg.matcher | is_match_all) or (($g.matcher | is_plain) and ($tg.matcher | is_plain))) as $mergeable
+      | (($g.matcher | is_plain) and (($tg.matcher | is_match_all) or ($tg.matcher | is_plain))) as $mergeable
       | (if $replaced == null then null else $g.matcher | merged_with($replaced) end) as $merged
       | [ $gc[] | select(. as $c | any($tc[]; . == $c)) ] as $scaffold
       | [ $gc[] | select(. as $c | any($all_tcmds[]; . == $c) | not) ] as $own
@@ -280,7 +288,7 @@ def resolve_group($ev; $i; $j; $tg; $all_tcmds):
            .questions += [{key: $key, event: $ev, scaffold: $scaffold, hooks: $gc, own: $own, current: $g.matcher,
                            replace: $replaced, merge: $merged, mergeable: $mergeable}]
          else . end)
-      | (if $matchers == "ask" then $answers[$key]
+      | (if $matchers == "ask" then $answers[$key] // "keep"
          elif $matchers == "auto" then (if ($own | length) > 0 then "keep" else "merge" end)
          else $matchers end) as $choice
       | (if $choice == "merge" and ($mergeable | not) then "unmergeable" else $choice end) as $outcome
@@ -292,14 +300,37 @@ def resolve_group($ev; $i; $j; $tg; $all_tcmds):
           .matcher_warnings += ["\($what); kept, since it is not a plain | list of names and cannot be merged (--matchers=replace takes the template matcher)"]
         elif $outcome == "keep" and $matchers == "auto" then
           .matcher_warnings += ["\($what); kept, since it also runs your hooks (\($own | join(", "))) and there is no terminal to ask (--matchers=merge|replace|keep chooses for every group)"]
-        elif $outcome == "keep" then .matcher_warnings += ["\($what); kept as it is"]
-        else . end
+        else .matcher_warnings += ["\($what); kept as it is"] end
+    end;
+def runs_any_of($tg): group_cmds as $gc | any($tg | group_cmds[]; . as $c | any($gc[]; . == $c));
+def unsettled($tg): type == "object" and (.matcher | type) == "string" and (.matcher | is_match_all | not)
+  and (.matcher | covers($tg.matcher) | not);
+def only_template_hooks($all_tcmds):
+  (.hooks | type) == "array"
+  and all(.hooks[]; type == "object" and (.command | type) == "string" and (.command as $c | any($all_tcmds[]; . == $c)));
+def hook_names: [ (.hooks? // [])[]? | if type == "object" and (.command | type) == "string" then .command else tojson end ];
+def split_or_keep($ev; $i; $g; $all_tcmds; $count):
+  "hooks.\($ev): the group with matcher \($g.matcher | tojson) runs commands of \($count) template groups" as $what
+  | if $g | only_template_hooks($all_tcmds) then
+      .rewritten += [$i]
+      | .matcher_warnings += ["\($what) (\($g | hook_names | join(", "))); rewritten into the template groups, each command under its template matcher"]
+    else
+      .matcher_warnings += ["\($what) and hooks of your own, so no one matcher fits them all; kept as it is. Its hooks: \($g | hook_names | join(", "))"]
     end;
 def resolve_matchers($ev):
   $t.hooks[$ev] as $tgroups
   | ([ $tgroups[] | group_cmds[] ]) as $all_tcmds
+  | .rewritten = []
   | reduce range(0; .out.hooks[$ev] // [] | length) as $i (.;
-      reduce range(0; $tgroups | length) as $j (.; resolve_group($ev; $i; $j; $tgroups[$j]; $all_tcmds)));
+      .out.hooks[$ev][$i] as $g
+      | [ range(0; $tgroups | length) as $j | select($g | runs_any_of($tgroups[$j])) | $j ] as $js
+      | if ($js | length) > 1 and any($js[]; . as $j | $g | unsettled($tgroups[$j])) then
+          split_or_keep($ev; $i; $g; $all_tcmds; $js | length)
+        else reduce $js[] as $j (.; resolve_group($ev; $i; $j; $tgroups[$j]; $all_tcmds)) end)
+  | .rewritten as $gone
+  | (if ($gone | length) == 0 then . else
+       .out.hooks[$ev] |= [ range(0; length) as $k | select(any($gone[]; . == $k) | not) | .[$k] ] end)
+  | del(.rewritten);
 def badtype($ty; $want): ($ty != $want and $ty != "null");
 def keyrule($p; $v; $label):
   (.out | getpath($p)) as $cur
@@ -379,7 +410,9 @@ merge_json() {
     return
   fi
   while IFS= read -r m; do [ -z "$m" ] || refuse "$name: $m (re-run with --force to take the template value)"; done < <(jq -r '.conflicts[]' <<<"$res")
-  while IFS= read -r m; do [ -z "$m" ] || warn "$name: $m"; done < <(jq -r '.warnings[], .matcher_warnings[]' <<<"$res")
+  # With questions pending, this plan counts every asked group as kept; ask_matchers prints the matcher warnings of the
+  # plan that has the answers.
+  while IFS= read -r m; do [ -z "$m" ] || warn "$name: $m"; done < <(jq -r '.warnings[], if (.questions | length) == 0 then .matcher_warnings[] else empty end' <<<"$res")
   jq -c '.questions[]' <<<"$res" >"$out.questions"
   write_if_changed "$res" "$dest" "$out"
 }

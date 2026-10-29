@@ -8,7 +8,9 @@
 #   with user groups: JRN-011 without a terminal (template-only group merged, mixed group kept, match-all and covering groups
 #   untouched, a Warnings line per merged or kept group, a third run writes nothing); JRN-012 --matchers=merge|replace|keep,
 #   a bad mode, --dry-run with and without --matchers (writes nothing, previews, never reads stdin), --force alone, a
-#   matcher that is not a plain alternation never merged, --matchers with no value, a match-all template matcher dropped
+#   matcher that is not a plain alternation never merged (also under a match-all template), a group running commands of
+#   two template groups (rewritten into the template's groups in every mode; kept with a warning when it also runs a user
+#   hook), --matchers with no value, a match-all template matcher dropped
 #   on merge and replace, a Codex hooks.json group under the same rule, a non-string matcher left alone; JRN-013 the prompt at a pseudo-terminal (script(1); skipped
 #   when no form of it works): its text, Enter merges, r replaces, k keeps, a mixed group's prompt lists every hook.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
@@ -327,11 +329,89 @@ for how in no-terminal matchers-merge; do
     out=$(INSTW "$X" --host claude --matchers=merge 2>&1)
   fi
   got=$(group_matchers "$X/.claude/settings.json" SubagentStop "$STOP_AUDIT")
-  check "JRN-012 the non-plain matcher (a|b)c is never merged ($how)" \
-    '[ "$got" = "(a|b)c" ] || [ "$got" = "implementation|integration" ]' "got=$got"
+  check "JRN-012 the non-plain matcher (a|b)c is kept ($how)" '[ "$got" = "(a|b)c" ]' "got=$got"
   if [ "$how" = no-terminal ]; then
     check "JRN-012 a Warnings line names the non-plain matcher (a|b)c (no terminal)" 'warned_about "$out" "(a|b)c"' "$out"
   fi
+done
+
+echo "== a group running two template groups' commands; a non-plain matcher under a match-all template (JRN-012)"
+# SPLIT_BASE's Write|Edit|NotebookEdit group also runs the git guard, whose template group is Bash, and its SessionStart
+# group is narrowed to a matcher that is not a plain | list, while the template's SessionStart group matches everything.
+GIT_GUARD=block-destructive-git.sh
+WRITE_GUARD=spec-single-writer-guard.sh
+SESSION_MATCHER='^(startup|resume)$'
+SPLIT_BASE=$WORK/split-base
+clone_target "$OLD_BASE" "$SPLIT_BASE"
+edit_settings "$SPLIT_BASE/.claude/settings.json" '
+  [.hooks.PreToolUse[] | select(runs($git)) | .hooks[]] as $git_hooks
+  | .hooks.PreToolUse |= (map(select(runs($git) | not)) | map(if runs($write) then .hooks += $git_hooks else . end))' \
+  --arg git "$GIT_GUARD" --arg write "$WRITE_GUARD"
+set_group_matcher "$SPLIT_BASE/.claude/settings.json" SessionStart session-start-resume.sh "$SESSION_MATCHER"
+eq "the split fixture runs the git guard in the Write|Edit|NotebookEdit group" \
+  "$(group_matchers "$SPLIT_BASE/.claude/settings.json" PreToolUse "$GIT_GUARD")" 'Write|Edit|NotebookEdit'
+# pre_tool_use_is_the_templates SETTINGS : true when PreToolUse has the template's four groups and no command twice.
+# shellcheck disable=SC2329
+pre_tool_use_is_the_templates() {
+  jq -e '.hooks.PreToolUse | length == 4 and ([.[].hooks[].command] | length == (unique | length))' "$1" >/dev/null
+}
+# warned_together OUTPUT STRING... : true when one Warnings line holds every STRING.
+# shellcheck disable=SC2329
+warned_together() {
+  local line
+  while IFS= read -r line; do contains_all "$line" "${@:2}" && return 0; done < <(warning_lines "$1")
+  return 1
+}
+for split_case in 'no-terminal kept' 'merge kept' 'replace dropped' 'keep kept'; do
+  how=${split_case%% *}
+  session=${split_case#* }
+  X=$WORK/split-$how
+  XS=$X/.claude/settings.json
+  clone_target "$SPLIT_BASE" "$X"
+  if [ "$how" = no-terminal ]; then
+    out=$(INSTW "$X" --host claude 2>&1)
+  else
+    out=$(INSTW "$X" --host claude "--matchers=$how" 2>&1)
+  fi
+  eq "JRN-012 two template groups in one group ($how): exits 0" "$?" 0
+  eq "JRN-012 two template groups in one group ($how): the git guard runs under the template's Bash" \
+    "$(group_matchers "$XS" PreToolUse "$GIT_GUARD")" Bash
+  eq "JRN-012 two template groups in one group ($how): the write guard runs under the template's Write|Edit|NotebookEdit" \
+    "$(group_matchers "$XS" PreToolUse "$WRITE_GUARD")" 'Write|Edit|NotebookEdit'
+  check "JRN-012 two template groups in one group ($how): PreToolUse has one group per template group, no command twice" \
+    'pre_tool_use_is_the_templates "$XS"' "$(jq -c .hooks.PreToolUse "$XS")"
+  check "JRN-012 two template groups in one group ($how): a Warnings line names PreToolUse and its commands" \
+    'warned_together "$out" hooks.PreToolUse "$GIT_GUARD" "$WRITE_GUARD"' "$out"
+  if [ "$session" = kept ]; then
+    eq "JRN-012 the non-plain SessionStart matcher under a match-all template is kept ($how)" \
+      "$(group_matchers "$XS" SessionStart session-start-resume.sh)" "$SESSION_MATCHER"
+    check "JRN-012 a Warnings line names the kept SessionStart matcher ($how)" 'warned_about "$out" "$SESSION_MATCHER"' "$out"
+  else
+    eq "JRN-012 --matchers=replace drops the non-plain SessionStart matcher for the match-all template" \
+      "$(group_matchers "$XS" SessionStart session-start-resume.sh)" '<none>'
+  fi
+done
+before=$(snap "$WORK/split-no-terminal")
+INSTW "$WORK/split-no-terminal" --host claude >/dev/null 2>&1
+eq "JRN-012 two template groups in one group: a re-run writes nothing" "$(snap "$WORK/split-no-terminal")" "$before"
+
+USER_PRE_HOOK=./scripts/user-pre-tool.sh
+SPLIT_MIXED_BASE=$WORK/split-mixed-base
+clone_target "$SPLIT_BASE" "$SPLIT_MIXED_BASE"
+add_user_hook "$SPLIT_MIXED_BASE/.claude/settings.json" PreToolUse "$GIT_GUARD" "$USER_PRE_HOOK"
+pre_tool_use_before=$(jq -c .hooks.PreToolUse "$SPLIT_MIXED_BASE/.claude/settings.json")
+for how in no-terminal replace; do
+  X=$WORK/split-mixed-$how
+  clone_target "$SPLIT_MIXED_BASE" "$X"
+  if [ "$how" = no-terminal ]; then
+    out=$(INSTW "$X" --host claude 2>&1)
+  else
+    out=$(INSTW "$X" --host claude "--matchers=$how" 2>&1)
+  fi
+  eq "JRN-012 two template groups and a user hook in one group ($how): PreToolUse is kept as it was" \
+    "$(jq -c .hooks.PreToolUse "$X/.claude/settings.json")" "$pre_tool_use_before"
+  check "JRN-012 two template groups and a user hook in one group ($how): a Warnings line names the group's hooks" \
+    'warned_together "$out" hooks.PreToolUse "$GIT_GUARD" "$WRITE_GUARD" "$USER_PRE_HOOK"' "$out"
 done
 
 echo "== edges: --matchers with no value, a match-all template matcher, a Codex hooks.json group, a non-string matcher (JRN-012)"
