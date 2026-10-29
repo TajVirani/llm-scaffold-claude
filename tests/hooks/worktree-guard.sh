@@ -200,6 +200,9 @@ expect "JRN-002 Phase 1 agent write inside its agent worktree -> allow" allow "$
 expect "JRN-002 Phase 1 agent write to the main checkout -> deny" deny "$(pl Write "$P/src/a.ts" "$P" "$AP1")" "s007_phase_1_shell_scripts"
 expect "JRN-002 Phase 1 agent write to another agent worktree -> deny" deny "$(pl Write "$W3/src/a.ts" "$P" "$AP1")" "s007_phase_1_shell_scripts"
 expect "JRN-002 Phase 1 agent Bash write without cd -> deny with the cd hint" deny "$(pl Bash 'touch src/x' "$P" "$AP1")" "cd .*s007_phase_1_shell_scripts &&"
+mk_sub bad $'```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/12-foo\ntask_id: T1\nwork_type: web\n```\n\nBuild T1.'
+expect "JRN-002 (T1) task agent whose spec folder the worktree name rule rejects: write to the main checkout -> deny naming the reason" \
+  deny "$(pl Write "$P/src/a.ts" "$P" '{"agent_id":"bad","agent_type":"implementation"}')" "spec dir must be a folder named NNN-slug: .workflow/specs/12-foo"
 
 result_journey JRN-003 "integration agent" "$AIG" "$INTEG_DOC" integration.yaml integration-shell-scripts "$WIG" \
   "$(integration_result "$WIG")"
