@@ -73,16 +73,16 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 
 ## Return
 
-Write the full result block below to your **result file** in the main checkout, `<spec_dir>/artifacts/integration-<work_type>/integration.yaml`. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commits, in one Bash command with one quoted heredoc, creating the folder first:
+Write the full result block below to your **result file** in the main checkout, `<main checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml`. `<main checkout>` is the main checkout's absolute path, which `cd <absolute path of the checkout you were launched in> && dirname "$(git rev-parse --path-format=absolute --git-common-dir)"` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commits, in one Bash command with one quoted heredoc, creating the folder first:
 
 ```bash
-cd <absolute path of the checkout you were launched in> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)") && mkdir -p "$main/<spec_dir>/artifacts/integration-<work_type>" && cat > "$main/<spec_dir>/artifacts/integration-<work_type>/integration.yaml" <<'EOF'
+cd <absolute path of the checkout you were launched in> && mkdir -p "<main checkout>/<spec_dir>/artifacts/integration-<work_type>" && cat > "<main checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml" <<'EOF'
 status: done
 ...
 EOF
 ```
 
-This write is allowed because the evidence folder under `artifacts/` is unguarded and lies outside the tree hash `run-toolchain.sh` records, so your toolchain run still describes your committed work. It is your only write outside shared core and its tests. Each stop writes the whole file again. When you are resumed with error lines from `check-task-result.sh`, rewrite the file with the fields they name fixed, then return the summary block again.
+Spell out both paths as literal absolute paths. A path relative to your checkout puts the file in your worktree copy, where the orchestrator never looks. A `$(…)` substitution in the path can be refused as too complex to verify. Use this command rather than the Write tool: the worktree guard denies a Write outside the checkout you were launched in. The result file is your only write outside shared core and its tests, and you never commit it: leave everything under `artifacts/` out of `git add`, because a branch that carries a file there is refused at merge. `artifacts/` lies outside the tree hash `run-toolchain.sh` records, so your toolchain run still describes your committed work. Each stop writes the whole file again. When you are resumed with error lines from `check-task-result.sh`, rewrite the file with the fields they name fixed, then return the summary block again.
 
 Report only commands you ran and output you saw. The result file holds:
 
