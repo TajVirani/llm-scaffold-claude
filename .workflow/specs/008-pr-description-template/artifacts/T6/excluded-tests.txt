@@ -1,1 +1,0 @@
-tests/scripts/check-pr-body.sh

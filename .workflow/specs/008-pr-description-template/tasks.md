@@ -86,7 +86,7 @@ tasks:
     pr: null
   - id: T6
     title: "Sign-off routes an unusable host template and points at one path list"
-    status: in-progress
+    status: done
     capability: CAP-NEW-pr-template
     depends_on: [T4]
     touches_core: false

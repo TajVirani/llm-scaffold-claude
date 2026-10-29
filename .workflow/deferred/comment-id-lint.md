@@ -46,3 +46,7 @@ The same two breaches recurred across tasks and specs: journey ids in test comme
 
 - Converting existing files from `[ ]` to `[[ ]]`.
 - Comments in markdown skills or agent definitions.
+
+## Later requests
+
+- .workflow/specs/008-pr-description-template, 3.7: the Markdown asset templates under `.agents/skills/feature-workflow/assets/` also name `.workflow/` paths inside their guidance comments (e.g. `assets/codebase-map.md:53`), the same R4 breach in another file kind; the lint could cover them.

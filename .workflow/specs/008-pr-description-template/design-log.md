@@ -241,3 +241,5 @@ Gaps read, not findings: TGT-008 not measured (stakeholder decision, 1.1). The e
 
 Failed lenses: none
 Outcome: rework 1 of 5
+- 4.7 rework T6 (F7-F9): mini-review round 1 fail on R4 (`assets/pr-template.md:35` guidance names `.workflow/deferred/`); wording-only, same agent resumed. Duplicate discovered work: asset-template guidance comments naming `.workflow/` paths matches `.workflow/deferred/comment-id-lint.md`; line appended.
+- 3.8 T6 rework re-check: pass. Notes: the asset-template R4 sweep is already filed; the `toolchain.json` tree mismatch is not real (a fresh, non-reused run at `2058ccd` passes with the same `tree`, which hashes content without workflow data, not the git tree). 3.16: T6 merged.

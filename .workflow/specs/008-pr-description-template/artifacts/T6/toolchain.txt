@@ -12,7 +12,7 @@ TOTAL passed=45 failed=0 skipped=0 xfail=0 (1 suites)
 == lint/upstream-lineage
 
 == summary
-PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   2s
 TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
 == lint exit 0
 
@@ -20,7 +20,7 @@ TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
 == scripts/sign-off-pr
 
 == summary
-PASS scripts/sign-off-pr                    passed=30   failed=0   skipped=0   xfail=0   2s
+PASS scripts/sign-off-pr                    passed=30   failed=0   skipped=0   xfail=0   3s
 TOTAL passed=30 failed=0 skipped=0 xfail=0 (1 suites)
 == test exit 0
 
