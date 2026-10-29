@@ -29,8 +29,8 @@ Copy `assets/proposals.md` to `.workflow/specs/NNN-slug/proposals.md` if it does
 
 **The `pr_template` row.** It picks the template the Sign-off PR description follows at 5.4. Add it when either holds:
 
-- The key is unset (`.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template` prints `workflow` and a note on stderr that the default is used) and the repo has a host PR/MR template at one of these paths only: `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md`, `.gitlab/merge_request_templates/*.md`. With no host template, add no row.
-- 5.4 stopped on a failing setting and the stakeholder chose to fix the path.
+- The key is unset (`.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template` prints `workflow` and a note on stderr that the default is used) and the repo has a host PR/MR template at one of the paths listed in `.agents/skills/project-setup/modules/files.md` ("PR template", step 1), and only those. With no host template, add no row.
+- 5.4 stopped on a failing setting or an unusable host template and the stakeholder chose to fix the path.
 
 Target `.workflow/rules.md` § Workflow settings; Proposed text `pr_template: <your recommendation>`. The row offers one choice: every host template path found, repo-relative, plus `workflow` (the workflow's own ten-section template). Name the alternatives in Why, so the stakeholder can pick one at 5.3 with `P<n>: modify pr_template: <choice>`.
 
@@ -107,7 +107,9 @@ Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write to
    .agents/skills/feature-workflow/scripts/check-pr-body.sh .workflow/specs/NNN-slug/pr-body.md   # add --project-template <path> when pr_template is a path
    ```
 
-   Exit 1 prints one `<field>: <problem>` line per fault: fix each and run it again. Exit 2 is a usage error or a broken install: stop and report it.
+   Exit 1 prints one `<field>: <problem>` line per fault: fix each and run it again.
+
+   Exit 2 whose message names the host template from `pr_template` means that template is unusable: unreadable, or it has no `##` headings. Stop and show the stakeholder the message, as for a failing setting in step 1. They choose the workflow template for this PR (fill it again from `assets/pr-template.md` and check without `--project-template`), or a fixed path through a `pr_template` row (back to 5.2 and 5.3). Never fall back to a template on your own. Any other exit 2 is a usage error or a broken install: stop and report it.
 
 Done when every PASS links evidence, every number is measured or marked "not measured" with the reason, every known gap is listed, and `check-pr-body.sh` exits 0 on `pr-body.md`.
 
