@@ -288,3 +288,9 @@ Outcome: loop back (00.24 discovered work)
 - Problem and evidence: `tests/scripts/install-upgrade.sh` takes about 66 s alone and 156 s in a parallel run, past `tests/README.md:29` "Every suite takes under a minute".
 - Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
 - Backlog item: [work-backlog/006-result-file-guard-disc-001.md](../work-backlog/006-result-file-guard-disc-001.md)
+
+## 2026-10-29 Task breakdown (2.1-2.5), re-run after the upgrade-matcher-merge loop-back
+
+- T1-T5 records and statuses kept. T1 gains the Merge rules lines in `claude-settings.template.md` (D19-D29) and hands `tests/scripts/install-upgrade.sh` and its upgrade acceptance line to T6.
+- New: T6 "Upgrade resolves hook matchers per group" (installer, `install.sh`, M, depends on T1) owns `tests/scripts/install-upgrade.sh`; T7 "Docs describe the upgrade matcher rule" (root-docs, `README.md`, `CHANGELOG.md`, S, depends on T6) owns `tests/lint/install-matcher-docs.sh`. Both edges gate test ownership. Waves: 1 = T1, T2, T3; 2 = T4, T5, T6; 3 = T7. Stakeholder: "Approve (Recommended)".
+- Seams (2.3): T6 through the `install.sh` CLI on a fixture target; T7 through grep over the four docs. Stakeholder: "Agree (Recommended)". No new shared-core request (2.4). Budget D18 unchanged.
