@@ -7,7 +7,7 @@ cache_stamps:
 
 # Codebase map: Sub-agents can write their own result file
 
-Affected area: hooks (`.agents/hooks`), feature-workflow (`.agents/skills/feature-workflow`), agents (`.agents/agents`), tests (`tests`)
+Affected area: hooks (`.agents/hooks`), feature-workflow (`.agents/skills/feature-workflow`), agents (`.agents/agents`), tests (`tests`), installer (`install.sh`), root-docs (`README.md`, `CHANGELOG.md`)
 
 ## Relevant code
 
@@ -169,3 +169,30 @@ Owning modules: feature-workflow, hooks, lib (shared core). One `module-audit` p
 - Any existing merge gate, read-only allowlist, or `|`/`&&` segment parsing: `.agents/skills/feature-workflow/scripts/`, `modules/`. Reported by module-audit.
 - Any hook besides `worktree-write-guard.sh`, `post-implementation-audit.sh`, `codex-pre-spawn.sh`, `codex-write-guard.sh` that builds or parses `s<NNN>_` names: `.agents/hooks/**`. Reported by module-audit.
 - Cache disagrees with code: none. The "Worktree write hook" row omits the rule-2 fallback and the allow when neither rule applies (`worktree-write-guard.sh:15-16`); a retrieval summary gap, not a cache fault. Reported by module-audit.
+
+### installer (added after the upgrade-matcher-merge loop-back)
+
+| Kind | Finding | Source |
+| --- | --- | --- |
+| reuse | `cmds` collects every hook command under an event; the way to find "a group that runs a template command". | `install.sh:213` |
+| reuse | jq returns `{out, conflicts, warnings}`; `merge_json` turns `.warnings[]` into `warn` lines, so keep and non-terminal-merge warnings need no new plumbing. | `install.sh:231`, `:282` |
+| reuse | Shell options reach jq as `--argjson force`; the channel for a `--matchers` value. | `install.sh:276` |
+| reuse | Flag parsing: `--host` / `--host=*`, then a validating `case` that `die`s (exit 2); unknown `-*` exits 2. | `install.sh:64-73`, `:82` |
+| reuse | Dry run prints a `diff -u` of an existing settings file against the plan, so a matcher rewrite shows with no extra code. | `install.sh:471-475` |
+| reuse | `merge_json` writes nothing when the normalised output equals DEST (idempotence check). | `install.sh:283-285` |
+| gap | `merge_groups` never reads or writes `.matcher`; a partly present template group is appended with only its missing hooks under the template matcher. | `install.sh:214-218` |
+| gap | `JQ_MERGE` is one pure jq pass that cannot prompt; per-group answers need bash to find the differing groups first, then apply the answers. | `install.sh:265-286` |
+| gap | No terminal detection or interactive `read` exists. | `install.sh` (rg `-t`, `tty`, `stdin`: none) |
+| gap | No notion of a matcher already covering the template's; without it every re-run would ask again. | `install.sh:16`, `:208` |
+| gap | Commands match by exact string; a differently spelled copy of a hook is not seen as the same. | `install.sh:217` |
+| constraint | `set -euo pipefail`: a bare `read` at EOF exits the script. Exit codes fixed: 0, 1 refused, 2 usage. | `install.sh:38`, `:41` |
+| constraint | Every check runs before any write and refusals are reported after both JSON merges, so a prompt inside `merge_json` runs before the run is known to refuse. | `install.sh:32`, `:345`, `:353`, `:449-467` |
+| constraint | A prompt inside the `while read ... < <(jq ...)` loops would read the loop's input; interactive input needs its own fd or a separate step. | `install.sh:281-282` |
+| constraint | `--force` reaches only `keyrule` and type checks, never `merge_groups`. | `install.sh:225-227`, `:234`, `:240`, `:276` |
+| constraint | `usage()` prints the header between `# Usage:` and `# What it does:`; the new flag goes inside that range. Header lines that become wrong: step 3 hook groups, step 4 Codex "(same hook rules)", the Conflicts `--force` sentence, the comment above `JQ_MERGE`, the test list. | `install.sh:3-9`, `:18-19`, `:22`, `:32-39`, `:56`, `:208-210` |
+| constraint | Claude and Codex files share `merge_json` and `JQ_MERGE`; when DEST is absent the template is copied with no merge and no question. | `install.sh:268-270`, `:345`, `:353` |
+| constraint | `LC_ALL=C` exported; `jq -S` sorts keys, not arrays or matcher alternatives, so alternative order matters for idempotence. | `install.sh:42`, `:283` |
+
+Seams (additions): `install.sh <target> [--host ...] [--force] [--dry-run]` (exit 0/1/2; checks before writes; Warnings on stdout, refusals on stderr; `install.sh:3-8`, `:32-38`, `:62-82`); `merge_json NAME TEMPLATE DEST OUT` (`install.sh:263-286`); `JQ_MERGE` / `merge_groups($cur; $new)` (`install.sh:212-261`); `refuse` / `warn` (`install.sh:119-122`); `write_file SRC DEST LABEL` (`install.sh:470-479`).
+
+Not found (installer audit): terminal detection, interactive `read`, `/dev/tty` or a prompt helper; any code reading or writing a group's `matcher`; any manifest entry the change needs. No cache disagrees with code.

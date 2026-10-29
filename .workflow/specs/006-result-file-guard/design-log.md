@@ -184,3 +184,90 @@ Spec: [spec.md](spec.md)
 
 - `wf_enc` and `wf_agent_worktree_name` applied (fd4a1d7, merged). Launched under `isolation: "worktree"` per the current module; isolation refused the main-checkout result-file write again (heredoc and Write), so the main session copied `integration.yaml` from the agent's worktree by hand. `check-task-result.sh` exit 0; `toolchain.json` pass. `lib-workflow-paths` 98 passed, 1 failed (the hooks' `codex_enc` check, owned by T1).
 - Task PRs: `origin` is a local path, so `open-task-pr.sh` skips before pushing ("origin host is neither GitHub nor GitLab"); task merges are local and `pr` stays null.
+
+## 2026-10-29 Discovered work: refusal-line-count-test
+
+- Found at: step 3.4 by the T2 implementation agent (`artifacts/T2/implementation-r1.yaml`). Kind: bug
+- Problem and evidence: the Phase 1 helper `expect_refused` in `tests/scripts/check-merge-artifacts.sh:89` compares the output line count with `$#` inside the expression it hands `check`, which evals it in its own body (`tests/lib/common.sh:65-66`), so `$#` is always 3; the 7 refusal cases fail with a correct gate (right exit code and paths).
+- Assessment and ruling: blocker (JRN-007 cannot pass); stays blocked, human resolves. Stakeholder: "Fix in T2 (Recommended)": T2's agent fixes the three test lines on its task branch and reruns its gates; no loop back.
+
+## 2026-10-29 Wave 1 gates (3.4)
+
+- T2 and T3 returned `tests_added: []`. T2's gate is covered by its Phase 1 suite, which already holds negative cases (every exit-2 usage and environment error) and edge cases (look-alike folder, a branch synced with the newer spec branch, detached commits); T3 is doc text whose cases live in T4's and T5's suites. 3.4 judged met without a resume. T2's fix round added a `shellcheck disable=SC2034` line beside the ruled `want=$#` fix (the variable is read only inside the evaled check expression).
+
+## 2026-10-29 Discovered work: upgrade-matcher-merge
+
+- Found at: step 3.4 by the T1 implementation agent (`artifacts/T1/implementation.yaml`, status scope-expansion, requested path `install.sh`). Kind: scope-expansion
+- Problem and evidence: `install.sh` `merge_groups` (`JQ_MERGE`) appends only hook commands missing under an event, so an upgrade keeps the old SubagentStop group (matcher `implementation`) and integration agents in upgraded targets are never stop-audited; `scripts/install-upgrade` "JRN-006 after the upgrade: the stop audit matcher matches integration" fails. The 2.1 breakdown missed it: no task owned the installer module. How to treat a hand-edited matcher is undecided.
+- Assessment and ruling: blocker (End state "an `install.sh` upgrade leaves exactly one SubagentStop entry", JRN-006); to discovery (spec back to draft). Stakeholder: "Back to discovery (Recommended)".
+- State kept: T2 (gate) and T3 (briefs) passed 3.8, unmerged on their task branches; T1 done apart from the upgrade case (52daec3, toolchain red on that one case), unmerged. Task worktrees s006_t1, s006_t2, s006_t3 left in place. The integration batch is merged on the spec branch.
+Outcome: loop back (00.24 discovered work)
+
+## 2026-10-29 Facts behind round 5 (0.3.10)
+
+- fact-lookup: `install.sh` `merge_groups` matches groups by hook command only and never reads or rewrites an existing group's matcher; no scaffold-owned marker exists (`install.sh:212-218`, `:237-242`; `claude-settings.template.md` § Merge rules). No template matcher has changed before (`git log -G'"matcher"'`: aa05f00, 4640be9). Codex's SubagentStop group has no matcher (`codex-hooks.template.json:68-79`). Warnings print in a `Warnings:` block on stdout, also under `--dry-run` (`install.sh:119-122`, `:578-581`). JRN-006 asserts one SubagentStop entry, one stop-audit group, and matches for `implementation` and `integration` (`tests/scripts/install-upgrade.sh:81-96`); no case covers a user-edited matcher.
+
+## 2026-10-29 Questioning round 5 (0.3.11)
+
+- **D19 Upgrade rule for a changed matcher.** Options: widen by union of `|` alternatives with a warning; replace with the template's and warn; warn only. Recommended: widen by union. Answer: "Ask the user if they want to replace or split the matchers, list what is currently there and what the replace would turn it into." The installer asks per differing group, showing the current matcher and the proposed one; "split" and the no-answer case are open (round 6).
+- **D20 Rule scope.** Options: every event; SubagentStop only. Recommended: every event. Answer: "Every event (Recommended)".
+
+## 2026-10-29 Facts behind round 6 (0.3.10)
+
+- fact-lookup: `install.sh` never prompts or reads stdin; flags are `<target>`, `--host`, `--force`, `--dry-run`, `-h` (`install.sh:62-82`). Test suites call it through `INST()` with no stdin redirect (`tests/scripts/install-*.sh`), so an unguarded prompt could hang them. Refusals print to stderr and exit 1 before any write, also under `--dry-run` (`install.sh:461-467`, `:583-586`). Matcher behaviour is in no user doc; the lines to update are README "Install and upgrade" L88-94, CHANGELOG 2.0.0 Migration (L55-57), `claude-settings.template.md` Merge rules L48 and L54, and the `install.sh` header (L18-20, Conflicts L32-38).
+
+## 2026-10-29 Questioning round 6 (0.3.11)
+
+- **D21 What "split" means.** Options: merge both matchers' `|` alternatives into one group; add a second group with the template's extra alternatives. Recommended: merge into one. Answer: "Merge into one (Recommended)" (`implementation|foo` with template `implementation|integration` gives `implementation|foo|integration`; replace gives the template's value).
+- **D22 No terminal (CI, test suites) and `--dry-run`.** Options: keep and warn; refuse; merge silently. Recommended: keep and warn. Answer: "Merge silently": without a terminal the installer applies the merge and prints a Warnings line; `--dry-run` shows the change and asks nothing.
+- **D23 Command-line choice.** Options: `--matchers=replace|merge|keep`; `--force` implies replace. Recommended: `--matchers=MODE`. Answer: "--matchers=MODE (Recommended)"; `--force` leaves matchers alone.
+- **D24 Docs.** Options: all four (install.sh header, README "Install and upgrade", `claude-settings.template.md` Merge rules, a CHANGELOG 2.0.0 Migration line); code docs only. Recommended: all four. Answer: "All four (Recommended)".
+
+## 2026-10-29 Questioning round 7 (0.3.11)
+
+- **D25 Prompt answers.** Options: merge/replace/keep with Enter = merge; merge/replace only. Recommended: merge/replace/keep, Enter = merge. Answer: "Merge/replace/keep, Enter=merge (Recommended)". The prompt names the event and the scaffold command, and shows current, replace and merge lines; keep leaves the group and warns.
+
+## 2026-10-29 Goal re-settled (0.3.19), after the upgrade-matcher-merge loop-back
+
+- Summary of D19-D25 restated: `install.sh` merges, replaces or keeps a differing matcher per hook group on every event (prompt at a terminal with Enter = merge, merge with a warning without one, `--matchers=merge|replace|keep`, `--dry-run` asks nothing, `--force` leaves matchers alone), documented in four places. Placement: installer module (new owner for this spec), hooks (`claude-settings.template.md` Merge rules, T1's file), root-docs (README; CHANGELOG has no owning module and goes with root-docs). Still one feature: the upgrade rule joins CAP-NEW-result-file-write's success line. Stakeholder: "Matches". `light_path` stays false.
+
+## 2026-10-29 Light-path test (0.3.20), re-run
+
+- `light_path: false`: footprint now spans lib, feature-workflow, hooks, agents, installer, root-docs and tests. Continue at 0.4.
+
+## 2026-10-29 Impact classification update (0.4.4, after rounds 5-7)
+
+| Part | Module | Class |
+| --- | --- | --- |
+| `install.sh` `merge_groups`: per-group matcher resolution (merge / replace / keep) on every hook event | installer | extend |
+| `install.sh` terminal prompt, `--matchers=MODE` flag, no-terminal merge with a warning, `--dry-run` preview | installer | create |
+| `install.sh` header (usage, flags, Conflicts, hook merge summary) | installer | doc update |
+| `.agents/install-manifest.txt` | installer | unchanged |
+| `claude-settings.template.md` Merge rules (L48, L54) | hooks | doc update (joins T1's file) |
+| README "Install and upgrade" | root-docs | doc update |
+| CHANGELOG 2.0.0 Migration line | none (no owning module; with root-docs) | doc update |
+| `tests/scripts/install-upgrade.sh` JRN-006, new prompt and flag cases | tests | extend |
+| Codex `.codex/hooks.json` merge | installer | unchanged in effect (no matcher on its groups) |
+
+## 2026-10-29 Module audit installer (0.4.6) and conflict check (0.4.7)
+
+- `module-audit` (installer) written to `codebase-map.md`. No cache disagrees with code. Its decision lines (mixed groups, matcher forms, what "per group" means, dry-run preview, re-run idempotence) are goal conflicts at 0.4.7, sent back to the loop as round 8.
+
+## 2026-10-29 Questioning round 8 (0.3.11)
+
+- **D26 Mixed groups.** Options: ask (the prompt lists every hook in the group) and never auto-merge a group holding a non-template hook (keep and warn without a terminal; `--matchers` still applies); treat all groups alike. Recommended: ask, never auto-merge. Answer: "Ask, never auto-merge (Recommended)".
+- **D27 Matcher forms.** Options: absent, `""` and `"*"` are match-all, an existing match-all group is never touched, a match-all template makes merge and replace drop the matcher, and merge is offered only when both matchers are plain alternations (`[A-Za-z0-9_|]`); absent only, split everything. Recommended: the first. Answer: "Match-all + plain only (Recommended)".
+- **D28 Per group.** Options: each existing group running at least one command of a template group under a matcher that does not cover the template's is resolved on its own, missing commands still appended; the template group as one unit. Recommended: each existing group. Answer: "Each existing group (Recommended)".
+- **D29 Re-runs and --dry-run.** Options: a matcher whose alternatives include all of the template's counts as no difference (idempotent), and `--dry-run` without `--matchers` previews the no-terminal outcome; dry-run lists only. Recommended: the first. Answer: "Covered = same; preview default (Recommended)".
+
+## 2026-10-29 Goal re-settled (0.3.19), after round 8
+
+- D26-D29 restated as one rule; written into `spec.md` Constraints. Stakeholder: "Matches". `light_path` stays false; 0.4.4 classification unchanged by round 8.
+
+## 2026-10-29 End state (0.5), after the upgrade-matcher-merge loop-back
+
+- `verification-plan.md`: one End state objective for the matcher resolution; journeys JRN-011 (no terminal), JRN-012 (`--matchers`, dry-run, `--force`, non-plain matcher), JRN-013 (terminal prompt, pseudo-terminal, skipped where none exists), JRN-014 (four docs); fixtures "Upgrade target with user groups" and "Pseudo-terminal". Targets and Suites keep their rows; 1.1 re-entry adds targets only for the new work.
+
+## 2026-10-29 Exit gate (0.6): clear, after the loop-back
+
+- Scope: Open Questions empty; the audit's can-wait lines were ruled in round 8 (D27 non-plain matchers, D29 dry-run), nothing shelved. System impact: installer audit in `codebase-map.md`; no cache disagrees with code. Data changes: `data-model.md` adds matcher resolution and M2 after M1. Testable objectives: the new objective has JRN-011 to JRN-014.

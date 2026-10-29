@@ -1,0 +1,20 @@
+== lint: git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+== lint exit 0
+
+== test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
+== scripts/install-claude-settings
+== scripts/install-upgrade
+FAIL JRN-006 after the upgrade: the stop audit matcher matches integration
+       [{"matcher":"implementation","hooks":[{"type":"command","command":"\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/post-implementation-audit.sh","timeout":600}]}]
+== scripts/lib-workflow-paths
+== hooks/audit-agent-worktrees
+
+== summary
+PASS scripts/install-claude-settings        passed=36   failed=0   skipped=0   xfail=0   22s
+FAIL scripts/install-upgrade                passed=17   failed=1   skipped=0   xfail=0   26s
+PASS scripts/lib-workflow-paths             passed=99   failed=0   skipped=0   xfail=0   2s
+PASS hooks/audit-agent-worktrees            passed=21   failed=0   skipped=0   xfail=0   3s
+TOTAL passed=173 failed=1 skipped=0 xfail=0 (4 suites)
+FAILED suites: scripts/install-upgrade
+== test exit 1
+

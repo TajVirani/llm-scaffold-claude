@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Hooks build agent worktree names from the shared lib"
-    status: pending
+    status: in-progress
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: true
@@ -29,7 +29,7 @@ tasks:
     pr: null
   - id: T2
     title: "Artifacts merge gate"
-    status: pending
+    status: in-progress
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: false
@@ -48,7 +48,7 @@ tasks:
     pr: null
   - id: T3
     title: "Agent briefs write the result file to the main checkout"
-    status: pending
+    status: in-progress
     capability: CAP-NEW-result-file-write
     depends_on: []
     touches_core: false

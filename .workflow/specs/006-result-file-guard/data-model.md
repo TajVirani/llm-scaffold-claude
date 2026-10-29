@@ -54,3 +54,24 @@ The git worktree the orchestrator creates for one coding launch; the worktree gu
 | # | Migration | Classification | Reversible | Depends on | Data handling |
 | --- | --- | --- | --- | --- | --- |
 | M1 | SubagentStop matcher widened to integration in the Claude settings template; target projects pick it up on the next `install.sh` run, this repo by hand | extend | yes (restore the matcher) | - | none; the upgrade must not leave a duplicate SubagentStop entry |
+
+## Upgrade: matcher resolution (added after the upgrade-matcher-merge loop-back)
+
+| Part | Kind | Classification | Owning module |
+| --- | --- | --- | --- |
+| `install.sh` `merge_groups` matcher resolution per group, every hook event | interface | extend | installer |
+| `install.sh` `--matchers=merge\|replace\|keep` flag and terminal prompt | interface | create | installer |
+| `claude-settings.template.md` Merge rules; README; CHANGELOG Migration | doc | extend | hooks, root-docs |
+
+### Matcher resolution (create)
+
+| Field | Type | Required | Validation rule | Change |
+| --- | --- | --- | --- | --- |
+| mode | enum | yes | `merge` \| `replace` \| `keep`; from `--matchers`, else the prompt answer at a terminal (Enter = `merge`), else `merge` with a warning (CAP-NEW-result-file-write) | create |
+| merged matcher | string | for `merge` | existing `|` alternatives in order, then the template's missing ones; a group with no matcher is left alone | create |
+
+**Invalid states ruled out:** two groups under one event running the same scaffold command after an upgrade; a prompt waiting with no terminal; `--dry-run` writing or asking.
+
+| # | Migration | Classification | Reversible | Depends on | Data handling |
+| --- | --- | --- | --- | --- | --- |
+| M2 | Upgraded targets' SubagentStop matcher `implementation` becomes `implementation\|integration` through the matcher resolution (merge by default) | extend | yes (restore the matcher by hand, or re-run with `--matchers=keep` before it applies) | M1 | none |

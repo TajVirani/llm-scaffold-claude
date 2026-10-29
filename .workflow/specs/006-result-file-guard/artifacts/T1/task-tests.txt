@@ -1,0 +1,4 @@
+tests/scripts/lib-workflow-paths.sh
+tests/hooks/audit-agent-worktrees.sh
+tests/scripts/install-claude-settings.sh
+tests/scripts/install-upgrade.sh
