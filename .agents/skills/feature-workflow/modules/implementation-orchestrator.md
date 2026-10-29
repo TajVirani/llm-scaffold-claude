@@ -105,7 +105,6 @@ Before launching the wave, collect its shared-core change requests: the **Notes*
 
 ```bash
 git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
-# e.g. git worktree add .workflow/.worktrees/s007_integration_web -b wf/007-checkout/s007_integration_web spec/007-checkout
 ```
 
 `.workflow/.worktrees/` is gitignored. Name the worktree's absolute path in the brief as the directory the agent works in. A resumed batch or a fix round reuses the worktree. The merge removes it, so a later batch of the same work type creates it again off the new spec-branch tip.
@@ -139,7 +138,6 @@ After 3.2's merges, commit the workflow data you have written since the last com
 ```bash
 .agents/skills/feature-workflow/scripts/commit-workflow-data.sh .workflow/specs/NNN-slug -m "Workflow data for NNN-slug: wave <N> start"
 git worktree add .workflow/.worktrees/<task_name> -b <branch> spec/NNN-slug
-# e.g. git worktree add .workflow/.worktrees/s007_t3 -b task/007-checkout/T03-guest-cart spec/007-checkout
 ```
 
 Light path (`branch: null`): no task branch; create the worktree detached at the spec-branch tip (`git worktree add --detach .workflow/.worktrees/<task_name> spec/NNN-slug`) and fast-forward the spec branch to its commits at 3.16. A worktree that already exists (resume, fix round, rework) is reused; on the light path, skip the commit too when it exists, so the spec branch stays where the worktree forked. Integration worktrees are created at 3.2 as above.
@@ -317,7 +315,7 @@ A stop halts the task. Let the rest of the wave finish its gates and merge what 
 | `blocked` on a decision | Ask the stakeholder; with no answer available, block with the decision as the condition. | 3.3 |
 | Fifth fix round fails | Block with the open findings and the gate that keeps failing. | the failing gate (3.6, 3.8, 3.9, 3.11) |
 | Integration `conflict` with no decision | Block with both consumers' needs. | 3.2 |
-| Agent keeps working outside its worktree (repeated worktree-guard denies, or main-checkout edits through Bash) | Never relaunch it another way. Block the task with the denies as the condition. | 3.3 (3.2 for an integration batch) |
+| Agent keeps working outside its worktree (repeated worktree-guard denies, or main-checkout edits through Bash) | Never relaunch it another way: isolation cannot be configured from this repo, and an isolation launch is refused the result-file write to the main checkout. Block the task with the denies as the condition. | 3.3 (3.2 for an integration batch) |
 | `hitl` task with no human input available (3.3) | Leave it `pending`; once the rest of the wave has merged, block with what the task needs from a human (its task file's **Mode** line). | 3.3 |
 
 ## Hand off

@@ -46,7 +46,6 @@ work_type: test-harness        # e2e-browser for 1.3
 
 ```bash
 git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
-# e.g. git worktree add .workflow/.worktrees/s007_phase_1_test_harness -b wf/007-checkout/s007_phase_1_test_harness spec/007-checkout
 ```
 
 `.workflow/.worktrees/` is gitignored. Name the worktree's absolute path in the brief as the directory the agent works in: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside it. A resumed or relaunched build reuses the worktree while it exists. The merge removes it, so a 1.4 loop back creates it again with the same command, off a spec-branch tip that already holds the earlier round. 1.3 creates its worktree only after the 1.2 merge, so it starts from the harness.
@@ -61,7 +60,7 @@ git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
   EOF
   ```
 
-- **Denied outside its worktree.** An agent that keeps getting denied, or edits the main checkout through Bash, is never relaunched another way. Block the spec at its node: `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step <1.2 or 1.3> --blocked "phase-1-<work_type> cannot work inside its agent worktree: <the deny>"`.
+- **Denied outside its worktree.** An agent that keeps getting denied, or edits the main checkout through Bash, is never relaunched another way: isolation cannot be configured from this repo, and an isolation launch is refused the result-file write to the main checkout. Block the spec at its node: `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step <1.2 or 1.3> --blocked "phase-1-<work_type> cannot work inside its agent worktree: <the deny>"`.
 - **No profile.** A deny that names 00.19 means `.workflow/profiles/<work-type>.md` is missing. Create it with the human from `.workflow/profiles/TEMPLATE.md` (the shipped `test-harness` and `e2e-browser` examples are a starting point): `.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 00.19`, then Write the new profile, then launch again. With no human available, block the spec: `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step 00.19 --blocked "no <work-type> profile; a human must define .workflow/profiles/<work-type>.md"`.
 
 **When the launch returns.** The stop audit has run the profile toolchain under the evidence id `phase-1-<work_type>`, with the `test` key skipped: the new tests are red by design until the feature is built, and 1.4 is what proves they fail. `lint`, `typecheck`, `format` and `boundary` still run. The agent has written its result block to its result file and returned only a summary block; never retype the block. Check the file:
