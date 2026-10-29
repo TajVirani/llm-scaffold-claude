@@ -14,7 +14,7 @@ Rules:
 ## Link to issue
 
 <!-- The tracker issue this spec delivers, as a URL. Until the workflow creates issues, use this fixed stub line:
-No tracker issue yet: creating one when a spec starts is shelved in .workflow/deferred/spec-issue-creation.md. -->
+No tracker issue yet: the workflow does not create one when a spec starts. -->
 
 ## What changed
 
