@@ -271,3 +271,7 @@ Outcome: loop back (00.24 discovered work)
 ## 2026-10-29 Exit gate (0.6): clear, after the loop-back
 
 - Scope: Open Questions empty; the audit's can-wait lines were ruled in round 8 (D27 non-plain matchers, D29 dry-run), nothing shelved. System impact: installer audit in `codebase-map.md`; no cache disagrees with code. Data changes: `data-model.md` adds matcher resolution and M2 after M1. Testable objectives: the new objective has JRN-011 to JRN-014.
+
+## 2026-10-29 Targets (1.1), re-entry for JRN-011 to JRN-014
+
+- Baseline `e049f4d` and the existing Targets rows kept. **D30 Installer targets.** Options: none new; a no-hang row (upgrade with stdin an open pipe exits within 10 s); a no-op re-run time row. Recommended: none new (script-lint, script-coverage and agent-docs-lint already cover `install.sh`, README and the template doc; JRN-011 to 014 prove the behaviour). Answer: "None new (Recommended)".
