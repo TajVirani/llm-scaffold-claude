@@ -227,3 +227,17 @@ Seed: triage F4 (review-end-state RE-1), project mode reads only `##` headings.
 - 3.4 T6: no tests added; its change is 5.2/5.4 prose covered by the three JRN-006 text cases it turned green. 3.8 T6: mini-review pass, no out-of-scope notes. T6 limits the 5.4 exit-2 route to an exit 2 whose message names the host template (a missing body or usage error still stops and reports).
 - 3.4 T5: resumed once for edge cases (seven-hash template exits 2; tab and extra spaces after `##` in workflow mode), 47/47. 3.8 T5: mini-review pass, no notes. 3.16 wave 3: T5, T6 merged; no task PRs (origin is neither GitHub nor GitLab).
 - 3.15 wave 3: within budget, 10 of 30 changed files. 3.9 wave 3 (last): pass, `TOTAL passed=3166 failed=0` (58 suites, nothing excluded), evidence `artifacts/gate-3.9-w3/`. 3.10-3.11: no browser suite; in-review at 3.11.
+
+## 2026-10-29 Triage, review pass 1
+
+Second review cycle, after the 4.5 loop-back. The first cycle's pass files are in `artifacts/review/cycle-1-pass-1/`. Its patches are done: F1 in T5, F2 in T6, F5 in the 1.2 re-entry. F3 and F6 are carried as proposals P1 and P2.
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F7 (RE-1), F8 (RS-1) | review-end-state, review-standards | 5.4 still says a host template has only `##` headings to fill, and that exit 2 means "no `##` headings". D19 reads every level, `#` to `######` | `.agents/skills/feature-workflow/modules/sign-off.md:103,112` | medium | Read both lines against `check-pr-body.sh` after T5 and D19. An agent following 5.4 would leave a mixed-level template's `###` sections unfilled, then loop on exit 1. Same root cause, one entry | patch (T6) |
+| F9 (RS-2) | review-standards | 5.4 says always name `report.md` and the task PRs under Special things to note; the template guidance says "None." when the report's known gaps and deferred items are both empty | `.agents/skills/feature-workflow/modules/sign-off.md:102`; `.agents/skills/feature-workflow/assets/pr-template.md:34-35` | low | Read both. The two disagree on every sign-off with no gaps (single source of truth) | patch (T6): move the `report.md` and task PR/MR links into the template guidance, so "None." covers only gaps and deferred items, and drop the separate sentence from 5.4 |
+
+Gaps read, not findings: TGT-008 not measured (stakeholder decision, 1.1). The end-state lens's three `not_verifiable` items (live `gh` flags, JRN-007 and the success signal, evidence-based filling) are checked at this spec's own 5.4-5.8, as in the first cycle.
+
+Failed lenses: none
+Outcome: rework 1 of 5
