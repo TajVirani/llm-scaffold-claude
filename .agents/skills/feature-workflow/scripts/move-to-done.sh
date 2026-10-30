@@ -69,7 +69,8 @@ open_sub_items() {
     status=$(yq --front-matter=extract '.status // ""' "$item") || die "cannot read the status of $WF_WORK_BACKLOG/${item##*/}"
     case $status in
       open | promoted | moved-to-deferred | dismissed) ;;
-      *) printf 'open: backlog item %s (%s)\n' "$WF_WORK_BACKLOG/${item##*/}" "${status:-no status}" ;;
+      *) printf 'open: backlog item %s (%s)\n' "$WF_WORK_BACKLOG/${item##*/}" "${status:-no status}" ||
+        die "cannot write the list of open sub-items" ;;
     esac
   done
 }
@@ -204,9 +205,10 @@ move_refusal() {
   local spec_dir=$1 status
   status=$(yq --front-matter=extract '.status // ""' "$(wf_path "$ROOT" "$spec_dir/spec.md")") ||
     die "cannot read the status of $spec_dir/spec.md"
-  [[ "$status" == "done" ]] || echo "status is ${status:-empty}, not done"
+  [[ "$status" == "done" ]] || echo "status is ${status:-empty}, not done" || die "cannot write why $spec_dir cannot move"
   open_sub_items "$spec_dir"
-  [[ ! -e "$(wf_path "$ROOT" "$WF_SPECS_DONE/${spec_dir##*/}")" ]] || echo "$WF_SPECS_DONE/${spec_dir##*/} already exists"
+  [[ ! -e "$(wf_path "$ROOT" "$WF_SPECS_DONE/${spec_dir##*/}")" ]] || echo "$WF_SPECS_DONE/${spec_dir##*/} already exists" ||
+    die "cannot write why $spec_dir cannot move"
 }
 
 # replace_file FILE : copy TMP_FILE over FILE when they differ, keeping FILE's mode and a copy of its old content for a
@@ -297,7 +299,9 @@ list_files_naming() {
   local name=$1 rel file status=0
   while IFS= read -r -d '' rel; do
     file=$ROOT_PREFIX$rel
-    if [[ -f "$file" && ! -L "$file" ]]; then printf '%s\0' "$file"; fi
+    if [[ -f "$file" && ! -L "$file" ]]; then
+      printf '%s\0' "$file" || die "cannot write the list of workflow files to search"
+    fi
   done <"$LIST_FILE" >"$CANDIDATE_FILE" || die "cannot write the list of workflow files to search"
   # The search below reads a failed redirect as "no file names the spec", so both files are opened here first.
   : >"$MATCH_FILE" || die "cannot write the list of workflow files that name the spec"
