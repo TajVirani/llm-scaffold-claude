@@ -310,3 +310,4 @@ Outcome: rework 1 of 5
 ## 2026-10-30 Rework 1 merged (3.16)
 
 - T2 `6219d5c` merged: F1 (suite body comment without a journey id) and F2 ("agent worktree" in the hook header and suite labels) patched. Rework mini-review failed R5 (journey ids on suite-header lines 14 and 17); a wording-only fix round passed the re-check. Its remaining `out_of_scope_noticed` entry duplicates disc-006 (nothing new filed).
+- 3.9 after rework 1: full harness `TOTAL passed=3678 failed=0 skipped=0 xfail=0 (62 suites)` (`artifacts/gate-3.9-rework1/`); budget 4 tasks, 11 of 30 changed files. In-review at 3.11; no patch was verified high, so Phase 4 ends after the rework (no pass 2).
