@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-validator-diagnostic
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "status-transition.sh set-task and initiative-transition.sh CLIs (exit code, stderr, files), driven by their suites with a yq shim"
     file: tasks/T01-validator-error-diagnostic.md
