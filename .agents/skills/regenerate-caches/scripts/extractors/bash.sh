@@ -238,6 +238,7 @@ function walk_quotes(text, still_open_at_end, rewriting,   depth, kind, spans, n
     } else if (inner == "(" && ch == ")") {
       depth--
       keep_or_hide(spans[depth] ? ") " : ")", 0)
+    # Step over a here-string whole: its second < would otherwise match the heredoc pattern and skip the rest of the file.
     } else if (substr(text, i, 3) == "<<<") {
       keep_or_hide("<<<", 0); i += 2
     } else {
