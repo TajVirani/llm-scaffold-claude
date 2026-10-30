@@ -197,3 +197,8 @@ Seeded by the module-audit refresh: after the move the D11 deny blocks every Wri
 
 - Fail: R2 (`modules/large-path.md:289`, the skip of slices not in `done/` needs its reason). Out of scope noticed: the 6.13 `sed` rewrite misses the second of two adjacent occurrences separated by one character (`large-path.md:291`). Not discovered work: a defect in T4's own change, fixed in this round. Behaviour fix round: fresh launch.
 - T4 round 2 pass. Out of scope noticed (`move-to-done.sh` is still the stub): not discovered work; it is T5.
+
+## 2026-10-30 T5 mini-review round 1
+
+- Fail: item 3 (four reads at `move-to-done.sh:222-231` treat a failure as a clean result), item 4 (`git branch --show-current` at :110 exits with git's status, not 2), item 8 (the awk helper `adjusted` at :156 has no contract line). Out of scope noticed (an environment error after the `mv` at :217 leaves the spec moved and uncommitted, unreported): not discovered work; a defect in T5's own change, fixed in this round. Behaviour fix round: fresh launch.
+- T5 round 3 re-check pass. Out-of-scope note (toolchain tree hash differs from the git tree): not discovered work; `run-toolchain.sh --reuse` on head e9ed598 matched the recorded tree.

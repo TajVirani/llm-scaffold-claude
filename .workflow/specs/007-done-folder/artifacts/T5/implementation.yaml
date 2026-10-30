@@ -1,0 +1,30 @@
+status: "done"
+summary: "Round 3 fixes the two mini-review wording items in comments only, with no behaviour change: the tracked check and --no-renames in move-to-done.sh each now carry a reason, and the move_spec contract gives the reason for its exclusions without naming folders. Round 2 work stands: a failed run after the first move rolls back the moved specs, step markers, rewritten files and index and exits 2, every read stops the script with an error, and adjusted has its contract line."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t5"
+branch: "task/007-done-folder/T05-move-to-done-script"
+base_commit: "9b2d534"
+head_commit: "e9ed598541c3b89001e5780ac0c072534d392e42"
+files_changed: [".agents/skills/feature-workflow/scripts/move-to-done.sh", "tests/scripts/move-to-done.sh", "PROVENANCE.md"]
+tests_added:
+  - {file: "tests/scripts/move-to-done.sh", test: "a failing read of the checked-out branch exits 2 and changes nothing", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "a failing list of the workflow files exits 2, rolls back and commits nothing", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "a failing check for the tracked spec files exits 2, rolls back and commits nothing", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "an unreadable workflow file that names the spec exits 2, rolls back and commits nothing", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "an unreadable folder inside the spec exits 2, rolls back and commits nothing", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "a failing commit after the move exits 2", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "a failing commit after the move leaves the spec, its step marker, every rewritten file and the index as they were", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "a sweep that cannot rewrite a file for its second spec exits 2", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "the failed sweep puts the first spec it moved back too, and commits nothing", kind: "negative"}
+evidence:
+  red: "Round 2: tests/run-all.sh --suite scripts/move-to-done with the pre-fix script from 94ff394 gave passed=104 failed=7 (e.g. 'FAIL a failing list of the workflow files exits 2, rolls back and commits nothing  rc=0: git: refused by the test'). Ten one-line mutants of the fixed script each failed the matching new case. Round 3 changes comments only."
+  green: "tests/run-all.sh --suite scripts/move-to-done: passed=111 failed=0; round 2 full tests/run-all.sh: TOTAL passed=3789 failed=0 (64 suites)"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/007-done-folder --task-id T5 --cwd <worktree> (after the round 3 comment edits): exit 0, lint pass, scoped test 111/111"
+  toolchain: ".workflow/specs/007-done-folder/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "Restoring rewritten files from git (index or HEAD): untracked workflow files have no git copy, and HEAD would drop uncommitted edits, so each file is copied to the temporary folder before it is rewritten and restored from there"
+  - "Skipping the chmod-based cases when the suite runs as root: no other suite does this, and the harness runs as the user"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
