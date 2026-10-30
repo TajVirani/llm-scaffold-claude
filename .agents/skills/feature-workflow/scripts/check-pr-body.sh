@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # File: Helper script (not a hook): check the shape of a filled Sign-off PR description (`pr-body.md`).
-# Purpose: Sign-off fills `.workflow/specs/NNN-slug/pr-body.md` at 5.4 and publishes it unchanged at 5.8. This script checks
-#   its shape both times, so a body with a missing, misplaced or empty section, or a risk score off its scale, never
-#   reaches the PR. The script only reads files.
+# Purpose: Sign-off fills `.workflow/specs/NNN-slug/pr-body.md` at 5.4 and publishes it at 5.8 unchanged apart from the spec path
+#   the move to the Done folder rewrites. This script checks its shape each time, so a body with a missing, misplaced or
+#   empty section, or a risk score off its scale, never reaches the PR. The script only reads files.
 #   Workflow mode (the default): the body follows assets/pr-template.md, whose `##` headings are read from the template
 #   itself: the ten sections in order (Link to issue, What changed, Why the change, Why this approach, Special things to
 #   note, How to test, Blast radius, Risk and reversibility, Areas, concepts and seams changed, How to undo this PR), each
@@ -25,7 +25,8 @@
 # Exit: 0 the body is valid; 1 one or more faults (one line each on stdout, nothing else); 2 usage error, missing or
 #   unreadable body or template, a project template with no headings at all, or (workflow mode) an assets/pr-template.md
 #   with no `##` headings or without the Risk and reversibility heading, a broken install (message on stderr).
-# Called by: modules/sign-off.md (5.4 after filling pr-body.md, 5.8 before publishing it).
+# Called by: modules/sign-off.md (5.4 after filling pr-body.md; 5.8 before the move and again on the moved body, which
+#   5.8 then publishes unchanged apart from the spec path the move rewrites).
 # Notes: bash 3.2 compatible; needs only awk, grep and sed.
 # Sources: first-party.
 
