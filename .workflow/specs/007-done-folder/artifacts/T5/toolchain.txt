@@ -5,7 +5,7 @@
 == scripts/move-to-done
 
 == summary
-PASS scripts/move-to-done                   passed=111  failed=0   skipped=0   xfail=0   79s
-TOTAL passed=111 failed=0 skipped=0 xfail=0 (1 suites)
+PASS scripts/move-to-done                   passed=117  failed=0   skipped=0   xfail=0   52s
+TOTAL passed=117 failed=0 skipped=0 xfail=0 (1 suites)
 == test exit 0
 

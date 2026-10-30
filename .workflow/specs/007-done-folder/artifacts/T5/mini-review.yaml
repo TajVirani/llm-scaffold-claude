@@ -1,0 +1,57 @@
+verdict: pass
+task_id: T5
+work_type: shell-scripts
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t5@a922c7cdbf9db2e8ff52b2338f238576ed0653d5..HEAD
+tool_output: .workflow/specs/007-done-folder/artifacts/T5/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:389-394 - the new spec_branch read and skip message use the existing $WF_SPECS variable, no .workflow path is spelled out; the fixture paths in tests/scripts/move-to-done.sh:407-431 are allowed
+  - n: 2
+    verdict: not-applicable
+    location: no hook file in the diff
+  - n: 3
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:389-390 - the yq read exits through die; 391-394 - the skip is the documented behaviour in the header at lines 5-8 and 22-23
+  - n: 4
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:22-26 - the Exit line documents 0, 1 and 2 with the skip case; no new exit code, the skip path continues and reaches exit 0 at line 408
+  - n: 5
+    verdict: not-applicable
+    location: the diff adds no sibling path; SCRIPT_DIR at move-to-done.sh:42 (cd -P) is unchanged
+  - n: 6
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:1-35 - helper header keeps File, Purpose, Usage, Exit, Called by, Notes and Sources; no decision ID in the added lines
+  - n: 7
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:392 and 185-186 use bracket-double test syntax; tests/scripts/move-to-done.sh:406-431 keep the file's [[ ]] checks
+  - n: 8
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:180-181 - the changed refuse_unsafe_checkout comment keeps the name ARGS colon what shape; no new function and no shellcheck directive in the diff
+  - n: R1
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:188 CURRENT_BRANCH, 389 spec_branch, 392 comparison; each name says what it holds, and the function comment at 180-181 documents the new CURRENT_BRANCH side effect
+  - n: R2
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:391 - the comment gives the reason for the skip, so a reader does not remove it as a bug
+  - n: R3
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:391 - the comment explains why, not what the next lines do
+  - n: R4
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:391 has no ID, path or URL; tests/scripts/move-to-done.sh:31 says sign-off 5.8 in the Covers header block, which names the caller and is not a body comment
+  - n: R5
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:391 uses plain words; spec_branch is an existing spec field already read by tests/scripts/move-to-done.sh:195, so it is not undefined shorthand
+read_outside_diff:
+  - .agents/skills/feature-workflow/scripts/move-to-done.sh - call sites at lines 375 and 381, SCRIPT_DIR at 42, die at 46, to confirm CURRENT_BRANCH is set before the sweep loop runs
+  - tests/scripts/move-to-done.sh - header lines 1-30, to see whether the sign-off 5.8 reference sits in the header block
+  - .workflow/specs/007-done-folder/artifacts/T5/toolchain.json - tool keys and rule set already run
+out_of_scope_noticed:
+  - kind: decision
+    summary: The skip keys on spec_branch matching the checked-out branch, not on whether a sign-off is running. A sweep run from a spec branch whose done spec is not being signed off leaves that spec in place and prints a message that names sign-off as the mover.
+    evidence: .agents/skills/feature-workflow/scripts/move-to-done.sh:392-395
+    blocker_assessment: can-wait
+    reason: The header at lines 5-8 and 22-23 documents this trade-off, and the sign-off module is the only caller that runs the sweep on a spec branch, so the misleading part is limited to the wording of one skipped line.

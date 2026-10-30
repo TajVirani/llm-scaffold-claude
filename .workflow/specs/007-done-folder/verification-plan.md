@@ -78,8 +78,8 @@ git grep -n -E 'specs/done' -- '.agents/hooks/*.sh' '.agents/skills/*/scripts/*.
 git diff --name-only --diff-filter=AM "$BASE"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- "$(basename "$f")" tests/ || echo "$f"; done | wc -l | tr -d ' '
 # asset-coverage: prints the count of new .agents/ files missing from the manifest or PROVENANCE.md; the threshold is 0
 git diff --name-only --diff-filter=A "$BASE"..HEAD -- .agents | while read -r f; do r=${f#.agents/}; m=0; while IFS= read -r l; do case "$r" in "$l"|"${l%/}"/*) m=1;; esac; done < .agents/install-manifest.txt; [ "$m" = 1 ] || echo "manifest: $f"; grep -qF -- "$(basename "$f")" PROVENANCE.md || echo "provenance: $f"; done | wc -l | tr -d ' '
-# sweep-time: the smallest real value must be at most 30
-for i in 1 2 3; do tmp=$(mktemp -d); git clone -q . "$tmp/r" && git -C "$tmp/r" checkout -q "$BASE" && rm -rf "$tmp/r/.agents" && cp -R .agents "$tmp/r/.agents" && (cd "$tmp/r" && /usr/bin/time -p .agents/skills/feature-workflow/scripts/move-to-done.sh --sweep >/dev/null) 2>&1 | awk '/^real/{print $2}'; rm -rf "$tmp"; done | sort -n | head -1
+# sweep-time: the smallest real value must be at most 30; a run whose sweep fails prints FAIL, which sorts first
+for i in 1 2 3; do tmp=$(mktemp -d); git clone -q . "$tmp/r" && git -C "$tmp/r" checkout -q -b tgt-sweep "$BASE" && rm -rf "$tmp/r/.agents" && cp -R .agents "$tmp/r/.agents" && (cd "$tmp/r" && { /usr/bin/time -p .agents/skills/feature-workflow/scripts/move-to-done.sh --sweep >/dev/null || echo FAIL; }) 2>&1 | awk '/^real/{print $2} /^FAIL$/{print}'; rm -rf "$tmp"; done | sort -n | head -1
 ```
 
 ## Suites

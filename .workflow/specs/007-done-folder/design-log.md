@@ -224,3 +224,5 @@ Gaps (not_verifiable, review-end-state): JRN-005 and the Success signal run at 5
 
 Failed lenses: none
 Outcome: rework 1 of 5
+- F4 patch: the TGT-007 `sweep-time` command now checks the baseline out on a scratch branch (`-b tgt-sweep`), since `move-to-done.sh` refuses a detached checkout, and prints FAIL when the sweep fails instead of hiding it; the threshold is unchanged. Measured after the T5 rework.
+- T5 rework (F1) mini-review pass. Out-of-scope note (the skip keys on `spec_branch` matching the checked-out branch, not on a running sign-off): not discovered work; the intended, documented behaviour (header lines 5-8, 22-23).
