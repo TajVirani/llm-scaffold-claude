@@ -85,3 +85,15 @@ Facts looked up instead of asked (main session, /bin/bash 3.2.57 on this machine
 ## 2026-10-30 Suite gap: browser suite
 
 3.14: no `e2e-browser` profile, so the 3.10-3.11 browser gate was skipped and recorded as a known gap; the stakeholder confirmed it is the shelved item [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md) (Later requests line appended). The 3.9 harness gate passed: 3592 passed, 0 failed (`artifacts/gate-3.9-w1/toolchain.txt`).
+
+## 2026-10-30 Triage, review pass 1
+
+Lenses: review-standards, review-end-state, review-lessons (0 findings each); no targets (light path). F1 comes from review-end-state's `not_checked` list, F2 from the T1 re-check mini-review's `out_of_scope_noticed` (`artifacts/T1/mini-review.yaml`); both are in this change's own lines, so they are triaged here rather than filed as discovered work.
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 | review-end-state (not_checked) | With `set -m` on at the launch, a suite no longer gets `/dev/null` as stdin: it reads the runner's stdin from its own background process group, so a stdin read hangs a terminal run (SIGTTIN) or eats piped input | `tests/run-all.sh:195` | medium | Checked on /bin/bash 3.2.57: `echo piped-line \| bash -c '( read x; echo "[$x]" ) & wait; set -m; ( read x; echo "[$x]" ) & set +m; wait'` prints `[]` without -m and `[piped-line]` with it. Before this change every suite read EOF. No current suite was shown to hang (call sites found are piped), so the harm is a latent hang, not an observed one | patch |
+| F2 | profile-mini-review (3.7 re-check) | The guard comment says none of the file's empty-array expansions can trip `set -u`; the `${suites[@]}` loops are unguarded and safe only because suites is never empty | `tests/run-all.sh:209-210` | low | Read `tests/run-all.sh:94`, `:100`, `:163` (unguarded), `:344` (guarded values form) | patch |
+
+Failed lenses: none
+Outcome: rework 1 of 5
