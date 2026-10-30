@@ -4,6 +4,9 @@
 #   the broken field for each broken file (retired without enforced_by, a repeated id, empty paths, an absolute path, a bad
 #   origin_spec, a bad date, lessons not a list, a block that does not parse); next-id prints RL-001, RL-002 and RL-002 after retirement,
 #   and exits 1 with one stderr line on a block that does not parse; exit 2 on no argument, an unknown subcommand and a missing file.
+#   JRN-004 (spec 007): validate accepts an origin_spec in the Done folder (.workflow/specs/done/NNN-slug), a five-digit number
+#   and a slug with uppercase letters, dots or underscores; it refuses, naming lessons[0].origin_spec, a folder outside
+#   .workflow/specs/, the Done folder itself, a nested or non-spec child of it, a file inside a spec and a malformed slug.
 # shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose; helpers run inside them
 # shellcheck source=../lib/common.sh  # the path is built from BASH_SOURCE at run time, so -x needs this hint to follow it
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -70,6 +73,37 @@ lessons-not-a-list lessons:
 no-block lessons:
 unparsable the fenced yaml block does not parse
 CASES
+
+echo "== JRN-004 (spec 007): origin_spec names a spec at the top level or in the Done folder"
+while IFS= read -r origin; do
+  review_lessons_file "$L/origin.md" "$(lesson_rl001 | ORIGIN=$origin awk '/^    origin_spec: / { print "    origin_spec: " ENVIRON["ORIGIN"]; next } { print }')"
+  run_rls validate "$L/origin.md"
+  check "JRN-004 validate accepts origin_spec $origin" '[[ $RC -eq 0 && -z $ERR ]]' "rc=$RC: $ERR"
+done <<'ACCEPTED'
+.workflow/specs/done/001-fixture
+.workflow/specs/00010-fixture
+.workflow/specs/done/00010-fixture
+.workflow/specs/001-Fixture
+.workflow/specs/001-fix.ture
+.workflow/specs/001-fix_ture
+.workflow/specs/done/001-Fix.ture_2
+ACCEPTED
+while IFS= read -r origin; do
+  review_lessons_file "$L/origin.md" "$(lesson_rl001 | ORIGIN=$origin awk '/^    origin_spec: / { print "    origin_spec: " ENVIRON["ORIGIN"]; next } { print }')"
+  check "JRN-004 validate refuses origin_spec $origin naming lessons[0].origin_spec" \
+    'refuses_naming "$L/origin.md" "lessons[0].origin_spec"' "rc=$RC: $ERR"
+done <<'REFUSED'
+.workflow/deferred/001-fixture
+.workflow/initiatives/001-fixture
+specs/done/001-fixture
+.workflow/specs/done
+.workflow/specs/done/work-backlog
+.workflow/specs/done/done/001-fixture
+.workflow/specs/done/001-fixture/spec.md
+.workflow/specs/work-backlog/001-fixture
+.workflow/specs/001-
+.workflow/specs/001-.hidden
+REFUSED
 
 echo "== next-id"
 run_rls next-id "$TEMPLATE"

@@ -9,6 +9,10 @@
 #   agent types, under LC_ALL=C and a UTF-8 locale; task, phase_1 and integration names from each spec dir form; malformed
 #   spec folders, an unknown kind, a task id that is not T<digits> and an empty work type return 1 with a reason naming the
 #   argument and print no name; a missing argument returns 1 under set -u; neither hook keeps a codex_enc copy.
+#   JRN-004 (spec 007): WF_SPECS_DONE is .workflow/specs/done, built from WF_SPECS; wf_norm_folder spec maps each form of a
+#   spec in the Done folder (relative, dot-relative, absolute under the main checkout or a worktree) to
+#   .workflow/specs/done/NNN-slug, takes any digit count and the usual slug class there, and refuses the Done folder itself,
+#   a nested or non-spec child of it, a backlog child and an absolute path elsewhere; wf_norm_folder initiative takes no done/.
 # shellcheck disable=SC2016  # the bash -c programs are single-quoted on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -84,6 +88,39 @@ done
 eq "JRN-006 wf_norm_folder accepts a slug with dots, dashes and underscores" \
   "$(stdout_and_status wf_norm_folder spec .workflow/specs/1234-a.b_c-d)" "0|.workflow/specs/1234-a.b_c-d"
 check "JRN-006 wf_norm_folder refuses an unknown folder kind" '[[ "$(stdout_and_status wf_norm_folder backlog "$FOLDER_SPEC")" != 0\|* ]]'
+
+echo "== the Done folder: WF_SPECS_DONE and wf_norm_folder (JRN-004, spec 007)"
+eq "JRN-004 WF_SPECS_DONE is .workflow/specs/done" \
+  "$(bash -c 'set -euo pipefail; . "$1"; printf "%s" "$WF_SPECS_DONE"' _ "$LIB" 2>&1)" .workflow/specs/done
+eq "JRN-004 WF_SPECS_DONE is the done folder of WF_SPECS" \
+  "$(bash -c 'set -euo pipefail; . "$1"; [ "$WF_SPECS_DONE" = "$WF_SPECS/done" ] && echo same' _ "$LIB" 2>&1)" same
+DONE_FOLDER=.workflow/specs/done/001-alpha
+while IFS='|' read -r form cwd arg; do
+  eq "JRN-004 wf_norm_folder spec maps the $form form of a Done folder spec to $DONE_FOLDER" \
+    "$(cd "$cwd" && stdout_and_status wf_norm_folder spec "$arg")" "0|$DONE_FOLDER"
+done <<EOF
+relative|$FOLDER_REPO|$DONE_FOLDER
+dot-relative|$FOLDER_REPO|./$DONE_FOLDER/
+absolute-main|$FOLDER_REPO|$FOLDER_REPO/$DONE_FOLDER
+absolute-worktree|$FOLDER_REPO|$FOLDER_WT/$DONE_FOLDER
+EOF
+for arg in .workflow/specs/done/00010-five .workflow/specs/done/1-one .workflow/specs/done/1234-a.b_c-D; do
+  eq "JRN-004 wf_norm_folder spec accepts a Done folder spec of any digit count and slug: $arg" \
+    "$(stdout_and_status wf_norm_folder spec "$arg")" "0|$arg"
+done
+for arg in .workflow/specs/done .workflow/specs/done/ .workflow/specs/done/work-backlog .workflow/specs/done/done \
+  .workflow/specs/done/done/001-alpha .workflow/specs/done/001-alpha/tasks .workflow/specs/done/x01-short \
+  .workflow/specs/work-backlog/001-alpha; do
+  result=$(refusal wf_norm_folder spec "$arg")
+  check "JRN-004 wf_norm_folder spec refuses $arg with status 1 and a reason naming it" \
+    '[[ "${result%%|*}" == 1 && "${result#*|}" == *"$arg"* ]]' "$result"
+done
+ELSEWHERE=$FOLDER_REPO-elsewhere/done/001-alpha
+result=$(refusal wf_norm_folder spec "$ELSEWHERE")
+check "JRN-004 wf_norm_folder spec refuses an absolute done/ path outside the specs folder with status 1 and a reason naming it" \
+  '[[ "${result%%|*}" == 1 && "${result#*|}" == *"$ELSEWHERE"* ]]' "$result"
+eq "JRN-004 wf_norm_folder initiative refuses a done/ child (initiatives are not moved)" \
+  "$(stdout_and_status wf_norm_folder initiative .workflow/initiatives/done/001-ini)" "1|"
 
 echo "== wf_enc and wf_agent_worktree_name (JRN-001)"
 # The two hooks' codex_enc copy, run on these inputs before the shared encoder replaced it: "<input>|<output>".
