@@ -4,6 +4,7 @@ baseline_revision: "1c5e46d8c4974a68905cdce522183c067c3e9e41" # full SHA of the 
 spec_branch: "spec/00010-worktree-guard-followups" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes
+budget: {max_tasks: 10, max_changed_files: 30} # written at 2.5 from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
 followup_review_recommended: false # true when triage recommends another review pass after this one
 deferred: [] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 origin: 006-result-file-guard-disc-003.md # filename of the work-backlog item this spec was seeded from; the item is deleted after discovery

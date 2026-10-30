@@ -257,3 +257,10 @@ Facts looked up instead of asked (0.3.10): None.
 - Problem and evidence: a second `post-implementation-audit` row in the asset list's hooks table still says the stop audit runs for implementation agents only (`assetlist.md:593`).
 - Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
 - Backlog item: [work-backlog/00010-worktree-guard-followups-disc-001.md](../work-backlog/00010-worktree-guard-followups-disc-001.md)
+
+## 2026-10-30 Task breakdown (2.1-2.4)
+
+- Breakdown approved as proposed ("Approve (Recommended)"): T1 scope check (feature-workflow), T2 worktree guard (hooks, after T1), T3 settings deny rules (hooks), T4 asset record (root-docs); waves 1: T1, T3, T4; 2: T2. No overlaps; no shared core; all afk.
+- Seams agreed (2.3): T1 the `check-worktree-scope.sh` CLI; T2 the `worktree-write-guard.sh` payload-in, deny-JSON-out contract; T3 the settings JSON and `install.sh`'s merged output; T4 the record text through grep lint.
+- **D15** Size budget: the project defaults, 10 tasks and 30 changed files.
+- `tests/hooks/worktree-guard.sh` belongs to T2, which completes the suite after T1; the JRN-008 checks were finished in Phase 1, green at baseline, and belong to no task.
