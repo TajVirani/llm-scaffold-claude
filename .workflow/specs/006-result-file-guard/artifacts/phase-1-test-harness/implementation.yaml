@@ -1,0 +1,38 @@
+status: done
+summary: "Phase 1 re-entry for JRN-011 to JRN-014 is built: harness command tests/run-all.sh, CI check none. A full tests/run-all.sh run (60 suites) has 107 failures, all assertions: the new ones are install-upgrade 20 (21 in all with the earlier JRN-006 case) and lint/install-matcher-docs 15; the rest are earlier red-by-design cases with their verdicts unchanged (check-merge-artifacts 15, worktree-guard 24, agent-worktree-docs 20, audit-agent-worktrees 10, install-claude-settings 1, lib-workflow-paths 1). New cases that already pass on today's install.sh because today's behaviour matches: JRN-011 exit 0, no group added, one stop-audit-only group, mixed, match-all and covering groups untouched, no warning about them, third run writes nothing; JRN-012 keep leaves the matcher, bogus exits 2 and writes nothing, both dry runs write nothing and the default one ends on an open stdin, --force exits 0, (a|b)c never merged in both runs; JRN-013 every pty run ends within 20 s, k keeps, the mixed group is kept; JRN-014 each section is found. The main-checkout write was refused (worktree isolation); this file is the worktree copy, uncommitted."
+task_id: "phase-1-test-harness"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.claude/worktrees/agent-a64779b981c5100af"
+branch: "worktree-agent-a64779b981c5100af"
+base_commit: "b5f0e566fa4e0b1e9e08b8db6ed0ddd592f4b365"
+head_commit: "1058a0dd6b51fc68b18453bd67d029bccdbe5654"
+files_changed: ["tests/README.md", "tests/fixtures/claude-settings.sh", "tests/lint/install-matcher-docs.sh", "tests/scripts/install-upgrade.sh", "tests/scripts/install-payload.sh", "tests/scripts/install-hosts.sh", "tests/scripts/install-claude-settings.sh", "tests/scripts/install-codex-config.sh", "tests/scripts/install-codex-tui.sh"]
+tests_added:
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-011 the template-only stop-audit group is merged to implementation|integration, the mixed group keeps reviewer", kind: behaviour}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-011 a Warnings line names the merged matcher / the kept mixed group's matcher", kind: behaviour}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-011 match-all (no matcher, *, empty) and covering groups untouched; a third run writes nothing", kind: edge}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --matchers=merge|replace|keep exits 0 and leaves implementation|foo|integration / implementation|integration / implementation|foo", kind: behaviour}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --matchers=bogus exits 2, names merge, replace and keep, writes nothing", kind: negative}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --dry-run with and without --matchers ends within 20 s on an open, empty stdin, writes nothing, previews the matcher", kind: edge}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --force alone sets the matcher as the no-terminal rule does (merged)", kind: behaviour}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 the non-plain matcher (a|b)c is never merged; a Warnings line names it", kind: edge}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-013 the prompt names SubagentStop and post-implementation-audit.sh and shows current, replace and merge lines", kind: behaviour}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-013 Enter merges, r replaces, k keeps (each pty run ends within 20 s)", kind: behaviour}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-013 a mixed group's prompt lists every hook in it; k keeps it", kind: edge}
+  - {file: "tests/lint/install-matcher-docs.sh", test: "JRN-014 <doc> names the --matchers flag, the merge, replace and keep modes and what happens without a terminal (4 docs)", kind: behaviour}
+  - {file: "tests/lint/install-matcher-docs.sh", test: "JRN-014 --help lists --matchers and its modes", kind: behaviour}
+  - {file: "tests/lint/install-matcher-docs.sh", test: "JRN-014 the Merge rules no longer skip a group whose command is present, whatever its matcher", kind: negative}
+evidence:
+  red: "tests/run-all.sh; FAIL JRN-012 --matchers=merge exits 0 (got=2 want=0); FAIL JRN-014 --help lists --matchers; TOTAL passed=3262 failed=107 skipped=0 xfail=0 (60 suites)"
+  green: "Phase 1: new cases are red by design; cases pinning today's behaviour pass (listed in summary); every existing case keeps its verdict (cache-repo-architecture and install-payload re-run: 61/61 passed)."
+  suite: "bash .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/006-result-file-guard --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>; status pass (lint pass, test skipped by caller)"
+  toolchain: ".workflow/specs/006-result-file-guard/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+considered_not_built: ["a separate install-matchers suite to keep install-upgrade under a minute: the brief names install-upgrade.sh; it now takes about 66 s alone and 156 s in a parallel run", "asserting the exit code of --matchers=merge on a non-plain matcher: the spec does not settle keep versus refuse there", "asserting exact warning or prompt wording: only the matcher values, event, commands and the words current/replace/merge are pinned"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: refactor
+    summary: "tests/scripts/install-upgrade.sh now runs about 26 install.sh runs and takes about 66 s alone (156 s under a parallel tests/run-all.sh), past the tests/README.md claim that every suite takes under a minute; it is now the longest suite in a full run."
+    evidence: "tests/run-all.sh summary: scripts/install-upgrade passed=43 failed=21 156s"
+    blocker_assessment: can-wait
+    reason: "Correctness is unaffected; splitting the matcher cases into their own suite (and updating the architecture oracle if call sites move) is a harness speed change that can follow."

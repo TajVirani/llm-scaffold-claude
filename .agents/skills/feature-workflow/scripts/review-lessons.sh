@@ -77,8 +77,8 @@ else
       (if any($all[0:$i][]; type == "object" and .id == $e.id) then "\($at).id: \($e.id) is used more than once" else empty end),
       (if ($e.symptom | non_empty_string) then empty else "\($at).symptom: must not be empty" end),
       ($e.paths | path_errors("\($at).paths")),
-      (if ($e.origin_spec | type == "string" and test("^\\.workflow/specs/[0-9]{3}-[a-z0-9-]+$")) then empty
-       else "\($at).origin_spec: must be .workflow/specs/ then a three-digit number and a lowercase slug" end),
+      (if ($e.origin_spec | type == "string" and test("^\\.workflow/specs/[0-9]+-[a-z0-9-]+$")) then empty
+       else "\($at).origin_spec: must be .workflow/specs/ then a number and a lowercase slug" end),
       (if ($e.date | iso_date) then empty else "\($at).date: must be a YYYY-MM-DD date" end),
       (if ($e | has("retired")) then
          (if ($e.retired | iso_date) then empty else "\($at).retired: must be a YYYY-MM-DD date" end),

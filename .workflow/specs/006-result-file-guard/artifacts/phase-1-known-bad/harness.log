@@ -1,0 +1,289 @@
+### suite scripts/lib-workflow-paths
+== scripts/lib-workflow-paths
+FAIL JRN-001 wf_enc 'shell-scripts' under C matches the recorded codex_enc output
+       got=0| want=0|shell_scripts
+FAIL JRN-001 wf_agent_worktree_name phase_1 'shell-scripts' under C is the Codex task_name
+       got=0| want=0|s007_phase_1_shell_scripts
+FAIL JRN-001 wf_agent_worktree_name integration 'shell-scripts' under C is the Codex task_name
+       got=0| want=0|s007_integration_shell_scripts
+FAIL JRN-001 wf_enc 'test-harness' under C matches the recorded codex_enc output
+       got=0| want=0|test_harness
+FAIL JRN-001 wf_agent_worktree_name phase_1 'test-harness' under C is the Codex task_name
+       got=0| want=0|s007_phase_1_test_harness
+FAIL JRN-001 wf_agent_worktree_name integration 'test-harness' under C is the Codex task_name
+       got=0| want=0|s007_integration_test_harness
+FAIL JRN-001 wf_enc 'Web.UI' under C matches the recorded codex_enc output
+       got=0| want=0|web_ui
+FAIL JRN-001 wf_agent_worktree_name phase_1 'Web.UI' under C is the Codex task_name
+       got=0| want=0|s007_phase_1_web_ui
+FAIL JRN-001 wf_agent_worktree_name integration 'Web.UI' under C is the Codex task_name
+       got=0| want=0|s007_integration_web_ui
+FAIL JRN-001 wf_enc 'fact-lookup' under C matches the recorded codex_enc output
+       got=0| want=0|fact_lookup
+FAIL JRN-001 wf_agent_worktree_name phase_1 'fact-lookup' under C is the Codex task_name
+       got=0| want=0|s007_phase_1_fact_lookup
+FAIL JRN-001 wf_agent_worktree_name integration 'fact-lookup' under C is the Codex task_name
+       got=0| want=0|s007_integration_fact_lookup
+FAIL JRN-001 wf_enc 'e2e-browser' under C matches the recorded codex_enc output
+       got=0| want=0|e2e_browser
+FAIL JRN-001 wf_agent_worktree_name phase_1 'e2e-browser' under C is the Codex task_name
+       got=0| want=0|s007_phase_1_e2e_browser
+FAIL JRN-001 wf_agent_worktree_name integration 'e2e-browser' under C is the Codex task_name
+       got=0| want=0|s007_integration_e2e_browser
+FAIL JRN-001 wf_enc 'profile-mini-review' under C matches the recorded codex_enc output
+       got=0| want=0|profile_mini_review
+FAIL JRN-001 wf_agent_worktree_name phase_1 'profile-mini-review' under C is the Codex task_name
+       got=0| want=0|s007_phase_1_profile_mini_review
+FAIL JRN-001 wf_agent_worktree_name integration 'profile-mini-review' under C is the Codex task_name
+       got=0| want=0|s007_integration_profile_mini_review
+FAIL JRN-001 wf_enc turns each byte of a multi-byte character into _ under C
+       got=0| want=0|w__b
+FAIL JRN-001 wf_enc 'shell-scripts' under en_US.UTF-8 matches the recorded codex_enc output
+       got=0| want=0|shell_scripts
+FAIL JRN-001 wf_agent_worktree_name phase_1 'shell-scripts' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_phase_1_shell_scripts
+FAIL JRN-001 wf_agent_worktree_name integration 'shell-scripts' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_integration_shell_scripts
+FAIL JRN-001 wf_enc 'test-harness' under en_US.UTF-8 matches the recorded codex_enc output
+       got=0| want=0|test_harness
+FAIL JRN-001 wf_agent_worktree_name phase_1 'test-harness' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_phase_1_test_harness
+FAIL JRN-001 wf_agent_worktree_name integration 'test-harness' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_integration_test_harness
+FAIL JRN-001 wf_enc 'Web.UI' under en_US.UTF-8 matches the recorded codex_enc output
+       got=0| want=0|web_ui
+FAIL JRN-001 wf_agent_worktree_name phase_1 'Web.UI' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_phase_1_web_ui
+FAIL JRN-001 wf_agent_worktree_name integration 'Web.UI' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_integration_web_ui
+FAIL JRN-001 wf_enc 'fact-lookup' under en_US.UTF-8 matches the recorded codex_enc output
+       got=0| want=0|fact_lookup
+FAIL JRN-001 wf_agent_worktree_name phase_1 'fact-lookup' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_phase_1_fact_lookup
+FAIL JRN-001 wf_agent_worktree_name integration 'fact-lookup' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_integration_fact_lookup
+FAIL JRN-001 wf_enc 'e2e-browser' under en_US.UTF-8 matches the recorded codex_enc output
+       got=0| want=0|e2e_browser
+FAIL JRN-001 wf_agent_worktree_name phase_1 'e2e-browser' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_phase_1_e2e_browser
+FAIL JRN-001 wf_agent_worktree_name integration 'e2e-browser' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_integration_e2e_browser
+FAIL JRN-001 wf_enc 'profile-mini-review' under en_US.UTF-8 matches the recorded codex_enc output
+       got=0| want=0|profile_mini_review
+FAIL JRN-001 wf_agent_worktree_name phase_1 'profile-mini-review' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_phase_1_profile_mini_review
+FAIL JRN-001 wf_agent_worktree_name integration 'profile-mini-review' under en_US.UTF-8 is the Codex task_name
+       got=0| want=0|s007_integration_profile_mini_review
+FAIL JRN-001 wf_enc turns each byte of a multi-byte character into _ under en_US.UTF-8
+       got=0| want=0|w__b
+FAIL JRN-001 wf_enc prints no trailing newline
+       got=0 want=13
+FAIL JRN-001 wf_agent_worktree_name task T3 is s007_t3
+       got=0| want=0|s007_t3
+FAIL JRN-001 wf_agent_worktree_name task T12 is s007_t12
+       got=0| want=0|s007_t12
+FAIL JRN-001 wf_agent_worktree_name keeps a four-digit spec number
+       got=0| want=0|s1234_t1
+FAIL JRN-001 wf_agent_worktree_name refuses the malformed spec folder '.workflow/specs/demo' with status 1 and a reason
+       0|
+FAIL JRN-001 wf_agent_worktree_name prints no name for the malformed spec folder '.workflow/specs/demo'
+       got=0| want=1|
+FAIL JRN-001 wf_agent_worktree_name refuses the malformed spec folder '.workflow/specs/x07-demo' with status 1 and a reason
+       0|
+FAIL JRN-001 wf_agent_worktree_name prints no name for the malformed spec folder '.workflow/specs/x07-demo'
+       got=0| want=1|
+FAIL JRN-001 wf_agent_worktree_name refuses the malformed spec folder '.workflow/specs/007demo' with status 1 and a reason
+       0|
+FAIL JRN-001 wf_agent_worktree_name prints no name for the malformed spec folder '.workflow/specs/007demo'
+       got=0| want=1|
+FAIL JRN-001 wf_agent_worktree_name refuses the malformed spec folder '' with status 1 and a reason
+       0|
+FAIL JRN-001 wf_agent_worktree_name prints no name for the malformed spec folder ''
+       got=0| want=1|
+FAIL JRN-001 wf_agent_worktree_name refuses an unknown kind with status 1 and no name
+       got=0| want=1|
+FAIL JRN-001 neither hook keeps its own codex_enc copy
+       /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.Gutv9k/scaffold/.agents/hooks/codex-pre-spawn.sh:70:codex_enc() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_'; }
+
+== summary
+FAIL scripts/lib-workflow-paths             passed=30   failed=52  skipped=0   xfail=0   2s
+TOTAL passed=30 failed=52 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/lib-workflow-paths
+### exit 1
+### suite hooks/worktree-guard
+== hooks/worktree-guard
+FAIL JRN-009 task agent read-only 'cat src/a.ts' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'head -n 5 src/a.ts' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'tail -n 5 src/a.ts' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'grep -n x src/a.ts' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'rg x src' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'ls src' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'wc -l src/a.ts' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'sed -n '1,5p' src/a.ts' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'find . -name '*.ts'' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'git log --oneline -3' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'git show HEAD' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'git diff HEAD' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'git status' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'yq '.a' f.yaml' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'jq '.a' f.json' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'cat src/a.ts | head' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'grep x src/a.ts && wc -l src/a.ts' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-009 task agent read-only 'git log --oneline | grep fix | head -n 3' from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.kDYfxK/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-002 Phase 1 agent write to the main checkout -> deny
+       rc=0 out=
+FAIL JRN-002 Phase 1 agent write to another agent worktree -> deny
+       rc=0 out=
+FAIL JRN-002 Phase 1 agent Bash write without cd -> deny with the cd hint
+       rc=0 out=
+FAIL JRN-003 integration agent write to the main checkout -> deny
+       rc=0 out=
+FAIL JRN-003 integration agent write to another agent worktree -> deny
+       rc=0 out=
+FAIL JRN-003 integration agent Bash write without cd -> deny with the cd hint
+       rc=0 out=
+
+== summary
+FAIL hooks/worktree-guard                   passed=98   failed=24  skipped=0   xfail=0   55s
+TOTAL passed=98 failed=24 skipped=0 xfail=0 (1 suites)
+FAILED suites: hooks/worktree-guard
+### exit 1
+### suite lint/agent-worktree-docs
+== lint/agent-worktree-docs
+FAIL JRN-008 verification-setup.md tells no launch to use isolation: "worktree"
+       45: - **Claude.** Call the Agent tool with `subagent_type: implementation`, `isolation: "worktree"` (each implementation launch gets its own worktree) and the prompt above
+FAIL JRN-008 verification-setup.md reads no isolation result branch (worktreeBranch)
+       75:| `done` | Merge the worktree branch into the spec branch in the main checkout: `git merge --no-ff -m "Merge phase-1-<work_type>" <branch>` (`yq '.branch'` on the result file, or `worktreeBranch` in the Agent result). |
+FAIL JRN-008 implementation-orchestrator.md tells no launch to use isolation: "worktree"
+       14:  `isolation: "worktree"` 
+FAIL JRN-008 implementation-orchestrator.md sets no worktree baseRef for an isolation launch
+       29: `-d` refuses a branch with commits: then keep it, add "first merge branch `<branch>` into yours" to the relaunch brief, and rename the isolation branch to the record's `branch` only after deleting the old one with `git branch -d` once its commits are merged), relaunch with `isolation: "worktree"` (needs `"worktree": {"baseRef": "head"}` in `.claude/settings.json` and the main checkout on the spec branch, so the worktree forks from the spec-branch tip), and after it returns rename its branch to the record's `branch` with `git branch -m <worktreeBranch from the Agent result> <branch>`
+FAIL JRN-008 implementation-orchestrator.md keeps no isolation fallback
+       29: Fallback when an agent cannot work this way (it keeps getting denied, or edits the main checkout through Bash): remove the wave-start worktree and branch (`git worktree remove .workflow/.worktrees/<task_name> && git branch -d <branch>`
+FAIL JRN-008 implementation-orchestrator.md reads no isolation result branch (worktreeBranch)
+       29:  The Agent tool has no working-directory option (a sub-agent starts in the main session's directory; `isolation: "worktree"` is the only other choice), so launch it without `isolation` and confine it by the brief: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside the worktree. `hooks/worktree-write-guard.sh` enforces this for implementation and integration sub-agents: it reads the task from the launch header and denies a Write, Edit or NotebookEdit inside the main checkout but outside `.workflow/.worktrees/s<NNN>_t
+FAIL JRN-008 verification-setup.md creates the Phase 1 agent worktree on a wf/ branch off the spec branch
+FAIL JRN-008 implementation-orchestrator.md creates the integration agent worktree on a wf/ branch off the spec branch
+FAIL JRN-008 verification-setup.md merges the agent's wf/ branch
+FAIL JRN-008 verification-setup.md removes the agent worktree after the merge
+FAIL JRN-008 verification-setup.md deletes the agent's wf/ branch after the merge
+FAIL JRN-008 implementation-orchestrator.md deletes the agent's wf/ branch after the merge
+FAIL JRN-008 the gate runs before the 1.2 and 1.3 merge
+FAIL JRN-008 the gate runs before the 3.2 integration merge
+FAIL JRN-008 the gate runs before the 3.16 task merge
+FAIL JRN-008 the gate runs before the light-path fast-forward
+FAIL JRN-008 every gate call passes --rev
+FAIL JRN-008 no gate call is piped into another command
+FAIL JRN-008 implementation.md writes implementation.yaml to an absolute main-checkout path
+       target: $main/<spec_dir>/artifacts/<task_id>/implementation.yaml
+FAIL JRN-008 integration.md writes integration.yaml to an absolute main-checkout path
+       target: $main/<spec_dir>/artifacts/integration-<work_type>/integration.yaml
+
+== summary
+FAIL lint/agent-worktree-docs               passed=7    failed=20  skipped=0   xfail=0   1s
+TOTAL passed=7 failed=20 skipped=0 xfail=0 (1 suites)
+FAILED suites: lint/agent-worktree-docs
+### exit 1
+### suite scripts/check-merge-artifacts
+== scripts/check-merge-artifacts
+FAIL JRN-007 a branch adding a file under artifacts/ is refused, naming it
+       rc=0 missing: .workflow/specs/007-demo/artifacts/T7/implementation.yaml out=
+FAIL JRN-007 a branch modifying a committed artifacts/ file is refused, naming it
+       rc=0 missing: .workflow/specs/007-demo/artifacts/T1/implementation.yaml out=
+FAIL JRN-007 a branch deleting a committed artifacts/ file is refused, naming it
+       rc=0 missing: .workflow/specs/007-demo/artifacts/T1/implementation.yaml out=
+FAIL JRN-007 a branch with two artifacts/ changes is refused with one line for each
+       rc=0 missing: .workflow/specs/007-demo/artifacts/T7/implementation.yaml .workflow/specs/007-demo/artifacts/T1/implementation.yaml out=
+FAIL JRN-007 the gate run from a task worktree still refuses the adding branch
+       rc=0 out=
+FAIL JRN-007 a detached commit adding a file under artifacts/ is refused, naming it
+       rc=0 missing: .workflow/specs/007-demo/artifacts/T7/implementation.yaml out=
+FAIL JRN-007 a detached commit modifying an artifacts/ file is refused, naming it
+       rc=0 missing: .workflow/specs/007-demo/artifacts/T1/implementation.yaml out=
+FAIL JRN-007 a detached commit deleting an artifacts/ file is refused, naming it
+       rc=0 missing: .workflow/specs/007-demo/artifacts/T1/implementation.yaml out=
+FAIL JRN-007 no arguments -> exit 2
+       rc=0 want=2: 
+FAIL JRN-007 no --rev -> exit 2
+       rc=0 want=2: 
+FAIL JRN-007 no --spec-dir -> exit 2
+       rc=0 want=2: 
+FAIL JRN-007 an unknown revision -> exit 2
+       rc=0 want=2: 
+FAIL JRN-007 a spec dir that is not NNN-slug -> exit 2
+       rc=0 want=2: 
+FAIL JRN-007 a spec with no spec branch -> exit 2
+       rc=0 want=2: 
+FAIL JRN-007 a --cwd outside any git repository -> exit 2
+       rc=0 want=2: 
+
+== summary
+FAIL scripts/check-merge-artifacts          passed=8    failed=15  skipped=0   xfail=0   4s
+TOTAL passed=8 failed=15 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/check-merge-artifacts
+### exit 1
+### suite hooks/audit-agent-worktrees
+== hooks/audit-agent-worktrees
+FAIL JRN-005 Phase 1 stop runs the toolchain in s007_phase_1_shell_scripts
+       got=/private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.i1EbXj/proj want=/private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.i1EbXj/proj/.workflow/.worktrees/s007_phase_1_shell_scripts
+FAIL JRN-005 Phase 1 stop with its agent worktree missing does not run the toolchain
+       got=--spec-dir .workflow/specs/007-demo --cwd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.i1EbXj/proj --reuse --task-id phase-1-test-harness --skip test --work-type test-harness want=
+FAIL JRN-005 Phase 1 stop with its agent worktree missing is allowed with a warning
+       rc=0 out=
+FAIL JRN-005 integration stop with its agent worktree present runs the toolchain once
+       got=0 want=1
+FAIL JRN-005 integration stop runs the toolchain in s007_integration_shell_scripts
+       got= want=/private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.i1EbXj/proj/.workflow/.worktrees/s007_integration_shell_scripts
+FAIL JRN-005 integration stop runs the full toolchain (no --skip)
+FAIL JRN-005 integration stop with a failing toolchain is blocked
+       rc=0 out=
+FAIL JRN-005 integration stop with its agent worktree missing is allowed with a warning
+       rc=0 out=
+FAIL JRN-005 template SubagentStop matcher covers integration
+       [{"matcher":"implementation","hooks":[{"type":"command","command":"\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/post-implementation-audit.sh","timeout":600}]}]
+FAIL JRN-005 this repo's .claude/settings.json SubagentStop matcher covers integration
+       [{"matcher":"implementation","hooks":[{"type":"command","command":"\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/post-implementation-audit.sh","timeout":600}]}]
+
+== summary
+FAIL hooks/audit-agent-worktrees            passed=11   failed=10  skipped=0   xfail=0   3s
+TOTAL passed=11 failed=10 skipped=0 xfail=0 (1 suites)
+FAILED suites: hooks/audit-agent-worktrees
+### exit 1
+### suite scripts/install-claude-settings
+== scripts/install-claude-settings
+FAIL JRN-006 fresh install: the stop audit matcher matches integration
+       [{"matcher":"implementation","hooks":[{"type":"command","command":"\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/post-implementation-audit.sh","timeout":600}]}]
+
+== summary
+FAIL scripts/install-claude-settings        passed=35   failed=1   skipped=0   xfail=0   39s
+TOTAL passed=35 failed=1 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/install-claude-settings
+### exit 1
+### suite scripts/install-upgrade
+== scripts/install-upgrade
+FAIL JRN-006 after the upgrade: the stop audit matcher matches integration
+       [{"matcher":"implementation","hooks":[{"type":"command","command":"\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/post-implementation-audit.sh","timeout":600}]}]
+
+== summary
+FAIL scripts/install-upgrade                passed=17   failed=1   skipped=0   xfail=0   30s
+TOTAL passed=17 failed=1 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/install-upgrade
+### exit 1

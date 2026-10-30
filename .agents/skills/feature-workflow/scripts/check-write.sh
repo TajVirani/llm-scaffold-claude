@@ -255,7 +255,7 @@ ROOT=$(main_root "$TOP") || die "cannot locate the main checkout from $TOP"
 # ---------------------------------------------------------------- .workflow/specs/work-backlog/
 if [[ "$KIND" == "backlog" ]]; then
   ITEM=${REL:${#WF_WORK_BACKLOG}+1}
-  if [[ ! "$ITEM" =~ ^([0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*)-disc-[0-9]{3,}\.md$ ]]; then
+  if [[ ! "$ITEM" =~ ^([0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*)-disc-[0-9]{3,}\.md$ ]]; then
     deny "$REL: backlog items are named $WF_WORK_BACKLOG/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9."
   fi
   ORIGIN=${BASH_REMATCH[1]}

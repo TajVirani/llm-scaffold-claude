@@ -40,4 +40,14 @@ lessons:
     paths: [".agents/skills/*/assets/**", ".agents/skills/*/modules/**"]
     origin_spec: .workflow/specs/008-pr-description-template
     date: 2026-10-30
+  - id: RL-005
+    symptom: "A guard treats a tool as a read and denies its write forms with a regex denylist over flags or script text, so an unusual spelling (a custom delimiter, an attached file name, a script file) still passes as a read; allowlist the read forms instead."
+    paths: [".agents/skills/feature-workflow/scripts/check-worktree-scope.sh", ".agents/hooks/**"]
+    origin_spec: .workflow/specs/006-result-file-guard
+    date: 2026-10-30
+  - id: RL-006
+    symptom: "A test extracts a command from an agent doc and fills different path placeholders (worktree, checkout, launched-in) with the same expected path, so a doc that names the wrong checkout still passes."
+    paths: ["tests/**"]
+    origin_spec: .workflow/specs/006-result-file-guard
+    date: 2026-10-30
 ```

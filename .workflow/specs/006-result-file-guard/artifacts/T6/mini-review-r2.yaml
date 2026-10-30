@@ -1,0 +1,64 @@
+verdict: "fail"
+task_id: "T6"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t6@97b627c8cdcb3107b9a43a57911b2cc79b18a157..HEAD"
+tool_output: ".workflow/specs/006-result-file-guard/artifacts/T6/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "install.sh and tests/scripts/install-upgrade.sh: no added line spells a .workflow/ path"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook file in the diff; only install.sh and tests/scripts/install-upgrade.sh change"
+  - n: 3
+    verdict: "fail"
+    location: "install.sh:105, install.sh:117"
+    note: "--matchers= (an empty value, or --matchers followed by an empty argument) passes the check at install.sh:117 and is taken as if no flag was given, so the run asks or takes the no-terminal default with no error, where the header says any other value exits 2. A script that passes the flag with an unset variable gets a different mode silently. Fix: record whether the flag was given, and die (exit 2, naming merge, replace and keep) when its value is empty, at install.sh:101-105."
+  - n: 4
+    verdict: "pass"
+    location: "install.sh:82 (die exits 2), install.sh:117 (value check), install.sh:63-64 (Exit line names the --matchers value as exit 2)"
+  - n: 5
+    verdict: "not-applicable"
+    location: "no sibling path added; SELF_DIR and BASH_SOURCE uses are unchanged"
+  - n: 6
+    verdict: "pass"
+    location: "install.sh:1-66 keeps the header shape (File, Usage, What it does, Conflicts, Exit, Tests); the added lines name no decision ID; the test header names journey IDs only (JRN-), which are not decision IDs"
+  - n: 7
+    verdict: "pass"
+    location: "install.sh:101, install.sh:117 (new tests use [ ]; the base file's six [[ are [[:space:]] classes); tests/scripts/install-upgrade.sh:365-391 (new tests use [ ]; the file has no [[)"
+  - n: 8
+    verdict: "fail"
+    location: "tests/scripts/install-upgrade.sh:354, tests/scripts/install-upgrade.sh:359"
+    note: "The two new disables carry no reason, and the block comment at tests/scripts/install-upgrade.sh:53 covers only the four readers listed under it, so a reader cannot tell why SC2329 is silenced here and may drop the directive or the helper's only caller. Fix: add a reason on each line, for example '# shellcheck disable=SC2329  # called from check expressions, which shellcheck cannot see into'. The new bash functions (install.sh:380, 386, 435, 453) and the test helpers (tests/scripts/install-upgrade.sh:353, 358) have their name-ARGS lines; the jq defs inside JQ_MERGE and JQ_PROMPT are not bash functions and follow the file's block-comment convention."
+  - n: "R1"
+    verdict: "fail"
+    location: "tests/scripts/install-upgrade.sh:367, tests/scripts/install-upgrade.sh:385"
+    note: "The loop variable session holds the expected SessionStart outcome, kept or dropped, not session state, so line 385 reads as a session check and misleads a maintainer. Fix: rename it to say what it holds, for example session_start_outcome, at lines 367 and 385."
+  - n: "R2"
+    verdict: "pass"
+    location: "install.sh:118-119 (why dry run previews auto), install.sh:413-414 (why warnings wait for the answers), install.sh:434 (why Enter and end of input merge or keep), install.sh:649 (why questions are asked after the refusal check)"
+  - n: "R3"
+    verdict: "pass"
+    location: "install.sh:118-119, install.sh:378-379, install.sh:413-414, install.sh:434; none restates the code below it"
+  - n: "R4"
+    verdict: "pass"
+    location: "install.sh:118-119, install.sh:378-379, install.sh:385, install.sh:413-414, install.sh:434, install.sh:649; tests/scripts/install-upgrade.sh:339, 353, 358: none names a decision, spec, task or doc path; the install.sh and test headers are exempt and name only journey IDs"
+  - n: "R5"
+    verdict: "pass"
+    location: "install.sh:118-119, install.sh:413-414, install.sh:434, install.sh:649; tests/scripts/install-upgrade.sh:339, 353, 358 read as plain English; terms such as auto and ask are defined in the code"
+read_outside_diff:
+  - "install.sh at HEAD 0662bfe (whole file): die at :82, argument parsing at :96-117, the merge and ask functions at :257-465, the call site at :645-653, to confirm exit codes, the empty-value path and the question keys"
+  - "install.sh at the base 97b627c (git show): its six [[ occurrences are [[:space:]] character classes, not test syntax"
+  - "tests/scripts/install-upgrade.sh at HEAD (whole file, with focus on :50-70 and :337-391): the four SC2329 readers and their block reason, the split and edge cases, and the absence of [["
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking table"
+  - "artifacts/T6/toolchain.txt: lint exit 0; scripts/install-upgrade passed=104 failed=0"
+  - "artifacts/T6/mini-review-r1.yaml: round 1 failure (silent else on a missing answer) checked as fixed; a split group is now rewritten or kept with a warning and never asked"
+  - "tasks/T06-upgrade-matcher-resolution.md: the task's scope, to confirm no item outside the checklist was needed"
+out_of_scope_noticed:
+  - kind: "decision"
+    summary: "At the matcher prompt, end of input (Ctrl-D) counts as Enter. A mergeable group is then merged, and in ask mode a merge prints no Warnings line, so the change shows only in the settings file."
+    evidence: "install.sh:440"
+    blocker_assessment: "can-wait"
+    reason: "The header at install.sh:434 records the choice, so this is a design question about whether end of input should cancel instead of merge. It is not a swallowed error, and no checklist item covers it."

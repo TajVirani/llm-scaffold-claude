@@ -1,0 +1,2 @@
+allow: read-only command
+exit: 0

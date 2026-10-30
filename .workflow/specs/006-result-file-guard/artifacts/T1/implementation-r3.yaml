@@ -1,0 +1,21 @@
+status: "done"
+summary: "Fix round 3 after mini-review r1. An integration SubagentStop whose transcript is missing or unreadable now exits 0 silently on both hosts (no message, no audit.json or audit-warnings.jsonl), as the stakeholder ruling requires; an implementation stop with a missing transcript keeps its warning. The R4 body comment that named the worktree folder path is rewritten as the reason for the isolation-cwd fallback, and the hook header's Behaviour lines describe the new silent path."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1"
+branch: "task/006-result-file-guard/T01-hooks-agent-worktree-names"
+base_commit: "4b6675111e5181c5b718c9e367bba273201fabd3"
+head_commit: "e9a686135358f54b79af24869f07537344863f14"
+files_changed: [".agents/hooks/worktree-write-guard.sh", ".agents/hooks/post-implementation-audit.sh", ".agents/hooks/codex-pre-spawn.sh", ".agents/hooks/claude-settings.template.json", ".agents/hooks/claude-settings.template.md", ".claude/settings.json", "tests/hooks/audit-agent-worktrees.sh"]
+tests_added:
+  - {file: "tests/hooks/audit-agent-worktrees.sh", test: "integration stop with no transcript exits 0 silently and runs no toolchain", kind: "negative"}
+  - {file: "tests/hooks/audit-agent-worktrees.sh", test: "integration stop with no transcript writes no audit.json or audit-warnings.jsonl", kind: "negative"}
+evidence:
+  red: "tests/run-all.sh --suite hooks/audit-agent-worktrees; FAIL integration stop with no transcript exits 0 silently and runs no toolchain (rc=0 out={\"systemMessage\":\"post-implementation-audit: agent_transcript_path missing or unreadable ...\"})"
+  green: "tests/run-all.sh --suite hooks/audit-agent-worktrees; PASS passed=23 failed=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/006-result-file-guard --task-id T1 --cwd <worktree>: lint pass, test pass (scoped: scripts/install-claude-settings 36/36, scripts/lib-workflow-paths 99/99, hooks/audit-agent-worktrees 23/23; TOTAL 158 passed 0 failed)"
+  toolchain: ".workflow/specs/006-result-file-guard/artifacts/T1/toolchain.txt (pass)"
+considered_not_built: ["Silencing an integration stop for other unidentifiable cases (malformed header, no user message): the ruling covers only a missing or unreadable transcript, so those keep their warnings", "Regression run outside the toolchain: all hooks/* suites pass except hooks/worktree-guard's 18 JRN-009 read-only cases, which belong to T4 (same as the previous round)"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

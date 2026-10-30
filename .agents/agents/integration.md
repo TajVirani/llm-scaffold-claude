@@ -37,7 +37,7 @@ awk '/^## /{f=($0 ~ /^## Shared core[[:space:]]*$/); next} f && /^```ya?ml/{y=1;
 
 Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
 
-1. **Check the checkout.** `git status` must be clean before you start. Record the base commit: `git rev-parse HEAD`.
+1. **Confirm the worktree.** Your worktree is the absolute path the brief names: `.workflow/.worktrees/s<NNN>_integration_<enc(work_type)>` in the main checkout. You are launched from the main checkout and your working directory may reset between Bash calls, so start every Bash command with `cd <worktree path> && ` and give every Read, Edit and Write an absolute path inside the worktree; the worktree guard denies file-tool writes elsewhere in the main checkout. Check it: `cd <worktree path> && git rev-parse --git-dir --git-common-dir` prints two different paths; otherwise return `blocked` with reason "not launched in the integration worktree". `cd <worktree path> && git status` must be clean before you start. Record the base commit: `cd <worktree path> && git rev-parse HEAD`.
 2. **Triage every request** before editing anything. Give each one a provisional verdict:
    - `apply`: the change lies within `shared_core.paths` and belongs to this batch's work type.
    - `reject: not-shared-core`: it would change module-owned paths. That is a task for the owning module, not for you.
@@ -59,30 +59,30 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 ## Before you stop
 
 1. **Review the full delta.** `git status` and `git diff <base>`, including untracked files. Every changed path is shared core or its tests and traces to an applied request; names and comments follow `readable-code.md`. Remove disposable files your checks created.
-2. **Run the toolchain** (3.5) for this work type from the checkout root, and fix what it names until it exits 0:
+2. **Run the toolchain** (3.5) for this work type from the worktree root, and fix what it names until it exits 0:
 
    ```bash
-   main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
+   cd <worktree path> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
    bash "$main/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --work-type <work_type> --task-id integration-<work_type> --cwd "$PWD" --exclude-unfinished
    ```
 
    `--exclude-unfinished` leaves out the Phase 1 tests of every task not yet `done`: they are red by design until their task merges. Evidence lands in `<spec_dir>/artifacts/integration-<work_type>/` in the main checkout.
 3. **Run the shared-core tests and the tests of every caller you found** in step 4 of the Method.
-4. **Commit** in the checkout you were launched in, one commit per applied request where practical, each message naming the request number. The orchestrator merges it before the next wave.
+4. **Commit** in your worktree, one commit per applied request where practical, each message naming the request number. The orchestrator merges it before the next wave.
 5. **Write the result file, then return the summary block**, as [Return](#return) says. Do this every time you stop, a stop after a resume included.
 
 ## Return
 
-Write the full result block below to your **result file** in the main checkout, `<spec_dir>/artifacts/integration-<work_type>/integration.yaml`. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commits, in one Bash command with one quoted heredoc, creating the folder first:
+Write the full result block below to your **result file** in the main checkout, `<main checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml`. `<main checkout>` is the main checkout's absolute path, which `cd <worktree path> && dirname "$(git rev-parse --path-format=absolute --git-common-dir)"` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commits, in one Bash command with one quoted heredoc, creating the folder first:
 
 ```bash
-cd <absolute path of the checkout you were launched in> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)") && mkdir -p "$main/<spec_dir>/artifacts/integration-<work_type>" && cat > "$main/<spec_dir>/artifacts/integration-<work_type>/integration.yaml" <<'EOF'
+cd <worktree path> && mkdir -p "<main checkout>/<spec_dir>/artifacts/integration-<work_type>" && cat > "<main checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml" <<'EOF'
 status: done
 ...
 EOF
 ```
 
-This write is allowed because the evidence folder under `artifacts/` is unguarded and lies outside the tree hash `run-toolchain.sh` records, so your toolchain run still describes your committed work. It is your only write outside shared core and its tests. Each stop writes the whole file again. When you are resumed with error lines from `check-task-result.sh`, rewrite the file with the fields they name fixed, then return the summary block again.
+Spell out both paths as literal absolute paths. A path relative to the worktree puts the file in the worktree copy, where the orchestrator never looks. A `$(…)` substitution in the path can be refused as too complex to verify. Use this command rather than the Write tool: the worktree guard denies a Write outside your worktree. The result file is your only write outside shared core and its tests, and you never commit it: leave everything under `artifacts/` out of `git add`, because a branch that carries a file there is refused at merge. `artifacts/` lies outside the tree hash `run-toolchain.sh` records, so your toolchain run still describes your committed work. Each stop writes the whole file again. When you are resumed with error lines from `check-task-result.sh`, rewrite the file with the fields they name fixed, then return the summary block again.
 
 Report only commands you ran and output you saw. The result file holds:
 
@@ -90,7 +90,7 @@ Report only commands you ran and output you saw. The result file holds:
 status: done | partial | profile-wrong | discovered-work | blocked   # partial: some requests rejected or in conflict; discovered-work: out-of-scope work stopped the batch
 summary: <two or three sentences>
 work_type: <work_type>
-worktree: <absolute path of the checkout you were launched in>
+worktree: <absolute worktree path>
 branch: <branch name>
 base_commit: <sha>
 head_commit: <sha>
