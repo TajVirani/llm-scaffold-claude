@@ -270,3 +270,16 @@ Facts looked up instead of asked (0.3.10): None.
 - T1 `5e345a0`, T3 `65c126d`, T4 `aa6bc6d`, merged in id order (`6246123`, `aeff6f6`, `cd9fdff`); task PRs skipped (local `origin`: "origin host is neither GitHub nor GitLab"), `pr` stays null.
 - T1 mini-review: the first result file did not parse (YAML at L32); one resume fixed it. Its `out_of_scope_noticed` entry (the orchestrator sentence runs ahead of the hook until `--confined` is wired) is agreed scope, T2's, not discovered work.
 - Gate 3.9 w1: pass, `TOTAL passed=3451 failed=0 (61 suites)`, T2's suite excluded (`artifacts/gate-3.9-w1/`). Budget: 4 tasks, 7 of 30 changed files.
+
+## 2026-10-30 Discovered work: T2 mini-review notes
+
+- Found at: step 3.7 by profile-mini-review (T2, `artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed`). Four entries:
+  - bug: errors before the guard knows the caller is confined exit non-zero instead of denying (`worktree-write-guard.sh:56`, `:72`, `:74`). Can be solved later; filed without a ruling, offered at 5.9. Backlog item: [work-backlog/00010-worktree-guard-followups-disc-002.md](../work-backlog/00010-worktree-guard-followups-disc-002.md)
+  - bug: a malformed transcript is denied with the "no first user message" cause (`:108`, `:110`). Can be solved later; filed without a ruling, offered at 5.9. Backlog item: [work-backlog/00010-worktree-guard-followups-disc-003.md](../work-backlog/00010-worktree-guard-followups-disc-003.md)
+  - decision: with jq missing the hook denies main-session calls too (`:22-23`, `:66-70`). Already decided: D9 (round 2), so no item.
+  - refactor: the hooks folder resolved with plain `cd` and with `cd -P` (`:63-64`, `:72`). Can be solved later; filed without a ruling, offered at 5.9. Backlog item: [work-backlog/00010-worktree-guard-followups-disc-004.md](../work-backlog/00010-worktree-guard-followups-disc-004.md)
+- T2 mini-review round 1: fail on R2 (`:68`, the hand-written no-jq deny needs a reason comment); wording-only fix round.
+
+## 2026-10-30 Wave 2 merged (3.16)
+
+- T2 `eab2056` merged (`Merge T2`); task PR skipped (local `origin`). Mini-review round 1 failed R2 (wording); the wording-only fix round passed the re-check. The re-check's four `out_of_scope_noticed` entries are the same four already filed or ruled above (duplicates, nothing new filed).
