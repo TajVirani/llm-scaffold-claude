@@ -11,6 +11,7 @@
 #   WF_DIR                 the workflow root, relative to the project root (".workflow")
 #   WF_<NAME>              each path below, relative to the project root, no trailing slash
 #   WF_SPECS, WF_INITIATIVES  the roots for feature specs and for initiatives (".workflow/specs", ".workflow/initiatives")
+#   WF_SPECS_DONE          the Done folder finished specs move into (".workflow/specs/done")
 #   wf_path <root> <rel>   prints <root>/<rel> (root's trailing slash dropped); e.g. wf_path "$ROOT" "$WF_SPECS"
 #   wf_main_root <dir>     prints the main checkout root for <dir>, inside the repo or one of its worktrees; status 1
 #                          and the reason on stderr when <dir> is not inside a git repository
@@ -39,6 +40,7 @@ WF_AGENT_OVERRIDES="$WF_DIR/agent-overrides.yaml"
 WF_MODEL_MAP="$WF_DIR/model-map"
 WF_PROFILES="$WF_DIR/profiles"
 WF_SPECS="$WF_DIR/specs"
+WF_SPECS_DONE="$WF_SPECS/done"
 WF_INITIATIVES="$WF_DIR/initiatives"
 WF_WORK_BACKLOG="$WF_SPECS/work-backlog"
 WF_DEFERRED="$WF_DIR/deferred"
