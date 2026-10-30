@@ -24,6 +24,10 @@
 #   next number is 00011.
 #   JRN-004 (done on main): the spec_done_on_main helper read from modules/large-path.md is true for a done spec on main at
 #   the top level and in done/, and false for one that is not done.
+#   Edge cases: a path ending a sentence and two paths one space apart are all rewritten; a link back into the spec through
+#   its parent and a reference-style link resolve after the move; a spec already in done/ cannot move (2) but passes --check;
+#   the main branch and a detached HEAD are refused with nothing changed; an untracked done spec moves and is committed; a
+#   sweep with a done spec failing the check exits 1, names it and its open task, leaves it in place and commits the rest.
 # Fixtures: tests/fixtures/done-folder.sh (the project, its expected trees and the oracles), tests/fixtures/pr-template.sh.
 # shellcheck disable=SC2016,SC2034,SC2329,SC1010  # check expressions are single-quoted and eval'd on purpose, read variables and call helpers shellcheck cannot see; "done" is a status word
 # shellcheck source=../lib/common.sh
@@ -324,6 +328,61 @@ check "JRN-004 spec_done_on_main is true for a done spec in done/" 'done_on_main
 check "JRN-004 spec_done_on_main is true for a five-digit done spec in done/" 'done_on_main 00010-wide'
 check "JRN-004 spec_done_on_main is false for a spec that is not done" '! done_on_main 006-open'
 check "JRN-004 spec_done_on_main is false for a spec on no branch" '! done_on_main 099-missing'
+
+echo "== edge cases: path forms the fixture project does not plant"
+P=$WORK/edges
+done_folder_repo "$P"
+printf '%s\n' "Closed in .workflow/specs/012-alpha. See specs/012-alpha specs/012-alpha for both." \
+  "Last line names .workflow/specs/012-alpha." >"$P/.workflow/deferred/edge-notes.md"
+printf '%s\n' "Self: [report](../012-alpha/report.md)" "" "[shelf]: ../../deferred/alpha-shelf.md" \
+  >>"$P/$DONE_SPEC/report.md"
+git_commit_all "$P" "fixture: sentence-end, adjacent, self and reference-style forms"
+mtd "$P" "$DONE_SPEC"
+eq "edge the move with extra path forms exits 0" "$RC" 0
+eq "edge a path ending a sentence and two paths one space apart are all rewritten" \
+  "$(cat "$P/.workflow/deferred/edge-notes.md")" \
+  "Closed in .workflow/specs/done/012-alpha. See specs/done/012-alpha specs/done/012-alpha for both."$'\n'"Last line names .workflow/specs/done/012-alpha."
+check "edge a link back into the spec through its parent and a reference-style link both resolve after the move" \
+  '[[ -z $(unresolved_links "$P/$MOVED") ]] && grep -q "^\[shelf\]: \.\./\.\./\.\./deferred/alpha-shelf\.md$" "$P/$MOVED/report.md"' \
+  "$(unresolved_links "$P/$MOVED"; tail -3 "$P/$MOVED/report.md")"
+mtd "$P" "$MOVED"
+eq "edge moving a spec already in the Done folder exits 2" "$RC" 2
+mtd "$P" --check "$MOVED"
+eq "edge --check accepts a spec already in the Done folder" "$RC" 0
+
+echo "== refusals: the branch and an untracked spec"
+P=$WORK/branch
+done_folder_repo "$P"
+git -C "$P" switch -q main
+BEFORE=$(tree_digest "$P")
+mtd "$P" "$DONE_SPEC"
+check "moving on the main branch exits 1 and changes nothing" '[[ $RC == 1 && $(tree_digest "$P") == "$BEFORE" ]]' "rc=$RC: $OUT"
+git -C "$P" switch -q --detach spec/012-alpha
+BEFORE=$(tree_digest "$P")
+mtd "$P" --sweep
+check "sweeping on a detached HEAD exits 1 and changes nothing" '[[ $RC == 1 && $(tree_digest "$P") == "$BEFORE" ]]' "rc=$RC: $OUT"
+git -C "$P" switch -q spec/012-alpha
+git -C "$P" rm -rq --cached "$DONE_SPEC"
+git_commit_all "$P" "fixture: 012-alpha untracked"
+mkdir -p "$P/.workflow/specs/016-seeded"
+printf -- '---\nstatus: done\n---\n# Seeded\n' >"$P/.workflow/specs/016-seeded/spec.md"
+mtd "$P" .workflow/specs/016-seeded
+check "an untracked done spec moves and is committed" \
+  '[[ $RC == 0 && -n $(git -C "$P" ls-tree -r --name-only HEAD -- "$DONE/016-seeded") && -z $(git -C "$P" status --porcelain -- .workflow/specs) ]]' \
+  "rc=$RC: $OUT"
+
+echo "== the sweep leaves a done spec that fails the check"
+P=$WORK/sweep-open
+done_folder_repo "$P"
+set_task "$P" "$DONE_SECOND" T1 blocked
+git_commit_all "$P" "fixture: 014-gamma done with T1 blocked"
+TIP=$(git -C "$P" rev-parse HEAD)
+mtd "$P" --sweep
+eq "the sweep with one done spec failing the check exits 1" "$RC" 1
+check "the sweep names the spec it left and its open task" '[[ $OUT == *"left in place: $DONE_SECOND"* && $OUT == *"task T1 (blocked)"* ]]' "$OUT"
+check "the failing spec stays at the top level with its step marker" '[[ -f "$P/$DONE_SECOND/spec.md" && -f "$P/$DONE_SECOND/.step" ]]'
+check "the passing spec still moves and is committed" \
+  '[[ -f "$P/$MOVED/spec.md" && $(git -C "$P" rev-parse HEAD~1) == "$TIP" && -z $(git -C "$P" status --porcelain) ]]' "$OUT"
 
 shellcheck_files "shellcheck: move-to-done.sh, its suite and fixture" "$REPO_ROOT/$DONE_MTD_REL" \
   "$TESTS_DIR/scripts/move-to-done.sh" "$TESTS_DIR/fixtures/done-folder.sh"
