@@ -6,7 +6,7 @@ tasks:
     capability: CAP-007
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "check-worktree-scope.sh CLI: --cwd D [--worktree-name N] [--confined] (--path P... | --command C); exit 0 allow, 2 deny, 1 usage"
     file: tasks/T01-scope-check-fails-closed.md
@@ -22,7 +22,7 @@ tasks:
     capability: CAP-007
     depends_on: [T1]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "hooks"
     seam: "worktree-write-guard.sh PreToolUse: payload JSON on stdin, nothing or one deny JSON on stdout, exit 0"
     file: tasks/T02-worktree-guard-fails-closed.md
@@ -39,7 +39,7 @@ tasks:
     capability: CAP-NEW-extract-write-deny
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "hooks"
     seam: "settings JSON permissions.deny and install.sh --host claude merged output"
     file: tasks/T03-settings-deny-extract-in-place.md
@@ -56,7 +56,7 @@ tasks:
     capability: CAP-007
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "root-docs"
     seam: "record text checked by tests/lint/agent-worktree-docs.sh"
     file: tasks/T04-asset-record-agent-worktrees.md
