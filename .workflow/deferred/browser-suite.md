@@ -41,3 +41,4 @@ The scaffold is bash scripts plus markdown, with no web UI for a browser to driv
 ## Later requests
 
 - .workflow/specs/00011-interrupted-run-cleanup, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit f8029a6e3a461b085c60095d6b3868e17b387b6f.
+- .workflow/specs/00012-extractor-multiline-quotes, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit a51130e3fed52a186c47ad62957a126c0bf8001f.

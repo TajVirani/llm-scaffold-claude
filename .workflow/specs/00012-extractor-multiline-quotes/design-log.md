@@ -80,3 +80,7 @@ Revisions: agreed as first restated.
 - Decision: **D4** A `<<` inside a quoted string does not start a heredoc skip. This supersedes the deeper prompt's "changes to heredoc handling" Not-asked-for line for this one case, with the stakeholder's agreement.
 
 Facts looked up instead of asked (main session probes at `8e832be`, `codebase-map.md` § Not found): in-quote `./x` lines reported; double-quoted multi-line `./x` reported; `$(./y.sh)` in double quotes reported (correct); trailing comment apostrophe drops later bare calls.
+
+## 2026-10-30 Suite gap: browser suite
+
+3.14: no `e2e-browser` profile, so the 3.10-3.11 browser gate was skipped and recorded as a known gap; the stakeholder confirmed it is the shelved item [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md) (Later requests line appended). The 3.9 harness gate passed: 3606 passed, 0 failed (`artifacts/gate-3.9-w1/toolchain.txt`). Repo-wide oracle: 437 -> 432 records, five in-quote false edges removed, nothing else changed (`artifacts/oracle/oracle-diff.txt`).
