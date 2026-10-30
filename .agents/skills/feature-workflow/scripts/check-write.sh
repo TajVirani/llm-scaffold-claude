@@ -8,12 +8,15 @@
 #     --agent     pass it when the payload carries agent_id (only sub-agent calls do; verified on Claude Code 2.1.300). Its value is used in the message only.
 #     --only      evaluate only that path class and allow everything else, so each guard hook handles only its own paths.
 #                 `spec` covers .workflow/specs/*/spec.md, .workflow/specs/*/tasks.md, .workflow/specs/*/tasks/**, .workflow/specs/*/.step, .workflow/specs/work-backlog/**,
-#                 .workflow/initiatives/*/initiative.md and .workflow/initiatives/*/.step (all handled by spec-single-writer-guard).
+#                 .workflow/specs/done/**, .workflow/initiatives/*/initiative.md and .workflow/initiatives/*/.step (all handled by spec-single-writer-guard).
 #     --proposed  file holding the full content the write would produce (spec.md only): denied if it changes `status`
 #                 or `blocked_condition`, which only status-transition.sh may change.
 # Rules, in order (path classes compared case-insensitively, repo-relative to the worktree that holds the path):
 #   tier-b   .workflow/cache/**                          deny always, any writer. Caches arrive only via regenerate-caches/scripts/publish-cache.sh,
 #                                                   which stamps them, so the guard never needs to know who is writing.
+#   spec     .workflow/specs/done/** (the Done folder)  deny always, any writer, any file. A finished spec is a closed record; this rule
+#                                                   comes before the spec-file and glossary rules, so done/spec.md, done/.step and a
+#                                                   glossary inside a moved spec are not read as a spec named `done` or as Tier A.
 #   spec     .workflow/specs/work-backlog/**                  deny sub-agents. Main session: allow only when the origin spec's .step names 00.26
 #                                                   (write the item) or 5.9 (status / promoted link), or when the newest .step of
 #                                                   any spec names 0.1.4 (a new spec seeded from the item marks it promoted). The origin
@@ -192,7 +195,7 @@ LC=$(lower "$REL")
 CLASS=other KIND=""
 # Lower-cased guarded roots from lib/workflow-paths.sh. Prefix tests compare whole segments ("$P"/*), so a
 # look-alike such as .workflow/specs-x/ or .workflow/cache2/ is not matched.
-P_CACHE=$(lower "$WF_CACHE") P_SPECS=$(lower "$WF_SPECS") P_BACKLOG=$(lower "$WF_WORK_BACKLOG")
+P_CACHE=$(lower "$WF_CACHE") P_SPECS=$(lower "$WF_SPECS") P_BACKLOG=$(lower "$WF_WORK_BACKLOG") P_SPECS_DONE=$(lower "$WF_SPECS_DONE")
 P_PROFILES=$(lower "$WF_PROFILES") P_DECISIONS=$(lower "$WF_DECISIONS")
 P_RULES=$(lower "$WF_RULES") P_CAPABILITIES=$(lower "$WF_CAPABILITIES") P_INITIATIVES=$(lower "$WF_INITIATIVES")
 P_REVIEW_LESSONS=$(lower "$WF_REVIEW_LESSONS")
@@ -201,6 +204,8 @@ SPEC_REST="" INITIATIVE_REST=""
 [[ "$LC" != "$P_INITIATIVES"/* ]] || INITIATIVE_REST=${LC#"$P_INITIATIVES"/}
 if [[ "$LC" == "$P_CACHE" || "$LC" == "$P_CACHE"/* ]]; then
   CLASS=tier-b
+elif [[ "$LC" == "$P_SPECS_DONE" || "$LC" == "$P_SPECS_DONE"/* ]]; then
+  CLASS=spec KIND=done-folder                # checked first: done/spec.md and done/.step would otherwise read as a spec named done
 elif [[ "$LC" == "$P_BACKLOG" || "$LC" == "$P_BACKLOG"/* ]]; then
   CLASS=spec KIND=backlog                    # checked first: not a spec folder
 elif [[ "$SPEC_REST" =~ ^[^/]+/\.step$ ]]; then
@@ -234,6 +239,11 @@ WHO="main session"
 # ---------------------------------------------------------------- Tier B
 if [[ "$CLASS" == "tier-b" ]]; then
   deny "$REL is a Tier B cache under $WF_CACHE/; no file-tool write lands there, from any writer. Regenerate it with the regenerate-caches skill: cache-regeneration writes to the staging path and skills/regenerate-caches/scripts/publish-cache.sh stamps it and moves it in."
+fi
+
+# ---------------------------------------------------------------- the Done folder
+if [[ "$KIND" == "done-folder" ]]; then
+  deny "$REL is in the Done folder $WF_SPECS_DONE/, which holds finished work; no file-tool write changes a finished spec, from any writer. Record a follow-up in a new spec instead."
 fi
 
 # ---------------------------------------------------------------- step marker
