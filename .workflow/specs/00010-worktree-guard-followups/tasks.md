@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Scope check fails closed and passes quoted reads"
-    status: pending
+    status: done
     capability: CAP-007
     depends_on: []
     touches_core: false
@@ -35,7 +35,7 @@ tasks:
     pr: null
   - id: T3
     title: "Settings deny in-place frontmatter extract"
-    status: pending
+    status: done
     capability: CAP-NEW-extract-write-deny
     depends_on: []
     touches_core: false
@@ -52,7 +52,7 @@ tasks:
     pr: null
   - id: T4
     title: "Asset record matches the agent worktree build"
-    status: pending
+    status: done
     capability: CAP-007
     depends_on: []
     touches_core: false

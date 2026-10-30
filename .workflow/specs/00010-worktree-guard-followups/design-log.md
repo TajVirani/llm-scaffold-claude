@@ -264,3 +264,8 @@ Facts looked up instead of asked (0.3.10): None.
 - Seams agreed (2.3): T1 the `check-worktree-scope.sh` CLI; T2 the `worktree-write-guard.sh` payload-in, deny-JSON-out contract; T3 the settings JSON and `install.sh`'s merged output; T4 the record text through grep lint.
 - **D15** Size budget: the project defaults, 10 tasks and 30 changed files.
 - `tests/hooks/worktree-guard.sh` belongs to T2, which completes the suite after T1; the JRN-008 checks were finished in Phase 1, green at baseline, and belong to no task.
+
+## 2026-10-30 Wave 1 merged (3.16)
+
+- T1 `5e345a0`, T3 `65c126d`, T4 `aa6bc6d`, merged in id order (`6246123`, `aeff6f6`, `cd9fdff`); task PRs skipped (local `origin`: "origin host is neither GitHub nor GitLab"), `pr` stays null.
+- T1 mini-review: the first result file did not parse (YAML at L32); one resume fixed it. Its `out_of_scope_noticed` entry (the orchestrator sentence runs ahead of the hook until `--confined` is wired) is agreed scope, T2's, not discovered work.

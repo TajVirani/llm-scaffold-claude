@@ -1,0 +1,2 @@
+tests/hooks/worktree-guard.sh
+tests/lint/agent-worktree-docs.sh
