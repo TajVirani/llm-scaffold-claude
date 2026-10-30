@@ -259,3 +259,8 @@ Outcome: rework 1 of 5
 - PR description: approved. Changes asked before approval: none
 - Backlog: no open items
 - Going-in concerns: none
+
+## 2026-10-30 Retrospective notes
+
+- CAP-006 was assigned in this clone while spec 006 is in flight in its own clone; 006's 5.3 must read `.workflow/capabilities.md` from a main that already holds 008, or both claim CAP-006. See .workflow/decisions/retrospectives/008-pr-description-template.md
+- No task PRs were opened (origin is a local path), and this spec's 5.8 is a local merge whose message is `pr-body.md`; `gh pr create --body-file` stays unexercised live. See .workflow/decisions/retrospectives/008-pr-description-template.md

@@ -30,4 +30,14 @@ lessons:
     paths: ["PROVENANCE.md", ".agents/lib/**"]
     origin_spec: .workflow/specs/005-cache-build-followups
     date: 2026-10-29
+  - id: RL-003
+    symptom: "A change alters what a script accepts, prints or exits with, but the module or SKILL.md prose that tells agents how to call it or read its result still describes the old behaviour."
+    paths: [".agents/skills/*/modules/**", ".agents/skills/*/SKILL.md", ".agents/skills/*/scripts/**"]
+    origin_spec: .workflow/specs/008-pr-description-template
+    date: 2026-10-30
+  - id: RL-004
+    symptom: "A file under an installed skill's assets/ or modules/ names a specific .workflow/deferred/, .workflow/specs/ or .workflow/decisions/ file that only this scaffold repo holds, so every target project gets a dead path."
+    paths: [".agents/skills/*/assets/**", ".agents/skills/*/modules/**"]
+    origin_spec: .workflow/specs/008-pr-description-template
+    date: 2026-10-30
 ```

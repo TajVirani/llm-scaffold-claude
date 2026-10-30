@@ -13,3 +13,4 @@ Bounded reading or checking task with a fixed return format; a fast, low-cost mo
 ## Observations
 
 <!-- Appended at 5.7 by the retrospective skill, with approval. Dated, one line each. Keep this file free of any other field. -->
+- 2026-10-30 (claude, spec 008-pr-description-template): review cycle 1 reported TGT-003 (a plain lint command) as not_measurable; the main session measured it (pass). Cycle 2 measured all seven measurable targets. No alias change.
