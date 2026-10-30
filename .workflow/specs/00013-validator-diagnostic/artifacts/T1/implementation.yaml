@@ -1,0 +1,39 @@
+status: "done"
+summary: "status-transition.sh set-task and initiative-transition.sh write_validated now run the template validator without -e and read the printed verdict: true moves the copy into place, false refuses with the unchanged message and code (1 and 2), and a non-zero yq exit or any other output exits 1 with yq's output in the message. The prepared copy is removed on every refusal and error; both exit headers name the validator-error case."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/.worktrees/s00013_t1"
+branch: "detached (light path)"
+base_commit: "106a991b6bd9cc9a93ef51668c398c89d43dcc0d"
+head_commit: "5634746d2221f44d72aa0605441dbbfa1a45aa18"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/status-transition.sh"
+  - ".agents/skills/feature-workflow/scripts/initiative-transition.sh"
+  - "tests/scripts/status-transition-tasks.sh"
+  - "tests/scripts/initiative-transition.sh"
+tests_added:
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "a validator yq cannot run exits 1", kind: "behaviour"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "a validator error reports yq's diagnostic", kind: "behaviour"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "a validator error leaves tasks.md byte-identical", kind: "behaviour"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "a validator error leaves .step unchanged", kind: "behaviour"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "a validator error leaves no tasks.md copy", kind: "behaviour"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "a rejection keeps the schema-validator message", kind: "negative"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "a rejection carries no yq error text", kind: "negative"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "a non-boolean validator result exits 1 / is reported as a validator error / leaves tasks.md byte-identical", kind: "edge"}
+  - {file: "tests/scripts/initiative-transition.sh", test: "JRN-002 a validator yq cannot run exits 1", kind: "behaviour"}
+  - {file: "tests/scripts/initiative-transition.sh", test: "JRN-002 a validator error reports yq's diagnostic", kind: "behaviour"}
+  - {file: "tests/scripts/initiative-transition.sh", test: "JRN-002 a validator error leaves initiative.md byte-identical", kind: "behaviour"}
+  - {file: "tests/scripts/initiative-transition.sh", test: "JRN-002 a validator error leaves no initiative.md copy", kind: "behaviour"}
+  - {file: "tests/scripts/initiative-transition.sh", test: "JRN-002 a rejection keeps the template-validator message", kind: "negative"}
+  - {file: "tests/scripts/initiative-transition.sh", test: "JRN-002 a rejection carries no yq error text", kind: "negative"}
+evidence:
+  red: "bash tests/scripts/status-transition-tasks.sh; FAIL a validator error reports yq's diagnostic (stderr held only the 'refusing to write ... fails the tasks.md schema validator' message), RESULT passed=149 failed=1. bash tests/scripts/initiative-transition.sh; FAIL JRN-002 a validator yq cannot run exits 1 (got=2 want=1) and FAIL JRN-002 a validator error reports yq's diagnostic, RESULT passed=78 failed=2. The rejection-message and no-Error: checks passed before the change; they guard the -e removal."
+  green: "bash tests/scripts/status-transition-tasks.sh: RESULT passed=153 failed=0; bash tests/scripts/status-transition-specs.sh: RESULT passed=229 failed=0; bash tests/scripts/initiative-transition.sh: RESULT passed=80 failed=0"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00013-validator-diagnostic --task-id T1 --cwd <worktree>; lint pass, test (tests/run-all.sh) pass: TOTAL passed=3623 failed=0 skipped=0 xfail=0 (62 suites)"
+  toolchain: ".workflow/specs/00013-validator-diagnostic/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "A shared verdict helper in .agents/lib/: it is shared core, and the two call sites are small; each script keeps its own case block."
+  - "A non-boolean-output edge test for initiative-transition.sh: same case-block logic, covered once in status-transition-tasks.sh to keep the change within size."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

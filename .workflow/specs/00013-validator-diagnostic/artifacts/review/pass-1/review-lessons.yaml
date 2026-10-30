@@ -1,0 +1,26 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "7b0ccebe3e9e0616e5897479915113897dc40fbe"
+head: "b506f2d57cd32b2489fd6df59e423412a90f64c1"
+findings: []
+checked:
+  - ".workflow/review-lessons.md"
+  - ".workflow/decisions/pitfalls.md"
+  - ".workflow/decisions/retrospectives/00011-interrupted-run-cleanup.md"
+  - ".workflow/decisions/retrospectives/00012-extractor-multiline-quotes.md"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md"
+  - ".workflow/decisions/retrospectives/003-bash-cache-extractor.md"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md"
+  - ".workflow/decisions/retrospectives/005-cache-build-followups.md"
+  - ".workflow/decisions/retrospectives/006-result-file-guard.md"
+  - ".workflow/decisions/retrospectives/008-pr-description-template.md"
+  - ".workflow/specs/00013-validator-diagnostic/spec.md (baseline_revision, intent and constraints)"
+  - ".workflow/specs/00013-validator-diagnostic/tasks/T01-validator-error-diagnostic.md (not read in full; spec and diff used)"
+  - ".agents/skills/feature-workflow/SKILL.md (exit-code conventions, status-transition and writer prose)"
+  - ".agents/skills/feature-workflow/modules/large-path.md (initiative-transition exit-code prose)"
+  - ".agents/skills/feature-workflow/modules/sign-off.md (status-transition exit-code prose)"
+  - ".agents/skills/feature-workflow/modules/review-triage.md (status-transition exit-code prose)"
+  - ".agents/skills/feature-workflow/modules/discovery.md (backlog item deletion rule)"
+not_checked:
+  - "Pitfall 'Fork a Phase 1 build's worktree from the spec branch' and the 003 and 008 launch process rows: the worktree base of each launch is recorded in the launch records and artifacts, which lie outside the diff and outside this lens's inputs. Settled by reading the 1.2 and 3.x launch records of this spec, if the orchestrator wants that checked."

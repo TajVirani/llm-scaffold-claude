@@ -75,7 +75,8 @@
 #   updated_at: "<UTC ISO-8601, e.g. 2026-10-15T12:00:00Z>"
 #   blocked_from: "<status>"      # present only while spec status is blocked
 #
-# Exit codes: 0 done; 1 usage or environment error (missing yq, not a git repo, missing file, schema failure); 2 illegal transition (deny), matching check-write.sh and resolve-launch.sh.
+# Exit codes: 0 done; 1 usage or environment error (missing yq, not a git repo, missing file, schema failure, or a tasks.md
+#   schema validator yq cannot run, reported with yq's own error text); 2 illegal transition (deny), matching check-write.sh and resolve-launch.sh.
 # Called by: the phase modules (discovery, verification-setup, task-breakdown, implementation-orchestrator, review-triage, sign-off), domain-modeling and retrospective before guarded writes.
 # Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; spec-single-writer-guard rejects status edits made by Write/Edit. The deny rule Edit(.workflow/specs/*/.step) stops file tools forging the marker. The marker is accident prevention, not security. install.sh / project-setup add `.workflow/specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place).
 # Sources: first-party; tasks.md validator from feature-workflow/assets/tasks.md. Pattern: skills/data-structure-audit/scripts/audit_scope.sh (sub-commands, git anchoring).
@@ -315,10 +316,19 @@ if [[ "$MODE" == "set-task" ]]; then
   TMP=$(mktemp "${TASKS}.XXXXXX")
   cp "$TASKS" "$TMP"
   yq --front-matter=process -i "$EXPR" "$TMP" || { rm -f "$TMP"; die "cannot update $TASKS"; }
-  if ! yq --front-matter=extract -e "$TASKS_VALIDATOR" "$TMP" >/dev/null 2>&1; then
-    rm -f "$TMP"
-    die "refusing to write $TASKS: the result fails the tasks.md schema validator (feature-workflow/assets/tasks.md)"
-  fi
+  # No -e: with it a false verdict also exits non-zero with an error on stderr, and a rejection could not be told apart from a
+  # validator yq cannot run.
+  VERDICT_RC=0
+  VERDICT=$(yq --front-matter=extract "$TASKS_VALIDATOR" "$TMP" 2>&1) || VERDICT_RC=$?
+  case "$VERDICT_RC:$VERDICT" in
+    0:true) ;;
+    0:false)
+      rm -f "$TMP"
+      die "refusing to write $TASKS: the result fails the tasks.md schema validator (feature-workflow/assets/tasks.md)" ;;
+    *)
+      rm -f "$TMP"
+      die "cannot run the tasks.md schema validator on $TASKS (yq exit $VERDICT_RC): $VERDICT" ;;
+  esac
   mv -f "$TMP" "$TASKS"
   if [[ -n "$OPT_STEP" ]]; then
     from=""
