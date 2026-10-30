@@ -45,3 +45,7 @@ Spec 005 set a coverage target for its changed shell code at 1.1. No bash covera
 
 - Coverage for markdown skills and agent definitions.
 - Raising existing suites to any coverage threshold.
+
+## Later requests
+
+- .workflow/specs/00010-worktree-guard-followups, 4.8: line coverage of the changed guard scripts was again ruled not measured at 1.1 (D14); review-targets reported it `not_measurable`.

@@ -1,0 +1,48 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "1c5e46d8c4974a68905cdce522183c067c3e9e41"
+head: "6d40286added516dbf50088e1923e5b24fb562a0"
+findings:
+  - id: RS-1
+    category: standard
+    severity: medium
+    confidence: 100
+    location: "tests/hooks/worktree-guard.sh:92"
+    claim: "A new body comment in the worktree guard suite names a journey id (JRN-001)."
+    consequence: "Journey ids are numbered per spec, so JRN-001 already means something different in spec 006 and spec 00010. A maintainer reading the suite later cannot tell which journey is meant, and the reference goes stale when the spec is closed. Allowing it also weakens a rule that 3.7 enforces as a hard fail."
+    evidence:
+      basis: ".workflow/rules.md Cross-cutting policy: \"Body comments follow .agents/skills/feature-workflow/references/readable-code.md (a comment gives the reason in plain words; no decision IDs, doc or workflow paths, and no journey (`JRN-###`), finding or task id).\" readable-code.md R4: \"A comment never points at a decision record or a document.\" The Checking table grades an R4 breach at 4.1 as standard, medium, confidence 100."
+      diff: "+# The cause each JRN-001 deny reason must name."
+    suggested_fix: "Say the reason in plain words without the id, e.g. \"# The cause each deny reason must name when an agent's worktree cannot be established.\""
+  - id: RS-2
+    category: naming
+    severity: low
+    confidence: 80
+    location: ".agents/hooks/worktree-write-guard.sh:29"
+    claim: "The rewritten Behaviour header uses \"named worktree\", which the glossary lists as an alias to avoid for Agent worktree. The new suite header and labels in tests/hooks/worktree-guard.sh (lines 14, 17, 117-118, 335-346, 372) use it too."
+    consequence: "The point of this change (JRN-005) is to make the guard's wording match the glossary's Agent worktree. Leaving an avoided alias in the hook's interface doc puts the drift back, and the next person who edits the hook may copy it."
+    evidence:
+      basis: ".workflow/GLOSSARY.md, Agent worktree: \"_Avoid_: Task worktree (Phase 1 and integration are not tasks), named worktree, isolation worktree\""
+      diff: "+#       that worktree. Otherwise (named worktree missing, transcript not found, launch header missing or not parsed, cwd outside any git"
+    suggested_fix: "Write \"the named agent worktree is missing\" (as the line above does), and in the test labels and suite header say \"agent worktree missing\"."
+checked:
+  - "git diff 1c5e46d8c4974a68905cdce522183c067c3e9e41...HEAD excluding .workflow/specs/00010-worktree-guard-followups (20 files), --stat and log"
+  - "AGENTS.md (CLAUDE.md is a one-line @AGENTS.md import)"
+  - ".workflow/rules.md (Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, External systems, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1, T2, T3)"
+  - ".workflow/profiles/agent-docs.md (T4)"
+  - ".workflow/profiles/test-harness.md (governs the tests/ changes per AGENTS.md)"
+  - ".workflow/GLOSSARY.md"
+  - ".agents/skills/feature-workflow/references/readable-code.md"
+  - ".workflow/specs/00010-worktree-guard-followups/design-log.md, Placement entry (D1, no ADR; the entry is the placement record): the confinement decision is in check-worktree-scope.sh via --confined and the hook only passes what it knows, so it matches the record"
+  - "Tool output for T1, T2, T3 (shell-scripts: lint pass, test pass) and T4 (agent-docs: lint pass, test pass): artifacts/<task>/toolchain.json"
+  - "Smell baseline against the whole diff: the judge/expect/cexpect merge in tests/hooks/worktree-guard.sh removes duplication; no smell survived at 80"
+  - "Commit subjects: the 'Workflow data for ...' and 'Merge T<n>: ...' subjects are workflow-generated (79 on main) and endorsed by assetlist.md D85 item 6, so not a Conventional Commits finding"
+not_checked:
+  - "CODING_STANDARDS.md: not present at repo root"
+  - "CONTRIBUTING.md: not present at repo root"
+  - ".workflow/GLOSSARY-MAP.md: none found in the repo (.agents/skills/project-setup/assets/GLOSSARY.md is an install template, not this repo's naming baseline)"
+  - "No placement ADR: design-log Placement entry says 'ADR: none'; the entry itself was used"
+  - "T1-T4 typecheck, format and boundary keys: skipped ('no command') in every toolchain.json; no boundary tool covers the import rules (rules.md says dependency-cruiser cannot read bash), so module boundaries were checked by reading the diff only"
+  - ".workflow/cache/{architecture,flows,modules}.md: generated Tier B cache output (chore commit 68367fa), not reviewed against the comment or naming standards"

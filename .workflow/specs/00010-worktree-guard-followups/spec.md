@@ -6,7 +6,7 @@ impl_base_revision: "375cb5be0671605c57fb97d9aae271e36a97eaba" # full SHA of the
 light_path: false # true once the 0.3.20 light-path test passes
 budget: {max_tasks: 10, max_changed_files: 30} # written at 2.5 from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
 followup_review_recommended: false # true when triage recommends another review pass after this one
-deferred: [] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
+deferred: [.workflow/deferred/frontmatter-extract-write-guard.md, .workflow/deferred/subagent-missing-transcript-path.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 origin: 006-result-file-guard-disc-003.md # filename of the work-backlog item this spec was seeded from; the item is deleted after discovery
 ---
 # Worktree guard and upgrade follow-ups

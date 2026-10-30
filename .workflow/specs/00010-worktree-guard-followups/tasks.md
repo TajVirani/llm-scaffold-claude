@@ -18,7 +18,7 @@ tasks:
     pr: null
   - id: T2
     title: "Worktree guard fails closed"
-    status: done
+    status: in-progress
     capability: CAP-007
     depends_on: [T1]
     touches_core: false
