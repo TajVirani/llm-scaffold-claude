@@ -75,3 +75,14 @@ Facts looked up instead of asked (main-session probes, yq v4.54.1): see `codebas
 ## 2026-10-30 Suite gap: browser suite
 
 3.14: no `e2e-browser` profile, so the 3.10-3.11 browser gate was skipped and recorded as a known gap; the stakeholder confirmed it is the shelved item [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md) (Later requests line appended). The 3.9 harness gate passed: 3623 passed, 0 failed (`artifacts/gate-3.9-w1/toolchain.txt`). The T1 mini-review passed with one out-of-scope note (a yq warning on stderr with exit 0 would refuse a valid write under D1); it concerns the task's own lines, so Phase 4 triage judges it.
+
+## 2026-10-30 Triage, review pass 1
+
+Lenses: review-standards, review-end-state, review-lessons (0 findings each); no targets (light path). F1 is the T1 mini-review's `out_of_scope_noticed` entry (`artifacts/T1/mini-review.yaml`), which concerns the task's own lines.
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 | profile-mini-review (3.7) | With stderr merged into the verdict, a yq warning on stderr with exit 0 would refuse a valid write with exit 1, where the old `-e` check accepted it | `.agents/skills/feature-workflow/scripts/status-transition.sh:322-324`, `initiative-transition.sh:167-169` | maybe-false | Probes on yq v4.54.1 (valid file, no front matter, two documents, duplicate keys) printed nothing on stderr with exit 0. If it ever happens, the writer fails loudly with yq's text shown, which D1 chose on purpose ("any other output is a validator error"). Would be low if true. Settled by a yq release that warns on stderr with exit 0 | none (dismissed: maybe-false, low if true, fails loudly by design) |
+
+Failed lenses: none
+Outcome: clean, to sign-off
