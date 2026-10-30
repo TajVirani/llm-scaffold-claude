@@ -10,7 +10,7 @@ Rules:
 
 | ID | Description | Introduced by |
 | --- | --- | --- |
-| CAP-001 | Scoped and parallel harness runs: `tests/run-all.sh` runs the suites a selector file names, or every suite minus an exclude file, in parallel by default with the same report as a serial run | [.workflow/specs/004-scoped-test-runs](specs/004-scoped-test-runs/spec.md) |
+| CAP-001 | Scoped and parallel harness runs: `tests/run-all.sh` runs the suites a selector file names, or every suite minus an exclude file, in parallel by default with the same report as a serial run; an interrupted run (INT, TERM or HUP) stops every suite and its child processes and exits 130, 143 or 129 | [.workflow/specs/004-scoped-test-runs](specs/004-scoped-test-runs/spec.md), [.workflow/specs/00011-interrupted-run-cleanup](specs/00011-interrupted-run-cleanup/spec.md) |
 | CAP-002 | Review lessons lens: the Phase 4 review checks every change since `baseline_revision` against the project's recorded review lessons, pitfalls and retrospectives (step 4.9, cheap tier, read-only) | [.workflow/specs/002-review-lessons](specs/002-review-lessons/spec.md) |
 | CAP-003 | Review lessons written by the retrospective: an approved "watch for X in Y" lesson becomes one entry in `.workflow/review-lessons.md` at 5.7, retired in place once a rule, lint or profile line enforces it | [.workflow/specs/002-review-lessons](specs/002-review-lessons/spec.md) |
 | CAP-004 | Graph extractor per work profile: the Tier B cache build runs the graph extractor each work profile names (`graph_extractor`: `bash`, `dependency-cruiser` or `none`) and merges their graphs; a profile without the key is a breaking-change error | [.workflow/specs/003-bash-cache-extractor](specs/003-bash-cache-extractor/spec.md) |

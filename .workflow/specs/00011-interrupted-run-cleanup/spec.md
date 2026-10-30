@@ -1,5 +1,5 @@
 ---
-status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: done # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "3fee587d96a73c6c2692e3cb534b5883aa7c7324" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/00011-interrupted-run-cleanup # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "3fee587d96a73c6c2692e3cb534b5883aa7c7324" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
@@ -22,12 +22,12 @@ When `tests/run-all.sh` is interrupted (Ctrl-C, a kill or a closed terminal), it
 
 - **CAP-001** Scoped and parallel harness runs (changed: interrupted runs stop their suites)
   - **intent:** A developer or script can stop a harness run with INT, TERM or HUP and be left with no suite process, or child of one, still running.
-  - **success:** In `tests/scripts/run-all-selection.sh`, for each of INT, TERM and HUP sent to a fixture runner while a stub suite runs, the runner exits 130, 143 or 129, the stub suite and its child `sleep` are no longer alive, and the results directory is gone; the existing checks of an uninterrupted run still pass unchanged.
+  - **success:** In `tests/scripts/run-all-selection.sh`, for each of INT, TERM and HUP sent to a fixture runner while a stub suite runs, the runner exits 130, 143 or 129, the stub suite and its child `sleep` are no longer alive, and the results directory is gone; a stub suite reading stdin gets end of file while the runner's stdin is an open pipe; the existing checks of an uninterrupted run still pass unchanged.
 
 ## Constraints
 
 - bash 3.2 built-ins and macOS base tools only; no new required binary (`.workflow/rules.md` § Required versions; D1).
-- An uninterrupted run's output, order and exit codes (0, 1, 2) do not change: `set -m` is on only around each suite's background launch, so no job notices are printed (D1).
+- An uninterrupted run's output, order and exit codes (0, 1, 2) do not change: `set -m` is on only around each suite's background launch, so no job notices are printed (D1), and each suite is launched with `/dev/null` as stdin, as it was before job control was used (triage F1).
 - Each suite runs in its own process group; a handled signal stops every running suite's group with TERM, waits up to 2 s, then KILLs the groups still alive, and ignores further handled signals while it cleans up (D1, D2, D3).
 - The suite tests the runner from its fixture copy against stub suites, never the real harness (`tests/scripts/run-all-selection.sh:15-22`).
 

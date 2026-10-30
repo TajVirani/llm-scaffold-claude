@@ -97,3 +97,15 @@ Lenses: review-standards, review-end-state, review-lessons (0 findings each); no
 
 Failed lenses: none
 Outcome: rework 1 of 5
+
+## 2026-10-30 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes
+- PR description: approved. Changes asked before approval: none
+- Backlog: no open items
+- Going-in concerns: none
+
+## 2026-10-30 Retrospective notes
+
+- The INT case skips with a reason when the suite itself starts with SIGINT ignored; under the new runner suites start with job control, so it always runs, see .workflow/decisions/retrospectives/00011-interrupted-run-cleanup.md
+- The guard comment in `running_suite_groups` took two extra review rounds to state a true reason, see .workflow/decisions/retrospectives/00011-interrupted-run-cleanup.md
