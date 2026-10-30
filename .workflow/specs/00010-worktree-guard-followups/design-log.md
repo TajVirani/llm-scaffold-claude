@@ -283,3 +283,4 @@ Facts looked up instead of asked (0.3.10): None.
 ## 2026-10-30 Wave 2 merged (3.16)
 
 - T2 `eab2056` merged (`Merge T2`); task PR skipped (local `origin`). Mini-review round 1 failed R2 (wording); the wording-only fix round passed the re-check. The re-check's four `out_of_scope_noticed` entries are the same four already filed or ruled above (duplicates, nothing new filed).
+- 3.9 wave 2 (last): full harness `TOTAL passed=3678 failed=0 skipped=0 xfail=0 (62 suites)`, nothing excluded (`artifacts/gate-3.9-w2/`). Budget: 4 tasks, 8 of 30 changed files. 3.10-3.11: no browser suite (Suites, Browser row: not applicable), so no e2e run; in-review at 3.11.

@@ -1,5 +1,5 @@
 ---
-status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "1c5e46d8c4974a68905cdce522183c067c3e9e41" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: "spec/00010-worktree-guard-followups" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "375cb5be0671605c57fb97d9aae271e36a97eaba" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
