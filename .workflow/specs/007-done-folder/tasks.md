@@ -53,7 +53,7 @@ tasks:
     pr: null
   - id: T4
     title: "Sign-off, discovery and large-path docs for the Done folder"
-    status: pending
+    status: done
     capability: CAP-NEW-done-folder
     depends_on: [T2]
     touches_core: false

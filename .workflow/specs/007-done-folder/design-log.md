@@ -185,3 +185,15 @@ Seeded by the module-audit refresh: after the move the D11 deny blocks every Wri
 - Out of scope noticed (`assets/review-lessons.md:9` still states the old `origin_spec` rule): not discovered work; it is T4's acceptance criterion (the template header kept in step with the script).
 - T1 re-check out-of-scope note (toolchain tree hash differs from the git tree): not discovered work; the tree hash excludes the workflow data folders, and `run-toolchain.sh --reuse` on head 7323ca9 matched the same tree (pass, reused_from T1).
 - 3.16 task review: skipped the task PRs for every wave (pr: null). `origin` is about 150 commits behind and is not used for this work; nothing is pushed (local-merge route, as for specs 006 and 008).
+
+## 2026-10-30 Discovered work: initiative-link-rewrite-form
+
+- Found at: step 3.4 by implementation T4 (`artifacts/T4/implementation.yaml`). Kind: decision
+- Problem and evidence: 6.13 rewrites an initiative's links to moved specs with a `sed` loop in the doc block (`modules/large-path.md` § 6.13, commit `c863498`); `move-to-done.sh` has no form for it, so the rewrite rules live in two places.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9. The doc loop meets D10; T5's header names only 5.7 and 5.8 as callers.
+- Backlog item: [work-backlog/007-done-folder-disc-001.md](../work-backlog/007-done-folder-disc-001.md)
+
+## 2026-10-30 T4 mini-review round 1
+
+- Fail: R2 (`modules/large-path.md:289`, the skip of slices not in `done/` needs its reason). Out of scope noticed: the 6.13 `sed` rewrite misses the second of two adjacent occurrences separated by one character (`large-path.md:291`). Not discovered work: a defect in T4's own change, fixed in this round. Behaviour fix round: fresh launch.
+- T4 round 2 pass. Out of scope noticed (`move-to-done.sh` is still the stub): not discovered work; it is T5.
