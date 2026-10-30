@@ -101,7 +101,7 @@ wf_norm_folder() {
     fi
     folder="$root/$(basename "$folder")"
   fi
-  if ! [[ "$folder" == "$root"/* && "${folder#"$root"/}" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+  if ! [[ "$folder" == "$root"/* && "${folder#"$root"/}" =~ ^[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
     printf '%s must be %s/NNN-slug: %s\n' "$label" "$root" "$arg" >&2
     return 1
   fi
@@ -132,7 +132,7 @@ wf_agent_worktree_name() {
   spec_number=${folder%%-*}
   slug=${folder#*-}
   # Glob tests rather than =~ so the function leaves no BASH_REMATCH behind in the caller.
-  if [[ "$folder" != *-* || ${#spec_number} -lt 3 || "$spec_number" == *[!0-9]* ||
+  if [[ "$folder" != *-* || -z "$spec_number" || "$spec_number" == *[!0-9]* ||
     "$slug" != [A-Za-z0-9]* || "$slug" == *[!A-Za-z0-9._-]* ]]; then
     printf 'spec dir must be a folder named NNN-slug: %s\n' "$spec_dir" >&2
     return 1

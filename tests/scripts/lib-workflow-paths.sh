@@ -75,8 +75,11 @@ for kind in spec initiative; do
   check "JRN-006 wf_norm_folder $kind refuses a folder of the other kind" \
     '[[ "${result%%|*}" == 1 && "${result#*|}" == *"$other"* ]]' "$result"
 done
-for arg in .workflow/specs/01-short .workflow/specs/work-backlog .workflow/specs/001-alpha/tasks .workflow/specs/001-; do
+for arg in .workflow/specs/x01-short .workflow/specs/work-backlog .workflow/specs/001-alpha/tasks .workflow/specs/001-; do
   eq "JRN-006 wf_norm_folder spec refuses $arg" "$(stdout_and_status wf_norm_folder spec "$arg")" "1|"
+done
+for arg in .workflow/specs/01-short .workflow/specs/00010-five; do
+  eq "JRN-006 wf_norm_folder spec accepts any digit count: $arg" "$(stdout_and_status wf_norm_folder spec "$arg")" "0|$arg"
 done
 eq "JRN-006 wf_norm_folder accepts a slug with dots, dashes and underscores" \
   "$(stdout_and_status wf_norm_folder spec .workflow/specs/1234-a.b_c-d)" "0|.workflow/specs/1234-a.b_c-d"
@@ -119,6 +122,10 @@ eq "JRN-001 wf_agent_worktree_name task T3 is s007_t3" "$(stdout_and_status wf_a
 eq "JRN-001 wf_agent_worktree_name task T12 is s007_t12" "$(stdout_and_status wf_agent_worktree_name .workflow/specs/007-demo task T12)" "0|s007_t12"
 eq "JRN-001 wf_agent_worktree_name keeps a four-digit spec number" \
   "$(stdout_and_status wf_agent_worktree_name .workflow/specs/1234-wide task T1)" "0|s1234_t1"
+eq "JRN-001 wf_agent_worktree_name keeps a five-digit spec number" \
+  "$(stdout_and_status wf_agent_worktree_name .workflow/specs/00010-five task T1)" "0|s00010_t1"
+eq "JRN-001 wf_agent_worktree_name accepts a two-digit spec number" \
+  "$(stdout_and_status wf_agent_worktree_name .workflow/specs/12-foo task T1)" "0|s12_t1"
 for bad in .workflow/specs/demo .workflow/specs/x07-demo .workflow/specs/007demo ""; do
   result=$(refusal wf_agent_worktree_name "$bad" task T3)
   check "JRN-001 wf_agent_worktree_name refuses the malformed spec folder '$bad' with status 1 and a reason" \

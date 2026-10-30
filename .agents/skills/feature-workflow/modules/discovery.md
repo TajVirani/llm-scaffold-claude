@@ -12,17 +12,17 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
 
    ```bash
    {
-     for d in .workflow/specs/[0-9][0-9][0-9]-*/; do [ -d "$d" ] && basename "$d"; done
+     for d in .workflow/specs/[0-9]*-*/; do [ -d "$d" ] && basename "$d"; done
      git for-each-ref --format='%(refname:lstrip=3)' refs/heads/spec
      git for-each-ref --format='%(refname:lstrip=4)' refs/remotes/origin/spec
      for f in .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && yq --front-matter=extract '.origin, (.slices // [] | .[].spec)' "$f"; done
      for ref in $(git for-each-ref --format='%(refname)' refs/heads/initiative refs/remotes/origin/initiative); do
        git show "$ref:.workflow/initiatives/${ref##*/}/initiative.md" 2>/dev/null | yq --front-matter=extract '.origin, (.slices // [] | .[].spec)'
      done
-   } | grep -oE '^[0-9]{3}' | sort -n | tail -1
+   } | grep -oE '^[0-9]+' | sort -n | tail -1
    ```
 
-   `.workflow/specs/work-backlog/` and any other folder without a numeric prefix are not specs and never count. The new number is the highest plus one, zero-padded to three digits (`001` when nothing prints).
+   `.workflow/specs/work-backlog/` and any other folder without a numeric prefix are not specs and never count. The new number is the highest plus one, zero-padded to five digits (`printf '%05d' $((10#$highest + 1))`; `00001` when nothing prints). Older specs keep their three-digit numbers: a spec number may have any number of digits, and only its value orders it.
 2. **0.1.2 Slug.** Two to four lowercase kebab-case words from the request, action-noun where it reads well, keeping technical terms ("Implement OAuth2 for the API" → `oauth2-api`). Use `.workflow/GLOSSARY.md` terms when the request names a known concept.
 3. **0.1.3** `mkdir -p .workflow/specs/NNN-slug`.
 4. **0.1.4 `spec.md`.** Set the step, write the template, then record the status through the script:

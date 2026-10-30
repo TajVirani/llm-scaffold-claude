@@ -311,7 +311,7 @@ if [[ "$MODE" == "set-slice" ]]; then
   [[ "$SID" =~ ^S[0-9]+$ ]] || die "slice id must look like S<n>: $SID"
   [[ -n "$OPT_STATUS$OPT_SPEC" ]] || die "set-slice needs --status <planned|emitted|done> and/or --spec <NNN-slug>"
   [[ -z "$OPT_STATUS" ]] || in_list "$OPT_STATUS" "$SLICE_STATUSES" || die "unknown slice status '$OPT_STATUS' (expected one of: $SLICE_STATUSES)"
-  [[ -z "$OPT_SPEC" || "$OPT_SPEC" =~ ^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || die "--spec must be a spec folder name NNN-slug: '$OPT_SPEC'"
+  [[ -z "$OPT_SPEC" || "$OPT_SPEC" =~ ^[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || die "--spec must be a spec folder name NNN-slug: '$OPT_SPEC'"
   count=$(yq --front-matter=extract '[.slices[] | select(.id == strenv(SID))] | length' "$INITIATIVE") \
     || die "cannot read the slices: array in $INITIATIVE"
   [[ "$count" == "1" ]] || die "slice $SID appears $count times in $INITIATIVE (expected exactly once)"

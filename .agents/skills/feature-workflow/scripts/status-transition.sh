@@ -154,7 +154,7 @@ TASKS_VALIDATOR='
       (.capability | test("^CAP-([0-9]{3,}|NEW-[a-z0-9]+(-[a-z0-9]+)*)$")) and
       ((.work_type | tag) == "!!null" or (.work_type | tag) == "!!str") and
       ([.file == null, ([(.file | tag) == "!!str", ((.file // "") | tostring | test("^tasks/T0*" + $n + "-[A-Za-z0-9][A-Za-z0-9._-]*[.]md$"))] | all)] | any) and
-      ([.branch == null, ([(.branch | tag) == "!!str", ((.branch // "") | tostring | test("^task/[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*/T0*" + $n + "-[A-Za-z0-9][A-Za-z0-9._-]*$"))] | all)] | any) and
+      ([.branch == null, ([(.branch | tag) == "!!str", ((.branch // "") | tostring | test("^task/[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*/T0*" + $n + "-[A-Za-z0-9][A-Za-z0-9._-]*$"))] | all)] | any) and
       ([.predicted_files == null, ([(.predicted_files | tag) == "!!seq", ([.predicted_files[] | select(tag == "!!str" and . != "")] | length) == (.predicted_files | length)] | all)] | any) and
       ([.size == null, ([(.size | tag) == "!!map", (.size.files | tag) == "!!int", ((.size.files // "") | tostring | test("^[0-9]+$")), (.size.est_lines | tag) == "!!int", ((.size.est_lines // "") | tostring | test("^[0-9]+$")), ((.size.points // "") | test("^(S|M|L)$"))] | all)] | any) and
       ([.mode == null, ((.mode | tag) == "!!str" and ((.mode // "") | tostring | test("^(afk|hitl)$")))] | any) and
