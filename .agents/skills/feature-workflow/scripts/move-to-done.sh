@@ -20,7 +20,10 @@
 #   a Done folder entry of the same name, the main branch or a detached HEAD checked out, a merge in progress; nothing
 #   changed. For --sweep, 1 also means at least one done spec failed and stayed in place while the others moved and were
 #   committed. 2 usage or environment error (bad arguments, not a git repository, a folder that is not a spec, spec.md
-#   missing, yq missing, a git or file operation failing).
+#   missing, yq missing, a git or file operation failing). An error after the first move rolls the run back before it
+#   exits 2: every moved spec goes back with its step marker, every rewritten file gets its old content back and the index
+#   is restored, so nothing is left moved or staged. When a rollback step itself fails, stderr names each spec folder, file
+#   or index still changed and how to put it back by hand.
 # Called by: modules/sign-off.md (5.7 --check, 5.8 the move and the one-off --sweep).
 # Notes: Requires git and mikefarah yq v4. Never pushes. bash 3.2 compatible.
 # Sources: first-party. Pattern: commit-workflow-data.sh (main-checkout resolution, explicit staging, path-limited commit).
@@ -101,13 +104,77 @@ SPECS_LEAF=${WF_SPECS##*/}
 DONE_LEAF=${WF_SPECS_DONE#"$WF_SPECS"/}
 PATHSPECS=()
 MOVED=()
-TMP_FILE=$(mktemp) || die "cannot create a temporary file"
-trap 'rm -f "$TMP_FILE"' EXIT
+SCRATCH_DIR=$(mktemp -d) || die "cannot create a temporary folder"
+TMP_FILE=$SCRATCH_DIR/rewrite
+LIST_FILE=$SCRATCH_DIR/list
+
+# What this run changed and has not committed yet, kept so a failure can put it back. MOVED_FROM, MOVED_TO and STEP_COPY
+#   are parallel: a spec folder's old and new path and where its step marker was set aside ("" when it had none).
+#   SAVED_FILE and SAVED_COPY are parallel: a file's path when it was rewritten and a copy of its content before that.
+UNCOMMITTED=0
+MOVED_FROM=() MOVED_TO=() STEP_COPY=() SAVED_FILE=() SAVED_COPY=()
+CREATED_DONE_FOLDER="" INDEX_FILE="" INDEX_COPY=""
+
+# roll_back : put the index, the rewritten files, the moved spec folders and their step marker back as they were, newest
+#   change first; print what was undone, or each change that could not be undone and how to undo it by hand.
+roll_back() {
+  local i left=()
+  if [[ -n "$INDEX_FILE" ]]; then
+    if [[ -n "$INDEX_COPY" ]]; then
+      cp "$INDEX_COPY" "$INDEX_FILE" || left+=("the index has the move staged: run git reset -q in $ROOT")
+    else
+      rm -f "$INDEX_FILE" || left+=("the index has the move staged: run git reset -q in $ROOT")
+    fi
+  fi
+  i=${#SAVED_FILE[@]}
+  while [[ $i -gt 0 ]]; do
+    i=$((i - 1))
+    # A file whose write failed before it was truncated still matches its copy and needs no restore.
+    cmp -s "${SAVED_COPY[i]}" "${SAVED_FILE[i]}" && continue
+    cat "${SAVED_COPY[i]}" >"${SAVED_FILE[i]}" ||
+      left+=("${SAVED_FILE[i]} is rewritten: copy ${SAVED_COPY[i]} over it")
+  done
+  i=${#MOVED_TO[@]}
+  while [[ $i -gt 0 ]]; do
+    i=$((i - 1))
+    if ! mv "${MOVED_TO[i]}" "${MOVED_FROM[i]}"; then
+      left+=("${MOVED_TO[i]} is still moved: mv it back to ${MOVED_FROM[i]}")
+      [[ -z "${STEP_COPY[i]}" ]] || left+=("its step marker is at ${STEP_COPY[i]}: mv it back to ${MOVED_FROM[i]}/.step")
+      continue
+    fi
+    [[ -z "${STEP_COPY[i]}" ]] || mv "${STEP_COPY[i]}" "${MOVED_FROM[i]}/.step" ||
+      left+=("${MOVED_FROM[i]}/.step is missing: mv ${STEP_COPY[i]} back to it")
+  done
+  [[ -z "$CREATED_DONE_FOLDER" ]] || rmdir "$CREATED_DONE_FOLDER" ||
+    left+=("$CREATED_DONE_FOLDER was created by this run: remove it once it is empty")
+  if [[ ${#left[@]} -eq 0 ]]; then
+    printf '%s: rolled back; nothing was moved, rewritten or committed\n' "$PROG" >&2
+    return 0
+  fi
+  printf '%s: rollback incomplete, nothing was committed; still changed:\n' "$PROG" >&2
+  printf '  %s\n' "${left[@]}" >&2
+  # The copies named above live in the temporary folder, so it must outlive this run.
+  SCRATCH_DIR=""
+  return 1
+}
+
+# on_exit : roll back the uncommitted changes when the script fails after its first move, then remove the temporary folder.
+on_exit() {
+  local exit_code=$?
+  set +e
+  if [[ $UNCOMMITTED -eq 1 && $exit_code -ne 0 ]]; then
+    roll_back
+    exit_code=2
+  fi
+  [[ -z "$SCRATCH_DIR" ]] || rm -rf "$SCRATCH_DIR"
+  exit "$exit_code"
+}
+trap on_exit EXIT
 
 # refuse_unsafe_checkout : exit 1 when the checked-out branch must not take the move commit or git is mid-operation.
 refuse_unsafe_checkout() {
   local current main h
-  current=$(git -C "$ROOT" branch --show-current)
+  current=$(git -C "$ROOT" branch --show-current) || die "cannot read the checked-out branch in $ROOT"
   [[ -n "$current" ]] || die "the main checkout has a detached HEAD; check out the spec branch first" 1
   main=$(bash "$SCRIPT_DIR/rules-setting.sh" main_branch --cwd "$ROOT" 2>/dev/null) ||
     die "cannot read the main branch name (rules-setting.sh main_branch)"
@@ -130,9 +197,15 @@ move_refusal() {
   [[ ! -e "$(wf_path "$ROOT" "$WF_SPECS_DONE/${spec_dir##*/}")" ]] || echo "$WF_SPECS_DONE/${spec_dir##*/} already exists"
 }
 
-# replace_file FILE : copy TMP_FILE over FILE when they differ, keeping FILE's mode; true when FILE changed.
+# replace_file FILE : copy TMP_FILE over FILE when they differ, keeping FILE's mode and a copy of its old content for a
+#   rollback; true when FILE changed.
 replace_file() {
+  local copy
   cmp -s "$TMP_FILE" "$1" && return 1
+  copy=$SCRATCH_DIR/saved.${#SAVED_FILE[@]}
+  cp "$1" "$copy" || die "cannot keep a copy of $1"
+  SAVED_FILE+=("$1")
+  SAVED_COPY+=("$copy")
   cat "$TMP_FILE" >"$1" || die "cannot write $1"
 }
 
@@ -153,6 +226,7 @@ add_up_level_to_outbound_links() {
       }
       return 0
     }
+    # adjusted TARGET : TARGET with one more `../` in front when it climbs out of the spec folder, else TARGET as it is.
     function adjusted(target) { return climbs_out(target) ? "../" target : target }
     {
       rest = $0
@@ -207,28 +281,51 @@ point_at_done_folder() {
 # move_spec SPEC_DIR : move SPEC_DIR into the Done folder, drop its step marker, fix its outbound links, rewrite its path in
 #   every workflow file outside cache/ and initiatives/, and queue the changed paths in PATHSPECS for the commit.
 move_spec() {
-  local spec_dir=$1 name target old_abs new_abs file rel
+  local spec_dir=$1 name target old_abs new_abs done_abs move_index step_copy file rel tracked found
   name=${spec_dir##*/}
   target=$WF_SPECS_DONE/$name
   old_abs=$(wf_path "$ROOT" "$spec_dir")
   new_abs=$(wf_path "$ROOT" "$target")
-  mkdir -p "$(wf_path "$ROOT" "$WF_SPECS_DONE")" || die "cannot create $WF_SPECS_DONE"
+  done_abs=$(wf_path "$ROOT" "$WF_SPECS_DONE")
+  if [[ ! -d "$done_abs" ]]; then
+    mkdir -p "$done_abs" || die "cannot create $WF_SPECS_DONE"
+    CREATED_DONE_FOLDER=$done_abs
+  fi
+  UNCOMMITTED=1
   # Plain mv, not git mv: git mv refuses an untracked spec folder.
   mv "$old_abs" "$new_abs" || die "cannot move $spec_dir to $target"
-  rm -f "$new_abs/.step" || die "cannot delete $target/.step"
-  while IFS= read -r file; do
+  move_index=${#MOVED_TO[@]}
+  MOVED_FROM+=("$old_abs")
+  MOVED_TO+=("$new_abs")
+  STEP_COPY+=("")
+  # The step marker is set aside rather than deleted, so a rollback can put it back.
+  if [[ -e "$new_abs/.step" ]]; then
+    step_copy=$SCRATCH_DIR/step.$move_index
+    mv "$new_abs/.step" "$step_copy" || die "cannot set aside $target/.step"
+    STEP_COPY[move_index]=$step_copy
+  fi
+  find "$new_abs" -type f -name '*.md' -print0 >"$LIST_FILE" || die "cannot list the Markdown files in $target"
+  while IFS= read -r -d '' file; do
     rel=${file#"$new_abs"/}
     add_up_level_to_outbound_links "$file" "$(printf '%s' "$rel" | tr -cd / | wc -c)"
-  done < <(find "$new_abs" -type f -name '*.md')
+  done <"$LIST_FILE"
+  git -C "$ROOT" ls-files -c -o --exclude-standard -z -- "$WF_DIR" ":(exclude)$WF_CACHE" \
+    ":(exclude)$WF_INITIATIVES" ":(exclude)$WF_WORKTREES" ":(exclude)$WF_HANDOFF" ":(exclude)$WF_CACHE_STAGING" \
+    ":(exclude)$WF_STANDARDS_STAGING" >"$LIST_FILE" || die "cannot list the workflow files to rewrite"
   while IFS= read -r -d '' rel; do
     file=$(wf_path "$ROOT" "$rel")
     [[ -f "$file" && ! -L "$file" ]] || continue
-    grep -qIF -- "$name" "$file" || continue
+    found=0
+    grep -qIF -- "$name" "$file" || found=$?
+    case $found in
+      0) ;;
+      1) continue ;;
+      *) die "cannot search $rel for the spec path" ;;
+    esac
     if point_at_done_folder "$file" "$name"; then PATHSPECS+=("$rel"); fi
-  done < <(git -C "$ROOT" ls-files -c -o --exclude-standard -z -- "$WF_DIR" ":(exclude)$WF_CACHE" \
-    ":(exclude)$WF_INITIATIVES" ":(exclude)$WF_WORKTREES" ":(exclude)$WF_HANDOFF" ":(exclude)$WF_CACHE_STAGING" \
-    ":(exclude)$WF_STANDARDS_STAGING")
-  if [[ -n "$(git -C "$ROOT" ls-files -c -- "$spec_dir" | head -1)" ]]; then PATHSPECS+=("$spec_dir"); fi
+  done <"$LIST_FILE"
+  tracked=$(git -C "$ROOT" ls-files -c -- "$spec_dir") || die "cannot list the tracked files of $spec_dir"
+  if [[ -n "$tracked" ]]; then PATHSPECS+=("$spec_dir"); fi
   PATHSPECS+=("$target")
   MOVED+=("$name")
   echo "moved $spec_dir -> $target"
@@ -236,14 +333,23 @@ move_spec() {
 
 # commit_moves SUBJECT : stage the queued paths and commit only them on the checked-out branch.
 commit_moves() {
-  local file staged=()
+  local file git_dir head staged=()
+  git_dir=$(git -C "$ROOT" rev-parse --absolute-git-dir) || die "cannot find the git folder of $ROOT"
+  if [[ -f "$git_dir/index" ]]; then
+    cp "$git_dir/index" "$SCRATCH_DIR/index" || die "cannot keep a copy of the index"
+    INDEX_COPY=$SCRATCH_DIR/index
+  fi
+  INDEX_FILE=$git_dir/index
   git -C "$ROOT" --literal-pathspecs add -A -- "${PATHSPECS[@]}" || die "git add failed for the moved spec"
-  while IFS= read -r -d '' file; do staged+=("$file"); done \
-    < <(git -C "$ROOT" --literal-pathspecs diff --cached --name-only -z --no-renames -- "${PATHSPECS[@]}")
+  git -C "$ROOT" --literal-pathspecs diff --cached --name-only -z --no-renames -- "${PATHSPECS[@]}" >"$LIST_FILE" ||
+    die "cannot list the staged changes"
+  while IFS= read -r -d '' file; do staged+=("$file"); done <"$LIST_FILE"
   [[ ${#staged[@]} -gt 0 ]] || die "nothing staged after the move"
   git -C "$ROOT" --literal-pathspecs commit -q -m "$1" -m "Moved into the Done folder: ${MOVED[*]}" -- "${staged[@]}" ||
     die "git commit failed"
-  echo "committed $(git -C "$ROOT" rev-parse HEAD)"
+  UNCOMMITTED=0
+  head=$(git -C "$ROOT" rev-parse HEAD) || die "committed, but cannot read the new commit id"
+  echo "committed $head"
 }
 
 if [[ "$MODE" == move ]]; then

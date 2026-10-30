@@ -28,6 +28,11 @@
 #   its parent and a reference-style link resolve after the move; a spec already in done/ cannot move (2) but passes --check;
 #   the main branch and a detached HEAD are refused with nothing changed; an untracked done spec moves and is committed; a
 #   sweep with a done spec failing the check exits 1, names it and its open task, leaves it in place and commits the rest.
+#   Failing reads (git stubbed on PATH, or a file or folder made unreadable): the checked-out branch, the list of workflow
+#   files, the tracked check, the search of an unreadable file and the listing of an unreadable spec subfolder each exit 2
+#   with their message and leave nothing changed. Rollback: a commit that fails after the move and a sweep that cannot write
+#   a read-only file for its second spec both exit 2 and leave the tree, the step markers, the refs and the index exactly as
+#   they were.
 # Fixtures: tests/fixtures/done-folder.sh (the project, its expected trees and the oracles), tests/fixtures/pr-template.sh.
 # shellcheck disable=SC2016,SC2034,SC2329,SC1010  # check expressions are single-quoted and eval'd on purpose, read variables and call helpers shellcheck cannot see; "done" is a status word
 # shellcheck source=../lib/common.sh
@@ -54,6 +59,16 @@ mtd() {
 sign_off_5_7() {
   (cd "$1" && bash "$1/$DONE_MTD_REL" --check "$2" && bash "$1/.agents/skills/feature-workflow/scripts/status-transition.sh" \
     status "$2" done --step 5.7) >/dev/null 2>&1
+}
+
+# failing_git DIR PATTERN : write DIR/git, a stand-in that fails a git call whose arguments, joined with spaces and padded
+#   with one space each side, match the glob PATTERN, and runs the real git otherwise; prints DIR to put first on PATH.
+failing_git() {
+  mkdir -p "$1"
+  printf '#!/bin/bash\npattern=%q\n[[ " $* " == $pattern ]] && { echo "git: refused by the test" >&2; exit 1; }\nexec %q "$@"\n' \
+    "$2" "$(command -v git)" >"$1/git"
+  chmod +x "$1/git"
+  printf '%s\n' "$1"
 }
 
 # fm FILE EXPR : one frontmatter value.
@@ -383,6 +398,67 @@ check "the sweep names the spec it left and its open task" '[[ $OUT == *"left in
 check "the failing spec stays at the top level with its step marker" '[[ -f "$P/$DONE_SECOND/spec.md" && -f "$P/$DONE_SECOND/.step" ]]'
 check "the passing spec still moves and is committed" \
   '[[ -f "$P/$MOVED/spec.md" && $(git -C "$P" rev-parse HEAD~1) == "$TIP" && -z $(git -C "$P" status --porcelain) ]]' "$OUT"
+
+echo "== a failing read is an error, not a clean result"
+P=$WORK/read-branch
+done_folder_repo "$P"
+BEFORE=$(tree_digest "$P")
+PATH="$(failing_git "$WORK/git-branch" '* branch --show-current *'):$PATH" mtd "$P" "$DONE_SPEC"
+check "a failing read of the checked-out branch exits 2 and changes nothing" \
+  '[[ $RC == 2 && $(tree_digest "$P") == "$BEFORE" && $OUT == *"cannot read the checked-out branch"* ]]' "rc=$RC: $OUT"
+
+P=$WORK/read-list
+done_folder_repo "$P"
+BEFORE=$(tree_digest "$P")
+PATH="$(failing_git "$WORK/git-list" '* ls-files -c -o *'):$PATH" mtd "$P" "$DONE_SPEC"
+check "a failing list of the workflow files exits 2, rolls back and commits nothing" \
+  '[[ $RC == 2 && $(tree_digest "$P") == "$BEFORE" && $OUT == *"cannot list the workflow files"* ]]' "rc=$RC: $OUT"
+
+P=$WORK/read-tracked
+done_folder_repo "$P"
+BEFORE=$(tree_digest "$P")
+PATH="$(failing_git "$WORK/git-tracked" '* ls-files -c -- *'):$PATH" mtd "$P" "$DONE_SPEC"
+check "a failing check for the tracked spec files exits 2, rolls back and commits nothing" \
+  '[[ $RC == 2 && $(tree_digest "$P") == "$BEFORE" && $OUT == *"cannot list the tracked files"* ]]' "rc=$RC: $OUT"
+
+P=$WORK/read-grep
+done_folder_repo "$P"
+BEFORE=$(tree_digest "$P")
+chmod 000 "$P/.workflow/capabilities.md"
+mtd "$P" "$DONE_SPEC"
+chmod 644 "$P/.workflow/capabilities.md"
+check "an unreadable workflow file that names the spec exits 2, rolls back and commits nothing" \
+  '[[ $RC == 2 && $(tree_digest "$P") == "$BEFORE" && $OUT == *"cannot search .workflow/capabilities.md"* ]]' "rc=$RC: $OUT"
+
+P=$WORK/read-find
+done_folder_repo "$P"
+BEFORE=$(tree_digest "$P")
+chmod 000 "$P/$DONE_SPEC/tasks"
+mtd "$P" "$DONE_SPEC"
+chmod 755 "$P/$DONE_SPEC/tasks"
+check "an unreadable folder inside the spec exits 2, rolls back and commits nothing" \
+  '[[ $RC == 2 && $(tree_digest "$P") == "$BEFORE" && $OUT == *"cannot list the Markdown files"* ]]' "rc=$RC: $OUT"
+
+echo "== an error after the move rolls the run back"
+P=$WORK/rollback-commit
+done_folder_repo "$P"
+BEFORE=$(tree_digest "$P")
+PATH="$(failing_git "$WORK/git-commit" '* commit *'):$PATH" mtd "$P" "$DONE_SPEC"
+eq "a failing commit after the move exits 2" "$RC" 2
+check "a failing commit after the move leaves the spec, its step marker, every rewritten file and the index as they were" \
+  '[[ $(tree_digest "$P") == "$BEFORE" && ! -d "$P/$DONE" && $OUT == *"rolled back"* ]]' "$OUT"
+
+P=$WORK/rollback-sweep
+done_folder_repo "$P"
+printf '%s\n' "Gamma closed in .workflow/specs/014-gamma." >"$P/.workflow/deferred/gamma-read-only.md"
+git_commit_all "$P" "fixture: a read-only file naming 014-gamma"
+chmod 444 "$P/.workflow/deferred/gamma-read-only.md"
+BEFORE=$(tree_digest "$P")
+mtd "$P" --sweep
+chmod 644 "$P/.workflow/deferred/gamma-read-only.md"
+eq "a sweep that cannot rewrite a file for its second spec exits 2" "$RC" 2
+check "the failed sweep puts the first spec it moved back too, and commits nothing" \
+  '[[ $(tree_digest "$P") == "$BEFORE" && -f "$P/$DONE_SPEC/.step" && ! -d "$P/$DONE" && $OUT == *"cannot write"* ]]' "$OUT"
 
 shellcheck_files "shellcheck: move-to-done.sh, its suite and fixture" "$REPO_ROOT/$DONE_MTD_REL" \
   "$TESTS_DIR/scripts/move-to-done.sh" "$TESTS_DIR/fixtures/done-folder.sh"
