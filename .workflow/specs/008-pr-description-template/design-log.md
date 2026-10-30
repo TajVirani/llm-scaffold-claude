@@ -244,3 +244,18 @@ Outcome: rework 1 of 5
 - 4.7 rework T6 (F7-F9): mini-review round 1 fail on R4 (`assets/pr-template.md:35` guidance names `.workflow/deferred/`); wording-only, same agent resumed. Duplicate discovered work: asset-template guidance comments naming `.workflow/` paths matches `.workflow/deferred/comment-id-lint.md`; line appended.
 - 3.8 T6 rework re-check: pass. Notes: the asset-template R4 sweep is already filed; the `toolchain.json` tree mismatch is not real (a fresh, non-reused run at `2058ccd` passes with the same `tree`, which hashes content without workflow data, not the git tree). 3.16: T6 merged.
 - 3.15 rework 1: within budget, 11 of 30 changed files. 3.9 rework 1: pass, `TOTAL passed=3166 failed=0` (58 suites), evidence `artifacts/gate-3.9-rework1/`. In-review at 3.11. Rework 1 had no verified high patch, so Phase 4 ends here (no new pass); next is sign-off.
+
+## 2026-10-29 Sign-off 5.1-5.4
+
+- 5.1: Assumptions marked confirmed; the issue stub assumption reworded for F1 (project-neutral line). No open finding, no known gap added to spec.md.
+- 5.2: P3 (CAP-NEW-pr-template), P4 and P5 (pitfalls from F1/T6 R4 and F7/F8), P6 (Phase 1 worktree pitfall recurred) added beside P1 and P2. No `pr_template` row: the key is unset and the repo has no host template. The impact classification's "document the key in this repo's rules.md" row dropped: a commented default changes no behaviour.
+- 5.3: stakeholder "Approve all as written"; P1-P6 applied. CAP-006 assigned; `CAP-NEW-pr-template` replaced in spec.md, tasks.md (set-task), verification-plan.md, proposals.md, data-model.md and this log.
+- 5.4: `run-toolchain.sh --task-id sign-off-5.4 --reuse` ran fresh: lint exit 0, `TOTAL passed=3166 failed=0` (58 suites). `pr_template` read `workflow` (default). `pr-body.md` filled from the workflow template; `check-pr-body.sh` exit 0 (JRN-007 at 5.4), evidence `artifacts/sign-off-5.4/`.
+- The first Phase 1 harness run's result files, left in the stray `.claude/worktrees/agent-a32e78d2ec805a11f/`, were copied to `artifacts/phase-1-test-harness-run1/` (stakeholder: "Copy, then remove"); the worktree and its merged branch were removed.
+
+## 2026-10-30 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes
+- PR description: approved. Changes asked before approval: none
+- Backlog: no open items
+- Going-in concerns: none
