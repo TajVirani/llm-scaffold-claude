@@ -64,6 +64,7 @@ here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 scripts=$here/../skills/feature-workflow/scripts
 [ -f "$scripts/check-worktree-scope.sh" ] || exit 0
 if ! command -v jq >/dev/null 2>&1; then
+  # Written by hand because deny_json builds its JSON with jq, which is the tool that is missing here.
   DECIDED=1
   printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard error (denying, fail closed): jq not found; install jq so the guard can read the tool call"}}'
   exit 0
