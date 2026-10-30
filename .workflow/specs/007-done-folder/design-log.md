@@ -241,3 +241,15 @@ Failed lenses: none
 Outcome: rework 2 of 5
 - Rework 2, T5 fix round 2: mini-review item 3 at `move-to-done.sh:300-301` (the `printf` into CANDIDATE_FILE runs inside a `|| die` loop where `set -e` is ignored, so a failed write goes unnoticed). Behaviour fix: fresh launch. T5 has used four fix rounds; the cap is five.
 - Rework 2: T4 (F6) and T5 (F5) mini-reviews pass; TGT-007 measured by T5 at 14.49 s and 15.81 s best of 3 (threshold 30 s; load-sensitive, 33.86 s once at load average 23). T5 out-of-scope note (an empty die reason when `xargs` fails without stderr, `move-to-done.sh:314-322`): low, dismissed: the run still stops with exit 2 and rolls back; only the message is lost, on a path `xargs` is not seen to take.
+
+## 2026-10-30 Triage, review pass 3
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F7 | review-standards (RS-1) | Rework 2 commit `5874348` uses the type `perf`, not one of the six allowed commit types | commit `5874348` | low | `git log -1 --format=%s 5874348` prints `perf(feature-workflow): ...`; developer-only harm (log reading) | none (dismissed: rewording needs a history rewrite of a commit merged on the spec branch; the commit-subject rule gap is appended to [work-backlog/007-done-folder-disc-002.md](../work-backlog/007-done-folder-disc-002.md)) |
+| F8 | review-lessons (RL-1) | Integration commits `efd0c38`, `131f786` repeat the retrospective 004 lesson on Conventional Commits subjects | commits `efd0c38`, `131f786` | low | carried from F2 | none (dismissed, carried from F2) |
+
+TGT-007 measured by the lens at 12.86 s best of 3 (threshold 30 s): met. Gaps (not_verifiable, review-end-state): JRN-005 and the Success signal run at 5.8; the next spec at a later sign-off; the 6.13 block in no suite (in disc-001).
+
+Failed lenses: none
+Outcome: clean, to sign-off

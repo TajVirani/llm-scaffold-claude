@@ -1,0 +1,6 @@
+.agents/hooks/session-start-resume.sh
+.agents/lib/workflow-paths.sh
+.agents/skills/feature-workflow/scripts/check-pr-body.sh
+.agents/skills/feature-workflow/scripts/check-write.sh
+.agents/skills/feature-workflow/scripts/move-to-done.sh
+.agents/skills/feature-workflow/scripts/review-lessons.sh
