@@ -6,7 +6,7 @@ tasks:
     capability: CAP-001
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: test-harness
     module: "tests"
     seam: "tests/run-all.sh command line and exit code, driven by tests/scripts/run-all-selection.sh against stub suites"
     file: tasks/T01-stop-suites-on-signal.md

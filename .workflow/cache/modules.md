@@ -1,35 +1,8 @@
 ---
-generated_at_commit: 99801e506b428a1ac3c3f7fb0170191cb6fa45ae
-generated_at: "2026-10-28T20:06:35Z"
+generated_at_commit: 58019c8c55ed4443f78f085b13abdfb5d96c28ea
+generated_at: "2026-10-30T15:08:10Z"
 scope:
-  - ".agents/README.md"
-  - ".agents/agents"
-  - ".agents/hooks"
-  - ".agents/install-manifest.txt"
-  - ".agents/lib"
-  - ".agents/output-styles"
-  - ".agents/skills/data-structure-audit"
-  - ".agents/skills/deeper-prompt"
-  - ".agents/skills/deps-audit"
-  - ".agents/skills/deps-update"
-  - ".agents/skills/design-pattern-doc"
-  - ".agents/skills/domain-modeling"
-  - ".agents/skills/feature-workflow"
-  - ".agents/skills/glab"
-  - ".agents/skills/handoff"
-  - ".agents/skills/pr-quality"
-  - ".agents/skills/pr-review-data"
-  - ".agents/skills/project-setup"
-  - ".agents/skills/project-standards"
-  - ".agents/skills/regenerate-caches"
-  - ".agents/skills/retrospective"
-  - ".agents/skills/visual-change-report"
-  - ".agents/skills/writing-for-agents"
-  - "AGENTS.md"
-  - "README.md"
-  - "install.sh"
-  - "scripts"
-  - "tests"
+  - ".agents/README.md .agents/agents .agents/hooks .agents/install-manifest.txt .agents/lib .agents/output-styles .agents/skills/data-structure-audit .agents/skills/deeper-prompt .agents/skills/deps-audit .agents/skills/deps-update .agents/skills/design-pattern-doc .agents/skills/domain-modeling .agents/skills/feature-workflow .agents/skills/glab .agents/skills/handoff .agents/skills/pr-quality .agents/skills/pr-review-data .agents/skills/project-setup .agents/skills/project-standards .agents/skills/regenerate-caches .agents/skills/retrospective .agents/skills/visual-change-report .agents/skills/writing-for-agents AGENTS.md README.md install.sh scripts tests"
 cache_type: modules
 generator: "cache-regeneration"
 ---
@@ -37,7 +10,7 @@ generator: "cache-regeneration"
 
 ## .agents/hooks
 
-- Purpose: Runs as Claude and Codex hooks that guard file writes, block destructive git commands, validate sub-agent launches, capture evidence and offer to resume in-flight work, plus a generator for Codex agent files.
+- Purpose: Runs as Claude Code and Codex hooks that guard file writes, deny destructive git commands, validate sub-agent launches, keep the import-boundary config in step with `.workflow/rules.md`, file browser-suite evidence and offer to resume work, and generates Codex agent files.
 - Files:
   - `.agents/hooks/_codex-patch.sh`
   - `.agents/hooks/_guard-common.sh`
@@ -74,7 +47,7 @@ generator: "cache-regeneration"
 
 ## .agents/lib
 
-- Purpose: Defines where workflow data lives in a target project and which repo paths count as tests, as sourced shell helpers.
+- Purpose: Defines where workflow data lives under `.workflow/` and which repo paths count as tests, as sourced shell variables and functions.
 - Files:
   - `.agents/lib/test-paths.sh`
   - `.agents/lib/workflow-paths.sh`
@@ -88,7 +61,9 @@ generator: "cache-regeneration"
   - `install.sh`
   - `tests`
 - Public interface:
+  - `wf_agent_worktree_name` (function)
   - `wf_default_test_patterns` (function)
+  - `wf_enc` (function)
   - `wf_is_test_path` (function)
   - `wf_load_test_patterns` (function)
   - `wf_main_root` (function)
@@ -99,7 +74,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/data-structure-audit
 
-- Purpose: Prints the files changed since the last audited commits and records the current HEAD as audited.
+- Purpose: Prints the files changed since the last audited commits and records audited commits in `.workflow/data-structure-audit-state.jsonl`.
 - Files:
   - `.agents/skills/data-structure-audit/scripts/audit_scope.sh`
 - Depends on:
@@ -109,9 +84,11 @@ generator: "cache-regeneration"
 
 ## .agents/skills/feature-workflow
 
-- Purpose: Provides the feature-workflow helper scripts that check writes, launches, results, findings and size budgets, write status and step markers, run toolchains, derive task waves, open PRs and commit workflow data.
+- Purpose: Writes spec, task and initiative status, decides whether writes and commands are allowed, resolves sub-agent launches, runs profile toolchains, checks result, findings and PR body files, and commits workflow data on the spec branch.
 - Files:
   - `.agents/skills/feature-workflow/scripts/budget-check.sh`
+  - `.agents/skills/feature-workflow/scripts/check-merge-artifacts.sh`
+  - `.agents/skills/feature-workflow/scripts/check-pr-body.sh`
   - `.agents/skills/feature-workflow/scripts/check-review-findings.sh`
   - `.agents/skills/feature-workflow/scripts/check-task-result.sh`
   - `.agents/skills/feature-workflow/scripts/check-worktree-scope.sh`
@@ -135,7 +112,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/project-setup
 
-- Purpose: Generates import-boundary tool config from the Ownership and Shared core blocks of .workflow/rules.md.
+- Purpose: Generates import-boundary tool config under `.workflow/tools/boundaries/` from the Ownership and Shared core blocks of `.workflow/rules.md`.
 - Files:
   - `.agents/skills/project-setup/scripts/generate-boundary-config.sh`
 - Depends on:
@@ -147,7 +124,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/regenerate-caches
 
-- Purpose: Builds, checks, stamps and publishes the Tier B caches from the file graph that its graph extractors print.
+- Purpose: Builds, checks, stamps and publishes the Tier B caches from the file graph its bash and dependency-cruiser extractors print, and reports which caches are stale.
 - Files:
   - `.agents/skills/regenerate-caches/scripts/build-architecture.sh`
   - `.agents/skills/regenerate-caches/scripts/cache-stamp-check.sh`
@@ -164,7 +141,7 @@ generator: "cache-regeneration"
 
 ## install.sh
 
-- Purpose: Installs the .agents/ payload named by .agents/install-manifest.txt and the host shims into a target project.
+- Purpose: Copies the files named by `.agents/install-manifest.txt` into a target project's `.agents/` and sets up its Claude and Codex host shims.
 - Files:
   - `install.sh`
 - Depends on:
@@ -176,7 +153,7 @@ generator: "cache-regeneration"
 
 ## scripts
 
-- Purpose: Shows what changed upstream for each upstream-lineage.json entry since the commit the local file was based on.
+- Purpose: Shows what changed upstream for each `upstream-lineage.json` entry since the commit it was based on.
 - Files:
   - `scripts/upstream-diff.sh`
 - Depends on: none
@@ -186,13 +163,17 @@ generator: "cache-regeneration"
 
 ## tests
 
-- Purpose: Runs the scaffold's test suites for scripts, hooks and lint with shared test helpers and fixtures.
+- Purpose: Runs the scaffold's test suites over its hooks, scripts, install script and docs, with shared assertion helpers and fixture builders.
 - Files:
   - `tests/fixtures/architecture-oracle.sh`
+  - `tests/fixtures/claude-settings.sh`
   - `tests/fixtures/graph-extractors.sh`
   - `tests/fixtures/initiative.sh`
+  - `tests/fixtures/pr-template.sh`
+  - `tests/fixtures/result-briefs.sh`
   - `tests/fixtures/review-lessons.sh`
   - `tests/fixtures/workflow-folders.sh`
+  - `tests/hooks/audit-agent-worktrees.sh`
   - `tests/hooks/audit-sync-resume.sh`
   - `tests/hooks/block-destructive-git.sh`
   - `tests/hooks/codex-adapters.sh`
@@ -205,7 +186,9 @@ generator: "cache-regeneration"
   - `tests/hooks/worktree-guard.sh`
   - `tests/hooks/write-guards.sh`
   - `tests/lib/common.sh`
+  - `tests/lint/agent-worktree-docs.sh`
   - `tests/lint/frontmatter.sh`
+  - `tests/lint/install-matcher-docs.sh`
   - `tests/lint/review-lessons.sh`
   - `tests/lint/step-list.sh`
   - `tests/lint/symlinks.sh`
@@ -220,6 +203,8 @@ generator: "cache-regeneration"
   - `tests/scripts/cache-mixed-extractors.sh`
   - `tests/scripts/cache-repo-architecture.sh`
   - `tests/scripts/cache-scripts.sh`
+  - `tests/scripts/check-merge-artifacts.sh`
+  - `tests/scripts/check-pr-body.sh`
   - `tests/scripts/check-review-findings.sh`
   - `tests/scripts/check-task-result.sh`
   - `tests/scripts/check-write-paths.sh`
@@ -246,6 +231,7 @@ generator: "cache-regeneration"
   - `tests/scripts/review-lessons.sh`
   - `tests/scripts/run-all-selection.sh`
   - `tests/scripts/run-toolchain.sh`
+  - `tests/scripts/sign-off-pr.sh`
   - `tests/scripts/status-transition-specs.sh`
   - `tests/scripts/status-transition-tasks.sh`
   - `tests/scripts/step-progress.sh`
