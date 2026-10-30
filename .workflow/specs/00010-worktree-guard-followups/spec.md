@@ -1,5 +1,5 @@
 ---
-status: draft # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: "" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
@@ -12,41 +12,52 @@ origin: 006-result-file-guard-disc-003.md # filename of the work-backlog item th
 
 ## Why
 
-Origin: work items 006-result-file-guard-disc-003, -005, -007, -008, -009 and -010, combined at 006 sign-off. Spec 006 left the worktree guard and the installer upgrade working, with loose ends:
-- the guard allows a write when it cannot confine the agent (an unparsable header, or a named worktree that is missing), against the profile's fail-closed rule;
-- any `$` blocks a read chain, even a quoted one;
-- the guard's messages still say "task worktree";
-- three upgrade re-run checks ignore the exit code;
-- `assetlist.md` still describes the removed isolation launch;
-- the shipped settings let an in-place `yq -i` frontmatter rewrite through without a prompt.
+Origin: work items 006-result-file-guard-disc-003, -005, -007, -008, -009 and -010, combined at 006 sign-off (D2: one spec).
 
-Agents and maintainers who rely on the guard and the installer are affected. After this change the guard fails closed where it cannot confine, its messages and records match what 006 built, and the settings and tests no longer let these slips through.
+Make the worktree guard and its surroundings trustworthy: a confined agent never gets a silent pass, a harmless read is never needlessly blocked, and every message, test and record matches what spec 006 built. Today the guard allows a write when it cannot confine the agent, against the shell-scripts profile's fail-closed rule; any `$` blocks a read chain, even a quoted one; the guard's messages still say "task worktree"; three upgrade re-run checks ignore the exit code; `assetlist.md` still describes the removed isolation launch; and the shipped settings let `yq --front-matter=extract -i`, a recorded pitfall, through without a prompt.
 
 ## Capabilities
 
-- **CAP-### or CAP-NEW-<slug>** <short name>
-  - **intent:** <One sentence: user or system can do X to achieve Y. What, not how.>
-  - **success:** <A criterion a test or a real demonstration can decide.>
+- **CAP-007** Sub-agents file their own result file (changed: fail closed)
+  - **intent:** An implementation or integration agent is confined to its agent worktree, or denied when its worktree cannot be established, so it never writes into the main checkout unconfined.
+  - **success:** For an implementation or integration agent whose cwd is not a linked worktree, `worktree-write-guard.sh` denies every call (writes, reads and Bash alike), with a reason naming the cause, when the launch header is unparsable or missing, the sub-agent transcript is missing, the named agent worktree does not exist, or the cwd is outside any git repo; it also denies on an unparsable payload and, with a static deny JSON, when jq is missing. No guard message or `# File:` line calls the agent's worktree a "task worktree", and `implementation-orchestrator.md` says a missing agent worktree is denied.
+- **CAP-008** Read-only commands pass the worktree guard (changed: quoted `$`)
+  - **intent:** A confined agent can run an allowlisted read whose `$` sits inside single quotes from the main checkout without the leading `cd`.
+  - **success:** `check-worktree-scope.sh` allows `sed -n '$p' f`, `sed -n -e '1p' -e '$p' f` and `grep 'x$' f` from the main checkout for a confined agent, and still denies a read chain with `$`, a backtick or `\` outside single quotes (including inside double quotes).
+- **CAP-NEW-extract-write-deny** In-place frontmatter extract denied
+  - **intent:** A Claude session in an installed project, or in this repo, cannot run `yq --front-matter=extract` with an in-place flag, which truncates a file to its frontmatter.
+  - **success:** The settings template's and this repo's `permissions.deny` hold `Bash(yq *--front-matter=extract* -i*)`, `Bash(yq *-i* --front-matter=extract*)`, `Bash(yq *--front-matter=extract* --inplace*)` and `Bash(yq *--inplace* --front-matter=extract*)`, and `install.sh` writes all four into a target's `.claude/settings.json`.
 
 ## Constraints
 
-- <A non-negotiable that rules out some design. If it rules nothing out, delete it.>
+- The confinement rule, including when no worktree can be established, lives in `check-worktree-scope.sh`; the hooks stay thin adapters (D1).
+- Under `--confined` with no confinement root, the scope check denies before any other allow, reads and outside-checkout writes included (D10).
+- The `--worktree-name` usage text names every shape the hooks pass (D11).
+- Codex calls behave as today: `codex-write-guard.sh` is not changed.
+- Linked-worktree (Claude `isolation: "worktree"`) launches keep their confinement by cwd.
+- Spec 007 is editing `install.sh` and line 148 of `claude-settings.template.json` in parallel: this spec changes neither; the deny entries go at the top of the template's `deny` array (D6).
+- Bash 3.2, no new runtime; the quote check extends the in-house scanner (D5).
+- `assetlist.md` is rewritten in place to describe current behaviour, with no "Amended by" note or spec reference (D8).
+- The three "re-run writes nothing" checks in `tests/scripts/install-upgrade.sh` (JRN-011 third run, the two-template-groups re-run) also assert the re-run exits 0.
 
 ## Non-goals
 
-- <An explicit out-of-scope item. At least one. Work that is shelved rather than refused goes to .workflow/deferred/ and is listed in the `deferred` frontmatter.>
+- Quote-aware splitting of `|`, `&&` and `;`; a full shell parser.
+- A main-session PreToolUse hook for `yq -i`.
+- Codex fail-closed changes.
+- Splitting the upgrade suite (006-result-file-guard-disc-001).
+- An `assetlist.md` row for `check-worktree-scope.sh`; "task worktree" wording where it means a Phase 3 task's worktree.
 
 ## Success signal
 
-<One or two sentences describing the moment the world has changed, concrete enough to test or demonstrate. The testable objectives and journeys that prove it live in verification-plan.md (0.5.1).>
+A confined implementation or integration agent whose agent worktree cannot be established is denied on its first call with a reason naming why, while a single-quoted `sed -n '$p' f` from the main checkout passes; a fresh `install.sh` target denies `yq --front-matter=extract -i`; and the upgrade suite fails if a re-run refuses. The objectives and journeys are in [verification-plan.md](verification-plan.md).
 
 ## Assumptions
 
-- <A call made without direct confirmation from the stakeholder.>
+- Claude Code matches `*` at any position in a Bash permission rule and applies deny before allow (code.claude.com/docs/en/permissions); not checked against the installed Claude Code version.
+- Deny rules are text matching: combined short flags (`-Pi`) or `-f extract` spellings are not covered, which is accepted as accident prevention.
 
 ## Open Questions
-
-- <A gap that needs a human decision, phrased so a human can answer it. Must be empty before 0.6 sets ready-for-dev.>
 
 ## Links
 

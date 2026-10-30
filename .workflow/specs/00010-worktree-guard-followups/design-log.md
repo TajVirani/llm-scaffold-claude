@@ -88,3 +88,160 @@ The shipped Claude settings allow `Bash(yq --front-matter=extract:*)` without a 
 - Review pass 1, `.workflow/specs/006-result-file-guard/artifacts/review/pass-1/review-lessons.yaml` RL-1 (triage F5).
 
 - Seeded as one combined spec at 006 sign-off (5.9): "One combined spec now". `origin` names disc-003; disc-005, 007, 008, 009 and 010 are promoted to this spec too. Numbered `00010` under the 5-digit rule the stakeholder chose for disc-002 ("Any count + 5-digit new specs"), since 007-009 are taken in the primary repo and sibling clones.
+
+## 2026-10-30 Placement: feature-workflow (check-worktree-scope.sh) for the confinement rule
+
+- Owning module: feature-workflow owns the fail-closed confinement decision, in `.agents/skills/feature-workflow/scripts/check-worktree-scope.sh`; the hooks (`worktree-write-guard.sh`, `codex-write-guard.sh`) stay thin adapters that pass what they know. The other fixes stay in the modules that own their files: hooks (`claude-settings.template.json`), tests (`tests/**`), and the unowned scaffold files `assetlist.md` and `.claude/settings.json`.
+- Alternatives considered: each fix stays put, with the fail-closed branch in the Claude hook: not chosen, the stakeholder wants the rule in the one shared script ("Move rule into the scope check").
+- Conflict with an ADR or rule: none. ADR-0001 (host-neutral core behind thin shims) is served by it; `.workflow/rules.md` Ownership lets hooks depend on feature-workflow.
+- Decision: **D1** The confinement rule, including when to deny because no worktree can be established, lives in `check-worktree-scope.sh`. ADR: none; the placement fails the three-part test (a script-level move, easy to reverse).
+
+## 2026-10-30 Deeper prompt
+
+**What this changes:** The worktree scope check denies a confined agent's write when its worktree cannot be established (unparsable header, or a named worktree that is missing); single-quoted `$` in read-only commands passes without the `cd`; guard messages say "agent worktree"; the upgrade re-run checks assert exit 0; `assetlist.md` gets "Amended by spec 006" notes; the shipped Claude settings deny `yq --front-matter=extract` combined with `-i`/`--inplace`.
+
+**Why:** Spec 006 left the guard, the installer tests, the asset record and the settings out of line with the fail-closed rule, the glossary and a recorded pitfall.
+
+**Ask:** Make the worktree guard and its surroundings trustworthy: a confined agent never gets a silent pass, a harmless read is never needlessly blocked, and every message, test and record matches what 006 built.
+
+**Goals:**
+- An implementation or integration agent whose worktree cannot be established is denied, with a reason that says why.
+- `sed -n '$p' f` and `grep 'x$' f` pass from the main checkout; `$` outside single quotes, or a backslash, is still denied.
+- No guard message or `# File:` line calls a Phase 1 or integration worktree a "task worktree".
+- A re-run that refuses with exit 1 fails the three upgrade checks.
+- An installed project, and this repo, deny `yq --front-matter=extract -i` without prompting; the pitfall records its prevention.
+
+**Downstream:** none known; the worktree-name-parser and main-checkout-resolver shelf items stay shelved.
+
+**Tools and technologies:** bash 3.2 only; extend the in-house scanner (no new runtime); Claude Code `deny` rules, which `install.sh` already merges as a union.
+
+**Gotchas:** Spec 007 edits `install.sh` and line 148 of the settings template in parallel: stay out of both. A deny rule is text matching, not a security boundary.
+
+**Not asked for:** a full shell parser; a main-session yq hook; Codex fail-closed changes beyond what the scope check gives; splitting the upgrade suite (006-disc-001).
+
+**Original request:** "Take spec `.workflow/specs/00010-worktree-guard-followups` from draft to done ... seeded at 006's sign-off from the promoted backlog items 006-disc-003, -005, -007, -008, -009 and -010."
+
+Revisions: agreed as first restated.
+
+## 2026-10-30 Questioning round 1
+
+**Q1. One feature or several?**
+
+- Why now: the tree holds three capability changes (CAP-007, CAP-008, a settings deny) plus test and record fixes.
+- Options: A: keep one spec · B: convert to an initiative
+- Recommended: A, because the stakeholder chose "One combined spec now" at 006 sign-off and each piece is 1-3 files (Origin entries).
+- Answer: "Keep one"
+- Decision: **D2** One spec covers all six promoted items.
+
+**Q2. Which cases fail closed?**
+
+- Why now: D1 put the rule in `check-worktree-scope.sh`.
+- Options: A: deny when the header is unparsable, the named worktree is missing, or the sub-agent transcript is not found · B: only the first two · C: keep allow and amend the profile line
+- Recommended: A, because transcript-missing is also "no header" (`worktree-write-guard.sh:80-83`, codebase-map Relevant code) and a host layout change should surface as a deny.
+- Answer: "a"
+- Decision: **D3** For an implementation or integration agent whose cwd is not a linked worktree, the scope check denies (exit 2, reason naming the cause) when no agent worktree can be established: unparsable or missing header, missing named worktree, or missing transcript. The hook passes a flag saying the agent must be confined. Linked-worktree (isolation) launches keep rule 2. Codex calls are unchanged.
+
+**Q3. Unparsable hook payload.**
+
+- Why now: `worktree-write-guard.sh:65` exits 0 silently; `shell-scripts.md:25` says guards deny (codebase-map Not found).
+- Options: A: keep the silent allow and propose a profile wording change at 5.3 · B: deny it too
+- Recommended: A, because the hook cannot tell a main-session call from a sub-agent on a payload it cannot parse.
+- Answer: "deny it"
+- Decision: **D4** `worktree-write-guard.sh` prints the deny JSON on an unparsable payload, as `shell-scripts.md:25` says. No profile change.
+
+**Q4. Quoted `$` rule.**
+
+- Why now: CAP-008's read-only allowlist denies any `$` (`check-worktree-scope.sh:208`).
+- Options: A: a left-to-right quote scanner; `$` passes only inside single quotes; `$`, a backtick or `\` outside single quotes (double quotes included) denies; `|`, `&&`, `;` splitting stays quote-blind · B: also allow `$` inside double quotes when not followed by `(` or a name
+- Recommended: A, because it matches the work item's scope and library-evaluation's "extend the in-house scanner" verdict.
+- Answer: "yes"
+- Decision: **D5** Option A.
+
+**Q5. yq deny, and the settings template outside line 130.**
+
+- Why now: an allow rule cannot exclude a flag; deny beats allow (code.claude.com/docs/en/permissions, codebase-map Library options).
+- Options: A: deny entries `Bash(yq *--front-matter=extract* -i*)`, `Bash(yq *-i* --front-matter=extract*)` and the two `--inplace` forms at the top of the template `deny` array (line 148, spec 007's, untouched) and in `.claude/settings.json`, with an install test · B: remove the line-130 allow only · C: back to the backlog until 007 merges
+- Recommended: A, because `install.sh` already unions `deny` (`install.sh:393-398`), so no installer change.
+- Answer: "A"
+- Decision: **D6** Option A. The stakeholder agreed the scope reaches the template `deny` array beyond line 130, keeping line 148 untouched.
+
+**Q6. "Task worktree" wording reach.**
+
+- Options: A: the scope check's messages and `# File:` line, the guard's `# File:` line, `assetlist.md:47`, `PROVENANCE.md:21`, plus the stale "under three digits" comment at `worktree-write-guard.sh:21-22`; genuine Phase 3 task uses stay · B: messages and `# File:` lines only
+- Recommended: A, because those places describe the shared guard.
+- Answer: "A"
+- Decision: **D7** Option A.
+
+**Q7. Asset list amendments.**
+
+- Options: A: "Amended by spec 006" notes on `assetlist.md:40` and D85 item 6 (`:234`), plus line 47 · B: also a row for `check-worktree-scope.sh`
+- Recommended: A.
+- Answer: "yes, but don't add amended by spec, just change the rule to match what we want. I don't want references that go stale"
+- Decision: **D8** Rewrite `assetlist.md:40`, `:47` and D85 item 6 in place to describe current behaviour (matcher `implementation|integration`; orchestrator-made Phase 1 and integration worktrees; no isolation fallback), with no "Amended by" note and no spec reference. No new row.
+
+Facts looked up instead of asked (0.3.10): Claude Code permission precedence and wildcards: deny, then ask, then allow; `*` at any position (code.claude.com/docs/en/permissions). `install.sh` unions `permissions.allow` and `permissions.deny` only (`install.sh:393-399`).
+
+## 2026-10-30 Questioning round 2
+
+**Q1. jq missing in the worktree guard.**
+
+- Why now: D4 made the guard deny on an unparsable payload; `worktree-write-guard.sh:60` still exits 0 when jq is missing, and the other guards match only Write|Edit, so Bash passes unguarded.
+- Options: A: deny with a static, hand-written deny JSON, as `_guard-common.sh:56-58` does · B: keep the silent allow
+- Recommended: A, because it is the same fail-closed rule as D4 and the three write guards.
+- Answer: "Deny, static JSON (Recommended)"
+- Decision: **D9** `worktree-write-guard.sh` prints a static deny JSON when jq is missing (only when the workflow is installed, as today's earlier `check-worktree-scope.sh` presence check gates).
+
+Facts looked up instead of asked (0.3.10): None.
+
+## 2026-10-30 Impact classification
+
+| Part | Classification | Note |
+| --- | --- | --- |
+| `check-worktree-scope.sh` CLI: new `--confined` flag (no root found → deny, exit 2) | extend | see data-model.md § Scope check contract |
+| `check-worktree-scope.sh` `read_only_chain`: quote scanner for `$`, backtick, `\` | extend | see data-model.md § Read-only chain |
+| `check-worktree-scope.sh` messages and `# File:` line: "agent worktree" | refactor | wording only |
+| `worktree-write-guard.sh`: deny on unparsable payload, jq missing (static), header/transcript not found; passes `--confined`; header text | extend | see data-model.md § Guard decisions |
+| `claude-settings.template.json` and `.claude/settings.json` `permissions.deny`: four yq extract in-place rules | extend | see data-model.md § Permission deny rules |
+| `tests/hooks/worktree-guard.sh` | extend | allow cases for missing worktree/transcript/unparsable payload flip to deny; quoted-`$` allow and deny cases |
+| `tests/scripts/install-upgrade.sh` re-run checks | extend | assert exit 0 |
+| `tests/scripts/install-claude-settings.sh` | extend | the four deny rules land in a target's settings |
+| `assetlist.md` lines 40, 47, D85 item 6; `PROVENANCE.md:21` | refactor | rewritten in place to current behaviour |
+| `codex-write-guard.sh`, `post-implementation-audit.sh`, `install.sh`, `.agents/lib/workflow-paths.sh` | unchanged | |
+
+## 2026-10-30 Questioning round 3
+
+Loop-back from 0.4.7: the module audit's `blocks-this-task` line and two can-wait lines.
+
+**Q1. What a confined agent with no worktree may still do.**
+
+- Why now: module audit: a `--confined` deny at the no-root branch precedes the outside-main-checkout and read-only allows, and the not-a-git-repo exit allows first (`check-worktree-scope.sh:101`, `:113-136`, `:222`; codebase-map Module audit).
+- Options: A: deny every call (reads, temp-dir writes, a non-git cwd included) · B: keep reads and outside writes, deny only main-checkout writes; a non-git cwd still allows
+- Recommended: A, because with no worktree the agent's job is broken anyway and one loud deny is simplest.
+- Answer: "Deny every call (Recommended)"
+- Decision: **D10** Under `--confined`, when no root is found (including a cwd outside any git repo) the scope check denies every path and command, exit 2, before any other allow.
+
+**Q2. `--worktree-name` usage text.**
+
+- Options: A: fold the Phase 1 and integration name shapes into the header rewrite · B: defer
+- Recommended: A (same header block D7 rewrites).
+- Answer: "Fold it in (Recommended)"
+- Decision: **D11** The usage text lists `s<NNN>_t<N>`, `s<NNN>_phase_1_<work type>`, `s<NNN>_integration_<work type>` and a Codex `task_name`.
+
+**Q3. Orchestrator doc line for a missing worktree.**
+
+- Options: A: one line in `modules/implementation-orchestrator.md` (not on spec 007's file list) where it describes the guard · B: defer
+- Recommended: A, so the orchestrator's denied-agent handling stays accurate.
+- Answer: "Add the line (Recommended)"
+- Decision: **D12** `implementation-orchestrator.md` says a confined agent whose agent worktree is missing is denied every call, so the orchestrator recreates the worktree before relaunching.
+
+Facts looked up instead of asked (0.3.10): None.
+
+## 2026-10-30 Impact classification (after round 3)
+
+| Part | Classification | Note |
+| --- | --- | --- |
+| `check-worktree-scope.sh` `--confined` no-root branch moved before every allow, non-git cwd included | extend | D10; see data-model.md § Scope check contract |
+| `check-worktree-scope.sh` usage text for `--worktree-name` | refactor | D11 |
+| `.agents/skills/feature-workflow/modules/implementation-orchestrator.md` guard description | extend | D12; one line |
+
+0.4.7: no further conflict with the goal or the placement.
