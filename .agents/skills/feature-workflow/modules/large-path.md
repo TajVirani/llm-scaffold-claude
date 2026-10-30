@@ -37,13 +37,20 @@ The initiative folder is `.workflow/initiatives/NNN-slug/`: `initiative.md` (sta
 
   `questions.md`, `design-log.md` and `codebase-map.md` are unguarded. `.step` is never written by Write or Edit.
 - **Progress line.** Lead each step update to the stakeholder with the line `.agents/skills/feature-workflow/scripts/step-progress.sh <6.x>` prints (`Large path · step n of m — <title> (6.x)`).
-- **Main ref.** `main` is `.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch`. When an `origin` remote exists, fetch first; the **main ref** is then `origin/<main>` if that ref exists, else `<main>`. Every new initiative branch starts from the main ref, and every "done on main" check reads the main ref with `git show`, never the working tree, because a spec is `done` on its own branch before it is merged:
+- **Main ref.** `main` is `.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch`. When an `origin` remote exists, fetch first; the **main ref** is then `origin/<main>` if that ref exists, else `<main>`. Every new initiative branch starts from the main ref, and every "done on main" check reads the main ref with `git show`, never the working tree, because a spec is `done` on its own branch before it is merged. A finished spec sits on main at the top level of `.workflow/specs/` or, once sign-off 5.8 has moved it, in the Done folder `.workflow/specs/done/`:
 
   ```bash
   main=$(.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch)
   git remote get-url origin >/dev/null 2>&1 && git fetch -q origin
   main_ref=$main; git rev-parse -q --verify "refs/remotes/origin/$main" >/dev/null && main_ref=origin/$main
-  spec_done_on_main() { [ "$(git show "$main_ref:.workflow/specs/$1/spec.md" 2>/dev/null | yq --front-matter=extract '.status')" = done ]; }
+  # Specs merged before the Done folder existed stay at the top level, so both places count.
+  spec_done_on_main() {
+    local folder
+    for folder in .workflow/specs .workflow/specs/done; do
+      [ "$(git show "$main_ref:$folder/$1/spec.md" 2>/dev/null | yq --front-matter=extract '.status')" = done ] && return 0
+    done
+    return 1
+  }
   ```
 
 - **Commit point.** Initiative files are committed only on `initiative/NNN-slug`, and only the initiative folder: at conversion, after each round, at each emission and at each status change. An emitted spec folder is never added. `task_review` (`.agents/skills/feature-workflow/scripts/rules-setting.sh task_review`) decides the push, as it does for task branches:
@@ -274,10 +281,18 @@ git show "$main_ref:.workflow/initiatives/NNN-slug/initiative.md" 2>/dev/null | 
   ```
 
   - **Some listed.** Tell the stakeholder which specs are still open and write nothing; offer 6.12 if they want to reopen.
-  - **None listed.** Re-create the branch from the main ref (after the clean check, as at 6.12), then flip:
+  - **None listed.** Re-create the branch from the main ref (after the clean check, as at 6.12). Sign-off 5.8 moved each spec into the Done folder but left the initiative's files alone, because they are committed only on this branch; re-point them now. For each emitted spec in `.workflow/specs/done/` on main, rewrite its path in the initiative's files, changing only that path (`specs/<NNN-slug>` becomes `specs/done/<NNN-slug>`, in the `.workflow/specs/`, `../../specs/` and `specs/` forms; a longer name sharing the prefix and a path already under `done/` stay as they are). Then flip:
 
     ```bash
     git switch --no-track -c initiative/NNN-slug "$main_ref"
+    for spec in $(yq --front-matter=extract '.slices[].spec' .workflow/initiatives/NNN-slug/initiative.md); do
+      # A spec the optional sweep left at the top level keeps its path; rewriting it would point at a done/ folder that does not exist.
+      git cat-file -e "$main_ref:.workflow/specs/done/$spec/spec.md" 2>/dev/null || continue
+      for f in $(git ls-files .workflow/initiatives/NNN-slug); do
+        # Repeat until nothing changes: one pass consumes the character after a match, so it misses a second path right after it.
+        sed -E -e ':again' -e "s#(^|[^A-Za-z0-9._-])specs/$spec([^A-Za-z0-9._-]|\$)#\1specs/done/$spec\2#g" -e 't again' "$f" >"$f.tmp" && mv "$f.tmp" "$f"
+      done
+    done
     IT step .workflow/initiatives/NNN-slug 6.13
     IT set-slice .workflow/initiatives/NNN-slug S<n> --status done   # once per slice
     IT status .workflow/initiatives/NNN-slug done --step 6.13

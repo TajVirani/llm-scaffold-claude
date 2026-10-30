@@ -24,9 +24,9 @@ The router for Workflow 2.0. It sizes each request, picks the phase module, and 
 Resolve which feature this request is about before doing anything else. Take the first branch that applies.
 
 1. **The request names an initiative**: a `.workflow/initiatives/NNN-slug/` folder, its `initiative.md`, or an initiative the stakeholder clearly means; or the stakeholder picks an initiative from the resume offer. Load [large-path](modules/large-path.md) at 6.1, which switches to its branch and resumes it by status.
-2. **The request names a spec**: a `.workflow/specs/NNN-slug/` folder, its `spec.md`, or a feature the stakeholder clearly means. Go to [Route by status](#3-route-by-status).
+2. **The request names a spec**: a `.workflow/specs/NNN-slug/` folder, its `spec.md`, or a feature the stakeholder clearly means. A finished spec may sit in the Done folder instead, `.workflow/specs/done/NNN-slug/`, once sign-off 5.8 has moved it there. Go to [Route by status](#3-route-by-status).
 3. **A session-start resume offer is in context** (from `hooks/session-start-resume.sh`) and the stakeholder picks a spec from it. Go to [Route by status](#3-route-by-status). If they pick a handoff from the offer instead, load the `handoff` skill and follow its Resume section.
-4. **No hook offered one** (Codex, or a session without the hook): list in-flight specs, and initiatives with their branches, yourself.
+4. **No hook offered one** (Codex, or a session without the hook): list in-flight specs, and initiatives with their branches, yourself. The list leaves out the Done folder, which holds only finished specs.
 
    ```bash
    for f in .workflow/specs/*/spec.md .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && printf '%s\t%s\n' "$f" "$(yq --front-matter=extract '.status' "$f")"; done
@@ -80,7 +80,7 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 | `in-review` | otherwise | review-triage | the 4.x step in `.step`, else 4.1 |
 | `blocked` | `blocked_condition` starts `discovered work:` or `size budget:` | [discovered-work](modules/discovered-work.md) | its "Resuming a blocked spec here" section (00.22 or 00.28) |
 | `blocked` | any other condition | none until a human resolves it | see [Blocked](#blocked) |
-| `done` | any | none | Read it as context only. A new change to a finished feature is new work: size it. |
+| `done` | any | none | Read it as context only, from `.workflow/specs/done/NNN-slug/` once 5.8 has moved it (specs finished before the Done folder existed may still sit at the top level). A new change to a finished feature is new work: size it. |
 
 The rework row checks the task records, not `.step`: once a reopened task passes its gates the orchestrator's `set-task --step` calls (3.16, 3.9, 3.11) and 3.15 move the step off 4.7. It applies when `yq --front-matter=extract '[.tasks[] | select(.status == "in-progress")] | length' .workflow/specs/NNN-slug/tasks.md` is above 0; with none `in-progress`, the 5.x and review-triage rows apply.
 
@@ -149,6 +149,8 @@ Every loop back to 0.3.8 sets `draft`. The module that owns the gate makes the c
   | `.workflow/profiles/**` | new file 00.19 or 5.3; existing file 5.3 only |
   | `.workflow/review-lessons.md` | 5.7 only |
   | `.workflow/cache/**`, `.step` | never by Write/Edit (`publish-cache.sh`, `status-transition.sh`, `initiative-transition.sh`) |
+  | `.workflow/specs/done/**` (the Done folder) | never by Write/Edit: a finished spec stays as `move-to-done.sh` moved it |
+  | Path-only rewrites of a moved spec's path, in Tier A files, design logs and every other `.workflow/` file outside `cache/` and `initiatives/` | 5.8, by `.agents/skills/feature-workflow/scripts/move-to-done.sh` only, which changes nothing but that path; the initiative's files are re-pointed at 6.13 |
 
   A spec.md write never changes `status` or `blocked_condition`. Everything else in the spec folder (`codebase-map.md`, `design-log.md`, `data-model.md`, `verification-plan.md`) is unguarded.
 - **Never grow the spec mid-build.** Work found outside the agreed scope in Phases 1–4 goes to [discovered-work](modules/discovered-work.md) (00.21), never into `spec.md` or `tasks.md`. A blocker blocks the spec until the stakeholder rules; work that can wait is filed to the shelf or the work backlog without a ruling, the build goes on, and the stakeholder sees it at 5.9. In Phase 0 it goes through the scope gate 0.3.16–0.3.17. A Tier A change outside its steps becomes a proposal in `proposals.md` for 5.3.

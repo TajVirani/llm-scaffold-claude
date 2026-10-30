@@ -1,8 +1,8 @@
 # Sign-off (Phase 5)
 
-You reconcile the spec with what shipped, get Tier A changes approved in one round with exceptions named by row, report real results, and close the feature with the stakeholder. The steps run in the order 5.1-5.5, 5.9, 5.7, 5.8: the backlog offer comes before the retrospective sets `done`. You are done when the spec is `done` and merged (5.8), or when a change request has sent it back to 0.3.8 (5.6).
+You reconcile the spec with what shipped, get Tier A changes approved in one round with exceptions named by row, report real results, and close the feature with the stakeholder. The steps run in the order 5.1-5.5, 5.9, 5.7, 5.8: the backlog offer comes before the retrospective sets `done`. You are done when the spec is `done`, moved to the Done folder and merged (5.8), or when a change request has sent it back to 0.3.8 (5.6).
 
-`.workflow/specs/NNN-slug` is this feature's folder. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix (SKILL.md, "Conventions every module follows"). Every status, task-record and step change goes through `status-transition.sh` with the exact `--step` shown; exit 2 is a refused transition: stop and report it. Protected files are written with Write or Edit after the matching step is set, so the write guards can check them. If a guard denies a write, stop and show the stakeholder the denial and the text you meant to write. On Codex, run `check-write.sh` before each protected write as SKILL.md "Host notes" says.
+`.workflow/specs/NNN-slug` is this feature's folder until 5.8 moves it into the Done folder, `.workflow/specs/done/NNN-slug`. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix (SKILL.md, "Conventions every module follows"). Every status, task-record and step change goes through `status-transition.sh` with the exact `--step` shown; exit 2 is a refused transition: stop and report it. Protected files are written with Write or Edit after the matching step is set, so the write guards can check them. If a guard denies a write, stop and show the stakeholder the denial and the text you meant to write. On Codex, run `check-write.sh` before each protected write as SKILL.md "Host notes" says.
 
 ## 5.1 Reconcile spec.md
 
@@ -95,7 +95,7 @@ Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write to
 - **Known gaps**: everything under `## Known gaps` in spec.md (light-path suite gaps from 3.14; open findings from 5.1), the lenses' `not_verifiable` and `not_checked` items, and unmeasured targets. A skipped gate is a gap, never a pass.
 - **Deferred**: every file in spec.md `deferred`, with its severity.
 
-**Then fill the Sign-off PR description**, `.workflow/specs/NNN-slug/pr-body.md`, beside `report.md`. 5.8 publishes it unchanged, so fill it afresh on every pass through 5.4 (a 5.6 change request comes back through here).
+**Then fill the Sign-off PR description**, `.workflow/specs/NNN-slug/pr-body.md`, beside `report.md`. 5.8 publishes it unchanged apart from the spec path the move rewrites, so fill it afresh on every pass through 5.4 (a 5.6 change request comes back through here).
 
 1. **Read the template setting:** `.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template`. Exit 1 (a bad value, or a path whose file is gone): stop and show the stakeholder its message. They choose the workflow template for this PR, or a fixed path through a `pr_template` row (back to 5.2 and 5.3). Never fall back to a template on your own.
 2. **Fill the body.**
@@ -123,7 +123,7 @@ Ask the sign-off questions together: the approval, the PR description, the 5.9 r
    for f in .workflow/specs/work-backlog/NNN-slug-disc-*.md; do [ -f "$f" ] && [ "$(yq --front-matter=extract '.status' "$f")" = open ] && echo "$f"; done
    ```
 
-2. **Present a short summary:** what changed, the verification and review result, what was deferred, and the most important gap, with links to `report.md` and `proposals.md`. Then show the full text of `.workflow/specs/NNN-slug/pr-body.md`, as 5.8 will publish it.
+2. **Present a short summary:** what changed, the verification and review result, what was deferred, and the most important gap, with links to `report.md` and `proposals.md`. Then show the full text of `.workflow/specs/NNN-slug/pr-body.md`, as 5.8 will publish it apart from the spec path the move rewrites.
 3. **Ask, in this order:**
    1. "Do you approve the work?" Yes, or No with the change requested.
    2. "Do you approve this PR description?" Yes, or the changes wanted. On changes, edit `pr-body.md`, run `check-pr-body.sh` as at 5.4 until it exits 0, show the full text again and ask only this question again.
@@ -163,11 +163,14 @@ After each edit the item's frontmatter must pass the validator in `assets/work-i
 
 ## 5.7 Retrospective, then done
 
-Run after 5.9 has decided every open backlog item.
+Run after 5.9 has decided every open backlog item. Set the step, then check that every sub-item of the spec is closed:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.7
+.agents/skills/feature-workflow/scripts/move-to-done.sh --check .workflow/specs/NNN-slug
 ```
+
+Exit 0: every task record is `done` or `split-out`, and every work-backlog item from this spec is `open`, `promoted`, `moved-to-deferred` or `dismissed`. Exit 1: stop. Show the stakeholder each open item it lists, leave the spec `in-review`, and resume at 5.7 once they are closed; a spec with open sub-items never becomes `done`. Exit 2 is a usage error or a folder that is not a spec: stop and report it.
 
 Invoke the `retrospective` skill for `.workflow/specs/NNN-slug` with the stakeholder present. It writes `.workflow/decisions/retrospectives/NNN-slug.md`, process lessons and pitfalls, feature notes in `design-log.md`, each approved review lesson to `.workflow/review-lessons.md` (created from `assets/review-lessons.md` when the file is missing, and retiring a lesson a rule, lint or profile line now enforces; `.agents/skills/retrospective/modules/routing.md`, "Review lessons", has the procedure), and model observations as a `.workflow/model-map/` entry or a proposed `.workflow/agent-overrides.yaml` entry. It changes no status. When it returns, read its verdict:
 
@@ -184,12 +187,36 @@ yq --front-matter=extract '.verdict' .workflow/decisions/retrospectives/NNN-slug
 
 Commit what is left on the spec branch (`git status --short`; the spec folder with `pr-body.md`, the approved Tier A writes and the retrospective).
 
-**Check the body again.** Run `check-pr-body.sh` on `pr-body.md` exactly as at 5.4; publish when it exits 0. On a fault, fix each line it names, show the stakeholder the full text, ask the 5.5 PR description question again, and log the answer in the Sign-off entry, then commit the fixed body and the log before you publish.
+**Check the body again.** Run `check-pr-body.sh` on `pr-body.md` exactly as at 5.4; go on to the move when it exits 0. On a fault, fix each line it names, show the stakeholder the full text, ask the 5.5 PR description question again, and log the answer in the Sign-off entry, then commit the fixed body and the log. This is the last point where the body or the design log can change: after the move nothing writes into the spec folder.
+
+**Sweep older finished specs, once.** Specs that were `done` before the Done folder existed still sit at the top level of `.workflow/specs/`. In a repo that has any, the first sign-off after the Done folder arrives may move them first, with the stakeholder's agreement: run `.agents/skills/feature-workflow/scripts/move-to-done.sh --sweep`, keep its moves in one commit of their own before this spec's move (commit anything `git status --short` still lists), then run the full test suite; a failure stops sign-off before this spec moves. A spec the sweep reports as failing the check stays where it is; show the stakeholder the list. Later sign-offs skip this: each spec moves itself.
+
+**Move the spec into the Done folder.**
+
+```bash
+.agents/skills/feature-workflow/scripts/move-to-done.sh .workflow/specs/NNN-slug
+```
+
+It runs the 5.7 check again, moves the folder to `.workflow/specs/done/NNN-slug`, deletes `.step`, rewrites the spec's path in the `.workflow/` files that name it (`pr-body.md` included; the initiative files wait for 6.13) and commits on the spec branch. Exit 1: it refused and changed nothing; stop and show the stakeholder what it lists. Exit 2 is a usage error or a folder that is not a spec: stop and report it. From here on the old folder is gone: no later step calls a script on `.workflow/specs/NNN-slug`, and with `.step` deleted the progress line names the folder and the step itself (`.agents/skills/feature-workflow/scripts/step-progress.sh --spec-dir .workflow/specs/done/NNN-slug 5.8`).
+
+**Check the moved body.**
+
+```bash
+.agents/skills/feature-workflow/scripts/check-pr-body.sh .workflow/specs/done/NNN-slug/pr-body.md   # add --project-template <path> when pr_template is a path
+```
+
+The body passed the same check before the move, the move changed only the spec path in it, and the check reads no paths, so exit 0 is the only expected result. Any fault here is a move bug: stop sign-off unpublished, show the stakeholder the output, and report it as a bug in `move-to-done.sh`. The moved folder stays as the move left it; nothing writes into it.
+
+**Ask for the go-ahead.** Show the stakeholder the diff the move made to `pr-body.md`, which changes only the spec path, and ask for the publish go-ahead:
+
+```bash
+git diff HEAD~1:.workflow/specs/NNN-slug/pr-body.md HEAD:.workflow/specs/done/NNN-slug/pr-body.md
+```
 
 **Publish** with the stakeholder's go-ahead: merge the spec branch into the main branch through a PR/MR carrying `pr-body.md` as its description, or by a local merge whose message holds it. Pick the line from the host of `git remote get-url origin`: one containing `github` runs the `gh` line, one containing `gitlab` the `glab` line. Without a remote or the CLI, on any other host, or when the stakeholder asks for one, run the last two lines, the local merge. Never pass `--template`: the approved body is the whole description. Run from the project root with the spec branch checked out, setting the variables in the same Bash command, since each Bash call starts a fresh shell:
 
-- `SPEC_DIR=.workflow/specs/NNN-slug`
-- `SPEC_BRANCH`: `spec_branch` in `spec.md` (`spec/NNN-slug`).
+- `SPEC_DIR=.workflow/specs/done/NNN-slug`
+- `SPEC_BRANCH`: `spec_branch` in `$SPEC_DIR/spec.md` (`spec/NNN-slug`; the move leaves it unchanged).
 - `MAIN`: `.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch`.
 - `SUBJECT`: a Conventional Commits subject naming the feature, e.g. `feat(<module>): <feature title>`; it is also the PR/MR title.
 
@@ -202,8 +229,8 @@ merge_message=$(mktemp) && { printf '%s\n\n' "$SUBJECT"; cat "$SPEC_DIR/pr-body.
 git switch "$MAIN" && git merge --no-ff -F "$merge_message" --cleanup=verbatim --no-edit "$SPEC_BRANCH" && rm -f "$merge_message"
 ```
 
-The merge message is built before the switch because `pr-body.md` exists only on the spec branch; `--no-edit` and `--cleanup=verbatim` keep the approved text exactly: an editor session would strip the `##` heading lines as comments, and the default cleanup trims blank lines and trailing spaces. Push only what the stakeholder asked for: after a local merge, push the main branch only on request. Remove leftover worktrees (`git worktree list`, then `git worktree remove <path>` for each one under `.workflow/.worktrees/` this feature created). Close with a one- or two-sentence summary: what shipped, the merge commit, where the deferred items wait, and which backlog items were promoted (with their new spec folders) or kept open.
+The merge message is built before the switch because `pr-body.md` exists only on the spec branch; `--no-edit` and `--cleanup=verbatim` keep the message to the body as checked, line for line: an editor session would strip the `##` heading lines as comments, and the default cleanup trims blank lines and trailing spaces. Push only what the stakeholder asked for: after a local merge, push the main branch only on request. Remove leftover worktrees (`git worktree list`, then `git worktree remove <path>` for each one under `.workflow/.worktrees/` this feature created). Close with a one- or two-sentence summary: what shipped, the merge commit, where the deferred items wait, and which backlog items were promoted (with their new spec folders) or kept open.
 
-**Close the initiative.** For a spec that carries `initiative:`, once the merge has landed on main, load [large-path](large-path.md#613-close-when-every-spec-is-done) at 6.13 for that initiative. 6.13 first reads the initiative's status on main, then at the tip of `initiative/NNN-slug` when that branch exists locally or on `origin`: while the initiative is still exploring (absent from main, `exploring` there, or `exploring` at the branch tip after a reopen), it tells the stakeholder so and writes nothing. A branch whose tip reads `planned`, left on `origin` by a merged PR, does not stop the close. When it is `planned` and every emitted spec is `done` on main, it moves the initiative to `done` through `initiative-transition.sh` on a re-created `initiative/NNN-slug` and merges that change into main the way `planned` was merged; otherwise it tells the stakeholder which specs are still open. While the PR/MR is still open, skip this: the initiative's next resume runs the same check.
+**Close the initiative.** For a spec that carries `initiative:`, once the merge has landed on main, load [large-path](large-path.md#613-close-when-every-spec-is-done) at 6.13 for that initiative. 6.13 first reads the initiative's status on main, then at the tip of `initiative/NNN-slug` when that branch exists locally or on `origin`: while the initiative is still exploring (absent from main, `exploring` there, or `exploring` at the branch tip after a reopen), it tells the stakeholder so and writes nothing. A branch whose tip reads `planned`, left on `origin` by a merged PR, does not stop the close. When it is `planned` and every emitted spec is `done` on main (at the top level or in the Done folder), it re-points the initiative's links to the specs now in the Done folder and moves the initiative to `done` through `initiative-transition.sh` on a re-created `initiative/NNN-slug` and merges that change into main the way `planned` was merged; otherwise it tells the stakeholder which specs are still open. While the PR/MR is still open, skip this: the initiative's next resume runs the same check.
 
-Done when the PR is open (or the local merge has landed) with the stakeholder told where, the spec reads `status: done`, and a spec carrying `initiative:` has been through the 6.13 check or waits for its PR/MR.
+Done when the PR is open (or the local merge has landed) with the stakeholder told where, the spec sits in `.workflow/specs/done/NNN-slug` reading `status: done`, and a spec carrying `initiative:` has been through the 6.13 check or waits for its PR/MR.
