@@ -16,8 +16,9 @@
 #   wf_main_root <dir>     prints the main checkout root for <dir>, inside the repo or one of its worktrees; status 1
 #                          and the reason on stderr when <dir> is not inside a git repository
 #   wf_norm_folder spec|initiative <arg>
-#                          prints <arg> as the repo-relative folder `$WF_SPECS/NNN-slug` or `$WF_INITIATIVES/NNN-slug`
-#                          (relative, or absolute with that parent); status 1 and the reason on stderr when <arg> is not one
+#                          prints <arg> as the repo-relative folder `$WF_SPECS/NNN-slug`, `$WF_SPECS_DONE/NNN-slug` (spec only)
+#                          or `$WF_INITIATIVES/NNN-slug` (relative, or absolute with that parent); status 1 and the reason on
+#                          stderr when <arg> is not one
 #   wf_enc <string>        prints <string> lowercased with every byte outside [a-z0-9] turned into `_`, no trailing newline;
 #                          the same bytes in every locale (run under LC_ALL=C), so Claude and Codex agree on worktree names;
 #                          status 1 and the reason on stderr when not given exactly one argument
@@ -81,8 +82,8 @@ wf_main_root() {
   fi
 }
 
-# wf_norm_folder spec|initiative ARG : print ARG as the repo-relative folder `$WF_SPECS/NNN-slug` or
-#   `$WF_INITIATIVES/NNN-slug`; status 1 when ARG is not one.
+# wf_norm_folder spec|initiative ARG : print ARG as the repo-relative folder `$WF_SPECS/NNN-slug`,
+#   `$WF_SPECS_DONE/NNN-slug` or `$WF_INITIATIVES/NNN-slug`; status 1 when ARG is not one.
 wf_norm_folder() {
   local kind=$1 arg=$2 root label folder
   case "$kind" in
@@ -95,6 +96,11 @@ wf_norm_folder() {
   esac
   folder=${arg%/}
   folder=${folder#./}
+  # Finished specs move into the Done folder and scripts still run on them there, so its direct children are spec dirs too.
+  if [[ "$kind" == spec ]] && { [[ "$folder" == "$WF_SPECS_DONE"/* ]] ||
+    [[ "$folder" == /* && "$(dirname "$folder")" == */"$WF_SPECS_DONE" ]]; }; then
+    root=$WF_SPECS_DONE
+  fi
   # An absolute path may point into the main checkout or any worktree, so only its last two parts name the folder.
   if [[ "$folder" == /* ]]; then
     if [[ "$(dirname "$folder")" != */"$root" ]]; then
