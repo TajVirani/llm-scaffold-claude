@@ -202,3 +202,4 @@ Seeded by the module-audit refresh: after the move the D11 deny blocks every Wri
 
 - Fail: item 3 (four reads at `move-to-done.sh:222-231` treat a failure as a clean result), item 4 (`git branch --show-current` at :110 exits with git's status, not 2), item 8 (the awk helper `adjusted` at :156 has no contract line). Out of scope noticed (an environment error after the `mv` at :217 leaves the spec moved and uncommitted, unreported): not discovered work; a defect in T5's own change, fixed in this round. Behaviour fix round: fresh launch.
 - T5 round 3 re-check pass. Out-of-scope note (toolchain tree hash differs from the git tree): not discovered work; `run-toolchain.sh --reuse` on head e9ed598 matched the recorded tree.
+- 3.9 last wave: full harness 3789 passed, 0 failed (64 suites). 3.10-3.11: no browser suite (not applicable, verification-plan Suites); spec set in-review at 3.11.
