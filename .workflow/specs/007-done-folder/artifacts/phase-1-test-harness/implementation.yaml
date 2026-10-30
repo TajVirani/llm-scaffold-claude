@@ -1,0 +1,53 @@
+status: done
+summary: "Harness suites for spec 007 are in place and red by design. A new suite tests/scripts/move-to-done.sh (JRN-001, -002, -003, -006 move half, -007, plus JRN-004 readers via the 0.1.1 and spec_done_on_main snippets) and a new lint suite tests/lint/done-folder-docs.sh, with Done folder cases added to check-write-paths, lib-workflow-paths, review-lessons, sign-off-pr and session-start-initiatives. A move-to-done.sh interface stub (exit 0) makes the new tests fail on assertions; each oracle was confirmed satisfiable against a throwaway reference implementation and temporary doc edits, which were then reverted."
+task_id: "phase-1-test-harness"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_phase_1_test_harness"
+branch: "wf/007-done-folder/s007_phase_1_test_harness"
+base_commit: "02576e33d4b6640ce570d0b5c9f933895aa922e6"
+head_commit: "030b5aedca3428840028cef7af8e064b3e4584a1"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/move-to-done.sh"
+  - "tests/fixtures/done-folder.sh"
+  - "tests/scripts/move-to-done.sh"
+  - "tests/lint/done-folder-docs.sh"
+  - "tests/scripts/check-write-paths.sh"
+  - "tests/scripts/lib-workflow-paths.sh"
+  - "tests/scripts/review-lessons.sh"
+  - "tests/scripts/sign-off-pr.sh"
+  - "tests/hooks/session-start-initiatives.sh"
+  - "tests/README.md"
+tests_added:
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-001 --check with T2 pending exits 1, names T2, changes nothing; 5.7 sequence leaves in-review", kind: behaviour}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-001 --check names a backlog item with a status outside the four allowed; ignores another spec's item", kind: edge}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-002 move to done/012-alpha: no .step, spec_branch kept, one Conventional Commits commit, clean tree", kind: behaviour}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-002 every back-link form rewritten; expected-tree, old-path, word-diff and link-resolution oracles", kind: behaviour}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-002 cache, initiative, docs/ and look-alike 012-alpha-two/012-alphabet references byte-identical", kind: edge}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-002 refusals change nothing: not done, target exists, pending task (exit 1); missing or non-spec folder (exit 2)", kind: negative}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-006 moved pr-body.md differs only in the spec path and passes check-pr-body.sh", kind: behaviour}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-003 --sweep moves both done specs, keeps in-flight specs and work-backlog/, second sweep is a no-op", kind: behaviour}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-007/JRN-004 five-digit sweep; 0.1.1 scan from discovery.md counts done/, next number 00011", kind: behaviour}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-004 spec_done_on_main from large-path.md true at top level and in done/, false otherwise", kind: behaviour}
+  - {file: "tests/scripts/move-to-done.sh", test: "interface: no argument, unknown option, --check without a folder exit 2", kind: negative}
+  - {file: "tests/lint/done-folder-docs.sh", test: "JRN-001 5.7 runs move-to-done.sh --check before done and stops on open items", kind: behaviour}
+  - {file: "tests/lint/done-folder-docs.sh", test: "JRN-006 5.8 order commit, body check, move, moved-body check, marker; diff with go-ahead; move-bug stop; no fix/Edit/log after the move; marker above block; no stale publish-unchanged lines", kind: behaviour}
+  - {file: "tests/lint/done-folder-docs.sh", test: "SKILL.md names move-to-done.sh; large-path 6.13 and review-lessons template name the Done folder", kind: behaviour}
+  - {file: "tests/scripts/check-write-paths.sh", test: "JRN-004 done/** denied for main session and sub-agent incl. done/.step, done/spec.md with a stray marker, glossary in a moved spec; a hook class denies; reason names the Done folder; look-alikes unguarded", kind: behaviour}
+  - {file: "tests/scripts/lib-workflow-paths.sh", test: "JRN-004 WF_SPECS_DONE; wf_norm_folder spec accepts done/ child in each form and any digit count; refuses done/ itself and bad children", kind: behaviour}
+  - {file: "tests/scripts/review-lessons.sh", test: "JRN-004 origin_spec accepts done/ path, five digits, uppercase/./_ slug; refuses paths outside .workflow/specs/ and malformed done/ paths", kind: behaviour}
+  - {file: "tests/scripts/sign-off-pr.sh", test: "JRN-006 5.8 SPEC_DIR names done/; gh --body-file and merge message carry the moved pr-body.md", kind: behaviour}
+  - {file: "tests/hooks/session-start-initiatives.sh", test: "JRN-004 planned initiative whose emitted specs are done in done/ on main is not offered", kind: behaviour}
+evidence:
+  red: "tests/run-all.sh; FAILED suites: scripts/check-write-paths (34 failed) scripts/lib-workflow-paths (9) scripts/move-to-done (54) scripts/review-lessons (6) scripts/sign-off-pr (3) hooks/session-start-initiatives (2) lint/done-folder-docs (14); e.g. 'FAIL JRN-001 --check with T2 pending exits 1 got=0 want=1', 'FAIL JRN-004 WF_SPECS_DONE is .workflow/specs/done'"
+  green: "Not applicable in Phase 1 (red by design). Satisfiability checked: with a throwaway reference move-to-done.sh, scripts/move-to-done passed 84/90 (the 6 left need discovery.md, large-path.md and the real script's lint); with temporary edits to discovery.md and large-path.md the 0.1.1 and spec_done_on_main cases passed; with a temporary sign-off.md rewrite sign-off-pr passed 34/34 and lint/done-folder-docs passed 12/16 (the 4 left need check-pr-body.sh, pr-template.md, SKILL.md, large-path.md and review-lessons.md edits). All temporary edits were reverted from backups."
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/007-done-folder --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>; lint pass, test skipped by caller. Full harness run by hand: TOTAL passed=3647 failed=121 (64 suites), only the 7 suites above red; all 57 other suites pass."
+  toolchain: ".workflow/specs/007-done-folder/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+considered_not_built:
+  - "6.13 rewrite of initiative links on the initiative branch (D10): no interface for it is decided yet, so only a doc check that large-path 6.13 names specs/done was added."
+  - "JRN-005 sweep of this repo: covered by tests/run-all.sh after the real sweep, as the brief says; no suite."
+  - "Codex write guard on done/**: codex-write-guard.sh calls check-write.sh with the same three --only classes, which the any_guard_denies cases cover; no separate codex case."
+  - "A 5.8 progress-line check: sign-off.md has no step-progress line in 5.8 today, so there is nothing to assert against."
+  - "Sweep of a done spec with an open task: what --sweep does with it (skip or stop) is not specified, so no case."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

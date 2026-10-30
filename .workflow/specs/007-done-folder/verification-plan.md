@@ -26,13 +26,13 @@ No running application: each journey is a harness suite run against a fixture pr
 
 | Id | Journey | Proves | Steps | Expected outcome | Check |
 | --- | --- | --- | --- | --- | --- |
-| JRN-001 | Check refuses an open task | CAP-NEW-done-folder | 1. Fixture spec `in-review`, one task `pending`. 2. Run `move-to-done.sh --check`. 3. Run the 5.7 sequence. | Non-zero exit naming T<n>; spec stays `in-review`; tree unchanged | `tests/scripts/move-to-done.sh` / MISSING |
-| JRN-002 | Sign-off move with links | CAP-NEW-done-folder | 1. Fixture `done` spec referenced from a shelf file, retrospective, capabilities row, review lesson, backlog item (`../NNN-slug/`), sibling spec, cache and initiative file. 2. Run the move. | Spec in `done/`, no `.step`; every reference outside `cache/`/`initiatives/` rewritten; cache and initiative untouched; outbound links inside resolve | `tests/scripts/move-to-done.sh` / MISSING |
-| JRN-003 | Sweep | CAP-NEW-done-folder | 1. Fixture with two `done` specs, one `draft`, `work-backlog/`. 2. Run `--sweep`. | Both `done` specs in `done/`; `draft` and backlog untouched | `tests/scripts/move-to-done.sh` / MISSING |
-| JRN-004 | Readers after the move | CAP-NEW-done-folder | 1. Spec in `done/`. 2. Run the 0.1.1 scan, `spec_done_on_main`, `check-write.sh` on a file in it, `review-lessons.sh validate`. | Number counted; done-on-main true; write denied; lesson valid | `tests/scripts/move-to-done.sh`, `tests/scripts/check-write-paths.sh`, review-lessons suite / MISSING |
-| JRN-005 | This repo swept | CAP-NEW-done-folder | 1. Run `--sweep` here. 2. `tests/run-all.sh`. | 001-006 and 008 under `done/`; 009 and 00010 untouched; all suites pass | `tests/run-all.sh` / MISSING |
-| JRN-006 | Sign-off PR body after the move | CAP-NEW-done-folder | 1. Fixture `done` spec with a valid `pr-body.md` naming `.workflow/specs/NNN-slug`. 2. Run the move. 3. Run `check-pr-body.sh` on the moved body. 4. Run the 5.8 publish block (local merge line) with `SPEC_DIR` on the `done/` path. | Body differs only in the spec path; check exits 0; merge message holds the moved body | `tests/scripts/move-to-done.sh`, `tests/scripts/sign-off-pr.sh` / MISSING |
-| JRN-007 | Any-digit spec numbers | CAP-NEW-done-folder | 1. Fixture with `00010-x` `done` and `009-y` `done`. 2. `--sweep`. 3. 0.1.1 scan. | Both moved; next number is `00011` | `tests/scripts/move-to-done.sh` / MISSING |
+| JRN-001 | Check refuses an open task | CAP-NEW-done-folder | 1. Fixture spec `in-review`, one task `pending`. 2. Run `move-to-done.sh --check`. 3. Run the 5.7 sequence. | Non-zero exit naming T<n>; spec stays `in-review`; tree unchanged | `tests/scripts/move-to-done.sh` |
+| JRN-002 | Sign-off move with links | CAP-NEW-done-folder | 1. Fixture `done` spec referenced from a shelf file, retrospective, capabilities row, review lesson, backlog item (`../NNN-slug/`), sibling spec, cache and initiative file. 2. Run the move. | Spec in `done/`, no `.step`; every reference outside `cache/`/`initiatives/` rewritten; cache and initiative untouched; outbound links inside resolve | `tests/scripts/move-to-done.sh` |
+| JRN-003 | Sweep | CAP-NEW-done-folder | 1. Fixture with two `done` specs, one `draft`, `work-backlog/`. 2. Run `--sweep`. | Both `done` specs in `done/`; `draft` and backlog untouched | `tests/scripts/move-to-done.sh` |
+| JRN-004 | Readers after the move | CAP-NEW-done-folder | 1. Spec in `done/`. 2. Run the 0.1.1 scan, `spec_done_on_main`, `check-write.sh` on a file in it, `review-lessons.sh validate`. | Number counted; done-on-main true; write denied; lesson valid | `tests/scripts/move-to-done.sh`, `tests/scripts/check-write-paths.sh`, `tests/scripts/lib-workflow-paths.sh`, `tests/scripts/review-lessons.sh`, `tests/hooks/session-start-initiatives.sh` |
+| JRN-005 | This repo swept | CAP-NEW-done-folder | 1. Run `--sweep` here. 2. `tests/run-all.sh`. | 001-006 and 008 under `done/`; 009 and 00010 untouched; all suites pass | `tests/run-all.sh` after the real sweep (manual run at 3.x) |
+| JRN-006 | Sign-off PR body after the move | CAP-NEW-done-folder | 1. Fixture `done` spec with a valid `pr-body.md` naming `.workflow/specs/NNN-slug`. 2. Run the move. 3. Run `check-pr-body.sh` on the moved body. 4. Run the 5.8 publish block (local merge line) with `SPEC_DIR` on the `done/` path. | Body differs only in the spec path; check exits 0; merge message holds the moved body | `tests/scripts/move-to-done.sh`, `tests/scripts/sign-off-pr.sh`, `tests/lint/done-folder-docs.sh` |
+| JRN-007 | Any-digit spec numbers | CAP-NEW-done-folder | 1. Fixture with `00010-x` `done` and `009-y` `done`. 2. `--sweep`. 3. 0.1.1 scan. | Both moved; next number is `00011` | `tests/scripts/move-to-done.sh` |
 
 ## Fixtures and oracles
 
@@ -84,4 +84,9 @@ for i in 1 2 3; do tmp=$(mktemp -d); git clone -q . "$tmp/r" && git -C "$tmp/r" 
 
 ## Suites
 
-<Filled at 1.2-1.4.>
+<!-- 1.2-1.4. Commands come from the profile Toolchain keys: `test` (.workflow/profiles/test-harness.md) and `e2e` (.workflow/profiles/e2e-browser.md). Gates 3.9 and 3.10 run them. -->
+
+| Suite | Profile key | Command (copied from the profile) | CI check | Known-bad-build evidence (1.4) |
+| --- | --- | --- | --- | --- |
+| Harness | `test` in `.workflow/profiles/test-harness.md` | `tests/run-all.sh` | none (no CI; the run by hand is the whole gate) | [artifacts/phase-1-known-bad/record.md](artifacts/phase-1-known-bad/record.md) Run 1, log [harness.log](artifacts/phase-1-known-bad/harness.log): 122 failures across 7 suites, all assertions |
+| Browser | `e2e`: not applicable (no e2e work type, no browser; JRN-001 to JRN-007 are harness suites) | none | none | not applicable; see record.md Run 2 |
