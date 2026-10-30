@@ -281,7 +281,7 @@ git show "$main_ref:.workflow/initiatives/NNN-slug/initiative.md" 2>/dev/null | 
   ```
 
   - **Some listed.** Tell the stakeholder which specs are still open and write nothing; offer 6.12 if they want to reopen.
-  - **None listed.** Re-create the branch from the main ref (after the clean check, as at 6.12). Sign-off 5.8 moved each spec into the Done folder but left the initiative's files alone, because they are committed only on this branch; re-point them now. For each emitted spec in `.workflow/specs/done/` on main, rewrite its path in the initiative's files, changing only that path (`specs/<NNN-slug>` becomes `specs/done/<NNN-slug>`, in the `.workflow/specs/`, `../../specs/` and `specs/` forms; a longer name sharing the prefix and a path already under `done/` stay as they are). Then flip:
+  - **None listed.** Re-create the branch from the main ref (after the clean check, as at 6.12). Sign-off 5.8 moved each spec into the Done folder but left the initiative's files alone, because they are committed only on this branch; re-point them now. For each emitted spec in `.workflow/specs/done/` on main, rewrite its path in the initiative's files, changing only that path (`specs/<NNN-slug>` becomes `specs/done/<NNN-slug>`, in the `.workflow/specs/`, `../../specs/` and `specs/` forms; a path ending a sentence is rewritten with its full stop kept; a longer name sharing the prefix, a file such as `<NNN-slug>.md` and a path already under `done/` stay as they are). Then flip:
 
     ```bash
     git switch --no-track -c initiative/NNN-slug "$main_ref"
@@ -289,8 +289,9 @@ git show "$main_ref:.workflow/initiatives/NNN-slug/initiative.md" 2>/dev/null | 
       # A spec the optional sweep left at the top level keeps its path; rewriting it would point at a done/ folder that does not exist.
       git cat-file -e "$main_ref:.workflow/specs/done/$spec/spec.md" 2>/dev/null || continue
       for f in $(git ls-files .workflow/initiatives/NNN-slug); do
+        # A path that ends a sentence keeps its full stop and is rewritten, but `<NNN-slug>.md` is another file and stays.
         # Repeat until nothing changes: one pass consumes the character after a match, so it misses a second path right after it.
-        sed -E -e ':again' -e "s#(^|[^A-Za-z0-9._-])specs/$spec([^A-Za-z0-9._-]|\$)#\1specs/done/$spec\2#g" -e 't again' "$f" >"$f.tmp" && mv "$f.tmp" "$f"
+        sed -E -e ':again' -e "s#(^|[^A-Za-z0-9._-])specs/$spec(\.?[^A-Za-z0-9._-]|\.?\$)#\1specs/done/$spec\2#g" -e 't again' "$f" >"$f.tmp" && mv "$f.tmp" "$f"
       done
     done
     IT step .workflow/initiatives/NNN-slug 6.13
