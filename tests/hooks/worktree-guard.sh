@@ -11,10 +11,10 @@
 #   the main checkout), passes the guard from the main checkout, and run for real leaves the file in
 #   the main checkout's artifacts/<id>/, where check-task-result.sh accepts it. JRN-009: read-only commands (allowlisted reads
 #   joined by | or &&) pass without the leading cd; writing or exec flags, shell forms and other commands still need it.
-#   Fail closed: JRN-001 an implementation or integration agent whose agent worktree cannot be established (the named agent worktree
+#   Fail closed: an implementation or integration agent whose agent worktree cannot be established (the named agent worktree
 #   is missing, sub-agent transcript missing, launch header missing or not valid YAML, cwd outside any git repo) is denied every
 #   call, reads and temp-dir writes included, with a reason naming the cause; JRN-002 an isolation (linked-worktree cwd) launch
-#   with its agent worktree missing or not named stays confined to its cwd worktree; JRN-003 a payload that is not a JSON object, and a
+#   with its agent worktree missing or not named stays confined to its cwd worktree; a payload that is not a JSON object, and a
 #   PATH without jq, get a deny JSON; JRN-004 check-worktree-scope.sh --confined exits 2 when no root is found and exit 0 without
 #   it, so the Codex guard is unchanged; JRN-005 deny and allow messages, both scripts' # File: lines and --help say "agent
 #   worktree" and name the Phase 1 and integration shapes, and implementation-orchestrator.md says a missing agent worktree is
