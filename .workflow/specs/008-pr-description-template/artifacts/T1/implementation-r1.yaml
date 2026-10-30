@@ -1,0 +1,19 @@
+status: "done"
+summary: "rules-setting.sh pr_template now reads workflow or a repo-relative .md path to the project's own PR/MR template. The path is checked for shape and for the file existing under the main checkout found from --cwd, also with --rules. An absent block or key defaults to workflow with a stderr note, and project, other, bad shapes, a missing file or a path value outside git exit 1 naming the value. The key is in all five places in the script, and the inline root lookup now reuses wf_main_root from workflow-paths.sh."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t1"
+branch: "task/008-pr-description-template/T01-pr-template-setting"
+base_commit: "3115dced23d9f09551b68f4ac99537766806b101"
+head_commit: "b7e697506f63517a73bf8e227d78d9c09d67774d"
+files_changed: [".agents/skills/feature-workflow/scripts/rules-setting.sh"]
+tests_added: []
+evidence:
+  red: "bash tests/scripts/task-breakdown.sh; FAIL JRN-004 pr_template workflow read (got= want=workflow), rules-setting.sh: unknown setting 'pr_template' (known: task_review, main_branch); 15 JRN-004 cases failed"
+  green: "bash tests/scripts/task-breakdown.sh; RESULT passed=130 failed=0 skipped=0 xfail=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/008-pr-description-template --task-id T1 --cwd <worktree>; lint pass, test (scoped, scripts/task-breakdown) pass 130/130"
+  toolchain: ".workflow/specs/008-pr-description-template/artifacts/T1/toolchain.txt (pass)"
+considered_not_built: ["a character whitelist for pr_template paths like the one for branch names: the task does not ask for it, and it would refuse real template names that contain spaces", "new tests: the Phase 1 JRN-004 cases already cover every acceptance criterion at the CLI seam (default, workflow, path, missing file, each bad shape, project, other, outside git, project-setup template)"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

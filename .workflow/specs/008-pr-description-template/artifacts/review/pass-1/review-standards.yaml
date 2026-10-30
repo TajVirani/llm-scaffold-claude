@@ -1,0 +1,46 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "a36d149d8cf9b181f1aaf5c3917fb75b7b536534"
+head: "4e8e4d18234d22e6db55ac4e9448c52c847aaf12"
+findings:
+  - id: RS-1
+    category: profile
+    severity: medium
+    confidence: 88
+    location: ".agents/skills/feature-workflow/modules/sign-off.md:103-112"
+    claim: "Sign-off 5.4 still says a host template has only `##` headings to fill, and that exit 2 means it 'has no `##` headings'. Since T5 (D19), check-pr-body.sh project mode reads every heading level `#` to `######` and exits 2 only for a template with no headings at all."
+    consequence: "At 5.4 the agent fills only the `##` sections of a host template that also uses `#` or `###` headings. The check then exits 1 on each heading it skipped, which costs extra fill rounds. On an exit 2 the agent tells the stakeholder the template 'has no ## headings', which is wrong: a template with only `###` headings passes. The prose and the script now disagree, and the next edit to either one will widen the gap."
+    evidence:
+      basis: ".workflow/profiles/agent-docs.md: 'follow the `writing-for-agents` skill'; .agents/skills/writing-for-agents/SKILL.md:78: 'The environment is a source of truth: scripts, config ... A document that restates it is a cache that goes stale.' Spec D19 / spec.md:50: 'each of that template's headings, at any level `#` to `######`, appears in the body'."
+      diff: "+   - A path: fill that host template's own `##` headings from the same evidence, in its order; the ten workflow sections are not added.\n+   Exit 2 whose message names the host template from `pr_template` means that template is unusable: unreadable, or it has no `##` headings."
+    suggested_fix: "Say 'fill each of that host template's headings at its own level' and 'unreadable, or it has no headings'. Better still, defer to check-pr-body.sh's fault lines and exit message instead of restating its heading rule."
+  - id: RS-2
+    category: profile
+    severity: low
+    confidence: 80
+    location: ".agents/skills/feature-workflow/modules/sign-off.md:102; .agents/skills/feature-workflow/assets/pr-template.md:34-35"
+    claim: "Two files give different instructions for the Special things to note section. Sign-off 5.4 always puts report.md and the task PRs/MRs there. The template's guidance draws the section only from report.md Known gaps and Deferred and says to write 'None.' when both are empty."
+    consequence: "An agent or maintainer who follows the template alone writes 'None.' and leaves out the report.md and task PR links that 5.8 used to put in the PR. Editing one file does not update the other, so Sign-off PR descriptions can drift apart."
+    evidence:
+      basis: ".agents/skills/writing-for-agents/SKILL.md:77: 'Single source of truth: each meaning lives in one place.' (required for agent-docs by .workflow/profiles/agent-docs.md)"
+      diff: "+Name `report.md` and the task PRs/MRs (`pr` on the records) under Special things to note.\n+<!-- From report.md Known gaps and Deferred: skipped gates, known limits, follow-up items with their\n+.workflow/deferred/ links. \"None.\" when both are empty. -->"
+    suggested_fix: "Put the report.md and task PR/MR links in the template's Special things to note guidance, so 'None.' covers only the gaps and deferred items, and drop the separate sentence from sign-off 5.4."
+checked:
+  - "git diff a36d149d8cf9b181f1aaf5c3917fb75b7b536534...HEAD (spec folder excluded), --stat and log: 15 files"
+  - "AGENTS.md (CLAUDE.md is a one-line @AGENTS.md import)"
+  - ".workflow/rules.md (Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1, T2, T5)"
+  - ".workflow/profiles/agent-docs.md (T3, T4, T6), and the writing-for-agents SKILL.md it requires"
+  - ".workflow/profiles/test-harness.md (the tests/ files in the diff)"
+  - ".workflow/specs/008-pr-description-template/design-log.md Placement entry (D10; no placement ADR, so the entry is the placement record)"
+  - ".workflow/GLOSSARY.md (PR template, Sign-off PR, Blast radius, Step file; Flagged ambiguities)"
+  - ".agents/skills/feature-workflow/references/readable-code.md (R1-R5 against every comment the diff adds in check-pr-body.sh, rules-setting.sh, the fixture and the three suites)"
+  - "Tool output for T1-T6: artifacts/<task>/toolchain.json; lint and test pass for every task"
+  - ".agents/install-manifest.txt (lists skills/feature-workflow, so the new asset and script are covered) and PROVENANCE.md (check-pr-body.sh and pr-template.md entries present)"
+  - "Smell baseline against the whole diff. Suppressed: the gh/glab host choice duplicated between open-task-pr.sh and the sign-off 5.8 prose, because design-log D10/D11 chose prose with no new 5.8 script"
+not_checked:
+  - "CODING_STANDARDS.md, CONTRIBUTING.md: not present at the repo root"
+  - ".workflow/GLOSSARY-MAP.md: not present (single root glossary)"
+  - "Placement ADR: none linked; design-log Placement entry used instead"
+  - "typecheck, format and boundary keys: skipped ('no command') in toolchain.json for T1-T6; the profiles define none and no boundary tool runs (bash), so Ownership was checked by hand against rules.md"

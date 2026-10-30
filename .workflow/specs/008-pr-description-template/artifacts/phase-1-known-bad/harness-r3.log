@@ -1,0 +1,127 @@
+### suite scripts/check-pr-body
+== scripts/check-pr-body
+== JRN-001: the template and a well-filled body
+ok   JRN-001 the template holds the ten sections in order
+ok   JRN-001 every template section carries guidance
+ok   JRN-001 a body filled from the template passes with no output
+== JRN-002: each bad shape is caught
+ok   JRN-002 a removed section is named as missing
+ok   JRN-002 two swapped sections are named as out of order
+ok   JRN-002 an emptied section is named as empty
+ok   JRN-002 Risk: Severe is off the scale
+ok   JRN-002 Reversibility: Never is off the scale
+ok   JRN-002 Reversibility: Irreversible with Risk: Low is refused
+ok   JRN-002 a Risk and reversibility section without a Risk line is refused
+ok   JRN-002 two faults give two lines (the missing section)
+ok   JRN-002 two faults give two lines (the off-scale Risk)
+ok   JRN-002 Risk: Low is accepted
+ok   JRN-002 Risk: Medium is accepted
+ok   JRN-002 Risk: High is accepted
+ok   JRN-002 Reversibility: Easy is accepted
+ok   JRN-002 Reversibility: Moderate is accepted
+ok   JRN-002 Reversibility: Hard is accepted
+ok   JRN-002 Reversibility: Irreversible with Risk: High is accepted
+ok   JRN-002 no argument exits 2
+ok   JRN-002 a missing file exits 2
+ok   JRN-002 an unknown option exits 2
+ok   JRN-002 the template guides Why this approach in an HTML comment
+ok   JRN-002 a section holding only the template's guidance comment is named as empty
+ok   JRN-002 Irreversible without a Risk line names the missing Risk
+ok   JRN-002 Irreversible without a Risk line names the Irreversible rule
+ok   JRN-002 a Risk line with no score is refused
+ok   JRN-002 a score followed by punctuation reads as the score
+ok   JRN-002 trailing spaces after a heading still match it
+ok   JRN-002 a workflow template without the Risk and reversibility heading exits 2
+== JRN-003: project mode checks the project's own headings, at every level
+ok   JRN-003 a body filling every project heading passes without risk lines
+ok   JRN-003 project mode does not check the order of headings
+ok   JRN-003 an empty project heading is named
+ok   JRN-003 a missing project heading is named
+ok   JRN-003 a missing project template exits 2
+ok   JRN-003 a body filling every heading of a template that mixes levels passes
+ok   JRN-003 a ## heading holding only ### subsections counts as filled
+FAIL JRN-003 an empty ### heading is named
+       rc=0 stdout= stderr=
+FAIL JRN-003 a missing ### heading is named
+       rc=0 stdout= stderr=
+FAIL JRN-003 a ### heading written as ## is named
+       rc=0 stdout= stderr=
+FAIL JRN-003 an empty ### subsection under a filled ## is named
+       rc=0 stdout= stderr=
+FAIL JRN-003 a project template with only ### headings passes a filled body
+       rc=2 stdout= stderr=check-pr-body.sh: no ## headings in template: .github/third_level_template.md
+ok   JRN-003 a project template with no headings at all exits 2
+ok   shellcheck: check-pr-body.sh
+
+RESULT passed=39 failed=5 skipped=0 xfail=0
+
+== summary
+FAIL scripts/check-pr-body                  passed=39   failed=5   skipped=0   xfail=0   4s
+TOTAL passed=39 failed=5 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/check-pr-body
+
+== failures
+-- scripts/check-pr-body
+FAIL JRN-003 an empty ### heading is named
+       rc=0 stdout= stderr=
+FAIL JRN-003 a missing ### heading is named
+       rc=0 stdout= stderr=
+FAIL JRN-003 a ### heading written as ## is named
+       rc=0 stdout= stderr=
+FAIL JRN-003 an empty ### subsection under a filled ## is named
+       rc=0 stdout= stderr=
+FAIL JRN-003 a project template with only ### headings passes a filled body
+       rc=2 stdout= stderr=check-pr-body.sh: no ## headings in template: .github/third_level_template.md
+### exit 1
+### suite scripts/sign-off-pr
+== scripts/sign-off-pr
+== JRN-005: the PR and the local merge carry the approved body
+ok   JRN-005 sign-off 5.8 holds the publish block after its marker
+ok   JRN-005 the publish block has a gh pr create line
+ok   JRN-005 the publish block has a glab mr create line
+ok   JRN-005 the publish block has a git merge --no-ff -F line
+ok   JRN-005 gh got --body-file pointing at the approved pr-body.md
+ok   JRN-005 gh got no --template
+ok   JRN-005 gh got the main branch as --base
+ok   JRN-005 gh got the spec branch as --head
+ok   JRN-005 glab got --description-file pointing at the approved pr-body.md
+ok   JRN-005 glab got no --template
+ok   JRN-005 glab got the main branch as --target-branch
+ok   JRN-005 glab got the spec branch as --source-branch
+ok   JRN-005 the local merge is a --no-ff merge of the spec branch into main
+ok   JRN-005 the merge commit subject is a Conventional Commits subject
+ok   JRN-005 the merge commit body is the approved pr-body.md
+ok   JRN-005 shellcheck: the 5.8 publish block
+== JRN-006: sign-off and setup text say the new steps
+ok   JRN-006 sign-off 5.2 adds the pr_template proposal row
+FAIL JRN-006 sign-off 5.2 names none of the host template paths
+       - The key is unset (`.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template` prints `workflow` and a note on stderr that the default is used) and the repo has a host PR/MR template at one of these paths only: `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md`, `.gitlab/merge_request_templates/*.md`. With no host template, add no row.
+FAIL JRN-006 sign-off 5.2 points at project-setup modules/files.md for the host template paths
+ok   JRN-006 sign-off 5.4 fills pr-body.md from pr-template.md
+ok   JRN-006 sign-off 5.4 runs check-pr-body.sh
+FAIL JRN-006 sign-off 5.4 stops and asks when check-pr-body.sh exits 2 on the host template
+       no 5.4 paragraph names an exit 2 on the host template with a stop, the workflow template and a fixed path via 5.2
+ok   JRN-006 sign-off 5.5 shows the full text of pr-body.md for approval
+ok   JRN-006 sign-off 5.8 reruns check-pr-body.sh
+ok   JRN-006 sign-off 5.8 publishes with --body-file and --description-file
+ok   JRN-006 project-setup asks the pr_template question
+ok   JRN-006 project-setup names the host PR template it looks for
+ok   JRN-006 project-setup modules/files.md names all four host template paths
+ok   JRN-006 the rules.md template documents pr_template under Workflow settings
+ok   JRN-006 SKILL.md lists pr-template.md among the assets
+
+RESULT passed=27 failed=3 skipped=0 xfail=0
+
+== summary
+FAIL scripts/sign-off-pr                    passed=27   failed=3   skipped=0   xfail=0   2s
+TOTAL passed=27 failed=3 skipped=0 xfail=0 (1 suites)
+FAILED suites: scripts/sign-off-pr
+
+== failures
+-- scripts/sign-off-pr
+FAIL JRN-006 sign-off 5.2 names none of the host template paths
+       - The key is unset (`.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template` prints `workflow` and a note on stderr that the default is used) and the repo has a host PR/MR template at one of these paths only: `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md`, `.gitlab/merge_request_templates/*.md`. With no host template, add no row.
+FAIL JRN-006 sign-off 5.2 points at project-setup modules/files.md for the host template paths
+FAIL JRN-006 sign-off 5.4 stops and asks when check-pr-body.sh exits 2 on the host template
+       no 5.4 paragraph names an exit 2 on the host template with a stop, the workflow template and a fixed path via 5.2
+### exit 1

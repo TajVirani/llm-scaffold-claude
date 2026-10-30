@@ -1,0 +1,47 @@
+{
+  "status": "pass",
+  "task_id": "phase-1-test-harness",
+  "work_type": "test-harness",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/profiles/test-harness.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/specs/008-pr-description-template/artifacts/phase-1-test-harness",
+  "tree": "7f8aaafa1f3a6fcfc2c83837b035c43353a6dc82",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh",
+      "status": "pass",
+      "exit_code": 0
+    }
+  ],
+  "digest": "",
+  "reused_from": "gate-3.9-w2"
+}

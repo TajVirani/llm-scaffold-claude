@@ -1,0 +1,91 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "a36d149d8cf9b181f1aaf5c3917fb75b7b536534"
+head: "4e8e4d18234d22e6db55ac4e9448c52c847aaf12"
+measurements:
+  - target: "Script lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/008-pr-description-template/artifacts/review/pass-1/targets/script-lint-clean.txt"
+    reason: ""
+  - target: "Harness lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/008-pr-description-template/artifacts/review/pass-1/targets/harness-lint-clean.txt"
+    reason: ""
+  - target: "Agent-docs lint clean"
+    kind: errors
+    threshold: "exit 0; each lint suite reports 0 failed"
+    command: "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage"
+    measured: "failed=0 in each of the four lint suites (frontmatter, step-list, symlinks, upstream-lineage)"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/008-pr-description-template/artifacts/review/pass-1/targets/agent-docs-lint-clean.txt"
+    reason: ""
+  - target: "`gh` `--template` passed beside a body flag anywhere under `.agents/`"
+    kind: errors
+    threshold: "`0` printed"
+    command: "git grep -h -E 'gh pr create' -- .agents | grep -E -- '--template|-T ' | grep -c -E -- '--body|-b |-F '"
+    measured: "0"
+    result: pass
+    exit_code: 1
+    raw_output: ".workflow/specs/008-pr-description-template/artifacts/review/pass-1/targets/gh-template-passed-beside-a-body-flag-anywhere-under-agents.txt"
+    reason: "exit 1 is grep -c's status for a zero count (no matching lines), not a failure of the check; the printed 0 decides the result"
+  - target: "Scripts added or changed since the baseline that no suite names"
+    kind: coverage
+    threshold: "`0` printed"
+    command: "git diff --name-only --diff-filter=AM \"$BASE\"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- \"$(basename \"$f\")\" tests/ || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/008-pr-description-template/artifacts/review/pass-1/targets/scripts-added-or-changed-since-the-baseline-that-no-suite-names.txt"
+    reason: ""
+  - target: "Files added under `.agents/` since the baseline missing from the manifest (or a listed directory) or from `PROVENANCE.md`"
+    kind: coverage
+    threshold: "`0` printed"
+    command: "git diff --name-only --diff-filter=A \"$BASE\"..HEAD -- .agents | while read -r f; do r=${f#.agents/}; m=0; while IFS= read -r l; do case \"$r\" in \"$l\"|\"${l%/}\"/*) m=1;; esac; done < .agents/install-manifest.txt; [ \"$m\" = 1 ] || echo \"manifest: $f\"; grep -qF -- \"$(basename \"$f\")\" PROVENANCE.md || echo \"provenance: $f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/008-pr-description-template/artifacts/review/pass-1/targets/files-added-under-agents-since-the-baseline-missing-from-the-manifest-or-a-listed-directory-or-from-provenance-md.txt"
+    reason: ""
+  - target: "Wall time of `check-pr-body.sh` on one body"
+    kind: performance
+    threshold: "real <= 1 s, best of 3"
+    command: "{ for i in 1 2 3; do /usr/bin/time -p .agents/skills/feature-workflow/scripts/check-pr-body.sh .agents/skills/feature-workflow/assets/pr-template.md >/dev/null; done; } 2>&1 | awk '/^real/{print $2}' | sort -n | head -1"
+    measured: "0.13 s (smallest of three real times)"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/008-pr-description-template/artifacts/review/pass-1/targets/wall-time-of-check-pr-body-sh-on-one-body.txt"
+    reason: ""
+  - target: "Line coverage of changed shell code"
+    kind: coverage
+    threshold: "not measured"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "Cannot be measured: no bash coverage tool is installed and spec.md Constraints ban new dependencies. TGT-005 and the 3.7 profile checklist stand in for it."
+findings: []
+checked:
+  - "Script lint clean"
+  - "Harness lint clean"
+  - "Agent-docs lint clean (the four lint suites only; the full harness and its pass count are not measured)"
+  - "`gh` `--template` passed beside a body flag anywhere under `.agents/`"
+  - "Scripts added or changed since the baseline that no suite names"
+  - "Files added under `.agents/` since the baseline missing from the manifest or PROVENANCE.md"
+  - "Wall time of `check-pr-body.sh` on one body"
+  - "Working tree matched HEAD for the scanned paths; the only untracked path, .claude/worktrees/, falls outside every pathspec"
+not_checked:
+  - "Line coverage of changed shell code: not measurable: no bash coverage tool is installed and spec.md Constraints ban new dependencies; TGT-005 and the 3.7 profile checklist stand in for it"
+  - "serve: no serve and serve_ready in the shell-scripts and agent-docs profiles (the work types in tasks.md); no build started, no URL polled, nothing to stop; no target needs a running build"

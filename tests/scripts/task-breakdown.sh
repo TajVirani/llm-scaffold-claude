@@ -5,6 +5,11 @@
 #   --exclude-unfinished, unscoped warning). JRN-006: each spec folder form for task-waves.sh and open-task-pr.sh task mode,
 #   and each initiative folder form for open-task-pr.sh --record, gives the exit code and message it gave before the shared
 #   normaliser, except that open-task-pr now refuses an absolute path outside the specs or initiatives root.
+#   JRN-004 (spec 008): rules-setting.sh pr_template, against a fixture git repo holding .github/pull_request_template.md,
+#   reads workflow without a Workflow settings block or the key (with a default note on stderr), reads workflow, prints the
+#   host template path back, refuses a missing file, an absolute, `..`, leading-dash or non-.md path, `project` and `other`
+#   with exit 1 naming the value, refuses a path value when --cwd is outside git, and reads workflow from the project-setup
+#   rules.md template.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -116,12 +121,63 @@ printf '## Workflow settings\n\n```yaml\nmain_branch: release/2.x\n```\n' > "$WO
 eq "main_branch read" "$(RS main_branch --rules "$WORK/r.md")" release/2.x
 printf '## Workflow settings\n\n```yaml\nmain_branch: "-x"\n```\n' > "$WORK/r.md"
 t "main_branch invalid -> 1"       1 RS main_branch --rules "$WORK/r.md"
+printf '## Workflow settings\n\n```yaml\nmain_branch: "@branch"\n```\n' > "$WORK/r.md"
+t "main_branch @branch (the spec token, not a branch name) -> 1" 1 RS main_branch --rules "$WORK/r.md"
 MB=$WORK/mb; git_init_repo "$MB"; git_commit_all "$MB" init
 eq "main_branch default main without origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" main
 git -C "$MB" update-ref refs/remotes/origin/develop HEAD; git -C "$MB" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/develop
 eq "main_branch default from origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" develop
 mkdir -p "$WORK/p/.workflow"; printf '## Workflow settings\n\n```yaml\ntask_review: local\n```\n' > "$WORK/p/.workflow/rules.md"
 eq "main checkout rules from worktree cwd" "$(RS task_review --cwd "$WORK/p-wt")" local
+
+echo "== rules-setting.sh pr_template (JRN-004, spec 008)"
+# The host template repo also holds files at ../t.md, -t.md and .github/t.txt, so those values are refused for their
+# shape, not because the file is missing.
+PTR=$WORK/pt-repo
+git_init_repo "$PTR"
+mkdir -p "$PTR/.github"
+printf '## Summary\n\n## Testing\n' > "$PTR/.github/pull_request_template.md"
+printf 'not markdown\n' > "$PTR/.github/t.txt"
+printf '## Summary\n' > "$PTR/-t.md"
+printf '## Summary\n' > "$WORK/t.md"
+git_commit_all "$PTR" "host PR template"
+PT_OUTSIDE_GIT=$WORK/pt-outside-git
+mkdir -p "$PT_OUTSIDE_GIT"
+# pt_rules VALUE : write $WORK/pt.md with pr_template set to VALUE under ## Workflow settings.
+pt_rules() { printf '## Workflow settings\n\n```yaml\npr_template: "%s"\n```\n' "$1" > "$WORK/pt.md"; }
+# pt_refused NAME VALUE : pr_template set to VALUE, read against the host template repo, exits 1 naming VALUE.
+pt_refused() {
+  local out rc
+  pt_rules "$2"
+  out=$(RS pr_template --cwd "$PTR" --rules "$WORK/pt.md" 2>&1)
+  rc=$?
+  eq "$1" "$rc:$(grep -qF -- "$2" <<<"$out" && echo named)" "1:named"
+}
+printf '## Ownership\n\n```yaml\nmodules: {}\n```\n' > "$WORK/pt.md"
+eq "JRN-004 pr_template without a Workflow settings block -> workflow" "$(RS pr_template --cwd "$PTR" --rules "$WORK/pt.md" 2>/dev/null)" workflow
+pt_note=$({ RS pr_template --cwd "$PTR" --rules "$WORK/pt.md" >/dev/null; } 2>&1)
+eq "JRN-004 pr_template without a Workflow settings block notes the default" "$(grep -q default <<<"$pt_note" && echo noted)" noted
+printf '## Workflow settings\n\n```yaml\ntask_review: local\n```\n' > "$WORK/pt.md"
+eq "JRN-004 pr_template key absent -> workflow" "$(RS pr_template --cwd "$PTR" --rules "$WORK/pt.md" 2>/dev/null)" workflow
+pt_note=$({ RS pr_template --cwd "$PTR" --rules "$WORK/pt.md" >/dev/null; } 2>&1)
+eq "JRN-004 pr_template key absent notes the default" "$(grep -q default <<<"$pt_note" && echo noted)" noted
+pt_rules workflow
+eq "JRN-004 pr_template workflow read" "$(RS pr_template --cwd "$PTR" --rules "$WORK/pt.md")" workflow
+pt_rules .github/pull_request_template.md
+eq "JRN-004 pr_template host template path printed back" "$(RS pr_template --cwd "$PTR" --rules "$WORK/pt.md")" .github/pull_request_template.md
+pt_refused "JRN-004 pr_template .github/missing.md (no such file) -> 1 naming it" .github/missing.md
+pt_refused "JRN-004 pr_template /abs/t.md (absolute) -> 1 naming it" /abs/t.md
+pt_refused "JRN-004 pr_template ../t.md (leaves the repo) -> 1 naming it" ../t.md
+pt_refused "JRN-004 pr_template -t.md (leading dash) -> 1 naming it" -t.md
+pt_refused "JRN-004 pr_template .github/t.txt (not .md) -> 1 naming it" .github/t.txt
+pt_refused "JRN-004 pr_template project -> 1 naming it" project
+pt_refused "JRN-004 pr_template other -> 1 naming it" other
+pt_refused "JRN-004 pr_template @template_path (the spec token, not a path) -> 1 naming it" @template_path
+pt_rules .github/pull_request_template.md
+pt_out=$(GIT_CEILING_DIRECTORIES=$WORK RS pr_template --cwd "$PT_OUTSIDE_GIT" --rules "$WORK/pt.md" 2>&1)
+pt_rc=$?
+eq "JRN-004 pr_template path with --cwd outside git -> 1 saying so" "$pt_rc:$(grep -qi git <<<"$pt_out" && echo said)" "1:said"
+eq "JRN-004 the project-setup rules.md template reads pr_template workflow" "$(RS pr_template --rules "$RULES_T" 2>/dev/null)" workflow
 # generate-boundary-config ignores the section (reads Ownership and Shared core only)
 GB=$WORK/gb; mkdir -p "$GB/.workflow"; cp "$RULES_T" "$GB/.workflow/rules.md"
 printf '\n## Workflow settings\n\n```yaml\ntask_review: pr-blocking\n```\n' >> "$GB/.workflow/rules.md"

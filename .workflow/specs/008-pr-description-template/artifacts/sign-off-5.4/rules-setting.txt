@@ -1,0 +1,3 @@
+rules-setting.sh: pr_template is not set under '## Workflow settings' in /Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/rules.md; using the default pr_template=workflow
+workflow
+exit=0

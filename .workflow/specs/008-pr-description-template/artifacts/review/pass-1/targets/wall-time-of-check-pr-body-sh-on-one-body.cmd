@@ -1,0 +1,1 @@
+{ for i in 1 2 3; do /usr/bin/time -p .agents/skills/feature-workflow/scripts/check-pr-body.sh .agents/skills/feature-workflow/assets/pr-template.md >/dev/null; done; } 2>&1 | awk '/^real/{print $2}' | sort -n | head -1

@@ -1,0 +1,49 @@
+{
+  "status": "pass",
+  "task_id": "T6",
+  "work_type": "agent-docs",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t6/.workflow/profiles/agent-docs.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t6",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/specs/008-pr-description-template/artifacts/T6",
+  "tree": "beed02ae6fc4c22122a36a8ccaf642e13b5a9942",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\"",
+      "status": "pass",
+      "exit_code": 0,
+      "scoped": true,
+      "own": 1,
+      "excluded": 0
+    }
+  ],
+  "digest": ""
+}

@@ -1,0 +1,33 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "a36d149d8cf9b181f1aaf5c3917fb75b7b536534"
+head: "f940b629efcfa8ec0a74509c14f71c8a864fd51f"
+findings:
+  - id: RL-1
+    category: lesson
+    severity: medium
+    confidence: 85
+    location: "tests/fixtures/pr-template.sh:51-53"
+    claim: "The change adds three new test shell files that use single-bracket [ ... ] tests, the mechanical breach retrospective 002 recorded to stop. Code tests: tests/fixtures/pr-template.sh:51 and :53 (pr_body_from_headings), tests/scripts/sign-off-pr.sh:51, :66 and :139. Eval'd check expressions with the same [ ... ] form: tests/scripts/check-pr-body.sh:40, :49, :58, :75, :135 and tests/scripts/sign-off-pr.sh:80, :116, :117, :124, :125, :132."
+    consequence: "Each single-bracket test in a new file is the cosmetic item a later mini-review round has to name again, the churn retrospective 002 recorded (six launches on one task). The lint its P13 approved would fail these new files once it is built, so the follow-up would start red on this change. Affects the implementer and the mini-review rounds for this spec."
+    evidence:
+      basis: "Retrospective .workflow/decisions/retrospectives/002-review-lessons.md, Process lessons row 'Mini-review churn' ('the grep-able items (ids and paths in body comments, single-bracket tests) belong to a lint'), recorded as P13 (approved) and .workflow/deferred/comment-id-lint.md ('a shell file added since the spec's baseline uses [ ... ]'). No review-lesson entry covers it. profiles/shell-scripts.md requires [[ ]] in new files only for its own paths; tests/ falls under profiles/test-harness.md, which states no test syntax rule, so the repeat is against the recorded lesson, not a written profile rule."
+      diff: "+    [ -n \"$heading\" ] || continue  (tests/fixtures/pr-template.sh, new file)  +    if [ \"$heading\" != \"${PR_EMPTY_SECTION:-}\" ]; then  (same file)"
+    suggested_fix: "Write the tests in the three new files with [[ ]], including the expressions inside the eval'd check strings, and keep the existing files' syntax. At 5.7 propose recording it as a review lesson whose paths cover tests/**/*.sh, so the next review checks it in its own paths until the P13 lint exists."
+checked:
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/review-lessons.md (parsed with yq; RL-001 and RL-002 live, neither repeated: no agent or task type added, and the PROVENANCE check-pr-body.sh row reads implemented)"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/decisions/pitfalls.md (all 18 entries; RL-002 covers the Phase 1 placeholder entry; others skipped per method step 5 or not present in the diff)"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/decisions/retrospectives/002-review-lessons.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/decisions/retrospectives/003-bash-cache-extractor.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/decisions/retrospectives/004-scoped-test-runs.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/decisions/retrospectives/005-cache-build-followups.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/profiles/shell-scripts.md (context for the single-bracket finding)"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/profiles/test-harness.md (context for the single-bracket finding)"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/rules.md (lines 136-145 read by grep: comment and commit rules)"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/deferred/comment-id-lint.md (first 40 lines: the lint's definition of the breach)"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.agents/skills/feature-workflow/references/readable-code.md (R4: header blocks exempt from the comment rule)"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/specs/008-pr-description-template/spec.md (baseline_revision read by yq only)"
+not_checked:
+  - "Merge commit subjects on this branch ('Merge T1:' to 'Merge T6:') against the retrospective 004 row about implementer 'T1:' commit subjects: the feature commits are Conventional Commits (rules.md line 145), and the merge subjects follow the same form as earlier merges on main. Suspicion below 80; a repeat would need an implementer commit with a non-conventional subject."
+  - "Ids and paths in body comments of the new shell files (the other half of the retrospective 002 row): none found. The ids in Covers and header lines are exempt under readable-code R4 and comment-id-lint.md."

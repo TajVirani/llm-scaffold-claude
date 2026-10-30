@@ -145,7 +145,7 @@ The folder `.workflow/specs/done/` that a spec moves into once its sign-off PR h
 _Avoid_: Spec archive, closed specs, z_ prefix
 
 **Sign-off PR**:
-The one PR/MR that merges a **Spec branch** into the main branch, opened at sign-off (5.8). Its description follows the **PR template**. Not a task PR, which only records a **Task branch** merging into the spec branch.
+The one PR/MR that merges a **Spec branch** into the main branch, opened at sign-off (5.8). Its description follows the **PR template**, or the project's own PR/MR template when the `pr_template` setting names one. Not a task PR, which only records a **Task branch** merging into the spec branch.
 _Avoid_: Feature PR, merge PR, final PR
 
 **PR template**:

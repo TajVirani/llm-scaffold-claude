@@ -1,0 +1,24 @@
+status: "done"
+summary: "project-setup now looks for a host PR/MR template at the four .github/ and .gitlab/ paths when it creates .workflow/rules.md, asks once which template the sign-off description follows (each found path plus workflow) and writes the answer as pr_template; with no host template it asks nothing. The write is stated as the one exception to the project-standards ledger, with the reason. The rules.md template documents pr_template as a commented line under Workflow settings, so the default read stays workflow."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t3"
+branch: "task/008-pr-description-template/T03-project-setup-asks-pr-template"
+base_commit: "3115dced23d9f09551b68f4ac99537766806b101"
+head_commit: "849643f999aa8b2c8bd853dc11c52e5e4760bea9"
+files_changed:
+  - ".agents/skills/project-setup/SKILL.md"
+  - ".agents/skills/project-setup/modules/files.md"
+  - ".agents/skills/project-setup/assets/docs/rules.md"
+tests_added: []
+evidence:
+  red: "No new tests (task owns no suite; tests not edited). The three JRN-006 project-setup cases in tests/scripts/sign-off-pr.sh were red by design at base before these docs named pr_template."
+  green: "bash tests/scripts/sign-off-pr.sh; ok JRN-006 project-setup asks the pr_template question; ok JRN-006 project-setup names the host PR template it looks for; ok JRN-006 the rules.md template documents pr_template under Workflow settings (the other 23 cases of that suite stay red until T4 lands)"
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/008-pr-description-template --task-id T3 --cwd $PWD; lint pass, test (scoped, own 0, excluded 3) pass: TOTAL passed=2957 failed=0 (55 suites)"
+  toolchain: ".workflow/specs/008-pr-description-template/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "Routing the pr_template answer through a project-standards ledger row: project-standards does not handle Workflow settings and lies outside this module; the files.md section states why this one write is an exception instead (fresh unfilled copy, human picks the value directly, workflow setting not a standard)."
+  - "Asking the question when rules.md is kept or in add-work-type mode: a kept rules.md is never touched; its pr_template changes through the 5.2/5.3 proposal."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

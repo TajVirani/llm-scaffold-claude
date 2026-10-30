@@ -1,0 +1,2 @@
+$ .agents/skills/feature-workflow/scripts/check-pr-body.sh .workflow/specs/008-pr-description-template/pr-body.md
+exit=0

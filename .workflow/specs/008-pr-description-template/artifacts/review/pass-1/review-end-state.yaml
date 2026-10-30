@@ -1,0 +1,40 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "a36d149d8cf9b181f1aaf5c3917fb75b7b536534"
+head: "4e8e4d18234d22e6db55ac4e9448c52c847aaf12"
+findings:
+  - id: RE-1
+    category: wrong
+    severity: medium
+    confidence: 85
+    location: ".agents/skills/feature-workflow/modules/sign-off.md:103"
+    claim: "Sign-off 5.4 still tells the agent to fill only a host template's `##` headings and calls a host template unusable when it has 'no `##` headings', contradicting D19 and the spec, under which project mode checks every heading level and exits 2 only for a template with no headings at all."
+    consequence: "In a target project whose GitHub template uses `#` or `###` headings (the case D19 was decided for), the agent following 5.4 fills the wrong headings, or none for a `###`-only template, and gets an exit 1 fix loop. It may also tell the stakeholder that a usable template is unusable. The script is right but the module that drives it is wrong."
+    evidence:
+      basis: "spec.md Assumptions: 'With a path, the check script only requires that each of that template's headings, at any level `#` to `######`, appears in the body ... A ... host template the check cannot use (unreadable, or no headings), stops 5.4'; design-log D19: 'exits 2 only for a template with no headings at all (or unreadable)'."
+      diff: "sign-off.md:103 '+   - A path: fill that host template's own `##` headings from the same evidence, in its order'; sign-off.md:112 '+   Exit 2 whose message names the host template ... means that template is unusable: unreadable, or it has no `##` headings.' T6 (the D20 rework) edited line 112's paragraph but left both `##` phrasings; check-pr-body.sh project mode uses min_level=1 max_level=6."
+    suggested_fix: "In sign-off.md 5.4, say 'fill each of that host template's headings, at every level, in its order' and 'unreadable, or it has no headings'. Optionally add a JRN-006 grep so the text cannot drift again."
+checked:
+  - "Pinned diff a36d149..4e8e4d1 (15 files outside the spec folder; 38 commits). No code changes between d614e55 (T6 merge) and HEAD outside the spec folder."
+  - "CAP-NEW-pr-template success: assets/pr-template.md holds the ten `##` sections in the agreed order, each with an HTML-comment guidance block naming its evidence source; check-pr-body.sh enforces presence, order, non-empty, the Risk/Reversibility scales and Irreversible => Risk: High; 5.8 publishes with --body-file / --description-file. Met, apart from RE-1."
+  - "End state 1 (template): met (pr-template.md lines 13-61 of the new file)."
+  - "End state 2 (workflow-mode check): met; check_sections_present, check_section_order, check_risk_scores produce one `<field>: <problem>` line per fault and exit 1."
+  - "End state 3 (project mode every level, D19): met in check-pr-body.sh (outline min 1 max 6, section_content runs to same-or-higher heading, exit 2 only on no headings/unreadable)."
+  - "End state 4 (rules-setting pr_template): met; valid_template_path rejects absolute, `..`, leading `-`, non-.md; existence checked against wf_main_root of --cwd; `project` and other values exit 1; default workflow with stderr note."
+  - "End state 5 (5.8 body-file and local merge): met; gh --body-file, glab --description-file, git merge --no-ff -F with Conventional Commits subject + body, --cleanup=verbatim; no --template."
+  - "End state 6 (sign-off and project-setup text): 5.2 pr_template row pointing at project-setup files.md for the paths (F2), 5.4 fill + check + stop on setting failure (D13) and on exit 2 for the host template (D20), 5.5 full-text approval, 5.8 rerun; project-setup asks only when it creates rules.md and a host template exists at the four .github/.gitlab paths. Met, but RE-1 covers the 5.4 heading-level wording."
+  - "End state 7 (this spec's own sign-off): not reachable at step 4.1; see not_verifiable."
+  - "Constraints: no new dependencies (bash/awk/grep/sed, gh/glab only); body via file, never --template (5.8 text says so); pr_template written only by project-setup or a 5.3 proposal; template guidance names evidence sources. Met."
+  - "Non-goals: no issue creation, no settings home, no REVIEW.md, open-task-pr.sh (3.16) untouched, large-path/initiative PR untouched, Phase 4 review modules untouched. No unasked behaviour found; the rules-setting @-token literal-match fix and find_main_checkout_root refactor support the new key."
+  - "JRN-001, JRN-002, JRN-003: tests/scripts/check-pr-body.sh cases read (lines 78-357); artifacts/T5/toolchain.txt PASS scripts/check-pr-body 47/0; artifacts/gate-3.9-w3/toolchain.txt PASS 47/0."
+  - "JRN-004: tests/scripts/task-breakdown.sh lines 133-180 read; gate-3.9-w3 PASS scripts/task-breakdown 132/0; artifacts/T1/toolchain.json pass."
+  - "JRN-005, JRN-006: tests/scripts/sign-off-pr.sh lines 102-198 read; artifacts/T6/toolchain.txt PASS scripts/sign-off-pr 30/0; gate-3.9-w3 PASS 30/0 and lint/frontmatter, step-list, symlinks, upstream-lineage all pass."
+  - "artifacts/gate-3.9-w3/toolchain.json read: status pass, lint and test pass, TOTAL passed=3166 failed=0."
+  - "artifacts/T1..T6/toolchain.json read: every status pass."
+not_verifiable:
+  - "JRN-007 and the Success signal (this spec's own pr-body.md passing check-pr-body.sh at 5.4 and 5.8 and being the Sign-off PR description): the spec is at step 4.1, so artifacts/sign-off-5.4/ does not exist yet. The orchestrator should confirm it at 5.4-5.8."
+  - "Constraint 'Each section is filled from evidence in the spec folder ... not claims': it is enforced only by the template guidance and the 5.4 instructions, so it can only be observed in a real 5.4 fill. Check it at this spec's own 5.4."
+  - "gh pr create --body-file is not exercised against the real gh CLI (JRN-005 uses recording stand-ins). The orchestrator should confirm the flag on the live gh at 5.8."
+not_checked:
+  - "Prior-cycle review files under artifacts/review/cycle-1-pass-1/ were not re-reviewed; only the triage table in design-log.md was read, to confirm what T5 and T6 were meant to fix."

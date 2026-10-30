@@ -1,0 +1,3 @@
+tests/scripts/task-breakdown.sh
+tests/scripts/check-pr-body.sh
+tests/scripts/sign-off-pr.sh
