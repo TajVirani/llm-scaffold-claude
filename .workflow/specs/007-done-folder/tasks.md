@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-done-folder
     depends_on: []
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: feature-workflow
     seam: "check-write.sh --cwd --path CLI from tests/scripts/check-write-paths.sh; WF_SPECS_DONE and wf_norm_folder spec from tests/scripts/lib-workflow-paths.sh"
     file: tasks/T01-done-folder-path-and-write-deny.md
@@ -23,7 +23,7 @@ tasks:
     capability: CAP-NEW-done-folder
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: feature-workflow
     seam: "review-lessons.sh validate <file> CLI from tests/scripts/review-lessons.sh"
     file: tasks/T02-review-lessons-accept-done-folder.md
@@ -40,7 +40,7 @@ tasks:
     capability: CAP-NEW-done-folder
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: hooks
     seam: "session-start-resume.sh hook output for planned initiatives, from tests/hooks/session-start-initiatives.sh"
     file: tasks/T03-session-start-done-on-main.md
@@ -57,7 +57,7 @@ tasks:
     capability: CAP-NEW-done-folder
     depends_on: [T2]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: feature-workflow
     seam: "doc text checks in tests/lint/done-folder-docs.sh; the 5.8 publish block run by tests/scripts/sign-off-pr.sh"
     file: tasks/T04-sign-off-discovery-large-path-docs.md
@@ -74,7 +74,7 @@ tasks:
     capability: CAP-NEW-done-folder
     depends_on: [T1, T4]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: feature-workflow
     seam: "move-to-done.sh --check <spec-dir> | <spec-dir> | --sweep CLI against the fixture project, from tests/scripts/move-to-done.sh"
     file: tasks/T05-move-to-done-script.md
