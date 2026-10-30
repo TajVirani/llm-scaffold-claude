@@ -113,6 +113,10 @@ MOVED=()
 SCRATCH_DIR=$(mktemp -d) || die "cannot create a temporary folder"
 TMP_FILE=$SCRATCH_DIR/rewrite
 LIST_FILE=$SCRATCH_DIR/list
+CANDIDATE_FILE=$SCRATCH_DIR/candidates
+MATCH_FILE=$SCRATCH_DIR/matches
+SEARCH_ERRORS=$SCRATCH_DIR/search-errors
+ROOT_PREFIX=$(wf_path "$ROOT" "")
 
 # What this run changed and has not committed yet, kept so a failure can put it back. MOVED_FROM, MOVED_TO and STEP_COPY
 #   are parallel: a spec folder's old and new path and where its step marker was set aside ("" when it had none).
@@ -263,7 +267,7 @@ add_up_level_to_outbound_links() {
 #   folder path, in the `specs/NAME` forms and, for a file under the specs folder, the `../NAME` form that climbs to it;
 #   true when FILE changed.
 point_at_done_folder() {
-  local file=$1 name=$2 name_re rel_dir depth climb="" climb_re="" end
+  local file=$1 name=$2 name_re rel_dir slashes depth climb="" climb_re="" end
   name_re=${name//./\\.}
   # A path that ends a sentence keeps its full stop, but `NAME.md` is another file and stays as it is.
   end="(\\.?[^$SLUG_CHARS]|\\.?\$)"
@@ -273,7 +277,8 @@ point_at_done_folder() {
   rel_dir=${rel_dir%/*}
   if [[ "$rel_dir" == "$WF_SPECS"/* ]]; then
     rel_dir=${rel_dir#"$WF_SPECS"/}
-    depth=$(($(printf '%s' "$rel_dir" | tr -cd / | wc -c) + 1))
+    slashes=${rel_dir//[!\/]/}
+    depth=$((${#slashes} + 1))
     while [[ $depth -gt 0 ]]; do
       climb="$climb../" climb_re="$climb_re\\.\\./"
       depth=$((depth - 1))
@@ -286,12 +291,36 @@ point_at_done_folder() {
   replace_file "$file"
 }
 
+# list_files_naming NAME : write to MATCH_FILE, NUL-separated, the absolute path of each regular file in the LIST_FILE
+#   list (repo-relative paths) whose text contains NAME; exit 2 naming the file that cannot be searched.
+list_files_naming() {
+  local name=$1 rel file status=0
+  while IFS= read -r -d '' rel; do
+    file=$ROOT_PREFIX$rel
+    if [[ -f "$file" && ! -L "$file" ]]; then printf '%s\0' "$file"; fi
+  done <"$LIST_FILE" >"$CANDIDATE_FILE"
+  # One grep over all the files, not one per file: a sweep searches every workflow file once per spec, and starting a
+  #   process per file made it slow. /dev/null keeps grep off stdin when the list is empty.
+  xargs -0 grep -lIF --null -- "$name" /dev/null <"$CANDIDATE_FILE" >"$MATCH_FILE" 2>"$SEARCH_ERRORS" || status=$?
+  # xargs reports a batch with no match (grep status 1) as 1 or 123, the same as a grep error, so a grep error is told
+  #   apart by what it wrote to stderr.
+  case $status in
+    0 | 1 | 123) [[ -s "$SEARCH_ERRORS" ]] || return 0 ;;
+  esac
+  while IFS= read -r -d '' file; do
+    status=0
+    grep -qIF -- "$name" "$file" || status=$?
+    [[ $status -le 1 ]] || die "cannot search ${file#"$ROOT_PREFIX"} for the spec path"
+  done <"$CANDIDATE_FILE"
+  die "cannot search the workflow files for the spec path: $(head -n 1 "$SEARCH_ERRORS")"
+}
+
 # move_spec SPEC_DIR : move SPEC_DIR into the Done folder, drop its step marker, fix its outbound links, rewrite its path in
 #   the workflow files, and queue the changed paths in PATHSPECS for the commit. Generated caches, initiative records and
 #   local working state are skipped: caches are rebuilt from the tree, an initiative re-points its own spec paths when it
 #   closes, and local state such as other checkouts is not this branch's to change.
 move_spec() {
-  local spec_dir=$1 name target old_abs new_abs done_abs move_index step_copy file rel tracked found
+  local spec_dir=$1 name target old_abs new_abs done_abs move_index step_copy file rel slashes tracked
   name=${spec_dir##*/}
   target=$WF_SPECS_DONE/$name
   old_abs=$(wf_path "$ROOT" "$spec_dir")
@@ -317,23 +346,16 @@ move_spec() {
   find "$new_abs" -type f -name '*.md' -print0 >"$LIST_FILE" || die "cannot list the Markdown files in $target"
   while IFS= read -r -d '' file; do
     rel=${file#"$new_abs"/}
-    add_up_level_to_outbound_links "$file" "$(printf '%s' "$rel" | tr -cd / | wc -c)"
+    slashes=${rel//[!\/]/}
+    add_up_level_to_outbound_links "$file" "${#slashes}"
   done <"$LIST_FILE"
   git -C "$ROOT" ls-files -c -o --exclude-standard -z -- "$WF_DIR" ":(exclude)$WF_CACHE" \
     ":(exclude)$WF_INITIATIVES" ":(exclude)$WF_WORKTREES" ":(exclude)$WF_HANDOFF" ":(exclude)$WF_CACHE_STAGING" \
     ":(exclude)$WF_STANDARDS_STAGING" >"$LIST_FILE" || die "cannot list the workflow files to rewrite"
-  while IFS= read -r -d '' rel; do
-    file=$(wf_path "$ROOT" "$rel")
-    [[ -f "$file" && ! -L "$file" ]] || continue
-    found=0
-    grep -qIF -- "$name" "$file" || found=$?
-    case $found in
-      0) ;;
-      1) continue ;;
-      *) die "cannot search $rel for the spec path" ;;
-    esac
-    if point_at_done_folder "$file" "$name"; then PATHSPECS+=("$rel"); fi
-  done <"$LIST_FILE"
+  list_files_naming "$name"
+  while IFS= read -r -d '' file; do
+    if point_at_done_folder "$file" "$name"; then PATHSPECS+=("${file#"$ROOT_PREFIX"}"); fi
+  done <"$MATCH_FILE"
   # An untracked spec leaves nothing at its old path for git, and git add fails on a path that matches nothing.
   tracked=$(git -C "$ROOT" ls-files -c -- "$spec_dir") || die "cannot list the tracked files of $spec_dir"
   if [[ -n "$tracked" ]]; then PATHSPECS+=("$spec_dir"); fi
