@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/.worktrees/s00011_t1/.workflow/profiles/test-harness.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/.worktrees/s00011_t1",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/specs/00011-interrupted-run-cleanup/artifacts/T1",
-  "tree": "c00486205d8f6d9bd43f76c24844b63362f13f8d",
+  "tree": "bf2b9835840373cc85ca68eccd1630bd6f6c717f",
   "ran": 2,
   "results": [
     {

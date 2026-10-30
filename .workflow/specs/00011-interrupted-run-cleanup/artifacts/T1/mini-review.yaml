@@ -1,0 +1,35 @@
+verdict: "pass"
+task_id: "T1"
+work_type: "test-harness"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/.worktrees/s00011_t1@d4e07beaaae8dc94692fa7b352a7a537fc8dbfe3..HEAD"
+tool_output: ".workflow/specs/00011-interrupted-run-cleanup/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: "tests/scripts/run-all-selection.sh:244-254 (new stdin case runs only local bash and printf; grep of added lines finds no curl, wget, git clone, URL or home path)"
+  - n: 2
+    verdict: "pass"
+    location: "tests/scripts/run-all-selection.sh:365 (shellcheck_files over tests/run-all.sh and this suite), last assertion before finish at line 367"
+  - n: 3
+    verdict: "pass"
+    location: "tests/scripts/run-all-selection.sh:19-24 (FIXTURE_TESTS and MARKERS under WORK), 248-251 (reader fixture written under FIXTURE_TESTS and MARKERS), tests/lib/common.sh:110-116 (new_workdir makes WORK under TMPDIR)"
+  - n: "R1"
+    verdict: "pass"
+    location: "tests/scripts/run-all-selection.sh:244-254 (reader, line, reader.stdin name what each thing is for); tests/run-all.sh:202 (added redirect, no new names)"
+  - n: "R2"
+    verdict: "pass"
+    location: "tests/run-all.sh:190-192 (why the launch gives /dev/null as stdin), tests/run-all.sh:202 (the redirect), tests/run-all.sh:211-212 (why the guard stays)"
+  - n: "R3"
+    verdict: "pass"
+    location: "tests/run-all.sh:190-192, tests/run-all.sh:211-212, tests/scripts/run-all-selection.sh:244-245 (each adds a reason, none restates the next line)"
+  - n: "R4"
+    verdict: "pass"
+    location: "tests/run-all.sh:190-192, tests/run-all.sh:211-212, tests/scripts/run-all-selection.sh:9-11, tests/scripts/run-all-selection.sh:244-245 (no ADR or decision ID, doc or workflow path, spec or task ID, or URL in any added line)"
+  - n: "R5"
+    verdict: "pass"
+    location: "tests/run-all.sh:190-192, tests/run-all.sh:211-212, tests/scripts/run-all-selection.sh:244-245 (plain English; terms used are ones the file already uses)"
+read_outside_diff:
+  - "tests/lib/common.sh: new_workdir (line 110), shellcheck_files (line 102) and finish (line 70), read to judge items 2 and 3"
+out_of_scope_noticed: []

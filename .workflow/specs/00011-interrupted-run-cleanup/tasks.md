@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Stop background suites when the runner is interrupted"
-    status: in-progress
+    status: done
     capability: CAP-001
     depends_on: []
     touches_core: false
