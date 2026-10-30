@@ -205,7 +205,7 @@ SPEC_REST="" INITIATIVE_REST=""
 if [[ "$LC" == "$P_CACHE" || "$LC" == "$P_CACHE"/* ]]; then
   CLASS=tier-b
 elif [[ "$LC" == "$P_SPECS_DONE" || "$LC" == "$P_SPECS_DONE"/* ]]; then
-  CLASS=spec KIND=done-folder                # checked first: done/spec.md and done/.step would otherwise read as a spec named done
+  CLASS=spec KIND=done-folder                # checked first, because a finished spec's own files would otherwise match the spec-folder rules below
 elif [[ "$LC" == "$P_BACKLOG" || "$LC" == "$P_BACKLOG"/* ]]; then
   CLASS=spec KIND=backlog                    # checked first: not a spec folder
 elif [[ "$SPEC_REST" =~ ^[^/]+/\.step$ ]]; then
