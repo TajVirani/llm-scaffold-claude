@@ -286,9 +286,11 @@ git show "$main_ref:.workflow/initiatives/NNN-slug/initiative.md" 2>/dev/null | 
     ```bash
     git switch --no-track -c initiative/NNN-slug "$main_ref"
     for spec in $(yq --front-matter=extract '.slices[].spec' .workflow/initiatives/NNN-slug/initiative.md); do
+      # A spec the optional sweep left at the top level keeps its path; rewriting it would point at a done/ folder that does not exist.
       git cat-file -e "$main_ref:.workflow/specs/done/$spec/spec.md" 2>/dev/null || continue
       for f in $(git ls-files .workflow/initiatives/NNN-slug); do
-        sed -E "s#(^|[^A-Za-z0-9._-])specs/$spec([^A-Za-z0-9._-]|\$)#\1specs/done/$spec\2#g" "$f" >"$f.tmp" && mv "$f.tmp" "$f"
+        # Repeat until nothing changes: one pass consumes the character after a match, so it misses a second path right after it.
+        sed -E -e ':again' -e "s#(^|[^A-Za-z0-9._-])specs/$spec([^A-Za-z0-9._-]|\$)#\1specs/done/$spec\2#g" -e 't again' "$f" >"$f.tmp" && mv "$f.tmp" "$f"
       done
     done
     IT step .workflow/initiatives/NNN-slug 6.13
