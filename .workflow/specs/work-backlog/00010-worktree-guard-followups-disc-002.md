@@ -2,7 +2,7 @@
 origin_spec: .workflow/specs/00010-worktree-guard-followups
 origin_step: "3.7"
 discovered_at: 2026-10-30
-status: open
+status: moved-to-deferred
 kind: bug
 ---
 
@@ -31,3 +31,4 @@ Pre-existing and untouched by spec 00010; reachable only with a partial install 
 
 - Origin spec: [spec.md](../00010-worktree-guard-followups/spec.md)
 - Design log entry: [design-log.md](../00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Discovered work: T2 mini-review notes)
+- Deferred file: [.workflow/deferred/worktree-guard-early-errors.md](../../deferred/worktree-guard-early-errors.md)

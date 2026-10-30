@@ -14,6 +14,12 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Quote every YAML string that contains `: ` in a result file
+- What happened: a profile-mini-review result file held an unquoted string with `: ` inside, so `check-task-result.sh` could not parse it (go-yaml "mapping values are not allowed in this context") and the reviewer had to be resumed to rewrite it
+- Where: `.workflow/specs/00010-worktree-guard-followups/artifacts/T1/mini-review.yaml` (3.7)
+- Spec: .workflow/specs/00010-worktree-guard-followups
+- Prevented by: `check-task-result.sh` refuses the file (exit 2) and the orchestrator resumes the agent once; the launch brief now asks to quote such strings
+
 ## Name no `.workflow/` path in an installed asset
 - What happened: the shipped `assets/pr-template.md` issue stub named `.workflow/deferred/spec-issue-creation.md`, a file only this scaffold repo holds, so every target project's Sign-off PR would cite a dead path (F1, medium, a rework); the T6 fix round then failed mini-review R4 for naming `.workflow/deferred/` in the same template's guidance.
 - Where: `.agents/skills/*/assets/` (installed into target projects)
@@ -96,7 +102,7 @@ Entry shape (newest first):
 - What happened: `yq --front-matter=extract -i` rewrote two work-backlog items as their frontmatter alone, deleting the body; one was restored from git, the other from the session.
 - Where: main-session status edits of `.workflow/specs/work-backlog/*.md` (00.26, 5.9)
 - Spec: .workflow/specs/004-scoped-test-runs
-- Prevented by: none yet
+- Prevented by: partly: four `permissions.deny` rules in the settings template and `.claude/settings.json` refuse `yq --front-matter=extract` with `-i` or `--inplace` (spec 00010, confirmed live); other spellings such as `-Pi` stay open (`.workflow/deferred/frontmatter-extract-write-guard.md`)
 
 ## Quote heredocs that write markdown (`<<'EOF'`), or use Write
 - What happened: an unquoted `<<EOF` holding markdown ran its backticked code spans as shell commands and hung the shell, leaving an empty `.workflow/deferred/` file.

@@ -12,7 +12,7 @@ Spec: [spec.md](spec.md)
 - [ ] CAP-007: `check-worktree-scope.sh --confined` exits 2 when no root is found; without `--confined` it exits 0 as before, so the Codex guard's behaviour is unchanged.
 - [ ] CAP-007: no deny or allow message of `check-worktree-scope.sh`, and neither script's `# File:` line, contains "task worktree".
 - [ ] CAP-008: a confined agent's `sed -n '$p' f`, `sed -n -e '1p' -e '$p' f` and `grep 'x$' f` from the main checkout are allowed; `grep "x$" f`, `cat $HOME/f`, `grep \$ f`, `grep 'a'\''$' f` and an unterminated quote still deny without the `cd`.
-- [ ] CAP-NEW-extract-write-deny: the template's and this repo's `permissions.deny` hold the four yq extract in-place rules, the template's line-148 entry is unchanged, and `install.sh` writes all four into a fresh target's `.claude/settings.json` and keeps them on a re-run.
+- [ ] CAP-009: the template's and this repo's `permissions.deny` hold the four yq extract in-place rules, the template's line-148 entry is unchanged, and `install.sh` writes all four into a fresh target's `.claude/settings.json` and keeps them on a re-run.
 - [ ] Records: the three "re-run writes nothing" checks in `tests/scripts/install-upgrade.sh` fail when the re-run exits non-zero; `assetlist.md` gives the stop-audit matcher as `implementation|integration`, says Phase 1 and integration run in orchestrator-made agent worktrees with no isolation fallback, and carries no "Amended by spec 006" note for them.
 
 ## Journeys
@@ -25,7 +25,7 @@ Spec: [spec.md](spec.md)
 | JRN-004 | Scope check CLI contract | CAP-007 | 1. `check-worktree-scope.sh --cwd <main> --worktree-name s007_t9 --path <main>/a --confined`. 2. Same without `--confined`. 3. `--confined` with no name. 4. Codex guard payload for a task without a worktree. | 1 and 3 exit 2 with a reason; 2 exits 0; 4 allowed as today. | `tests/hooks/worktree-guard.sh` (JRN-004 cases) |
 | JRN-005 | Agent worktree wording | CAP-007 | 1. Trigger each deny of the scope check (path outside, no `cd`, non-literal cd, relative cd, cd outside, `--confined` with no root). 2. grep the two scripts' `# File:` lines and `check-worktree-scope.sh --help`. 3. grep `implementation-orchestrator.md` for the missing-worktree line. | No output or header contains "task worktree"; deny reasons say "agent worktree"; `--help` names the Phase 1 and integration shapes; the orchestrator line exists. | `tests/hooks/worktree-guard.sh` (JRN-005 cases) |
 | JRN-006 | Quoted `$` reads pass | CAP-008 | 1. Task agent payloads from the main checkout running `sed -n '$p' f`, `sed -n -e '1p' -e '$p' f`, `grep 'x$' f`, `grep 'a' f \| tail -n 1`. 2. Then `grep "x$" f`, `cat $HOME/f`, `grep \$ f`, `` grep '`' f `` (allowed: in single quotes), ``grep `id` f``, `grep 'a'\''$' f`, `grep 'x$ f`. | Group 1 and the single-quoted backtick allowed; the others denied with the `cd` instruction. | `tests/hooks/worktree-guard.sh` (JRN-006 cases) |
-| JRN-007 | Extract in-place denied in installed settings | CAP-NEW-extract-write-deny | 1. Read the template and `.claude/settings.json` deny arrays. 2. `install.sh --host claude` into an empty target, then over a target whose settings already have a user deny entry; re-run. | Both source files hold the four rules; the target holds them plus the user entry, once each, after every run; template line 148 matches main. | `tests/scripts/install-claude-settings.sh` (JRN-007 cases) |
+| JRN-007 | Extract in-place denied in installed settings | CAP-009 | 1. Read the template and `.claude/settings.json` deny arrays. 2. `install.sh --host claude` into an empty target, then over a target whose settings already have a user deny entry; re-run. | Both source files hold the four rules; the target holds them plus the user entry, once each, after every run; template line 148 matches main. | `tests/scripts/install-claude-settings.sh` (JRN-007 cases) |
 | JRN-008 | Upgrade re-run checks catch a refusing re-run | Records | 1. In `tests/scripts/install-upgrade.sh`, the JRN-011 third run and the two-template-groups re-run capture the exit code. 2. Assert exit 0 beside the "writes nothing" snapshot check. | A re-run exiting 1 fails the suite (shown once by a stand-in that exits 1, recorded at 1.4). | `tests/scripts/install-upgrade.sh` (JRN-008 checks) |
 | JRN-009 | Asset record matches 006 | Records | 1. grep `assetlist.md` for the stop-audit row, the worktree guard row and D85 item 6. | Matcher `implementation\|integration`; "agent worktree"; orchestrator-made Phase 1 and integration worktrees; no isolation fallback; no "Amended by spec 006" for these. | `tests/lint/agent-worktree-docs.sh` (JRN-009 cases) |
 
@@ -35,7 +35,7 @@ Spec: [spec.md](spec.md)
 | --- | --- | --- | --- |
 | Guard fixture repo | A git repo with `.agents/` copied in, spec `007-demo`, agent worktrees `s007_t3`, `s007_phase_1_shell_scripts`, `s007_integration_shell_scripts`, and sub-agent transcripts with launch headers | built by `tests/hooks/worktree-guard.sh` (`mk_sub`, `pl`) | JRN-001 to JRN-006 |
 | No-jq PATH | A temp bin dir with bash, git and coreutils links but no jq | built in the suite | JRN-003 |
-| Expected deny rules | The four rule strings, copied from spec.md CAP-NEW-extract-write-deny | spec.md | JRN-007 |
+| Expected deny rules | The four rule strings, copied from spec.md CAP-009 | spec.md | JRN-007 |
 | Main-branch template | `git show main:.agents/hooks/claude-settings.template.json` line 148 | git | JRN-007 |
 | Install fixtures | Empty and pre-filled target repos | `tests/fixtures/claude-settings.sh`, `tests/scripts/install-upgrade.sh` | JRN-007, JRN-008 |
 
@@ -50,7 +50,7 @@ Run every command in bash from the repo root on a clean checkout of the feature'
 | Agent-docs lint clean | errors | exit 0; each of the four lint suites reports 0 failed | the `agent-docs-lint` command below (the `lint` key of the agent-docs profile) | `.workflow/profiles/agent-docs.md` § Toolchain |
 | Every script this spec changes has a suite | coverage | `0` printed | the `script-coverage` command below | `.workflow/profiles/test-harness.md` § Mini-review checklist |
 | No "task worktree" in the guard scripts | errors | `0` printed | the `task-worktree-wording` command below | `spec.md` CAP-007 success line (D7) |
-| Extract in-place deny rules in both settings files | errors | `8` printed (4 rules × 2 files) | the `extract-deny-rules` command below | `spec.md` CAP-NEW-extract-write-deny success line (D6) |
+| Extract in-place deny rules in both settings files | errors | `8` printed (4 rules × 2 files) | the `extract-deny-rules` command below | `spec.md` CAP-009 success line (D6) |
 | Worktree scope check time on a long read-only chain with single-quoted `$` | performance | real ≤ 0.5 s, best of 3 | the `guard-time` command below | stakeholder decision D13, 1.1 (2026-10-30) |
 | Line coverage of changed shell code | coverage | not measured | Cannot be measured: no bash coverage tool is installed and no new dependency is allowed (spec Constraints). The script-coverage target and the test-harness checklist at 3.7 stand in. | stakeholder decision D14, 1.1 (2026-10-30) |
 

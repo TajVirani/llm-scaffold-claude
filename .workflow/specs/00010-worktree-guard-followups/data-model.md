@@ -74,7 +74,7 @@ The `permissions.deny` list of the Claude settings template and of this repo's `
 
 | Field | Type | Required | Validation rule | Change |
 | --- | --- | --- | --- | --- |
-| `Bash(yq *--front-matter=extract* -i*)` | rule | yes | in both files; installed by the union merge (CAP-NEW-extract-write-deny) | create |
+| `Bash(yq *--front-matter=extract* -i*)` | rule | yes | in both files; installed by the union merge (CAP-009) | create |
 | `Bash(yq *-i* --front-matter=extract*)` | rule | yes | as above | create |
 | `Bash(yq *--front-matter=extract* --inplace*)` | rule | yes | as above | create |
 | `Bash(yq *--inplace* --front-matter=extract*)` | rule | yes | as above | create |

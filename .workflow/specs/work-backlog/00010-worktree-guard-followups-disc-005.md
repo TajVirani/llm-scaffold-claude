@@ -2,7 +2,7 @@
 origin_spec: .workflow/specs/00010-worktree-guard-followups
 origin_step: "4.4"
 discovered_at: 2026-10-30
-status: open
+status: moved-to-deferred
 kind: bug
 ---
 
@@ -31,3 +31,4 @@ Pre-existing and on lines spec 00010 did not change. CAP-008's success line (sin
 
 - Origin spec: [spec.md](../00010-worktree-guard-followups/spec.md)
 - Design log entry: [design-log.md](../00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Triage, review pass 1)
+- Deferred file: [.workflow/deferred/read-only-allowlist-flags.md](../../deferred/read-only-allowlist-flags.md)

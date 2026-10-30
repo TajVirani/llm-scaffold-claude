@@ -36,7 +36,7 @@ tasks:
   - id: T3
     title: "Settings deny in-place frontmatter extract"
     status: done
-    capability: CAP-NEW-extract-write-deny
+    capability: CAP-009
     depends_on: []
     touches_core: false
     work_type: shell-scripts

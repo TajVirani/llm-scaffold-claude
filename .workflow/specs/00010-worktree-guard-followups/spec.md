@@ -1,12 +1,12 @@
 ---
-status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: done # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "1c5e46d8c4974a68905cdce522183c067c3e9e41" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: "spec/00010-worktree-guard-followups" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "375cb5be0671605c57fb97d9aae271e36a97eaba" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes
 budget: {max_tasks: 10, max_changed_files: 30} # written at 2.5 from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
 followup_review_recommended: false # true when triage recommends another review pass after this one
-deferred: [.workflow/deferred/frontmatter-extract-write-guard.md, .workflow/deferred/subagent-missing-transcript-path.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
+deferred: [.workflow/deferred/frontmatter-extract-write-guard.md, .workflow/deferred/subagent-missing-transcript-path.md, .workflow/deferred/asset-list-stop-audit-row.md, .workflow/deferred/worktree-guard-early-errors.md, .workflow/deferred/worktree-guard-transcript-cause.md, .workflow/deferred/worktree-guard-hooks-dir.md, .workflow/deferred/read-only-allowlist-flags.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 origin: 006-result-file-guard-disc-003.md # filename of the work-backlog item this spec was seeded from; the item is deleted after discovery
 ---
 # Worktree guard and upgrade follow-ups
@@ -25,7 +25,7 @@ Make the worktree guard and its surroundings trustworthy: a confined agent never
 - **CAP-008** Read-only commands pass the worktree guard (changed: quoted `$`)
   - **intent:** A confined agent can run an allowlisted read whose `$` sits inside single quotes from the main checkout without the leading `cd`.
   - **success:** `check-worktree-scope.sh` allows `sed -n '$p' f`, `sed -n -e '1p' -e '$p' f` and `grep 'x$' f` from the main checkout for a confined agent, and still denies a read chain with `$`, a backtick or `\` outside single quotes (including inside double quotes).
-- **CAP-NEW-extract-write-deny** In-place frontmatter extract denied
+- **CAP-009** In-place frontmatter extract denied
   - **intent:** A Claude session in an installed project, or in this repo, cannot run `yq --front-matter=extract` with an in-place flag, which truncates a file to its frontmatter.
   - **success:** The settings template's and this repo's `permissions.deny` hold `Bash(yq *--front-matter=extract* -i*)`, `Bash(yq *-i* --front-matter=extract*)`, `Bash(yq *--front-matter=extract* --inplace*)` and `Bash(yq *--inplace* --front-matter=extract*)`, and `install.sh` writes all four into a target's `.claude/settings.json`.
 
@@ -55,7 +55,7 @@ A confined implementation or integration agent whose agent worktree cannot be es
 
 ## Assumptions
 
-- Claude Code matches `*` at any position in a Bash permission rule and applies deny before allow (code.claude.com/docs/en/permissions); not checked against the installed Claude Code version.
+- Confirmed 2026-10-30: Claude Code matches `*` at any position in a Bash permission rule and applies deny before allow (code.claude.com/docs/en/permissions); in a live session `yq --front-matter=extract -i` on a scratch file was refused and a plain extract read still ran.
 - Deny rules are text matching: combined short flags (`-Pi`) or `-f extract` spellings are not covered, which is accepted as accident prevention.
 
 ## Open Questions
@@ -72,4 +72,6 @@ A confined implementation or integration agent whose agent worktree cannot be es
 
 ## Known gaps
 
-- None.
+- F3 (medium): in-place extract spellings the text rules miss (`-Pi`, `--inplace=true`, a call through a variable) still pass the prefix allow. Deferred: [.workflow/deferred/frontmatter-extract-write-guard.md](../../deferred/frontmatter-extract-write-guard.md).
+- The guard's missing-transcript deny is proven on fixture payloads only. Deferred: [.workflow/deferred/subagent-missing-transcript-path.md](../../deferred/subagent-missing-transcript-path.md).
+- Line coverage of the changed shell code is not measured (D14); recorded on the shelf file [.workflow/deferred/bash-line-coverage.md](../../deferred/bash-line-coverage.md).

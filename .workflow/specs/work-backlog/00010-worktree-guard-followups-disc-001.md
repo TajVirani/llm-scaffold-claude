@@ -2,7 +2,7 @@
 origin_spec: .workflow/specs/00010-worktree-guard-followups
 origin_step: "1.2"
 discovered_at: 2026-10-30
-status: open
+status: moved-to-deferred
 kind: bug
 ---
 
@@ -31,3 +31,4 @@ Spec 00010's D8 rewrites `assetlist.md:40`, `:47` and D85 item 6; this row is ou
 
 - Origin spec: [spec.md](../00010-worktree-guard-followups/spec.md)
 - Design log entry: [design-log.md](../00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Discovered work: assetlist-second-audit-row)
+- Deferred file: [.workflow/deferred/asset-list-stop-audit-row.md](../../deferred/asset-list-stop-audit-row.md)

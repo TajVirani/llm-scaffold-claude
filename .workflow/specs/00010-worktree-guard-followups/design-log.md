@@ -311,3 +311,21 @@ Outcome: rework 1 of 5
 
 - T2 `6219d5c` merged: F1 (suite body comment without a journey id) and F2 ("agent worktree" in the hook header and suite labels) patched. Rework mini-review failed R5 (journey ids on suite-header lines 14 and 17); a wording-only fix round passed the re-check. Its remaining `out_of_scope_noticed` entry duplicates disc-006 (nothing new filed).
 - 3.9 after rework 1: full harness `TOTAL passed=3678 failed=0 skipped=0 xfail=0 (62 suites)` (`artifacts/gate-3.9-rework1/`); budget 4 tasks, 11 of 30 changed files. In-review at 3.11; no patch was verified high, so Phase 4 ends after the rework (no pass 2).
+
+## 2026-10-30 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes
+- PR description: approved. Changes asked before approval: none
+- Backlog 00010-worktree-guard-followups-disc-001.md: move it to .workflow/deferred/
+- Backlog 00010-worktree-guard-followups-disc-002.md: move it to .workflow/deferred/
+- Backlog 00010-worktree-guard-followups-disc-003.md: move it to .workflow/deferred/
+- Backlog 00010-worktree-guard-followups-disc-004.md: move it to .workflow/deferred/
+- Backlog 00010-worktree-guard-followups-disc-005.md: move it to .workflow/deferred/
+- Backlog 00010-worktree-guard-followups-disc-006.md: move it to .workflow/deferred/ (matched `.workflow/deferred/comment-id-lint.md` by concept; stakeholder: "Same item", Later requests line appended)
+- Going-in concerns: none
+- 5.9: disc-001 to disc-005 moved to `.workflow/deferred/asset-list-stop-audit-row.md`, `worktree-guard-early-errors.md`, `worktree-guard-transcript-cause.md`, `worktree-guard-hooks-dir.md`, `read-only-allowlist-flags.md` (listed in spec.md `deferred`); disc-006 appended to `comment-id-lint.md` Later requests. All six items `moved-to-deferred` with their Deferred file links.
+
+## 2026-10-30 Retrospective notes
+
+- The four in-place extract deny rules apply to this repo's own Claude sessions too: `yq --front-matter=extract -i` is refused here, while extract reads still run, see .workflow/decisions/retrospectives/00010-worktree-guard-followups.md
+- With jq missing in an installed workflow, the worktree guard denies main-session Bash and file-tool calls by design (D9), see .workflow/decisions/retrospectives/00010-worktree-guard-followups.md

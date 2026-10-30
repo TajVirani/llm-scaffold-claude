@@ -50,3 +50,4 @@ The same two breaches recurred across tasks and specs: journey ids in test comme
 ## Later requests
 
 - .workflow/specs/008-pr-description-template, 3.7: the Markdown asset templates under `.agents/skills/feature-workflow/assets/` also name `.workflow/` paths inside their guidance comments (e.g. `assets/codebase-map.md:53`), the same R4 breach in another file kind; the lint could cover them.
+- .workflow/specs/00010-worktree-guard-followups, 5.9: the `# Suite:` header exemption is in question: a mini-review failed journey ids on changed suite-header lines (R5), while 39 suites carry them in their headers; decide whether headers may name journey ids before building the lint (work item 00010-worktree-guard-followups-disc-006, `tests/hooks/worktree-guard.sh:8-21`).

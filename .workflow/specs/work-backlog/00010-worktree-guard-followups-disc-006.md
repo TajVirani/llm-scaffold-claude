@@ -2,7 +2,7 @@
 origin_spec: .workflow/specs/00010-worktree-guard-followups
 origin_step: "3.7"
 discovered_at: 2026-10-30
-status: open
+status: moved-to-deferred
 kind: decision
 ---
 
@@ -32,3 +32,4 @@ Wording only: no check's behaviour depends on the header, and CAP-007, CAP-008 a
 
 - Origin spec: [spec.md](../00010-worktree-guard-followups/spec.md)
 - Design log entry: [design-log.md](../00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Discovered work: suite-header journey ids)
+- Deferred file: [.workflow/deferred/comment-id-lint.md](../../deferred/comment-id-lint.md)
