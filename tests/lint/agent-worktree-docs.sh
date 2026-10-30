@@ -6,8 +6,11 @@
 #   `git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug`, their wf/ branch is merged with no
 #   isolation result branch (worktreeBranch) to read, and worktree and branch are removed after the merge; check-merge-artifacts.sh
 #   runs before each merge site (1.2 and 1.3, 3.2 integration, 3.16 task, light-path fast-forward) with --rev and is never piped;
-#   both agent briefs write their result file to an absolute main-checkout path. The checks match the design's intent, not
-#   exact prose. Reads the repo; writes nothing.
+#   both agent briefs write their result file to an absolute main-checkout path. JRN-009: assetlist.md gives the stop audit's
+#   matcher as implementation|integration, says "agent worktree" in the worktree-write-guard row, says in D85 item 6 that
+#   Phase 1 builds and integration batches run in agent worktrees the orchestrator creates, with no isolation relaunch
+#   fallback, and carries no "Amended by spec" note on these three. The checks match the design's intent, not exact prose.
+#   Reads the repo; writes nothing.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -121,6 +124,52 @@ for pair in "$IMPL|implementation.yaml" "$INTEG|integration.yaml"; do
   doc=${pair%|*} file=${pair#*|}
   target=$(brief_result_target "$(brief_result_command "$doc" "$file")")
   check "JRN-008 ${doc##*/} writes $file to an absolute main-checkout path" 'main_checkout_path "$target"' "target: ${target:-none found}"
+done
+
+echo "== assetlist.md describes the agent worktree guard as built (JRN-009)"
+ASSETS=$REPO_ROOT/assetlist.md
+# The asset inventory row, whose last cell gives the hook's event and matcher.
+stop_audit_row=$(grep -E '^\| `post-implementation-audit` \| hook \|' "$ASSETS" || true)
+guard_row=$(grep -E '^\| `worktree-write-guard` \|' "$ASSETS" || true)
+d85_item_6=$(awk '/^- \*\*D85\./ { in_d85 = 1; next } in_d85 && /^- \*\*D[0-9]/ { exit } in_d85 && /^  6\. / { print }' "$ASSETS")
+check "JRN-009 assetlist.md has the post-implementation-audit row, the worktree-write-guard row and D85 item 6" \
+  '[ -n "$stop_audit_row" ] && [ -n "$guard_row" ] && [ -n "$d85_item_6" ]'
+
+# The functions below are called from check expressions, which shellcheck cannot see into.
+# matcher_is_implementation_or_integration ROW : the row names the matcher implementation|integration, with the | escaped for
+#   the table or not, and never the bare implementation matcher.
+# shellcheck disable=SC2329
+matcher_is_implementation_or_integration() {
+  { grep -qF 'matcher `implementation\|integration`' <<<"$1" || grep -qF 'matcher `implementation|integration`' <<<"$1"; } &&
+    ! grep -qF 'matcher `implementation`' <<<"$1"
+}
+# says_agent_worktree TEXT : TEXT says "agent worktree" and never "task worktree".
+# shellcheck disable=SC2329
+says_agent_worktree() { grep -qi 'agent worktree' <<<"$1" && ! grep -qi 'task worktree' <<<"$1"; }
+# phase_1_and_integration_in_agent_worktrees TEXT : one sentence of TEXT names Phase 1, integration, the agent worktree and the
+#   orchestrator, so a sentence about task worktrees alone does not count.
+# shellcheck disable=SC2329
+phase_1_and_integration_in_agent_worktrees() {
+  awk '{
+      n = split($0, sentences, /\. /)
+      for (i = 1; i <= n; i++) {
+        s = tolower(sentences[i])
+        if (s ~ /phase 1/ && s ~ /integration/ && s ~ /agent worktree/ && s ~ /orchestrator/) found = 1
+      }
+    } END { exit !found }' <<<"$1"
+}
+# has_isolation_fallback TEXT : TEXT keeps a fallback, or relaunches an agent with isolation.
+# shellcheck disable=SC2329
+has_isolation_fallback() { grep -qiE 'fallback|relaunch[^.]*isolation' <<<"$1"; }
+
+check "JRN-009 the post-implementation-audit row gives the matcher implementation|integration" \
+  'matcher_is_implementation_or_integration "$stop_audit_row"' "$stop_audit_row"
+check "JRN-009 the worktree-write-guard row says agent worktree, not task worktree" 'says_agent_worktree "$guard_row"' "$guard_row"
+check "JRN-009 D85 item 6 says Phase 1 builds and integration batches run in orchestrator-made agent worktrees" \
+  'phase_1_and_integration_in_agent_worktrees "$d85_item_6"' "$d85_item_6"
+check "JRN-009 D85 item 6 keeps no isolation relaunch fallback" '! has_isolation_fallback "$d85_item_6"' "$d85_item_6"
+for record in stop_audit_row guard_row d85_item_6; do
+  check "JRN-009 $record carries no Amended by spec note" '! grep -qiE "amended by spec|spec 0*6([^0-9]|$)" <<<"${!record}"' "${!record}"
 done
 
 shellcheck_files "shellcheck: this suite and fixtures/result-briefs.sh" "${BASH_SOURCE[0]}" "$TESTS_DIR/fixtures/result-briefs.sh"

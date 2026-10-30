@@ -1,0 +1,46 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "1c5e46d8c4974a68905cdce522183c067c3e9e41"
+head: "6d40286added516dbf50088e1923e5b24fb562a0"
+findings:
+  - id: RL-1
+    category: lesson
+    severity: high
+    lesson: "RL-005"
+    confidence: 85
+    location: ".agents/hooks/claude-settings.template.json:147-150"
+    claim: "The settings template repeats RL-005: it allowlists yq --front-matter=extract by prefix (line 130) and then denies that tool's write forms with text patterns (lines 147-150), so a spelling the patterns miss still passes as a read. The same four rules sit in .claude/settings.json:157-160."
+    consequence: "Whoever runs a yq --front-matter=extract call with an in-place spelling the patterns miss, such as -Pi on a markdown file (the template's own note names -Pi as uncovered), rewrites that file as its frontmatter alone and drops the body; the prefix allow approves it with no prompt. This is the mistake recorded in pitfall 'Edit frontmatter with Edit or yq --front-matter=process'."
+    evidence:
+      basis: "review-lessons.md RL-005 symptom: 'A guard treats a tool as a read and denies its write forms with a regex denylist over flags or script text, so an unusual spelling ... still passes as a read; allowlist the read forms instead.' Retro 006 row: 'Regex denylists for a tool's write forms leak; allowlisting the read forms closed the class (D31).'"
+      diff: "+ Bash(yq *--front-matter=extract* -i*) and + Bash(yq *-i* --front-matter=extract*), the first two of four new deny rules at template lines 147-150; the allow rule Bash(yq --front-matter=extract:*) at line 130 is unchanged"
+    suggested_fix: "Replace the four text denies with an allowlist of the exact read forms the skills use (the read expression and a file operand, no flags), so any other yq --front-matter=extract call is prompted; apply the same change to .claude/settings.json and update the JRN-007 assertions in tests/scripts/install-claude-settings.sh, which pin the denylist."
+  - id: RL-2
+    category: discovered-work
+    kind: bug
+    summary: "check-worktree-scope.sh's read-only path matches the yq, find, git and rg write flags only when the flag follows an unquoted space, so a quoted flag such as '-i' or '-delete' passes as a read and runs from the main checkout without a cd. This is the RL-005 denylist class, and the lines are not changed by this diff."
+    evidence: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:201-205 (re_git_write, re_find_write, re_yq_write, re_jq_write, re_rg_exec) and :212-216 (the find, yq, jq and git case arms). Reasoned from the bash regex, not executed (the review runs read-only commands only): in yq '-i' '.a = 1' f.yaml the byte before the dash is a quote, so [[:space:]]- does not match and read_only_segment returns true; find . '-delete' takes the same route."
+    blocker_assessment: can-wait
+    reason: "Pre-existing and outside this change; the script's header calls the guard accident prevention, and a quoted-flag write still needs the agent to choose that spelling. Retro 006 says D31 closed this class, but these four tools are still denylisted, so that record and the guard disagree. Fixing it means allowlisting the read forms of yq, find, git and rg, which is a spec of its own."
+checked:
+  - ".workflow/review-lessons.md (six entries, RL-001 to RL-006; RL-005 and RL-003 read against the diff, the others checked for matching paths)"
+  - ".workflow/decisions/pitfalls.md (all fourteen pitfalls)"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/003-bash-cache-extractor.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/005-cache-build-followups.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/006-result-file-guard.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/008-pr-description-template.md (Process lessons)"
+  - "diff base 1c5e46d8c4974a68905cdce522183c067c3e9e41..HEAD (6d40286), 20 files excluding the spec folder; read in full: .agents/hooks/worktree-write-guard.sh, .agents/hooks/claude-settings.template.json and .md, .agents/skills/feature-workflow/scripts/check-worktree-scope.sh, .agents/skills/feature-workflow/modules/implementation-orchestrator.md, .claude/settings.json, PROVENANCE.md, assetlist.md, tests/hooks/worktree-guard.sh, tests/lint/agent-worktree-docs.sh, tests/scripts/install-claude-settings.sh, tests/scripts/install-upgrade.sh, tests/README.md"
+  - ".workflow/specs/work-backlog/00010-worktree-guard-followups-disc-001.md to disc-004.md (checked against the shelf and the open backlog)"
+  - ".workflow/deferred/*.md and .workflow/specs/work-backlog/*.md, by concept (shelf check for the discovered-work items)"
+  - ".agents/skills/feature-workflow/modules/verification-setup.md and .agents/agents/implementation.md, integration.md (prose checked against the new guard behaviour)"
+  - ".workflow/cache/flows.md (diff sampled for the retro 003 labelling lesson)"
+not_checked:
+  - "RL-003 and the pitfall on module prose: no installed module, SKILL.md or asset states the old script contract (no 'task worktree' denial text, no old '$' rule). Nothing to settle."
+  - ".agents/hooks/claude-settings.template.md row 13 (line 13) says a confined agent without its worktree is confined to a linked-worktree cwd, and does not say the deny-every-call case (JRN-001) that the diff adds. Outside the RL-003 paths and an omission rather than a stale statement; standards or end-state lens territory."
+  - "Retro 006 row 'shellcheck disable= without its reason' (under 80): tests/lint/agent-worktree-docs.sh lines 141, 147, 151 and 162 are '# shellcheck disable=SC2329' with no inline reason; the reason sits in the block comment at line 138, and the same file's earlier directives carry inline reasons. Would settle as a finding if the profile's reason rule is read as needing the inline text."
+  - "Retro 003 L6 (cache labels): the regenerated .workflow/cache/flows.md changes its label style, for example 'generate_boundary_config()' becomes 'generate_boundary_config.sh()'. Whether the cache-regeneration rules fill a gap with a free choice cannot be settled from the diff; it would need the rules and a second run."
+  - "Pitfall 'Check the deferred shelf by concept' (under 80): discovered-work item 004 (worktree guard resolves its own folder two ways, cd -P) is close to .workflow/deferred/main-checkout-resolver.md (symlink resolution in about fifteen places), but the concepts differ: one is the hook's own folder, the other is the main checkout root. Would settle as a duplicate only if the shelf item is re-scoped to the hooks."
+  - "Retro 005 lesson (guard denying a coding agent's own result file): JRN-001 now denies every call, the result-file write included, when the agent worktree cannot be established. That is the spec's fail-closed rule, and with the worktree in place the result file still passes through the cd prefix, so the 005 mistake is not reproduced. Not counted."

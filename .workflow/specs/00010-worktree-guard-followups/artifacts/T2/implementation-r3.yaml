@@ -1,0 +1,19 @@
+status: done
+summary: "Rework for review pass 1: the worktree-guard hook header and the guard suite now say \"agent worktree missing\" / \"the named agent worktree is missing\" instead of the glossary alias \"named worktree\", and the suite comment that named JRN-001 now gives the reason in plain words. Wording only; no behaviour change, suite still 227/227. The suite's header Covers block keeps its JRN tags (not body comments); no other body comment named a journey, task or finding id."
+task_id: "T2"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-00010/.workflow/.worktrees/s00010_t2"
+branch: "task/00010-worktree-guard-followups/T02-worktree-guard-fails-closed"
+base_commit: "7aad2386310d629393a3628def7958d86c266ad1"
+head_commit: "56cbf299464203b9c95b051e8842e95f761f6b67"
+files_changed: [".agents/hooks/worktree-write-guard.sh", "tests/hooks/worktree-guard.sh"]
+tests_added: []
+evidence:
+  red: "n/a: wording-only rework, no new behaviour"
+  green: "tests/run-all.sh --suite hooks/worktree-guard; PASS hooks/worktree-guard passed=227 failed=0"
+  suite: "bash .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00010-worktree-guard-followups --task-id T2 --cwd <worktree>; lint pass, test pass (scoped, own 1 suite)"
+  toolchain: ".workflow/specs/00010-worktree-guard-followups/artifacts/T2/toolchain.txt (pass)"
+considered_not_built: ["Removing JRN tags from the suite's header Covers block: header, not a body comment, and the brief limited the patch to body comments and check names may keep JRN tags"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

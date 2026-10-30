@@ -1,0 +1,24 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "1c5e46d8c4974a68905cdce522183c067c3e9e41"
+head: "6d40286added516dbf50088e1923e5b24fb562a0"
+findings: []
+checked:
+  - "Diff pinned: git diff 1c5e46d...HEAD excluding the spec folder (20 files, +702/-172), --stat and git log baseline..HEAD (21 commits); full diff of .agents/, .claude/settings.json, assetlist.md, PROVENANCE.md, tests/ read"
+  - "CAP-007 met: worktree-write-guard.sh always passes --confined for implementation/integration sub-agents; check-worktree-scope.sh no_root() exits 2 with a cause when the cwd is outside git, the named worktree is missing, or no name was given, before any path or command allow; the hook adds name_missing_cause (transcript not found, launch header not parsed / no first user message) to the reason; non-object payload -> deny_json; missing jq -> static hand-written deny JSON naming jq"
+  - "CAP-007 wording met: both # File: lines say agent worktree; grep -i 'task worktree' over the two scripts returns nothing; deny_cmd and path-deny messages say agent worktree; --help names s<NNN>_t<N>, s<NNN>_phase_1_<work type>, s<NNN>_integration_<work type>; implementation-orchestrator.md:29 says a confined agent whose agent worktree is missing is denied every call"
+  - "CAP-008 met: read_only_chain drops the whole-command $ and backtick deny and calls expansions_only_single_quoted, which denies $, backtick or backslash outside single quotes (inside double quotes too) and an unterminated quote; |, && and ; splitting unchanged (non-goal respected)"
+  - "CAP-NEW-extract-write-deny met: the four rules are the first four entries of the template's deny array and are in .claude/settings.json; the template's other deny entries equal main's (git show main: lines 146-150 compared); install.sh not in the diff"
+  - "Constraints: rule lives in check-worktree-scope.sh (D1); --confined no-root deny precedes every allow (D10); --worktree-name usage names every shape (D11); codex-write-guard.sh unchanged (not in diff, never passes --confined); linked-worktree root step 2 unchanged; install.sh unchanged and template entries added at top of deny (D6); bash-only scanner (D5); assetlist.md rewritten in place with no Amended-by note (D8); the three install-upgrade re-run checks now assert exit 0"
+  - "Non-goals: no quote-aware splitting, no main-session yq hook, no Codex change, no upgrade suite split, no assetlist row for check-worktree-scope.sh; Phase 3 'task worktree' wording in implementation-orchestrator.md left as is"
+  - "Records objective met: assetlist.md post-implementation-audit matcher is implementation|integration; worktree-write-guard row says agent worktree; D85 item 6 puts Phase 1 and integration in orchestrator-made agent worktrees on wf/NNN-slug/<name> branches with no isolation fallback, consistent with verification-setup.md:45-99 and implementation-orchestrator.md:104-128"
+  - "JRN-001..JRN-006: tests/hooks/worktree-guard.sh holds the JRN-tagged cases (unconfinable_journey for missing worktree, missing transcript, no header, bad YAML header, missing integration worktree; cwd outside repo; isolation cases; non-object payloads and no-jq PATH; --confined CLI contract and Codex unchanged; wording and --help; quoted $ allow and deny sets); artifacts/gate-3.9-w2/toolchain.txt: hooks/worktree-guard passed=227 failed=0"
+  - "JRN-007: tests/scripts/install-claude-settings.sh JRN-007 cases (both source files, deny list starts with the rules, other entries equal main's, fresh, user-entry and re-run installs once each); gate-3.9-w2: scripts/install-claude-settings passed=71 failed=0"
+  - "JRN-008: tests/scripts/install-upgrade.sh three eq exit-0 checks; artifacts/phase-1-known-bad/record.md Run 2 shows all three red under a refusing stand-in; gate-3.9-w2: scripts/install-upgrade passed=125 failed=0"
+  - "JRN-009: tests/lint/agent-worktree-docs.sh JRN-009 cases; gate-3.9-w2: lint/agent-worktree-docs passed=35 failed=0"
+  - "artifacts read: gate-3.9-w2/toolchain.json (status pass, lint and test pass) and toolchain.txt (TOTAL passed=3678 failed=0, 62 suites); phase-1-known-bad/record.md (79 red at baseline across the three suites); T1-T4 toolchain.json status pass; git diff 5611d75..HEAD outside .workflow is empty, so no code changed after the last gate"
+not_verifiable:
+  - "Assumption that Claude Code matches * at any position in Bash deny rules and applies deny before the allow Bash(yq --front-matter=extract:*): not checkable from the repo; the orchestrator should try yq --front-matter=extract -i on a scratch file in a live session to confirm the deny fires"
+  - "The real PreToolUse payload shape for a sub-agent whose transcript is absent (whether Claude Code ever omits transcript_path) lives outside the repo; the suite uses fixtures only"
+not_checked: []
