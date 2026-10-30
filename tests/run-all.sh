@@ -206,6 +206,8 @@ start_suite() {
 # shellcheck disable=SC2329  # called from the signal traps below
 running_suite_groups() {
   local index
+  # Under set -u, bash 3.2 treats an empty array as unbound, so the guard stays: without it a signal that lands before
+  # the first suite starts would end this function with an error before the results directory is removed.
   for index in ${suite_pids[@]+"${!suite_pids[@]}"}; do
     [ -e "$results/$index.done" ] || printf '%s\n' "${suite_pids[$index]}"
   done
