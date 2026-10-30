@@ -1,0 +1,33 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "e049f4dde93474aca594212026144ed7006a917f"
+head: "5fdfb8973a0df0271300367921e8dc11eff6dfc7"
+findings:
+  - id: RL-1
+    category: discovered-work
+    kind: decision
+    summary: "The shipped Claude settings allow Bash(yq --front-matter=extract:*). That prefix pattern also matches yq --front-matter=extract -i, so an in-place frontmatter rewrite runs without a prompt. The pitfall on frontmatter edits records that this exact call dropped a backlog item body, and its Prevented by reads none yet."
+    evidence: ".agents/hooks/claude-settings.template.json:130 and .claude/settings.json:141; the allow entry is unchanged by this diff (present at baseline e049f4dde93474aca594212026144ed7006a917f)"
+    blocker_assessment: can-wait
+    reason: "Pre-existing and not in any hunk of this change. Narrowing the allow list changes what installed settings permit, so it needs a ruling rather than a fix inside this spec."
+checked:
+  - ".workflow/review-lessons.md"
+  - ".workflow/decisions/pitfalls.md"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md"
+  - ".workflow/decisions/retrospectives/003-bash-cache-extractor.md"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md"
+  - ".workflow/decisions/retrospectives/005-cache-build-followups.md"
+  - ".workflow/specs/006-result-file-guard/spec.md (baseline_revision key only)"
+  - ".workflow/profiles/shell-scripts.md (supporting: test syntax rule)"
+  - ".workflow/profiles/test-harness.md (supporting: no test syntax rule)"
+  - ".workflow/profiles/agent-docs.md (supporting: lint key)"
+  - ".workflow/deferred/worktree-name-parser.md (supporting: shelf check)"
+  - ".workflow/deferred/comment-id-lint.md (supporting: shelf check)"
+  - ".workflow/specs/work-backlog/*.md (supporting: open items and the 006 items)"
+  - ".workflow/specs/002-review-lessons/proposals.md (supporting: P13)"
+  - "PROVENANCE.md (supporting: RL-002 and RL-001 hunks)"
+  - "git diff e049f4dde93474aca594212026144ed7006a917f...HEAD excluding .workflow/specs/006-result-file-guard"
+not_checked:
+  - "Shelf overlap: work-backlog 006-result-file-guard-disc-002 (one digit rule for spec folder numbers) may duplicate the deferred worktree-name-parser item, which the pitfall on the shelf check names. Scored about 40: the shelf item covers name parsing, while disc-002 covers the spec-folder digit rule in resolve-launch and the lib. Settles with a ruling on whether the digit rule falls inside the parser item's scope."
+  - "Single-bracket tests in new test files (tests/hooks/audit-agent-worktrees.sh, tests/lint/agent-worktree-docs.sh, tests/lint/install-matcher-docs.sh, tests/scripts/check-merge-artifacts.sh): retro 002 names single-bracket tests as grep-able churn items. Scored about 40: tests/ follows the house style of [ ] tests at baseline, and the [[ ]] rule in shell-scripts.md covers scripts, not tests. Settles with the mini-review round history for these files, which is not among this lens's inputs."

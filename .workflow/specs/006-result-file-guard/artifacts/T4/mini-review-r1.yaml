@@ -1,0 +1,65 @@
+verdict: "fail"
+task_id: "T4"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t4@97b627c8cdcb3107b9a43a57911b2cc79b18a157..HEAD"
+tool_output: ".workflow/specs/006-result-file-guard/artifacts/T4/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:146, 173 (a segment that is not a read returns 1 to the cd check, which denies at 192), 179 (read-only allow)"
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:179 (exit 0, documented as allow at line 30; the diff adds no new exit code)"
+  - n: 5
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:1-33 (helper header shape kept; added lines 23-29 name no decision ID)"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:35 (set -euo pipefail kept), 146 and 166 ([[ ]] for regex), 170 ([ ] for plain tests, as lines 55-61 do); no new file"
+  - n: 8
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:133 and 160 (name ARGS : line on both new functions); no shellcheck disable= directive added"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:133-175 (read_only_segment, read_only_chain, tool, args and the re_* names say what each holds)"
+  - n: "R2"
+    verdict: "fail"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:167-168"
+    note: "Line 168 works only because line 167 has already turned && into |; a reader who merges the lone-& check into the top case at line 165 denies every && chain, such as 'git status --short && ls -la', for an agent reading from the main checkout. Add a reason comment saying the && rewrite runs first, so a lone & is the only & left."
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:139, 160-161 (139 gives the reason for the over-match; 160-161 describe the function)"
+  - n: "R4"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:23-29, 139, 160-161 (no decision ID, doc path, task ID or URL); the JRN-009 labels in tests/hooks/worktree-guard.sh are test names, not comments"
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:23-29, 139 (plain English and plain technical terms)"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: rules and Checking table for R1-R5"
+  - ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh at 97b627c (base header, to confirm the header change is additive)"
+  - "tests/hooks/worktree-guard.sh:1-40 (suite header and sourcing, to confirm no comment changed; the diff's new test labels are not comments)"
+  - ".workflow/specs/006-result-file-guard/tasks/T04-read-only-commands-pass-scope-check.md: acceptance criteria, used only to weigh the out-of-scope blocker assessments"
+  - "probes run with the guard script's --command mode from the main checkout, and a BSD sed write probe in the scratchpad: evidence for the out-of-scope items"
+out_of_scope_noticed:
+  - kind: "bug"
+    summary: "The sed write check misses a w command with its file name attached. sed -n '1wout.txt' src/a.ts is allowed as read-only from the main checkout, and BSD sed created out.txt in the working directory when run."
+    evidence: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:140"
+    blocker_assessment: "blocks-this-task"
+    reason: "The T04 acceptance criteria list sed w/W as a denied form with the cd hint, and this attached-file form is still allowed. Not a checklist item, so it is reported here and not failed."
+  - kind: "bug"
+    summary: "The sed check does not deny the e command, which runs a shell command under GNU sed. sed -n '1e touch x' src/a.ts is allowed with no cd. BSD sed on macOS rejects e, so only GNU sed would run it."
+    evidence: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:133 and 140"
+    blocker_assessment: "can-wait"
+    reason: "The function's own doc at line 133 says a read-only segment runs no program, so that claim is false for GNU sed. The spec does not list e, and macOS sed refuses it."

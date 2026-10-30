@@ -29,7 +29,7 @@
 # Wiring: codex-hooks.template.json: PreToolUse, matcher ".*spawn_agent" (full-match regex; `spawn_agent` alone does not fire).
 # Notes: The model is not validated here: a toml without `model` takes the spawn value, and the orchestrator passes the
 #   resolve-launch.sh model. It is unverified whether Codex loads hyphenated agent names, hence the enc() form that generate-codex-agents.sh writes.
-# Sources: first-party; pre-launch.sh (task-type table, deny shape, root normalisation); post-implementation-audit.sh (codex_enc, task_name parse).
+# Sources: first-party; pre-launch.sh (task-type table, deny shape, root normalisation); post-implementation-audit.sh (task_name parse); lib/workflow-paths.sh (wf_enc).
 # Requires: bash 3.2+, jq, git (optional; needed to find an initiative that exists only on its branch); resolve-launch.sh --requirements (jq only).
 
 set -euo pipefail
@@ -67,14 +67,12 @@ fi
 resolver=$root/.agents/skills/feature-workflow/scripts/resolve-launch.sh
 [ -f "$resolver" ] || env_deny "${resolver#"$root"/} not found although .agents/skills/feature-workflow exists; reinstall the scaffold"
 
-codex_enc() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_'; }
-
 types=$(bash "$resolver" --requirements 2>/dev/null | jq -r 'keys[]' 2>/dev/null) \
   || env_deny "could not read the task-type table from resolve-launch.sh --requirements"
 [ -n "$types" ] || env_deny "resolve-launch.sh --requirements returned no task types"
 type=""
 while IFS= read -r t; do
-  if [ "$agent_type" = "$t" ] || [ "$agent_type" = "$(codex_enc "$t")" ]; then type=$t; break; fi
+  if [ "$agent_type" = "$t" ] || [ "$agent_type" = "$(wf_enc "$t")" ]; then type=$t; break; fi
 done <<<"$types"
 [ -n "$type" ] || exit 0
 
@@ -116,7 +114,7 @@ work_type() {
   local p n=0
   for p in "$root/$WF_PROFILES"/*.md; do
     [ -f "$p" ] || continue
-    [ "$(codex_enc "$(basename "$p" .md)")" = "$1" ] && n=$((n + 1))
+    [ "$(wf_enc "$(basename "$p" .md)")" = "$1" ] && n=$((n + 1))
   done
   [ "$n" -eq 1 ] || bad "names work type '$1', but $n profiles under $WF_PROFILES/ encode to it (need exactly one)"
 }

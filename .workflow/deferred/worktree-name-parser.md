@@ -45,3 +45,7 @@ Spec 006 moves the name encoder and builder into `.agents/lib/workflow-paths.sh`
 
 - Building names (spec 006).
 - The Codex profile-lookup mismatch (`.workflow/deferred/codex-spawn-profile-lookup.md`).
+
+## Later requests
+
+- .workflow/specs/006-result-file-guard, 3.7: the mapping from launch header to worktree kind (task, phase_1 or integration) is written twice, in `worktree-write-guard.sh` and `post-implementation-audit.sh` (T1 mini-review, `artifacts/T1/mini-review.yaml` out_of_scope_noticed).

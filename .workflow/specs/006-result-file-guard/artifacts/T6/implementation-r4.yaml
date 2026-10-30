@@ -1,0 +1,28 @@
+status: "done"
+summary: "Fix round 4. A group whose matcher is not a string is now kept in every mode, --matchers=replace included, with one Warnings line naming the event, its hooks and why. The rewritten-groups removal has a jq comment saying why it waits until the loop ends. The D32 rewrite warning now says the template hook settings replace the user's. Audit of every outcome in resolve_matchers, split_or_keep, resolve_group and the prompt closed three more gaps. --matchers=merge|replace changed matchers without a line; each now prints one line naming the mode. The merge refusal blamed the group's matcher even when the template's was the one that is not a plain | list; the warning and the prompt now name the right one. The header did not say that the prompt for an unmergeable group offers only replace and keep (Enter keeps), or that the two-template-group rewrite applies only when the matcher does not cover them all. Audit checked: resolve_matchers (no template command: untouched; malformed matcher: kept with one line; two or more template groups with an unsettled one: split_or_keep; otherwise per template group). split_or_keep (all template hooks: rewritten with one line naming the template hook settings; own hooks: kept with one line). resolve_group (non-object, match-all, no template command, covering: untouched and silent; merge: auto, merge and ask; replace: replace and ask; unmergeable: merge and auto; keep: auto-mixed, keep and ask-keep). The ask flow (first plan suppresses matcher lines while questions are pending, ask_matchers prints the answered plan's lines). ask_choice (Enter is merge or keep by mergeability, EOF counts as Enter). Each outcome is now silent only for no change or an answered prompt change, and otherwise prints exactly one line; the header and the JQ_MERGE comment describe each one."
+task_id: "T6"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t6"
+branch: "task/006-result-file-guard/T06-upgrade-matcher-resolution"
+base_commit: "97b627c8cdcb3107b9a43a57911b2cc79b18a157"
+head_commit: "b0250daf2739a6c4629d40d41619958ec1a8739b"
+files_changed: ["install.sh", "tests/scripts/install-upgrade.sh"]
+tests_added:
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --matchers=<merge|replace|keep>: one Warnings line names the stop-audit group, the mode and the matcher", kind: "behaviour"}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 two template groups in one group (<mode>): one Warnings line names PreToolUse, its commands and the template hook settings", kind: "behaviour"}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 a non-string matcher is left alone (no-terminal, replace)", kind: "negative"}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 one Warnings line names the non-string matcher's event and hooks and says why it is kept (no-terminal, replace)", kind: "negative"}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --matchers=merge keeps implementation|foo under a non-plain template matcher", kind: "edge"}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 one Warnings line says the template matcher is not a plain | list", kind: "edge"}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-013 the prompt says merge is not offered since the template matcher is not a plain | list; Enter keeps", kind: "edge"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/install-upgrade; 11 new checks failed, e.g. 'FAIL JRN-012 one Warnings line names the non-string matcher's event and hooks and says why it is kept (replace)', 'FAIL JRN-012 --matchers=merge: one Warnings line names the stop-audit group, the mode and the matcher implementation|foo|integration', 'FAIL JRN-013 the prompt says merge is not offered since the template matcher is not a plain | list' (passed=108 failed=12, the 12th was shellcheck SC2034 on the suite, fixed with a reasoned disable)"
+  green: "tests/run-all.sh --suite scripts/install-upgrade; passed=120 failed=0 skipped=0"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/006-result-file-guard --task-id T6 --cwd <worktree>; lint pass, test pass (scoped: own 1, excluded 3; install-upgrade passed=120 failed=0). Full tests/run-all.sh: passed=3386 failed=42, all in the three excluded Phase 1 suites of other tasks (hooks/worktree-guard JRN-009, lint/agent-worktree-docs JRN-008, lint/install-matcher-docs JRN-014 README and CHANGELOG lines only; its install.sh header checks pass)"
+  toolchain: ".workflow/specs/006-result-file-guard/artifacts/T6/toolchain.txt (pass)"
+considered_not_built:
+  - "A rewritten group whose command another existing group already runs: merge_groups does not re-add that command, so it stays in the other group with that group's settings. The other group is then resolved on its own and gets its own line, so the user still sees one line per group. The warning text does not name this edge, and adding it would lengthen every rewrite line for a rare case."
+  - "A group whose hooks field is an object instead of an array: group_cmds can still find a command in it, so it is resolved like any group. It is malformed for Claude Code too, and no rule covers it."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

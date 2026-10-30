@@ -1,0 +1,21 @@
+status: "done"
+summary: "check-merge-artifacts.sh is implemented. It refuses (exit 1, one stdout line per path) a branch or detached commit that adds, modifies or deletes anything under the spec's artifacts/ since its merge-base with spec/NNN-slug, and exits 2 on usage and environment errors. This round adds the mini-review's usage comments for die() and usage(); behaviour is unchanged, the suite passes 23/23 and the PROVENANCE row says implemented."
+task_id: "T2"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t2"
+branch: "task/006-result-file-guard/T02-artifacts-merge-gate"
+base_commit: "fea2c48a84335657159438e3dde2c65a2958ea1f"
+head_commit: "06f4d3da33111309d3a6917fd611aee35df560d0"
+files_changed: [".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh", "PROVENANCE.md", "tests/scripts/check-merge-artifacts.sh"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/check-merge-artifacts against the stub; 'FAIL scripts/check-merge-artifacts passed=8 failed=15' (e.g. 'FAIL JRN-007 no arguments -> exit 2  rc=0 want=2')"
+  green: "tests/run-all.sh (scoped by run-toolchain.sh) for scripts/check-merge-artifacts; 'PASS scripts/check-merge-artifacts passed=23 failed=0'"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/006-result-file-guard --task-id T2 --cwd <worktree>; exit 0, lint exit 0, test 'TOTAL passed=23 failed=0 skipped=0 xfail=0 (1 suites)'"
+  toolchain: ".workflow/specs/006-result-file-guard/artifacts/T2/toolchain.txt (pass)"
+considered_not_built:
+  - "reading spec_branch from spec.md front matter (as commit-workflow-data.sh does): the task and the header fix the branch as spec/NNN-slug, and reading it would add a yq dependency; spec 008-nobranch in the suite has no spec.md"
+  - "a -z output mode: git C-quotes unusual path names, which keeps one line per path"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

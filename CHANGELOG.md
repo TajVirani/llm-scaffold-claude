@@ -55,6 +55,7 @@ Resets the repository for workflow 2.0 (2026-09-14) and includes the build-out t
 ### Migration
 - No upgrade path from 1.x. Consumers on the 1.x wiki scaffold should stay on the `main` history from before the workflow 2.0 merge: `efb9263` is the last 1.x commit (the 1.3.3 release is `769973f`); workflow 2.0 is a fresh start.
 - **Upgrade note (D75).** Projects that got `.agents/skills/design-pattern-doc/conventions.md`, or pr-quality's `modules/legend-state-review.md` / `modules/project-pitfalls.md`, from an earlier install will have them pruned on upgrade. Copy them first to `.workflow/design-pattern-doc/conventions.md` / `.workflow/pr-quality/`; the athena originals were removed from this repo (git history has them).
+- **Hook matchers on upgrade.** An upgrade widens the SubagentStop matcher of the post-implementation audit to cover `integration` through `install.sh`'s hook matcher rule: a group whose matcher misses some of the template's alternatives is resolved per group. `--matchers=merge|replace|keep` sets the outcome for every group; without it the installer asks at a terminal (Enter merges), and without a terminal it merges with a warning but keeps a mixed group, one that also runs a hook of your own, with a warning.
 
 ## [1.3.3] — 2026-05-10
 

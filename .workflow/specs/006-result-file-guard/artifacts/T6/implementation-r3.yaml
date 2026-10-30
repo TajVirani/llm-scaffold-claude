@@ -1,0 +1,27 @@
+status: done
+summary: "Fix round 2. install.sh now records whether --matchers was given. An empty value (--matchers= or --matchers '') now exits 2 with an error that names merge, replace and keep, and writes nothing. Before, it ran as if no flag was given. In tests/scripts/install-upgrade.sh, the two new SC2329 directives now give a reason, and the split-case loop variable session is renamed session_start_outcome."
+task_id: "T6"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t6"
+branch: "task/006-result-file-guard/T06-upgrade-matcher-resolution"
+base_commit: "97b627c8cdcb3107b9a43a57911b2cc79b18a157"
+head_commit: "1b31fe502e659b056421b376d9e6f680cc286f1b"
+files_changed: ["install.sh", "tests/scripts/install-upgrade.sh"]
+tests_added:
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --matchers= exits 2", kind: negative}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 the --matchers= error names merge, replace and keep", kind: negative}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --matchers= writes nothing", kind: negative}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --matchers '' exits 2", kind: negative}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 the --matchers '' error names merge, replace and keep", kind: negative}
+  - {file: "tests/scripts/install-upgrade.sh", test: "JRN-012 --matchers '' writes nothing", kind: negative}
+evidence:
+  red: "tests/run-all.sh --suite scripts/install-upgrade before the install.sh change: FAIL passed=106 failed=4. The four failures were: JRN-012 --matchers= exits 2; JRN-012 --matchers= writes nothing; JRN-012 --matchers '' exits 2; JRN-012 --matchers '' writes nothing. The two 'error names merge, replace and keep' checks passed even then, because the install output's warnings already use those words."
+  green: "tests/run-all.sh --suite scripts/install-upgrade: PASS passed=110 failed=0 skipped=0; shellcheck -x -P SCRIPTDIR tests/scripts/install-upgrade.sh clean"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/006-result-file-guard --task-id T6 --cwd <worktree>: lint pass; test (scoped to own suite install-upgrade) pass, 110/110"
+  toolchain: ".workflow/specs/006-result-file-guard/artifacts/T6/toolchain.txt (pass)"
+considered_not_built:
+  - "Adding reasons to the four older SC2329 directives at tests/scripts/install-upgrade.sh:55-67: a shared comment above them already gives the reason, and they are outside the three items of this round."
+  - "Editing the suite's Covers header for the empty-value cases: its existing '--matchers with no value' entry already covers them, and the brief said to change nothing else."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

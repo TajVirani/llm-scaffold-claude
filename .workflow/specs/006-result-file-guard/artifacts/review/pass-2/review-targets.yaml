@@ -1,0 +1,90 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "e049f4dde93474aca594212026144ed7006a917f"
+head: "3de20fad15cedf6f4b6c06ca48fd2918728ba50e"
+measurements:
+  - target: "Script lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings, exit 0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/006-result-file-guard/artifacts/review/pass-2/targets/script-lint-clean.txt"
+    reason: ""
+  - target: "Harness lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings, exit 0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/006-result-file-guard/artifacts/review/pass-2/targets/harness-lint-clean.txt"
+    reason: ""
+  - target: "Agent-docs lint clean"
+    kind: errors
+    threshold: "exit 0; each of the four lint suites reports 0 failed"
+    command: "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage"
+    measured: "frontmatter failed=0; step-list failed=0; symlinks failed=0; upstream-lineage failed=0; exit 0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/006-result-file-guard/artifacts/review/pass-2/targets/agent-docs-lint-clean.txt"
+    reason: ""
+  - target: "Every script this spec adds or changes has a suite"
+    kind: coverage
+    threshold: "0 printed (no uncovered script)"
+    command: "git diff --name-only --diff-filter=AM \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/006-result-file-guard/spec.md)\"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- \"$(basename \"$f\")\" tests/ || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/006-result-file-guard/artifacts/review/pass-2/targets/script-coverage.txt"
+    reason: ""
+  - target: "Every new .agents/ asset is in the manifest and PROVENANCE.md"
+    kind: coverage
+    threshold: "0 printed (no unlisted asset)"
+    command: "git diff --name-only --diff-filter=A \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/006-result-file-guard/spec.md)\"..HEAD -- .agents | while read -r f; do r=${f#.agents/}; m=0; while IFS= read -r l; do case \"$r\" in \"$l\"|\"${l%/}\"/*) m=1;; esac; done < .agents/install-manifest.txt; [ \"$m\" = 1 ] || echo \"manifest: $f\"; grep -qF -- \"$(basename \"$f\")\" PROVENANCE.md || echo \"provenance: $f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/006-result-file-guard/artifacts/review/pass-2/targets/asset-coverage.txt"
+    reason: ""
+  - target: "No codex_enc copy left in the hooks"
+    kind: errors
+    threshold: "0 printed"
+    command: "git grep -n 'codex_enc' -- .agents/hooks | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/006-result-file-guard/artifacts/review/pass-2/targets/codex-enc-copies.txt"
+    reason: ""
+  - target: "Worktree scope check time on a long read-only chain"
+    kind: performance
+    threshold: "real <= 0.2 s, best of 3"
+    command: "mkdir -p .workflow/.worktrees/s006_tgt && for i in 1 2 3; do /usr/bin/time -p .agents/skills/feature-workflow/scripts/check-worktree-scope.sh --cwd \"$PWD\" --worktree-name s006_tgt --command \"cat spec.md | head -5 && grep -n x spec.md | wc -l && ls -la && git log --oneline -3 | sed -n 1p && git status --short && yq '.a' f.yaml | jq . && rg -n y . | tail -2 && find . -name '*.md'\" 2>&1 >/dev/null; done | awk '/^real/{print $2}' | sort -n | head -1; rmdir .workflow/.worktrees/s006_tgt"
+    measured: "0.04 s"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/006-result-file-guard/artifacts/review/pass-2/targets/guard-time.txt"
+    reason: ""
+  - target: "Line coverage of changed shell code"
+    kind: coverage
+    threshold: "not measured"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "Cannot be measured: no bash coverage tool is installed and spec.md Constraints ban new dependencies. The script-coverage target and the test-harness checklist at 3.7 stand in (stakeholder decision D17, 1.1)."
+findings: []
+checked:
+  - "Script lint clean"
+  - "Harness lint clean"
+  - "Agent-docs lint clean"
+  - "Every script this spec adds or changes has a suite"
+  - "Every new .agents/ asset is in the manifest and PROVENANCE.md"
+  - "No codex_enc copy left in the hooks"
+  - "Worktree scope check time on a long read-only chain (a separate run of the same chain returned allow: read-only command, exit 0; see guard-time-verdict-check.txt)"
+not_checked:
+  - "Line coverage of changed shell code: not measurable: Cannot be measured: no bash coverage tool is installed and spec.md Constraints ban new dependencies. The script-coverage target and the test-harness checklist at 3.7 stand in."
+  - "serve: no serve in the profiles for shell-scripts, agent-docs; no build was started, and no target needed a running build"

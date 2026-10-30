@@ -20,7 +20,7 @@ cp "$REPO_ROOT/install.sh" "$SC/install.sh"
 copy_agents "$SC"
 git_init_repo "$SC"
 git_commit_all "$SC" scaffold
-INST() { "$TEST_BASH" "$SC/install.sh" "$@"; }
+INST() { "$TEST_BASH" "$SC/install.sh" "$@" </dev/null; }
 
 # snap DIR : one line per file (cksum) and symlink (target) outside .git, sorted.
 snap() {
@@ -50,7 +50,9 @@ out=$(INST "$WORK/sub" --bogus 2>&1)
 check "unknown option is named" 'printf "%s" "$out" | grep -q "unknown option: --bogus"'
 cp -R "$SC" "$WORK/badsc"
 echo "skills/does-not-exist" >>"$WORK/badsc/.agents/install-manifest.txt"
-t "manifest line that matches nothing: exit 2" 2 "$TEST_BASH" "$WORK/badsc/install.sh" "$WORK/sub"
+# shellcheck disable=SC2329  # run through t, which shellcheck does not follow
+INST_BAD() { "$TEST_BASH" "$WORK/badsc/install.sh" "$@" </dev/null; }
+t "manifest line that matches nothing: exit 2" 2 INST_BAD "$WORK/sub"
 check "...and nothing was written" '[ ! -e "$WORK/sub/.agents" ]'
 check "yq preflight names mikefarah v4" 'grep -q "mikefarah yq v4" "$SC/install.sh"'
 

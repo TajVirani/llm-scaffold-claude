@@ -27,7 +27,7 @@ Your launch prompt holds, in order: the launch header (above), the whole work pr
 
 ## Setup
 
-1. **Confirm the worktree.** Your worktree is the absolute path the brief names: `.workflow/.worktrees/s<NNN>_t<N>` in the main checkout for a Phase 3 task (Phase 1: the checkout you were launched in). Your working directory may not be it, and it may reset between Bash calls, so start every Bash command with `cd <worktree path> && ` and give every Read, Edit and Write an absolute path inside the worktree; the main checkout and other tasks' worktrees are outside your task, and the worktree guard denies file-tool writes there. Run the checks there: `cd <worktree path> && git rev-parse --git-dir --git-common-dir` prints two different paths, and `cd <worktree path> && git branch --show-current` prints the record's `branch` (`task/NNN-slug/T<nn>-<slug>`; on the light path, `branch: null`, it prints nothing, a detached worktree; Phase 1 has no task branch, so any branch passes). Otherwise return `blocked` with reason "not launched in the task worktree". Record the base commit: `cd <worktree path> && git rev-parse HEAD`.
+1. **Confirm the worktree.** Your worktree is the absolute path the brief names: `.workflow/.worktrees/s<NNN>_t<N>` in the main checkout for a Phase 3 task, `.workflow/.worktrees/s<NNN>_phase_1_<enc(work_type)>` in Phase 1. Your working directory may not be it, and it may reset between Bash calls, so start every Bash command with `cd <worktree path> && ` and give every Read, Edit and Write an absolute path inside the worktree; the main checkout and other tasks' worktrees are outside your task, and the worktree guard denies file-tool writes there. Run the checks there: `cd <worktree path> && git rev-parse --git-dir --git-common-dir` prints two different paths, and `cd <worktree path> && git branch --show-current` prints the record's `branch` (`task/NNN-slug/T<nn>-<slug>`; on the light path, `branch: null`, it prints nothing, a detached worktree; Phase 1 has no task branch, so any branch passes). Otherwise return `blocked` with reason "not launched in the task worktree". Record the base commit: `cd <worktree path> && git rev-parse HEAD`.
 2. **Read the task file**, then **the module.** Read the code at the seams you were given and its existing tests, enough to see the module's patterns for naming, errors and test layout. Read `.workflow/GLOSSARY.md` if it exists, so test names and identifiers use the project's terms.
 3. **List the seams.** Write down each seam under test from the task and, for each, the behaviours the acceptance criteria demand. A behaviour with no agreed seam to test it at is a `blocked` result (reason: "no agreed seam for <behaviour>"); a test at an unagreed seam is outside the task.
 
@@ -89,16 +89,16 @@ A header with `work_type` and no `task_id` is a Phase 1 launch under a test prof
 
 ## Return
 
-Write the full result block below to your **result file** in the main checkout: `<spec_dir>/artifacts/<task_id>/implementation.yaml`, where `<task_id>` is `phase-1-<work_type>` in Phase 1. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commit, in one Bash command with one quoted heredoc, creating the folder first:
+Write the full result block below to your **result file** in the main checkout: `<main checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml`, where `<task_id>` is `phase-1-<work_type>` in Phase 1. `<main checkout>` is the main checkout's absolute path, which `cd <worktree path> && dirname "$(git rev-parse --path-format=absolute --git-common-dir)"` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commit, in one Bash command with one quoted heredoc, creating the folder first:
 
 ```bash
-cd <worktree path> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)") && mkdir -p "$main/<spec_dir>/artifacts/<task_id>" && cat > "$main/<spec_dir>/artifacts/<task_id>/implementation.yaml" <<'EOF'
+cd <worktree path> && mkdir -p "<main checkout>/<spec_dir>/artifacts/<task_id>" && cat > "<main checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml" <<'EOF'
 status: done
 ...
 EOF
 ```
 
-This write is allowed because the evidence folder under `artifacts/` is unguarded and lies outside the tree hash the stop audit compares, so your passing toolchain run stays reusable. It is your only write outside the worktree. Each stop writes the whole file again. When you are resumed with error lines from `check-task-result.sh`, rewrite the file with the fields they name fixed, then return the summary block again.
+Spell out both paths as literal absolute paths. A path relative to the worktree puts the file in the worktree copy, where the orchestrator never looks. A `$(…)` substitution in the path can be refused as too complex to verify. Use this command rather than the Write tool: the worktree guard denies a Write outside your worktree. The result file is your only write outside the worktree, and you never commit it: leave everything under `artifacts/` out of `git add`, because a branch that carries a file there is refused at merge. `artifacts/` lies outside the tree hash the stop audit compares, so writing the file keeps your passing toolchain run reusable. Each stop writes the whole file again. When you are resumed with error lines from `check-task-result.sh`, rewrite the file with the fields they name fixed, then return the summary block again.
 
 Report only commands you ran and output you saw. The result file holds:
 

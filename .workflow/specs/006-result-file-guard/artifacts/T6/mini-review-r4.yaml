@@ -1,0 +1,61 @@
+verdict: "fail"
+task_id: "T6"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t6@97b627c8cdcb3107b9a43a57911b2cc79b18a157..b0250daf2739a6c4629d40d41619958ec1a8739b"
+tool_output: ".workflow/specs/006-result-file-guard/artifacts/T6/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: "no code in the diff the item applies to: no added line in install.sh or tests/scripts/install-upgrade.sh spells a .workflow/ path"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook file in the diff; only install.sh and tests/scripts/install-upgrade.sh change"
+  - n: 3
+    verdict: "pass"
+    location: "install.sh:108, install.sh:125, install.sh:126 (die on a missing, empty or unknown --matchers value); install.sh:308-309 and install.sh:323 (every outcome either warns or is a reply typed at the prompt); install.sh:347-349 (malformed and split groups warn); install.sh:464 (end of input read as Enter, a choice already filed as disc-006 and not raised here); install.sh:308 default keep is unreachable because both passes build the same question keys"
+  - n: 4
+    verdict: "pass"
+    location: "install.sh:108, install.sh:125, install.sh:126 use die (exit 2); header install.sh:69-70 names exit 2 for a --matchers value other than merge, replace or keep"
+  - n: 5
+    verdict: "not-applicable"
+    location: "no sibling path added; SELF_DIR at install.sh:77 is unchanged"
+  - n: 6
+    verdict: "pass"
+    location: "install.sh:2-72 keeps the File, Usage, What it does, Conflicts, Exit and Tests shape; the Hook matchers block at install.sh:37-61 sits inside the same header; no added line names a decision ID; tests/scripts/install-upgrade.sh:2-17 names JRN journey IDs only"
+  - n: 7
+    verdict: "pass"
+    location: "install.sh:108-126, install.sh:402-490 and install.sh:673-677 use [ ] and case and add no [[; tests/scripts/install-upgrade.sh has no [[ anywhere; no new file"
+  - n: 8
+    verdict: "fail"
+    location: "tests/scripts/install-upgrade.sh:62"
+    note: "The shellcheck disable on the new warned_once has no reason, and the block comment at tests/scripts/install-upgrade.sh:55 says four readers and does not name warned_once, so nothing says why SC2329 is silenced here. Fix: add a reason on line 62, for example '# called from check expressions, which shellcheck cannot see into', and change the count at line 55 to five. The other new directives (install.sh:445, tests/scripts/install-upgrade.sh:363, :368, :375) carry reasons. (rule candidate)"
+  - n: R1
+    verdict: "pass"
+    location: "install.sh:298 ($own), install.sh:402 (run_merge), install.sh:409 (write_if_changed), install.sh:457 (ask_choice), install.sh:475 (ask_matchers); tests/scripts/install-upgrade.sh:61 (warned_once), :362 (pre_tool_use_is_the_templates), :367 (warned_together). Short names SCM and SCN (tests/scripts/install-upgrade.sh:452, :491) and XS (:381) are terse but not misleading"
+  - n: R2
+    verdict: "pass"
+    location: "install.sh:127-128 (why a dry run previews auto), install.sh:352-353 (why the removal waits for every index), install.sh:437-438 (why warnings wait for the answers), install.sh:457-458 (why end of input counts as Enter), install.sh:673 (why questions wait for the refusal check)"
+  - n: R3
+    verdict: "pass"
+    location: "install.sh:127-128, install.sh:258-265, install.sh:312, install.sh:352-353, install.sh:437-438, install.sh:457-458, install.sh:673; tests/scripts/install-upgrade.sh:348-349, :362, :374; none restates the code below it"
+  - n: R4
+    verdict: "pass"
+    location: "no body comment in the diff names a decision, spec, task, doc or workflow path; install.sh:2-72 and tests/scripts/install-upgrade.sh:2-17 are file headers, exempt under R4, and name only JRN journey IDs"
+  - n: R5
+    verdict: "pass"
+    location: "install.sh:127-128, install.sh:312, install.sh:457-458; tests/scripts/install-upgrade.sh:348-349, :374 read as plain English; plain | list is defined at install.sh:41-42 and alternation is shown by the regex at tests/scripts/install-upgrade.sh:492; the JRN labels are the file's existing journey IDs and each line states the behaviour, so the label does not block understanding"
+read_outside_diff:
+  - "install.sh at worktree HEAD b0250da (whole file): header :2-72, arguments :97-126, JQ_MERGE :269-400, run_merge to ask_matchers :402-490, the call site :673-677"
+  - "tests/scripts/install-upgrade.sh at worktree HEAD (whole file): block comment :55, warned_once :61-63, directive reasons :363, :368, :375, the split, edge and pty cases :347-553"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking table"
+  - "artifacts/T6/toolchain.json: lint pass; scoped test pass (not re-run here)"
+  - "artifacts/T6/mini-review-r1.yaml to mini-review-r3.yaml: read for context only"
+  - "not read: spec.md, design-log.md and the task file named in the launch prompt; the review method keeps the checklist and readable-code.md as its context, and the header's Hook matchers block states the rules the checklist is judged against"
+out_of_scope_noticed:
+  - kind: bug
+    summary: "group_cmds keeps only hook objects with a command string, so a user hook of another type (for example a prompt-type hook) is not counted as the group's own hook. A group that runs one template command and such a hook is merged under the no-terminal default, although the header says a mixed group is kept. The prompt's hook list also omits it. split_or_keep does count such a hook, so the two paths disagree."
+    evidence: "install.sh:276 (group_cmds), install.sh:298 ($own), install.sh:309 (auto choice), install.sh:450 (prompt lists $gc), install.sh:328-330 (only_template_hooks rejects such hooks), install.sh:331 (hook_names shows non-command hooks, so the intent is to list them), header install.sh:58-59"
+    blocker_assessment: can-wait
+    reason: "A user's own hook has its matcher widened without a warning that names it. This needs a hook object with no command string in a group that also runs a template command under a differing matcher, so it is rare."

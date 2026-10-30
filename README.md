@@ -80,7 +80,7 @@ In target projects, used by the workflow at runtime:
 ## Install and upgrade
 
 ```sh
-./install.sh <target-dir> [--host claude|codex|all] [--force] [--dry-run]
+./install.sh <target-dir> [--host claude|codex|all] [--force] [--dry-run] [--matchers=merge|replace|keep]
 ```
 
 - `<target-dir>` must be the top level of a git repository. `--host` defaults to `all`.
@@ -92,6 +92,13 @@ In target projects, used by the workflow at runtime:
 - `--dry-run` prints the changes and writes nothing. When something conflicts, it refuses before writing anything; `--force` replaces the conflicting entries instead (see the header of `install.sh`).
 
 To upgrade, pull this repo and run the same command again. Changed payload files are overwritten. Files the previous install shipped that the manifest no longer lists are removed. A re-run with nothing new changes nothing.
+
+Hook matchers on upgrade: when an existing hook group runs a scaffold hook under a matcher that does not cover the template's (its `|` alternatives miss some of the template's), the upgrade resolves that group on its own. A match-all group and a covering one are left as they are, so a re-run asks nothing.
+
+- `--matchers=merge|replace|keep` sets the outcome for every such group. `merge` adds the template's missing alternatives to yours, `replace` takes the template's matcher, and `keep` leaves the group as it is.
+- Without `--matchers`, at a terminal the installer asks per group, and Enter merges. Without a terminal it never waits for input: it merges and prints a line under Warnings, but keeps a mixed group (one that also runs a hook of your own) with a warning.
+- Merge cannot take a matcher that is not a plain `|` list, so it keeps that group with a warning. A malformed (non-string) matcher is kept in every mode. A group that runs the hooks of two template groups is rewritten into the template's groups when all its hooks are scaffold hooks, and kept when it also runs one of yours; either way a warning names it.
+- `--dry-run` previews the matcher changes and asks nothing. `--force` leaves matchers alone.
 
 Upgrade note (D75): `design-pattern-doc` conventions and `pr-quality`'s project-specific modules are now project-owned. If an earlier install gave your project `.agents/skills/design-pattern-doc/conventions.md`, or pr-quality's `modules/legend-state-review.md` or `modules/project-pitfalls.md`, the upgrade prunes them. Before upgrading, copy them to `.workflow/design-pattern-doc/conventions.md` and `.workflow/pr-quality/`. The athena originals were removed from this repo (its git history has them).
 

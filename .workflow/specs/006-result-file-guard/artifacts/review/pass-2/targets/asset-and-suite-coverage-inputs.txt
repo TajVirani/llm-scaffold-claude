@@ -1,0 +1,4 @@
+added under .agents since baseline:
+.agents/skills/feature-workflow/scripts/check-merge-artifacts.sh
+PROVENANCE.md present: yes
+check-merge-artifacts mentioned in tests/: tests/README.md tests/lint/agent-worktree-docs.sh tests/scripts/check-merge-artifacts.sh 

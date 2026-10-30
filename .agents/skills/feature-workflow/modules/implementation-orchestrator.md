@@ -11,7 +11,7 @@ Three task types launch here. Each prompt opens with the ```` ```yaml launch-hea
 | Task type | Node | Header fields | Agent tool options (Claude) |
 | --- | --- | --- | --- |
 | `implementation` | 3.3 | `spec_dir`, `task_id`, `work_type` (the value recorded at 3.1; a disagreeing value is denied) | `run_in_background: true`; working directory = the task worktree you created at wave start (see **Claude** below) |
-| `integration` | 3.2 | `spec_dir`, `work_type` (a batch, no `task_id`) | `isolation: "worktree"` |
+| `integration` | 3.2 | `spec_dir`, `work_type` (a batch, no `task_id`) | working directory = the integration worktree you create at [3.2](#32-integration-batches-one-work-type-each) (see **Claude** below) |
 | `profile-mini-review` | 3.7 | `spec_dir`, `task_id`, `work_type` | none (read-only) |
 
 ````text
@@ -25,8 +25,8 @@ work_type: backend-api
 ````
 
 - **Claude.** Set `subagent_type` to the task type.
-  An implementation launch runs in the task worktree you created at [wave start](#wave-start-task-branches-and-worktrees), never with `isolation: "worktree"`.
-  The Agent tool has no working-directory option (a sub-agent starts in the main session's directory; `isolation: "worktree"` is the only other choice), so launch it without `isolation` and confine it by the brief: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside the worktree. `hooks/worktree-write-guard.sh` enforces this for implementation and integration sub-agents: it reads the task from the launch header and denies a Write, Edit or NotebookEdit inside the main checkout but outside `.workflow/.worktrees/s<NNN>_t<N>`, and a Bash command without that leading `cd` (accident prevention; a command can still reach out after its `cd`). The stop audit finds the worktree itself and warns when it is missing. Fallback when an agent cannot work this way (it keeps getting denied, or edits the main checkout through Bash): remove the wave-start worktree and branch (`git worktree remove .workflow/.worktrees/<task_name> && git branch -d <branch>`; `-d` refuses a branch with commits: then keep it, add "first merge branch `<branch>` into yours" to the relaunch brief, and rename the isolation branch to the record's `branch` only after deleting the old one with `git branch -d` once its commits are merged), relaunch with `isolation: "worktree"` (needs `"worktree": {"baseRef": "head"}` in `.claude/settings.json` and the main checkout on the spec branch, so the worktree forks from the spec-branch tip), and after it returns rename its branch to the record's `branch` with `git branch -m <worktreeBranch from the Agent result> <branch>`. With no `.workflow/.worktrees/<task_name>` the stop audit and the worktree guard both use the isolation worktree.
+  An implementation launch runs in the task worktree you created at [wave start](#wave-start-task-branches-and-worktrees), an integration launch in the integration worktree you create at [3.2](#32-integration-batches-one-work-type-each).
+  The Agent tool has no working-directory option (a sub-agent starts in the main session's directory), so launch it without `isolation` and confine it by the brief: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside the worktree. `hooks/worktree-write-guard.sh` enforces this for implementation and integration sub-agents: it reads the agent worktree from the launch header (`.workflow/.worktrees/s<NNN>_t<N>` for a task, `s<NNN>_integration_<enc(work_type)>` for an integration batch) and denies a Write, Edit or NotebookEdit inside the main checkout but outside it, and a Bash command without that leading `cd` (accident prevention; a command can still reach out after its `cd`). The stop audit finds the worktree itself and warns when it is missing. An agent that keeps getting denied, or edits the main checkout through Bash, is never relaunched another way: it is a [stop](#stops).
   Name the worktree's absolute path in the brief as the directory the agent works in. Leave out `model` and the profile: `hooks/pre-launch.sh` resolves both through `resolve-launch.sh` and returns the launch with the model set and the profile inserted after the header. A deny naming 00.14 means no model is assigned for the type (fix `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` with the human); a deny naming 00.18 or 00.19 is handled in 3.1.
 - **Codex** (advisory). Build each launch with the orchestrator mode, then spawn with `.prompt` as the message and `.model` as the spawn's model. The generated `.codex/agents/*.toml` never carry `model` (a toml model would override the spawn-time one), so the model you pass here is what selects it:
 
@@ -38,7 +38,7 @@ work_type: backend-api
 
   Spawn with `agent_type` set to the definition name with `-` replaced by `_` (`implementation`, `integration`, `profile_mini_review`); `--task-type` keeps the hyphenated name (`profile-mini-review`). Set the spawn `task_name` to `s<NNN>_t<N>` (for example `s007_t3` for `.workflow/specs/007-checkout`, `T3`) for every implementation launch, including a fix-round relaunch (keep it exactly `s<NNN>_t<N>`: the stop audit finds the task from it), to `s<NNN>_t<N>_r<round>` (for example `s007_t3_r2`) for the 3.7 `profile-mini-review` launch of review round `<round>`, and to `s<NNN>_integration_<enc(work_type)>` (for example `s007_integration_web`) for an integration batch, where `enc` lowercases and turns every character outside `[a-z0-9]` into `_`. Codex accepts only `[a-z0-9_]` in the name, with no `/`. The Codex stop audit finds its task from it, because the spawn message is encrypted. Spawn with `fork_turns: "none"`: a full-history fork may ignore the spawn `model` override, and it keeps the parent's history out of the sub-agent. The audit reads it back from the sub-agent transcript's `session_meta` `agent_path` and blocks on toolchain failure as on Claude.
 
-  Codex has no `isolation` option. An implementation spawn runs in the task worktree created at [wave start](#wave-start-task-branches-and-worktrees) (`.workflow/.worktrees/<task_name>` on the task branch); name it in the brief as the directory the agent works in. For an integration batch create the worktree yourself before the spawn, named by its `task_name`: `git worktree add .workflow/.worktrees/<task_name> -b wf/NNN-slug/<task_name>` (for example `.workflow/.worktrees/s007_integration_web` on branch `wf/007-checkout/s007_integration_web`). `.workflow/.worktrees/` is gitignored. The stop audit runs the toolchain in `.workflow/.worktrees/<task_name>` (evidence still goes to the main checkout); without that directory it allows the stop with a warning. A fix-round relaunch keeps the same worktree.
+  Codex has no `isolation` option. An implementation spawn runs in the task worktree created at [wave start](#wave-start-task-branches-and-worktrees) (`.workflow/.worktrees/<task_name>` on the task branch); name it in the brief as the directory the agent works in. An integration spawn runs in the integration worktree created at [3.2](#32-integration-batches-one-work-type-each), its `task_name` being the worktree's name. The stop audit runs the toolchain in `.workflow/.worktrees/<task_name>` (evidence still goes to the main checkout); without that directory it allows the stop with a warning. A fix-round relaunch keeps the same worktree.
 - **Briefs are context pointers.** An implementation brief names the task file (`.workflow/specs/NNN-slug/<file>` from the record, committed on the spec branch so the worktree has it), the worktree path, the `codebase-map.md` extract for its module, and any shared-core interface integration applied for it. Nothing about other tasks; the task file is not pasted.
 - **Resume, don't restart.** Send fix requests to the same agent (on Claude, SendMessage to the agent id from the Agent result); it keeps its worktree and context. A 3.8 fix round that changes behaviour is the exception ([Fix rounds](#per-task-gates-34-38)). When an agent cannot be continued, launch a fresh one with the same header and add to the brief: "first merge branch `<branch>` into yours, then fix: <findings>".
 
@@ -101,6 +101,14 @@ An empty frontier with tasks still pending means they wait on a `blocked` task: 
 
 Before launching the wave, collect its shared-core change requests: the **Notes** request of every frontier task with `touches_core: true`, plus shared-core requests from `scope-expansion` results. Group them by the requesting task's `work_type`, one batch per work type, so each launch carries exactly one profile. Launch the batches one at a time (header `task_type: integration`, `spec_dir`, `work_type`); each brief is a numbered list of requests, each stating the change and the contract its consumer needs, without task context.
 
+**The integration worktree.** Before launching a batch, from the main checkout on the spec branch, create its worktree on a `wf/` branch off the spec-branch tip. `<name>` is `s<NNN>_integration_<enc(work_type)>`, for example `s007_integration_web` (`enc` lowercases and turns every character outside `[a-z0-9]` into `_`), the name the worktree guard finds it by:
+
+```bash
+git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
+```
+
+`.workflow/.worktrees/` is gitignored. Name the worktree's absolute path in the brief as the directory the agent works in. A resumed batch or a fix round reuses the worktree. The merge removes it, so a later batch of the same work type creates it again off the new spec-branch tip.
+
 When a batch returns, check its result file ([Reading a result file](#evidence-and-the-ledger)) and route on the printed table:
 
 ```bash
@@ -109,8 +117,18 @@ When a batch returns, check its result file ([Reading a result file](#evidence-a
 
 - **Batch `status`** (top level; `.agents/agents/integration.md` "Return"). `done` or `partial`: handle each request by its verdict below (`partial` means some requests were rejected or conflict). `discovered-work`: out-of-scope work stopped the batch and nothing was applied; go to [Discovered work](#discovered-work-0021) at step 3.2 with its `discovered_work[]` entries. `profile-wrong`: a [stop](#stops) at step 3.2, quoting `profile_wrong.line`. `blocked`: read `blocked.reason`; a fact you look up and resume the agent, a decision you put to the stakeholder, or block the spec at step 3.2 when no answer is available.
 - **`discovered_work[]`.** A non-empty list goes to [Discovered work](#discovered-work-0021) at step 3.2 whatever the status, `done` and `partial` included. While that module has the spec `blocked`, hold this batch's merge as 3.16 does; merge the `applied` work once it returns at 00.28.
-- **Toolchain.** No stop audit fires for integration; the agent runs `run-toolchain.sh` itself with `--exclude-unfinished`, so the Phase 1 tests of tasks not yet `done` are excluded from its `test` run rather than left for you to judge. Check `artifacts/integration-<work_type>/toolchain.json` says `pass`; otherwise resume the agent with `toolchain-digest.txt`.
-- **Verdicts** (per request: `applied`, `reject-not-shared-core`, `reject-other-work-type`, `conflict`, `blocked`). `applied`: merge its branch (`worktreeBranch` from the Agent result, or `wf/NNN-slug/<task_name>` on Codex) into the spec branch with `git merge --no-ff -m "Merge integration-<work_type>" <branch>` before the wave launches, and pass the new interface into the requesting tasks' briefs. `reject-other-work-type`: move the request to that work type's batch. `reject-not-shared-core`: it is module work for the requesting task; put it in that task's brief. `conflict`: a decision; put both options to the stakeholder, re-batch with their answer, or block the spec at step 3.2 when no answer is available. `blocked`: its `reason` names what stops it; when that is an entry in `discovered_work[]`, the request waits for that ruling and is re-batched after 00.28; otherwise handle it like `conflict`.
+- **Toolchain.** The agent runs `run-toolchain.sh` itself with `--exclude-unfinished`, so the Phase 1 tests of tasks not yet `done` are excluded from its `test` run rather than left for you to judge. On Claude the stop audit then runs the full toolchain in the integration worktree with the same scoping and `--reuse`; on Codex no stop audit runs for integration. Read `artifacts/integration-<work_type>/` as at 3.5-3.6: the batch is clean when `toolchain.json` says `pass` and no `audit.json` sits beside it; `audit.json` with outcome `gave-up` means resume the agent with `toolchain-digest.txt`, as does a `toolchain.json` that does not say `pass`; `audit.json` with outcome `warning` means the audit could not run (for example, the worktree was missing), so run it yourself with `--task-id integration-<work_type> --work-type <work_type> --exclude-unfinished --cwd <worktree> --reuse`.
+- **Verdicts** (per request: `applied`, `reject-not-shared-core`, `reject-other-work-type`, `conflict`, `blocked`). `applied`: the change is on the batch branch; [merge the batch](#32-integration-batches-one-work-type-each) before the wave launches, and pass the new interface into the requesting tasks' briefs. `reject-other-work-type`: move the request to that work type's batch. `reject-not-shared-core`: it is module work for the requesting task; put it in that task's brief. `conflict`: a decision; put both options to the stakeholder, re-batch with their answer, or block the spec at step 3.2 when no answer is available. `blocked`: its `reason` names what stops it; when that is an entry in `discovered_work[]`, the request waits for that ruling and is re-batched after 00.28; otherwise handle it like `conflict`.
+- **Merge the batch.** When at least one request is `applied`, merge the batch in the main checkout on the spec branch. The branch is the one the result file names (`yq '.branch'`): `wf/NNN-slug/<name>`, the branch you created. Run the artifacts gate first, each line as its own command, never piped (a pipe hides the gate's exit code), then merge and remove the worktree and branch:
+
+  ```bash
+  .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh --spec-dir .workflow/specs/NNN-slug --rev wf/NNN-slug/<name>
+  git merge --no-ff -m "Merge integration-<work_type>" wf/NNN-slug/<name>
+  git worktree remove .workflow/.worktrees/<name>
+  git branch -d wf/NNN-slug/<name>
+  ```
+
+  Merge only on gate exit 0. Exit 1 prints each path under `artifacts/` that the branch adds, changes or deletes: resume the agent with those lines to drop that change from its branch (its result file belongs in the main checkout only), then run the gate again. Exit 2 is a usage or environment error: fix the cause and run it again. With nothing `applied`, skip the gate and the merge and run only the two clean-up lines.
 - Integration output gets no mini-review: that task type requires a `task_id`.
 
 ### Wave start: task branches and worktrees
@@ -120,7 +138,6 @@ After 3.2's merges, commit the workflow data you have written since the last com
 ```bash
 .agents/skills/feature-workflow/scripts/commit-workflow-data.sh .workflow/specs/NNN-slug -m "Workflow data for NNN-slug: wave <N> start"
 git worktree add .workflow/.worktrees/<task_name> -b <branch> spec/NNN-slug
-# e.g. git worktree add .workflow/.worktrees/s007_t3 -b task/007-checkout/T03-guest-cart spec/007-checkout
 ```
 
 Light path (`branch: null`): no task branch; create the worktree detached at the spec-branch tip (`git worktree add --detach .workflow/.worktrees/<task_name> spec/NNN-slug`) and fast-forward the spec branch to its commits at 3.16. A worktree that already exists (resume, fix round, rework) is reused; on the light path, skip the commit too when it exists, so the spec branch stays where the worktree forked. Integration worktrees are created at 3.2 as above.
@@ -187,14 +204,22 @@ When every task of the wave has passed 3.8 (or is blocked), take the passing tas
    - `pr` (default): push the spec branch and the task branch (`git push -u origin spec/NNN-slug <branch>`; the setting is the stakeholder's standing consent to push these two branches) and open a PR/MR from the task branch into the spec branch, titled `T3: <task title>`, its body linking the task file and the mini-review verdict: `gh pr create --base spec/NNN-slug --head <branch> ...` when the `origin` remote is GitHub, `glab mr create --target-branch spec/NNN-slug --source-branch <branch> ...` when it is GitLab (the `glab` skill has the flags). It is a **non-blocking** review record: record its URL (`set-task ... T3 --pr <url> --step 3.16`) and continue without waiting. No remote, an unknown host or a missing CLI: skip the PR, leave `pr: null` and append one line to `design-log.md` saying why.
    - `pr-blocking`: as `pr`, then wait for approval before merging (`gh pr view <url> --json reviewDecision`, or `glab mr approvers`). Tell the stakeholder which PRs wait; merge each once approved. Review comments that ask for changes are a fix round (3.5-3.8 again, push again).
    - `local`: no push, no PR; `pr` stays null.
-2. **Merge and mark done** (tasks become `done` only here):
+2. **Gate, merge and mark done** (tasks become `done` only here). Run the artifacts gate first, each line as its own command, never piped (a pipe hides the gate's exit code):
 
    ```bash
+   .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh --spec-dir .workflow/specs/NNN-slug --rev <branch>
    git merge --no-ff -m "Merge T3: <task title>" <branch>   # the message names the task id; 4.7 finds task owners by it
    .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T3 --status done --step 3.16
    ```
 
-   Light path (`branch: null`): `git merge --ff-only <head_commit from implementation.yaml>` instead; no PR.
+   Light path (`branch: null`): gate the commit and fast-forward to it instead; no PR:
+
+   ```bash
+   .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh --spec-dir .workflow/specs/NNN-slug --rev <head_commit from implementation.yaml>
+   git merge --ff-only <head_commit from implementation.yaml>
+   ```
+
+   Merge only on gate exit 0. Exit 1 prints each path under `artifacts/` that the task adds, changes or deletes: resume the implementer with those lines to drop that change from its commits (its result file belongs in the main checkout only), then run the gate again; the tasks after it in id order wait. Exit 2 is a usage or environment error: fix the cause and run it again.
 3. **Clean up.** With `pr` or `pr-blocking`, push the spec branch so the PR/MR shows as merged. Then `git worktree remove .workflow/.worktrees/<task_name>` and `git branch -d <branch>`. The next wave forks from the new spec-branch tip.
 4. **Commit the workflow data.** Once the wave's merges are done, commit what the wave wrote under `.workflow/` (task records, gate evidence under `artifacts/`, `design-log.md`, deferred items, decisions) on the spec branch, so it sits beside the merged code:
 
@@ -290,6 +315,7 @@ A stop halts the task. Let the rest of the wave finish its gates and merge what 
 | `blocked` on a decision | Ask the stakeholder; with no answer available, block with the decision as the condition. | 3.3 |
 | Fifth fix round fails | Block with the open findings and the gate that keeps failing. | the failing gate (3.6, 3.8, 3.9, 3.11) |
 | Integration `conflict` with no decision | Block with both consumers' needs. | 3.2 |
+| Agent keeps working outside its worktree (repeated worktree-guard denies, or main-checkout edits through Bash) | Never relaunch it another way: isolation cannot be configured from this repo, and an isolation launch is refused the result-file write to the main checkout. Block the task with the denies as the condition. | 3.3 (3.2 for an integration batch) |
 | `hitl` task with no human input available (3.3) | Leave it `pending`; once the rest of the wave has merged, block with what the task needs from a human (its task file's **Mode** line). | 3.3 |
 
 ## Hand off

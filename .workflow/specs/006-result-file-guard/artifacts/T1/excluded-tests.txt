@@ -1,0 +1,5 @@
+tests/scripts/check-merge-artifacts.sh
+tests/hooks/worktree-guard.sh
+tests/lint/agent-worktree-docs.sh
+tests/scripts/install-upgrade.sh
+tests/lint/install-matcher-docs.sh
