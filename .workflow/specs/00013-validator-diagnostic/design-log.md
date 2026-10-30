@@ -71,3 +71,7 @@ Revisions: agreed as first restated.
 - Decision: **D3** `tests/scripts/status-transition-tasks.sh` and `tests/scripts/initiative-transition.sh` each gain a broken-validator case (yq shim) and an ordinary-rejection message check.
 
 Facts looked up instead of asked (main-session probes, yq v4.54.1): see `codebase-map.md` § Not found.
+
+## 2026-10-30 Suite gap: browser suite
+
+3.14: no `e2e-browser` profile, so the 3.10-3.11 browser gate was skipped and recorded as a known gap; the stakeholder confirmed it is the shelved item [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md) (Later requests line appended). The 3.9 harness gate passed: 3623 passed, 0 failed (`artifacts/gate-3.9-w1/toolchain.txt`). The T1 mini-review passed with one out-of-scope note (a yq warning on stderr with exit 0 would refuse a valid write under D1); it concerns the task's own lines, so Phase 4 triage judges it.
