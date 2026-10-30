@@ -226,3 +226,16 @@ Failed lenses: none
 Outcome: rework 1 of 5
 - F4 patch: the TGT-007 `sweep-time` command now checks the baseline out on a scratch branch (`-b tgt-sweep`), since `move-to-done.sh` refuses a detached checkout, and prints FAIL when the sweep fails instead of hiding it; the threshold is unchanged. Measured after the T5 rework.
 - T5 rework (F1) mini-review pass. Out-of-scope note (the skip keys on `spec_branch` matching the checked-out branch, not on a running sign-off): not discovered work; the intended, documented behaviour (header lines 5-8, 22-23).
+- TGT-007 measured by the main session after rework 1 with the fixed command: best of 3 = 52.21 s (threshold 30 s), a miss; pass 2's targets lens measures it independently.
+
+## 2026-10-30 Triage, review pass 2
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F5 | review-targets (RT-1) | TGT-007 missed: `move-to-done.sh --sweep` on a scratch clone at the baseline took 52.23 s best of 3, threshold ≤ 30 s | `.agents/skills/feature-workflow/scripts/move-to-done.sh`; `artifacts/review/pass-2/review-targets.yaml` | high | Measured by the lens (52.23 s) and independently by the main session after rework 1 (52.21 s) with the corrected command | patch (T5: cut the sweep's per-file process cost so TGT-007 is met, behaviour unchanged) |
+| F6 | review-standards (RS-1) | The 6.13 rewrite in `large-path.md` duplicates the script's path rewrite and already differs: a path that ends a sentence (`.workflow/specs/NNN-slug.`) is left unrewritten in initiative files | `.agents/skills/feature-workflow/modules/large-path.md` § 6.13; `scripts/move-to-done.sh:268` | medium | Compared the two boundary rules: the script keeps a sentence-ending full stop and rewrites, the 6.13 `sed` treats `.` as a name character | patch (T4: align the 6.13 boundary with the script's; one script form stays in [work-backlog/007-done-folder-disc-001.md](../work-backlog/007-done-folder-disc-001.md)) |
+
+Gaps (not_verifiable, review-end-state): as pass 1 (JRN-005 at 5.8, the next spec at a later sign-off, the 6.13 block in no suite).
+
+Failed lenses: none
+Outcome: rework 2 of 5

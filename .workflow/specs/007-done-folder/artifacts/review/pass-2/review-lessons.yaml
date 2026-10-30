@@ -1,0 +1,25 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "9e971ade158b5e92da93bf2b150fd68dd55d7e9e"
+head: "d55e87767f25c52e615297aea3ffcb78d1e17774"
+findings: []
+checked:
+  - ".workflow/review-lessons.md"
+  - ".workflow/decisions/pitfalls.md"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md"
+  - ".workflow/decisions/retrospectives/003-bash-cache-extractor.md"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md"
+  - ".workflow/decisions/retrospectives/005-cache-build-followups.md"
+  - ".workflow/decisions/retrospectives/006-result-file-guard.md"
+  - ".workflow/decisions/retrospectives/008-pr-description-template.md"
+  - ".workflow/deferred/ (file list and headers, for the shelf match)"
+  - ".workflow/specs/work-backlog/ (file list and status, for the open-item match)"
+  - ".workflow/specs/work-backlog/007-done-folder-disc-001.md"
+  - ".workflow/specs/work-backlog/007-done-folder-disc-002.md"
+  - ".workflow/deferred/launch-against-done-spec.md"
+  - ".workflow/rules.md (grep for the README rule)"
+  - ".agents/skills/feature-workflow/modules/large-path.md (6.13 block, read for RL-003)"
+  - ".agents/skills/feature-workflow/modules/deferred-handoff.md (re-point step, read for RL-003)"
+not_checked:
+  - "Suspicion under 80 (RL-003 family, about 40): move-to-done.sh rewrites origin_spec in .workflow/deferred/*.md to .workflow/specs/done/NNN-slug, while modules/deferred-handoff.md 'Re-point at conversion' (0.3.23) finds shelf items by the exact .workflow/specs/NNN-slug. Dismissed for this pass because that step runs on a draft spec, which is never done or moved. Settled if the finder can ever run against a spec that already sits in done/."
