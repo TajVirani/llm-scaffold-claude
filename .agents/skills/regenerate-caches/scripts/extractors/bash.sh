@@ -12,8 +12,9 @@
 #   readings (as a subfolder of that root, or as a root itself) names an existing file. Anything else, and any target that is not an existing file, is `couldNotResolve: true` with the
 #   path text in `module`. Every dependency carries its 1-based `line`. Heredoc bodies are data and are not read, and
 #   neither are `case` arm patterns (`../*|/*)`); the commands in an arm body are read like any other line. Comments and
-#   the text of a quoted string that spans lines are not read either, except a `$(...)` inside a double-quoted one, which
-#   the shell runs; a quoted string on one line is read as before.
+#   the text of a quoted string that spans lines are not read either, except a `$(...)` or backtick substitution inside a
+#   double-quoted one, which the shell runs. A quoted string that opens and closes on one line is read in place, with its
+#   quotes paired by the readers of that line.
 #   `exports` maps each claimed file that another claimed file sources to its sorted unique column-0 function names.
 # Usage:
 #   extractors/bash.sh --root DIR --scope PATH [--scope PATH]...
@@ -187,9 +188,10 @@ END {
 
 # code_outside_spanning_quotes TEXT : raw line TEXT as every reader sees it. The text of a quoted string that spans lines,
 # quotes included, becomes one QUOTED_TEXT character per run, which holds the place of the text in its word without being
-# a path itself; a `$(...)` inside such a double-quoted string is kept, padded with blanks, because the shell runs it. A
-# string that opens and closes on this line is kept as written, and a comment is dropped. Moves open_contexts on to the
-# state after the line and sets heredoc_start_at to where an unquoted heredoc operator starts, or 0.
+# a path itself; a `$(...)` or backtick substitution inside such a double-quoted string is kept, padded with blanks,
+# because the shell runs it. A string that opens and closes on this line is kept as written, and a comment is dropped.
+# Moves open_contexts on to the state after the line and sets heredoc_start_at to where an unquoted heredoc operator
+# starts, or 0.
 function code_outside_spanning_quotes(text,   still_open_at_end, final_contexts) {
   final_contexts = walk_quotes(text, still_open_at_end, 0)
   walk_quotes(text, still_open_at_end, 1)
@@ -199,13 +201,14 @@ function code_outside_spanning_quotes(text,   still_open_at_end, final_contexts)
 
 # walk_quotes TEXT STILL_OPEN_AT_END REWRITING : the quote contexts still open after raw line TEXT, starting from those in
 # open_contexts, one character each: \047 a single-quoted string, " a double-quoted one, $ an ANSI-C string (a $ then a
-# single quote, where a backslash escapes the quote), ( a command substitution inside a double-quoted string.
+# single quote, where a backslash escapes the quote), ( a `$(...)` command substitution and ` a backtick one, each inside
+# a double-quoted string.
 # Each context opened on the line gets a number in opening order. With REWRITING 0 it marks in STILL_OPEN_AT_END
 # the numbers left open at the end of the line; with REWRITING 1 it reads those marks to tell a string that spans lines
 # from one that does not, puts the rewritten line in walked_text and sets heredoc_start_at.
 function walk_quotes(text, still_open_at_end, rewriting,   depth, kind, spans, number, opened_count, n, i, ch, inner, c, final) {
   depth = length(open_contexts)
-  for (c = 1; c <= depth; c++) { kind[c] = substr(open_contexts, c, 1); spans[c] = (kind[c] != "("); number[c] = 0 }
+  for (c = 1; c <= depth; c++) { kind[c] = substr(open_contexts, c, 1); spans[c] = (kind[c] !~ /[(`]/); number[c] = 0 }
   opened_count = 0; walked_text = ""; heredoc_start_at = 0
   n = length(text)
   for (i = 1; i <= n; i++) {
@@ -219,6 +222,9 @@ function walk_quotes(text, still_open_at_end, rewriting,   depth, kind, spans, n
       else if (inner == "\"" && substr(text, i, 2) == "$(") {
         keep_or_hide(spans[depth] ? " $(" : "$(", 0); i++
         kind[++depth] = "("; spans[depth] = 0; number[depth] = ++opened_count
+      } else if (inner == "\"" && ch == "`") {
+        keep_or_hide(spans[depth] ? " `" : "`", 0)
+        kind[++depth] = "`"; spans[depth] = 0; number[depth] = ++opened_count
       } else {
         keep_or_hide(ch, spans[depth])
         if (ch == (inner == "$" ? "\047" : "\"")) depth--
@@ -238,6 +244,9 @@ function walk_quotes(text, still_open_at_end, rewriting,   depth, kind, spans, n
     } else if (inner == "(" && ch == ")") {
       depth--
       keep_or_hide(spans[depth] ? ") " : ")", 0)
+    } else if (inner == "`" && ch == "`") {
+      depth--
+      keep_or_hide(spans[depth] ? "` " : "`", 0)
     # Step over a here-string whole: its second < would otherwise match the heredoc pattern and skip the rest of the file.
     } else if (substr(text, i, 3) == "<<<") {
       keep_or_hide("<<<", 0); i += 2

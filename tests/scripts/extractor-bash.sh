@@ -9,7 +9,8 @@
 #   errors. JRN-001: `case` arms in every form (one-line, `|` alternatives, `(pattern)`, `./x)`, a pattern on its own line,
 #   a whole case on one line, a case in a loop) give no pattern as a call or an edge, while every call in an arm body is
 #   still reported. Quoted strings that span lines (a jq program, an awk script, a plain single-quoted block, a
-#   double-quoted message) report nothing from their text, while a `$(...)` inside a double-quoted one is still read, and
+#   double-quoted message) report nothing from their text, while a `$(...)` or backtick substitution inside a double-quoted
+#   one is still read, and
 #   calls after the string are reported; an apostrophe in a trailing comment, a quote spliced from `'` and `"`, an escaped
 #   quote in `$'...'`, a `#`-led line inside a string and a `<<` inside a quoted string do not hide later calls; run on this
 #   suite file, the extractor reports no `./x` from its jq program. CAP-NEW-bash-graph-extractor, CAP-005.
@@ -281,6 +282,14 @@ scripts/in-dquote.sh
 and $(./real.sh) with $(scripts/real-bare.sh) last"
 ./after-dquote.sh
 OUTER
+cat >"$Q/scripts/backtick-in-dquote.sh" <<'OUTER'
+#!/usr/bin/env bash
+msg="first
+`./in-backtick.sh`
+then `scripts/bare-in-backtick.sh` and ./in-dquote.sh
+done"
+./after-backtick.sh
+OUTER
 cat >"$Q/scripts/hash-line.sh" <<'OUTER'
 #!/usr/bin/env bash
 note='first line of the note
@@ -332,6 +341,8 @@ eq "a multi-line awk script and a plain multi-line single-quoted block report no
   "$(quote_deps scripts/awk-and-plain.sh)" '9 ./after-blocks.sh'
 eq "a multi-line double-quoted string reports no call from its plain text, and every \$(...) inside it is read as code" \
   "$(quote_deps scripts/double-quoted.sh)" '2 ./first.sh,5 ./real.sh,5 scripts/real-bare.sh,6 ./after-dquote.sh'
+eq "a backtick substitution inside a multi-line double-quoted string is read as code, and the plain text around it is not" \
+  "$(quote_deps scripts/backtick-in-dquote.sh)" '3 ./in-backtick.sh,4 scripts/bare-in-backtick.sh,6 ./after-backtick.sh'
 eq "a line that starts with # inside a quoted string can close it, so the next line's call is reported" \
   "$(quote_deps scripts/hash-line.sh)" '4 scripts/after-hash-close.sh'
 eq "an apostrophe in a trailing comment opens no quote, so later bare and cwd-relative calls are reported" \
