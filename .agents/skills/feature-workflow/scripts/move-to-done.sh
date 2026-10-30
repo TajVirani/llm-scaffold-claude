@@ -298,7 +298,10 @@ list_files_naming() {
   while IFS= read -r -d '' rel; do
     file=$ROOT_PREFIX$rel
     if [[ -f "$file" && ! -L "$file" ]]; then printf '%s\0' "$file"; fi
-  done <"$LIST_FILE" >"$CANDIDATE_FILE"
+  done <"$LIST_FILE" >"$CANDIDATE_FILE" || die "cannot write the list of workflow files to search"
+  # The search below reads a failed redirect as "no file names the spec", so both files are opened here first.
+  : >"$MATCH_FILE" || die "cannot write the list of workflow files that name the spec"
+  : >"$SEARCH_ERRORS" || die "cannot write the search error log"
   # One grep over all the files, not one per file: a sweep searches every workflow file once per spec, and starting a
   #   process per file made it slow. /dev/null keeps grep off stdin when the list is empty.
   xargs -0 grep -lIF --null -- "$name" /dev/null <"$CANDIDATE_FILE" >"$MATCH_FILE" 2>"$SEARCH_ERRORS" || status=$?
