@@ -1,11 +1,11 @@
 ---
-status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "3fee587d96a73c6c2692e3cb534b5883aa7c7324" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/00011-interrupted-run-cleanup # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "3fee587d96a73c6c2692e3cb534b5883aa7c7324" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: true # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
-deferred: [] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
+deferred: [.workflow/deferred/browser-suite.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 origin: 004-scoped-test-runs-disc-002.md
 budget: {max_tasks: 10, max_changed_files: 30}
 ---
@@ -51,3 +51,7 @@ Pressing Ctrl-C (or sending TERM or HUP) during a parallel harness run returns t
 - Codebase map: [codebase-map.md](codebase-map.md)
 - Design log: [design-log.md](design-log.md)
 - Tasks: [tasks.md](tasks.md)
+
+## Known gaps
+
+- Gate skipped (3.10 browser suite): no `e2e-browser` profile in this repo. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)

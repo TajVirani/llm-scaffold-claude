@@ -81,3 +81,7 @@ Facts looked up instead of asked (main session, /bin/bash 3.2.57 on this machine
 - `set -m` in a non-interactive script gives a background job its own process group, and `kill -TERM -- -PGID` stops its grandchildren.
 - With `set -m` left on, bash prints `[1]+ Done ...` job notices to the output; switched off right after the launch, nothing is printed and the job keeps its own group.
 - A bash EXIT trap runs when the shell is killed by TERM.
+
+## 2026-10-30 Suite gap: browser suite
+
+3.14: no `e2e-browser` profile, so the 3.10-3.11 browser gate was skipped and recorded as a known gap; the stakeholder confirmed it is the shelved item [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md) (Later requests line appended). The 3.9 harness gate passed: 3592 passed, 0 failed (`artifacts/gate-3.9-w1/toolchain.txt`).
