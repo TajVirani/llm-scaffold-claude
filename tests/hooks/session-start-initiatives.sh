@@ -3,6 +3,9 @@
 # Covers: an exploring initiative that exists only on its branch, read from the branch tip while the checkout is on main; the same
 #   initiative after a local --no-ff merge, read from main; one line per initiative when it is on main and on a re-created branch;
 #   status, current step from the gitignored .step and the pending research count on the line; a done initiative left out.
+#   JRN-004 (spec 007): spec_done_on_main reads a spec in the Done folder (.workflow/specs/done/NNN-slug) on main, so a planned
+#   initiative whose emitted specs are done there, or done there and at the top level, is not offered, while one whose spec
+#   in done/ is not done is; a done spec in done/ is never offered as a spec.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -114,6 +117,36 @@ awk '{ print } /^task_review: / { print "main_branch: bad..name" }' "$Q/.workflo
 check "JRN-004 fixture: rules.md carries an invalid main_branch" 'grep -q "^main_branch: bad..name" "$Q/.workflow/rules.md"'
 ctx=$(resume_offer "$Q")
 check "JRN-004 an unreadable main branch setting is reported in the offer" 'grep -q "main branch setting unreadable" <<<"$ctx"' "$ctx"
+
+echo "== JRN-004 (spec 007): emitted specs moved into the Done folder"
+M=$WORK/moved
+large_path_repo "$M"
+MOVED_SPEC=.workflow/specs/done/005-shipped
+TOP_SPEC=.workflow/specs/007-also-shipped
+CLOSED=.workflow/initiatives/006-finished
+mkdir -p "$M/$MOVED_SPEC" "$M/$TOP_SPEC" "$M/$CLOSED"
+for s in "$MOVED_SPEC" "$TOP_SPEC"; do
+  cp "$M/$FW_ASSETS_REL/spec.md" "$M/$s/spec.md"
+  yq --front-matter=process -i '.status = "done"' "$M/$s/spec.md"
+done
+cp "$M/$FW_ASSETS_REL/initiative.md" "$M/$FW_ASSETS_REL/questions.md" "$M/$CLOSED/"
+yq --front-matter=process -i '.status = "planned" | .slices = [{"id": "S1", "title": "Shipped", "status": "emitted", "questions": [], "depends_on": [], "spec": "005-shipped"}]' \
+  "$M/$CLOSED/initiative.md"
+git -C "$M" add .workflow && git -C "$M" commit -q -m "spec 005-shipped done in the Done folder; initiative 006-finished planned"
+git -C "$M" push -q origin main 2>/dev/null
+ctx=$(resume_offer "$M")
+check "JRN-004 a planned initiative whose emitted spec is done in the Done folder on main is not offered" \
+  '! offer_lines "$ctx" "$CLOSED" >/dev/null' "$ctx"
+check "JRN-004 a done spec in the Done folder is not offered as a spec" '! grep -q "005-shipped" <<<"$ctx"' "$ctx"
+yq --front-matter=process -i '.slices += [{"id": "S2", "title": "Also shipped", "status": "emitted", "questions": [], "depends_on": [], "spec": "007-also-shipped"}]' \
+  "$M/$CLOSED/initiative.md"
+git -C "$M" commit -q -am "initiative 006-finished: second slice emitted" && git -C "$M" push -q origin main 2>/dev/null
+check "JRN-004 a planned initiative with one emitted spec done in done/ and one done at the top level is not offered" \
+  '! offer_lines "$(resume_offer "$M")" "$CLOSED" >/dev/null'
+yq --front-matter=process -i '.status = "in-review"' "$M/$MOVED_SPEC/spec.md"
+git -C "$M" commit -q -am "fixture: 005-shipped back in review" && git -C "$M" push -q origin main 2>/dev/null
+check "JRN-004 a planned initiative whose spec in done/ is not done on main is still offered" \
+  'offer_lines "$(resume_offer "$M")" "$CLOSED" >/dev/null'
 
 shellcheck_files "JRN-004 shellcheck session-start-resume.sh" "$P/.agents/hooks/session-start-resume.sh"
 finish

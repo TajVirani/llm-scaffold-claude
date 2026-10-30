@@ -2,6 +2,10 @@
 # Suite: check-write.sh (feature-workflow/scripts): path classes and spec files.
 # Covers: Tier B and the .step marker, the .workflow/ prefixes and their look-alikes, spec.md per step (widened steps,
 #   --proposed edits, creation at 0.1.4), tasks.md (set-task is the only record writer) and .workflow/specs/work-backlog.
+#   JRN-004 (spec 007): every Write/Edit under .workflow/specs/done/** is denied for the main session and a sub-agent, from the
+#   main checkout and a worktree, in any case and as an absolute path, including done/.step, done/spec.md beside a stray
+#   done/.step at a spec writer step, and a glossary file inside a moved spec at a glossary step; one of the three hook classes
+#   denies it; the reason names the Done folder; look-alike folders (done-x/, 012-done/, a done/ inside a spec) stay unguarded.
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures
 # shellcheck source=../lib/common.sh
@@ -168,6 +172,45 @@ yq --front-matter=process -i '.status="done"' "$R/$D/spec.md"
 t "in-flight scan ignores work-backlog"     0 bash -c "CW --cwd '$R' --path .workflow/rules.md | grep -q 'no feature in flight'"
 rm -f "$R/.workflow/specs/work-backlog/spec.md"
 yq --front-matter=process -i '.status="in-progress"' "$R/$D/spec.md"
+
+echo "== check-write: the Done folder .workflow/specs/done/** (JRN-004, spec 007)"
+DN=.workflow/specs/done
+# any_guard_denies PATH [ARG...] : true when one of the three guard classes (--only spec, tier-a, tier-b), as the write-guard
+#   hooks call check-write.sh, denies PATH.
+any_guard_denies() {
+  local p=$1 only
+  shift
+  for only in spec tier-a tier-b; do
+    CW --cwd "$R" --path "$p" --only "$only" "$@" >/dev/null 2>&1
+    [ $? -eq 2 ] && return 0
+  done
+  return 1
+}
+# A stray marker in done/ itself would let done/spec.md through as a spec file at a writer step; the Done folder rule must win.
+mkdir -p "$R/$DN"
+printf 'step: "0.3.19"\nupdated_at: "2026-10-30T10:00:00Z"\n' >"$R/$DN/.step"
+ST step $D 5.3 >/dev/null
+t "control: .workflow/GLOSSARY.md at 5.3 allow"   0 CW --cwd "$R" --path .workflow/GLOSSARY.md
+for p in $DN/012-x/spec.md $DN/012-x/tasks.md $DN/012-x/tasks/T01-a.md $DN/012-x/design-log.md $DN/012-x/pr-body.md \
+  $DN/012-x/report.md $DN/012-x/codebase-map.md $DN/012-x/artifacts/T1/implementation.yaml $DN/00010-five/spec.md \
+  $DN/012-x/GLOSSARY.md $DN/spec.md $DN/README.md $DN/.step; do
+  t "done/** main session deny: $p"          2 CW --cwd "$R" --path "$p"
+  t "done/** sub-agent deny: $p"             2 CW --cwd "$R" --path "$p" --agent impl
+done
+t "done/** case-insensitive deny"           2 CW --cwd "$R" --path .Workflow/Specs/Done/012-x/design-log.md
+t "done/** absolute path deny"              2 CW --cwd "$R" --path "$R/$DN/012-x/pr-body.md"
+t "done/** from worktree, main session deny" 2 CW --cwd "$WT" --path "$WT/$DN/012-x/spec.md"
+t "done/** from worktree, sub-agent deny"   2 CW --cwd "$WT" --path "$WT/$DN/012-x/report.md" --agent impl
+for p in $DN/012-x/design-log.md $DN/012-x/pr-body.md $DN/012-x/spec.md $DN/spec.md; do
+  t "done/** a write-guard hook class denies: $p" 0 any_guard_denies "$p"
+  t "done/** a write-guard hook class denies a sub-agent: $p" 0 any_guard_denies "$p" --agent impl
+done
+t "done/** deny reason names the Done folder" 0 bash -c "CW --cwd '$R' --path $DN/012-x/design-log.md 2>&1 >/dev/null | grep -qi 'done folder'"
+for p in .workflow/specs/done-x/012-x/design-log.md .workflow/specs/012-done/design-log.md .workflow/specs/012-x/done/notes.md \
+  .workflow/specs/donex.md docs/specs/done/012-x/spec.md; do
+  t "done look-alike not guarded: $p"       0 CW --cwd "$R" --path "$p" --agent a1
+done
+rm -f "$R/$DN/.step"
 
 shellcheck_files "shellcheck: scripts under test" "$SRC/scripts/check-write.sh"
 finish
