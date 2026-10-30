@@ -345,7 +345,10 @@ eq "a \$(...) holding its own quotes inside a multi-line double-quoted string is
 eq "an anchored call inside a \$(...) in a multi-line double-quoted string still resolves" \
   "$(jq -r '[.modules[] | select(.source == "scripts/edge-forms.sh") | .dependencies[] | .resolved // empty] | join(",")' \
     <<<"$quotes" 2>/dev/null)" 'scripts/tool.sh'
-suite_self=$("$X" --root "$REPO_ROOT" --scope tests/scripts/extractor-bash.sh)
+suite_self=$("$X" --root "$REPO_ROOT" --scope tests/scripts/extractor-bash.sh); rc=$?
+eq "extractor exits 0 on this suite file" "$rc" 0
+eq "the extractor run on this suite claims the suite file" \
+  "$(jq -r '[.modules[].source] | join(",")' <<<"$suite_self" 2>/dev/null)" "tests/scripts/extractor-bash.sh"
 eq "the extractor run on this suite reports no ./x from the case-pattern jq program" \
   "$(jq -r '[.modules[].dependencies[] | select(.module == "./x" or .module == "(./x") | "\(.line) \(.module)"] | join(",")' \
     <<<"$suite_self" 2>/dev/null)" ""
