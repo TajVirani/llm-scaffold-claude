@@ -11,7 +11,9 @@
 #   existing repo file. A variable set to a runtime root plus a tail is followed one hop when exactly one of its two
 #   readings (as a subfolder of that root, or as a root itself) names an existing file. Anything else, and any target that is not an existing file, is `couldNotResolve: true` with the
 #   path text in `module`. Every dependency carries its 1-based `line`. Heredoc bodies are data and are not read, and
-#   neither are `case` arm patterns (`../*|/*)`); the commands in an arm body are read like any other line.
+#   neither are `case` arm patterns (`../*|/*)`); the commands in an arm body are read like any other line. Comments and
+#   the text of a quoted string that spans lines are not read either, except a `$(...)` inside a double-quoted one, which
+#   the shell runs; a quoted string on one line is read as before.
 #   `exports` maps each claimed file that another claimed file sources to its sorted unique column-0 function names.
 # Usage:
 #   extractors/bash.sh --root DIR --scope PATH [--scope PATH]...
@@ -83,7 +85,8 @@ BEGIN {
   shebang = "^#![ \t]*(/usr)?/bin/(env[ \t]+(-S[ \t]+)?)?(ba)?sh([ \t]|$)"
   var_name = "[A-Za-z_][A-Za-z0-9_]*"
   self_dir_forms = "\\$\\(dirname \\$(0|BASH_SOURCE|\\{BASH_SOURCE\\[0\\]\\})\\)|\\$\\{(0|BASH_SOURCE|BASH_SOURCE\\[0\\])%/\\*\\}"
-  OPEN = "\034"; CLOSE = "\035"
+  OPEN = "\034"; CLOSE = "\035"; QUOTED_TEXT = "\037"
+  heredoc_start = "^<<-?[ \t]*[\047\"\\\\]?[A-Za-z_][A-Za-z0-9_]*"
 }
 
 FNR == 1 {
@@ -93,7 +96,7 @@ FNR == 1 {
   file_dir = file
   if (!sub(/\/[^\/]*$/, "", file_dir)) file_dir = ""
   split("", dir_vars); split("", root_vars)
-  heredoc_end = ""; continues_mid_command = 0; open_quote = ""
+  heredoc_end = ""; continues_mid_command = 0; open_contexts = ""
   case_depth = 0; split("", case_state)
 }
 
@@ -106,13 +109,15 @@ heredoc_end != "" {
   next
 }
 
-/^[ \t]*#/ { next }
+# A line that starts with # inside an open quoted string is part of the string, so it must still move the quote state on.
+open_contexts == "" && /^[ \t]*#/ { next }
 
 {
   raw = $0
+  visible = code_outside_spanning_quotes(raw)
   continued_mid_command = continues_mid_command
   # After an operator such as `&& \` the next line starts a new command; after a word it carries on the same one.
-  continues_mid_command = (raw ~ /\\$/ && raw !~ /(&&|\|\||\||;|\()[ \t]*\\$/)
+  continues_mid_command = (visible ~ /\\$/ && visible !~ /(&&|\|\||\||;|\()[ \t]*\\$/)
   if (match(raw, "^(function[ \t]+" var_name "|" var_name "[ \t]*\\(\\))")) {
     fn = substr(raw, 1, RLENGTH)
     sub(/^function[ \t]+/, "", fn)
@@ -120,7 +125,7 @@ heredoc_end != "" {
     functions[file, fn] = 1
   }
 
-  code = blank_case_patterns(raw)
+  code = blank_case_patterns(visible)
   line = fold_dir_expressions(strip_redirections(unbrace(remove_double_quotes(code))))
   if (match(line, "^[ \t]*(local|export|readonly|declare|typeset)?([ \t]+-[A-Za-z]+)*[ \t]*" var_name "=")) {
     assignment = substr(line, RSTART, RLENGTH)
@@ -163,10 +168,12 @@ heredoc_end != "" {
   }
 
   # Without the (( guard an arithmetic shift such as (( n = 1 << k )) reads as a heredoc and skips the rest of the file.
-  if (raw !~ /\(\(/ && match(raw, /(^|[^<])<<-?[ \t]*[\047"\\]?[A-Za-z_][A-Za-z0-9_]*/)) {
-    marker = substr(raw, RSTART, RLENGTH)
+  if (raw !~ /\(\(/ && heredoc_start_at) {
+    marker = substr(raw, heredoc_start_at)
+    match(marker, heredoc_start)
+    marker = substr(marker, 1, RLENGTH)
     heredoc_strips_tabs = (marker ~ /<<-/)
-    sub(/^.*<<-?[ \t]*[\047"\\]?/, "", marker)
+    sub(/^<<-?[ \t]*[\047"\\]?/, "", marker)
     heredoc_end = marker
   }
 }
@@ -176,6 +183,78 @@ END {
     split(key, parts, SUBSEP)
     if (parts[1] in sourced) print "F\t" parts[1] "\t" parts[2]
   }
+}
+
+# code_outside_spanning_quotes TEXT : raw line TEXT as every reader sees it. The text of a quoted string that spans lines,
+# quotes included, becomes one QUOTED_TEXT character per run, which holds the place of the text in its word without being
+# a path itself; a `$(...)` inside such a double-quoted string is kept, padded with blanks, because the shell runs it. A
+# string that opens and closes on this line is kept as written, and a comment is dropped. Moves open_contexts on to the
+# state after the line and sets heredoc_start_at to where an unquoted heredoc operator starts, or 0.
+function code_outside_spanning_quotes(text,   still_open_at_end, final_contexts) {
+  final_contexts = walk_quotes(text, still_open_at_end, 0)
+  walk_quotes(text, still_open_at_end, 1)
+  open_contexts = final_contexts
+  return walked_text
+}
+
+# walk_quotes TEXT STILL_OPEN_AT_END REWRITING : the quote contexts still open after raw line TEXT, starting from those in
+# open_contexts, one character each: \047 a single-quoted string, " a double-quoted one, $ an ANSI-C string (a $ then a
+# single quote, where a backslash escapes the quote), ( a command substitution inside a double-quoted string.
+# Each context opened on the line gets a number in opening order. With REWRITING 0 it marks in STILL_OPEN_AT_END
+# the numbers left open at the end of the line; with REWRITING 1 it reads those marks to tell a string that spans lines
+# from one that does not, puts the rewritten line in walked_text and sets heredoc_start_at.
+function walk_quotes(text, still_open_at_end, rewriting,   depth, kind, spans, number, opened_count, n, i, ch, inner, c, final) {
+  depth = length(open_contexts)
+  for (c = 1; c <= depth; c++) { kind[c] = substr(open_contexts, c, 1); spans[c] = (kind[c] != "("); number[c] = 0 }
+  opened_count = 0; walked_text = ""; heredoc_start_at = 0
+  n = length(text)
+  for (i = 1; i <= n; i++) {
+    ch = substr(text, i, 1)
+    inner = depth ? kind[depth] : ""
+    if (inner == "\047") {
+      keep_or_hide(ch, spans[depth])
+      if (ch == "\047") depth--
+    } else if (inner == "\"" || inner == "$") {
+      if (ch == "\\") { keep_or_hide(substr(text, i, 2), spans[depth]); i++ }
+      else if (inner == "\"" && substr(text, i, 2) == "$(") {
+        keep_or_hide(spans[depth] ? " $(" : "$(", 0); i++
+        kind[++depth] = "("; spans[depth] = 0; number[depth] = ++opened_count
+      } else {
+        keep_or_hide(ch, spans[depth])
+        if (ch == (inner == "$" ? "\047" : "\"")) depth--
+      }
+    } else if (ch == "\\") {
+      keep_or_hide(substr(text, i, 2), 0); i++
+    } else if (ch == "#" && (i == 1 || substr(text, i - 1, 1) ~ /[ \t;&|()]/)) {
+      break
+    } else if (ch == "\047" || ch == "\"" || (ch == "$" && substr(text, i + 1, 1) == "\047")) {
+      if (ch == "$") { ch = "$\047"; i++ }
+      kind[++depth] = substr(ch, 1, 1); number[depth] = ++opened_count
+      spans[depth] = rewriting && (number[depth] in still_open_at_end)
+      keep_or_hide(ch, spans[depth])
+    } else if (inner == "(" && ch == "(") {
+      keep_or_hide(ch, 0)
+      kind[++depth] = "("; spans[depth] = 0; number[depth] = ++opened_count
+    } else if (inner == "(" && ch == ")") {
+      depth--
+      keep_or_hide(spans[depth] ? ") " : ")", 0)
+    } else if (substr(text, i, 3) == "<<<") {
+      keep_or_hide("<<<", 0); i += 2
+    } else {
+      if (!heredoc_start_at && substr(text, i) ~ heredoc_start) heredoc_start_at = i
+      keep_or_hide(ch, 0)
+    }
+  }
+  if (!rewriting) for (c = 1; c <= depth; c++) if (number[c]) still_open_at_end[number[c]] = 1
+  final = ""
+  for (c = 1; c <= depth; c++) final = final kind[c]
+  return final
+}
+
+# keep_or_hide TEXT HIDDEN : appends TEXT to walked_text, or a single QUOTED_TEXT for a run of hidden text.
+function keep_or_hide(text, hidden) {
+  if (!hidden) walked_text = walked_text text
+  else if (substr(walked_text, length(walked_text)) != QUOTED_TEXT) walked_text = walked_text QUOTED_TEXT
 }
 
 # remove_double_quotes TEXT : TEXT without double quotes, so quoted and unquoted paths read the same.
@@ -315,13 +394,13 @@ function is_claimed_script(path,   first_line, read_status) {
   return (path in has_shebang)
 }
 
-# blank_case_patterns TEXT : raw line TEXT with the pattern list of each `case` arm, up to and including its first unquoted
+# blank_case_patterns TEXT : line TEXT with the pattern list of each `case` arm, up to and including its first unquoted
 # `)`, turned into blanks, so a pattern such as ../*|/*) is never read as a script call. Arm bodies are kept, since their
 # commands are calls. A pattern after other code on the line starts with `;` instead, so the body after it reads as a new
 # command. case_depth and case_state (head, pattern, in_pattern or body) carry the open case statements across lines.
 function blank_case_patterns(text,   out, n, i, ch, quote, at_command_start, word, state) {
   if (case_depth == 0 && text !~ /(^|[ \t;&|({])case([ \t]|$)/) return text
-  out = ""; quote = open_quote; at_command_start = 1
+  out = ""; quote = ""; at_command_start = 1
   n = length(text)
   i = 1
   while (i <= n) {
@@ -383,8 +462,8 @@ function word_at(text, i,   rest) {
 
 # split_commands TEXT COMMANDS OPENED : the count of commands TEXT holds, each put in COMMANDS without its leading
 # keywords and variable assignments; OPENED[c] is 1 when command c starts inside `(` or `$(`.
-# Quoted text is not a command, so single-quoted strings are dropped, and a quote left open starts a string that runs
-# on past this line. An array assignment `=(` and an arithmetic `((...))` do not start a command.
+# Quoted text is not a command, so single-quoted strings are dropped, and so is the rest of the line after a quote this
+# simple pairing leaves open. An array assignment `=(` and an arithmetic `((...))` do not start a command.
 function split_commands(text, commands, opened,   command_count, c) {
   gsub(/\047[^\047]*\047/, "", text)
   sub(/\047.*$/, "", text)
@@ -428,45 +507,41 @@ function report_cwd_relative_calls(text,   command_count, commands, opened, c, w
   }
 }
 
-# unquoted_code TEXT : raw line TEXT with single-quoted strings and double-quoted strings holding a space or tab dropped,
-# and the quotes of the other double-quoted strings removed. Quotes are paired left to right, and a string left open runs
-# on into the next lines, kept in open_quote; quote_opened_before is 1 when TEXT starts inside such a string.
-function unquoted_code(text,   out, span, span_carried, i, ch) {
-  out = ""; span = ""
-  quote_opened_before = (open_quote != "")
-  span_carried = quote_opened_before
+# unquoted_code TEXT : line TEXT with single-quoted strings and double-quoted strings holding a space or tab dropped,
+# and the quotes of the other double-quoted strings removed. Quotes are paired left to right within the line.
+function unquoted_code(text,   out, span, quote, i, ch) {
+  out = ""; span = ""; quote = ""
   for (i = 1; i <= length(text); i++) {
     ch = substr(text, i, 1)
-    if (open_quote == "\047") {
-      if (ch == "\047") open_quote = ""
+    if (quote == "\047") {
+      if (ch == "\047") quote = ""
     } else if (ch == "\\" && i < length(text)) {
       i++
-      if (open_quote == "\"") span = span ch substr(text, i, 1)
+      if (quote == "\"") span = span ch substr(text, i, 1)
       else out = out ch substr(text, i, 1)
-    } else if (open_quote == "\"") {
+    } else if (quote == "\"") {
       if (ch != "\"") span = span ch
       else {
-        # A span begun on an earlier line counts as holding a space, so the tail of a multi-line string is not read as a command.
-        out = out ((span ~ /[ \t]/ || span_carried) ? " " : span)
-        open_quote = ""; span = ""; span_carried = 0
+        out = out ((span ~ /[ \t]/) ? " " : span)
+        quote = ""; span = ""
       }
-    } else if (ch == "\047" || ch == "\"") open_quote = ch
+    } else if (ch == "\047" || ch == "\"") quote = ch
     else out = out ch
   }
   return out
 }
 
-# report_bare_relative_calls TEXT CONTINUED_MID_COMMAND : prints an unresolved E record for each command of raw line
+# report_bare_relative_calls TEXT CONTINUED_MID_COMMAND : prints an unresolved E record for each command of line
 # TEXT that is a plain relative path with a folder and no leading `./` (`scripts/x.sh`), which also resolves against the
 # working directory. Such words are common in prose and data, so only a plain path counts (no glob, trailing `/`, `:` or
 # `,`); quoted text goes as unquoted_code says; a line CONTINUED_MID_COMMAND (the one before ended in `\` after a word,
-# not after an operator), or one that starts inside a quoted string, does not start a command; and a word closed by `)`
-# is a case pattern unless the command opened with `(`.
+# not after an operator) does not start a command; and a word closed by `)` is a case pattern unless the command opened
+# with `(`.
 function report_bare_relative_calls(text, continued_mid_command,   command_count, commands, opened, c, first_word) {
   text = strip_redirections(unquoted_code(text))
   command_count = split_commands(text, commands, opened)
   for (c = 1; c <= command_count; c++) {
-    if (c == 1 && (continued_mid_command || quote_opened_before)) continue
+    if (c == 1 && continued_mid_command) continue
     first_word = commands[c]
     sub(/[ \t].*$/, "", first_word)
     if (first_word ~ /\)$/ && !opened[c]) continue
