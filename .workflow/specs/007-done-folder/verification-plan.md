@@ -44,7 +44,43 @@ No running application: each journey is a harness suite run against a fixture pr
 
 ## Targets
 
-<Filled at 1.1.>
+<!-- 1.1. Measured by review-targets (4.3); reported in report.md "Targets vs measured". -->
+
+Run every command in bash from the repo root on a clean checkout of the feature's HEAD. `BASE` is the baseline:
+
+```bash
+BASE=$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/007-done-folder/spec.md 2>/dev/null || yq --front-matter=extract '.baseline_revision' .workflow/specs/007-done-folder/spec.md)
+```
+
+| Id | Kind | Target | Threshold | Command | Source |
+| --- | --- | --- | --- | --- | --- |
+| TGT-001 | errors | Script lint clean | exit 0; 0 shellcheck findings | `script-lint` below (the `lint` key of the shell-scripts profile) | `.workflow/profiles/shell-scripts.md` § Toolchain |
+| TGT-002 | errors | Harness lint clean | exit 0; 0 shellcheck findings | `harness-lint` below (the `lint` key of the test-harness profile) | `.workflow/profiles/test-harness.md` § Toolchain |
+| TGT-003 | errors | Agent-docs lint clean | exit 0; each lint suite reports 0 failed | `agent-docs-lint` below (the `lint` key of the agent-docs profile) | `.workflow/profiles/agent-docs.md` § Toolchain |
+| TGT-004 | errors | Literal Done folder paths in scripts outside the path library | `0` printed | `done-literal` below | `spec.md` Constraints ("The Done folder path is built from `WF_SPECS` ... never a literal") |
+| TGT-005 | coverage | Scripts added or changed since the baseline that no suite names | `0` printed | `script-coverage` below | `.workflow/profiles/test-harness.md` § Mini-review checklist ("A new or changed script has a suite") |
+| TGT-006 | coverage | Files added under `.agents/` since the baseline missing from the manifest (or a listed directory) or from `PROVENANCE.md` | `0` printed | `asset-coverage` below | `.workflow/rules.md` § Cross-cutting policy (manifest, PROVENANCE) |
+| TGT-007 | performance | Wall time of `move-to-done.sh --sweep` on a scratch clone at the baseline (moves 001-006 and 008, rewrites their links) | real ≤ 30 s, best of 3 | `sweep-time` below: a fresh clone per run, the HEAD `.agents/` copied in, only the sweep timed | Stakeholder decision 2026-10-30 (1.1) |
+| TGT-008 | coverage | Line coverage of changed shell code | not measured | Cannot be measured: no bash coverage tool is installed and the scaffold bans new dependencies. TGT-005 and the 3.7 profile checklist stand in for it. | Stakeholder decision 2026-10-30 (1.1) |
+
+Commands referenced above (pipes keep them out of the table cells):
+
+```bash
+# script-lint
+git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+# harness-lint
+git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+# agent-docs-lint
+tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage
+# done-literal: script lines naming specs/done outside workflow-paths.sh; the threshold is 0
+git grep -n -E 'specs/done' -- '.agents/hooks/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | grep -v -E '^[^:]+:[0-9]+:[[:space:]]*#' | wc -l | tr -d ' '
+# script-coverage: prints the count of uncovered scripts; the threshold is 0
+git diff --name-only --diff-filter=AM "$BASE"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- "$(basename "$f")" tests/ || echo "$f"; done | wc -l | tr -d ' '
+# asset-coverage: prints the count of new .agents/ files missing from the manifest or PROVENANCE.md; the threshold is 0
+git diff --name-only --diff-filter=A "$BASE"..HEAD -- .agents | while read -r f; do r=${f#.agents/}; m=0; while IFS= read -r l; do case "$r" in "$l"|"${l%/}"/*) m=1;; esac; done < .agents/install-manifest.txt; [ "$m" = 1 ] || echo "manifest: $f"; grep -qF -- "$(basename "$f")" PROVENANCE.md || echo "provenance: $f"; done | wc -l | tr -d ' '
+# sweep-time: the smallest real value must be at most 30
+for i in 1 2 3; do tmp=$(mktemp -d); git clone -q . "$tmp/r" && git -C "$tmp/r" checkout -q "$BASE" && rm -rf "$tmp/r/.agents" && cp -R .agents "$tmp/r/.agents" && (cd "$tmp/r" && /usr/bin/time -p .agents/skills/feature-workflow/scripts/move-to-done.sh --sweep >/dev/null) 2>&1 | awk '/^real/{print $2}'; rm -rf "$tmp"; done | sort -n | head -1
+```
 
 ## Suites
 

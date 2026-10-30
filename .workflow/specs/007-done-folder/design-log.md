@@ -166,3 +166,8 @@ Seeded by the module-audit refresh: after the move the D11 deny blocks every Wri
 ## 2026-10-30 Exit gate 0.6 (after rounds 4-5)
 
 - Scope: clear (Non-goals and `deferred` list sign-off-scoped-commit and launch-against-done-spec; no open questions). System impact: clear (module-audit refresh in codebase-map; the five `cache disagrees with code` lines resolved by republishing all three caches at 9e971ad and refreshing retrieval). Data changes: clear (data-model M1-M4, pr-body row). Testable objectives: clear (CAP-NEW-done-folder has 15 objectives and JRN-001-JRN-007).
+
+## 2026-10-30 Targets (1.1)
+
+- Main-moved contracts read at 1.1 (see "Contracts changed under the spec" above); none further.
+- Sweep time threshold: options ≤ 5 s, ≤ 10 s (recommended), ≤ 30 s. Answer: "≤ 30 s". Line coverage: "Not measured" (recommended). TGT-001-TGT-008 written; TGT-004 enforces the no-literal constraint.
