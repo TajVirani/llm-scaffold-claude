@@ -12,7 +12,10 @@
 #   tests/run-all.sh -v               print each suite's full output (default: only failures and xfail lines); when a suite
 #                                     failed, the run ends with a "== failures" block of every FAIL line and its detail
 # Output is printed suite by suite in --list order whatever -j is, so a parallel run reads like a serial one.
-# Exit: 0 all suites passed; 1 any suite failed; 2 missing prerequisite, unknown suite or selector, or bad argument.
+# Interrupted by INT, TERM or HUP, the runner stops every running suite and its child processes, removes its results
+# directory and prints no summary.
+# Exit: 0 all suites passed; 1 any suite failed; 2 missing prerequisite, unknown suite or selector, or bad argument;
+#   130, 143 or 129 interrupted by INT, TERM or HUP.
 # Requires: bash 3.2+, git, jq, mikefarah yq v4, shellcheck (a missing shellcheck fails the run here;
 #   a suite run directly skips its shellcheck assertion instead).
 
@@ -68,7 +71,7 @@ while [ $# -gt 0 ]; do
     --list) list=1 ;;
     -v | --verbose) verbose=1 ;;
     -h | --help)
-      sed -n '/^# Usage:/,/^# Exit:/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      sed -n '/^# Usage:/,/^# Requires:/p' "${BASH_SOURCE[0]}" | sed '$d; s/^# \{0,1\}//'
       exit 0
       ;;
     *) usage_error "unknown argument: $1" ;;
@@ -178,18 +181,71 @@ failed_suites=()
 failed_indexes=()
 rows=()
 
+# The pid of each started suite's process group leader, by suite index, so an interrupted run can stop it.
+suite_pids=()
+
 # start_suite INDEX FILE : run one suite in the background. Its log goes to INDEX.log; INDEX.done appears last,
 # holding "rc seconds", and is written by rename so the reporter never reads it half written.
+# Job control is on only for the launch, which puts the suite in its own process group, so stopping that group stops
+# the suite's child processes too. Left on, it would print a job notice as each suite ends. With job control on, bash
+# no longer gives a background job /dev/null as stdin, so the launch does: a suite reading stdin would otherwise take
+# the caller's input, or stop the whole run by reading from the terminal.
 start_suite() {
   local index=$1 file=$2
+  set -m
   (
     start=$(date +%s)
     bash "$file" >"$results/$index.log" 2>&1
     rc=$?
     printf '%s %s\n' "$rc" "$(($(date +%s) - start))" >"$results/$index.tmp"
     mv "$results/$index.tmp" "$results/$index.done"
-  ) &
+  ) </dev/null &
+  suite_pids[index]=$!
+  set +m
 }
+
+# running_suite_groups : the process group of every started suite that has not written its .done file.
+# shellcheck disable=SC2329  # called from the signal traps below
+running_suite_groups() {
+  local index
+  # The guard matches the one on rows in the summary below, where bash 3.2 fails set -u on the values form of an empty
+  # array; here it covers any bash that treats this indices form the same way.
+  for index in ${suite_pids[@]+"${!suite_pids[@]}"}; do
+    [ -e "$results/$index.done" ] || printf '%s\n' "${suite_pids[$index]}"
+  done
+}
+
+# any_group_alive PGID... : true while any process in any of the groups is alive.
+# shellcheck disable=SC2329  # called from the signal traps below
+any_group_alive() {
+  local group
+  for group in "$@"; do
+    kill -0 -- "-$group" 2>/dev/null && return 0
+  done
+  return 1
+}
+
+# stop_and_exit EXIT_CODE : on INT, TERM or HUP, stop every running suite and its children, then exit. Suites get TERM
+# first so their own cleanup traps can remove their temp dirs, and KILL only if they are still alive after 2 seconds.
+# shellcheck disable=SC2329  # called from the signal traps below
+stop_and_exit() {
+  local code=$1 groups=() group tries=0
+  trap '' INT TERM HUP
+  while IFS= read -r group; do groups+=("$group"); done < <(running_suite_groups)
+  if [ "${#groups[@]}" -gt 0 ]; then
+    for group in "${groups[@]}"; do kill -TERM -- "-$group" 2>/dev/null; done
+    while any_group_alive "${groups[@]}" && [ "$tries" -lt 20 ]; do
+      sleep 0.1
+      tries=$((tries + 1))
+    done
+    for group in "${groups[@]}"; do kill -KILL -- "-$group" 2>/dev/null; done
+  fi
+  rm -rf "$results"
+  exit "$code"
+}
+trap 'stop_and_exit 130' INT
+trap 'stop_and_exit 143' TERM
+trap 'stop_and_exit 129' HUP
 
 finished_count() {
   local done_file count=0

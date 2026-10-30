@@ -5,7 +5,10 @@
 #   unknown name exits 2), -j validation, concurrent runs by default and serial with -j 1 (judged by whether the
 #   suites' recorded run times overlap, never by elapsed time), output in glob order identical to a serial run apart
 #   from timings, largest-file-first start order with glob-order output, -v printing full logs and ending with a
-#   failures block only when a suite failed (a failed suite with no FAIL line shows its RESULT line), exit codes 0 / 1.
+#   failures block only when a suite failed (a failed suite with no FAIL line shows its RESULT line), exit codes 0 / 1,
+#   a suite reading stdin getting end of file rather than the caller's input, and INT, TERM or HUP sent mid-run
+#   (exit 130, 143 or 129, the suite and its child sleep stopped, the results directory removed; the INT case is
+#   skipped when this suite itself started with SIGINT ignored).
 # The runner is copied into a fixture tree with stub suites, so this suite never runs the real harness.
 # shellcheck disable=SC2016  # check expressions are single-quoted so check evaluates them
 # shellcheck source=../lib/common.sh
@@ -238,10 +241,126 @@ run_all -j 1 --suite lint/early --suite lint/late
 eq "suites start largest file first" "$(tr '\n' ' ' <"$starts")" "late early "
 eq "output stays in glob order when the start order differs" "$(summary_labels)" "lint/early lint/late"
 
+# Suite stdin: a suite reading stdin must get end of file, never the caller's input, even when the runner's stdin is
+# a pipe holding data. From a terminal such a read would stop the whole run.
+{
+  printf '#!/usr/bin/env bash\n'
+  printf 'if IFS= read -r line; then printf "read %%s\\n" "$line"; else echo "end of file"; fi >"%s/reader.stdin"\n' \
+    "$MARKERS"
+  printf 'printf "\\nRESULT passed=1 failed=0 skipped=0 xfail=0\\n"\n'
+} >"$FIXTURE_TESTS/lint/reader.sh"
+OUT=$(printf 'caller input\n' | bash "$RUNNER" --suite lint/reader 2>&1)
+eq "a suite reading stdin gets end of file while the runner's stdin is a pipe with data" \
+  "$(cat "$MARKERS/reader.stdin")" "end of file"
+
+# Interrupts. The sleeper suite backgrounds a long sleep and records its own pid and the sleep's pid. The sleep is a
+# grandchild of the runner's suite launcher, so a runner that stops only the suites' own processes leaves it running.
+{
+  printf '#!/usr/bin/env bash\n'
+  printf 'echo "$$" >"%s/suite.pid"\n' "$MARKERS"
+  printf 'sleep 30 &\n'
+  printf 'echo "$!" >"%s/sleep.pid"\n' "$MARKERS"
+  printf 'wait\n'
+} >"$FIXTURE_TESTS/lint/sleeper.sh"
+
+# wait_for_file FILE : true once FILE exists and is not empty, false after about 10 seconds without it.
+wait_for_file() {
+  local tries=0
+  while [ ! -s "$1" ]; do
+    [ "$tries" -lt 100 ] || return 1
+    sleep 0.1
+    tries=$((tries + 1))
+  done
+}
+
+# process_gone PID : true once PID is no longer alive, false while it still is after about 2 seconds. The wait
+# covers the moment between a killed process's death and its parent reaping it.
+# shellcheck disable=SC2329  # run through t, which shellcheck cannot see into
+process_gone() {
+  local tries=0
+  while kill -0 "$1" 2>/dev/null; do
+    [ "$tries" -lt 20 ] || return 1
+    sleep 0.1
+    tries=$((tries + 1))
+  done
+}
+
+# start_in_own_group CMD... : start CMD in the background in its own process group and set STARTED_PID. A plain
+# background job of a non-interactive shell starts with SIGINT ignored, and bash cannot trap a signal that was ignored
+# when it started; a job started with job control on keeps SIGINT deliverable.
+start_in_own_group() {
+  set -m
+  "$@" &
+  STARTED_PID=$!
+  set +m
+}
+
+# sigint_reaches_new_jobs : true when a job started by start_in_own_group can trap SIGINT. It cannot when this suite
+# itself was started with SIGINT ignored, because every job it starts inherits that.
+sigint_reaches_new_jobs() {
+  start_in_own_group bash -c 'trap "exit 7" INT; kill -INT "$$"; exit 0'
+  wait "$STARTED_PID"
+  [ $? -eq 7 ]
+}
+
+# results_dirs TMP : the runner results directories under TMP, one per line.
+results_dirs() { find "$1" -maxdepth 1 -name 'scaffold-tests.*' -type d; }
+
+# interrupt_runner SIGNAL : start the fixture runner on the sleeper suite with TMPDIR inside the work dir, send SIGNAL
+# to the runner once the sleep is running, and set INTERRUPT_RC, SUITE_PID, SLEEP_PID, RESULTS_DURING and
+# RESULTS_AFTER. A runner still alive 10 seconds after the signal is killed with its process group so the suite moves on.
+interrupt_runner() {
+  local signal=$1 tmp=$WORK/tmp-$1 tries=0
+  mkdir -p "$tmp"
+  rm -f "$MARKERS"/*
+  SUITE_PID="" SLEEP_PID=""
+  start_in_own_group env TMPDIR="$tmp" bash "$RUNNER" --suite lint/sleeper
+  if wait_for_file "$MARKERS/sleep.pid"; then
+    SUITE_PID=$(cat "$MARKERS/suite.pid")
+    SLEEP_PID=$(cat "$MARKERS/sleep.pid")
+  fi
+  RESULTS_DURING=$(results_dirs "$tmp")
+  kill -"$signal" "$STARTED_PID"
+  while kill -0 "$STARTED_PID" 2>/dev/null && [ "$tries" -lt 100 ]; do
+    sleep 0.1
+    tries=$((tries + 1))
+  done
+  # Only a runner that ignored the signal is killed here: killing its group after it exited could stop suite
+  # processes the runner left behind and hide them from the checks.
+  if kill -0 "$STARTED_PID" 2>/dev/null; then kill -KILL -- "-$STARTED_PID" 2>/dev/null; fi
+  wait "$STARTED_PID"
+  INTERRUPT_RC=$?
+  RESULTS_AFTER=$(results_dirs "$tmp")
+}
+
+# check_interrupt SIGNAL WANT_RC : one interrupt case and its checks.
+check_interrupt() {
+  local signal=$1 want=$2
+  interrupt_runner "$signal"
+  eq "$signal to the runner while a suite runs exits $want" "$INTERRUPT_RC" "$want"
+  t "the sleeper suite was running when $signal was sent" 0 test -n "$SLEEP_PID"
+  t "after $signal the suite's process is gone" 0 process_gone "$SUITE_PID"
+  t "after $signal the suite's child sleep is gone" 0 process_gone "$SLEEP_PID"
+  t "the runner's results directory existed while the suite ran ($signal case)" 0 test -n "$RESULTS_DURING"
+  eq "after $signal the runner's results directory is gone" "$RESULTS_AFTER" ""
+  # A failed case must not leave its 30-second sleep behind.
+  kill -KILL ${SUITE_PID:+"$SUITE_PID"} ${SLEEP_PID:+"$SLEEP_PID"} 2>/dev/null
+}
+
+if sigint_reaches_new_jobs; then
+  check_interrupt INT 130
+else
+  skip "INT to the runner while a suite runs" "this suite started with SIGINT ignored, so no job it starts can trap it"
+fi
+check_interrupt TERM 143
+check_interrupt HUP 129
+
 # Help
 run_all --help
 check "the usage header documents --only-file, --exclude-file and -j" \
   '[[ "$OUT" == *--only-file* && "$OUT" == *--exclude-file* && "$OUT" == *"-j N"* ]]' "$OUT"
+check "the usage text documents the interrupt exit codes" \
+  '[[ "$OUT" == *"130, 143 or 129 interrupted by INT, TERM or HUP"* ]]' "$OUT"
 
 shellcheck_files "run-all.sh and this suite are shellcheck clean" "$TESTS_DIR/run-all.sh" "${BASH_SOURCE[0]}"
 

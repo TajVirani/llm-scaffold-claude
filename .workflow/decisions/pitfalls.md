@@ -14,6 +14,12 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Give a job started under set -m its own stdin
+- What happened: turning job control on (`set -m`) to start each harness suite in its own process group also stopped bash from giving the background job `/dev/null` as stdin, so suites read the runner's stdin (a terminal read would stop the run with SIGTTIN; a pipe's input would be consumed). Found by review (F1, medium), fixed in rework 1.
+- Where: `tests/run-all.sh` `start_suite`
+- Spec: .workflow/specs/00011-interrupted-run-cleanup
+- Prevented by: the stdin end-of-file check in `tests/scripts/run-all-selection.sh`
+
 ## Name no `.workflow/` path in an installed asset
 - What happened: the shipped `assets/pr-template.md` issue stub named `.workflow/deferred/spec-issue-creation.md`, a file only this scaffold repo holds, so every target project's Sign-off PR would cite a dead path (F1, medium, a rework); the T6 fix round then failed mini-review R4 for naming `.workflow/deferred/` in the same template's guidance.
 - Where: `.agents/skills/*/assets/` (installed into target projects)

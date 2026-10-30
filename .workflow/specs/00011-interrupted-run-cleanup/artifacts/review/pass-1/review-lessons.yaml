@@ -1,0 +1,19 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "3fee587d96a73c6c2692e3cb534b5883aa7c7324"
+head: "d30834741ed085a695372015632f200bb4b9a06e"
+findings: []
+checked:
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/review-lessons.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/decisions/pitfalls.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/decisions/retrospectives/002-review-lessons.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/decisions/retrospectives/003-bash-cache-extractor.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/decisions/retrospectives/004-scoped-test-runs.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/decisions/retrospectives/005-cache-build-followups.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/decisions/retrospectives/006-result-file-guard.md"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/decisions/retrospectives/008-pr-description-template.md"
+  - "Review lessons RL-001 to RL-005: no file in the diff matches their paths, so nothing to check. RL-006 (paths tests/**): the hunks in tests/run-all.sh and tests/scripts/run-all-selection.sh do not extract a command from an agent doc, so no repeat."
+not_checked:
+  - "Cache staleness, suspicion under 80: .workflow/cache/architecture.md, flows.md and modules.md record generated_at_commit 58019c8, before the in-scope tests/ commits 0e1fb4d, ba1cf2f and 1d0d72e. That is the shape of retrospective 005's process lesson (a change after a cache run leaves the architecture cache stale before 5.8). It is not scored higher because the caches are republished at sign-off by design. Would settle: whether 5.8 republishes the caches before sign-off, and whether the 005 action item was meant to cover this ordering."
+  - "Wall-clock budgets, suspicion under 80: the new interrupt checks in tests/scripts/run-all-selection.sh (process_gone with about 2 s, wait_for_file with about 10 s) resemble pitfall 'Never overlap a 3.9 gate with an agent's full-harness run', whose Where names this file. They are deadlines rather than elapsed-time comparisons, so the same mistake is not clearly repeated. Would settle: running tests/run-all.sh under CPU load (for example with -j 4 alongside a second harness run) and checking whether the interrupt checks fail."
