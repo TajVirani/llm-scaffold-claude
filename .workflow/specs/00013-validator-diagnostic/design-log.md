@@ -14,9 +14,9 @@ Spec: [spec.md](spec.md)
 - Why not a blocker (from the item): no file is ever corrupted: the prepared copy is discarded before the move, so a misreported cause costs a diagnostic, not data.
 - Suggested scope and size (from the item): in both writers, capture the validator's stderr and append it to the refusal message (or print it after the refusal line), with one suite case per writer that feeds a broken validator expression and expects the diagnostic. Leaves out any change to the validators themselves. One task in the feature-workflow module, two scripts and two suites.
 
-## 2026-10-30 New capability: CAP-NEW-validator-diagnostic
+## 2026-10-30 New capability: CAP-009
 
-No capability in `.workflow/capabilities.md` covers the single writers or their validators (0.3.1 No), so the spec carries the provisional `CAP-NEW-validator-diagnostic` until 5.3. Owning module: `feature-workflow` (both scripts); the suites under `tests` accompany it. No placement ADR (0.3.3 Yes).
+No capability in `.workflow/capabilities.md` covers the single writers or their validators (0.3.1 No), so the spec carries the provisional `CAP-009` until 5.3. Owning module: `feature-workflow` (both scripts); the suites under `tests` accompany it. No placement ADR (0.3.3 Yes).
 
 ## 2026-10-30 Deeper prompt
 
@@ -86,3 +86,10 @@ Lenses: review-standards, review-end-state, review-lessons (0 findings each); no
 
 Failed lenses: none
 Outcome: clean, to sign-off
+
+## 2026-10-30 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes
+- PR description: approved. Changes asked before approval: none
+- Backlog: no open items
+- Going-in concerns: none

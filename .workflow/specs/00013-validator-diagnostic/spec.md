@@ -1,5 +1,5 @@
 ---
-status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: done # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "7b0ccebe3e9e0616e5897479915113897dc40fbe" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/00013-validator-diagnostic # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "7b0ccebe3e9e0616e5897479915113897dc40fbe" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
@@ -20,7 +20,7 @@ Both single writers, `status-transition.sh` (spec task records) and `initiative-
 
 ## Capabilities
 
-- **CAP-NEW-validator-diagnostic** Single writers report a broken validator
+- **CAP-009** Single writers report a broken validator
   - **intent:** A caller of `status-transition.sh set-task` or `initiative-transition.sh` can tell a write the template validator rejected from a validator that could not run, from the exit code and yq's own message.
   - **success:** With a PATH yq shim that fails only the validator call, each writer exits 1, its stderr includes the shim's diagnostic, the target file is byte-identical and no prepared copy is left; an ordinary rejection keeps today's message (with no `Error:` text from yq) and exit code (1 for status-transition, 2 for initiative-transition).
 

@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Report a broken validator with yq's diagnostic in both single writers"
     status: done
-    capability: CAP-NEW-validator-diagnostic
+    capability: CAP-009
     depends_on: []
     touches_core: false
     work_type: shell-scripts
