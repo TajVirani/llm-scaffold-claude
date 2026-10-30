@@ -97,3 +97,72 @@ Seeded by the module audit ([codebase-map.md](codebase-map.md) Module audit), wh
 - Supersedes the `unchanged` line of the first classification for `check-write.sh`: now **extend** (D11, a `done` class denying every write under `specs/done/**`).
 - extend: `large-path.md` 6.13 runs the rewrite on the initiative branch (D10); `review-lessons.sh` and `assets/review-lessons.md` header take the `wf_norm_folder` slug class (D13).
 - 0.4.7: no remaining conflict with the goal or placement; the audit already read every part named here, so no second audit.
+
+## 2026-10-30 Main moved since handoff
+
+- Main: 02bc218..581e785 (main). Specs 006-result-file-guard and 008-pr-description-template merged, plus quick fix f436aed; 43 files in the affected area (`git diff --stat 02bc218..581e785 -- <affected paths>`).
+- Commit f436aed Accept any spec number length; number new specs with five digits
+- Commit b20dabe feat(sign-off): fill, approve and publish the Sign-off PR description (with 46d8e9f, 2b05147, 163acd3)
+- Commit fd4a1d7 feat(lib): implement wf_enc and wf_agent_worktree_name
+- File .agents/skills/feature-workflow/modules/sign-off.md +56 -6
+- File .agents/skills/feature-workflow/scripts/check-pr-body.sh +238 (new)
+- File .agents/skills/feature-workflow/assets/pr-template.md +62 (new)
+- File .agents/lib/workflow-paths.sh +65 -0
+- File .agents/skills/feature-workflow/modules/discovery.md +3 -3
+- File .agents/skills/feature-workflow/scripts/review-lessons.sh +2 -2
+- File .agents/skills/feature-workflow/scripts/check-write.sh +1 -1
+- File install.sh +250, .agents/hooks/* (worktree guard, stop audit, codex-pre-spawn), tests/* (new suites)
+
+## 2026-10-30 Contracts changed under the spec (1.1)
+
+- **Spec numbers have any digit count** (f436aed). `wf_norm_folder` takes `^[0-9]+-<slug>$`; 0.1.1 globs `.workflow/specs/[0-9]*-*/` and greps `^[0-9]+`; new specs get five digits (`00010-worktree-guard-followups` exists); `review-lessons.sh` takes `^\.workflow/specs/[0-9]+-[a-z0-9-]+$`. Effect: the move script, the `done/` scan in 0.1.1 and the D13 regex use `[0-9]+`, never `[0-9]{3}`. D13 still stands (the slug class is still lowercase only).
+- **Sign-off PR description** (008). 5.4 fills `.workflow/specs/NNN-slug/pr-body.md`; 5.5 asks the stakeholder to approve its full text; 5.8 re-runs `check-pr-body.sh` and publishes it "unchanged" as the PR body or the local merge message, from `SPEC_DIR=.workflow/specs/NNN-slug`. The pr-body hash check was dropped (46d8e9f), and `check-pr-body.sh` checks sections, not link paths. Effect: the D2 move in 5.8 changes `SPEC_DIR` and, through D12, rewrites the spec path inside the approved `pr-body.md`. Not settled by D1-D13: a decision (discovered work, below).
+- **More specs are done.** 006 and 008 are `done` on main, so the D5 sweep here moves 001-006 and 008, not 001-005.
+- **Agent worktrees** (006). Phase 1 and integration builds now run in orchestrator-made worktrees under `.workflow/.worktrees/`; Bash reads pass the worktree scope check. No 007 contract changes.
+- Unchanged: `commit-workflow-data.sh`, `session-start-resume.sh`, `status-transition.sh`, `large-path.md`.
+
+## 2026-10-30 Discovered work: pr-body-move-order
+
+- Found at: step 1.1 by the main session (main-drift read). Kind: decision
+- Problem and evidence: spec 008's 5.4 fills `pr-body.md`, 5.5 has it approved and 5.8 publishes it "unchanged" from `SPEC_DIR=.workflow/specs/NNN-slug`; 007's D2 move in 5.8 changes that folder and D12 rewrites the spec path inside `pr-body.md` (`modules/sign-off.md` 5.4, 5.8 on main 581e785).
+- Assessment and ruling: blocker; to discovery (spec back to draft). Answer: "Blocker, go to discovery".
+Outcome: loop back (00.24 discovered work)
+
+## 2026-10-30 Questioning round 4 (loop-back from 00.24)
+
+Seeded by the discovered work pr-body-move-order above.
+
+- **Q12 pr-body.md and the move.** Options: move after the 5.8 body check and before publishing, the rewrite treating `pr-body.md` like every other spec file, `check-pr-body.sh` run again on the moved file, publish from the `done/` path, the go-ahead showing the path-only diff; 5.4 fills the body with the `done/` path so the move skips it; move after publishing in a separate commit on main. Recommended: move first (one rule, no special case; the check reads sections, not paths). Answer: "Move first, rewrite body". **D14 (amends D2)** 5.8 order: commit what is left, check the body, run the move (check, `mv`, rewrite, commit on the spec branch), run `check-pr-body.sh` on `.workflow/specs/done/NNN-slug/pr-body.md`, show the stakeholder the path-only diff of `pr-body.md` with the publish go-ahead, then publish with `SPEC_DIR=.workflow/specs/done/NNN-slug`. The 5.4 line "5.8 publishes it unchanged" becomes "unchanged apart from the spec path the move rewrites".
+- Facts found instead of asked: spec numbers now have any digit count (f436aed), so every pattern in the move script, the 0.1.1 `done/` scan and the D13 regex use `[0-9]+`; specs 006 and 008 are `done` on main, so the D5 sweep in this repo moves 001-006 and 008; `check-pr-body.sh` checks sections and scores, not paths (`scripts/check-pr-body.sh` header lines 3-23).
+
+## 2026-10-30 Goal confirmed (0.3.19, after round 4)
+
+- Revised summary (D14, any-length spec numbers, sweep 001-006 and 008) restated. Answer: "Matches". One feature, full path (D9 stands: footprint unchanged).
+
+## 2026-10-30 Impact classification (amended after round 4)
+
+- Term gate 0.4.2: no new concept (Sign-off PR and PR template are 008's terms).
+- extend: `sign-off.md` 5.4 (the "publishes it unchanged" line names the path rewrite) and 5.8 (D14 order; publish with `SPEC_DIR` on the `done/` path; the merge-message build reads the moved `pr-body.md`).
+- extend: every pattern this feature adds takes any-digit spec numbers (`[0-9]+`).
+- unchanged: `check-pr-body.sh` and `assets/pr-template.md` (sections only, no paths).
+- Migration M4 sweeps 001-006 and 008.
+
+## 2026-10-30 Scope decision: launch against a finished spec
+
+- Item: `resolve-launch.sh` refuses a `spec_dir` under `.workflow/specs/done/`, so no sub-agent can launch against a moved spec (module-audit refresh, Out of scope noticed; `scripts/resolve-launch.sh:103`). Can wait: every sign-off launch runs before the 5.8 move.
+- Ruling: shelved to [launch-against-done-spec.md](../../deferred/launch-against-done-spec.md); no shelf match by concept (`main-checkout-resolver.md` is about finding the main checkout). Mode: HITL (which task types to allow is a decision).
+
+## 2026-10-30 Questioning round 5 (loop-back from 0.4.7)
+
+Seeded by the module-audit refresh: after the move the D11 deny blocks every Write/Edit under `done/`, while D14 re-checks `pr-body.md` there.
+
+- **Q13 A fault after the move.** Options: fix every body fault before the move and stop on a post-move fault as a move bug; let the main session Edit `pr-body.md` and `design-log.md` under `done/` at step 5.8. Recommended: fix before, stop after (only the path rewrite touches the body between the checks; `check-pr-body.sh` reads no paths). Answer: "Fix before move, stop after". **D15 (refines D14)** every body fix happens before the move (5.4, 5.5, the 5.8 pre-move check); a `check-pr-body.sh` fault on the moved body stops sign-off unpublished and is reported as a move bug; 5.8 writes nothing into the moved folder. D11 stays absolute.
+- Facts from the audit, applied without asking: the stale "published unchanged" lines in `check-pr-body.sh:3,28`, `assets/pr-template.md:3-4` and `sign-off.md:126,205` are reworded (extend, comment and prose only); the `<!-- 5.8 publish commands -->` marker stays directly above the publish block that `tests/scripts/sign-off-pr.sh` runs; nothing after the move calls a `wf_norm_folder` script; the 5.8 progress line passes the `done/` path and `5.8`.
+
+## 2026-10-30 Goal confirmed (0.3.19, after round 5)
+
+- Revised summary (D15, shelved launch-against-done-spec) restated. Answer: "Matches". One feature, full path (D9 stands).
+
+## 2026-10-30 Exit gate 0.6 (after rounds 4-5)
+
+- Scope: clear (Non-goals and `deferred` list sign-off-scoped-commit and launch-against-done-spec; no open questions). System impact: clear (module-audit refresh in codebase-map; the five `cache disagrees with code` lines resolved by republishing all three caches at 9e971ad and refreshing retrieval). Data changes: clear (data-model M1-M4, pr-body row). Testable objectives: clear (CAP-NEW-done-folder has 15 objectives and JRN-001-JRN-007).

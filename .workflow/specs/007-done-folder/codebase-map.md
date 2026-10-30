@@ -1,8 +1,8 @@
 ---
 cache_stamps:
-  modules: 99801e506b428a1ac3c3f7fb0170191cb6fa45ae
-  flows: 99801e506b428a1ac3c3f7fb0170191cb6fa45ae
-  architecture: 65ae1c501fe154e76b5dea5a3372718b3510cde6
+  modules: 9e971ade158b5e92da93bf2b150fd68dd55d7e9e
+  flows: 9e971ade158b5e92da93bf2b150fd68dd55d7e9e
+  architecture: 9e971ade158b5e92da93bf2b150fd68dd55d7e9e
 ---
 
 # Codebase map: Done folder for finished specs
@@ -11,61 +11,75 @@ Affected area: feature-workflow (`.agents/skills/feature-workflow`), lib (`.agen
 
 ## Relevant code
 
+Refreshed by retrieval at 9e971ad (2026-10-30, caches republished after specs 006 and 008).
+
 | Item | What it does today | Source |
 | --- | --- | --- |
-| Sign-off 5.7 | Runs the retrospective, reads its `verdict`, then `status ... done --step 5.7` for `accepted` or `accepted-with-open-items`. `done` is reached only from `in-review`. | `.agents/skills/feature-workflow/modules/sign-off.md` § 5.7 (lines 140-157) |
-| Sign-off 5.8 | Commits leftovers on the spec branch, pushes, opens the PR (`gh pr create` / `glab mr create` to main), or merges locally with `git merge --no-ff`. Removes worktrees under `.workflow/.worktrees/`. Does not delete the spec branch or move the folder. `done` is in the spec branch before the merge. | `sign-off.md` § 5.8 (lines 159-165) |
-| Sign-off 5.9 | Lists `.workflow/specs/work-backlog/NNN-slug-disc-*.md` with `status: open`. Start / Keep / Move rulings. Runs before 5.7. | `sign-off.md` line 100, § 5.9 lines 122-138 |
-| 0.1.1 numbering scan | Counts top-level `.workflow/specs/[0-9][0-9][0-9]-*/` folders, `spec/*` branches (local and `origin`), and every initiative's `origin` and `slices[].spec`. | `.agents/skills/feature-workflow/modules/discovery.md` lines 11-25 |
-| Done is terminal | Step marker, task records and frontmatter refuse changes once `done`. Spec branch name is derived from the folder path. `done` only from `in-review` at step 5.7. | `.agents/skills/feature-workflow/scripts/status-transition.sh` lines 229, 244, 337, 341, 407, 432, 438 |
-| Folder validator | `wf_norm_folder spec` requires `$WF_SPECS/` plus a direct child matching `^[0-9]{3,}-[A-Za-z0-9][A-Za-z0-9._-]*$`. `specs/done/NNN-slug` and `z_NNN-slug` are refused. | `.agents/lib/workflow-paths.sh` lines 73-100, regex line 95 |
-| Path constants | `WF_SPECS=$WF_DIR/specs`, `WF_WORK_BACKLOG=$WF_SPECS/work-backlog`. | `.agents/lib/workflow-paths.sh` lines 32-34 |
-| Commit script | Normalises `SPEC_DIR` through `wf_norm_folder`; local-state leak check on `$SPEC_DIR/.step`; stages the spec dir, the backlog, and `.workflow` minus the `$WF_SPECS` subtree; branch name derived from path. | `.agents/skills/feature-workflow/scripts/commit-workflow-data.sh` lines 54-85 |
-| Backlog write guard | Origin step read from `$ROOT/$WF_SPECS/$ORIGIN/.step`; fallback scan of `$WF_SPECS/*/.step`. | `.agents/skills/feature-workflow/scripts/check-write.sh` lines 255-278 |
-| spec.md / tasks.md guard | Reads step from `$WF_SPECS/$SPEC_NAME/.step`. | `check-write.sh` lines 281-300 |
-| Tier A in-flight scan | Loops `$ROOT/$WF_SPECS/*/spec.md` (top level only); skips `work-backlog` and `done` status. | `check-write.sh` lines 335-350 |
-| Session-start resume | Scans `$root/$WF_SPECS/*/spec.md`; skips `work-backlog`; display slug `$WF_SPECS/<basename>`; backlog count from `$WF_WORK_BACKLOG/*.md`. | `.agents/hooks/session-start-resume.sh` lines 61-62, 204-207, 236-261 |
-| Done-on-main for emitted specs | `spec_done_on_main` runs `git show <main>:$WF_SPECS/$1/spec.md`; a missing path returns false. | `session-start-resume.sh` lines 152-165; `large-path.md` line 46 |
-| Launch header spec_dir regex | `lenient_spec_dir` accepts only `.workflow/specs/<NNN>-<slug>` as a direct child. | `.agents/hooks/post-implementation-audit.sh` line 173 |
-| Codex task name to spec | `s<NNN>_t<N>` resolves `$main_root/$WF_SPECS/$num-*/`; zero matches warns. | `post-implementation-audit.sh` lines 134-136 |
-| Codex pre-spawn | `spec_folder NNN` globs `$root/$WF_SPECS/$1-*/`; zero or several matches deny. | `.agents/hooks/codex-pre-spawn.sh` lines 92-96 |
-| Evidence capture | Fallback scans top-level `$WF_SPECS/*/spec.md`, skips `work-backlog`, selects only active statuses. | `.agents/hooks/evidence-capture.sh` lines 182-193 |
-| Standalone resume router | Scans `.workflow/specs/*/spec.md` and the backlog; `done` row: read as context only. | `.agents/skills/feature-workflow/SKILL.md` lines 32, 44, 83 |
-| Standalone retrospective | Offers specs with `status: done`; scan location not stated. | `.agents/skills/retrospective/SKILL.md` line 12 |
-| Review lessons origin | `origin_spec` must match `^\.workflow/specs/[0-9]{3}-[a-z0-9-]+$`. | `.agents/skills/feature-workflow/scripts/review-lessons.sh` lines 80-81 |
-| Deferred back-link lookup | Finds shelf files whose `origin_spec` or `superseded_by` equals `.workflow/specs/<NNN-slug>` by exact match. | `.agents/skills/feature-workflow/modules/deferred-handoff.md` lines 59-62 |
-| Installer gitignore | `GI_ENTRIES` includes `$WF_SPECS/*/.step`; single `*` does not match `specs/done/NNN/.step`. | `install.sh` line 52 |
-| Claude deny rule | `Edit(.workflow/specs/*/.step)`, same single-`*` shape. | `.agents/hooks/claude-settings.template.json` line 148 |
-| Test fixture | `FOLDER_SPEC=.workflow/specs/001-alpha`, gitignore block. | `tests/fixtures/workflow-folders.sh` lines 22, 33 |
-| Budget exclusion | Excludes the spec folder and `.workflow/specs/work-backlog/`. | `.agents/skills/feature-workflow/scripts/budget-check.sh` line 26 |
+| `wf_norm_folder spec ARG` | Accepts only `.workflow/specs/NNN-slug`: digits of any count, then a slug of `[A-Za-z0-9._-]`. Refuses `specs/done/NNN-slug` and `specs/work-backlog`. | `.agents/lib/workflow-paths.sh:84-109` (regex l.104) |
+| Path variables | `WF_SPECS=.workflow/specs`, `WF_WORK_BACKLOG=$WF_SPECS/work-backlog`. No Done-folder variable. | `.agents/lib/workflow-paths.sh:41-43` |
+| Session-start scan | Reads `$root/.workflow/specs/*/spec.md` (one level); skips `work-backlog` and `done`. | `.agents/hooks/session-start-resume.sh:61, 204-205, 218` |
+| `spec_done_on_main SPEC` | Reads `$WF_SPECS/SPEC/spec.md` from the main ref; a spec in `specs/done/` returns false. Used for `planned` initiatives. | `.agents/hooks/session-start-resume.sh:152-166, 188`; `.agents/skills/feature-workflow/modules/large-path.md:46, 119, 272` |
+| Router entry scan | Lists `.workflow/specs/*/spec.md`; the `done` row says "Read it as context only". | `.agents/skills/feature-workflow/SKILL.md:32, 83` |
+| 0.1.1 number scan | Prose snippet. Counts `.workflow/specs/[0-9]*-*/` (direct children), `spec/*` branches (local and origin), initiative `origin` and `slices[].spec`; new number is highest + 1, `%05d`. | `.agents/skills/feature-workflow/modules/discovery.md:11-25` (glob l.15, rule l.25) |
+| Write guard, spec classes | Each spec regex takes one segment under `specs/` (`^[^/]+/spec\.md$`, `tasks\.md`, `tasks/.+`, `\.step`); a path under `specs/done/` matches none, so CLASS stays `other` and is allowed, for the main session and sub-agents. | `.agents/skills/feature-workflow/scripts/check-write.sh:199-212, 228` (sub-agent deny l.249-251) |
+| Write guard, in-flight scan | `$ROOT/$WF_SPECS/*/spec.md`, skipping `done`; `done/` not scanned. | `check-write.sh:337-350` |
+| Write guard, backlog origin | Origin step read from `$ROOT/$WF_SPECS/<origin>/.step`. | `check-write.sh:258-265` |
+| `done` transition | Only from `in-review` with `--step 5.7`; once `done`, `.step` and frontmatter refuse changes. | `.agents/skills/feature-workflow/scripts/status-transition.sh:229, 337, 407, 432, 438` |
+| Launch `spec_dir` | Must match `^\.workflow/specs/[0-9]+-[A-Za-z0-9._-]+/?$`; a `done/` path fails. | `.agents/skills/feature-workflow/scripts/resolve-launch.sh:101-103` |
+| Stop audit lookup | Globs `"$main_root/$WF_SPECS/$num"-*/`, needs exactly one match; header regex l.181. | `.agents/hooks/post-implementation-audit.sh:142-144, 181` |
+| Codex spawn lookup | `spec_folder NNN` counts `"$root/$WF_SPECS/$1"-*/`; must be exactly one. | `.agents/hooks/codex-pre-spawn.sh:90-94` |
+| Evidence in-flight | Scans `"$main_root/$WF_SPECS"/*/spec.md` for active statuses. | `.agents/hooks/evidence-capture.sh:188` |
+| Codex write guard | spec.md regex `(^|/)\.workflow/specs/[^/]+/spec\.md$`; `done/` not matched. | `.agents/hooks/codex-write-guard.sh:95-99` |
+| review-lessons `origin_spec` | Must match `^\.workflow/specs/[0-9]+-[a-z0-9-]+$`; lowercase slug only; a `done/` path fails. | `.agents/skills/feature-workflow/scripts/review-lessons.sh:80-81` |
+| Spec branch name | `spec/` + folder name, or the `spec_branch` key. | `scripts/check-merge-artifacts.sh:53`; `scripts/status-transition.sh:341`; `scripts/commit-workflow-data.sh:59`; `scripts/open-task-pr.sh:137` |
+| 5.4 Sign-off PR body | Reads `rules-setting.sh pr_template`; fills `.workflow/specs/NNN-slug/pr-body.md` from `assets/pr-template.md`; runs `check-pr-body.sh`. | `.agents/skills/feature-workflow/modules/sign-off.md:98-114` |
+| `check-pr-body.sh` | Workflow mode: the ten `##` headings in order, each non-empty; Risk and Reversibility on scale. `--project-template` checks a host template's headings. Exit 0, 1, 2. | `.agents/skills/feature-workflow/scripts/check-pr-body.sh:6-12, 210-237` |
+| 5.5 backlog list | Glob `.workflow/specs/work-backlog/NNN-slug-disc-*.md` with `status: open`. | `sign-off.md:120-124` |
+| 5.5 log | `Sign-off` design-log entry with `PR description:` and `Going-in concerns:` lines. | `.agents/skills/feature-workflow/assets/design-log.md:184-191` |
+| 5.7 | Step 5.7, retrospective, then `status ... done --step 5.7` on an accepted verdict; before the 5.8 merge. | `sign-off.md:164-181` (status call l.178) |
+| 5.8 check and publish | Re-runs `check-pr-body.sh`; publish block `gh pr create --body-file`, `glab mr create --description-file`, or local `git merge --no-ff -F`. No step moves the spec folder. | `sign-off.md:183-209` (block l.198-202) |
+| 5.9 | Backlog rulings; `moved-to-deferred` writes a shelf file and edits the item. | `sign-off.md:146-162` |
+| Retrospective | Standalone run offers specs with `status: done`; `origin_spec` example `.workflow/specs/NNN-slug`. | `.agents/skills/retrospective/SKILL.md:12`; `.agents/skills/retrospective/modules/routing.md:56` |
+| Handoff | A spec-linked handoff reads `.workflow/specs/NNN-slug/spec.md` status and `.step`. | `.agents/skills/handoff/SKILL.md:22-25` |
+| Installer gitignore | `GI_ENTRIES` holds `$WF_SPECS/*/.step` (one level). | `install.sh:85` |
+| Slice and origin form | `initiative-transition.sh --spec` takes bare `NNN-slug`; `origin` is bare too. | `.agents/skills/feature-workflow/scripts/initiative-transition.sh:314`; `assets/initiative.md:3` |
 
 ## Seams and interfaces
 
 | Interface | Shape (signature, type, contract) | Callers | Source |
 | --- | --- | --- | --- |
-| `wf_norm_folder spec <arg>` | Prints `.workflow/specs/NNN-slug` or status 1; only a direct child of `$WF_SPECS` passes. | `status-transition.sh`, `commit-workflow-data.sh`, `open-task-pr.sh`, `task-waves.sh`, `budget-check.sh`; `run-toolchain.sh` has its own copy | `.agents/lib/workflow-paths.sh` lines 75-100 |
-| `WF_SPECS`, `WF_WORK_BACKLOG`, `wf_path` | Repo-relative constants and a join helper. | Hooks and skill scripts (sourced) | `.agents/lib/workflow-paths.sh` lines 32-34, 52-55 |
-| `status-transition.sh status\|step\|set-task <spec-dir>` | `<spec-dir>` is `.workflow/specs/NNN-slug` or an absolute path ending in it; exit 2 illegal transition. | Sign-off, discovery, guard messages | `status-transition.sh` lines 6-21, 78 |
-| `.step` marker | Gitignored YAML with `step`, `updated_at`, `blocked_from`. | `check-write.sh`, `resolve-launch.sh`, `evidence-capture.sh` | `status-transition.sh` line 73 |
-| `check-write.sh --cwd --path [--proposed]` | Exit 0 allow, 2 deny. | `spec-single-writer-guard.sh`, `tier-a-write-guard.sh`, `tier-b-write-guard.sh`, `codex-write-guard.sh` | `check-write.sh` lines 6-8 |
-| `commit-workflow-data.sh <spec-dir> -m <msg> [--cwd]` | Exit 0 committed or nothing; 1 not on spec branch or merge in progress; 2 usage/env or local state not ignored. Stages spec dir, backlog, `.workflow` minus `specs/` and `initiatives/`. | `implementation-orchestrator.md:121,202,297` (not sign-off) | `scripts/commit-workflow-data.sh:11-21` |
-| `review-lessons.sh validate\|next-id <file>` | Exit 0 ok; 1 broken rule; 2 usage/missing file/tool. | retrospective routing | `scripts/review-lessons.sh:9-16` |
-| `spec_done_on_main <NNN-slug>` (shell function in module prose) | True when spec.md status on `$main_ref` is `done`; missing path is false. | large-path 6.3, 6.13 | `modules/large-path.md:46` |
-| `step-progress.sh --spec-dir <dir> [<id>]` | Reads `.step` and `light_path`; exit 1 when either is missing. | every module's progress line | `scripts/step-progress.sh:8-20` |
-| `check-write.sh` path classes | `SPEC_REST` regex `^[^/]+/(\.step\|spec\.md\|tasks\.md\|tasks/.+)$` decides the spec class; anything else under `specs/` (except `work-backlog`) is `other` (allowed). | guard hooks; Codex advisory calls | `scripts/check-write.sh:192-226` |
+| `wf_norm_folder spec\|initiative ARG` | Prints folder; status 1 with reason | budget-check, status-transition, check-merge-artifacts, task-waves, open-task-pr, commit-workflow-data, initiative-transition | `.agents/lib/workflow-paths.sh:84-109` |
+| `wf_agent_worktree_name SPEC_DIR kind value` | Prints `s<NNN>_t<n>`, `s<NNN>_phase_1_<enc>` or `s<NNN>_integration_<enc>`; status 1 | worktree-write-guard, post-implementation-audit, codex-pre-spawn | `.agents/lib/workflow-paths.sh:124-161` |
+| `check-write.sh --cwd --path [--only spec\|tier-a\|tier-b] [--proposed]` | Exit 0 allow, 2 deny, 1 error | spec-single-writer, tier-a, tier-b hooks; Codex advisory | `.agents/skills/feature-workflow/scripts/check-write.sh:4-55` |
+| `spec_done_on_main SPEC` | Reads `<main_ref>:.workflow/specs/SPEC/spec.md` | session-start-resume; large-path 6.13 (copy) | `.agents/hooks/session-start-resume.sh:152` |
+| `status-transition.sh status SPEC done --step 5.7` | Only from `in-review` | sign-off 5.7 | `status-transition.sh:407, 432` |
+| `review-lessons.sh validate\|next-id FILE` | Exit 0, 1, 2 | retrospective routing | `.agents/skills/feature-workflow/scripts/review-lessons.sh:10-14` |
+| `commit-workflow-data.sh <spec-dir> -m <msg> [--cwd]` | Exit 0 committed or nothing; 1 not on spec branch; 2 usage or local state not ignored. Rejects a `done/` path via `wf_norm_folder`. | `implementation-orchestrator.md:139,227` | `scripts/commit-workflow-data.sh:11-21` |
+| `step-progress.sh --spec-dir <dir> [<id>]` | Reads `<dir>/spec.md` and `<dir>/.step`; exit 1 when missing. | every module's progress line | `scripts/step-progress.sh:44,53-63` |
+| `check-pr-body.sh <file> [--project-template <t>]` | stdout `<field>: <problem>` lines; exit 0 valid, 1 faults, 2 usage, unreadable file or template, headingless project template, broken install. Reads no spec path. | `sign-off.md` 5.4, 5.5, 5.8 | `scripts/check-pr-body.sh:19-28` |
+| 5.8 publish block | Shell lines after the marker; SPEC_DIR, SPEC_BRANCH, MAIN, SUBJECT; host from `git remote get-url origin`. | 5.8 go-ahead; `tests/scripts/sign-off-pr.sh` | `modules/sign-off.md:189-205` |
+| `check-merge-artifacts.sh --spec-dir --rev [--cwd]` | Exit 0 clean; 1 refused; 2 usage or spec dir not `NNN-slug`. | `verification-setup.md:96`; `implementation-orchestrator.md:125,210,218` | `scripts/check-merge-artifacts.sh:7-18,52-53` |
+| `resolve-launch.sh` spec_dir format | `^.workflow/specs/[0-9]+-[A-Za-z0-9._-]+/?$` | every sub-agent launch | `scripts/resolve-launch.sh:101-105` |
 
 ## Prior decisions
 
 | Decision or item | What it says | Source |
 | --- | --- | --- |
-| Initiative conversion | A converted spec's folder is deleted; its number is never reused; 0.1.1 counts initiative `origin`. | `large-path.md` line 82; `discovery.md` line 11 |
-| Shelf archive pattern | Superseded shelf files move to `.workflow/deferred/archive/` with `superseded_by` and are excluded from shelf scans. Closest precedent for a subfolder. | `deferred-handoff.md` lines 49-50; `discovered-work.md` line 120 |
-| Back-links in shelf files | `origin_spec: .workflow/specs/NNN-slug` and relative link `../specs/NNN-slug/spec.md`. | `.workflow/deferred/per-task-scoped-runs.md` lines 2, 10 |
-| Retrospectives and pitfalls | Frontmatter `spec:` and body links use `.workflow/specs/NNN-slug`. | `.workflow/decisions/retrospectives/005-cache-build-followups.md` lines 2, 11-13; `.workflow/decisions/pitfalls.md` |
-| Capabilities | Rows link `specs/NNN-slug/spec.md`. | `.workflow/capabilities.md` lines 4-6, 13-17 |
-| Rules | No spec-path entries in Ownership or Shared core; budget excludes the spec folder and backlog. | `.workflow/rules.md` line 119 |
-| Deferred: main-checkout resolver (partial match) | Shelved refactor covering `wf_norm_folder`, the validator that rejects a subfolder. | `.workflow/deferred/main-checkout-resolver.md` lines 18, 22 |
-| Deferred: sign-off scoped commit (related) | 5.8 stages everything untracked; same commit a 5.8 move would make. | `.workflow/deferred/sign-off-scoped-commit.md` lines 8-10, 20, 35 |
+| ADR-0002 (accepted): review lessons placement | Only the retrospective writes `.workflow/review-lessons.md`, at 5.7; own write-guard class. | `.workflow/decisions/adr/0002-review-lessons-placement.md` l.2, l.5-7 |
+| Retrospective 006: spec number digits | New spec folders take five-digit numbers from `00010`; the any-digit fix (lib, resolve-launch, 0.1.1) was a quick fix after 5.8. | `.workflow/decisions/retrospectives/006-result-file-guard.md` l.59, l.86, l.100 |
+| Pitfall: shelf check at 00.26 | Two backlog items duplicated shelved items; a shelf check at 00.26 is a candidate. | `.workflow/decisions/pitfalls.md` l.89-93 |
+| Pitfall: frontmatter edits | `yq --front-matter=extract -i` deleted two work-item bodies. | `.workflow/decisions/pitfalls.md` l.95-99 |
+| Retrospectives: 5.8 merge subject | 003, 004 and 005 record a 5.8 merge subject that was not Conventional Commits. | `.workflow/decisions/retrospectives/003-bash-cache-extractor.md`; `004-scoped-test-runs.md`; `005-cache-build-followups.md` |
+| Retrospective 008: 5.8 publish | Live `gh pr create --body-file` never run (no gh). | `.workflow/decisions/retrospectives/008-pr-description-template.md` l.15, l.46 |
+| CAP-006 | Sign-off PR description; 5.8 publishes it unchanged (D14 changes this to "apart from the spec path"). | `.workflow/capabilities.md` l.18 |
+| CAP-003 | Review lessons written at 5.7, retired in place once enforced. | `.workflow/capabilities.md` l.15 |
+| Capability spec links | Rows link `specs/NNN-slug/spec.md` by relative path (CAP-001 to CAP-008). | `.workflow/capabilities.md` l.13-18 |
+| Initiative conversion | A converted spec's folder is deleted; its number is never reused. | `large-path.md` l.82; `discovery.md` l.11 |
+| Shelf archive pattern | Superseded shelf files move to `.workflow/deferred/archive/` with `superseded_by`. Closest precedent for a subfolder. | `deferred-handoff.md` § Archive |
+| Deferred: `launch-against-done-spec.md` (direct match) | A launch with a Done-folder `spec_dir` is refused; shelved at 0.3.17 from 007. | `.workflow/deferred/launch-against-done-spec.md` |
+| Deferred: `sign-off-scoped-commit.md` | 5.8 stages every untracked folder, including other specs' drafts. | `.workflow/deferred/sign-off-scoped-commit.md` |
+| Deferred: `spec-issue-creation.md`, `initiative-pr-template.md`, `workflow-settings-home.md` | Sign-off PR concepts shelved from 008. | each file § Summary |
+| Deferred: `codex-spawn-profile-lookup.md`, `worktree-name-parser.md` | Hook lookups of spec number and worktree name, shelved from 006. | each file § Summary |
 
 No ADR constrains the spec folder layout (`.workflow/decisions/adr/0001-project-baseline.md` scanned).
 
@@ -115,6 +129,29 @@ Owning module: feature-workflow
 | constraint | `.step` changes only through `status-transition.sh`; removing it in the move script is a new writer. | `SKILL.md:128,151`; `scripts/status-transition.sh:2-3,80` |
 | constraint | `.step` and workflow data live in the main checkout; scripts take `--cwd` and resolve via `wf_main_root`. | `scripts/status-transition.sh:23-24,199` |
 
+### Refresh at 581e785 (2026-10-30, after specs 006 and 008)
+
+Earlier rows, current lines: origin backlog listing `modules/sign-off.md:123`; commit-workflow-data gap `sign-off.md:185`; check-write gap `scripts/check-write.sh:192,204-217,228`; initiative constraint `sign-off.md:181`; cache constraint `check-write.sh:235-237`; order constraint `sign-off.md:3,178`; review-lessons and discovery rows same lines, text now any-digit; the rest unchanged.
+
+| Kind | Finding | Source |
+| --- | --- | --- |
+| reuse | `check-pr-body.sh` reads only its `<file>`, its own template and an optional `--project-template`; nothing from the spec path or the file's location, so it runs on a body under `done/` as is. | `scripts/check-pr-body.sh:35-36,191-217` |
+| reuse | The publish block takes the folder only through `SPEC_DIR`; setting it to the `done/` path is the only change the gh, glab and merge-message lines need. | `modules/sign-off.md:191,199-202,205` |
+| reuse | 5.8 already has a body fix loop (fix, show, ask the 5.5 question again, log, commit). | `modules/sign-off.md:187` |
+| reuse | The Sign-off design-log shape has a PR-description approval line. | `assets/design-log.md:189` |
+| gap | `check-pr-body.sh` ("publishes it unchanged at 5.8") and `assets/pr-template.md` ("published unchanged at 5.8") state the old flow; both go stale under D14. | `scripts/check-pr-body.sh:3,28`; `assets/pr-template.md:3-4` |
+| gap | `sign-off.md` also promises the exact approved text: "as 5.8 will publish it", "keep the approved text exactly". | `modules/sign-off.md:126,205` |
+| gap | After the move, the D11 deny blocks every Write/Edit under `done/`, so a fault found by the post-move body check cannot be fixed by Edit, and no 5.8 design-log entry can be written by file tool. | `modules/sign-off.md:187`; `scripts/check-write.sh:192-228` |
+| gap | `check-write.sh` edge cases: `specs/done/.step` (marker class) and `specs/done/spec.md` (KIND=spec, SPEC_NAME=`done`); the any-depth glossary rule must come after the `done/**` rule. | `scripts/check-write.sh:200,206-213,218-219` |
+| gap | `resolve-launch.sh` requires `spec_dir` `^.workflow/specs/[0-9]+-[A-Za-z0-9._-]+/?$`, so no sub-agent can launch against a moved spec. | `scripts/resolve-launch.sh:101-103` |
+| gap | Every spec-dir script rejects the `done/` path through `wf_norm_folder spec` (`status-transition.sh`, `commit-workflow-data.sh`, `check-merge-artifacts.sh`, `budget-check.sh`, `task-waves.sh`, `open-task-pr.sh`); 5.8 makes none of these calls today, so nothing after the move may. | `scripts/status-transition.sh:200`; `scripts/check-merge-artifacts.sh:52`; `scripts/budget-check.sh:131`; `scripts/task-waves.sh:80`; `scripts/open-task-pr.sh:126` |
+| constraint | `tests/scripts/sign-off-pr.sh` runs the fenced block right after `<!-- 5.8 publish commands -->` with SPEC_DIR, SPEC_BRANCH, MAIN, SUBJECT; the marker must stay directly above that block. | `modules/sign-off.md:189-203`; `tests/scripts/sign-off-pr.sh:14,105` |
+| constraint | 5.8 never passes `--template` and keeps `--no-edit --cleanup=verbatim` on the local merge. | `modules/sign-off.md:189,202,205` |
+| constraint | 0.1.1 prose says a folder without a numeric prefix never counts; it must say `done/`'s children count. The glob `[0-9]*-*/` already skips `done/` itself. | `modules/discovery.md:11,15,25` |
+| constraint | The backlog guard reads the origin's `.step` at its top-level path; a moved origin is never at 00.26 or 5.9, so no change. | `scripts/check-write.sh:258-278` |
+| constraint | `origin_spec`, `promoted_to`, `superseded_by` store `.workflow/specs/NNN-slug`; the shelf back-link lookup matches by exact string. | `assets/work-item.md:2,6,14-16`; `assets/deferred.md:2,11,14`; `modules/deferred-handoff.md:59-62` |
+| constraint | `step-progress.sh --spec-dir` reads `<dir>/spec.md` and `<dir>/.step` without `wf_norm_folder`; after the move pass the `done/` path and an explicit step id. | `scripts/step-progress.sh:44,53-63` |
+
 ## Not found
 
 - Any existing "done folder" or `z_` concept: `.agents/`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/deferred/`. Reported by retrieval.
@@ -124,3 +161,8 @@ Owning module: feature-workflow
 - A test directory inside the owning module: none; tests live in `tests/`. Reported by module-audit.
 - An existing whole-tree path-rewrite or link-depth helper: `scripts/`, `modules/`, `assets/`, `references/`, `SKILL.md`. Reported by module-audit.
 - module-audit flagged two Relevant code rows as incomplete (not a Tier B cache problem; 0.2.7 found every cache fresh): `spec_done_on_main` also gates the 6.3 frontier (`large-path.md:119`), and the "Deferred back-link lookup" row is the "Re-point at conversion" procedure used only at 0.3.23 (`deferred-handoff.md:55-64`). Reported by module-audit.
+- Refresh at 581e785: spec-dir use or `.workflow/specs/*` globs in `check-worktree-scope.sh`, `check-task-result.sh`, `rules-setting.sh`: none. `check-merge-artifacts.sh` after 5.7: none. A status-transition or commit-script call inside 5.8: none. `specs/done` or `WF_SPECS_DONE` anywhere: none. Reported by module-audit.
+- Refresh at 581e785: five `cache disagrees with code` lines (review-lessons regex, 0.1.1 scan, sign-off line ranges, check-write classes, commit-workflow-data callers), all from main moving since the 99801e5 stamps; resolved by rerunning 0.2.7-0.2.8 (2026-10-30). Reported by module-audit.
+- Retrieval refresh at 9e971ad: no code writes, moves, numbers or scans `specs/done/`; no test runs the 0.1.1 snippet (numbering tested in `tests/scripts/lib-workflow-paths.sh:81-83, 126-127`). Reported by retrieval.
+- Retrieval refresh, code vs comment: `.agents/hooks/worktree-write-guard.sh:21` says a spec number under three digits is denied, while `workflow-paths.sh:135` accepts any count (006's area; not this feature). `.workflow/review-lessons.md:9` says "three-digit number" while the asset and script say any (fixed with D13 at 5.7). `tests/fixtures/initiative.sh:134` `next_spec_number` counts only `[0-9][0-9][0-9]-*` folders, unlike `discovery.md:15` (this feature's 0.1.1 tests must not rely on it). Reported by retrieval.
+- Retrieval refresh: cache versus code: no disagreement. Fixture spec `002-done` in `tests/hooks/audit-sync-resume.sh:228` and `tests/hooks/codex-adapters.sh:121` is a name, not the Done folder. Reported by retrieval.

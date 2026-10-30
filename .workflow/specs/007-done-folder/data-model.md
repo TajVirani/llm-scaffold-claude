@@ -17,6 +17,7 @@ Spec: [spec.md](spec.md) · Placement: feature-workflow
 | Task record `status` | field | unchanged | feature-workflow |
 | Work-backlog item `status` | field | unchanged | feature-workflow |
 | `.step` marker | entity | unchanged (removed on move) | feature-workflow |
+| Sign-off PR description `pr-body.md` | field (path strings) | extend (rewritten by the move, checked again, published from `done/`, D14) | feature-workflow |
 
 ## Entities
 
@@ -50,4 +51,4 @@ A spec's folder under `.workflow/specs/`; once moved it lives in the **Done fold
 | M1 | Add `WF_SPECS_DONE` and let `wf_norm_folder` accept a `done/` child | create / extend | yes (code revert) | - | none |
 | M2 | Teach readers `done/`: 0.1.1 scan, `spec_done_on_main` / 6.13 (both locations), review-lessons regex and slug class, `check-write.sh` deny class | extend | yes (code revert) | M1 | none |
 | M3 | `move-to-done.sh` and the 5.7 / 5.8 / 6.13 wiring | create / extend | yes (code revert) | M1, M2 | none |
-| M4 | Run `--sweep` on this repo: move 001-005 into `done/`, rewrite their links | refactor | yes (`git revert` of the sweep commit) | M3 | path strings rewritten in place; no content removed |
+| M4 | Run `--sweep` on this repo: move every spec done on main (001-006, 008) into `done/`, rewrite their links | refactor | yes (`git revert` of the sweep commit) | M3 | path strings rewritten in place; no content removed |
