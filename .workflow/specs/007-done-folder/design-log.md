@@ -203,3 +203,24 @@ Seeded by the module-audit refresh: after the move the D11 deny blocks every Wri
 - Fail: item 3 (four reads at `move-to-done.sh:222-231` treat a failure as a clean result), item 4 (`git branch --show-current` at :110 exits with git's status, not 2), item 8 (the awk helper `adjusted` at :156 has no contract line). Out of scope noticed (an environment error after the `mv` at :217 leaves the spec moved and uncommitted, unreported): not discovered work; a defect in T5's own change, fixed in this round. Behaviour fix round: fresh launch.
 - T5 round 3 re-check pass. Out-of-scope note (toolchain tree hash differs from the git tree): not discovered work; `run-toolchain.sh --reuse` on head e9ed598 matched the recorded tree.
 - 3.9 last wave: full harness 3789 passed, 0 failed (64 suites). 3.10-3.11: no browser suite (not applicable, verification-plan Suites); spec set in-review at 3.11.
+
+## 2026-10-30 Discovered work: integration-commit-subjects
+
+- Found at: step 4.4 by review-standards pass 1 (RS-2, F3). Kind: bug
+- Problem and evidence: `.agents/agents/integration.md:71` never states the Conventional Commits subject rule that `.agents/agents/implementation.md:81` does; integration commits `efd0c38`, `131f786` lack a type prefix.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9.
+- Backlog item: [work-backlog/007-done-folder-disc-002.md](../work-backlog/007-done-folder-disc-002.md)
+
+## 2026-10-30 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 | review-end-state (RE-1) | The 5.8 one-time sweep also moves the spec being signed off (5.7 already set it `done`), so its own move then exits 2 and sign-off stops; breaks the D16 and D14 order | `.agents/skills/feature-workflow/modules/sign-off.md:192`; `scripts/move-to-done.sh` `--sweep` | high | Read 5.7 (status `done` before 5.8) and 5.8 (sweep before the move); `--sweep` moves every top-level `done` spec with no exception (`move-to-done.sh:7,11,82`). On this repo's own sign-off 007 is `done` at the top level when the sweep runs. | patch (T5: `--sweep` leaves in place the spec whose `spec_branch` is the checked-out branch, reports it as moved by its own step, header and a suite case) |
+| F2 | review-standards (RS-1) | Integration commits `efd0c38`, `131f786` have subjects that are not Conventional Commits | commits `efd0c38`, `131f786` | low | `git log` shows subjects without a type prefix; developer-only harm (log reading) | none (dismissed: rewording needs a history rewrite of commits already merged on the spec branch; the cause is filed as F3) |
+| F3 | review-standards (RS-2) | The integration agent definition does not state the Conventional Commits subject rule | `.agents/agents/integration.md:71` | medium | Compared with `.agents/agents/implementation.md:81`; produced F2 | discovered work (filed: [work-backlog/007-done-folder-disc-002.md](../work-backlog/007-done-folder-disc-002.md)) |
+| F4 | review-targets (RT-1) | The TGT-007 command cannot run: the scratch clone is detached at the baseline, `--sweep` refuses a detached checkout, and the pipeline hides the exit code | `verification-plan.md` § Targets `sweep-time`; `artifacts/review/pass-1/targets/sweep-sanity-check.txt:4` | medium | The command checks out `$BASE` detached; `move-to-done.sh` refuses a detached HEAD (exit 1); the printed 0.37 s timed a refused run | patch (main session: the plan's own command, checked out on a scratch branch; TGT-007 measured after the T5 rework) |
+
+Gaps (not_verifiable, review-end-state): JRN-005 and the Success signal run at 5.8 (D16), checked there; "the next spec lands there by itself" is seen only on a later sign-off (noted for 5.4 Known gaps); no suite runs the 6.13 rewrite block (appended to [work-backlog/007-done-folder-disc-001.md](../work-backlog/007-done-folder-disc-001.md) as an Also seen line).
+
+Failed lenses: none
+Outcome: rework 1 of 5

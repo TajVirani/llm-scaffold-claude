@@ -70,7 +70,7 @@ tasks:
     pr: null
   - id: T5
     title: "move-to-done.sh check, move and sweep"
-    status: done
+    status: in-progress
     capability: CAP-NEW-done-folder
     depends_on: [T1, T4]
     touches_core: false

@@ -16,6 +16,7 @@ When large-path 6.13 closes an initiative, it rewrites the initiative's links to
 
 - T4 implementation result (`.workflow/specs/007-done-folder/artifacts/T4/implementation.yaml`, `discovered_work[0]`): "6.13 must rewrite the initiative's links to specs moved into done/, but move-to-done.sh offers no form for that (--check, <spec-dir>, --sweep only). T4 put a sed loop in the 6.13 doc block".
 - `.agents/skills/feature-workflow/modules/large-path.md` § 6.13, the rewrite loop (T4 commit `c863498`).
+- Also seen: .workflow/specs/007-done-folder, 4.4: no harness suite runs the 6.13 rewrite block; the only evidence is a text check in `tests/lint/done-folder-docs.sh` and T4's stdin probe (review-end-state pass 1, `not_verifiable`). A script mode would bring a suite case with it.
 
 ## Why not a blocker
 
