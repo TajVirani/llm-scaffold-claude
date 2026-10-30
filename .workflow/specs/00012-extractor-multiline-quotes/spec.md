@@ -5,7 +5,7 @@ spec_branch: spec/00012-extractor-multiline-quotes # spec/NNN-slug, created off 
 impl_base_revision: "9347768cc6b32ccc89cea7fe536052fc87c8d4ee" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: true # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
-deferred: [.workflow/deferred/browser-suite.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
+deferred: [.workflow/deferred/browser-suite.md, .workflow/deferred/bash-extractor-quote-rules.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 origin: 005-cache-build-followups-disc-003.md
 budget: {max_tasks: 10, max_changed_files: 30}
 ---

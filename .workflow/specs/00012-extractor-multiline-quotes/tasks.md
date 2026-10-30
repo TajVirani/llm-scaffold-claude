@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Share one quote state across lines with every reader of the bash extractor"
-    status: done
+    status: in-progress
     capability: CAP-005
     depends_on: []
     touches_core: false

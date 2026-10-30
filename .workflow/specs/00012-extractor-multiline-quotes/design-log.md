@@ -84,3 +84,17 @@ Facts looked up instead of asked (main session probes at `8e832be`, `codebase-ma
 ## 2026-10-30 Suite gap: browser suite
 
 3.14: no `e2e-browser` profile, so the 3.10-3.11 browser gate was skipped and recorded as a known gap; the stakeholder confirmed it is the shelved item [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md) (Later requests line appended). The 3.9 harness gate passed: 3606 passed, 0 failed (`artifacts/gate-3.9-w1/toolchain.txt`). Repo-wide oracle: 437 -> 432 records, five in-quote false edges removed, nothing else changed (`artifacts/oracle/oracle-diff.txt`).
+
+## 2026-10-30 Triage, review pass 1
+
+Lenses: review-standards (RS-1, RS-2, RS-3), review-end-state (RE-1), review-lessons (RL-1); no targets (light path). Probes below ran the head extractor and the base extractor (`6f37f4c`) on a scratch repo.
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 (RE-1, RL-1) | review-end-state, review-lessons | A backtick command substitution inside a multi-line double-quoted string is now hidden as quoted text, so a call the base extractor reported is dropped | `.agents/skills/regenerate-caches/scripts/extractors/bash.sh` (walk_quotes, double-quoted span) | medium | Probe: `msg="first` / \`./in-backtick.sh\` / `done"`: base reports `./in-backtick.sh` line 3, head reports nothing. Same root cause in both lenses; breaks the never-filter pitfall | patch |
+| F2 (RS-1) | review-standards | Four quote pairers (walk_quotes, blank_case_patterns, split_commands, unquoted_code) follow different rules; a same-line call after an escaped quote in `$'...'` is dropped | `bash.sh` quote pairers | medium | Probe `y=$'it\\'s'; ./same-line-after-ansi.sh`: dropped by the base extractor too, so the drop is pre-existing; consolidating the pairers into one rule set is a redesign, not the smallest fix | defer ([.workflow/deferred/bash-extractor-quote-rules.md](../../deferred/bash-extractor-quote-rules.md)) |
+| F3 (RS-2) | review-standards | The `# File:` header says "a quoted string on one line is read as before", describing the change rather than the behaviour | `bash.sh` header | low | Read the header lines in the diff | patch |
+| F4 (RS-3) | review-standards (discovered-work) | The jq `. as $name` guard now covers lines the extractor no longer reaches | `bash.sh:149-150` | false | The guard is still exercised by the bare fixture line `. as $h` (`tests/scripts/extractor-bash.sh:141`, outside any quote) and keeps that case green; it is harmless | none (dismissed: still exercised, no harm) |
+
+Failed lenses: none
+Outcome: rework 1 of 5
