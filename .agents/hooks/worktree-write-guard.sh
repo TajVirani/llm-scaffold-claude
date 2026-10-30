@@ -26,7 +26,7 @@
 #     - A header the lib cannot name (e.g. a spec_dir that is not a <NNN>-<slug> folder): deny every call with the lib's reason, fail
 #       closed, with or without isolation.
 #     - The named agent worktree exists: confine to it. Otherwise, a linked-worktree cwd (a launch with isolation: "worktree"): confine to
-#       that worktree. Otherwise (named worktree missing, transcript not found, launch header missing or not parsed, cwd outside any git
+#       that worktree. Otherwise (the named agent worktree is missing, transcript not found, launch header missing or not parsed, cwd outside any git
 #       repository): deny every call, reads and temp-dir writes included; the reason names the cause, with the transcript or header cause
 #       the hook found added to the scope check's reason.
 #   - check-worktree-scope.sh exit 0: allow (no output); exit 2: deny with its reason; any other exit: deny, fail closed.
