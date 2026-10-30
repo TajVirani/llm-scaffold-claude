@@ -98,3 +98,14 @@ Lenses: review-standards (RS-1, RS-2, RS-3), review-end-state (RE-1), review-les
 
 Failed lenses: none
 Outcome: rework 1 of 5
+
+## 2026-10-30 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes
+- PR description: approved. Changes asked before approval: none
+- Backlog: no open items
+- Going-in concerns: none
+
+## 2026-10-30 Retrospective notes
+
+- The published architecture cache will lose five Unresolved edges (four in `tests/scripts/build-architecture.sh`, one in `tests/scripts/extractor-bash.sh`) at its next regeneration, see .workflow/decisions/retrospectives/00012-extractor-multiline-quotes.md
