@@ -171,3 +171,10 @@ Seeded by the module-audit refresh: after the move the D11 deny blocks every Wri
 
 - Main-moved contracts read at 1.1 (see "Contracts changed under the spec" above); none further.
 - Sweep time threshold: options ≤ 5 s, ≤ 10 s (recommended), ≤ 30 s. Answer: "≤ 30 s". Line coverage: "Not measured" (recommended). TGT-001-TGT-008 written; TGT-004 enforces the no-literal constraint.
+
+## 2026-10-30 Task breakdown (2.1-2.4)
+
+- Breakdown: T1 Done folder path and write deny (touches_core: `WF_SPECS_DONE`, `wf_norm_folder` accepts a `done/` child), T2 review lessons accept the Done folder, T3 session start sees done-on-main in `done/` (hooks), T4 sign-off, discovery and large-path docs (after T2), T5 `move-to-done.sh` (after T1, T4). Waves: T1-T3, T4, T5; no predicted-file overlaps. Answer: "Approve".
+- **Q14 Where the sweep of this repo runs.** Options: at 5.8 in the main checkout as its own commit on the spec branch before 007's own move, then `tests/run-all.sh`; a sixth Phase 3 task with an approved budget overrun. Recommended: at 5.8 (about 840 renamed files would swamp the 30-file budget; a worktree run leaves the old `.step` markers in the main checkout). Answer: "At 5.8, own commit". **D16 (amends D5)** the one-time sweep of 001-006 and 008 runs at 5.8 for this spec only, before the move of 007 itself, committed alone and followed by a passing `tests/run-all.sh` (JRN-005); no task carries it.
+- Budget: defaults kept, `max_tasks: 10`, `max_changed_files: 30`. Answer: "Keep 10 / 30".
+- Seams (2.3): `check-write.sh --cwd --path` CLI and the lib functions (T1); `review-lessons.sh validate` (T2); the session-start hook's output (T3); doc text checks and the 5.8 publish block (T4); the `move-to-done.sh` CLI in a fixture repo (T5). Answer: "Agreed". 2.2: every slice is specifiable from D1-D16.

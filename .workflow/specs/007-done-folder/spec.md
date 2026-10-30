@@ -6,6 +6,7 @@ impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.
 light_path: false # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
 deferred: [.workflow/deferred/sign-off-scoped-commit.md, .workflow/deferred/launch-against-done-spec.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
+budget: {max_tasks: 10, max_changed_files: 30} # written at 2.5 from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
 ---
 
 # Done folder for finished specs
