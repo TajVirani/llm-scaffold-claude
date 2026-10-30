@@ -279,7 +279,9 @@ point_at_done_folder() {
 }
 
 # move_spec SPEC_DIR : move SPEC_DIR into the Done folder, drop its step marker, fix its outbound links, rewrite its path in
-#   every workflow file outside cache/ and initiatives/, and queue the changed paths in PATHSPECS for the commit.
+#   the workflow files, and queue the changed paths in PATHSPECS for the commit. Generated caches, initiative records and
+#   local working state are skipped: caches are rebuilt from the tree, an initiative re-points its own spec paths when it
+#   closes, and local state such as other checkouts is not this branch's to change.
 move_spec() {
   local spec_dir=$1 name target old_abs new_abs done_abs move_index step_copy file rel tracked found
   name=${spec_dir##*/}
@@ -324,6 +326,7 @@ move_spec() {
     esac
     if point_at_done_folder "$file" "$name"; then PATHSPECS+=("$rel"); fi
   done <"$LIST_FILE"
+  # An untracked spec leaves nothing at its old path for git, and git add fails on a path that matches nothing.
   tracked=$(git -C "$ROOT" ls-files -c -- "$spec_dir") || die "cannot list the tracked files of $spec_dir"
   if [[ -n "$tracked" ]]; then PATHSPECS+=("$spec_dir"); fi
   PATHSPECS+=("$target")
@@ -341,6 +344,7 @@ commit_moves() {
   fi
   INDEX_FILE=$git_dir/index
   git -C "$ROOT" --literal-pathspecs add -A -- "${PATHSPECS[@]}" || die "git add failed for the moved spec"
+  # With rename detection the list names only the new path, so the commit would leave the old path's deletion staged.
   git -C "$ROOT" --literal-pathspecs diff --cached --name-only -z --no-renames -- "${PATHSPECS[@]}" >"$LIST_FILE" ||
     die "cannot list the staged changes"
   while IFS= read -r -d '' file; do staged+=("$file"); done <"$LIST_FILE"
