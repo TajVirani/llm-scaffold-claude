@@ -1,0 +1,22 @@
+status: done
+summary: "move-to-done.sh --sweep now meets TGT-007. It drops from 52.20 s to 14.49 s, best of 3, on the baseline clone with the verification-plan command, and its stdout and commit tree are byte-identical to the old script's. Profiling showed about 9,957 wf_path subshells and 6,475 grep forks from the per-file loop, run once per spec against 609 actual rewrites. One xargs grep per spec now selects the files that name the spec, and folder depth is counted with bash parameter expansion instead of printf|tr|wc."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t5"
+branch: "task/007-done-folder/T05-move-to-done-script"
+base_commit: "f682b94ae3c87dbe580d772585a012f06fc6e753"
+head_commit: "58743489e7f5a99f5a31890954e6f727fc2dc420"
+files_changed: [".agents/skills/feature-workflow/scripts/move-to-done.sh"]
+tests_added: []
+evidence:
+  red: "TGT-007 sweep-time command (verification-plan.md, BASE=9e971ade158b5e92da93bf2b150fd68dd55d7e9e) with the old script at load average about 7: runs 52.20, 53.19, 53.32; best 52.20 s, over the 30 s threshold. A first run of the same command earlier gave 48.55 s. Profile (bash -x on a baseline clone, commands counted): wf_path 9957, grep 6475, sed/cmp 609, tr/wc 544 each."
+  green: "Same TGT-007 command with the new script at load average about 10: runs 14.49, 14.83, 15.03; best 14.49 s. One earlier best-of-3 at load average 23 (heavy machine load, endpoint security agent at 230% CPU) gave 33.86 s. The commit tree after the sweep is 8dd95465a36738c42ad9eff86f7baae1a71fddac for both old and new scripts, and stdout is identical apart from the commit sha. tests/run-all.sh --suite scripts/move-to-done: 117/117 passed, the rollback and unreadable-file cases included."
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/007-done-folder --task-id T5 --cwd <worktree>: lint exit 0 (shellcheck clean), test exit 0 (scoped: scripts/move-to-done passed=117 failed=0)"
+  toolchain: ".workflow/specs/007-done-folder/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "Reading the workflow file list once per run: the list changes after each move (the moved spec's files are now under done/), so one git ls-files per spec stays. It is one process per spec and costs little."
+  - "Removing the remaining per-rewrite processes (sed, cmp, cp, cat for about 609 files, awk and cmp for about 109 spec Markdown files): this needs the sed rewrite moved into one batched awk, which is a larger change to the rewrite logic. The target is already met with about 15 s to spare at normal load, but it is still sensitive to heavy machine load (33.86 s at load average 23)."
+  - "Undo copies only for rewritten files: replace_file already copies only when the content changes, so nothing to change there."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

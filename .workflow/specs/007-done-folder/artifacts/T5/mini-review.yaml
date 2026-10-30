@@ -1,0 +1,57 @@
+verdict: pass
+task_id: T5
+work_type: shell-scripts
+mode: full
+previous: null
+diff: ".workflow/.worktrees/s007_t5@f682b94ae3c87dbe580d772585a012f06fc6e753..HEAD"
+tool_output: .workflow/specs/007-done-folder/artifacts/T5/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:120 (ROOT_PREFIX built by wf_path); no new .workflow literal in the added lines"
+  - n: 2
+    verdict: not-applicable
+    location: "no hook file in the diff; the diff touches a skill script and a test script"
+  - n: 3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:72-73, 208, 210-211, 303, 305, 307-308, 314-316 (returns only when the search error file is empty), 320, 322"
+  - n: 4
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:307, 308, 322 (die default exit 2), documented in the header at lines 26-27"
+  - n: 5
+    verdict: not-applicable
+    location: "the diff adds no sibling path and no BASH_SOURCE line"
+  - n: 6
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:1-35 (header unchanged, names no decision ID); tests/scripts/move-to-done.sh:33-37 (test header, added text names no ID)"
+  - n: 7
+    verdict: pass
+    location: "no new file; .agents/skills/feature-workflow/scripts/move-to-done.sh:37 keeps set -euo pipefail; added tests use [[ ]] at move-to-done.sh:315, 320 and tests/scripts/move-to-done.sh:485-491"
+  - n: 8
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:296 (list_files_naming has its name line); tests/scripts/move-to-done.sh:78 (scratch_with_folder_at has its name line); no shellcheck disable directive in the added lines"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:117-120, 296; tests/scripts/move-to-done.sh:78, 485-489"
+  - n: R2
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:306, 309-310, 312-313 (each gives the reason)"
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:296-297, 306, 309-310, 312-313; tests/scripts/move-to-done.sh:35-37, 78-79 (none restates the code)"
+  - n: R4
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:296-297, 306, 309-310, 312-313; tests/scripts/move-to-done.sh:35-37, 78-79 (no decision ID, doc or workflow path)"
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:309-310, 312-313 (sweep is defined in the header at lines 6-8); tests/scripts/move-to-done.sh:35-37, 78-79 (plain English)"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh:15, 64-67: wf_path output, so ROOT_PREFIX keeps its trailing slash and the strip at move-to-done.sh:364 matches"
+  - ".agents/skills/feature-workflow/scripts/move-to-done.sh:44-107, 185-212, 396-440: die exit code, the move_refusal call sites (command substitution, so die exits 2 through REFUSAL=... || exit 2), and the sweep loop"
+  - "tests/scripts/move-to-done.sh:1-14: test header; JRN-001 and JRN-002 are pre-existing journey IDs outside the diff, not decision IDs"
+out_of_scope_noticed:
+  - kind: bug
+    summary: "list_files_naming falls through to its last die with an empty reason when xargs ends with a status other than 0, 1 or 123 and writes nothing to stderr. The header promise to name the unsearchable file holds only for the per-file loop."
+    evidence: ".agents/skills/feature-workflow/scripts/move-to-done.sh:296-297, 314-322"
+    blocker_assessment: can-wait
+    reason: "The sweep still stops with exit 2 and rolls back, so only the message is lost, and the case needs xargs to fail without writing to stderr."

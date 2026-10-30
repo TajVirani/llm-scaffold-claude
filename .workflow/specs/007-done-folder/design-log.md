@@ -239,3 +239,5 @@ Gaps (not_verifiable, review-end-state): as pass 1 (JRN-005 at 5.8, the next spe
 
 Failed lenses: none
 Outcome: rework 2 of 5
+- Rework 2, T5 fix round 2: mini-review item 3 at `move-to-done.sh:300-301` (the `printf` into CANDIDATE_FILE runs inside a `|| die` loop where `set -e` is ignored, so a failed write goes unnoticed). Behaviour fix: fresh launch. T5 has used four fix rounds; the cap is five.
+- Rework 2: T4 (F6) and T5 (F5) mini-reviews pass; TGT-007 measured by T5 at 14.49 s and 15.81 s best of 3 (threshold 30 s; load-sensitive, 33.86 s once at load average 23). T5 out-of-scope note (an empty die reason when `xargs` fails without stderr, `move-to-done.sh:314-322`): low, dismissed: the run still stops with exit 2 and rolls back; only the message is lost, on a path `xargs` is not seen to take.

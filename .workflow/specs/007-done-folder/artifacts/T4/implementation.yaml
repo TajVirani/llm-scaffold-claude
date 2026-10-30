@@ -1,0 +1,21 @@
+status: done
+summary: "Large-path 6.13's initiative path rewrite now uses the same end boundary as move-to-done.sh point_at_done_folder, (\\.?[^A-Za-z0-9._-]|\\.?$). A spec path that ends a sentence is rewritten with its full stop kept, and NAME.md stays as it is. The repeat-until-unchanged loop and the skip for specs not in done/ are unchanged, and the prose list of cases now names the sentence-ending path and NAME.md."
+task_id: "T4"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t4"
+branch: "task/007-done-folder/T04-sign-off-discovery-large-path-docs"
+base_commit: "f682b94ae3c87dbe580d772585a012f06fc6e753"
+head_commit: "5c5f3e454c50203d517396c55ea57de68a8851b1"
+files_changed: [".agents/skills/feature-workflow/modules/large-path.md"]
+tests_added: []
+evidence:
+  red: "Old 6.13 expression on stdin, spec=007-done-folder: printf 'See .workflow/specs/007-done-folder.\\nSee .workflow/specs/007-done-folder. Next.\\n' | sed -E -e ':again' -e \"s#(^|[^A-Za-z0-9._-])specs/$spec([^A-Za-z0-9._-]|\\$)#\\1specs/done/$spec\\2#g\" -e 't again'; both lines came back unchanged ('See .workflow/specs/007-done-folder.')"
+  green: "New 6.13 expression on stdin, spec=007-done-folder, 8 lines: sentence-ending at end of line -> '.workflow/specs/done/007-done-folder.'; sentence-ending before a space -> rewritten with '. Next sentence.' kept; '../../specs/007-done-folder/spec.md' -> '../../specs/done/007-done-folder/spec.md'; 'specs/007-done-folder.md' unchanged; adjacent 'specs/X specs/X,specs/X' -> all three rewritten; prefix 'specs/007-done-folder-two' unchanged; already moved '.workflow/specs/done/007-done-folder' unchanged; bare path at end of line rewritten. 8/8 as expected."
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/007-done-folder --task-id T4 --cwd <worktree>; lint (frontmatter, step-list, symlinks, upstream-lineage) pass; test scoped: scripts/sign-off-pr passed=34 failed=0, lint/done-folder-docs passed=16 failed=0 (TOTAL 50/50)"
+  toolchain: ".workflow/specs/007-done-folder/artifacts/T4/toolchain.txt (pass)"
+considered_not_built:
+  - "Merging the 6.13 rewrite into one script form shared with move-to-done.sh: this is backlog item 007-done-folder-disc-001, outside this rework"
+  - "A harness test that runs the 6.13 sed: the agreed seam for T4 is text checks plus sign-off-pr.sh, so the check was done by hand on stdin"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t5/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t5",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/007-done-folder/artifacts/T5",
-  "tree": "ccea80bd43d39a3930310e3ce76d6fbef4c50399",
+  "tree": "cc8d394b2e187406e843e2498d455a4678148c9b",
   "ran": 2,
   "results": [
     {
@@ -42,7 +42,7 @@
       "exit_code": 0,
       "scoped": true,
       "own": 1,
-      "excluded": 0
+      "excluded": 2
     }
   ],
   "digest": "",

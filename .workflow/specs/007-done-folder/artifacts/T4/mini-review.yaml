@@ -1,0 +1,34 @@
+verdict: "pass"
+task_id: "T4"
+work_type: "agent-docs"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t4@f682b94ae3c87dbe580d772585a012f06fc6e753..HEAD"
+tool_output: ".workflow/specs/007-done-folder/artifacts/T4/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: the only changed file is .agents/skills/feature-workflow/modules/large-path.md, and the changed lines are module body text, not a skill frontmatter description"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: no agent file is added or changed"
+  - n: "R1"
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: the diff adds no function, variable, type or test name; the sed line reuses the existing $spec variable"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/large-path.md:292"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/large-path.md:292"
+  - n: "R4"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/large-path.md:292"
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/large-path.md:292"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: the R1-R5 rules and the Checking at 3.7 lines"
+  - ".agents/skills/feature-workflow/modules/large-path.md:5 (HEAD): defines NNN-slug as the initiative folder naming convention, so the R5 shorthand in the new comment is defined in the module"
+  - ".agents/skills/feature-workflow/modules/large-path.md:284-296 (HEAD): the changed block, read in full for context"
+out_of_scope_noticed: []
