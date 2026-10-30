@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Done folder path and write deny"
-    status: pending
+    status: done
     capability: CAP-NEW-done-folder
     depends_on: []
     touches_core: true
@@ -19,7 +19,7 @@ tasks:
     pr: null
   - id: T2
     title: "Review lessons accept the Done folder"
-    status: pending
+    status: done
     capability: CAP-NEW-done-folder
     depends_on: []
     touches_core: false
@@ -36,7 +36,7 @@ tasks:
     pr: null
   - id: T3
     title: "Session start sees done-on-main in the Done folder"
-    status: pending
+    status: done
     capability: CAP-NEW-done-folder
     depends_on: []
     touches_core: false

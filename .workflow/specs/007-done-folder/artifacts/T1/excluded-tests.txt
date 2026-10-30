@@ -1,0 +1,5 @@
+tests/scripts/review-lessons.sh
+tests/hooks/session-start-initiatives.sh
+tests/lint/done-folder-docs.sh
+tests/scripts/sign-off-pr.sh
+tests/scripts/move-to-done.sh

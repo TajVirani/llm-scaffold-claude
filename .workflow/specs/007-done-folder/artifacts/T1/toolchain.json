@@ -1,0 +1,50 @@
+{
+  "status": "pass",
+  "task_id": "T1",
+  "work_type": "shell-scripts",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t1/.workflow/profiles/shell-scripts.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t1",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/007-done-folder/artifacts/T1",
+  "tree": "da64e4de65d8e23319d2c6ff74e539dff291465b",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\"",
+      "status": "pass",
+      "exit_code": 0,
+      "scoped": true,
+      "own": 2,
+      "excluded": 5
+    }
+  ],
+  "digest": "",
+  "reused_from": "T1"
+}

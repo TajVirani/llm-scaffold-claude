@@ -178,3 +178,10 @@ Seeded by the module-audit refresh: after the move the D11 deny blocks every Wri
 - **Q14 Where the sweep of this repo runs.** Options: at 5.8 in the main checkout as its own commit on the spec branch before 007's own move, then `tests/run-all.sh`; a sixth Phase 3 task with an approved budget overrun. Recommended: at 5.8 (about 840 renamed files would swamp the 30-file budget; a worktree run leaves the old `.step` markers in the main checkout). Answer: "At 5.8, own commit". **D16 (amends D5)** the one-time sweep of 001-006 and 008 runs at 5.8 for this spec only, before the move of 007 itself, committed alone and followed by a passing `tests/run-all.sh` (JRN-005); no task carries it.
 - Budget: defaults kept, `max_tasks: 10`, `max_changed_files: 30`. Answer: "Keep 10 / 30".
 - Seams (2.3): `check-write.sh --cwd --path` CLI and the lib functions (T1); `review-lessons.sh validate` (T2); the session-start hook's output (T3); doc text checks and the 5.8 publish block (T4); the `move-to-done.sh` CLI in a fixture repo (T5). Answer: "Agreed". 2.2: every slice is specifiable from D1-D16.
+
+## 2026-10-30 T2 mini-review round 1
+
+- Fail: item 1 (Done folder path spelled out in `review-lessons.sh` instead of built from `workflow-paths.sh`) and R4 (header names paths the script never reads). Behaviour fix round: fresh launch.
+- Out of scope noticed (`assets/review-lessons.md:9` still states the old `origin_spec` rule): not discovered work; it is T4's acceptance criterion (the template header kept in step with the script).
+- T1 re-check out-of-scope note (toolchain tree hash differs from the git tree): not discovered work; the tree hash excludes the workflow data folders, and `run-toolchain.sh --reuse` on head 7323ca9 matched the same tree (pass, reused_from T1).
+- 3.16 task review: skipped the task PRs for every wave (pr: null). `origin` is about 150 commits behind and is not used for this work; nothing is pushed (local-merge route, as for specs 006 and 008).

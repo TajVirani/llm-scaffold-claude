@@ -1,0 +1,6 @@
+tests/scripts/check-write-paths.sh
+tests/scripts/lib-workflow-paths.sh
+tests/scripts/review-lessons.sh
+tests/lint/done-folder-docs.sh
+tests/scripts/sign-off-pr.sh
+tests/scripts/move-to-done.sh

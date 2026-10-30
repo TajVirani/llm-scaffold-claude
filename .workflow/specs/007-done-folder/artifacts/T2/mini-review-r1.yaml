@@ -1,0 +1,63 @@
+verdict: "fail"
+task_id: "T2"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t2@3e44c5fddbfea88a1e0b05eeff29d09c1750eb1b..HEAD"
+tool_output: ".workflow/specs/007-done-folder/artifacts/T2/toolchain.json"
+items:
+  - n: 1
+    verdict: "fail"
+    location: ".agents/skills/feature-workflow/scripts/review-lessons.sh:82, .agents/skills/feature-workflow/scripts/review-lessons.sh:83"
+    note: "The new done/ alternative (line 82) and its error text (line 83) spell out the Done folder path, which .agents/lib/workflow-paths.sh already defines as WF_SPECS_DONE; after that folder moves, origin_spec validation keeps the stale literal and retrospective validate accepts or rejects entries against the wrong path. Source workflow-paths.sh as check-write.sh does and build the pattern and the message from WF_SPECS and WF_SPECS_DONE, passed to jq with --arg; the .workflow/specs/ prefix already on line 82 moves with them (rule candidate: a boundary check for a literal .workflow/ path in a script outside tests/)"
+  - n: 2
+    verdict: "not-applicable"
+    location: "none: neither changed file is a hook"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/review-lessons.sh:82-83 (the new origin_spec rule), .agents/skills/feature-workflow/scripts/review-lessons.sh:96-97 (validate sends the first broken rule to refuse, which exits 1)"
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/review-lessons.sh:15 (Exit documents 1 for a file that breaks a rule), .agents/skills/feature-workflow/scripts/review-lessons.sh:97 (refuse exits 1); check-pr-body.sh Exit header unchanged"
+  - n: 5
+    verdict: "not-applicable"
+    location: "none: neither changed file adds or changes a sibling path reference; review-lessons.sh sources nothing"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/review-lessons.sh:1-20, .agents/skills/feature-workflow/scripts/check-pr-body.sh:1-31 (helper header keeps File, Purpose, Usage, Exit, Called by, Notes and Sources; a grep for decision IDs and ADR- in both files finds none)"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/review-lessons.sh:22 (set -euo pipefail), .agents/skills/feature-workflow/scripts/review-lessons.sh:111 and :118 ([[ ]]), .agents/skills/feature-workflow/scripts/check-pr-body.sh:33 (set -euo pipefail); no new file, and the diff adds no shell test"
+  - n: 8
+    verdict: "pass"
+    location: "no code in the diff the item applies to: the diff adds no function and no shellcheck directive (review-lessons.sh:58 is older and gives its reason)"
+  - n: R1
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/review-lessons.sh:82-83 (no identifier added or changed; the origin_spec key and the $e variable stay as they were)"
+  - n: R2
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-pr-body.sh:3-5, .agents/skills/feature-workflow/scripts/check-pr-body.sh:28-29 (the new header lines say why the body is checked again after the move)"
+  - n: R3
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/review-lessons.sh:6-8 (interface header stating what validate accepts; it is not a body comment that restates the next line)"
+  - n: R4
+    verdict: "fail"
+    location: ".agents/skills/feature-workflow/scripts/review-lessons.sh:7"
+    note: "The header names the workflow paths .workflow/specs/ and .workflow/specs/done/, which the script never reads or writes, so the header exemption for read or written paths does not cover them, and the Done folder path goes stale when WF_SPECS_DONE moves; describe the accepted value in words, such as a spec folder directly in the specs folder or directly in its Done folder (rule candidate)"
+  - n: R5
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-pr-body.sh:3-4 (the Done folder, defined in .agents/lib/workflow-paths.sh:14), .agents/skills/feature-workflow/scripts/review-lessons.sh:7-8 (the accepted value spelled out in plain words)"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh:14, :44: WF_SPECS_DONE definition and its API comment, for item 1 and R5"
+  - ".agents/skills/feature-workflow/scripts/check-write.sh:60-61: sibling script that sources the lib with cd -P, the convention the item 1 fix follows"
+  - ".agents/skills/feature-workflow/scripts/review-lessons.sh:1-124: whole file, for the validate and refuse path (items 3, 4) and the surrounding code"
+  - ".agents/skills/feature-workflow/scripts/check-pr-body.sh:1-40: whole header and first lines, for items 6 and 7"
+  - ".agents/skills/feature-workflow/assets/review-lessons.md:9: the template's origin_spec rule, for the out_of_scope entry"
+  - ".agents/skills/feature-workflow/scripts/review-lessons.sh and check-pr-body.sh: grep for decision IDs and ADR- references, no match, for item 6"
+  - "main checkout .agents/skills/feature-workflow/references/readable-code.md: rule text and Checking table, for R1 to R5"
+out_of_scope_noticed:
+  - kind: "bug"
+    summary: "The lessons template header still says origin_spec is .workflow/specs/ then a number and a lowercase slug, while review-lessons.sh now also accepts the Done folder and mixed-case slugs; the script header says a rule change changes both files, and this diff changes only the script."
+    evidence: ".agents/skills/feature-workflow/assets/review-lessons.md:9; .agents/skills/feature-workflow/scripts/review-lessons.sh:6-8"
+    blocker_assessment: "can-wait"
+    reason: "Every entry the template allows still passes validate, so no existing lesson file breaks; the template only under-describes the accepted form until it is updated."
