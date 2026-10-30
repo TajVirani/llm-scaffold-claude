@@ -14,6 +14,12 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Fill a brief's path placeholders with what the launch really gives the agent
+- What happened: `tests/hooks/worktree-guard.sh` filled every `worktree`, `checkout` and `launched` placeholder in the result-file command it extracts from the agent docs with the agent worktree. So the integration and Phase 1 briefs passed while their "checkout you were launched in" meant the main checkout under the no-isolation launch; review pass 1 caught it (F1, high).
+- Where: `tests/hooks/worktree-guard.sh` placeholder filler; command templates in `.agents/agents/*.md`
+- Spec: .workflow/specs/006-result-file-guard
+- Prevented by: the guard suite fills a `launched` placeholder with the main checkout and checks the filled command starts with `cd <agent worktree> &&`
+
 ## Flip a Phase 1 placeholder's PROVENANCE row when the task that implements it lands
 - What happened: Phase 1 added `lib/test-paths.sh` as a stub with a `placeholder` PROVENANCE row; T1 and T2 made it real and sourced it, no task brief named the row, and both review-standards and review-end-state flagged it (F2, medium), costing a rework.
 - Where: `PROVENANCE.md`; task briefs at 2.5 for tasks that replace a Phase 1 stub

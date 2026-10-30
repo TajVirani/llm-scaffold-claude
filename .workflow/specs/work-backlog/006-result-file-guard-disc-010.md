@@ -2,7 +2,8 @@
 origin_spec: .workflow/specs/006-result-file-guard
 origin_step: "4.4"
 discovered_at: 2026-10-29
-status: open
+status: promoted
+promoted_to: .workflow/specs/00010-worktree-guard-followups
 kind: bug
 ---
 

@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Hooks build agent worktree names from the shared lib"
     status: done
-    capability: CAP-NEW-result-file-write
+    capability: CAP-006
     depends_on: []
     touches_core: true
     work_type: shell-scripts
@@ -29,7 +29,7 @@ tasks:
   - id: T2
     title: "Artifacts merge gate"
     status: done
-    capability: CAP-NEW-result-file-write
+    capability: CAP-006
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -48,7 +48,7 @@ tasks:
   - id: T3
     title: "Agent briefs write the result file to the main checkout"
     status: done
-    capability: CAP-NEW-result-file-write
+    capability: CAP-006
     depends_on: []
     touches_core: false
     work_type: agent-docs
@@ -66,7 +66,7 @@ tasks:
   - id: T4
     title: "Read-only commands pass the worktree scope check"
     status: done
-    capability: CAP-NEW-worktree-read-commands
+    capability: CAP-007
     depends_on: [T1]
     touches_core: false
     work_type: shell-scripts
@@ -85,7 +85,7 @@ tasks:
   - id: T5
     title: "Orchestrator steps launch Phase 1 and integration in agent worktrees"
     status: done
-    capability: CAP-NEW-result-file-write
+    capability: CAP-006
     depends_on: [T3]
     touches_core: false
     work_type: agent-docs
@@ -105,7 +105,7 @@ tasks:
   - id: T6
     title: "Upgrade resolves hook matchers per group"
     status: done
-    capability: CAP-NEW-result-file-write
+    capability: CAP-006
     depends_on: [T1]
     touches_core: false
     work_type: shell-scripts
@@ -124,7 +124,7 @@ tasks:
   - id: T7
     title: "Docs describe the upgrade matcher rule"
     status: done
-    capability: CAP-NEW-result-file-write
+    capability: CAP-006
     depends_on: [T6]
     touches_core: false
     work_type: agent-docs

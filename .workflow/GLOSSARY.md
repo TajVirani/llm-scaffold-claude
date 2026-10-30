@@ -140,6 +140,10 @@ _Avoid_: Task worktree (Phase 1 and integration are not tasks), named worktree, 
 The one YAML file a coding or review sub-agent (implementation, integration, profile-mini-review) writes under `<spec_dir>/artifacts/<id>/` in the main checkout, holding its structured result for the orchestrator to check by script. Not a Phase 4 lens's pass file.
 _Avoid_: Return file, output file, result block (the block is its content)
 
+**Artifacts gate**:
+The check `check-merge-artifacts.sh` runs before every merge into the spec branch (1.2, 1.3, 3.2, 3.16, the light-path fast-forward). It refuses a branch or commit that adds, changes or deletes anything under `<spec_dir>/artifacts/` since its merge-base with the spec branch.
+_Avoid_: Merge gate (too broad), artifacts check
+
 **Done folder**:
 The folder `.workflow/specs/done/` that a spec moves into once its sign-off PR has merged, with the spec and every task record marked complete. Keeps the top level of `.workflow/specs/` to specs still in flight; a spec in it is read as context only and its number is never reused.
 _Avoid_: Spec archive, closed specs, z_ prefix

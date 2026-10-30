@@ -34,7 +34,7 @@ The git worktree the orchestrator creates for one coding launch; the worktree gu
 
 | Field | Type | Required | Validation rule | Change |
 | --- | --- | --- | --- | --- |
-| name | string | yes | `s<NNN>_t<N>` \| `s<NNN>_phase_1_<enc(work_type)>` \| `s<NNN>_integration_<enc(work_type)>`; `[a-z0-9_]` only; byte-identical to the Codex `task_name` (CAP-NEW-result-file-write) | extend (two forms new on Claude) |
+| name | string | yes | `s<NNN>_t<N>` \| `s<NNN>_phase_1_<enc(work_type)>` \| `s<NNN>_integration_<enc(work_type)>`; `[a-z0-9_]` only; byte-identical to the Codex `task_name` (CAP-006) | extend (two forms new on Claude) |
 | path | string | yes | `<main checkout>/.workflow/.worktrees/<name>` | unchanged |
 | branch | string | yes | Phase 3: `task/NNN-slug/Tnn-<slug>`; Phase 1 and integration: `wf/NNN-slug/<name>`, forked from the spec-branch tip (D14) | extend |
 
@@ -67,7 +67,7 @@ The git worktree the orchestrator creates for one coding launch; the worktree gu
 
 | Field | Type | Required | Validation rule | Change |
 | --- | --- | --- | --- | --- |
-| mode | enum | yes | `merge` \| `replace` \| `keep`; from `--matchers`, else the prompt answer at a terminal (Enter = `merge`), else `merge` with a warning (CAP-NEW-result-file-write) | create |
+| mode | enum | yes | `merge` \| `replace` \| `keep`; from `--matchers`, else the prompt answer at a terminal (Enter = `merge`), else `merge` with a warning (CAP-006) | create |
 | merged matcher | string | for `merge` | existing `|` alternatives in order, then the template's missing ones; a group with no matcher is left alone | create |
 
 **Invalid states ruled out:** two groups under one event running the same scaffold command after an upgrade; a prompt waiting with no terminal; `--dry-run` writing or asking.

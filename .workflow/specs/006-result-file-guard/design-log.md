@@ -21,7 +21,7 @@ Spec: [spec.md](spec.md)
 
 ## 2026-10-29 Capability (0.3.1)
 
-- No entry in `.workflow/capabilities.md` covers result files, artifacts or the worktree guard. New capability, provisional `CAP-NEW-result-file-write`.
+- No entry in `.workflow/capabilities.md` covers result files, artifacts or the worktree guard. New capability, provisional `CAP-006`.
 
 ## 2026-10-29 Placement (0.3.4)
 
@@ -90,7 +90,7 @@ Spec: [spec.md](spec.md)
 
 ## 2026-10-29 Goal settled (0.3.19)
 
-- Summary of D1-D10 restated as two capabilities (CAP-NEW-result-file-write, CAP-NEW-worktree-read-commands), placement per D9, non-goals and the full path. Stakeholder: "matches".
+- Summary of D1-D10 restated as two capabilities (CAP-006, CAP-007), placement per D9, non-goals and the full path. Stakeholder: "matches".
 - Light-path facts: intent gaps clean; no irreversible actions; footprint not small (five modules plus shared core). `light_path: false`.
 
 ## 2026-10-29 Light-path test (0.3.20)
@@ -229,7 +229,7 @@ Outcome: loop back (00.24 discovered work)
 
 ## 2026-10-29 Goal re-settled (0.3.19), after the upgrade-matcher-merge loop-back
 
-- Summary of D19-D25 restated: `install.sh` merges, replaces or keeps a differing matcher per hook group on every event (prompt at a terminal with Enter = merge, merge with a warning without one, `--matchers=merge|replace|keep`, `--dry-run` asks nothing, `--force` leaves matchers alone), documented in four places. Placement: installer module (new owner for this spec), hooks (`claude-settings.template.md` Merge rules, T1's file), root-docs (README; CHANGELOG has no owning module and goes with root-docs). Still one feature: the upgrade rule joins CAP-NEW-result-file-write's success line. Stakeholder: "Matches". `light_path` stays false.
+- Summary of D19-D25 restated: `install.sh` merges, replaces or keeps a differing matcher per hook group on every event (prompt at a terminal with Enter = merge, merge with a warning without one, `--matchers=merge|replace|keep`, `--dry-run` asks nothing, `--force` leaves matchers alone), documented in four places. Placement: installer module (new owner for this spec), hooks (`claude-settings.template.md` Merge rules, T1's file), root-docs (README; CHANGELOG has no owning module and goes with root-docs). Still one feature: the upgrade rule joins CAP-006's success line. Stakeholder: "Matches". `light_path` stays false.
 
 ## 2026-10-29 Light-path test (0.3.20), re-run
 
@@ -447,3 +447,37 @@ No findings from any lens. review-end-state confirms F1 and F2 fixed (rework 1).
 
 Failed lenses: none
 Outcome: clean, to sign-off
+
+## 2026-10-30 Sign-off (5.1-5.3)
+
+- 5.1: spec.md reconciled. Constraints gain the D32 two-template-group rule and the malformed-matcher rule. Assumptions are marked confirmed (integration stop audit) or unconfirmed (no-isolation launch: JRN-010; read allowlist, with sed narrowed by D31). Known gaps: JRN-010 and line coverage (D17). D31 narrowed CAP-007's `sed -n` read to print-only scripts; reported at 5.5 rather than rewritten.
+- 5.2-5.3: P1-P5 approved as written ("Approve all (Recommended)"). Applied: CAP-006 and CAP-007 in `.workflow/capabilities.md`, with every CAP-NEW id replaced (spec, tasks through set-task, verification plan, design log, data model, codebase map); the **Artifacts gate** glossary term; the pitfall on filling brief placeholders; and the shell-scripts checklist item 3 exception. A proposed tool rule (lint for a shellcheck `disable=` without a reason, which failed T6's review twice) was left out because it means new code after review; it is raised at the retrospective instead.
+
+## 2026-10-30 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes ("Yes, approve (Recommended)")
+- Backlog 006-result-file-guard-disc-001.md: remove it: "remove this discovery. Install can take a few minutes."
+- Backlog 006-result-file-guard-disc-002.md: quick fix outside the flow: "This is a quick fix - there shoudn't be a rule for folder numbers other than they increase... With the archive folder the order shouldn't be much of a problem, but we can do leading 0s. Maybe we can start with 5 digits. Just do this as a quick pass, we dont need to use the flow for this"; clarified: "Any count + 5-digit new specs" (any digit count valid; new spec folders numbered with 5 zero-padded digits).
+- Backlog 006-result-file-guard-disc-003.md: start it as the next feature
+- Backlog 006-result-file-guard-disc-004.md: remove it ("Remove it, already fixed (Recommended)"; D31 denies sed `e`)
+- Backlog 006-result-file-guard-disc-005.md: start it as the next feature
+- Backlog 006-result-file-guard-disc-006.md: remove it
+- Backlog 006-result-file-guard-disc-007.md: start it as the next feature
+- Backlog 006-result-file-guard-disc-008.md: start it as the next feature
+- Backlog 006-result-file-guard-disc-009.md: start it as the next feature
+- Backlog 006-result-file-guard-disc-010.md: start it as the next feature
+- Seeding: "One combined spec now": disc-003, 005, 007, 008, 009 and 010 seed one spec. Numbered `00010` under the 5-digit rule, since 007-009 are taken in the primary repo and sibling clones.
+- Going-in concerns: "Fix-round churn" (why T6 needed all five fix rounds and T1 and T4 three or four, each review finding a new edge)
+- Backlog items 006-result-file-guard-disc-001, -004 and -006 removed at the stakeholder's ruling (5.9); their content stays in the Discovered work entries above.
+Backlog item 006-result-file-guard-disc-003.md started as .workflow/specs/00010-worktree-guard-followups (5.9)
+Backlog item 006-result-file-guard-disc-005.md started as .workflow/specs/00010-worktree-guard-followups (5.9)
+Backlog item 006-result-file-guard-disc-007.md started as .workflow/specs/00010-worktree-guard-followups (5.9)
+Backlog item 006-result-file-guard-disc-008.md started as .workflow/specs/00010-worktree-guard-followups (5.9)
+Backlog item 006-result-file-guard-disc-009.md started as .workflow/specs/00010-worktree-guard-followups (5.9)
+Backlog item 006-result-file-guard-disc-010.md started as .workflow/specs/00010-worktree-guard-followups (5.9)
+
+## 2026-10-30 Retrospective notes
+
+- JRN-010 (a real launch filing its own result file) is exercised for Phase 3 only. The first Phase 1 build or integration batch of the next spec, launched under T5's text without isolation, confirms the rest, including whether Claude Code accepts the heredoc result-file command.
+- The artifacts gate ran for real before the T7 merge and both rework-1 merges, exit 0 each time. The wave 1 and wave 2 merges predate T5's gate text, and a diff check showed none of them changed `artifacts/`.
+- New spec folders are numbered with 5 zero-padded digits from now on (stakeholder, disc-002), starting at `00010-worktree-guard-followups`. The quick fix that makes the scripts accept any digit count lands after the 5.8 merge.
