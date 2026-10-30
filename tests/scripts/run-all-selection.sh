@@ -6,8 +6,9 @@
 #   suites' recorded run times overlap, never by elapsed time), output in glob order identical to a serial run apart
 #   from timings, largest-file-first start order with glob-order output, -v printing full logs and ending with a
 #   failures block only when a suite failed (a failed suite with no FAIL line shows its RESULT line), exit codes 0 / 1,
-#   and INT, TERM or HUP sent mid-run (exit 130, 143 or 129, the suite and its child sleep stopped, the results
-#   directory removed; the INT case is skipped when this suite itself started with SIGINT ignored).
+#   a suite reading stdin getting end of file rather than the caller's input, and INT, TERM or HUP sent mid-run
+#   (exit 130, 143 or 129, the suite and its child sleep stopped, the results directory removed; the INT case is
+#   skipped when this suite itself started with SIGINT ignored).
 # The runner is copied into a fixture tree with stub suites, so this suite never runs the real harness.
 # shellcheck disable=SC2016  # check expressions are single-quoted so check evaluates them
 # shellcheck source=../lib/common.sh
@@ -239,6 +240,18 @@ for _ in 1 2 3 4 5 6 7 8; do printf '# padding so this stub is the larger file\n
 run_all -j 1 --suite lint/early --suite lint/late
 eq "suites start largest file first" "$(tr '\n' ' ' <"$starts")" "late early "
 eq "output stays in glob order when the start order differs" "$(summary_labels)" "lint/early lint/late"
+
+# Suite stdin: a suite reading stdin must get end of file, never the caller's input, even when the runner's stdin is
+# a pipe holding data. From a terminal such a read would stop the whole run.
+{
+  printf '#!/usr/bin/env bash\n'
+  printf 'if IFS= read -r line; then printf "read %%s\\n" "$line"; else echo "end of file"; fi >"%s/reader.stdin"\n' \
+    "$MARKERS"
+  printf 'printf "\\nRESULT passed=1 failed=0 skipped=0 xfail=0\\n"\n'
+} >"$FIXTURE_TESTS/lint/reader.sh"
+OUT=$(printf 'caller input\n' | bash "$RUNNER" --suite lint/reader 2>&1)
+eq "a suite reading stdin gets end of file while the runner's stdin is a pipe with data" \
+  "$(cat "$MARKERS/reader.stdin")" "end of file"
 
 # Interrupts. The sleeper suite backgrounds a long sleep and records its own pid and the sleep's pid. The sleep is a
 # grandchild of the runner's suite launcher, so a runner that stops only the suites' own processes leaves it running.

@@ -187,7 +187,9 @@ suite_pids=()
 # start_suite INDEX FILE : run one suite in the background. Its log goes to INDEX.log; INDEX.done appears last,
 # holding "rc seconds", and is written by rename so the reporter never reads it half written.
 # Job control is on only for the launch, which puts the suite in its own process group, so stopping that group stops
-# the suite's child processes too. Left on, it would print a job notice as each suite ends.
+# the suite's child processes too. Left on, it would print a job notice as each suite ends. With job control on, bash
+# no longer gives a background job /dev/null as stdin, so the launch does: a suite reading stdin would otherwise take
+# the caller's input, or stop the whole run by reading from the terminal.
 start_suite() {
   local index=$1 file=$2
   set -m
@@ -197,7 +199,7 @@ start_suite() {
     rc=$?
     printf '%s %s\n' "$rc" "$(($(date +%s) - start))" >"$results/$index.tmp"
     mv "$results/$index.tmp" "$results/$index.done"
-  ) &
+  ) </dev/null &
   suite_pids[index]=$!
   set +m
 }
@@ -206,8 +208,8 @@ start_suite() {
 # shellcheck disable=SC2329  # called from the signal traps below
 running_suite_groups() {
   local index
-  # The guard matches the other empty-array expansions in this file, so none can trip set -u: bash 3.2 fails on the
-  # values form of an empty array, and the guard also covers any bash that treats this indices form the same way.
+  # The guard matches the one on rows in the summary below, where bash 3.2 fails set -u on the values form of an empty
+  # array; here it covers any bash that treats this indices form the same way.
   for index in ${suite_pids[@]+"${!suite_pids[@]}"}; do
     [ -e "$results/$index.done" ] || printf '%s\n' "${suite_pids[$index]}"
   done
