@@ -11,10 +11,10 @@
 #   the main checkout), passes the guard from the main checkout, and run for real leaves the file in
 #   the main checkout's artifacts/<id>/, where check-task-result.sh accepts it. JRN-009: read-only commands (allowlisted reads
 #   joined by | or &&) pass without the leading cd; writing or exec flags, shell forms and other commands still need it.
-#   Fail closed: JRN-001 an implementation or integration agent whose agent worktree cannot be established (named worktree
-#   missing, sub-agent transcript missing, launch header missing or not valid YAML, cwd outside any git repo) is denied every
+#   Fail closed: JRN-001 an implementation or integration agent whose agent worktree cannot be established (the named agent worktree
+#   is missing, sub-agent transcript missing, launch header missing or not valid YAML, cwd outside any git repo) is denied every
 #   call, reads and temp-dir writes included, with a reason naming the cause; JRN-002 an isolation (linked-worktree cwd) launch
-#   with a missing or no named worktree stays confined to its cwd worktree; JRN-003 a payload that is not a JSON object, and a
+#   with its agent worktree missing or not named stays confined to its cwd worktree; JRN-003 a payload that is not a JSON object, and a
 #   PATH without jq, get a deny JSON; JRN-004 check-worktree-scope.sh --confined exits 2 when no root is found and exit 0 without
 #   it, so the Codex guard is unchanged; JRN-005 deny and allow messages, both scripts' # File: lines and --help say "agent
 #   worktree" and name the Phase 1 and integration shapes, and implementation-orchestrator.md says a missing agent worktree is
@@ -89,7 +89,7 @@ judge() {
 }
 expect() { guard "$3"; judge "$1" "$2" "${4:-}"; } # name allow|deny payload [reason-regex]
 
-# The cause each JRN-001 deny reason must name.
+# The cause each deny reason must name when an agent's worktree cannot be established.
 WORKTREE_MISSING='(does not exist|missing|not found)'
 TRANSCRIPT_MISSING='transcript.*(not found|missing|does not exist)'
 HEADER_NOT_PARSED='[Hh]eader.*(not parsed|unparsable|parse|malformed|missing|not found|invalid)|no launch header'
@@ -114,8 +114,8 @@ ATP=$(jq -cn --arg t "$TR/sess/subagents/agent-a3.jsonl" '{agent_id:"q",agent_ty
 expect "agent_transcript_path in the payload is used when present" deny "$(pl Write "$P/src/a.ts" "$P" "$ATP")"
 
 echo "== Claude: isolation and integration (linked-worktree cwd)"
-expect "JRN-002 isolation agent (named worktree missing) write in its cwd worktree -> allow" allow "$(pl Write "$ISO/src/a.ts" "$ISO" "$A9")"
-expect "JRN-002 isolation agent (named worktree missing) write to the main checkout -> deny" deny "$(pl Write "$P/src/a.ts" "$ISO" "$A9")" "agent-iso"
+expect "JRN-002 isolation agent (agent worktree missing) write in its cwd worktree -> allow" allow "$(pl Write "$ISO/src/a.ts" "$ISO" "$A9")"
+expect "JRN-002 isolation agent (agent worktree missing) write to the main checkout -> deny" deny "$(pl Write "$P/src/a.ts" "$ISO" "$A9")" "agent-iso"
 expect "JRN-002 integration agent write to the main checkout -> deny" deny "$(pl Write "$P/src/core.ts" "$ISO" "$AI")"
 expect "JRN-002 integration agent write in its worktree -> allow" allow "$(pl Write "$ISO/src/core.ts" "$ISO" "$AI")"
 mk_sub nohdr $'Build T5. This prompt carries no launch header.'
@@ -332,10 +332,10 @@ scope() {
   scope_err=$(cat "$WORK/scope-err")
 }
 scope --cwd "$P" --worktree-name s007_t9 --path "$P/a" --confined
-check "JRN-004 --confined, named worktree missing -> exit 2 with a reason on stderr" '[ "$scope_rc" = 2 ] && [ -n "$scope_err" ]' \
+check "JRN-004 --confined, agent worktree missing -> exit 2 with a reason on stderr" '[ "$scope_rc" = 2 ] && [ -n "$scope_err" ]' \
   "rc=$scope_rc err=$scope_err"
 scope --cwd "$P" --worktree-name s007_t9 --path "$P/a"
-eq "JRN-004 named worktree missing, not --confined -> exit 0 as before" "$scope_rc" 0
+eq "JRN-004 agent worktree missing, not --confined -> exit 0 as before" "$scope_rc" 0
 scope --cwd "$P" --path "$P/a" --confined
 check "JRN-004 --confined with no --worktree-name, main-checkout cwd -> exit 2 with a reason on stderr" \
   '[ "$scope_rc" = 2 ] && [ -n "$scope_err" ]' "rc=$scope_rc err=$scope_err"
@@ -343,7 +343,7 @@ scope --cwd "$WORK" --worktree-name s007_t3 --path "$WORK/a" --confined
 check "JRN-004 --confined, cwd outside any repo -> exit 2 naming the cause" \
   '[ "$scope_rc" = 2 ] && grep -Eq "$NOT_IN_GIT_REPO" <<<"$scope_err"' "rc=$scope_rc err=$scope_err"
 scope --cwd "$ISO" --worktree-name s007_t9 --path "$ISO/a" --confined
-eq "JRN-004 --confined, named worktree missing, cwd in a linked worktree -> exit 0 (confined to it)" "$scope_rc" 0
+eq "JRN-004 --confined, agent worktree missing, cwd in a linked worktree -> exit 0 (confined to it)" "$scope_rc" 0
 
 echo "== agent worktree wording (JRN-005)"
 # deny_wording LABEL ARGS... : the scope check denies with a reason that says "agent worktree" and never "task worktree".
@@ -369,7 +369,7 @@ allow_wording() {
   check "JRN-005 $label -> allow message never says task worktree" '[ "$scope_rc" = 0 ] && ! grep -qi "task worktree" <<<"$scope_out"' \
     "rc=$scope_rc out=$scope_out"
 }
-allow_wording "named worktree missing, not --confined" --cwd "$P" --worktree-name s007_t9 --path "$P/src/a.ts"
+allow_wording "agent worktree missing, not --confined" --cwd "$P" --worktree-name s007_t9 --path "$P/src/a.ts"
 allow_wording "write inside the worktree" --cwd "$P" --worktree-name s007_t3 --path "$W3/a.ts"
 allow_wording "Bash with cd into the worktree" --cwd "$P" --worktree-name s007_t3 --command "cd $W3 && npm test"
 allow_wording "read-only command" --cwd "$P" --worktree-name s007_t3 --command 'cat f'
