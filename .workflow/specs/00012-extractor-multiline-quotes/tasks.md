@@ -6,7 +6,7 @@ tasks:
     capability: CAP-005
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "regenerate-caches"
     seam: "extractors/bash.sh CLI and output JSON, driven by tests/scripts/extractor-bash.sh on run-time fixture repos"
     file: tasks/T01-quote-aware-readers.md

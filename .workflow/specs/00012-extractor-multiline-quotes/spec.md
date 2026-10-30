@@ -1,8 +1,8 @@
 ---
-status: draft # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
-baseline_revision: "" # full SHA of the commit the work starts from; "" until captured, then never overwritten
+status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+baseline_revision: "9347768cc6b32ccc89cea7fe536052fc87c8d4ee" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/00012-extractor-multiline-quotes # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
-impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
+impl_base_revision: "9347768cc6b32ccc89cea7fe536052fc87c8d4ee" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: true # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
 deferred: [] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
