@@ -269,3 +269,4 @@ Facts looked up instead of asked (0.3.10): None.
 
 - T1 `5e345a0`, T3 `65c126d`, T4 `aa6bc6d`, merged in id order (`6246123`, `aeff6f6`, `cd9fdff`); task PRs skipped (local `origin`: "origin host is neither GitHub nor GitLab"), `pr` stays null.
 - T1 mini-review: the first result file did not parse (YAML at L32); one resume fixed it. Its `out_of_scope_noticed` entry (the orchestrator sentence runs ahead of the hook until `--confined` is wired) is agreed scope, T2's, not discovered work.
+- Gate 3.9 w1: pass, `TOTAL passed=3451 failed=0 (61 suites)`, T2's suite excluded (`artifacts/gate-3.9-w1/`). Budget: 4 tasks, 7 of 30 changed files.
