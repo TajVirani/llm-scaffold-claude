@@ -50,4 +50,9 @@ lessons:
     paths: ["tests/**"]
     origin_spec: .workflow/specs/006-result-file-guard
     date: 2026-10-30
+  - id: RL-007
+    symptom: "A change that hides quoted text from the bash graph extractor also hides a command substitution in one of its forms ($(...) or backticks) inside double quotes, so a real call stops being reported."
+    paths: [".agents/skills/regenerate-caches/scripts/extractors/**"]
+    origin_spec: .workflow/specs/00012-extractor-multiline-quotes
+    date: 2026-10-30
 ```

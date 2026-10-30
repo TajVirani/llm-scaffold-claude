@@ -1,0 +1,40 @@
+status: done
+summary: "Mini-review fix round: the suite self-run in tests/scripts/extractor-bash.sh now captures the extractor's exit status and asserts it is 0, and asserts the output claims tests/scripts/extractor-bash.sh, before the no-./x check, so an empty or wrong output can no longer pass it. The extractor itself is unchanged from 9da79bc; the repo-wide comparison from round 1 still holds (437 -> 432 records, the five removed all in-quote edges: tests/scripts/build-architecture.sh:138, :139, :341, :342 and tests/scripts/extractor-bash.sh's jq-program ./x line; no call restored, no other record changed). Files outside the predicted list remain tests/fixtures/architecture-oracle.sh and tests/scripts/cache-repo-architecture.sh, both in the tests module."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/.worktrees/s00012_t1"
+branch: ""
+base_commit: "6f37f4c50bbcf2e86139023744a77d6571d47767"
+head_commit: "345d0575e8ac951a6aa53e8694a07dae2e0caf75"
+files_changed:
+  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh"
+  - "tests/scripts/extractor-bash.sh"
+  - "tests/fixtures/architecture-oracle.sh"
+  - "tests/scripts/cache-repo-architecture.sh"
+tests_added:
+  - {file: "tests/scripts/extractor-bash.sh", test: "extractor exits 0 on quoted strings that span lines", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a multi-line single-quoted jq program reports none of the ./x forms, source or $here lines inside it, and the call after it is read", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a multi-line awk script and a plain multi-line single-quoted block report nothing from inside", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a multi-line double-quoted string reports no call from its plain text, and every $(...) inside it is read as code", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a line that starts with # inside a quoted string can close it, so the next line's call is reported", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "an apostrophe in a trailing comment opens no quote, so later bare and cwd-relative calls are reported", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "calls after a quote spliced from single and double quotes and after an escaped quote in $'...' are reported", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a << inside a quoted string starts no heredoc, so calls on the following lines are reported", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "extractor exits 0 on this suite file", kind: "negative"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "the extractor run on this suite claims the suite file", kind: "negative"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "the extractor run on this suite reports no ./x from the case-pattern jq program", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "a $(...) holding its own quotes inside a multi-line double-quoted string is read as code, and $# and ${#...} start no comment", kind: "edge"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "an anchored call inside a $(...) in a multi-line double-quoted string still resolves", kind: "edge"}
+evidence:
+  red: "Fix round: with the self-run scope temporarily pointed at tests/scripts/no-such-file.sh (then restored), tests/run-all.sh --suite scripts/extractor-bash gave FAIL extractor exits 0 on this suite file; FAIL the extractor run on this suite claims the suite file; passed=51 failed=2, while the old no-./x check still passed on the empty output. Round 1: jq slice before the change: FAIL a multi-line single-quoted jq program ... got=4 ./x,5 ./x,6 x,7 $here/x.sh,10 ./after-jq.sh want=10 ./after-jq.sh"
+  green: "tests/run-all.sh --suite scripts/extractor-bash; PASS passed=53 failed=0 skipped=0 xfail=0"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00012-extractor-multiline-quotes --task-id T1 --cwd <worktree>; TOTAL passed=3606 failed=0 skipped=0 xfail=0 (62 suites)"
+  toolchain: ".workflow/specs/00012-extractor-multiline-quotes/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Dropping single-line quoted text from the anchored token scan and the cwd reader: the task keeps one-line double-quoted strings as they are read today."
+  - "Removing the jq `. as $name` special case: its suite case is a top-level line, not inside a quote, so the shared state does not make it redundant; kept."
+  - "Backtick substitution inside a multi-line double-quoted string: read as data like the rest of the string; not in the acceptance criteria."
+  - "Running function detection (exports) on the quote-aware line: left on the raw line so exports are unchanged."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

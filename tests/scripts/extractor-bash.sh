@@ -8,7 +8,12 @@
 #   existing file; the `exports` map of sorted unique top-level functions of sourced files only; deterministic output; usage
 #   errors. JRN-001: `case` arms in every form (one-line, `|` alternatives, `(pattern)`, `./x)`, a pattern on its own line,
 #   a whole case on one line, a case in a loop) give no pattern as a call or an edge, while every call in an arm body is
-#   still reported. CAP-NEW-bash-graph-extractor, CAP-005.
+#   still reported. Quoted strings that span lines (a jq program, an awk script, a plain single-quoted block, a
+#   double-quoted message) report nothing from their text, while a `$(...)` or backtick substitution inside a double-quoted
+#   one is still read, and
+#   calls after the string are reported; an apostrophe in a trailing comment, a quote spliced from `'` and `"`, an escaped
+#   quote in `$'...'`, a `#`-led line inside a string and a `<<` inside a quoted string do not hide later calls; run on this
+#   suite file, the extractor reports no `./x` from its jq program. CAP-NEW-bash-graph-extractor, CAP-005.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -240,6 +245,124 @@ eq "JRN-001 the word case as a plain argument opens no case, so the next line's 
   "$(nested_deps 11 12)" '12 ./bin/after-argument.sh'
 eq "JRN-001 a whole case inside \$(...) hides its pattern and closes, so the next line's call is reported" \
   "$(nested_deps 13 14)" '14 ./bin/after-substitution.sh'
+
+echo "== quoted strings that span lines"
+# Text inside a quoted string is data however many lines the string spans; a call after the string closes is still read.
+Q="$WORK/quotes"
+git_init_repo "$Q"
+mkdir -p "$Q/scripts"
+cat >"$Q/scripts/jq-program.sh" <<'OUTER'
+#!/usr/bin/env bash
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+jq -r '
+  ./x
+  "(./x"
+source x
+$here/x.sh
+  # a jq comment with an apostrophe: it'"'"'s data
+' input.json
+./after-jq.sh
+OUTER
+cat >"$Q/scripts/awk-and-plain.sh" <<'OUTER'
+#!/usr/bin/env bash
+awk '
+  $1 == "run" { system("./in-awk.sh") }
+' input.txt
+echo '
+./in-plain-quote.sh
+scripts/in-plain-quote.sh
+'
+./after-blocks.sh
+OUTER
+cat >"$Q/scripts/double-quoted.sh" <<'OUTER'
+#!/usr/bin/env bash
+message="Run $(./first.sh) first, then:
+./in-dquote.sh
+scripts/in-dquote.sh
+and $(./real.sh) with $(scripts/real-bare.sh) last"
+./after-dquote.sh
+OUTER
+cat >"$Q/scripts/backtick-in-dquote.sh" <<'OUTER'
+#!/usr/bin/env bash
+msg="first
+`./in-backtick.sh`
+then `scripts/bare-in-backtick.sh` and ./in-dquote.sh
+done"
+./after-backtick.sh
+OUTER
+cat >"$Q/scripts/hash-line.sh" <<'OUTER'
+#!/usr/bin/env bash
+note='first line of the note
+# a line of the note that closes it'
+scripts/after-hash-close.sh
+OUTER
+cat >"$Q/scripts/trailing-comment.sh" <<'OUTER'
+#!/usr/bin/env bash
+echo hi # don't
+scripts/x.sh
+./y.sh
+OUTER
+cat >"$Q/scripts/escaped-quotes.sh" <<'OUTER'
+#!/usr/bin/env bash
+x='it'"'"'s'
+scripts/after-concat.sh
+y=$'a\'b'
+scripts/after-ansi.sh
+./after-ansi.sh
+OUTER
+cat >"$Q/scripts/quoted-heredoc.sh" <<'OUTER'
+#!/usr/bin/env bash
+echo "use << EOF to start a heredoc"
+./after-double-quoted.sh
+printf '%s\n' 'cat <<END'
+scripts/after-single-quoted.sh
+OUTER
+cat >"$Q/scripts/edge-forms.sh" <<'OUTER'
+#!/usr/bin/env bash
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+msg="first line
+$(bash "$here/tool.sh" "a b") and $((1 + 2))
+./not-a-call.sh"
+[[ $# -gt 0 ]] && ./after-count.sh
+n=${#items[@]}; ./after-length.sh
+OUTER
+printf '#!/usr/bin/env bash\necho tool\n' >"$Q/scripts/tool.sh"
+git_commit_all "$Q" init
+quotes=$("$X" --root "$Q" --scope scripts); rc=$?
+eq "extractor exits 0 on quoted strings that span lines" "$rc" 0
+# quote_deps FILE : "line module" of each dependency of FILE in the quotes repo, comma-joined.
+quote_deps() {
+  jq -r --arg f "$1" '[.modules[] | select(.source == $f) | .dependencies[] | "\(.line) \(.module)"] | join(",")' \
+    <<<"$quotes" 2>/dev/null
+}
+eq "a multi-line single-quoted jq program reports none of the ./x forms, source or \$here lines inside it, and the call after it is read" \
+  "$(quote_deps scripts/jq-program.sh)" '10 ./after-jq.sh'
+eq "a multi-line awk script and a plain multi-line single-quoted block report nothing from inside" \
+  "$(quote_deps scripts/awk-and-plain.sh)" '9 ./after-blocks.sh'
+eq "a multi-line double-quoted string reports no call from its plain text, and every \$(...) inside it is read as code" \
+  "$(quote_deps scripts/double-quoted.sh)" '2 ./first.sh,5 ./real.sh,5 scripts/real-bare.sh,6 ./after-dquote.sh'
+eq "a backtick substitution inside a multi-line double-quoted string is read as code, and the plain text around it is not" \
+  "$(quote_deps scripts/backtick-in-dquote.sh)" '3 ./in-backtick.sh,4 scripts/bare-in-backtick.sh,6 ./after-backtick.sh'
+eq "a line that starts with # inside a quoted string can close it, so the next line's call is reported" \
+  "$(quote_deps scripts/hash-line.sh)" '4 scripts/after-hash-close.sh'
+eq "an apostrophe in a trailing comment opens no quote, so later bare and cwd-relative calls are reported" \
+  "$(quote_deps scripts/trailing-comment.sh)" '3 scripts/x.sh,4 ./y.sh'
+eq "calls after a quote spliced from single and double quotes and after an escaped quote in \$'...' are reported" \
+  "$(quote_deps scripts/escaped-quotes.sh)" '3 scripts/after-concat.sh,5 scripts/after-ansi.sh,6 ./after-ansi.sh'
+eq "a << inside a quoted string starts no heredoc, so calls on the following lines are reported" \
+  "$(quote_deps scripts/quoted-heredoc.sh)" '3 ./after-double-quoted.sh,5 scripts/after-single-quoted.sh'
+eq "a \$(...) holding its own quotes inside a multi-line double-quoted string is read as code, and \$# and \${#...} start no comment" \
+  "$(quote_deps scripts/edge-forms.sh)" '4 $here/tool.sh,6 ./after-count.sh,7 ./after-length.sh'
+eq "an anchored call inside a \$(...) in a multi-line double-quoted string still resolves" \
+  "$(jq -r '[.modules[] | select(.source == "scripts/edge-forms.sh") | .dependencies[] | .resolved // empty] | join(",")' \
+    <<<"$quotes" 2>/dev/null)" 'scripts/tool.sh'
+suite_self=$("$X" --root "$REPO_ROOT" --scope tests/scripts/extractor-bash.sh); rc=$?
+eq "extractor exits 0 on this suite file" "$rc" 0
+eq "the extractor run on this suite claims the suite file" \
+  "$(jq -r '[.modules[].source] | join(",")' <<<"$suite_self" 2>/dev/null)" "tests/scripts/extractor-bash.sh"
+eq "the extractor run on this suite reports no ./x from the case-pattern jq program" \
+  "$(jq -r '[.modules[].dependencies[] | select(.module == "./x" or .module == "(./x") | "\(.line) \(.module)"] | join(",")' \
+    <<<"$suite_self" 2>/dev/null)" ""
 
 shellcheck_files "shellcheck: extractors/bash.sh" "$X"
 finish

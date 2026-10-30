@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # File: Oracle for the suite that rebuilds this repo's architecture cache: the Unresolved edges list of
 #   .workflow/cache/architecture.md as published stamped e530f63f7103b9286d32d21f6b9f75055ef8c5d8, minus the two `case`
-#   patterns at install.sh:133 and install.sh:187 that were never calls. Sourced after lib/common.sh; defines functions
-#   only. bash 3.2 compatible.
+#   patterns at install.sh:133 and install.sh:187 and the four paths quoted in multi-line single-quoted strings at
+#   tests/scripts/build-architecture.sh:138, :139, :341 and :342, none of which were ever calls. Sourced after
+#   lib/common.sh; defines functions only. bash 3.2 compatible.
 # Provides:
 #   architecture_oracle_scopes       prints the scope paths of that cache, one per line (its stamp-only boundary config left out)
 #   architecture_unresolved_oracle   prints the list, one "- `<file>:<line>` `<source text>`" bullet per line, as published
@@ -129,13 +130,9 @@ architecture_unresolved_oracle() {
 - `tests/scripts/budget-check.sh:18` `$SRC/scripts/status-transition.sh`
 - `tests/scripts/budget-check.sh:19` `$SRC/scripts/check-write.sh`
 - `tests/scripts/budget-check.sh:20` `$SRC/scripts/budget-check.sh`
-- `tests/scripts/build-architecture.sh:138` `$PLUGIN_DIR/$PLUGIN.sh`
-- `tests/scripts/build-architecture.sh:139` `$ROOT/ops/gone.sh`
 - `tests/scripts/build-architecture.sh:14` `$TESTS_DIR/fixtures/graph-extractors.sh`
 - `tests/scripts/build-architecture.sh:20` `$S/build-architecture.sh`
 - `tests/scripts/build-architecture.sh:21` `$S/check-staged-cache.sh`
-- `tests/scripts/build-architecture.sh:341` `$PLUGIN_DIR/$PLUGIN.sh`
-- `tests/scripts/build-architecture.sh:342` `$ROOT/ops/gone.sh`
 - `tests/scripts/cache-bash-project.sh:15` `$TESTS_DIR/fixtures/graph-extractors.sh`
 - `tests/scripts/cache-bash-project.sh:21` `$S/build-architecture.sh`
 - `tests/scripts/cache-bash-project.sh:22` `$S/check-staged-cache.sh`
