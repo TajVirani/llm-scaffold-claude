@@ -3,7 +3,9 @@
 # Purpose: The lessons file holds one fenced yaml block with a `lessons` list. Its entry rules are stated in plain words in the
 #   header of the template, assets/review-lessons.md, and only there; this script is their executable form, so a change to
 #   the rules changes both.
-#   validate: the block parses and every rule in the template header holds.
+#   validate: the block parses and every rule in the template header holds. origin_spec is a spec folder directly in the
+#   specs folder or directly in its Done folder: a number, a dash and a slug that starts with a letter or digit and holds
+#   only letters, digits, `.`, `_` and `-`.
 #   next-id: the highest RL- number in the list plus one, retired entries included, so an id is never reused; RL-001 when the
 #   list is empty. Numbers below 100 are padded to three digits.
 # Usage:
@@ -19,7 +21,13 @@
 
 set -euo pipefail
 
+# shellcheck source=../../../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
+
 PROG=review-lessons.sh
+
+# regex_literal TEXT : print TEXT with its regex metacharacters escaped, so a jq test() matches it literally.
+regex_literal() { printf '%s' "$1" | sed 's/[][\\.*^$+?(){}|]/\\&/g'; }
 
 # die MSG : print "<prog>: MSG" to stderr and exit 2.
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 2; }
@@ -53,7 +61,7 @@ lessons_json() {
 }
 
 # Prints one line per broken rule, in file order; the first is the one reported.
-# shellcheck disable=SC2016 # $i, $e, $all and $j are jq variables, not shell ones
+# shellcheck disable=SC2016 # $i, $e, $all, $j and the $specs_* names are jq variables, not shell ones
 BROKEN_RULES='
 def iso_date: type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$");
 def non_empty_string: type == "string" and length > 0;
@@ -77,8 +85,9 @@ else
       (if any($all[0:$i][]; type == "object" and .id == $e.id) then "\($at).id: \($e.id) is used more than once" else empty end),
       (if ($e.symptom | non_empty_string) then empty else "\($at).symptom: must not be empty" end),
       ($e.paths | path_errors("\($at).paths")),
-      (if ($e.origin_spec | type == "string" and test("^\\.workflow/specs/[0-9]+-[a-z0-9-]+$")) then empty
-       else "\($at).origin_spec: must be .workflow/specs/ then a number and a lowercase slug" end),
+      (if ($e.origin_spec | type == "string"
+           and test("^(\($specs_pattern)|\($specs_done_pattern))/[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$")) then empty
+       else "\($at).origin_spec: must be \($specs)/ or \($specs_done)/ then a number, a dash and a slug" end),
       (if ($e.date | iso_date) then empty else "\($at).date: must be a YYYY-MM-DD date" end),
       (if ($e | has("retired")) then
          (if ($e.retired | iso_date) then empty else "\($at).retired: must be a YYYY-MM-DD date" end),
@@ -91,7 +100,10 @@ end'
 validate() {
   local json first
   json=$(lessons_json "$1")
-  first=$(jq -r "[$BROKEN_RULES] | first // empty" <<<"$json") || die "jq failed on $1"
+  first=$(jq -r \
+    --arg specs "$WF_SPECS" --arg specs_pattern "$(regex_literal "$WF_SPECS")" \
+    --arg specs_done "$WF_SPECS_DONE" --arg specs_done_pattern "$(regex_literal "$WF_SPECS_DONE")" \
+    "[$BROKEN_RULES] | first // empty" <<<"$json") || die "jq failed on $1"
   [[ -z $first ]] || refuse "$1" "$first"
 }
 
