@@ -19,7 +19,7 @@ Spec: [spec.md](spec.md)
 
 | Id | Journey | Proves | Steps | Expected outcome | Check |
 | --- | --- | --- | --- | --- | --- |
-| JRN-001 | Unconfinable agent denied | CAP-007 | 1. Fixture repo with spec `007-demo`. 2. Feed the guard implementation payloads (cwd main checkout) whose header names `s007_t9` with no worktree on disk; whose transcript path does not exist; whose first user message has no launch header; and an integration payload with no worktree. 3. Each as a Write to the main checkout, a Write to a temp dir outside the repo, a read-only `cat f` and `ls -la > x` Bash. 4. An implementation payload whose cwd is outside any git repo. | Every call denied, reads and temp-dir writes included; each reason names its cause (worktree missing, transcript not found, header not parsed, not in a git repo). | `tests/hooks/worktree-guard.sh` (JRN-001 cases) |
+| JRN-001 | Unconfinable agent denied | CAP-007 | 1. Fixture repo with spec `007-demo`. 2. Feed the guard implementation payloads (cwd main checkout) whose header names `s007_t9` with no worktree on disk; whose transcript path does not exist; whose first user message has no launch header; and an integration payload with no worktree. 3. Each as a Write to the main checkout, a Write to a temp dir outside the repo, a read-only `cat f` and `ls -la > x` Bash. 4. An implementation payload whose cwd is outside any git repo. | Every call denied, reads and temp-dir writes included; each reason names its cause (worktree missing, transcript not found, header not parsed, not in a git repo). | `tests/hooks/worktree-guard.sh` (JRN-001 checks) |
 | JRN-002 | Isolation launch still confined | CAP-007 | 1. Linked worktree created with `git worktree add`. 2. Implementation payload with no named worktree and cwd in that worktree; a Write inside it and a Write to the main checkout. | Inside allowed; main checkout denied. | `tests/hooks/worktree-guard.sh` (JRN-002 cases) |
 | JRN-003 | Guard fails closed on its own errors | CAP-007 | 1. Feed `worktree-write-guard.sh` a non-JSON payload and a JSON array. 2. Run it with a PATH that has no jq, workflow installed. | Deny JSON on stdout, exit 0, in all three runs; the jq case's reason names jq. | `tests/hooks/worktree-guard.sh` (JRN-003 cases) |
 | JRN-004 | Scope check CLI contract | CAP-007 | 1. `check-worktree-scope.sh --cwd <main> --worktree-name s007_t9 --path <main>/a --confined`. 2. Same without `--confined`. 3. `--confined` with no name. 4. Codex guard payload for a task without a worktree. | 1 and 3 exit 2 with a reason; 2 exits 0; 4 allowed as today. | `tests/hooks/worktree-guard.sh` (JRN-004 cases) |
@@ -41,10 +41,41 @@ Spec: [spec.md](spec.md)
 
 ## Targets
 
+Run every command in bash from the repo root on a clean checkout of the feature's HEAD. Measured at the baseline `1c5e46d`: guard-time 0.04 s on the 006 chain (no `$`).
+
 | Target | Kind | Threshold | How measured (exact command) | Source of the threshold |
 | --- | --- | --- | --- | --- |
+| Script lint clean | errors | exit 0; 0 shellcheck findings | the `script-lint` command below (the `lint` key of the shell-scripts profile) | `.workflow/profiles/shell-scripts.md` § Toolchain |
+| Harness lint clean | errors | exit 0; 0 shellcheck findings | the `harness-lint` command below (the `lint` key of the test-harness profile) | `.workflow/profiles/test-harness.md` § Toolchain |
+| Agent-docs lint clean | errors | exit 0; each of the four lint suites reports 0 failed | the `agent-docs-lint` command below (the `lint` key of the agent-docs profile) | `.workflow/profiles/agent-docs.md` § Toolchain |
+| Every script this spec changes has a suite | coverage | `0` printed | the `script-coverage` command below | `.workflow/profiles/test-harness.md` § Mini-review checklist |
+| No "task worktree" in the guard scripts | errors | `0` printed | the `task-worktree-wording` command below | `spec.md` CAP-007 success line (D7) |
+| Extract in-place deny rules in both settings files | errors | `8` printed (4 rules × 2 files) | the `extract-deny-rules` command below | `spec.md` CAP-NEW-extract-write-deny success line (D6) |
+| Worktree scope check time on a long read-only chain with single-quoted `$` | performance | real ≤ 0.5 s, best of 3 | the `guard-time` command below | stakeholder decision D13, 1.1 (2026-10-30) |
+| Line coverage of changed shell code | coverage | not measured | Cannot be measured: no bash coverage tool is installed and no new dependency is allowed (spec Constraints). The script-coverage target and the test-harness checklist at 3.7 stand in. | stakeholder decision D14, 1.1 (2026-10-30) |
+
+Commands referenced above; each runs from the project root:
+
+```bash
+# script-lint
+git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+# harness-lint
+git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+# agent-docs-lint
+tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage
+# script-coverage: prints the count of changed scripts no file under tests/ names; the threshold is 0
+git diff --name-only --diff-filter=AM "$(yq --front-matter=extract '.baseline_revision' .workflow/specs/00010-worktree-guard-followups/spec.md)"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- "$(basename "$f")" tests/ || echo "$f"; done | wc -l | tr -d ' '
+# task-worktree-wording: the threshold is 0
+grep -ci 'task worktree' .agents/skills/feature-workflow/scripts/check-worktree-scope.sh .agents/hooks/worktree-write-guard.sh | awk -F: '{n+=$2} END{print n}'
+# extract-deny-rules: the threshold is 8
+for f in .agents/hooks/claude-settings.template.json .claude/settings.json; do jq -r '.permissions.deny[]' "$f"; done | grep -cxF -e 'Bash(yq *--front-matter=extract* -i*)' -e 'Bash(yq *-i* --front-matter=extract*)' -e 'Bash(yq *--front-matter=extract* --inplace*)' -e 'Bash(yq *--inplace* --front-matter=extract*)'
+# guard-time: the printed value is the best real time of 3 runs; the threshold is 0.5
+mkdir -p .workflow/.worktrees/s00010_tgt && for i in 1 2 3; do /usr/bin/time -p .agents/skills/feature-workflow/scripts/check-worktree-scope.sh --cwd "$PWD" --worktree-name s00010_tgt --command "cat spec.md | head -5 && grep -n 'x\$' spec.md | wc -l && ls -la && git log --oneline -3 | sed -n '\$p' && git status --short && yq '.a' f.yaml | jq . && rg -n 'y\$' . | tail -2 && find . -name '*.md' && sed -n -e '1p' -e '\$p' spec.md && grep -n 'the \$HOME and \$PATH values in a long quoted pattern' spec.md" 2>&1 >/dev/null; done | awk '/^real/{print $2}' | sort -n | head -1; rmdir .workflow/.worktrees/s00010_tgt
+```
 
 ## Suites
 
 | Suite | Profile key | Command (copied from the profile) | CI check | Known-bad-build evidence (1.4) |
 | --- | --- | --- | --- | --- |
+| Harness | `test` in `.workflow/profiles/test-harness.md` | `tests/run-all.sh` | none (no CI; the run by hand is the whole gate) | [artifacts/phase-1-known-bad/record.md](artifacts/phase-1-known-bad/record.md) Run 1, log [harness.log](artifacts/phase-1-known-bad/harness.log): 79 failures across 3 suites, all assertions; Run 2, log [upgrade-standin.log](artifacts/phase-1-known-bad/upgrade-standin.log): the three JRN-008 checks red under a re-run-refusing installer |
+| Browser | `e2e`: not applicable (no e2e work type; JRN-001 to JRN-009 are harness suites) | none | none | not applicable; see record.md |

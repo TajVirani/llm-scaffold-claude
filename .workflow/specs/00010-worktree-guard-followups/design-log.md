@@ -245,3 +245,15 @@ Facts looked up instead of asked (0.3.10): None.
 | `.agents/skills/feature-workflow/modules/implementation-orchestrator.md` guard description | extend | D12; one line |
 
 0.4.7: no further conflict with the goal or the placement.
+
+## 2026-10-30 Targets (1.1)
+
+- Guard time: options ≤ 0.2 s (recommended, as 006 D16) · ≤ 0.5 s. Answer: "≤ 0.5 s". Decision: **D13** `check-worktree-scope.sh` on a long read-only chain with single-quoted `$` runs in ≤ 0.5 s real, best of 3.
+- Line coverage: options not measured (recommended, as 006 D17) · a threshold. Answer: "Not measured (Recommended)". Decision: **D14** Line coverage is not measured; script-coverage and the 3.7 checklist stand in.
+
+## 2026-10-30 Discovered work: assetlist-second-audit-row
+
+- Found at: step 1.2 by the Phase 1 test-harness build. Kind: bug
+- Problem and evidence: a second `post-implementation-audit` row in the asset list's hooks table still says the stop audit runs for implementation agents only (`assetlist.md:593`).
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/00010-worktree-guard-followups-disc-001.md](../work-backlog/00010-worktree-guard-followups-disc-001.md)
