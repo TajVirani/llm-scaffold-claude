@@ -33,7 +33,8 @@
 #   only done one the sweep prints nothing to sweep, exits 0 and changes nothing.
 #   Failing reads (git stubbed on PATH, or a file or folder made unreadable): the checked-out branch, the list of workflow
 #   files, the tracked check, the search of an unreadable file and the listing of an unreadable spec subfolder each exit 2
-#   with their message and leave nothing changed. Rollback: a commit that fails after the move and a sweep that cannot write
+#   with their message and leave nothing changed; so does a search whose list of matching files cannot be written (a stubbed
+#   mktemp puts a folder in its place). Rollback: a commit that fails after the move and a sweep that cannot write
 #   a read-only file for its second spec both exit 2 and leave the tree, the step markers, the refs and the index exactly as
 #   they were.
 # Fixtures: tests/fixtures/done-folder.sh (the project, its expected trees and the oracles), tests/fixtures/pr-template.sh.
@@ -71,6 +72,16 @@ failing_git() {
   printf '#!/bin/bash\npattern=%q\n[[ " $* " == $pattern ]] && { echo "git: refused by the test" >&2; exit 1; }\nexec %q "$@"\n' \
     "$2" "$(command -v git)" >"$1/git"
   chmod +x "$1/git"
+  printf '%s\n' "$1"
+}
+
+# scratch_with_folder_at DIR NAME : write DIR/mktemp, a stand-in whose `mktemp -d` makes the temporary folder with a
+#   folder called NAME already in it, so a script cannot write its scratch file NAME there; prints DIR to put first on PATH.
+scratch_with_folder_at() {
+  mkdir -p "$1"
+  printf '#!/bin/bash\nif [[ $# == 1 && $1 == -d ]]; then dir=$(%q -d) && mkdir "$dir"/%q && echo "$dir"; exit; fi\nexec %q "$@"\n' \
+    "$(command -v mktemp)" "$2" "$(command -v mktemp)" >"$1/mktemp"
+  chmod +x "$1/mktemp"
   printf '%s\n' "$1"
 }
 
@@ -470,6 +481,13 @@ mtd "$P" "$DONE_SPEC"
 chmod 755 "$P/$DONE_SPEC/tasks"
 check "an unreadable folder inside the spec exits 2, rolls back and commits nothing" \
   '[[ $RC == 2 && $(tree_digest "$P") == "$BEFORE" && $OUT == *"cannot list the Markdown files"* ]]' "rc=$RC: $OUT"
+
+P=$WORK/scratch-matches
+done_folder_repo "$P"
+BEFORE=$(tree_digest "$P")
+PATH="$(scratch_with_folder_at "$WORK/mktemp-matches" matches):$PATH" mtd "$P" "$DONE_SPEC"
+check "a search list that cannot be written exits 2, rolls back and commits nothing" \
+  '[[ $RC == 2 && $(tree_digest "$P") == "$BEFORE" && $OUT == *"cannot write the list of workflow files that name the spec"* ]]' "rc=$RC: $OUT"
 
 echo "== an error after the move rolls the run back"
 P=$WORK/rollback-commit
