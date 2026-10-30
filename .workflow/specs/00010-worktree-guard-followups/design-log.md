@@ -298,3 +298,15 @@ Gaps (4.8): line coverage not measurable (review-targets; matched the shelf file
 
 Failed lenses: none
 Outcome: rework 1 of 5
+
+## 2026-10-30 Discovered work: suite-header journey ids
+
+- Found at: step 3.7 by profile-mini-review (T2 rework, `artifacts/T2/mini-review-r3.yaml`). Kind: decision
+- Problem and evidence: the guard suite's header names journey ids on lines the rework did not touch (`tests/hooks/worktree-guard.sh:8-21`); 39 suites do the same, while R5 fails them on changed lines.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/00010-worktree-guard-followups-disc-006.md](../work-backlog/00010-worktree-guard-followups-disc-006.md)
+- T2 rework mini-review: fail on R5 (lines 14 and 17); wording-only fix round.
+
+## 2026-10-30 Rework 1 merged (3.16)
+
+- T2 `6219d5c` merged: F1 (suite body comment without a journey id) and F2 ("agent worktree" in the hook header and suite labels) patched. Rework mini-review failed R5 (journey ids on suite-header lines 14 and 17); a wording-only fix round passed the re-check. Its remaining `out_of_scope_noticed` entry duplicates disc-006 (nothing new filed).

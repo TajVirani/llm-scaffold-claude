@@ -5,7 +5,7 @@
 == hooks/worktree-guard
 
 == summary
-PASS hooks/worktree-guard                   passed=227  failed=0   skipped=0   xfail=0   88s
+PASS hooks/worktree-guard                   passed=227  failed=0   skipped=0   xfail=0   40s
 TOTAL passed=227 failed=0 skipped=0 xfail=0 (1 suites)
 == test exit 0
 
