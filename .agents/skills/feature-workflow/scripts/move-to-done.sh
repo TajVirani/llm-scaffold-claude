@@ -4,28 +4,34 @@
 #   --check reads the spec's task records and the work-backlog items it raised and lists every one still open; it changes
 #   nothing. The move runs the same check, then moves a `done` spec into the Done folder (WF_SPECS_DONE), deletes its step
 #   marker and rewrites the spec's path in the workflow files that name it, so every link still resolves, and commits the
-#   result on the checked-out branch. --sweep moves every `done` spec at the top level in one commit.
+#   result on the checked-out branch. --sweep moves every `done` spec at the top level in one commit, except the one whose
+#   spec_branch is checked out: that is the spec being signed off, and its own move step follows the sweep.
 # Usage:
 #   move-to-done.sh --check <spec-dir> [--cwd <dir>]   check only: every task record and work-backlog item is closed
 #   move-to-done.sh <spec-dir> [--cwd <dir>]           check, then move the done spec into the Done folder, rewrite, commit
-#   move-to-done.sh --sweep [--cwd <dir>]              move every done spec at the top level of the specs folder
+#   move-to-done.sh --sweep [--cwd <dir>]              move every done spec at the top level of the specs folder, except
+#                                                      the one whose spec_branch is the checked-out branch
 #     <spec-dir>  `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it); --check also
 #                 takes a spec already in the Done folder.
 #     --cwd       any directory in the project or one of its worktrees (default $PWD); git runs in the MAIN checkout.
 # Closed means: a task record is `done` or `split-out`; a work-backlog item `<NNN-slug>-disc-*.md` is `open`, `promoted`,
 #   `moved-to-deferred` or `dismissed`. The spec's own status does not matter to --check.
 # stdout: one `open: ...` line per open task record or item; `check passed: <spec-dir>`; for a move, `moved <old> -> <new>`
-#   per spec and `committed <sha>`; for a sweep, `left in place: <spec-dir>` per spec that failed, or `nothing to sweep`.
-# Exit: 0 check passed, or moved and committed, or nothing to sweep; 1 refused: an open sub-item, a spec that is not `done`,
-#   a Done folder entry of the same name, the main branch or a detached HEAD checked out, a merge in progress; nothing
-#   changed. For --sweep, 1 also means at least one done spec failed and stayed in place while the others moved and were
-#   committed. 2 usage or environment error (bad arguments, not a git repository, a folder that is not a spec, spec.md
-#   missing, yq missing, a git or file operation failing). An error after the first move rolls the run back before it
+#   per spec and `committed <sha>`; for a sweep, `left in place: <spec-dir>` per spec that failed, `skipped: <spec-dir> (moved
+#   by its own sign-off step)` for the spec on the checked-out branch, or `nothing to sweep`.
+# Exit: 0 check passed, or moved and committed, or nothing to sweep (a sweep that only skips the checked-out spec has
+#   nothing to sweep); 1 refused: an open sub-item, a spec that is not `done`, a Done folder entry of the same name, the
+#   main branch or a detached HEAD checked out, a merge in progress; nothing changed. For --sweep, 1 also means at least
+#   one done spec failed and stayed in place while the others moved and were committed; the skipped spec is not a failure.
+#   2 usage or environment error (bad arguments, not a git repository, a folder that is not a spec, spec.md missing, yq
+#   missing, a git or file operation failing). An error after the first move rolls the run back before it
 #   exits 2: every moved spec goes back with its step marker, every rewritten file gets its old content back and the index
 #   is restored, so nothing is left moved or staged. When a rollback step itself fails, stderr names each spec folder, file
 #   or index still changed and how to put it back by hand.
 # Called by: modules/sign-off.md (5.7 --check, 5.8 the move and the one-off --sweep).
-# Notes: Requires git and mikefarah yq v4. Never pushes. bash 3.2 compatible.
+# Notes: Requires git and mikefarah yq v4. Never pushes. bash 3.2 compatible. At sign-off the spec being signed off is
+#   already `done` when the sweep runs, so the sweep skips it: the sweep commit holds only the older specs, and the spec's
+#   own `move-to-done.sh <spec-dir>` after it still finds the folder at the top level.
 # Sources: first-party. Pattern: commit-workflow-data.sh (main-checkout resolution, explicit staging, path-limited commit).
 
 set -euo pipefail
@@ -171,13 +177,15 @@ on_exit() {
 }
 trap on_exit EXIT
 
-# refuse_unsafe_checkout : exit 1 when the checked-out branch must not take the move commit or git is mid-operation.
+# refuse_unsafe_checkout : exit 1 when the checked-out branch must not take the move commit or git is mid-operation;
+#   otherwise set CURRENT_BRANCH to it.
 refuse_unsafe_checkout() {
   local current main h
   current=$(git -C "$ROOT" branch --show-current) || die "cannot read the checked-out branch in $ROOT"
   [[ -n "$current" ]] || die "the main checkout has a detached HEAD; check out the spec branch first" 1
   main=$(bash "$SCRIPT_DIR/rules-setting.sh" main_branch --cwd "$ROOT" 2>/dev/null) ||
     die "cannot read the main branch name (rules-setting.sh main_branch)"
+  CURRENT_BRANCH=$current
   [[ "$current" != "$main" ]] || die "the main checkout is on the main branch $main; the move commits on the spec branch" 1
   for h in MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD; do
     if git -C "$ROOT" rev-parse -q --verify "$h" >/dev/null; then
@@ -378,6 +386,13 @@ for spec_md in "$(wf_path "$ROOT" "$WF_SPECS")"/*/spec.md; do
   [[ "$name" =~ ^[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || continue
   status=$(yq --front-matter=extract '.status // ""' "$spec_md") || die "cannot read the status of $WF_SPECS/$name/spec.md"
   [[ "$status" == "done" ]] || continue
+  spec_branch=$(yq --front-matter=extract '.spec_branch // ""' "$spec_md") ||
+    die "cannot read the spec branch of $WF_SPECS/$name/spec.md"
+  # At sign-off the spec on the checked-out branch is already done, and its own move must follow the sweep commit.
+  if [[ "$spec_branch" == "$CURRENT_BRANCH" ]]; then
+    echo "skipped: $WF_SPECS/$name (moved by its own sign-off step)"
+    continue
+  fi
   REFUSAL=$(move_refusal "$WF_SPECS/$name") || exit 2
   if [[ -n "$REFUSAL" ]]; then
     echo "left in place: $WF_SPECS/$name"
