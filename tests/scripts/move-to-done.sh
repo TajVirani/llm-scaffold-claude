@@ -28,6 +28,9 @@
 #   its parent and a reference-style link resolve after the move; a spec already in done/ cannot move (2) but passes --check;
 #   the main branch and a detached HEAD are refused with nothing changed; an untracked done spec moves and is committed; a
 #   sweep with a done spec failing the check exits 1, names it and its open task, leaves it in place and commits the rest.
+#   The sweep on a done spec's own branch (sign-off 5.8) leaves that spec at the top level, says so, exits 0 and commits the
+#   other done spec alone; the spec's own move then succeeds and the tree matches the swept oracle; when that spec is the
+#   only done one the sweep prints nothing to sweep, exits 0 and changes nothing.
 #   Failing reads (git stubbed on PATH, or a file or folder made unreadable): the checked-out branch, the list of workflow
 #   files, the tracked check, the search of an unreadable file and the listing of an unreadable spec subfolder each exit 2
 #   with their message and leave nothing changed. Rollback: a commit that fails after the move and a sweep that cannot write
@@ -389,6 +392,7 @@ check "an untracked done spec moves and is committed" \
 echo "== the sweep leaves a done spec that fails the check"
 P=$WORK/sweep-open
 done_folder_repo "$P"
+git -C "$P" switch -q -c spec/013-beta
 set_task "$P" "$DONE_SECOND" T1 blocked
 git_commit_all "$P" "fixture: 014-gamma done with T1 blocked"
 TIP=$(git -C "$P" rev-parse HEAD)
@@ -398,6 +402,34 @@ check "the sweep names the spec it left and its open task" '[[ $OUT == *"left in
 check "the failing spec stays at the top level with its step marker" '[[ -f "$P/$DONE_SECOND/spec.md" && -f "$P/$DONE_SECOND/.step" ]]'
 check "the passing spec still moves and is committed" \
   '[[ -f "$P/$MOVED/spec.md" && $(git -C "$P" rev-parse HEAD~1) == "$TIP" && -z $(git -C "$P" status --porcelain) ]]' "$OUT"
+
+echo "== the sweep leaves the spec on the checked-out branch to its own move"
+P=$WORK/sweep-own
+done_folder_repo "$P"
+EXPECTED=$WORK/expected-own
+done_expected "$EXPECTED" swept
+TIP=$(git -C "$P" rev-parse HEAD)
+mtd "$P" --sweep
+check "the sweep on the spec branch of a done spec exits 0 and says that spec is left for its own move step" \
+  '[[ $RC == 0 && $OUT == *"skipped: $DONE_SPEC (moved by its own sign-off step)"* ]]' "rc=$RC: $OUT"
+check "the done spec on the checked-out branch stays at the top level with its step marker" \
+  '[[ -f "$P/$DONE_SPEC/spec.md" && -f "$P/$DONE_SPEC/.step" && ! -e "$P/$MOVED" ]]' "$OUT"
+check "the other done spec moves, committed alone on the checked-out branch" \
+  '[[ -f "$P/$DONE/014-gamma/spec.md" && ! -e "$P/$DONE_SECOND" && $(git -C "$P" rev-parse HEAD~1) == "$TIP" && -z $(git -C "$P" status --porcelain) ]]' "$OUT"
+mtd "$P" "$DONE_SPEC"
+check "the spec's own move after the sweep exits 0 and commits it into done/" \
+  '[[ $RC == 0 && -f "$P/$MOVED/spec.md" && ! -e "$P/$DONE_SPEC" && -z $(git -C "$P" status --porcelain) ]]' "rc=$RC: $OUT"
+check "after the sweep and the own move the tree is what the swept oracle describes" \
+  '[[ -z $(tree_differences "$EXPECTED" "$P") ]]' "$(tree_differences "$EXPECTED" "$P" 2>/dev/null | head -8)"
+
+P=$WORK/sweep-own-only
+done_folder_repo "$P"
+set_status "$P/$DONE_SECOND/spec.md" in-progress
+git_commit_all "$P" "fixture: 014-gamma back in progress"
+BEFORE=$(tree_digest "$P")
+mtd "$P" --sweep
+check "a sweep whose only done spec is on the checked-out branch prints nothing to sweep, exits 0 and changes nothing" \
+  '[[ $RC == 0 && $OUT == *"nothing to sweep"* && $(tree_digest "$P") == "$BEFORE" ]]' "rc=$RC: $OUT"
 
 echo "== a failing read is an error, not a clean result"
 P=$WORK/read-branch
@@ -450,6 +482,7 @@ check "a failing commit after the move leaves the spec, its step marker, every r
 
 P=$WORK/rollback-sweep
 done_folder_repo "$P"
+git -C "$P" switch -q -c spec/013-beta
 printf '%s\n' "Gamma closed in .workflow/specs/014-gamma." >"$P/.workflow/deferred/gamma-read-only.md"
 git_commit_all "$P" "fixture: a read-only file naming 014-gamma"
 chmod 444 "$P/.workflow/deferred/gamma-read-only.md"
