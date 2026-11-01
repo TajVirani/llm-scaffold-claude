@@ -97,7 +97,7 @@ D31_TABLE=$(cat <<'JSON'
 JSON
 )
 
-# Field formats (task ids per the tasks.md schema; work_type names a file under .workflow/profiles/).
+# Field formats (task ids per the tasks.md schema; work_type names a work profile file).
 SPECS_RE=$(printf '%s' "$WF_SPECS" | sed 's/\./[.]/g')   # literal dots, no JSON escaping needed
 INITIATIVES_RE=$(printf '%s' "$WF_INITIATIVES" | sed 's/\./[.]/g')
 FORMATS='{"spec_dir": "^'"$SPECS_RE"'/[0-9]+-[A-Za-z0-9._-]+/?$", "task_id": "^T[0-9]+$", "work_type": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}'

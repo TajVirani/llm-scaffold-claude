@@ -123,7 +123,7 @@ mk_transcript "$B/p3r.jsonl" "$HDR_P3R"
 out=$(stop_payload "$B/p3r.jsonl" false | bash "$H/post-implementation-audit.sh" 2>/dev/null)
 check "phase 3 task with failing test key -> test still runs, stop blocked (only Phase 1 skips it)" '[ "$(jq -r .decision <<<"$out")" = block ] && [ "$(jq -r ".results[]|select(.key==\"test\")|.status" "$P/.workflow/specs/001-demo/artifacts/T9/toolchain.json")" = fail ]' "$out"
 
-# Claude task launches run in the orchestrator-made worktree .workflow/.worktrees/s<NNN>_t<N>, not an isolation cwd
+# Claude task launches run in the agent worktree the orchestrator made (s<NNN>_t<N>), not an isolation cwd
 rm -f "$EV/audit-loop.json" "$EV/audit.json"
 out=$(stop_payload "$B/t1.jsonl" false implementation "$P" | bash "$H/post-implementation-audit.sh" 2>/dev/null)
 check "main-checkout cwd, no task worktree -> allow + warning, toolchain not run" '[ -z "$(jq -r ".decision // empty" <<<"$out")" ] && jq -r .systemMessage <<<"$out" | grep -q "s001_t1" && [ "$(jq -r .outcome "$EV/audit.json")" = warning ]' "$out"

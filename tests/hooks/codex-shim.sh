@@ -66,7 +66,7 @@ cp .workflow/profiles/harness.md .workflow/profiles/web-ui.md
 cp .workflow/profiles/harness.md .workflow/profiles/web_ui.md
 printf '.workflow/.worktrees/\n' > .gitignore
 git add -A >/dev/null && git commit -qm init
-# Codex worktrees, as the orchestrator creates them: .workflow/.worktrees/<task_name>, branch wf/<NNN-slug>/<task_name>.
+# Codex worktrees, as the orchestrator creates them: one agent worktree named <task_name>, branch wf/<NNN-slug>/<task_name>.
 for n in s007_t3 s007_phase_1_harness s007_phase_1_redtest; do
   git worktree add -q ".workflow/.worktrees/$n" -b "wf/007-checkout/$n" >/dev/null 2>&1
 done

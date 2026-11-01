@@ -31,7 +31,7 @@
 
 ```yaml
 # Command keys, run by run-toolchain.sh at 3.5 in this order: lint, typecheck, format, boundary, test. Exact command per key; "" when not applicable. e2e is not run at 3.5: the orchestrator runs it at 3.10 via run-toolchain.sh `--e2e` (or the suite command); evidence-capture only collects the artifacts.
-lint: "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+lint: "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh"
 typecheck: ""   # e.g. tsc --noEmit
 format: ""      # a check command, e.g. prettier --check .
 boundary: ""    # e.g. depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs src (config generated from .workflow/rules.md)
@@ -60,6 +60,8 @@ graph_extractor: bash # the graph extractor the Tier B cache build runs for this
 - [ ] A write or check inside a loop, function or command substitution whose caller adds `|| die` or `|| exit` carries its own `|| die`: bash suspends `set -e` on the left side of `||`.
 - [ ] A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.
 - [ ] Sibling paths resolve from `BASH_SOURCE` with `cd -P`.
-- [ ] The header block has the shape for its kind (hook or helper) and names no decision ID.
+- [ ] The header block has the shape for its kind (hook or helper). A decision ID in it is the comment lint's (see below).
 - [ ] New files are kebab-case, run under `set -euo pipefail` and use `[[ ]]`; edited files keep their existing test syntax.
 - [ ] Each new function has its `# name ARGS : what it does` line, and each shellcheck `disable=` directive has its reason; a `source=` path hint needs none.
+
+Readable-code R4 is `tool-covered` by the `lint` key's comment lint (`.agents/skills/feature-workflow/scripts/check-comments.sh`), which fails on a decision, journey or task id or a `.workflow/` path in a body comment, and on a decision or task id in a header block: mark R4 `tool-covered` with that lint, and judge R4 only for a changed comment that points at another document (a `docs/` path, an internal URL). Under R5, leave ids to the lint and judge other shorthand.

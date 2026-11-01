@@ -97,7 +97,7 @@ set_task() {
 # set_status FILE STATUS : write a frontmatter status straight into FILE.
 set_status() { NEW_STATUS=$2 yq --front-matter=process -i '.status = strenv(NEW_STATUS)' "$1"; }
 
-# word_changes REPO FROM TO OLD NEW : the words removed or added between commits FROM and TO under .workflow/ and docs/, one
+# word_changes REPO FROM TO OLD NEW : the words removed or added between commits FROM and TO under the workflow folder and docs/, one
 #   per line with its - or + sign. A file under the folder NEW in TO is compared with the same file under OLD in FROM. Git's
 #   own rename detection is not used because it misses a small file whose path strings changed.
 word_changes() {

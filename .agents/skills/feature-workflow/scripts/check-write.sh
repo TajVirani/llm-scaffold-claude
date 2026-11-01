@@ -68,16 +68,16 @@ PROG=check-write.sh
 # 1.1 and 3.1 (baseline_revision: full path at 1.1, light path at 3.1), 3.14 (Known gaps, deferred[]),
 # 4.6 (followup_review_recommended), 5.3 (provisional capability ids rewritten),
 # 0.3.20 and 2.5 (budget written with tasks.md), 00.29 (budget raised after an approved overrun),
-# 5.9 (a backlog item moved to .workflow/deferred/ adds to deferred[]).
+# 5.9 (a backlog item moved to the deferred shelf adds to deferred[]).
 SPEC_STEPS="0.1.4 0.1.6 0.3.17 0.3.19 0.3.20 0.5.1 1.1 2.5 3.1 3.14 4.6 4.8 5.1 5.3 5.9 00.29"
 TASKS_STEPS="2.5 0.3.20"
-BACKLOG_STEPS="00.26 5.9"                         # .workflow/specs/work-backlog/** items (origin spec's .step)
+BACKLOG_STEPS="00.26 5.9"                         # work-backlog items (origin spec's .step)
 BACKLOG_SEED_STEP="0.1.4"                         # newest .step of any spec (new spec seeded from an item)
 INITIATIVE_STEPS="6.1 6.7 6.9"                    # initiative.md: entry, slice planning, slice emission (the initiative's own .step)
 GLOSSARY_STEPS="0.2.3 0.3.15 0.4.3 5.3 6.6"       # the term gates (6.6 is the initiative one) and sign-off
 TIER_A_STEPS="0.3.7 5.3 5.7"                     # every other Tier A path (rules.md, capabilities.md, decisions/**)
-PROFILE_EDIT_STEPS="5.3"                          # an existing .workflow/profiles/** file
-PROFILE_CREATE_STEPS="00.19 5.3"                  # a new .workflow/profiles/** file (00.19 in-flow, 5.3 approved proposal)
+PROFILE_EDIT_STEPS="5.3"                          # an existing work profile file
+PROFILE_CREATE_STEPS="00.19 5.3"                  # a new work profile file (00.19 in-flow, 5.3 approved proposal)
 REVIEW_LESSONS_STEPS="5.7"                        # the review-lessons file: only the retrospective records a lesson
 
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 1; }
@@ -194,7 +194,7 @@ LC=$(lower "$REL")
 # ---------------------------------------------------------------- classify
 CLASS=other KIND=""
 # Lower-cased guarded roots from lib/workflow-paths.sh. Prefix tests compare whole segments ("$P"/*), so a
-# look-alike such as .workflow/specs-x/ or .workflow/cache2/ is not matched.
+# look-alike folder such as specs-x/ or cache2/ beside the real one is not matched.
 P_CACHE=$(lower "$WF_CACHE") P_SPECS=$(lower "$WF_SPECS") P_BACKLOG=$(lower "$WF_WORK_BACKLOG") P_SPECS_DONE=$(lower "$WF_SPECS_DONE")
 P_PROFILES=$(lower "$WF_PROFILES") P_DECISIONS=$(lower "$WF_DECISIONS")
 P_RULES=$(lower "$WF_RULES") P_CAPABILITIES=$(lower "$WF_CAPABILITIES") P_INITIATIVES=$(lower "$WF_INITIATIVES")
@@ -221,7 +221,7 @@ elif [[ "$INITIATIVE_REST" =~ ^[^/]+/\.step$ ]]; then
 elif [[ "$INITIATIVE_REST" =~ ^[^/]+/initiative\.md$ ]]; then
   CLASS=spec KIND=initiative
 elif [[ "$LC" == "glossary.md" || "$LC" == */glossary.md || "$LC" == "glossary-map.md" || "$LC" == */glossary-map.md ]]; then
-  CLASS=tier-a KIND=glossary                 # any depth, so .workflow/GLOSSARY.md and per-context glossaries
+  CLASS=tier-a KIND=glossary                 # any depth, so the root glossary and per-context glossaries
 elif [[ "$LC" == "$P_PROFILES" || "$LC" == "$P_PROFILES"/* ]]; then
   CLASS=tier-a KIND=profile
 elif [[ "$LC" == "$P_REVIEW_LESSONS" ]]; then
@@ -262,7 +262,7 @@ fi
 
 ROOT=$(main_root "$TOP") || die "cannot locate the main checkout from $TOP"
 
-# ---------------------------------------------------------------- .workflow/specs/work-backlog/
+# ---------------------------------------------------------------- work-backlog items
 if [[ "$KIND" == "backlog" ]]; then
   ITEM=${REL:${#WF_WORK_BACKLOG}+1}
   if [[ ! "$ITEM" =~ ^([0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*)-disc-[0-9]{3,}\.md$ ]]; then

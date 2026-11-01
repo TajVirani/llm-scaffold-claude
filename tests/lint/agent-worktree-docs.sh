@@ -7,7 +7,7 @@
 #   isolation result branch (worktreeBranch) to read, and worktree and branch are removed after the merge; check-merge-artifacts.sh
 #   runs before each merge site (1.2 and 1.3, 3.2 integration, 3.16 task, light-path fast-forward) with --rev and is never piped;
 #   both agent briefs write their result file to an absolute main-checkout path. JRN-009: assetlist.md gives the stop audit's
-#   matcher as implementation|integration, says "agent worktree" in the worktree-write-guard row, says in D85 item 6 that
+#   matcher as implementation|integration, says "agent worktree" in the worktree-write-guard row, says in item 6 of the task-breakdown decision that
 #   Phase 1 builds and integration batches run in agent worktrees the orchestrator creates, with no isolation relaunch
 #   fallback, and carries no "Amended by spec" note on these three. The checks match the design's intent, not exact prose.
 #   Reads the repo; writes nothing.

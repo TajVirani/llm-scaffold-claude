@@ -11,7 +11,7 @@
 #   markers are read in the main checkout (git rev-parse --git-common-dir), since a 1.4 run happens in a throwaway worktree.
 # Match (leading NAME=value env assignments are skipped first; E2E_INJECT_FAULT=1 among them marks the run fault-injected, 1.4):
 #   - the command starts with the `e2e` value of the e2e-browser profile's Toolchain block (.workflow/profiles/e2e-browser.md in cwd, then the main
-#     checkout), or with `npx playwright test`; followed by end of command or whitespace (agents append --grep @JRN-001, --project, -x); or
+#     checkout), or with `npx playwright test`; followed by end of command or whitespace (agents append --grep @<journey id>, --project, -x); or
 #   - the command runs run-toolchain.sh with --e2e (3.10); its --spec-dir, --task-id, --cwd and --work-type / --profile are used when they
 #     are literal (a value holding `$` or a backtick is unexpanded text and is ignored).
 #   - A command carrying --list (collect only, the e2e-browser `test` key) never matches.
@@ -128,7 +128,7 @@ case "$rest" in
     ;;
 esac
 
-# Profile: --profile, else .workflow/profiles/<work-type or e2e-browser>.md in the run directory, cwd, then the main checkout.
+# Profile: --profile, else the work profile named by the work type (or e2e-browser) in the run directory, cwd, then the main checkout.
 if [ -z "$profile" ]; then
   wt=e2e-browser
   if [ "$via_toolchain" -eq 1 ]; then w=$(opt --work-type); [ -z "$w" ] || wt=$w; fi

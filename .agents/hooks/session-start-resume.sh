@@ -86,7 +86,7 @@ raw_status() {
 # JSON array on stdin (from yq) -> one value per line; null -> "", whitespace runs folded so each value stays on one line.
 lines() { jq -r 'if type == "array" then .[] else error("not an array") end | if . == null then "" else tostring | gsub("\\s+"; " ") end'; }
 
-# Session handoffs (.workflow/.handoff/*.md, from the handoff skill): newest first, 3 listed, the rest counted. Read first so the spec list
+# Session handoffs (written by the handoff skill): newest first, 3 listed, the rest counted. Read first so the spec list
 # cap leaves room for them.
 htext="" h_n=0
 if [ "${#handoffs[@]}" -gt 0 ]; then
@@ -240,7 +240,7 @@ for spec in ${specs[@]+"${specs[@]}"}; do
   listed=$((listed + 1))
 done
 
-# Open discovered-work backlog items (.workflow/specs/work-backlog/*.md with status open): a count and up to 5 filenames.
+# Open discovered-work backlog items (work-backlog files with status open): a count and up to 5 filenames.
 open_n=0 open_names=""
 for item in ${backlog[@]+"${backlog[@]}"}; do
   [ "$SECONDS" -lt 8 ] || break
