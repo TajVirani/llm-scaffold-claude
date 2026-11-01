@@ -80,6 +80,7 @@ D31_TABLE=$(cat <<'JSON'
   "review-end-state":   {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "review-targets":     {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "review-lessons":     {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
+  "review-combined":    {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4, light and small paths: one lens in place of standards, end-state and lessons", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "cache-regeneration": {
     "d31_fields": ["spec_dir"],
     "shapes": [

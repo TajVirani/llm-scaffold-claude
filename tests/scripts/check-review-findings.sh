@@ -5,6 +5,9 @@
 #   one malformed file per shape rule (exit 1, the message names the field), two errors in one file,
 #   JRN-003: the review-lessons pass file for a repeated lesson (one high RL-1 lesson row) and with no findings, and an RS- id,
 #   a confidence of 70 and a lesson finding under review-standards each refused naming the field,
+#   the review-combined pass file (RC- ids, end-state, standards and lesson categories together; a target category or an RE- id
+#   refused), the proof rule (a medium or high finding without evidence.reproduction or evidence.basis refused naming evidence;
+#   a reproduction alone, or a low finding without evidence, accepted),
 #   and the exit-2 cases: no argument, two arguments, missing file, YAML that does not parse.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -186,7 +189,7 @@ cp "$P1/review-standards.yaml" "$P1/review-end-state.yaml" "$P_BASE/"
 cp "$P2/review-targets.yaml" "$P_BASE/"
 
 bad lens-missing review-standards 'del(.lens)' "lens: missing"
-bad lens-unknown review-standards '.lens = "review-style"' "lens: 'review-style' is not review-standards, review-end-state, review-targets or review-lessons"
+bad lens-unknown review-standards '.lens = "review-style"' "lens: 'review-style' is not review-standards, review-end-state, review-targets, review-lessons or review-combined"
 bad lens-not-file-name review-standards '.lens = "review-end-state" | .findings = []' "lens: 'review-end-state' does not match the file name review-standards.yaml"
 bad pass-not-integer review-standards '.pass = "one"' "pass: 'one' is not a positive integer"
 bad pass-not-directory review-standards '.pass = 2' "pass: 2 does not match the directory pass-1"
@@ -221,6 +224,19 @@ bad measurement-result review-targets '.measurements[1].result = "missed"' "meas
 bad measurement-measured review-targets '.measurements[1].measured = ""' "measurements[1].measured: missing or empty"
 bad measurement-reason review-targets '.measurements[2].reason = ""' "measurements[2].reason: missing or empty, required when not_measurable"
 bad root-not-mapping review-standards '.findings' "root: not a mapping"
+bad proof-missing review-standards '.findings[0].severity = "medium" | del(.findings[0].evidence)' "findings[0].evidence: a medium finding needs evidence.reproduction or evidence.basis"
+bad proof-empty review-targets '.findings[0].evidence = {"basis": "", "reproduction": ""}' "findings[0].evidence: a high finding needs evidence.reproduction or evidence.basis"
+bad proof-not-mapping review-standards '.findings[0].severity = "high" | .findings[0].evidence = "trust me"' "findings[0].evidence: a high finding needs evidence.reproduction or evidence.basis"
+
+mkdir -p "$WORK/proof/pass-1"
+yq '.findings[0].severity = "high" | .findings[0].evidence = {"reproduction": "bash -c probe: exit 1"}' "$P_BASE/review-standards.yaml" \
+  >"$WORK/proof/pass-1/review-standards.yaml"
+run_crf "$WORK/proof/pass-1/review-standards.yaml"
+eq "a high finding proven by a reproduction alone: exit 0" "$RC" 0
+mkdir -p "$WORK/proof-low/pass-1"
+yq 'del(.findings[0].evidence)' "$P_BASE/review-standards.yaml" >"$WORK/proof-low/pass-1/review-standards.yaml"
+run_crf "$WORK/proof-low/pass-1/review-standards.yaml"
+eq "a low finding with no evidence: exit 0 (the proof gate is for medium and high)" "$RC" 0
 
 mkdir -p "$WORK/bad/no-pass"
 cp "$P1/review-standards.yaml" "$WORK/bad/no-pass/review-standards.yaml"
@@ -268,6 +284,63 @@ names_field "JRN-003 lessons: confidence 70" "$WORK/bad/lessons-confidence/pass-
 yq '.lens = "review-standards" | .findings[0].id = "RS-1"' "$PL/review-lessons.yaml" \
   >"$WORK/bad/lesson-under-standards/pass-1/review-standards.yaml"
 names_field "JRN-003 a lesson finding under review-standards" "$WORK/bad/lesson-under-standards/pass-1/review-standards.yaml" "findings[0].category"
+
+# --- The combined lens of the light and small paths: one RC- file holding end-state, standards and lesson findings
+PC="$WORK/combined/pass-1"
+mkdir -p "$PC"
+cat >"$PC/review-combined.yaml" <<'Y'
+lens: review-combined
+status: done
+blocked_reason: ""
+baseline_revision: "f8ea802e8efa7f56499a2743930887986e1ec020"
+head: "9fe4e82d5435bd769bfe58f9e39b65d63ae3b662"
+findings:
+  - id: RC-1
+    category: wrong
+    severity: high
+    confidence: 95
+    location: "tests/run-all.sh:88"
+    claim: "Suites no longer get /dev/null as stdin."
+    consequence: "A suite that reads stdin hangs the harness."
+    evidence:
+      basis: "spec.md CAP-001: every suite runs unattended"
+      reproduction: "bash tests/run-all.sh --suite x </dev/tty: hangs; with the fix: exits 0"
+  - id: RC-2
+    category: naming
+    severity: low
+    confidence: 85
+    location: "tests/run-all.sh:12"
+    claim: "Says named worktree where the glossary term is agent worktree."
+  - id: RC-3
+    category: lesson
+    severity: medium
+    confidence: 90
+    location: "tests/run-all.sh:40"
+    claim: "Repeats the pitfall about unquoted array expansion."
+    evidence:
+      basis: "pitfalls.md: Quote every array expansion"
+  - id: RC-4
+    category: discovered-work
+    kind: bug
+    summary: "The summary loop drops a suite name with a space."
+    evidence: "bash -c 'run-all.sh --suite \"a b\"': prints a and b as two suites"
+    blocker_assessment: can-wait
+    reason: "Pre-existing; no suite name has a space today."
+checked: ["spec.md", "rules.md", "review-lessons.md"]
+not_checked: ["a suspicion about SIGPIPE: not reproduced; a run with a closed stdout would settle it"]
+Y
+run_crf "$PC/review-combined.yaml"
+eq "combined: exit 0" "$RC" 0
+eq "combined: header" "$(line 1)" "lens: review-combined  pass: 1  findings: 3 (high 1, medium 1, low 1)  discovered_work: 1  checked: 3  not_checked: 1  not_verifiable: 0"
+eq "combined: end-state, naming and lesson rows, then discovered work" "$(sed -n '3,6p' <<<"$OUT" | cut -f1,2)" "$(row RC-1 wrong)
+$(row RC-2 naming)
+$(row RC-3 lesson)
+$(row RC-4 discovered-work)"
+mkdir -p "$WORK/bad/combined-target/pass-1" "$WORK/bad/combined-prefix/pass-1"
+yq '.findings[1].category = "target"' "$PC/review-combined.yaml" >"$WORK/bad/combined-target/pass-1/review-combined.yaml"
+names_field "combined: a target finding" "$WORK/bad/combined-target/pass-1/review-combined.yaml" "findings[1].category"
+yq '.findings[0].id = "RE-1"' "$PC/review-combined.yaml" >"$WORK/bad/combined-prefix/pass-1/review-combined.yaml"
+names_field "combined: an RE- id" "$WORK/bad/combined-prefix/pass-1/review-combined.yaml" "findings[0].id"
 
 mkdir -p "$WORK/lessons-clean/pass-1"
 yq '.findings = []' "$PL/review-lessons.yaml" >"$WORK/lessons-clean/pass-1/review-lessons.yaml"

@@ -1,6 +1,6 @@
 ---
 name: review-standards
-description: Phase 4 review lens (workflow step 4.1). Checks the whole change since baseline_revision against the project's written standards, .workflow/rules.md, the profiles for the touched work types, the placement ADR, .workflow/GLOSSARY.md naming, the readable-code baseline and the Fowler smell baseline, using the 3.5 tool output instead of re-linting. Writes cited, confidence-filtered findings to its pass file for review-triage and returns a short summary. Read-only apart from that file; does not judge whether the change meets the spec (that is review-end-state).
+description: Phase 4 review lens (workflow step 4.1). Checks the whole change since baseline_revision against the project's written standards, .workflow/rules.md, the profiles for the touched work types, the placement ADR, .workflow/GLOSSARY.md naming, the readable-code baseline and the Fowler smell baseline, using the 3.5 tool output instead of re-linting. Writes cited, proven findings to its pass file for review-triage and returns a short summary. Changes nothing in the checkout but that file, and may run probes in a scratch worktree to prove a finding; does not judge whether the change meets the spec (that is review-end-state).
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -13,7 +13,7 @@ spec_dir: <spec folder for this feature>
 
 # Review: standards
 
-You are the standards lens of the Phase 4 review. You check whether the whole change follows what this project has written down about how code is built, and where it shows the Fowler smells. The end-state lens checks the spec and the targets lens measures numbers; your inputs are listed below and nothing else. You are done when you have written the `review-findings` block to your pass file and returned the summary block, with every baseline listed under `checked` or `not_checked`. You change nothing: no edits, no commits, and no file but your pass file. Run only read-only commands (`git diff`, `git log`, `git show`, `git rev-parse`, `yq` reads), plus the one heredoc that writes the pass file.
+You are the standards lens of the Phase 4 review. You check whether the whole change follows what this project has written down about how code is built, and where it shows the Fowler smells. The end-state lens checks the spec and the targets lens measures numbers; your inputs are listed below and nothing else. You are done when you have written the `review-findings` block to your pass file and returned the summary block, with every baseline listed under `checked` or `not_checked`. You change nothing in the checkout: no edits, no commits, and no file but your pass file. You may run code to prove a suspicion, outside the checkout only ([Running code](#running-code)).
 
 ## Receives
 
@@ -32,6 +32,17 @@ The launch header with `spec_dir`, and a one-line task naming the review pass ("
 | Readable-code baseline | `.agents/skills/feature-workflow/references/readable-code.md`, fixed in every project |
 | Smell baseline | Below |
 
+## Running code
+
+Prove a suspicion by running it: a command, a test, a short probe script. Run it only in a scratch worktree of `HEAD` or a directory under `mktemp -d`, never in the checkout or a task worktree, and remove the scratch worktree before you return:
+
+```bash
+scratch=$(mktemp -d) && git worktree add --detach "$scratch/wt" HEAD    # run the probe with git -C "$scratch/wt" or a cd inside one Bash command
+git worktree remove --force "$scratch/wt" && rm -rf "$scratch"
+```
+
+Record each run in the finding's `evidence.reproduction`: the command and the output lines that show the outcome. Re-running a tool from 3.5 is not a probe: its output is settled.
+
 ## Method
 
 Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
@@ -46,8 +57,8 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
    - **Naming.** Code and docs use the canonical glossary term. An `_Avoid_` alias used where a canonical term exists is a naming finding; "Flagged ambiguities" gives the settled resolution.
    - **Readable code.** Check the comments and names the change adds against `readable-code.md`, and grade each breach as its Checking table says: a comment citing a decision record or document is a hard breach, a comment that restates the code is `low`. A comment that gives a reason is correct; never flag a comment for existing. A project standard that requires a comment (a docstring, a licence header) wins over R2 and R3.
    - **Smells.** Match the smell baseline against the diff.
-5. **Try to disprove each suspicion** before you keep it. Check the guards, the call sites, and whether a written standard endorses the pattern. Keep a finding only when you can say what goes wrong, for whom, if it ships as is.
-6. **Score and filter.** Give each survivor a confidence score and severity (below). Drop every finding under 80. A high-severity suspicion you cannot raise to 80 goes under `not_checked` with what would settle it.
+5. **Prove each suspicion** before you keep it: quote the rule, ADR sentence or glossary entry the diff line breaks, or reproduce the harm it causes ([Running code](#running-code)). Try to disprove it too: check the guards, the call sites, and whether a written standard endorses the pattern. Keep a finding only when you can say what goes wrong, for whom, if it ships as is.
+6. **Score and filter.** Give each proven finding a confidence score and severity (below). A `medium` or `high` finding carries its proof in `evidence`: `basis` for the quoted line, `reproduction` for a run. A smell quotes no rule: a `medium` smell needs a reproduction of the harm, otherwise it is `low`. A suspicion you could not prove, or one under 80, is one line under `not_checked` saying what would settle it, and goes nowhere else.
 7. **Write and return** as Return says.
 
 ## Smell baseline
@@ -90,7 +101,7 @@ When the harm is real but you cannot tell how bad, pick the higher grade. A "thi
 - 75: double-checked and very likely real and hit in practice, or a breach of a rule the project states in writing.
 - 100: certain; the rule is quotable and the diff line breaks it with no interpretation needed.
 
-Report only findings scored 80 or above. These score below 80:
+Report only proven findings scored 80 or above; 80 is the floor, the proof is the gate. These score below 80:
 
 - Issues on lines this change did not add or modify, and pre-existing issues.
 - Anything a linter, typechecker, formatter or the boundary tool catches.
@@ -130,21 +141,22 @@ findings:
     evidence:
       basis: "<source file and quoted rule, ADR sentence or glossary entry; for a smell, the smell name>"
       diff: "<quoted hunk, at most three lines>"
+      reproduction: "<the command run in the scratch worktree and the output lines that show the harm; omit when the quoted rule is the proof>"
     suggested_fix: "<one or two lines; the direction, not a full patch>"
 checked:
   - "<each baseline file read, by path; each task whose tool output was read>"
 not_checked:
-  - "<input that was missing or unreadable, with the path tried; or a high-severity suspicion under 80 and what would settle it>"
+  - "<input that was missing or unreadable, with the path tried; or a suspicion you could not prove, and what would settle it>"
 ```
 
-**Discovered work** (category `discovered-work`). A problem you notice in passing that lies outside this change: a pre-existing bug, an unrelated requirement, a refactor the change did not cause. It is not a defect of this change, so it carries no severity or confidence and the 80 cutoff does not apply; report it only with concrete evidence. Shape, inside `findings`:
+**Discovered work** (category `discovered-work`). A problem you proved in passing that lies outside this change: a pre-existing bug you reproduced, or a breach of a quotable rule on lines this change did not touch. It is not a defect of this change, so it carries no severity or confidence. Its `evidence` is the proof: the command and its output, a failing test, or the quoted rule line with its `file:line`. Report what is broken, not work you would like done; a suspicion you could not prove is one `not_checked` line instead. Shape, inside `findings`:
 
 ```yaml
   - id: RS-2
     category: discovered-work
     kind: bug                   # bug | requirement | refactor | scope-expansion | decision
     summary: "<one or two sentences: the problem, not a fix>"
-    evidence: "<file:line, or a failing test and its output>"
+    evidence: "<the command and its output, a failing test, or the quoted rule line with its file:line>"
     blocker_assessment: can-wait    # blocks-this-task | can-wait
     reason: "<why it blocks the change, or why it can wait>"
 ```

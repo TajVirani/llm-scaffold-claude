@@ -1,16 +1,16 @@
 ---
 origin_spec: .workflow/specs/NNN-slug      # the spec this item was shelved from
 created: YYYY-MM-DD
-severity: medium                 # review findings only (4.8): high | medium | low. Delete the key for any other item.
+severity: medium                 # a review finding the stakeholder asked to shelve: high | medium | low. Delete the key for any other item.
 ---
 <!--
-File: Template for .workflow/deferred/<slug>.md: one self-contained handoff per shelved concept. Written through modules/deferred-handoff.md from questioning-loop (0.3.17), review-triage (4.8) and the light-path suite gap (3.14). Read by `retrieval` at 0.2.4.
+File: Template for .workflow/deferred/<slug>.md: one self-contained handoff per shelved concept. Written through modules/deferred-handoff.md from questioning-loop (0.3.17), the light-path suite gap (3.14), and a discovered-work item or backlog line the stakeholder asked to shelve. Read by `retrieval` at 0.2.4.
 Archival (00.9): when the item gets a spec of its own, deferred-handoff prepends `superseded_by: .workflow/specs/NNN-slug` to the frontmatter and moves the file to .workflow/deferred/archive/<slug>.md. Nothing else changes.
 
 Frontmatter contract (mikefarah yq v4, `--front-matter=extract`):
   - origin_spec: string, repo-relative spec folder (.workflow/specs/NNN-slug).
   - created: date, YYYY-MM-DD.
-  - severity: high | medium | low. Only on items deferred from review triage (4.8). An unverified (maybe-false) finding carries the severity it would have if true, and says "unverified" under Evidence.
+  - severity: high | medium | low. Only on a review finding the stakeholder asked to shelve, with its verified triage severity.
   - superseded_by: string, .workflow/specs/NNN-slug. Added only at archival, as the first key.
   Add no other keys.
 
@@ -26,7 +26,7 @@ Writing rules:
 
 **Summary:** <one line: what is shelved.>
 **Mode:** <HITL (needs a human to decide or do something) | AFK (an agent can act on it alone)>
-**Origin:** [<origin spec>](../specs/NNN-slug/spec.md), <step: 0.3.17 scope decision | 4.8 review finding | 3.14 suite gap>, design-log entry <YYYY-MM-DD title>
+**Origin:** [<origin spec>](../specs/NNN-slug/spec.md), <step: 0.3.17 scope decision | 3.14 suite gap | shelf request at <step>>, design-log entry <YYYY-MM-DD title>
 
 ## Goal
 
@@ -50,7 +50,7 @@ Writing rules:
 
 ## Evidence
 
-- <finding, measurement or observation>, at `<path:line>` as of commit `<sha>`. <For review findings: verdict and what verified it, or "unverified: <what would settle it>".>
+- <finding, measurement or observation>, at `<path:line>` as of commit `<sha>`. <For review findings: verdict and the reproduction or quoted line that proved it.>
 
 ## Acceptance criteria
 

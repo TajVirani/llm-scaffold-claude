@@ -34,7 +34,7 @@ eq "full: 3.16 merges before 3.9" "$(sp 3.16)" "Phase 4 of 6 · step 9 of 14 —
 eq "full: 3.10" "$(sp 3.10)" "Phase 4 of 6 · step 13 of 14 — Implementation: Run the browser suite (3.10)"
 eq "full: 4.7 runs eighth, after 4.9" "$(sp 4.7)" "Phase 5 of 6 · step 8 of 9 — Review and triage: Rework attempts remaining? (4.7)"
 eq "full: 5.8 is the last step" "$(sp 5.8)" "Phase 6 of 6 · step 9 of 9 — Sign-off: Merge and close (5.8)"
-eq "full: 5.9 runs before 5.7" "$(sp 5.9)" "Phase 6 of 6 · step 7 of 9 — Sign-off: Offer backlog items (5.9)"
+eq "full: 5.9 runs before 5.7" "$(sp 5.9)" "Phase 6 of 6 · step 7 of 9 — Sign-off: Carry out backlog rulings (5.9)"
 
 # Light path: 4 phases (0, 3, 4, 5).
 eq "light: 0.3.8 keeps its position, smaller total" "$(sp 0.3.8 --path light)" "Phase 1 of 4 · step 23 of 36 — Discovery: Compute the frontier (0.3.8)"
@@ -101,8 +101,8 @@ eq "JRN-007 full: 4.9 is step 4 of 9" "$(progress_at false 4.9)" "Phase 5 of 6 �
 eq "JRN-007 light: 4.9 is step 4 of 9" "$(progress_at true 4.9)" "Phase 3 of 4 · step 4 of 9 — Review and triage: Review lessons lens (4.9)"
 eq "JRN-007 full: 4.4 is step 5 of 9" "$(progress_at false 4.4)" "Phase 5 of 6 · step 5 of 9 — Review and triage: Triage findings (4.4)"
 eq "JRN-007 light: 4.4 is step 5 of 9" "$(progress_at true 4.4)" "Phase 3 of 4 · step 5 of 9 — Review and triage: Triage findings (4.4)"
-eq "JRN-007 full: 4.8 is step 9 of 9" "$(progress_at false 4.8)" "Phase 5 of 6 · step 9 of 9 — Review and triage: Deferred handoffs (4.8)"
-eq "JRN-007 light: 4.8 is step 9 of 9" "$(progress_at true 4.8)" "Phase 3 of 4 · step 9 of 9 — Review and triage: Deferred handoffs (4.8)"
+eq "JRN-007 full: 4.8 is step 9 of 9" "$(progress_at false 4.8)" "Phase 5 of 6 · step 9 of 9 — Review and triage: Record the gaps (4.8)"
+eq "JRN-007 light: 4.8 is step 9 of 9" "$(progress_at true 4.8)" "Phase 3 of 4 · step 9 of 9 — Review and triage: Record the gaps (4.8)"
 
 # The large track. The expected lines are built from the large-track rows of steps.tsv.
 large_rows() { grep -v '^#' "$FW_SKILL/references/steps.tsv" | awk -F'\t' '$3 == "large"'; }

@@ -46,7 +46,7 @@ Done when each file exists, either created now or kept, and a created rules.md h
 
 ### 4. Seed the model map
 
-Read [modules/model-map.md](modules/model-map.md) and write one `.workflow/model-map/<task-type>.md` for each of the 13 task types with the tier defaults.
+Read [modules/model-map.md](modules/model-map.md) and write one `.workflow/model-map/<task-type>.md` for each task type in its Defaults table, with the tier defaults.
 
 Done when all 13 files exist and none holds a `<...>` placeholder.
 

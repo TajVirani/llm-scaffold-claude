@@ -18,11 +18,11 @@ Spec: [spec.md](spec.md)
 
 <!-- Entry shapes. Copy one per event. -->
 
-## YYYY-MM-DD Origin: <work-item filename>
+## YYYY-MM-DD Origin: <work item>
 
 <!-- 0.1.4. Written only for a spec seeded from a .workflow/specs/work-backlog/ item. First entry in the log. -->
 
-- Work item: <NNN-slug-disc-###.md>
+- Work item: <NNN-slug.md#B<n> for a backlog line, or NNN-slug-disc-###.md for an older item file>
 - Origin spec and step: <.workflow/specs/NNN-slug>, step <n>
 - Problem: <the item's problem, one or two lines>
 - Evidence: <`path:line`, failing test or agent return, carried from the item>
@@ -151,31 +151,34 @@ Still researching: <IQ<n> (<task_type>)>, or "none".
 
 | Id | Source lens | Finding | Location | Verdict | Evidence | Route |
 | --- | --- | --- | --- | --- | --- | --- |
-| F<n> | review-standards / review-end-state / review-targets / review-lessons | <one line> | `<path:line>` | high / medium / low / false / maybe-false | <what verified or disproved it; for maybe-false, what would settle it> | patch / defer ([.workflow/deferred/<slug>.md](../../deferred/<slug>.md)) / decision needed (Q<n>) / discovered work (filed: <backlog item or shelf file>, or the blocker's ruling; see its Discovered work record) / none (dismissed: <reason>) |
+| F<n> | review-standards / review-end-state / review-targets / review-lessons / review-combined | <one line> | `<path:line>` | high / medium / low / false / unproven | <the reproduction or quoted line that proved it, or what disproved it; for unproven, what would settle it> | patch / decision needed (Q<n>) / discovered work (to ask, <convoluted / scope-expanding / out of scope>, or the blocker's ruling; see its Discovered work record) / proposal P<n> / none (dismissed: <reason>) |
 
 Failed lenses: none
-Outcome: <rework k of 5 | loop back (4.5 decision needed) | loop back (4.6 third pass) | loop back (00.24 discovered work) | loop back (00.29 budget re-scope) | blocked (4.7) | deferred, to sign-off | clean, to sign-off>
+Gaps: <each not_verifiable requirement or unmeasured target, its lens and what would settle it | none>
+Outcome: <rework k of 5 | loop back (4.5 decision needed) | loop back (4.6 third pass) | loop back (00.24 discovered work) | loop back (00.29 budget re-scope) | blocked (4.7) | open items, to sign-off | clean, to sign-off>
 
-<!-- `Failed lenses:` is "none" or the lens ids that errored or returned nothing usable. `Outcome:` is appended once the pass is decided (4.5-4.8); review-triage counts these lines for the pass number and the rework ceiling, so keep the wording. The two discovered-work loop backs (`00.24 discovered work`, `00.29 budget re-scope`) are also written as the last line of a Discovered work entry when the loop back did not come from a triage pass. -->
+<!-- `Failed lenses:` is "none" or the lens ids that errored or returned nothing usable. `Gaps:` is written at 4.8 and read by the 5.4 report. `Outcome:` is appended once the pass is decided (4.5-4.8); review-triage counts these lines for the pass number and the rework ceiling, so keep the wording. The two discovered-work loop backs (`00.24 discovered work`, `00.29 budget re-scope`) are also written as the last line of a Discovered work entry when the loop back did not come from a triage pass. -->
 
 ## YYYY-MM-DD Discovered work: <slug>
 
-<!-- 00.21-00.29. Work found outside the agreed scope and the size-budget halt. Use one of the four records below; the first is the full entry, the others are short. A can-wait item filed at 00.26 without asking the stakeholder takes the full entry with the ruling "can be solved later; filed without a ruling, offered at 5.9". -->
+<!-- 00.21-00.29. Work found outside the agreed scope and the size-budget halt. Use one of the records below; the first is the full entry, the others are short. An item waiting for the stakeholder's batched question takes the full entry with the ruling "to ask (<class>)"; its answer comes later as a `Ruling:` line in the entry of the ask that carried it (the Sign-off entry at 5.5). -->
 
 - Found at: step <n> by <agent or reviewer>. Kind: bug / requirement / refactor / scope-expansion / decision / budget-split
-- Problem and evidence: <one line; `path:line` or failing test>
-- Assessment and ruling: blocker / can be solved later; <to discovery (spec back to draft) | stays blocked, human resolves | backlog item | ignored | split | re-scoped | overrun approved | filed without a ruling, offered at 5.9>
-- Backlog item: [work-backlog/<NNN-slug>-disc-<###>.md](../work-backlog/<NNN-slug>-disc-<###>.md)
+- Problem and evidence: <one line; the reproduction (command and output, or failing test) or the quoted rule line with `path:line`>
+- Assessment and ruling: blocker; <to discovery (spec back to draft) | stays blocked, human resolves | kept for later | dropped | split | re-scoped | overrun approved> / to ask (<convoluted | scope-expanding | out of scope>), recommended <fold in | keep for later | drop> because <reason>
+- Backlog line: [work-backlog/<NNN-slug>.md](../work-backlog/<NNN-slug>.md) B<n> (only once kept or split)
 
-Duplicate discovered work (00.26, matched a shelf file or an open backlog item by concept), one line only:
+Ruling on a waiting item (00.25, written in the entry of the ask that carried it), one line per item:
 
-- Duplicate discovered work: <slug> matches <file>; line appended.
+- Ruling: <slug>: fold in | kept for later (B<n>) | dropped. Asked at <node>.
 
-<!-- When the matching backlog item belongs to another spec, the write guard refuses the append: end the line "; not appended, item of <its origin spec>" instead. -->
+Unproven report (no reproduction and no quotable line), one line only:
 
-Dismissed item (00.25 No), one line only:
+- Unproven report: <slug>: <claim in a phrase>, from <agent> at <node>; nothing filed. Would settle it: <one line>.
 
-- Dismissed discovered work: <slug>: <problem in a phrase> (`<path:line>`), not a blocker, user chose not to pursue.
+Duplicate discovered work (00.26, matched a shelf file or an open backlog line by concept), one line only:
+
+- Duplicate discovered work: <slug> matches <file or list line>; <Later requests line appended | existing line stands | not appended, item of <its origin spec>>.
 
 Approved budget overrun (00.29 Approve):
 
@@ -183,11 +186,11 @@ Approved budget overrun (00.29 Approve):
 
 ## YYYY-MM-DD Sign-off: stakeholder approval (5.5)
 
-<!-- 5.5. One entry for the batched sign-off ask: the approval, the PR description approval, the 5.9 ruling on each open backlog item and the going-in concerns for the retrospective, all answered in one round. The retrospective (5.7) reads the `Going-in concerns:` line instead of asking again. A change request (5.6) appends its own entry after this one. -->
+<!-- 5.5. One entry for the batched sign-off ask: the approval, the PR description approval, the one list question (a ruling per waiting discovered-work item and per open backlog line) and the going-in concerns for the retrospective, all answered in one round. The retrospective (5.7) reads the `Going-in concerns:` line instead of asking again. A change request (5.6) appends its own entry after this one. -->
 
 - Approval: yes / change requested: "<stakeholder's words, verbatim>"
 - PR description: approved / not approved (change requested). Changes asked before approval: "<stakeholder's words, verbatim>" | none
-- Backlog <NNN-slug>-disc-<###>.md: start it as the next feature / keep it open / move it to .workflow/deferred/ (one line per open item, or "Backlog: no open items")
+- Ruling: <slug, B<n> or older item file>: fold in / keep for later / drop / start it as the next feature (one line per item on the list, or "Backlog: no items")
 - Going-in concerns: <the stakeholder's words, verbatim | none>
 
 ## YYYY-MM-DD Retrospective notes

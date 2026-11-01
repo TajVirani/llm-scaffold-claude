@@ -26,8 +26,9 @@
 #   - The text ends with the next action: load the feature-workflow skill for the chosen spec, which routes by spec.md status; a blocked spec
 #     needs its blocked_condition resolved by a human first; an initiative resumes through feature-workflow's large path.
 #   - A blocked spec whose blocked_condition starts with `discovered work:` or `size budget:` is flagged "discovered-work prompt pending".
-#   - .workflow/specs/work-backlog/ is not a spec folder and is skipped by the scan; its *.md items with `status: open` are summarised as a count plus
-#     up to 5 filenames, and alone are enough to produce output.
+#   - .workflow/specs/work-backlog/ is not a spec folder and is skipped by the scan. Its open items are summarised as a count plus up to 5 names,
+#     and alone are enough to produce output: each `- [open] B<n> ...` line of a spec's backlog list <NNN-slug>.md (named <NNN-slug>.md#B<n>),
+#     and each older item file <NNN-slug>-disc-<###>.md with `status: open` (named by its file name). Other files there are ignored.
 #   - Session handoffs (.workflow/.handoff/*.md at the main checkout, newest first by mtime): up to 3 listed with frontmatter created, spec and goal
 #     (or "frontmatter unreadable"), the rest counted; alone they are enough to produce output, and the text names the handoff skill's Resume.
 #   - The text is capped below the 10,000-character additionalContext limit: specs past the cap are counted, not listed.
@@ -240,13 +241,22 @@ for spec in ${specs[@]+"${specs[@]}"}; do
   listed=$((listed + 1))
 done
 
-# Open discovered-work backlog items (work-backlog files with status open): a count and up to 5 filenames.
+# Open work-backlog items: open lines of each spec's list, and older item files with status open; a count and up to 5 names.
 open_n=0 open_names=""
+# add_open NAME : count one open item and keep its name while fewer than 6 are named.
+add_open() {
+  open_n=$((open_n + 1))
+  [ "$open_n" -gt 5 ] || open_names+="${open_names:+, }$1"
+}
 for item in ${backlog[@]+"${backlog[@]}"}; do
   [ "$SECONDS" -lt 8 ] || break
-  [ "$(raw_status "$item")" = "open" ] || continue
-  open_n=$((open_n + 1))
-  [ "$open_n" -gt 5 ] || open_names+="${open_names:+, }$(basename "$item")"
+  name=$(basename "$item")
+  case "$name" in
+    [0-9]*-disc-[0-9][0-9][0-9]*.md)
+      [ "$(raw_status "$item")" = "open" ] && add_open "$name" ;;
+    [0-9]*-*.md)
+      while IFS= read -r id; do add_open "$name#$id"; done < <(sed -n 's/^- \[open\] \(B[0-9][0-9]*\) .*/\1/p' "$item" 2>/dev/null) ;;
+  esac
 done
 
 [ $((listed + omitted + i_n + open_n + h_n)) -gt 0 ] || exit 0
@@ -265,7 +275,7 @@ fi
 [ -z "$main_warning" ] || text+="$main_warning
 "
 if [ "$open_n" -gt 0 ]; then
-  text+="Open discovered-work backlog items in $WF_WORK_BACKLOG/: $open_n (${open_names}$([ "$open_n" -le 5 ] || echo ", ...")); each is offered as a next feature at sign-off (5.9) or can be started through discovery.
+  text+="Open discovered-work backlog items in $WF_WORK_BACKLOG/: $open_n (${open_names}$([ "$open_n" -le 5 ] || echo ", ...")); each was kept for later by the stakeholder and can be started as a new feature through discovery.
 "
 fi
 if [ "$h_n" -gt 0 ]; then

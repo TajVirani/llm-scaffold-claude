@@ -35,6 +35,7 @@ Paths are relative to `.agents/`. See [Decisions](#decisions) for why things liv
 | `review-end-state` | agent | New (adapt from `code-review` Spec prompt) | `agents/review-end-state.md` | 4.2 |
 | `review-targets` | agent | New | `agents/review-targets.md` | 4.3 |
 | `review-lessons` | agent | New (modelled on `review-standards`) | `agents/review-lessons.md` | 4.9 |
+| `review-combined` | agent | New (D110; built from the three lenses it replaces) | `agents/review-combined.md` | 4.1, 4.2 and 4.9 on the light and small paths |
 | `standards-discovery` | agent | New (D80) | `agents/standards-discovery.md` | outside the flow; launched by `project-standards` |
 | `pre-launch` | hook | New (D13, D33; replaces the model-selection, profile-injection, `pre-launch-validate` and `subagent-start-profile` hooks) | `hooks/pre-launch.sh` | 00.11–00.14, 00.18–00.20 | `PreToolUse`, matcher `Agent` |
 | `post-implementation-audit` | hook | New (D91: calls `run-toolchain.sh --reuse`, reusing a passing record for an unchanged tree) | `hooks/post-implementation-audit.sh` | 3.5–3.8 | `SubagentStop`, matcher `implementation\|integration` (script also filters) |
@@ -570,6 +571,14 @@ Each agent needs a launch prompt, which the plan asks for, and an entry in the `
 - **Outputs/handoff:** Findings written to `artifacts/review/pass-<n>/review-lessons.yaml`; returns a summary to 4.4.
 - **Plan reference:** 4.9 (spec 002-review-lessons).
 - **Status:** New. Read-only, cheap tier; only the retrospective writes the lessons file.
+
+### `review-combined`
+- **Description:** One review lens for the light and small paths, in place of `review-standards`, `review-end-state` and `review-lessons` (D110).
+- **Goals:** Report proven `missing`, `unasked`, `wrong`, standards and lesson findings (prefix `RC`), each with a reproduction run in a scratch worktree or a quoted rule, spec or lesson line (D102, D103).
+- **Triggers/inputs:** The full diff, `spec.md` (with its Assumptions, Non-goals and Known gaps), `verification-plan.md` when present, `artifacts/`, `.workflow/rules.md`, the profiles for the touched work types, the glossary, `readable-code.md`, the smell baseline in `agents/review-standards.md`, `.workflow/review-lessons.md`, pitfalls and retrospectives.
+- **Outputs/handoff:** Findings written to `artifacts/review/pass-<n>/review-combined.yaml` in the shape `check-review-findings.sh` reads; returns a summary to 4.4.
+- **Plan reference:** 4.1, 4.2 and 4.9 on the light and small paths (D110).
+- **Status:** New. Strong tier by default; may run probes outside the checkout.
 
 ### `standards-discovery`
 - **Description:** A read-only brownfield scan that reports the conventions the code already follows, so `project-standards` ratifies them instead of inventing them (D80).

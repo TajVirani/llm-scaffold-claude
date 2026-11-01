@@ -39,6 +39,7 @@ Agents (`.agents/agents/`, one line each):
 - `integration` — single owner of shared-core changes
 - `profile-mini-review` — reviews one task's diff against the profile checklist
 - `review-standards`, `review-end-state`, `review-targets`, `review-lessons` — Phase 4 review lenses (standards, spec conformance, measured targets, recorded review lessons)
+- `review-combined` — one review lens for the light and small paths, covering standards, spec conformance and review lessons
 - `standards-discovery` — read-only brownfield standards scan for `project-standards`
 
 Hooks live in `.agents/hooks/`, wired by `claude-settings.template.json`, `codex-hooks.template.json` and `codex-config.template.toml`. Each script carries a `# File:` header describing it; `PROVENANCE.md` is the full inventory.

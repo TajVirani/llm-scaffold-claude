@@ -1,6 +1,6 @@
 # Sign-off (Phase 5)
 
-You reconcile the spec with what shipped, get Tier A changes approved in one round with exceptions named by row, report real results, and close the feature with the stakeholder. The steps run in the order 5.1-5.5, 5.9, 5.7, 5.8: the backlog offer comes before the retrospective sets `done`. You are done when the spec is `done`, moved to the Done folder and merged (5.8), or when a change request has sent it back to 0.3.8 (5.6).
+You reconcile the spec with what shipped, get Tier A changes approved in one round with exceptions named by row, report real results, and close the feature with the stakeholder. The steps run in the order 5.1-5.5, 5.9, 5.7, 5.8: the backlog rulings are carried out before the retrospective sets `done`. You are done when the spec is `done`, moved to the Done folder and merged (5.8), or when a change request has sent it back to 0.3.8 (5.6).
 
 `.workflow/specs/NNN-slug` is this feature's folder until 5.8 moves it into the Done folder, `.workflow/specs/done/NNN-slug`. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix (SKILL.md, "Conventions every module follows"). Every status, task-record and step change goes through `status-transition.sh` with the exact `--step` shown; exit 2 is a refused transition: stop and report it. Protected files are written with Write or Edit after the matching step is set, so the write guards can check them. If a guard denies a write, stop and show the stakeholder the denial and the text you meant to write. On Codex, run `check-write.sh` before each protected write as SKILL.md "Host notes" says.
 
@@ -9,8 +9,8 @@ You reconcile the spec with what shipped, get Tier A changes approved in one rou
 1. **Set the step.** Read `status` with `yq --front-matter=extract '.status' .workflow/specs/NNN-slug/spec.md`.
    - `blocked` (from 4.7): `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug in-review --step 5.1`. This lifts the block; do it with the stakeholder present.
    - `in-review`: `.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.1`.
-2. **Record open findings as known gaps.** For a spec that was blocked, and for any finding still open after 4.7, add one line per finding under `## Known gaps` in `.workflow/specs/NNN-slug/spec.md`: the finding id, its verified severity and its `.workflow/deferred/` link.
-3. **Reconcile the body with what shipped.** Compare each capability, constraint, non-goal and the success signal with the merged diff (`git diff <baseline_revision>...HEAD`) and the design-log triage entries. Make spec.md describe the feature as built: resolve Assumptions that were confirmed or disproved, empty Open Questions, and keep the `deferred` list matching the files 4.8 wrote. Leave `status` and `blocked_condition` alone. A capability that shipped differently from what was agreed is a finding for the stakeholder at 5.5: name it in the report rather than rewriting the capability to fit.
+2. **Record open findings as known gaps.** For a spec that was blocked, and for any finding still open after 4.7, add one line per finding under `## Known gaps` in `.workflow/specs/NNN-slug/spec.md`: the finding id, its verified severity and the triage pass that left it open.
+3. **Reconcile the body with what shipped.** Compare each capability, constraint, non-goal and the success signal with the merged diff (`git diff <baseline_revision>...HEAD`) and the design-log triage entries. Make spec.md describe the feature as built: resolve Assumptions that were confirmed or disproved, empty Open Questions, and keep the `deferred` list matching the shelf files this spec wrote (0.3.17, 3.14, or a shelf file the stakeholder asked for). Leave `status` and `blocked_condition` alone. A capability that shipped differently from what was agreed is a finding for the stakeholder at 5.5: name it in the report rather than rewriting the capability to fit.
 
 Done when spec.md matches the merged change and every open finding is a known gap.
 
@@ -21,7 +21,7 @@ Copy `assets/proposals.md` to `.workflow/specs/NNN-slug/proposals.md` if it does
 | Group | Where they come from |
 | --- | --- |
 | Capabilities | every `CAP-NEW-<slug>` in `.workflow/specs/NNN-slug/spec.md`: the Proposed text keeps the provisional id until 5.3 assigns `CAP-###`, plus the description and the spec link; an existing `CAP-###` this spec changed: add the spec link to its row |
-| Rules | rule conflicts found at 0.3.5; triage findings routed `defer (proposal P<n>)`; the `pr_template` row below |
+| Rules | rule conflicts found at 0.3.5; triage findings routed `proposal P<n>`; the `pr_template` row below |
 | Decisions | design-log decisions that pass the three-part ADR test in `.agents/skills/domain-modeling/SKILL.md` and were not written at 0.3.7; a term that should enter a glossary |
 | Pitfalls | observed failures only: verified `high` or `medium` findings, gates that failed, "profile is wrong" reports |
 | Profiles | libraries the project adopted, a location rule that proved wrong, a checklist line that kept catching the same thing or never caught anything |
@@ -91,9 +91,10 @@ Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write to
   Paste the harness's summary line from `artifacts/sign-off-5.4/toolchain.txt` and that path, not the whole output; `reused_from` in its `toolchain.json` names the run it reused. Tool audit rows from `artifacts/<task-id>/toolchain.json`.
 - **Targets vs measured**: one row per target in `verification-plan.md`, copied from the `measurements:` table of the newest `artifacts/review/pass-<n>/review-targets.yaml` (target, threshold, measured, result, raw output link). A `not_measurable` row keeps its reason and is a known gap. If the lens failed (its pass file failed the check), each row says `not measured: review-targets failed` and is a known gap. On the light path, with no `verification-plan.md`, the section reads `no targets (light path)`.
 - **Journeys**: one row per `JRN-###`, linked to its evidence under `artifacts/`. A journey with no evidence is `not exercised`.
-- **Review outcome**: passes, rework used, and patched, deferred and dismissed counts from the design-log triage entries; failed lenses; `followup_review_recommended`.
-- **Known gaps**: everything under `## Known gaps` in spec.md (light-path suite gaps from 3.14; open findings from 5.1), the lenses' `not_verifiable` and `not_checked` items, and unmeasured targets. A skipped gate is a gap, never a pass.
-- **Deferred**: every file in spec.md `deferred`, with its severity.
+- **Review outcome**: passes, rework used, and patched, discovered-work, proposal and dismissed counts from the design-log triage entries; failed lenses; `followup_review_recommended`.
+- **Known gaps**: everything under `## Known gaps` in spec.md (light-path suite gaps from 3.14; open findings from 5.1), the `Gaps:` line of each triage pass, the lenses' `not_checked` items, and unmeasured targets. A skipped gate is a gap, never a pass.
+- **Deferred**: every file in spec.md `deferred`, with its severity when it has one.
+- **Open items**: the discovered-work items waiting for the stakeholder's ruling (`modules/discovered-work.md`, 00.25), one line each with its class and recommendation.
 
 **Then fill the Sign-off PR description**, `.workflow/specs/NNN-slug/pr-body.md`, beside `report.md`. 5.8 publishes it unchanged apart from the spec path the move rewrites, so fill it afresh on every pass through 5.4 (a 5.6 change request comes back through here).
 
@@ -115,11 +116,13 @@ Done when every PASS links evidence, every number is measured or marked "not mea
 
 ## 5.5 Stakeholder approves the work?
 
-Ask the sign-off questions together: the approval, the PR description, the 5.9 ruling on each open backlog item, and the retrospective's going-in concerns.
+Ask the sign-off questions together: the approval, the PR description, one question over the backlog list, and the retrospective's going-in concerns.
 
-1. **List this spec's open backlog items:**
+1. **Gather the list:** the discovered-work items still waiting for a ruling (00.25 step 1 in `modules/discovered-work.md`), the open lines of this spec's backlog list, and any older open item file of this spec:
 
    ```bash
+   grep -n '^## .* Discovered work: \|to ask (\|^- Ruling: ' .workflow/specs/NNN-slug/design-log.md
+   grep -n '^- \[open\]' .workflow/specs/work-backlog/NNN-slug.md 2>/dev/null
    for f in .workflow/specs/work-backlog/NNN-slug-disc-*.md; do [ -f "$f" ] && [ "$(yq --front-matter=extract '.status' "$f")" = open ] && echo "$f"; done
    ```
 
@@ -127,15 +130,15 @@ Ask the sign-off questions together: the approval, the PR description, the 5.9 r
 3. **Ask, in this order:**
    1. "Do you approve the work?" Yes, or No with the change requested.
    2. "Do you approve this PR description?" Yes, or the changes wanted. On changes, edit `pr-body.md`, run `check-pr-body.sh` as at 5.4 until it exits 0, show the full text again and ask only this question again.
-   3. One question per open backlog item: its title, **Problem**, **Suggested scope and size** and origin step, with the options "Start it as the next feature", "Keep it open" and "Move it to `.workflow/deferred/`".
+   3. One question over the whole list, asked only when the list is not empty. One line per item with your recommendation: a waiting item as `<slug> (<class>, found at <node>): <problem>. Recommended: fold in | keep for later | drop (<reason>)`; an open line or older item as `<B<n> or file>: <problem>. Recommended: keep for later | start it as the next feature | drop (<reason>)`. The options are "As recommended (Recommended)", "Keep them all for later" and "Drop the waiting items"; per-item exceptions come back as `<slug, B<n> or file>: fold in | keep | drop | start next` lines. A shelf file is written only for an item the stakeholder names with "move it to the shelf".
    4. "Anything you want weighed in the retrospective?" with the option "Nothing in particular"; any other answer is the concern, in the stakeholder's words.
 
    - **Claude Code:** one AskUserQuestion call holding every question. Past its limit of four questions per call, put the rest in a second call straight after, in the same order.
    - **Codex, or chat:** one message with the questions numbered, then wait.
-4. **Log the answers** in `.workflow/specs/NNN-slug/design-log.md` with the "Sign-off" shape in [../assets/design-log.md](../assets/design-log.md): the approval, the PR description approval, each backlog ruling, and `Going-in concerns: <text | none>` with the stakeholder's words verbatim.
+4. **Log the answers** in `.workflow/specs/NNN-slug/design-log.md` with the "Sign-off" shape in [../assets/design-log.md](../assets/design-log.md): the approval, the PR description approval, one `Ruling:` line per item on the list, and `Going-in concerns: <text | none>` with the stakeholder's words verbatim.
 
-- **Yes**, and the PR description approved: go to 5.9 with the logged rulings.
-- **No, change requested**: go to 5.6. The backlog rulings and the concerns stay logged and change no file; when the spec comes back to 5.5, offer them as the recommended answers.
+- **Yes**, the PR description approved, and no item folded in: go to 5.9 with the logged rulings.
+- **No, change requested**, or any item ruled **fold in**: go to 5.6 with the request and every folded-in item as one change request. The other rulings and the concerns stay logged and change no file; when the spec comes back to 5.5, offer them as the recommended answers.
 
 Done when the stakeholder has answered every question and the design-log entry records all of the answers.
 
@@ -143,34 +146,35 @@ Done when the stakeholder has answered every question and the design-log entry r
 
 Append a dated entry to `.workflow/specs/NNN-slug/design-log.md` quoting the request verbatim, ending with `Outcome: loop back (5.6 change request)` so `review-triage` starts a new review cycle. Then follow "Re-entry (5.6)" in `SKILL.md`, which makes the one status call (`status .workflow/specs/NNN-slug draft --step 5.6`) and loads `modules/questioning-loop.md` at 0.3.8 with the request as the first frontier question. Make that call once: a second `draft` call is refused. Tier A rows applied at 5.3 stay written; a request that reverses one becomes a proposal at the next 5.2.
 
-## 5.9 Offer this spec's open backlog items as the next feature
+## 5.9 Carry out the backlog rulings
 
-This runs after 5.5 Yes and before 5.7, so every work item this spec discovered is decided before the spec is `done` (node ids are kept, so 5.9 comes before 5.7). The stakeholder ruled on each open item at 5.5; here you carry the rulings out without asking again. No open items: go to 5.7. Otherwise set the step:
+This runs after 5.5 Yes and before 5.7, so every item this spec found is decided before the spec is `done` (node ids are kept, so 5.9 comes before 5.7). The stakeholder ruled on each item at 5.5; here you carry the rulings out without asking again. No item on the 5.5 list: go to 5.7. Otherwise set the step:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.9
 ```
 
-Then apply each item's ruling from the 5.5 design-log entry. Backlog files are written only in the main session at this step; edit only the keys and lines named here.
+Then apply each `Ruling:` line of the 5.5 design-log entry. Backlog lists and item files are written only in the main session at this step; edit only the lines and keys named here.
 
-- **Start it as the next feature.** Seed a new spec from the item: run 0.1.1-0.1.6 of `modules/discovery.md` ("Seeded from a work item") with the item as the request. It creates `.workflow/specs/<new NNN-slug>/` at `draft`, marks the item promoted at the new spec's 0.1.4 and deletes it once that spec finishes discovery, and hands the folder name back. Do not edit the item yourself. Set this spec's step again (`.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.9`) and append one line to `.workflow/specs/NNN-slug/design-log.md`: `Backlog item <item file> started as .workflow/specs/<new NNN-slug> (5.9)`. The new spec waits in `draft` and resumes through the router after this one closes; this spec never absorbs the item.
-- **Keep it open.** Change nothing; it stays listed for the stakeholder by the router.
-- **Move it to `.workflow/deferred/`.** Load `modules/deferred-handoff.md` **Write** with the item (concept from its title, origin step 5.9, the item's Problem and Evidence; no `severity`). Then set the step to 5.9 again and Edit the item: `status: moved-to-deferred`, and fill the **Deferred file** link with the path the handoff returned.
+- **Keep for later** (a waiting item): add its line through `modules/discovered-work.md` [00.26](discovered-work.md#0026-add-the-backlog-line) steps 2–4; the step is already 5.9. An open line or older item ruled keep: change nothing.
+- **Drop**: a waiting item gets nothing beyond its ruling. An open line: delete it from `.workflow/specs/work-backlog/NNN-slug.md` with Edit (delete the file when no line is left). An older item file: Edit its frontmatter to `status: dismissed`.
+- **Start it as the next feature.** Seed a new spec from the line or item: run 0.1.1-0.1.6 of `modules/discovery.md` ("Seeded from a work item") with it as the request. It creates `.workflow/specs/<new NNN-slug>/` at `draft`, marks the line or item `promoted` at the new spec's 0.1.4, and hands the folder name back. Do not edit the line or item yourself. Set this spec's step again (`.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.9`) and append one line to `.workflow/specs/NNN-slug/design-log.md`: `Backlog item <B<n> or item file> started as .workflow/specs/<new NNN-slug> (5.9)`. The new spec waits in `draft` and resumes through the router after this one closes; this spec never absorbs the item.
+- **Move it to the shelf** (only when the stakeholder asked for it). Load `modules/deferred-handoff.md` **Write** with the item (concept from its problem, origin step 5.9, its Problem and Evidence; no `severity`). Then set the step to 5.9 again and remove the item from the backlog: delete its line, or Edit an older item file to `status: moved-to-deferred` with the **Deferred file** link the handoff returned.
 
-After each edit the item's frontmatter must pass the validator in `assets/work-item.md`. If a guard denies the edit, stop and show the stakeholder the denial, as for any protected write.
+After each edit run the line check from [../assets/work-backlog.md](../assets/work-backlog.md) on the list (it prints nothing), or the validator in `assets/work-item.md` on an older item file. If a guard denies the edit, stop and show the stakeholder the denial, as for any protected write.
 
-**Done when:** no item `.workflow/specs/work-backlog/NNN-slug-disc-*.md` is `open` unless the stakeholder chose to keep it or discovery has taken it (started items are logged in `design-log.md` with their new spec), and every `moved-to-deferred` item links its `.workflow/deferred/` file. Then go to 5.7.
+**Done when:** every `Ruling:` line of the 5.5 entry is carried out: each kept item is an `- [open]` line on the list, each dropped line is gone, each started item is logged in `design-log.md` with its new spec, and no older item file of this spec is `open` unless the stakeholder kept it. Then go to 5.7.
 
 ## 5.7 Retrospective, then done
 
-Run after 5.9 has decided every open backlog item. Set the step, then check that every sub-item of the spec is closed:
+Run after 5.9 has carried out every backlog ruling. Set the step, then check that every sub-item of the spec is closed:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.7
 .agents/skills/feature-workflow/scripts/move-to-done.sh --check .workflow/specs/NNN-slug
 ```
 
-Exit 0: every task record is `done` or `split-out`, and every work-backlog item from this spec is `open`, `promoted`, `moved-to-deferred` or `dismissed`. Exit 1: stop. Show the stakeholder each open item it lists, leave the spec `in-review`, and resume at 5.7 once they are closed; a spec with open sub-items never becomes `done`. Exit 2 is a usage error or a folder that is not a spec: stop and report it.
+Exit 0: every task record is `done` or `split-out`, every line on this spec's backlog list is a well-formed `open` or `promoted` line, and every older item file from this spec is `open`, `promoted`, `moved-to-deferred` or `dismissed`. Exit 1: stop. Show the stakeholder each open item it lists, leave the spec `in-review`, and resume at 5.7 once they are closed; a spec with open sub-items never becomes `done`. Exit 2 is a usage error or a folder that is not a spec: stop and report it.
 
 Invoke the `retrospective` skill for `.workflow/specs/NNN-slug` with the stakeholder present. It writes `.workflow/decisions/retrospectives/NNN-slug.md`, process lessons and pitfalls, feature notes in `design-log.md`, each approved review lesson to `.workflow/review-lessons.md` (created from `assets/review-lessons.md` when the file is missing, and retiring a lesson a rule, lint or profile line now enforces; `.agents/skills/retrospective/modules/routing.md`, "Review lessons", has the procedure), and model observations as a `.workflow/model-map/` entry or a proposed `.workflow/agent-overrides.yaml` entry. It changes no status. When it returns, read its verdict:
 
