@@ -82,7 +82,7 @@ Done when every approved and modified row is written, every rejected row is unto
 
 Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write tool refuses a file named `report.md`, so create it with a Bash heredoc and edit it afterwards. Every claim needs evidence you can point to (no completion claim without evidence first):
 
-- **Tests and CI**: the harness and CI results at the current `HEAD`. Run the harness through the toolchain script, which reuses the newest passing full run on the same tree (workflow-data commits do not change it) and runs the harness again only when code changed:
+- **Tests and CI**: the harness and CI results at the current `HEAD`. Run the harness through the toolchain script, which reuses the newest passing full run on the same tree (workflow-data commits and the 5.3 Tier A edits do not change it) and runs the harness again only when code changed:
 
   ```bash
   .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id sign-off-5.4 --work-type test-harness --cwd "$PWD" --reuse
@@ -230,6 +230,14 @@ git switch "$MAIN" && git merge --no-ff -F "$merge_message" --cleanup=verbatim -
 ```
 
 The merge message is built before the switch because `pr-body.md` exists only on the spec branch; `--no-edit` and `--cleanup=verbatim` keep the message to the body as checked, line for line: an editor session would strip the `##` heading lines as comments, and the default cleanup trims blank lines and trailing spaces. Push only what the stakeholder asked for: after a local merge, push the main branch only on request. Remove leftover worktrees (`git worktree list`, then `git worktree remove <path>` for each one under `.workflow/.worktrees/` this feature created). Close with a one- or two-sentence summary: what shipped, the merge commit, where the deferred items wait, and which backlog items were promoted (with their new spec folders) or kept open.
+
+**Harness after a local merge.** Run the harness on the main branch again only when the merge changed what was tested. Check first; it runs nothing and writes nothing:
+
+```bash
+.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/NNN-slug --task-id post-merge --work-type test-harness --cwd "$PWD" --reuse-check
+```
+
+Exit 0: the merge result is a tree the harness already passed on (it prints the run, usually `sign-off-5.4`); do not run it again, and name that run in the closing summary. Exit 1: the main branch had moved, so run the harness command from `## Suites` (the `test` key of the test-harness profile) and report its summary line. Exit 2 is a usage or setup error: report it and run the harness.
 
 **Close the initiative.** For a spec that carries `initiative:`, once the merge has landed on main, load [large-path](large-path.md#613-close-when-every-spec-is-done) at 6.13 for that initiative. 6.13 first reads the initiative's status on main, then at the tip of `initiative/NNN-slug` when that branch exists locally or on `origin`: while the initiative is still exploring (absent from main, `exploring` there, or `exploring` at the branch tip after a reopen), it tells the stakeholder so and writes nothing. A branch whose tip reads `planned`, left on `origin` by a merged PR, does not stop the close. When it is `planned` and every emitted spec is `done` on main (at the top level or in the Done folder), it re-points the initiative's links to the specs now in the Done folder and moves the initiative to `done` through `initiative-transition.sh` on a re-created `initiative/NNN-slug` and merges that change into main the way `planned` was merged; otherwise it tells the stakeholder which specs are still open. While the PR/MR is still open, skip this: the initiative's next resume runs the same check.
 
