@@ -41,8 +41,8 @@ b64() { printf '%s' "$1" | base64 | tr -d '\n'; }
 CONSOLE=$(b64 'pageerror: boom')
 NET=$(b64 '500 GET http://localhost:3000/api/cards')
 
-# write_report DIR_ROOT [REPORT_REL] : a JSON report with nested suites: JRN-001 failing (with a retry and a second screenshot,
-#   so names clash), JRN-002 passing, an untagged failing test and an untagged passing test.
+# write_report DIR_ROOT [REPORT_REL] : a JSON report with nested suites: the first journey's test failing (with a retry and a
+#   second screenshot, so names clash), the second journey's passing, an untagged failing test and an untagged passing test.
 write_report() {
   local root=$1 rel=${2:-test-results/e2e-results.json}
   mkdir -p "$(dirname "$root/$rel")"

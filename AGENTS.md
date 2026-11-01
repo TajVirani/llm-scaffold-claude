@@ -53,9 +53,9 @@ The scaffold is bash 3.2 scripts plus markdown skills and agent definitions, tes
 
 ## Running and verifying
 
-- shell-scripts: lint `git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR` · test `tests/run-all.sh`.
+- shell-scripts: lint `git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh` · test `tests/run-all.sh`.
 - agent-docs: lint `tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage` · test `tests/run-all.sh`.
-- test-harness: lint `git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR` · test `tests/run-all.sh`.
+- test-harness: lint `git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -- 'tests/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh` · test `tests/run-all.sh`.
 - No CI: `tests/run-all.sh` run by hand is the whole gate. `--suite <name>` runs one suite; `--list` names them.
 
 ## Compaction

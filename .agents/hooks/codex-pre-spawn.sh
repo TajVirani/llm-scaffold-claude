@@ -87,7 +87,7 @@ if [ -z "$task_name" ]; then
 fi
 grep -Eq '^[a-z0-9_]+$' <<<"$task_name" || bad "must use only lowercase letters, digits and underscores (Codex rejects anything else)"
 
-# spec_folder NNN : exactly one .workflow/specs/<NNN>-* in the main checkout.
+# spec_folder NNN : the one spec folder numbered NNN in the main checkout.
 spec_folder() {
   local d n=0
   for d in "$root/$WF_SPECS/$1"-*/; do [ -d "$d" ] && n=$((n + 1)); done
@@ -109,7 +109,7 @@ initiative_folder() {
   ) || true
   [ "${n:-0}" -eq 1 ] || bad "names initiative i$1, but ${n:-0} initiatives match $WF_INITIATIVES/$1-* or initiative/$1-* (need exactly one)"
 }
-# work_type ENC : exactly one .workflow/profiles/<wt>.md with enc(wt) = ENC.
+# work_type ENC : the one work profile whose name wt has enc(wt) = ENC.
 work_type() {
   local p n=0
   for p in "$root/$WF_PROFILES"/*.md; do

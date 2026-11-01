@@ -1,4 +1,5 @@
 ---
+superseded_by: PLAN/workflow-review-fix.md
 origin_spec: .workflow/specs/done/002-review-lessons
 created: 2026-10-22
 ---
@@ -51,3 +52,7 @@ The same two breaches recurred across tasks and specs: journey ids in test comme
 
 - .workflow/specs/done/008-pr-description-template, 3.7: the Markdown asset templates under `.agents/skills/feature-workflow/assets/` also name `.workflow/` paths inside their guidance comments (e.g. `assets/codebase-map.md:53`), the same R4 breach in another file kind; the lint could cover them.
 - .workflow/specs/done/00010-worktree-guard-followups, 5.9: the `# Suite:` header exemption is in question: a mini-review failed journey ids on changed suite-header lines (R5), while 39 suites carry them in their headers; decide whether headers may name journey ids before building the lint (work item 00010-worktree-guard-followups-disc-006, `tests/hooks/worktree-guard.sh:8-21`).
+
+## Resolution
+
+Built outside a spec, as D106 of `PLAN/workflow-review-fix.md` (2026-11-01): `.agents/skills/feature-workflow/scripts/check-comments.sh` with the suites `tests/scripts/check-comments.sh` and `tests/lint/comments.sh`, run by the shell-scripts and test-harness `lint` commands. The `# Suite:` header question is settled: journey ids are allowed there and in no other comment. Not built: the single-bracket check for new files (it needs the spec's baseline, which a profile `lint` command does not have) and the Markdown asset templates under Later requests.
