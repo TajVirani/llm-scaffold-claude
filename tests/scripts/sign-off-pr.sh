@@ -11,6 +11,9 @@
 #   and --description-file; project-setup asks the pr_template question, names the host template, and its
 #   modules/files.md names all four host template paths; the rules.md template documents pr_template under Workflow
 #   settings; SKILL.md lists pr-template.md among the assets.
+#   JRN-006 (spec 007): the 5.8 SPEC_DIR setting names .workflow/specs/done/NNN-slug; with that value and the spec folder
+#   only in done/ (the state right after the move), gh gets --body-file on the moved pr-body.md and the local merge's message
+#   holds the moved body.
 # Contract read from sign-off.md: the publish block uses the variables SPEC_DIR, SPEC_BRANCH, MAIN and SUBJECT, puts each
 #   command on one line, and runs from the project root with the spec branch checked out.
 # shellcheck disable=SC2016,SC2034,SC2329  # check expressions are single-quoted and eval'd on purpose, read variables and call helpers shellcheck cannot see
@@ -197,5 +200,38 @@ check "JRN-006 the rules.md template documents pr_template under Workflow settin
   'step_section "$SETUP/assets/docs/rules.md" "Workflow settings" | grep -q "pr_template"'
 check "JRN-006 SKILL.md lists pr-template.md among the assets" \
   'grep "assets/" "$FW/SKILL.md" | grep -q "pr-template.md"'
+
+echo "== JRN-006 (spec 007): 5.8 publishes the body the move rewrote, from the Done folder"
+# The fixture is the state right after sign-off moves the spec: the spec folder sits only in done/, and its pr-body.md differs from the
+# approved text only in the spec path.
+SPEC_DIR_LINE=$(step_section "$SIGN_OFF" 5.8 | grep -oE '^- `SPEC_DIR=[^`]+`' | head -1)
+SPEC_DIR=${SPEC_DIR_LINE#- \`SPEC_DIR=}
+SPEC_DIR=${SPEC_DIR%\`}
+check "JRN-006 the 5.8 SPEC_DIR setting names the Done folder path" '[[ $SPEC_DIR == .workflow/specs/done/NNN-slug ]]' \
+  "SPEC_DIR line: ${SPEC_DIR_LINE:-<none>}"
+SPEC_DIR=${SPEC_DIR//NNN-slug/008-demo}
+REPO="$WORK/repo-moved"
+make_fixture_repo "$REPO"
+git init -q --bare "$WORK/origin-moved.git"
+git -C "$REPO" remote add origin "$WORK/origin-moved.git"
+SPEC_BRANCH=spec/008-demo
+git -C "$REPO" switch -q -c "$SPEC_BRANCH"
+APPROVED_BODY="$WORK/approved-moved-pr-body.md"
+{ printf '%s\n' "$PR_TEMPLATE_SECTIONS" | pr_body_from_headings; printf 'Report: .workflow/specs/008-demo/report.md\n'; } \
+  >"$WORK/approved-before-move.md"
+sed 's#\.workflow/specs/008-demo#.workflow/specs/done/008-demo#' "$WORK/approved-before-move.md" >"$APPROVED_BODY"
+mkdir -p "$REPO/.workflow/specs/done/008-demo"
+cp "$APPROVED_BODY" "$REPO/.workflow/specs/done/008-demo/pr-body.md"
+git_commit_all "$REPO" "chore(workflow): move 008-demo to the Done folder"
+rm -f "$WORK/gh.args"
+run_publish_lines "$(grep "gh pr create" <<<"$BLOCK")"
+check "JRN-006 gh got --body-file pointing at the moved pr-body.md" \
+  '[[ -f $GH_ARGS ]] && is_approved_body "$(flag_value "$GH_ARGS" --body-file)"' \
+  "SPEC_DIR=$SPEC_DIR; --body-file $(flag_value "$GH_ARGS" --body-file); $(cat "$WORK/publish.out")"
+SPEC_TIP=$(git -C "$REPO" rev-parse "$SPEC_BRANCH")
+run_publish_lines "$(grep -v -e "gh pr create" -e "glab mr create" <<<"$BLOCK")"
+check "JRN-006 the local merge from the Done folder lands on main" \
+  '[[ $(git -C "$REPO" rev-parse -q --verify "main^2" 2>/dev/null) == "$SPEC_TIP" ]]' "$(cat "$WORK/publish.out")"
+eq "JRN-006 the merge message holds the moved pr-body.md" "$(git -C "$REPO" log -1 --format=%b main)" "$(cat "$APPROVED_BODY")"
 
 finish

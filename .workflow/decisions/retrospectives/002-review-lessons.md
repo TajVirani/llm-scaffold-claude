@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/002-review-lessons
+spec: .workflow/specs/done/002-review-lessons
 date: 2026-10-22
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/002-review-lessons/spec.md` (capabilities: CAP-002, CAP-003)
-- Report: `.workflow/specs/002-review-lessons/report.md`
+- Spec: `.workflow/specs/done/002-review-lessons/spec.md` (capabilities: CAP-002, CAP-003)
+- Report: `.workflow/specs/done/002-review-lessons/report.md`
 - Tasks: 6 done, 0 split-out; 6 shelf items linked (3 written by this spec: `retrospective-template-drift.md`, `harness-run-lint-target.md`, `comment-id-lint.md`; 3 existing files given a Later requests line: `session-start-timing-target.md`, `research-model-map.md`, `concurrency-check-timing.md`)
 - Evidence available: `spec.md`; `verification-plan.md`; `report.md`; `tasks.md`; `design-log.md` (one triage entry, two discovered-work entries, the wave and rework entries); `proposals.md` (13 approved); `artifacts/` (toolchain output per task, nine gate and sign-off runs, four lens pass files, the live-run journey files and `record.md`); the six shelf files; git `7289fbf..a6f7854` (47 commits; 51 files, +5062/-65 outside the spec folder); the previous retrospective `004-scoped-test-runs.md`
 - Evidence missing: `.workflow/review-lessons.md` did not exist before this retrospective (expected: this is the feature that creates it). Session logs: none kept; process lessons come from `design-log.md`, the artifacts and the stakeholder, who asked that the T1 review-round churn be weighed.

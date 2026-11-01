@@ -8,11 +8,11 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
 
 ## 0.1 Initialise the feature folder
 
-1. **0.1.1 Scan.** Find the highest number any spec has taken. A spec number lives on after its folder leaves the working tree: on a spec branch, in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (that spec folder is deleted, and its number is never reused). So count the `NNN-slug` spec folders, the `spec/*` branches local and on `origin`, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
+1. **0.1.1 Scan.** Find the highest number any spec has taken. A spec number lives on after its folder leaves the working tree: on a spec branch, in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (that spec folder is deleted, and its number is never reused). A finished spec also leaves the top level: 5.8 moves it into the Done folder, `.workflow/specs/done/`. So count the `NNN-slug` spec folders at the top level and in the Done folder, the `spec/*` branches local and on `origin`, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
 
    ```bash
    {
-     for d in .workflow/specs/[0-9]*-*/; do [ -d "$d" ] && basename "$d"; done
+     for d in .workflow/specs/[0-9]*-*/ .workflow/specs/done/[0-9]*-*/; do [ -d "$d" ] && basename "$d"; done
      git for-each-ref --format='%(refname:lstrip=3)' refs/heads/spec
      git for-each-ref --format='%(refname:lstrip=4)' refs/remotes/origin/spec
      for f in .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && yq --front-matter=extract '.origin, (.slices // [] | .[].spec)' "$f"; done
@@ -22,7 +22,7 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
    } | grep -oE '^[0-9]+' | sort -n | tail -1
    ```
 
-   `.workflow/specs/work-backlog/` and any other folder without a numeric prefix are not specs and never count. The new number is the highest plus one, zero-padded to five digits (`printf '%05d' $((10#$highest + 1))`; `00001` when nothing prints). Older specs keep their three-digit numbers: a spec number may have any number of digits, and only its value orders it.
+   `.workflow/specs/work-backlog/`, the Done folder `.workflow/specs/done/` itself and any other folder without a numeric prefix are not specs and never count; the children of the Done folder are finished specs and do count. The new number is the highest plus one, zero-padded to five digits (`printf '%05d' $((10#$highest + 1))`; `00001` when nothing prints). Older specs keep their three-digit numbers: a spec number may have any number of digits, and only its value orders it.
 2. **0.1.2 Slug.** Two to four lowercase kebab-case words from the request, action-noun where it reads well, keeping technical terms ("Implement OAuth2 for the API" → `oauth2-api`). Use `.workflow/GLOSSARY.md` terms when the request names a known concept.
 3. **0.1.3** `mkdir -p .workflow/specs/NNN-slug`.
 4. **0.1.4 `spec.md`.** Set the step, write the template, then record the status through the script:

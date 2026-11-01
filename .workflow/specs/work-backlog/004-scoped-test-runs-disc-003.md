@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/004-scoped-test-runs
+origin_spec: .workflow/specs/done/004-scoped-test-runs
 origin_step: "3.7"
 discovered_at: 2026-10-22
 status: moved-to-deferred
@@ -15,7 +15,7 @@ The parallel and serial checks in `tests/scripts/run-all-selection.sh` compare w
 ## Evidence
 
 - `tests/scripts/run-all-selection.sh:413` and `:419`.
-- T1 profile-mini-review return, `out_of_scope_noticed` (kind refactor), `.workflow/specs/004-scoped-test-runs/artifacts/T1/mini-review.yaml`.
+- T1 profile-mini-review return, `out_of_scope_noticed` (kind refactor), `.workflow/specs/done/004-scoped-test-runs/artifacts/T1/mini-review.yaml`.
 
 ## Why not a blocker
 
@@ -28,6 +28,6 @@ The limits leave margin and the checks passed in every run so far; the report-or
 
 ## Links
 
-- Origin spec: [spec.md](../004-scoped-test-runs/spec.md)
-- Design log entry: [design-log.md](../004-scoped-test-runs/design-log.md) (section 2026-10-22 Discovered work: timing-check-thresholds)
+- Origin spec: [spec.md](../done/004-scoped-test-runs/spec.md)
+- Design log entry: [design-log.md](../done/004-scoped-test-runs/design-log.md) (section 2026-10-22 Discovered work: timing-check-thresholds)
 - Deferred file: [.workflow/deferred/concurrency-check-timing.md](../../deferred/concurrency-check-timing.md)

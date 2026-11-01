@@ -1,0 +1,40 @@
+verdict: pass
+task_id: T3
+work_type: agent-docs
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t3@13c00bdcea87dd5406bcc70c38b6a54421b50b1b..HEAD
+tool_output: .workflow/specs/done/006-result-file-guard/artifacts/T3/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: no skill description in the diff; .agents/agents/implementation.md line 30 and .agents/agents/integration.md line 41 are body text below the frontmatter, which the diff leaves untouched
+  - n: 2
+    verdict: not-applicable
+    location: no new agent file in the diff (both agent files are modified, not added); the frontmatter description of each agent is untouched
+  - n: R1
+    verdict: pass
+    location: tests/hooks/worktree-guard.sh:175, tests/hooks/worktree-guard.sh:207 (the new check label names the expected cd target; the markdown edits add no names)
+  - n: R2
+    verdict: pass
+    location: tests/hooks/worktree-guard.sh:175 (trailing comment gives the reason the launched placeholder fills with the main checkout)
+  - n: R3
+    verdict: pass
+    location: tests/hooks/worktree-guard.sh:175 (the comment gives a reason and does not restate the case arm)
+  - n: R4
+    verdict: pass
+    location: tests/hooks/worktree-guard.sh:175 (no ID, path or URL); tests/hooks/worktree-guard.sh:9-11 holds the added journey labels and paths in the Suite header block, which R4 exempts as interface doc
+  - n: R5
+    verdict: pass
+    location: tests/hooks/worktree-guard.sh:10-11 and tests/hooks/worktree-guard.sh:175 (the phrase launch-checkout placeholder in the header is explained by the launched case that follows in fill_placeholders)
+read_outside_diff:
+  - .agents/skills/feature-workflow/references/readable-code.md - rules R1 to R5 and the Checking table
+  - tests/hooks/worktree-guard.sh lines 1-20 and 160-215 in the worktree - header block and fill_placeholders context for the added comment and check
+  - .agents/agents/implementation.md and .agents/agents/integration.md frontmatter in the worktree - confirmed the description lines are untouched
+  - .workflow/specs/done/006-result-file-guard/artifacts/T3/excluded-tests.txt and toolchain.txt - which tests ran, for the out-of-scope note
+out_of_scope_noticed:
+  - kind: decision
+    summary: tests/lint/agent-worktree-docs.sh checks the two agent briefs this diff rewrites, but it is excluded from this task's test run and does not appear in the full run in toolchain.txt, so no toolchain check covers the changed briefs.
+    evidence: .workflow/specs/done/006-result-file-guard/artifacts/T3/excluded-tests.txt, .workflow/specs/done/006-result-file-guard/artifacts/T3/toolchain.txt
+    blocker_assessment: blocks-this-task
+    reason: The artifacts do not say why it is excluded. This review is read-only, so I could not run it and whether the new brief wording passes its checks is unknown. The orchestrator should confirm the exclusion or run the file before merge.

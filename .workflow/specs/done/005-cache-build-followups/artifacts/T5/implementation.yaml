@@ -1,0 +1,25 @@
+status: done
+summary: "check-staged-cache.sh now runs validate_mermaid.mjs on the staged body's Mermaid diagrams when node, mermaid and jsdom are reachable, and exits 1 with the validator's output on stderr when it rejects a diagram. Without them it prints ok and warns on stderr that the diagrams are not machine-validated, naming visual-library.md. Mini-review fix: an EXIT trap set right after mktemp now always removes the validator's temporary HTML file. Tests added to tests/scripts/cache-scripts.sh (outside the predicted files) cover the validator rejection and the temp-file clean-up."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t5"
+branch: "task/005-cache-build-followups/T05-staged-cache-mermaid-check"
+base_commit: "d4899749c45c99f32f8f539fed7a005e2649cc38"
+head_commit: "46c4131a549aee12ae2b6e5fffd9f1ca5a46dd12"
+files_changed: [".agents/skills/regenerate-caches/scripts/check-staged-cache.sh", "tests/scripts/cache-scripts.sh"]
+tests_added:
+  - {file: "tests/scripts/cache-scripts.sh", test: "JRN-007 validator rejects a diagram: exit 1", kind: "negative"}
+  - {file: "tests/scripts/cache-scripts.sh", test: "JRN-007 validator rejects a diagram: no ok on stdout", kind: "negative"}
+  - {file: "tests/scripts/cache-scripts.sh", test: "JRN-007 validator rejects a diagram: its error is on stderr", kind: "negative"}
+  - {file: "tests/scripts/cache-scripts.sh", test: "JRN-007 the validator's temporary HTML is removed after a pass and a rejection", kind: "edge"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/cache-scripts (base script); FAIL JRN-007 node on PATH, mermaid and jsdom absent: stderr says not machine-validated and names the checklist; FAIL JRN-007 validator present: node runs validate_mermaid.mjs; FAIL JRN-007 validator rejects a diagram: exit 1 (passed=46 failed=7). The temp-file case has no red run: the failed-write path cannot be forced from the CLI, so the test pins clean-up after a pass and a rejection, and a manual run with a node stand-in showed the temp file exists during validation and is gone afterwards."
+  green: "tests/run-all.sh --suite scripts/cache-scripts; passed=53 failed=1 (the remaining failure is the agent-reference case owned by T06)"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/005-cache-build-followups --task-id T5 --cwd <worktree>; test pass, TOTAL passed=2759 failed=0 (scoped, cache-scripts excluded as T06's Phase 1 suite)"
+  toolchain: ".workflow/specs/done/005-cache-build-followups/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "Running the validator when the shape check already failed: shape problems are reported first and exit 1, so the agent fixes the shape before the diagrams are parsed."
+  - "A warning for modules bodies or bodies with no mermaid fences: nothing to validate, so no message is printed."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

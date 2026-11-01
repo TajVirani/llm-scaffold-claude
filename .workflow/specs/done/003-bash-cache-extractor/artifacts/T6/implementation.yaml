@@ -1,0 +1,20 @@
+status: done
+summary: "Discovery 0.2.8's architecture publish line now passes --generator from build-architecture.sh --print-generator instead of the hardcoded dependency-cruiser; the rest of the step text is unchanged. Agent-docs lint suites and the scoped test run pass."
+task_id: "T6"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t6"
+branch: "task/003-bash-cache-extractor/T06-discovery-publish-generator"
+base_commit: "f84d86f4222268bb78e1b5a5a98567d0c7675b85"
+head_commit: "fefd1b10a16da2c503a8e9d18258cf7a1a4410ce"
+files_changed: [".agents/skills/feature-workflow/modules/discovery.md"]
+tests_added: []
+evidence:
+  red: "None: docs-only task with no seam (task file: Seam None, Phase 1 tests None)."
+  green: "None: no test added; checked by the agent-docs lint suites."
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/003-bash-cache-extractor --task-id T6 --cwd $PWD; lint pass, test (scoped) pass exit 0"
+  toolchain: ".workflow/specs/done/003-bash-cache-extractor/artifacts/T6/toolchain.txt (pass)"
+considered_not_built:
+  - "regenerate-caches SKILL.md:123-126 still names --generator dependency-cruiser: outside this task's predicted file and acceptance criteria"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

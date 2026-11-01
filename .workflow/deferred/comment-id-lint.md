@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/002-review-lessons
+origin_spec: .workflow/specs/done/002-review-lessons
 created: 2026-10-22
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-22
 
 **Summary:** A lint suite that catches, by grep, the two mini-review findings that keep recurring in shell files: a body comment naming a decision, journey, finding or task id or a `.workflow/` path, and a single-bracket `[ ... ]` test in a new file.
 **Mode:** AFK
-**Origin:** [002-review-lessons](../specs/002-review-lessons/spec.md), 5.3 approved tool rule P13, design-log entry 2026-10-22 Triage, review pass 1
+**Origin:** [002-review-lessons](../specs/done/002-review-lessons/spec.md), 5.3 approved tool rule P13, design-log entry 2026-10-22 Triage, review pass 1
 
 ## Goal
 
@@ -33,8 +33,8 @@ The same two breaches recurred across tasks and specs: journey ids in test comme
 
 ## Evidence
 
-- Mini-review rounds for T1: `.workflow/specs/002-review-lessons/artifacts/T1/mini-review-r1.yaml`, `mini-review-rework-r1.yaml` (item 7, R4) as of commit `7a71bf00f7dba980ef78c4b29549793eb4fcb21b`.
-- Triage pass 1 row F2 in `.workflow/specs/002-review-lessons/design-log.md`; spec 001's F4 in `.workflow/specs/001-large-path/design-log.md`.
+- Mini-review rounds for T1: `.workflow/specs/done/002-review-lessons/artifacts/T1/mini-review-r1.yaml`, `mini-review-rework-r1.yaml` (item 7, R4) as of commit `7a71bf00f7dba980ef78c4b29549793eb4fcb21b`.
+- Triage pass 1 row F2 in `.workflow/specs/done/002-review-lessons/design-log.md`; spec 001's F4 in `.workflow/specs/done/001-large-path/design-log.md`.
 
 ## Acceptance criteria
 
@@ -49,5 +49,5 @@ The same two breaches recurred across tasks and specs: journey ids in test comme
 
 ## Later requests
 
-- .workflow/specs/008-pr-description-template, 3.7: the Markdown asset templates under `.agents/skills/feature-workflow/assets/` also name `.workflow/` paths inside their guidance comments (e.g. `assets/codebase-map.md:53`), the same R4 breach in another file kind; the lint could cover them.
-- .workflow/specs/00010-worktree-guard-followups, 5.9: the `# Suite:` header exemption is in question: a mini-review failed journey ids on changed suite-header lines (R5), while 39 suites carry them in their headers; decide whether headers may name journey ids before building the lint (work item 00010-worktree-guard-followups-disc-006, `tests/hooks/worktree-guard.sh:8-21`).
+- .workflow/specs/done/008-pr-description-template, 3.7: the Markdown asset templates under `.agents/skills/feature-workflow/assets/` also name `.workflow/` paths inside their guidance comments (e.g. `assets/codebase-map.md:53`), the same R4 breach in another file kind; the lint could cover them.
+- .workflow/specs/done/00010-worktree-guard-followups, 5.9: the `# Suite:` header exemption is in question: a mini-review failed journey ids on changed suite-header lines (R5), while 39 suites carry them in their headers; decide whether headers may name journey ids before building the lint (work item 00010-worktree-guard-followups-disc-006, `tests/hooks/worktree-guard.sh:8-21`).

@@ -1,0 +1,22 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "7b0ccebe3e9e0616e5897479915113897dc40fbe"
+head: "b506f2d57cd32b2489fd6df59e423412a90f64c1"
+findings: []
+checked:
+  - "AGENTS.md (root; CLAUDE.md is a one-line @AGENTS.md import)"
+  - ".workflow/rules.md (Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, External systems, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (work type of T1; governs both changed scripts)"
+  - ".workflow/profiles/test-harness.md (governs the two changed suites under tests/ per AGENTS.md)"
+  - ".workflow/specs/done/00013-validator-diagnostic/design-log.md (no placement ADR: 'No placement ADR (0.3.3 Yes)'; owning module feature-workflow, suites under tests)"
+  - ".workflow/GLOSSARY.md (canonical terms and _Avoid_ aliases; no alias used in the diff)"
+  - ".agents/skills/feature-workflow/references/readable-code.md (R1-R5 against every added comment and name)"
+  - ".workflow/specs/done/00013-validator-diagnostic/artifacts/T1/toolchain.json and toolchain.txt (lint pass, test pass)"
+  - ".workflow/specs/done/00013-validator-diagnostic/artifacts/T1/mini-review.yaml (per-task profile verdicts, re-checked with the whole change in view)"
+  - "Smell baseline against the whole diff: the new verdict case block is repeated in both single writers, but the pre-change if-block was already duplicated, the spec scopes the same change into both writers, and the shell-scripts profile only moves code to .agents/lib/ when a second skill needs it; not kept"
+  - "Commit subjects: 5634746 is Conventional Commits (fix(feature-workflow): ...); the 'Workflow data for ...' commits are the workflow's own data commits"
+not_checked:
+  - "CODING_STANDARDS.md and CONTRIBUTING.md: not present at the repo root (paths tried: CODING_STANDARDS.md, CONTRIBUTING.md)"
+  - ".workflow/GLOSSARY-MAP.md: no GLOSSARY-MAP.md found anywhere in the repo"
+  - "T1 toolchain keys typecheck, format and boundary: skipped ('no command' in the shell-scripts profile); not re-run"

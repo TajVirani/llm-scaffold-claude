@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/004-scoped-test-runs
+origin_spec: .workflow/specs/done/004-scoped-test-runs
 created: 2026-10-22
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-22
 
 **Summary:** The runner can now run a task's own suites, but no work profile asks it to yet, so a task's toolchain and stop audit still run the whole harness.
 **Mode:** HITL
-**Origin:** [004-scoped-test-runs](../specs/004-scoped-test-runs/spec.md), 4.8 review gap (review-end-state, not verifiable), design-log entry 2026-10-22 Triage, review pass 1
+**Origin:** [004-scoped-test-runs](../specs/done/004-scoped-test-runs/spec.md), 4.8 review gap (review-end-state, not verifiable), design-log entry 2026-10-22 Triage, review pass 1
 
 ## Goal
 
@@ -23,7 +23,7 @@ On a spec with unfinished tasks, each implementation agent's 3.5 toolchain and s
 
 ## Decisions already made
 
-- Own suites are the task record's Phase 1 `tests` list only; an empty list means every suite minus the excluded ones (D5, D6 in [.workflow/specs/004-scoped-test-runs/design-log.md](../specs/004-scoped-test-runs/design-log.md)).
+- Own suites are the task record's Phase 1 `tests` list only; an empty list means every suite minus the excluded ones (D5, D6 in [.workflow/specs/done/004-scoped-test-runs/design-log.md](../specs/done/004-scoped-test-runs/design-log.md)).
 
 ## Evidence
 

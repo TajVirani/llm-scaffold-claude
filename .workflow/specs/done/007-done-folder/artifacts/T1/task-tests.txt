@@ -1,0 +1,2 @@
+tests/scripts/check-write-paths.sh
+tests/scripts/lib-workflow-paths.sh

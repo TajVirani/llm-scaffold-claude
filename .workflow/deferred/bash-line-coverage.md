@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/005-cache-build-followups
+origin_spec: .workflow/specs/done/005-cache-build-followups
 created: 2026-10-28
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-28
 
 **Summary:** The scaffold can measure line coverage of its bash scripts, so a coverage target in a verification plan can be checked.
 **Mode:** HITL
-**Origin:** [005-cache-build-followups](../specs/005-cache-build-followups/spec.md), 4.8 review finding (remaining gap: target TGT-007 not measurable), design-log entry 2026-10-28 Triage, review pass 1
+**Origin:** [005-cache-build-followups](../specs/done/005-cache-build-followups/spec.md), 4.8 review finding (remaining gap: target TGT-007 not measurable), design-log entry 2026-10-28 Triage, review pass 1
 
 ## Goal
 
@@ -28,11 +28,11 @@ Spec 005 set a coverage target for its changed shell code at 1.1. No bash covera
 
 ## Decisions already made
 
-- TGT-007 recorded as not measurable by stakeholder decision at 1.1 ([.workflow/specs/005-cache-build-followups/verification-plan.md](../specs/005-cache-build-followups/verification-plan.md), Targets).
+- TGT-007 recorded as not measurable by stakeholder decision at 1.1 ([.workflow/specs/done/005-cache-build-followups/verification-plan.md](../specs/done/005-cache-build-followups/verification-plan.md), Targets).
 
 ## Evidence
 
-- TGT-007 row of the Targets table at `.workflow/specs/005-cache-build-followups/verification-plan.md:60` as of commit `b98e62b`; review-targets pass 1 measured it `not_measurable` (`.workflow/specs/005-cache-build-followups/artifacts/review/pass-1/review-targets.yaml`).
+- TGT-007 row of the Targets table at `.workflow/specs/done/005-cache-build-followups/verification-plan.md:60` as of commit `b98e62b`; review-targets pass 1 measured it `not_measurable` (`.workflow/specs/done/005-cache-build-followups/artifacts/review/pass-1/review-targets.yaml`).
 
 ## Acceptance criteria
 
@@ -48,4 +48,4 @@ Spec 005 set a coverage target for its changed shell code at 1.1. No bash covera
 
 ## Later requests
 
-- .workflow/specs/00010-worktree-guard-followups, 4.8: line coverage of the changed guard scripts was again ruled not measured at 1.1 (D14); review-targets reported it `not_measurable`.
+- .workflow/specs/done/00010-worktree-guard-followups, 4.8: line coverage of the changed guard scripts was again ruled not measured at 1.1 (D14); review-targets reported it `not_measurable`.

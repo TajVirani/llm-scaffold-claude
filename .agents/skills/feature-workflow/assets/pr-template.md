@@ -1,7 +1,8 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/pr-body.md: the Sign-off PR description. No frontmatter.
-Filled by modules/sign-off.md at 5.4, approved by the stakeholder at 5.5 and published unchanged at 5.8 as the PR/MR
-description or the local merge message. scripts/check-pr-body.sh checks the filled body at 5.4 and again at 5.8.
+Filled by modules/sign-off.md at 5.4 and approved by the stakeholder at 5.5. At 5.8 it moves with the spec into the Done folder
+and is published unchanged apart from the spec path the move rewrites, as the PR/MR description or the local merge message.
+scripts/check-pr-body.sh checks the filled body at 5.4, and at 5.8 before and after the move.
 
 Rules:
   - Keep the ten `##` headings exactly as written and in this order; reviewers and later checks read each section on its own.

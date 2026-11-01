@@ -1,0 +1,384 @@
+# Design log: Tier B caches for bash projects
+
+Spec: [spec.md](spec.md)
+
+## 2026-10-21 Term gate 0.2.2
+
+- Term agreed and written to `.workflow/GLOSSARY.md` at 0.2.3: **Graph extractor**. Kept apart from the boundary-config adapter (D20, `generate-boundary-config.sh`), which writes lint config, not a graph.
+
+## 2026-10-21 Cache regeneration skipped (0.2.7-0.2.8)
+
+- `cache-stamp-check.sh` reported all three caches `missing`. 0.2.8 was not run: `build-architecture.sh` requires dependency-cruiser for every cache type, and dependency-cruiser cannot read bash, which is the defect this spec fixes. Retrieval read the code with null stamps (see [codebase-map.md](codebase-map.md)).
+
+## 2026-10-21 Placement: regenerate-caches
+
+- Owning module: regenerate-caches (`.agents/skills/regenerate-caches/**`). Graph extractors live at `.agents/skills/regenerate-caches/scripts/extractors/<name>.sh`, one per language, all printing the same graph JSON; `build-architecture.sh` takes the extractor named by the work profile.
+- Alternatives considered: lib (shared core): any module could call it, but nothing outside the caches needs a file graph, and shared-core changes go through the integration agent. project-setup, next to the boundary-config adapters: both are per-language, but the adapters write lint config, and regenerate-caches would then depend on project-setup for its core job.
+- Secondary touches outside the owning module: project-setup (a Toolchain key naming the graph extractor in `assets/profiles/TEMPLATE.md`, and the dependency-cruiser requirement in `modules/profiles.md`), agents (`cache-regeneration.md`), feature-workflow (`discovery.md` hardcodes `--generator dependency-cruiser`), tests, and this repo's `.workflow/profiles/*.md` (Tier A, 5.3 proposal). The exact set is settled in the questioning loop.
+- Conflict with an ADR or rule: none. regenerate-caches may already depend on lib, project-setup and feature-workflow (`.workflow/rules.md` § Ownership); ADR-0001 is conformed to.
+- ADR three-part test: hard to reverse (no: moving scripts is cheap), a real trade-off (yes), surprising without context (no). Fails the test; recorded here, no ADR.
+- Decision: **D1** Graph extractors are owned by regenerate-caches under `scripts/extractors/`; other modules receive secondary edits only.
+
+## 2026-10-21 Deeper prompt
+
+**Ask:** Let the workflow build and keep Tier B caches for projects whose code is not JS/TS, starting with bash, so retrieval reads stamped caches instead of re-reading the code each feature.
+
+**Goals:**
+- Each work profile names its graph extractor, and `build-architecture.sh` uses it. A JS/TS project with dependency-cruiser builds exactly as today.
+- A bash graph extractor outputs files, `source`/`.` edges and entry-point candidates in the shared graph shape. Dynamic `source` paths it cannot resolve are reported, never guessed.
+- This repo has all three caches (modules, flows, architecture) published with real stamps that pass `check-staged-cache.sh`, and the next discovery stamp check reports them fresh.
+- No new runtime dependency; bash 3.2.
+
+**Downstream:** graph extractors for more languages later (e.g. Python, Go). One graph JSON contract that any extractor prints, so a new language is one new script.
+
+**Tools and technologies:** no preference. Library evaluation recommends in-house awk/grep.
+
+**Gotchas:** none known.
+
+**Not asked for:** extractors for languages other than bash; a boundary tool for bash (enforcing `.workflow/rules.md` Ownership); a markdown extractor for skill-to-script path references.
+
+**Original request:** "Have an issue with how the workflow was installed on this project. - Caches: all three Tier B caches are missing and cannot be regenerated here. The build script shells out to dependency-cruiser, which is not installed and cannot read bash. Retrieval is reading the code directly with null stamps, the same as spec 001 did. Can you fix this and also look at anything else that wasn't set up - and set it up."
+
+Revisions: agreed as first restated.
+
+## 2026-10-21 Questioning round 1
+
+**Q1. Graph contract: what shape does every graph extractor print?**
+
+- Why now: the deeper prompt asks for one contract any language can print.
+- Options: A: the input half of build-architecture's internal graph, `{files, file_edges, unresolved}`, with dependency-cruiser converted into it · B: dependency-cruiser's own JSON, imitated by the bash extractor
+- Recommended: A, because it is already the internal shape (`build-architecture.sh:166-191`, codebase-map.md § Relevant code)
+- Answer: "B"
+- Decision: **D2** The graph contract is dependency-cruiser's JSON (`.modules[].source`, `.modules[].dependencies[].resolved`); the bash extractor prints that shape and the canonicalisation stays as it is.
+
+**Q2. Bash edges: what counts as an edge?**
+
+- Why now: D2 fixes the shape; edges fill it.
+- Options: A: `source`/`.` lines plus script-to-script calls · B: `source` lines only
+- Recommended: A, because most wiring here is script calls and `.workflow/rules.md` § Ownership counts a call as a dependency
+- Answer: "A"
+- Decision: **D3** Bash edges are `source`/`.` lines and script calls. A call anchored to the script's own directory resolves directly; one anchored to a runtime root resolves only when its literal tail is an existing repo file, otherwise it is reported unresolved.
+
+**Q3. Which extractor reads which file?**
+
+- Why now: profiles carry no machine-readable file globs (fact Q3).
+- Options: A: run every graph extractor any profile names; each claims files by its own rule; graphs merged · B: a file-glob key per profile
+- Recommended: A, because no new glob can drift from File locations
+- Answer: "A"
+- Decision: **D4** Every graph extractor named by a profile runs over the scope and claims its own files (bash: `*.sh` or a bash shebang; dependency-cruiser: JS/TS); the outputs are merged. A profile with no code names `graph_extractor: none`.
+
+**Q4. A profile has no `graph_extractor` key: what happens?**
+
+- Why now: D4 reads the key from every profile.
+- Options: A: fall back to dependency-cruiser · B: error
+- Recommended: A, because installed JS/TS targets have no such key
+- Answer: "B with a notice to the user of the breaking change and to update"
+- Decision: **D5** A profile without `graph_extractor` is an error, and the user is told it is a breaking change and how to update. Revises the deeper-prompt goal "builds exactly as today" to "builds as today once the key is added".
+
+**Q5. modules.md Public interface for bash?**
+
+- Options: A: top-level functions of files other files `source` · B: "Not generated"
+- Recommended: A, because those functions are the real interface (fact Q6)
+- Answer: "A"
+- Decision: **D6** The bash extractor reports the top-level functions of sourced files as their public interface; other bash files get "Not generated".
+
+**Q6. Building this repo's caches while profiles are guarded until 5.3?**
+
+- Options: A: `--extractor NAME` override for tests and Phase 4 proof; profile keys proposed in proposals.md; caches built and published at 5.3 after the profile edit · B: change the guard
+- Recommended: A, because it works within the guard as designed
+- Answer: "a"
+- Decision: **D7** `build-architecture.sh` gains `--extractor NAME`; this repo's `graph_extractor` keys go to proposals.md for 5.3, and the three caches are built and published at 5.3 right after.
+
+Facts looked up instead of asked (0.3.10): all 29 `source` lines resolve statically, 0 dynamic (`build-architecture.sh:40`, `tier-a-write-guard.sh:16`); ~18 script-call sites, 12 dir-anchored, 6 runtime-root-anchored with literal tails (`pre-launch.sh:69`); profiles' File locations are prose only (`.workflow/profiles/TEMPLATE.md:9-11`); existing profiles editable only at 5.3 (`check-write.sh:64-68`); canonicalisation reads raw depcruise JSON only at `build-architecture.sh:156-191`; lib functions `wf_path`, `run_guard` and others (`.agents/lib/workflow-paths.sh:43`, `.agents/hooks/_guard-common.sh:19-44`).
+
+## 2026-10-21 Questioning round 2
+
+**Q7. Where do users see the breaking-change notice for D5?**
+
+- Why now: D5 makes a missing key an error with a notice.
+- Options: A: build-architecture.sh and the regenerate-caches preflight error, plus an install.sh notice on update · B: the error message only
+- Recommended: A, because users learn at update time rather than at first regeneration
+- Answer: "Error message only"
+- Decision: **D8** The notice is the error message from `build-architecture.sh` and the regenerate-caches preflight: it says this is a breaking change, names each profile without `graph_extractor`, and gives the line to add. install.sh is unchanged.
+
+**Q8. How does the bash extractor report unresolved calls and functions inside the dependency-cruiser shape?**
+
+- Why now: D2 fixes the shape; D3 and D6 need fields it has no plain slot for.
+- Options: A: dependency-cruiser's own `couldNotResolve: true` with `module: "<text>"`, plus one extra top-level `exports: {file: [fn]}` read when present · B: a separate side file
+- Recommended: A, because it reuses dependency-cruiser's own field and keeps one output
+- Answer: "depcruise's own fields (Recommended)"
+- Decision: **D9** Unresolved edges are dependencies with `couldNotResolve: true` and `module` set to the source text; functions go in an optional top-level `exports` map that build-architecture.sh reads for Public interface when present.
+
+Facts looked up instead of asked (0.3.10): None.
+
+## 2026-10-21 Term gate 0.4.2
+
+- No new concept: the profile key `graph_extractor` names a **Graph extractor** (agreed at 0.2.3).
+
+## 2026-10-21 Impact classification
+
+| Part | Classification | Note |
+| --- | --- | --- |
+| Graph contract (dependency-cruiser JSON: `.modules[].source`, `.dependencies[].resolved`, `couldNotResolve`, `module`) | unchanged | Now also printed by the bash extractor (D2); see data-model.md § Graph JSON |
+| Graph JSON `exports` key | create | Optional map, read for Public interface (D9) |
+| Work profile Toolchain `graph_extractor` key | create | Required; missing is an error (D5); see data-model.md § Work profile Toolchain |
+| `build-architecture.sh` extractor lookup and `--extractor NAME` | refactor | Replaces the hardwired depcruise lookup (`build-architecture.sh:141-160`) |
+| `build-architecture.sh` canonicalisation and renderers | extend | Merges several extractors' `.modules`; modules renderer reads `exports` when tsc output is absent |
+| `scripts/extractors/dependency-cruiser.sh` | create | Today's depcruise run moved behind the extractor interface; output identical |
+| `scripts/extractors/bash.sh` | create | D3, D6, D9 |
+| regenerate-caches preflight (`SKILL.md:31-38`) | refactor | Checks the tools the named extractors need; breaking-change error (D8) |
+| Tier B frontmatter `generator` | extend | Extractor names, comma-joined (spec Assumptions); format unchanged |
+| `cache-regeneration.md`, `discovery.md` 0.2.8 | extend | Stop hardcoding `--generator dependency-cruiser` |
+| project-setup profile TEMPLATE, examples, `modules/profiles.md` | extend | Key added; dependency-cruiser requirement tied to `graph_extractor: dependency-cruiser` |
+| This repo's `.workflow/profiles/*.md` | extend | Via proposals.md at 5.3 (D7) |
+| `check-staged-cache.sh`, `publish-cache.sh`, `cache-stamp-check.sh` | unchanged | Body shapes and stamp format do not change |
+| Boundary violations section, `generate-boundary-config.sh` | unchanged | Non-goal |
+
+## 2026-10-21 Questioning round 3
+
+Loop-back from 0.4.7: the module audit (codebase-map.md § Module audit) found two blocks-this-task gaps and two missing rules.
+
+**Q9. Where are unresolved edges reported?**
+
+- Why now: the canonicaliser drops them (`build-architecture.sh:184`) and the architecture sections are pinned (`check-staged-cache.sh:76-77`).
+- Options: A: a new "Unresolved edges" section in architecture.md, with `check-staged-cache.sh` and its tests extended · B: stderr plus the cache-regeneration agent's return
+- Recommended: A, because it lasts in the cache where retrieval reads it
+- Answer: "New cache section (Recommended)"
+- Decision: **D10** architecture.md gains an "Unresolved edges" section (sorted `` `file:line` `` and source text, or `None.`); `check-staged-cache.sh` and its tests accept it. Supersedes the "check-staged-cache.sh unchanged" row of the impact classification.
+
+**Q10. How is a directory module's Public interface built from per-file exports?**
+
+- Options: A: the union of its sourced files' functions · B: an index-like file only
+- Recommended: A, because bash has no index file
+- Answer: "Union of its files (Recommended)"
+- Decision: **D11** A module's Public interface from `exports` is the sorted union of the functions of its files, rendered `` - `name` (function) ``.
+
+**Q11. How do `--from-json` and `--extractor` interact with profile resolution?**
+
+- Options: A: both skip profiles · B: only `--from-json` skips
+- Recommended: A, so fixture runs need no profiles
+- Answer: "Only --from-json skips"
+- Decision: **D12** `--from-json` bypasses profile resolution; `--extractor NAME` still requires every profile to carry `graph_extractor` and only overrides which extractor runs. Tests that use `--extractor` provide profile fixtures.
+
+**Q12. How are bash tests excluded from entry-point candidates?**
+
+- Options: A: also exclude files matching any profile's Toolchain `test_patterns` · B: hardcode `tests/`
+- Recommended: A, because `test_patterns` exists and budget-check.sh uses it the same way (`budget-check.sh:34-37`)
+- Answer: "Profiles' test_patterns (Recommended)"
+- Decision: **D13** Entry candidates also exclude files matching any profile's `test_patterns`; the JS/TS rule stays.
+
+Facts looked up instead of asked (0.3.10): None.
+
+## 2026-10-21 Scope decision: boundary-check-wording
+
+- Item: module audit noticed the Boundary violations "Not checked" line names a dependency-cruiser config even in a bash-only project (`build-architecture.sh:226-228`).
+- Ruling: deferred, because a bash boundary checker is a non-goal and the output is valid; only wording is affected.
+- Handoff: [.workflow/deferred/boundary-check-wording.md](../../../deferred/boundary-check-wording.md) (AFK), also listed in spec.md `deferred`
+
+## 2026-10-21 Goal confirmed (0.3.19, after round 3)
+
+- Stakeholder confirmed D10-D13 and the boundary-check-wording deferral. spec.md Capabilities and Constraints and data-model.md updated; the impact classification's "check-staged-cache.sh unchanged" row is superseded by D10 (now extend).
+- Light-path facts: intent gaps clean; irreversible actions not clean (removes a public contract: a profile without `graph_extractor` now errors, D5); footprint not small (five modules). `light_path: false`.
+
+## 2026-10-23 Main moved since discovery (1.1)
+
+- Changes on main in the affected area since 2026-10-21: discovery 0.2.7/0.2.8 now launch beside the term gate (`discovery.md:44-59`); its architecture publish line still passes `--generator dependency-cruiser` (`discovery.md:98`), as does `regenerate-caches/SKILL.md:123-126`. Profiles gained a filled `test_scoped` key and `-co --exclude-standard` in their lint commands; `workflow-paths.sh` gained `WF_INITIATIVES` and `WF_REVIEW_LESSONS`.
+- Effect on this spec: none to a contract it relies on. `test_patterns` is unchanged, and the two `--generator dependency-cruiser` lines are still the ones the generator assumption replaces.
+
+## 2026-10-23 Phase 1 harness reports (1.2)
+
+Found at 1.2 by the `implementation` agent (phase-1-test-harness, [result](artifacts/phase-1-test-harness/implementation.yaml)). All four are inside the agreed capabilities, so none grows `spec.md` or goes to the work backlog.
+
+- **D14** (decision, stakeholder 2026-10-23) `build-architecture.sh --print-generator` prints the sorted, comma-joined names of the extractors the profiles select (`none` left out) and exits 0; discovery and regenerate-caches pass that output to `publish-cache.sh --generator`. Evidence: `tests/scripts/cache-mixed-extractors.sh` (JRN-004).
+- **D15** (decision, stakeholder 2026-10-23) Graph JSON gains an optional integer `modules[].dependencies[].line`; the bash extractor sets it. An unresolved-edge bullet is `` - `<file>:<line>` `<source text>` ``, or `` - `<file>` `<source text>` `` when `line` is absent. Evidence: `tests/scripts/cache-bash-project.sh` (JRN-001).
+- Profile conflict: `.workflow/profiles/shell-scripts.md` § File locations stops skill-script depth at `scripts/<file>`, which conflicts with `scripts/extractors/` (D1). Filed as P1 in [proposals.md](proposals.md) for 5.3.
+- Task-breakdown note: profile resolution must skip `.workflow/profiles/TEMPLATE.md` (it has no `graph_extractor` key), or the 5.3 build on this repo fails.
+- Task-breakdown note: `arch-golden` and `viol-sorted-unique` in `tests/scripts/build-architecture.sh` expect today's three-section architecture body; the task that adds Unresolved edges updates them.
+- "Source text" in an unresolved bullet or `module` may be the whole line or the path; the tests require only that it contains the path text.
+
+## 2026-10-23 Task breakdown approved (2.1)
+
+- Stakeholder approved 8 tasks in 3 waves (T1, T3, T8; T2, T6, T7; T4, T5), seams as listed in tasks.md, all `afk`, no shared core.
+- Size budget: project default, `max_tasks: 10`, `max_changed_files: 30`.
+
+## 2026-10-23 T1 mini-review round 1 (3.7)
+
+- Fail on items 3, 4 (unguarded duplicate-claim jq exits 5 on a non-object module entry) and R2 (two unexplained lines); behaviour fix, fresh agent in the same worktree.
+- The reviewer's three `out_of_scope_noticed` entries (a `[ ]` test in a new suite, the `Exit codes` vs `Exit` header label, a printf-written fixture) are all in files T1 created, so they were folded into the same fix round rather than filed.
+
+## 2026-10-23 T1 mini-review round 2 (3.7)
+
+- Pass. Two `out_of_scope_noticed` entries: the fixture-path wording question went to proposals.md P2 for 5.3; the "profile with no Toolchain section gets the wrong message" entry was dismissed after a run showed the breaking-change message naming the profile, exit 2.
+- 2026-10-23 wave 1: task PRs skipped for T1, T3, T8 (gh not installed); merged locally.
+- 2026-10-23 T2 (3.4) reported `cache-frontmatter.md:101-108` still describing three architecture sections: already T5's scope, not filed.
+- 2026-10-23 wave 2: task PRs skipped for T2, T6, T7 (gh not installed); merged locally.
+
+## 2026-10-23 Discovered work: all-none-no-architecture
+
+- Found at 3.4 by the `implementation` agent for T5 ([result](artifacts/T5/implementation.yaml)); kind bug.
+- Problem: with every profile naming `none`, `--print-generator` prints an empty line and `publish-cache.sh:68` rejects an empty `--generator`, so no architecture cache can be published.
+- Assessment: can wait; no capability success line or journey uses an all-`none` project. Ruling: can be solved later; filed without a ruling, offered at 5.9.
+- Item: [003-bash-cache-extractor-disc-001.md](../../work-backlog/003-bash-cache-extractor-disc-001.md)
+- 2026-10-23 wave 3: task PRs skipped for T4, T5 (gh not installed); merged locally.
+
+## 2026-10-23 Discovered work: shared-test-patterns
+
+- Found at: step 4.4 by review-standards (F1, RS-1). Kind: refactor
+- Problem and evidence: the default test patterns and matcher are copied between `budget-check.sh:60-68,155-170` and `build-architecture.sh:518-567`; moving them to `.agents/lib/` spreads into feature-workflow and shared core.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/003-bash-cache-extractor-disc-002.md](../../work-backlog/003-bash-cache-extractor-disc-002.md)
+
+## 2026-10-23 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 | review-standards (RS-1) | Default test patterns and matcher copied from budget-check.sh instead of shared through `.agents/lib/` | `.agents/skills/regenerate-caches/scripts/build-architecture.sh:518-567` | medium | `diff` of `budget-check.sh:60-68` and `build-architecture.sh:518-526` is empty; shell-scripts profile File locations requires shared code in `.agents/lib/` | discovered work (filed: [003-bash-cache-extractor-disc-002.md](../../work-backlog/003-bash-cache-extractor-disc-002.md)) |
+| F2 | review-standards (RS-2) | depcruise lookup in the extractor repeats `tool_cmd` in build-architecture.sh | `.agents/skills/regenerate-caches/scripts/extractors/dependency-cruiser.sh:34-41` | low | Both look up `$DEPCRUISE`, `node_modules/.bin/depcruise`, `npx --no-install` in the same order (`build-architecture.sh:248,373`) | none (dismissed: identical today and unlikely to drift; the fix adds a new sourced file for one lookup) |
+| F3 | review-standards (RS-3) | PROVENANCE.md calls the two finished extractors "stubbed" | `PROVENANCE.md:19` | low | Line 19 reads "... `scripts/extractors/dependency-cruiser.sh` stubbed"; both are implemented | patch (T3) |
+| F4 | review-standards (RS-4) | `cruise_json` / `cruise.json` now hold the merged graph of every extractor | `.agents/skills/regenerate-caches/scripts/build-architecture.sh:258-287` | low | `run_extractors` writes bash output into `$cruise_json` (:273, :280) | patch (T1) |
+| F5 | review-end-state (RE-1) | Calls to extensionless claimed scripts are dropped; cwd-relative calls are neither edges nor unresolved | `.agents/skills/regenerate-caches/scripts/extractors/bash.sh:573-580` | medium | Fixture run: `"$here/../bin/release"`, `bash scripts/build.sh` and `./scripts/build.sh` in `bin/main.sh` gave no dependency; only `"$here/../scripts/build.sh"` was an edge. Breaks the CAP-005 success line and D3 | patch (T3) |
+
+Gaps (not findings): JRN-005 is the manual run at 5.3 (review-end-state `not_verifiable`); this repo's profile keys are P3-P5 in proposals.md. review-lessons `not_checked`: commit subjects do not follow Conventional Commits (retrospective 004 lesson), owned by `.workflow/pr-quality/commit-hygiene.md`.
+
+Failed lenses: none
+Outcome: rework 1 of 5
+- 2026-10-23 rework 1, T1 mini-review (3.7): `out_of_scope_noticed` on fixture names `cruise.json` / `write_cruise_json` (tests/fixtures/graph-extractors.sh:13,150; tests/scripts/build-architecture.sh:49) dismissed: they hold real dependency-cruiser output, so the names are accurate.
+- 2026-10-23 rework 1, T3 mini-review (3.7) passed with three `out_of_scope_noticed` entries. `bash --norc scripts/x.sh` is dropped (reproduced: `-e` and `--noprofile` are reported, `--norc` is not; `extractors/bash.sh:320-321`): a defect in T3's own rework code, so a behaviour fix round for T3, not discovered work. Dismissed: an unreadable tracked extensionless file left unclaimed (`bash.sh:296`; needs a tracked file git cannot read, and matches the existing read at `bash.sh:79`), and the PROVENANCE `dependency-cruiser.sh` wording (part of the F3 patch as briefed).
+- 2026-10-23 rework 1, T3 mini-review r4 failed item 3: detected calls still dropped (character-class filter at `bash.sh:324`, unreadable claimed file at `bash.sh:296`), plus `bash -o pipefail ./x.sh` and the garbled `$(` module text noticed. The unreadable-file case, dismissed in the previous round, is reversed: dropping it silently breaks D3. One behaviour fix round closes the class: a detected call is resolved or reported unresolved, never dropped.
+
+## 2026-10-23 Discovered work: case-patterns-as-calls
+
+- Found at: step 3.4 (rework 1) by the `implementation` agent for T3. Kind: bug
+- Problem and evidence: `case` pattern alternatives (`../*` at `install.sh:133,187`) are reported as unresolved cwd-relative calls once the character filter was removed.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/003-bash-cache-extractor-disc-003.md](../../work-backlog/003-bash-cache-extractor-disc-003.md)
+- 2026-10-23 rework 1: task PRs skipped for T1, T3 (gh not installed); merged locally.
+- 2026-10-23 rework 1: T3 was merged before its mini-review.yaml passed the shape check (the checker's exit was hidden by a pipe; `items[0].location` missing). The reviewer rewrote the file once; it then checked clean with verdict pass, so the merge stands. Full harness on the merged branch: 2881 passed, 0 failed.
+
+## 2026-10-23 Sign-off: change requested (5.5, 5.6)
+
+- Found at 5.3 while running JRN-005: this repo commits `.workflow/tools/boundaries/dependency-cruiser.cjs` (generated from `.workflow/rules.md` Ownership by the rules-sync hook, committed at spec 002 sign-off), and `build-architecture.sh` runs depcruise for Boundary violations whenever that file exists (`build-architecture.sh:371-373`). With no depcruise installed the architecture build dies "depcruise not found", although spec Non-goals say "Boundary violations stays \"Not checked\" for bash". codebase-map.md had recorded no boundary config at the repo root; it was added after discovery.
+- Approval: No, change requested. Stakeholder's choice, verbatim: "Fix it in this spec (Recommended)" — run the depcruise boundary check only when a profile names dependency-cruiser; otherwise print "Not checked".
+- Backlog rulings and going-in concerns: not asked yet; asked at the next 5.5.
+- Proposals P1-P12 stay applied (5.3).
+
+Outcome: loop back (5.6 change request)
+
+## 2026-10-23 Questioning round 4 (after 5.6 change request)
+
+Seed (5.6, verbatim): "Fix it in this spec (Recommended)" — run the depcruise boundary check only when a profile names dependency-cruiser; otherwise print "Not checked".
+
+**Q13. When should the architecture build run the depcruise boundary check?**
+
+- Options: A: only when the boundary config exists and a profile names `dependency-cruiser` · B: whenever the config exists and depcruise is found · defer
+- Recommended: A, because it matches the change request and the Non-goal "Boundary violations stays \"Not checked\" for bash" (`build-architecture.sh:371-373` runs it whenever the config exists)
+- Answer: "Only if a profile names it (Recommended)"
+- Decision: **D16** The Boundary violations check runs depcruise only when `.workflow/tools/boundaries/dependency-cruiser.cjs` exists and some work profile selects `dependency-cruiser`; `--violations-json` still overrides. With `--from-json` no profiles are read (D12), so the check keeps today's rule: it runs when the config exists.
+
+**Q14. Bring the shelved boundary-check-wording item into this fix?**
+
+- Options: A: yes, a line saying the project's graph extractors have no boundary checker · B: keep it shelved · defer
+- Recommended: A, because the fix touches the same branch and today's line would wrongly say the config is missing
+- Answer: "Yes, fix the wording too (Recommended)"
+- Decision: **D17** When no selected extractor has a boundary checker, Boundary violations reads `Not checked: no boundary checker for this project's graph extractors (<names>).` (`<names>` from `--print-generator`, or `none`). When `dependency-cruiser` is selected and the config is missing, today's line stays. The shelf file is archived, superseded by this spec.
+
+**Q15. Keep the boundary config in the architecture stamp scope when the check does not run?**
+
+- Options: A: keep as is · B: only when the check runs · defer
+- Recommended: A, because a rules.md change is rare and harmless to re-stamp, and B would change SKILL.md, discovery 0.2.7 and the agent docs again
+- Answer: "Keep as is (Recommended)"
+- Decision: **D18** The architecture stamp scope keeps `.workflow/tools/boundaries/dependency-cruiser.cjs` whenever the file exists, whether or not the check runs.
+
+Facts looked up instead of asked (0.3.10): the config is tracked (`git ls-files .workflow/tools`), committed at `6cf0ac7` (spec 002 sign-off); the build's boundary branch is `build-architecture.sh:366-380`.
+
+Came off the shelf: [.workflow/deferred/archive/boundary-check-wording.md](../../../deferred/archive/boundary-check-wording.md)
+
+## 2026-10-23 Impact classification (0.4.4, after round 4)
+
+| Part | Kind | Classification | Owning module |
+| --- | --- | --- | --- |
+| `build-architecture.sh` Boundary violations rule (when depcruise runs) | interface | extend (D16) | regenerate-caches |
+| Boundary violations "Not checked" line | interface | extend (D17) | regenerate-caches |
+| Architecture stamp scope | interface | unchanged (D18) | regenerate-caches |
+| regenerate-caches `SKILL.md` step 1 and `assets/cache-frontmatter.md` Boundary violations text | doc | extend | regenerate-caches |
+
+Module audit: not rerun; the 2026-10-21 audit covers `build-architecture.sh:218-228` (now `:366-380`). Correction to codebase-map.md "Project state in this repo": `.workflow/tools/boundaries/dependency-cruiser.cjs` now exists and is tracked (committed at `6cf0ac7`). No conflict with the goal or placement (0.4.7 No).
+
+## 2026-10-23 Correction to the 5.6 change-request entry
+
+- Re-run on this repo: `build-architecture.sh --cache architecture` exits 0 and Boundary violations reads `None.`; it does not die. `tool_cmd` picks `npx --no-install depcruise` whenever `npx` exists (`build-architecture.sh:248-254`) without checking it runs; the run fails (`npx --no-install depcruise --version` exits 1), `|| true` hides it (`:375`), and `jq` on the empty output prints nothing, so the section claims no violations although nothing was checked (`:381-384`).
+- D16 still removes the run for bash-only projects. The same false `None.` reaches a JS/TS project whose profile names `dependency-cruiser` but has no depcruise installed; whether that is in this change's scope (it predates the spec) is open for task breakdown, as a T9 acceptance criterion or as discovered work.
+
+## 2026-10-23 Phase 1 re-entry for JRN-006
+
+- 1.1: `spec_branch` and `baseline_revision` kept; no new target (the lint and script-coverage rows cover the `build-architecture.sh` change).
+- 1.2: the implementation agent built `tests/scripts/cache-boundary-check.sh` and merged as `06671b8`. Its worktree was cut from main rather than the spec branch, so it made `phase1/003-jrn006` off `0035b63` itself. A worktree write guard stopped it writing its result file to the main checkout; at the stakeholder's call the main session saved `artifacts/phase-1-test-harness/implementation.yaml` from its report (the first round is kept as `implementation-r1.yaml`). Retrospective note for 5.7.
+- 1.3: not applicable (no browser suite).
+- 1.4: Run 4 in `artifacts/phase-1-known-bad/record.md`: both run 1 assertions fail, run 2 passes as a regression guard.
+
+## 2026-10-23 Discovered work: false-none-on-failed-depcruise
+
+- Found at: step 2.1 by the main session (open question carried from the 5.6 correction). Kind: bug
+- Problem and evidence: a depcruise boundary run that fails is hidden and renders `None.` (`build-architecture.sh:248-254,375,381-384`).
+- Assessment and ruling: can be solved later; stakeholder chose "File as discovered work (Recommended)" over folding it into T9; backlog item
+- Backlog item: [work-backlog/003-bash-cache-extractor-disc-004.md](../../work-backlog/003-bash-cache-extractor-disc-004.md)
+
+## 2026-10-23 Task breakdown after the change request (2.1-2.4)
+
+- Stakeholder approved "Approve (Recommended)": T9 (build-architecture.sh boundary rule, D16-D17) and T10 (regenerate-caches docs), both wave 1, afk, no overlaps; T1-T8 stay done.
+- Size budget kept, "Keep it (Recommended)": `{max_tasks: 10, max_changed_files: 30}`; T9 and T10 bring the count to 10.
+- 2.2: both specifiable from D16-D18 and JRN-006. 2.3: seams are existing ones (T9 the `build-architecture.sh --cache architecture` output, as T2; T10 none, docs). 2.4: shared core checked below.
+
+## 2026-10-26 Wave 4 (T9, T10)
+
+- Task PRs skipped for T9, T10 (gh not installed); merged locally.
+- T10: mini-review pass, both agent-docs checklist items not applicable (no skill description or agent changed).
+- T9: mini-review round 1 failed item 8 (`# shellcheck source=` hint at `tests/scripts/build-architecture.sh:13` had no reason); wording-only fix `014fa20`, re-check pass. Rule candidate for 5.2: say whether shell-scripts item 8 covers `source=` path hints or only `disable=` lines (sibling suites use bare `source=`).
+- Dismissed discovered work: toolchain-tree-mismatch: re-check reviewer compared `toolchain.json` `tree` with the git tree id (`artifacts/T9/toolchain.json`), not a blocker and not real; `tree` is run-toolchain's content hash, and a `--reuse` run on `014fa20` matched it.
+- The re-check reviewer wrote `mini-review-r2.yaml` instead of `mini-review.yaml`; renamed by the main session. Retrospective note for 5.7.
+
+## 2026-10-26 Discovered work: agents-module-dependencies
+
+- Found at: step 4.4 by review-standards (F8, RS-3). Kind: decision
+- Problem and evidence: `cache-regeneration.md:36,85,88` reaches regenerate-caches and visual-change-report by `skills/` path; `.workflow/rules.md:79-81` lets agents depend on feature-workflow only. Present at baseline `86609a6`.
+- Assessment and ruling: can be solved later; filed without a ruling, offered at 5.9
+- Backlog item: [work-backlog/003-bash-cache-extractor-disc-005.md](../../work-backlog/003-bash-cache-extractor-disc-005.md)
+
+## 2026-10-26 Triage, review pass 2
+
+Pass numbering continues the folder sequence after the 5.6 loop back (spec 001 precedent), so pass 1's files in `artifacts/review/pass-1/` stay; this is the first pass of the new cycle for the 4.6 count.
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F6 | review-standards (RS-1) | `profile_extractors` and `test_patterns` repeat the same walk over the work profiles | `.agents/skills/regenerate-caches/scripts/build-architecture.sh:154-163,543-551` | low | The shared part is the glob, the TEMPLATE.md skip and the parse `die` (about 5 lines); the loops differ after that (one dies on a missing key, the other falls back to defaults) | none (dismissed: a shared walker adds a function interface to save about 5 lines; both loops are in one file and covered by tests) |
+| F7 | review-standards (RS-2) | `graph_extractor:` line splits `test_patterns` from its continuation comments | `.workflow/profiles/shell-scripts.md:49-52`, `test-harness.md:39-42`, `agent-docs.md:44-47` | low | Read `shell-scripts.md:50-52`: the default list comments sit under `graph_extractor`. Shipped templates (`project-setup/assets/profiles/`) are laid out correctly | defer (proposal P13) |
+| F8 | review-standards (RS-3) | agents module depends on skills its ownership entry does not allow | `.agents/agents/cache-regeneration.md:36,85,88` | - | Present at baseline `86609a6`; `.workflow/rules.md:79-81` | discovered work (filed: [003-bash-cache-extractor-disc-005.md](../../work-backlog/003-bash-cache-extractor-disc-005.md)) |
+| F9 | review-lessons (RL-1) | A `source`/`.` line whose target has no slash and no `.sh` (`source lib`) is dropped, not reported unresolved | `.agents/skills/regenerate-caches/scripts/extractors/bash.sh:136-137` | medium | Fixture run: `source lib` in `scripts/main.sh:2` gives no dependency. Repeats pitfall "Report a detected call as unresolved; never filter it out"; breaks the CAP-005 line "couldNotResolve ... for each that does not" | patch (T3) |
+| F10 | review-lessons (RL-2) | A command whose first word has a slash but no leading `./` (`scripts/x.sh`) is skipped, not reported unresolved | `.agents/skills/regenerate-caches/scripts/extractors/bash.sh:331` | medium | Fixture run: `scripts/x.sh` in `scripts/main.sh:3` gives no dependency, while `./scripts/x.sh` on line 4 gives `couldNotResolve`. Same pitfall and CAP-005 line | patch (T3) |
+| F11 | review-lessons (RL-3) | Task commit subjects are `T<n>:`, not Conventional Commits | commits `86609a6..a4342de` (e.g. `5b7f95d`, `014fa20`) | low | `.workflow/rules.md:145`; history cannot be fixed without a rewrite. The 5.8 merge takes a Conventional subject, as at spec 004 | defer (proposal P14) |
+
+Gaps (not findings): JRN-005 and the last CAP-005 line are the manual run at 5.3 (review-end-state `not_verifiable`). review-standards `not_checked`: typecheck, format and boundary keys have no command for bash; ownership checked by hand.
+
+Failed lenses: none
+Outcome: rework 2 of 5
+- 2026-10-26 rework 2, T3 mini-review (3.7) failed R2 (`bash.sh:323,326`, the `;\036` marker has no reason comment). Its `out_of_scope_noticed` (a bare relative call on a line continued after an operator, `true && \` then `scripts/b.sh`, is dropped; `bash.sh:396`) assessed as in scope: it is the F10 patch itself, not new work. Probe: the `./scripts/a.sh` form is still reported before and after, so no regression. Behaviour fix round with a fresh agent.
+- 2026-10-26 rework 2: T3 fix rounds r7 (behaviour: continued line after an operator) and r8 (wording: span_carried comment), re-check pass; task PR skipped (gh not installed); merged locally.
+
+## 2026-10-26 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes: "Yes, approve"
+- Backlog 003-bash-cache-extractor-disc-001.md: keep it open
+- Backlog 003-bash-cache-extractor-disc-002.md: start it as the next feature
+- Backlog 003-bash-cache-extractor-disc-003.md: start it as the next feature
+- Backlog 003-bash-cache-extractor-disc-004.md: start it as the next feature
+- Backlog 003-bash-cache-extractor-disc-005.md: start it as the next feature
+- Going-in concerns: none ("nothing in particular")
+- Backlog item 003-bash-cache-extractor-disc-002.md started as .workflow/specs/005-shared-test-patterns (5.9)
+- Backlog item 003-bash-cache-extractor-disc-003.md started as .workflow/specs/006-bash-case-patterns (5.9)
+- Backlog item 003-bash-cache-extractor-disc-004.md started as .workflow/specs/007-boundary-check-failure (5.9)
+- Backlog item 003-bash-cache-extractor-disc-005.md started as .workflow/specs/008-agents-skill-dependencies (5.9)
+
+## 2026-10-26 Retrospective notes
+
+- This repo's three Tier B caches were published for the first time at `e530f63` (architecture generator `bash`, Boundary violations "Not checked"); evidence in `artifacts/jrn-005/`, see .workflow/decisions/retrospectives/003-bash-cache-extractor.md
+- Backlog items disc-002 to disc-005 became specs 005-008 at 5.9; disc-001 stays open, see .workflow/decisions/retrospectives/003-bash-cache-extractor.md

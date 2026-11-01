@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00010-worktree-guard-followups
+origin_spec: .workflow/specs/done/00010-worktree-guard-followups
 origin_step: "3.7"
 discovered_at: 2026-10-30
 status: moved-to-deferred
@@ -15,7 +15,7 @@ The worktree guard's exit trap denies on an unexpected error only after it knows
 ## Evidence
 
 - `.agents/hooks/worktree-write-guard.sh:56`, `:72`, `:74`, `:81` (exit trap gated on `CONFINED`; library source and stdin read before it), at T2 head `bb1b749`.
-- T2 mini-review, `.workflow/specs/00010-worktree-guard-followups/artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed[0]`.
+- T2 mini-review, `.workflow/specs/done/00010-worktree-guard-followups/artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed[0]`.
 - `_guard-common.sh` denies on any failure before a decision (its header, line 11).
 
 ## Why not a blocker
@@ -29,6 +29,6 @@ Pre-existing and untouched by spec 00010; reachable only with a partial install 
 
 ## Links
 
-- Origin spec: [spec.md](../00010-worktree-guard-followups/spec.md)
-- Design log entry: [design-log.md](../00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Discovered work: T2 mini-review notes)
+- Origin spec: [spec.md](../done/00010-worktree-guard-followups/spec.md)
+- Design log entry: [design-log.md](../done/00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Discovered work: T2 mini-review notes)
 - Deferred file: [.workflow/deferred/worktree-guard-early-errors.md](../../deferred/worktree-guard-early-errors.md)

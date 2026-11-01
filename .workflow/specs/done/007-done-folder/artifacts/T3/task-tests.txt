@@ -1,0 +1,1 @@
+tests/hooks/session-start-initiatives.sh

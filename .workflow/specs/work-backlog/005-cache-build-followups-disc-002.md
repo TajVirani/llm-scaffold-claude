@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/005-cache-build-followups
+origin_spec: .workflow/specs/done/005-cache-build-followups
 origin_step: "3.4"
 discovered_at: 2026-10-28
 status: dismissed
@@ -28,5 +28,5 @@ The extractor change costs nothing measurable (0.85 s before and after), so CAP-
 
 ## Links
 
-- Origin spec: [spec.md](../005-cache-build-followups/spec.md)
-- Design log entry: [design-log.md](../005-cache-build-followups/design-log.md) (section 2026-10-28 Discovered work: TGT-001 noise)
+- Origin spec: [spec.md](../done/005-cache-build-followups/spec.md)
+- Design log entry: [design-log.md](../done/005-cache-build-followups/design-log.md) (section 2026-10-28 Discovered work: TGT-001 noise)

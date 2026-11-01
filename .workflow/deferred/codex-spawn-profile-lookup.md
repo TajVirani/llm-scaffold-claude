@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/006-result-file-guard
+origin_spec: .workflow/specs/done/006-result-file-guard
 created: 2026-10-29
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-29
 
 **Summary:** The Codex pre-spawn check and the stop audit resolve a Phase 1 work type against the same set of profiles.
 **Mode:** AFK
-**Origin:** [006-result-file-guard](../specs/006-result-file-guard/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Scope decision: Codex spawn profile lookup
+**Origin:** [006-result-file-guard](../specs/done/006-result-file-guard/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Scope decision: Codex spawn profile lookup
 
 ## Goal
 

@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00010-worktree-guard-followups
+origin_spec: .workflow/specs/done/00010-worktree-guard-followups
 created: 2026-10-30
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-30
 
 **Summary:** The asset list's hooks-table row for the stop audit describes the hook as it runs today, for implementation and integration agents.
 **Mode:** AFK
-**Origin:** [00010-worktree-guard-followups](../specs/00010-worktree-guard-followups/spec.md), 5.9 work-backlog item `00010-worktree-guard-followups-disc-001.md` (found at 1.2), design-log entry 2026-10-30 Sign-off: stakeholder approval (5.5)
+**Origin:** [00010-worktree-guard-followups](../specs/done/00010-worktree-guard-followups/spec.md), 5.9 work-backlog item `00010-worktree-guard-followups-disc-001.md` (found at 1.2), design-log entry 2026-10-30 Sign-off: stakeholder approval (5.5)
 
 ## Goal
 
@@ -29,12 +29,12 @@ Problem, from the work item: `assetlist.md` has a second `post-implementation-au
 
 ## Decisions already made
 
-- Moved to the shelf at sign-off (design-log 2026-10-30 Sign-off entry in [.workflow/specs/00010-worktree-guard-followups/design-log.md](../specs/00010-worktree-guard-followups/design-log.md)).
+- Moved to the shelf at sign-off (design-log 2026-10-30 Sign-off entry in [.workflow/specs/done/00010-worktree-guard-followups/design-log.md](../specs/done/00010-worktree-guard-followups/design-log.md)).
 
 ## Evidence
 
 - `assetlist.md:593` (hooks table): "SubagentStop for `implementation`" and "`SubagentStop` (filter to `implementation` in script)".
-- Phase 1 build result, `.workflow/specs/00010-worktree-guard-followups/artifacts/phase-1-test-harness/implementation.yaml` `discovered_work[0]`.
+- Phase 1 build result, `.workflow/specs/done/00010-worktree-guard-followups/artifacts/phase-1-test-harness/implementation.yaml` `discovered_work[0]`.
 - `.agents/hooks/claude-settings.template.json` SubagentStop matcher is `implementation|integration`.
 - Commit at shelving: `f276ea1`.
 

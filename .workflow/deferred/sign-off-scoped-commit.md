@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/001-large-path
+origin_spec: .workflow/specs/done/001-large-path
 created: 2026-10-21
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-21
 
 **Summary:** The sign-off step that commits what is left on the spec branch scopes what it stages, so an untracked draft spec or initiative folder in the working tree is not swept into the finished spec's last commit.
 **Mode:** AFK
-**Origin:** [001-large-path](../specs/001-large-path/spec.md), 0.3.17 scope decision, design-log entry 2026-10-21 Scope decision: scoped final commit at sign-off
+**Origin:** [001-large-path](../specs/done/001-large-path/spec.md), 0.3.17 scope decision, design-log entry 2026-10-21 Scope decision: scoped final commit at sign-off
 
 ## Goal
 
@@ -28,7 +28,7 @@ Untracked spec folders travel across every branch switch, and the earlier commit
 
 ## Decisions already made
 
-- D22 in [.workflow/specs/001-large-path/design-log.md](../specs/001-large-path/design-log.md): initiative commits are limited to the initiative folder, so the large path never relies on an unscoped commit.
+- D22 in [.workflow/specs/done/001-large-path/design-log.md](../specs/done/001-large-path/design-log.md): initiative commits are limited to the initiative folder, so the large path never relies on an unscoped commit.
 
 ## Evidence
 
@@ -46,4 +46,4 @@ Untracked spec folders travel across every branch switch, and the earlier commit
 
 ## Later requests
 
-- .workflow/specs/007-done-folder, 0.3.17: the 5.8 done-folder move adds a path rewrite to the same commit, so an untracked seeded spec swept onto the branch would also have its links rewritten there (module-audit; `modules/sign-off.md:132,161`, `modules/discovery.md:53` as of 02bc2180c63747418ec73d1c52047e045dc0d537).
+- .workflow/specs/done/007-done-folder, 0.3.17: the 5.8 done-folder move adds a path rewrite to the same commit, so an untracked seeded spec swept onto the branch would also have its links rewritten there (module-audit; `modules/sign-off.md:132,161`, `modules/discovery.md:53` as of 02bc2180c63747418ec73d1c52047e045dc0d537).

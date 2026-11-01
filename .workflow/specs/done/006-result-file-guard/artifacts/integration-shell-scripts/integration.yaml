@@ -1,0 +1,34 @@
+status: "done"
+summary: "Implemented wf_enc and wf_agent_worktree_name in .agents/lib/workflow-paths.sh, replacing the stubs, and extended the JRN-001 cases in tests/scripts/lib-workflow-paths.sh. Every JRN-001 case passes except the expected 'neither hook keeps its own codex_enc copy', which waits for its consumer task. The toolchain passes."
+work_type: "shell-scripts"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.claude/worktrees/agent-a3a0da642533ecab1"
+branch: "worktree-agent-a3a0da642533ecab1"
+base_commit: "5a7f8c9fdec8822cbd1955a655573f0acc5b0679"
+head_commit: "fd4a1d7363200265d2ecd367b1f6b4c7cbb510fe"
+requests:
+  - n: 1
+    verdict: "applied"
+    reason: "Both functions live in .agents/lib/, which is shared core; this is a new interface with no current callers."
+    interface: "Source .agents/lib/workflow-paths.sh. wf_enc <string> prints the string lowercased, with every byte outside [a-z0-9] turned into _ (tr runs under LC_ALL=C). Output has no trailing newline. Status 0, or status 1 with a reason when the argument count is not 1. wf_agent_worktree_name <spec_dir> task|phase_1|integration <value> prints s<NNN>_t<n>, s<NNN>_phase_1_<wf_enc value> or s<NNN>_integration_<wf_enc value> with no trailing newline. On a malformed NNN-slug spec folder, an unknown kind, a task id that is not T<digits>, an empty work type or a wrong argument count, it returns 1 with a reason on stderr naming the bad argument and prints nothing on stdout. It accepts relative, dot-relative, trailing-slash, absolute and bare-folder spec dirs, keeps the spec number's leading zeros and does not change the caller's BASH_REMATCH."
+    awaiting_contract: []
+    tests:
+      - "tests/scripts/lib-workflow-paths.sh: the existing JRN-001 cases (recorded codex_enc bytes under C and a UTF-8 locale, multi-byte characters, no trailing newline, task, phase_1 and integration names, malformed spec folders, unknown kind)"
+      - "tests/scripts/lib-workflow-paths.sh: JRN-001 wf_agent_worktree_name reads the spec number from the spec dir form (dot-relative, trailing slash, absolute, bare)"
+      - "tests/scripts/lib-workflow-paths.sh: JRN-001 wf_agent_worktree_name refuses the task id (T, t3, 3, T3a, T-1, empty) with status 1 and no name"
+      - "tests/scripts/lib-workflow-paths.sh: JRN-001 wf_agent_worktree_name names the bad task id / bad spec dir / unknown kind in its reason"
+      - "tests/scripts/lib-workflow-paths.sh: JRN-001 wf_agent_worktree_name refuses an empty work type with status 1 and no name"
+      - "tests/scripts/lib-workflow-paths.sh: JRN-001 wf_agent_worktree_name prints no trailing newline"
+      - "tests/scripts/lib-workflow-paths.sh: JRN-001 wf_enc with no argument returns 1 under set -u instead of exiting the caller"
+      - "tests/scripts/lib-workflow-paths.sh: JRN-001 wf_agent_worktree_name leaves BASH_REMATCH as the caller set it"
+files_changed:
+  - ".agents/lib/workflow-paths.sh"
+  - "tests/scripts/lib-workflow-paths.sh"
+evidence:
+  toolchain: ".workflow/specs/done/006-result-file-guard/artifacts/integration-shell-scripts/toolchain.txt (pass)"
+  tests: "run-toolchain.sh --exclude-unfinished: lint pass, test pass (TOTAL passed=2957 failed=0, 52 suites; 7 suites of unfinished tasks excluded, including scripts/lib-workflow-paths). tests/run-all.sh --suite scripts/lib-workflow-paths: passed=98 failed=1, and the one failure is the expected 'JRN-001 neither hook keeps its own codex_enc copy' (codex-pre-spawn.sh:70 still defines codex_enc). Before the change the same suite gave passed=30 failed=52. shellcheck -x -P SCRIPTDIR on both changed files: clean. A scratch script compared wf_enc with the reference pipeline printf | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' over ASCII bytes 1-127: identical output under LC_ALL=C and LC_ALL=en_US.UTF-8."
+  callers_checked:
+    - "grep for wf_enc and wf_agent_worktree_name outside the lib and its suite: no callers (new interface)"
+    - ".agents/hooks/codex-pre-spawn.sh:70 and .agents/hooks/post-implementation-audit.sh:125: still use their private codex_enc and are not changed; their suites pass in the toolchain run"
+profile_wrong: null
+blocked: null
+discovered_work: []

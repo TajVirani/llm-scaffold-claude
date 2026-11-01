@@ -1,0 +1,9 @@
+# Sanity check run by review-targets (not the measurement): the TGT-007 command run once by hand in a scratch clone.
+# Same steps as the command: clone, checkout the baseline 9e971ade158b5e92da93bf2b150fd68dd55d7e9e (detached), copy .agents, run the sweep.
+$ .agents/skills/feature-workflow/scripts/move-to-done.sh --sweep
+move-to-done.sh: the main checkout has a detached HEAD; check out the spec branch first
+real 0.45
+user 0.01
+sys 0.03
+sweep exit: 1
+# Result: the sweep refused to run and exited 1. No spec moved (the clone still holds 001-008 at top level).

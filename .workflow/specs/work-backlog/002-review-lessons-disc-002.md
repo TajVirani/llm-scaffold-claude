@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/002-review-lessons
+origin_spec: .workflow/specs/done/002-review-lessons
 origin_step: "3.9"
 discovered_at: 2026-10-22
 status: moved-to-deferred
@@ -14,7 +14,7 @@ The suite that tests the harness runner's parallelism proves "suites run concurr
 
 ## Evidence
 
-- `.workflow/specs/002-review-lessons/artifacts/gate-3.9-w1b/toolchain.txt:27-28`: `FAIL with no -j, suites run concurrently` / `took 4s for 4s of sleeping suites`, in a gate run that overlapped T5's toolchain run of the whole harness.
+- `.workflow/specs/done/002-review-lessons/artifacts/gate-3.9-w1b/toolchain.txt:27-28`: `FAIL with no -j, suites run concurrently` / `took 4s for 4s of sleeping suites`, in a gate run that overlapped T5's toolchain run of the whole harness.
 - The same assertion passed in `artifacts/gate-3.9-w1/toolchain.txt` and in `artifacts/gate-3.9-w1c/toolchain.txt` (the re-run without concurrent load), on the same merged tree apart from T3's five non-script files.
 - `tests/scripts/run-all-selection.sh`, the "concurrent runs by default" case in its `# Covers:` header.
 
@@ -29,6 +29,6 @@ No capability or journey of 002-review-lessons touches the runner; the gate pass
 
 ## Links
 
-- Origin spec: [spec.md](../002-review-lessons/spec.md)
-- Design log entry: [design-log.md](../002-review-lessons/design-log.md) (section 2026-10-22 Discovered work: flaky-parallel-timing-test)
+- Origin spec: [spec.md](../done/002-review-lessons/spec.md)
+- Design log entry: [design-log.md](../done/002-review-lessons/design-log.md) (section 2026-10-22 Discovered work: flaky-parallel-timing-test)
 - Deferred file: [.workflow/deferred/concurrency-check-timing.md](../../deferred/concurrency-check-timing.md) (same concept, already shelved; this item's Later requests line added at 5.9)

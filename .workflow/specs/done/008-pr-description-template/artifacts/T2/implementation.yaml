@@ -1,0 +1,20 @@
+status: done
+summary: "Fix round 1 for T2. check-pr-body.sh now exits 2 with a broken-install message when, in workflow mode, assets/pr-template.md has no Risk and reversibility heading, so the score checks can no longer be skipped silently; the early return in check_risk_scores carries its reason; the suite's guidance check uses [ ] like the rest of the file."
+task_id: "T2"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t2"
+branch: "task/008-pr-description-template/T02-pr-template-and-check"
+base_commit: "00dbc0bc05209be496a59fc967f874205d3b5c11"
+head_commit: "8a29ec84e235c2952a79aae769d5bb8464f7919a"
+files_changed: [".agents/skills/feature-workflow/scripts/check-pr-body.sh", "tests/scripts/check-pr-body.sh"]
+tests_added:
+  - {file: "tests/scripts/check-pr-body.sh", test: "JRN-002 a workflow template without the Risk and reversibility heading exits 2", kind: negative}
+evidence:
+  red: "tests/run-all.sh --suite scripts/check-pr-body; FAIL JRN-002 a workflow template without the Risk and reversibility heading exits 2 (rc=1 stdout=Risk and rollback: missing stderr=)"
+  green: "tests/run-all.sh --suite scripts/check-pr-body; PASS scripts/check-pr-body passed=37 failed=0"
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/008-pr-description-template --task-id T2 --cwd $PWD; lint pass, test pass (scoped, scripts/check-pr-body 37/37)"
+  toolchain: ".workflow/specs/done/008-pr-description-template/artifacts/T2/toolchain.txt (pass)"
+considered_not_built: ["Deriving the Risk heading from the template (e.g. by position): a positional lookup could still pick the wrong section silently after a reorder; the explicit guard fails loudly instead, as the finding asked."]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

@@ -1,0 +1,41 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "e049f4dde93474aca594212026144ed7006a917f"
+head: "5fdfb8973a0df0271300367921e8dc11eff6dfc7"
+findings:
+  - id: RS-1
+    category: discovered-work
+    kind: refactor
+    summary: "check-worktree-scope.sh deny and allow messages, and the File lines of check-worktree-scope.sh and worktree-write-guard.sh, still say 'task worktree'. This change sends Phase 1 and integration agents through those same paths. The glossary lists 'Task worktree' as an _Avoid_ alias for Agent worktree because 'Phase 1 and integration are not tasks', so a Phase 1 or integration agent that gets denied is told it works in a 'task worktree'."
+    evidence: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:2, :114, :125, :234 ('this agent works only in its task worktree $root'); .agents/hooks/worktree-write-guard.sh:2 ('inside its task worktree'); .workflow/GLOSSARY.md Agent worktree _Avoid_: 'Task worktree (Phase 1 and integration are not tasks)'. This change did not add or modify these lines."
+    blocker_assessment: can-wait
+    reason: "Wording only. The deny still names the right absolute path and the right 'cd <root> &&' fix, so the agent can recover. No behaviour depends on it."
+  - id: RS-2
+    category: discovered-work
+    kind: refactor
+    summary: "assetlist.md still describes the behaviour this change removed. The post-implementation-audit row gives the SubagentStop matcher as 'implementation'. D85 item 6 says Phase 1 builds and integration batches 'keep their existing worktree handling' and keeps the isolation-relaunch fallback. This spec makes the matcher 'implementation|integration', creates orchestrator-made worktrees for Phase 1 and integration, and removes the fallback (D5). No amendment note was added, unlike the existing 'Amended by' convention there."
+    evidence: "assetlist.md:40 ('`SubagentStop`, matcher `implementation` (script also filters)'); assetlist.md:234 ('Phase 1 builds and integration batches keep their existing worktree handling ... Fallback when an agent cannot work that way: ... relaunch with `isolation: \"worktree\"`'); .agents/hooks/claude-settings.template.json SubagentStop matcher now 'implementation|integration'; .workflow/specs/done/006-result-file-guard/design-log.md D5 'Remove the fallback'."
+    blocker_assessment: can-wait
+    reason: "assetlist.md is scaffold-only and is never installed, so target projects are not affected. It misleads only a maintainer who reads the decision record, and an amendment note can be added at sign-off or later."
+checked:
+  - "git diff e049f4dde93474aca594212026144ed7006a917f...HEAD (spec folder excluded): 40 files, 59 commits"
+  - "AGENTS.md (root; CLAUDE.md is an @AGENTS.md import)"
+  - ".workflow/rules.md (Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1, T2, T4, T6)"
+  - ".workflow/profiles/agent-docs.md (T3, T5, T7)"
+  - ".workflow/profiles/test-harness.md (governs tests/ per AGENTS.md; new suites checked for Suite/Covers, preflight, finish, shellcheck_files, tests/README rows)"
+  - ".workflow/specs/done/006-result-file-guard/design-log.md Placement entries (0.3.4, superseded by D9 re-run at 0.3.5-0.3.7, and the round-5 installer/root-docs placement); no placement ADR was written (0.3.7: fails the three-part test)"
+  - ".workflow/GLOSSARY.md (Agent worktree, Result file, Launch header and their _Avoid_ aliases; Flagged ambiguities)"
+  - ".agents/skills/feature-workflow/references/readable-code.md (R1-R5 on every added comment in install.sh, hooks, lib and feature-workflow scripts, and on test helper comments)"
+  - "toolchain.json and toolchain.txt for T1, T2, T3, T4, T5, T6, T7 (lint and scoped test pass for each)"
+  - "Shared-core rule: .agents/lib/workflow-paths.sh changed only by the integration batch (fd4a1d7) after the Phase 1 interface stubs (eb292c5) that verification-setup 1.2 prescribes"
+  - "Suppressed: duplicated header-to-worktree-kind mapping in worktree-write-guard.sh and post-implementation-audit.sh, already filed in .workflow/deferred/worktree-name-parser.md 'Later requests'"
+  - "Suppressed: silent exit for an integration stop with no transcript (post-implementation-audit.sh), a stakeholder ruling in design-log 'codex-integration-missing-transcript' with profile proposal P1 for 5.3"
+  - "Suppressed: non-Conventional-Commit subjects ('Workflow data for ...', 'Tasks for ...', 'Phase 1 for ...', merges), which the workflow modules prescribe"
+not_checked:
+  - "CODING_STANDARDS.md: not present at repo root"
+  - "CONTRIBUTING.md: not present at repo root"
+  - "GLOSSARY-MAP.md: none in the repo (searched with find, hidden dirs included)"
+  - "Placement ADR: none linked from design-log.md Placement entries; the entries themselves were used as the placement record"
+  - "typecheck, format and boundary toolchain keys: skipped ('no command') for T1-T7 in each toolchain.json; rules.md says no boundary tool runs here, so module boundaries were checked by hand against the Ownership map"

@@ -1,0 +1,19 @@
+status: done
+summary: "When the architecture build's boundary check finds depcruise missing, exiting without a JSON report, or printing JSON without .summary.violations, Boundary violations now reads 'Not checked: depcruise did not run (<reason>).' and the build exits 0; a stand-in with violations still lists them and an unparseable --violations-json still exits 2. The not-found check runs before depcruise (command -v on the resolved command), so a missing DEPCRUISE path reports 'not found' rather than 'exited 127'. No tests added: the Phase 1 suite tests/scripts/cache-boundary-check.sh already covers the three negative cases, the violations case and the unparseable --violations-json edge case; depcruise stderr goes to /dev/null and only stdout is parsed."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t3"
+branch: "task/005-cache-build-followups/T03-boundary-not-checked"
+base_commit: "2e32c3b04ab1abc36d5450486f080752f906fa60"
+head_commit: "89b9663f089410231f71545dd9af85472119f26c"
+files_changed: [".agents/skills/regenerate-caches/scripts/build-architecture.sh"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/cache-boundary-check; FAIL JRN-003 depcruise not found: Boundary violations says the check was not made (got=None.); FAIL JRN-003 depcruise printing JSON without .summary.violations: architecture exits 0 (got=2); passed=13 failed=4"
+  green: "tests/run-all.sh --suite scripts/cache-boundary-check; passed=17 failed=0"
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/005-cache-build-followups --task-id T3 --cwd $PWD; test (scoped, own=1) pass, lint pass"
+  toolchain: ".workflow/specs/done/005-cache-build-followups/artifacts/T3/toolchain.txt (pass)"
+considered_not_built: ["A separate test that depcruise stderr stays out of the body: stderr is redirected to /dev/null and the body is built from stdout only; adding a test would mean editing the Phase 1 suite outside the predicted files"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/003-bash-cache-extractor
+spec: .workflow/specs/done/003-bash-cache-extractor
 date: 2026-10-26
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/003-bash-cache-extractor/spec.md` (capabilities: CAP-004, CAP-005)
-- Report: `.workflow/specs/003-bash-cache-extractor/report.md`
+- Spec: `.workflow/specs/done/003-bash-cache-extractor/spec.md` (capabilities: CAP-004, CAP-005)
+- Report: `.workflow/specs/done/003-bash-cache-extractor/report.md`
 - Tasks: 10 done (T1-T10), 0 deferred; `.workflow/deferred/` holds nothing from this spec (spec.md `deferred: []`)
 - Evidence available: spec.md, verification-plan.md, report.md, tasks.md, design-log.md (two triage passes, two reworks, the 5.6 change request), proposals.md (P1-P15, all approved), `artifacts/` (per-task toolchain and mini-review rounds, `phase-1-known-bad/`, `gate-3.9-*`, `review/pass-1`, `review/pass-2`, `jrn-005/`, `sign-off-5.4/`), `.workflow/review-lessons.md`, retrospective 004, git `86609a6..e530f63` (68 commits; 24 files outside `.workflow/`, +1948 -61)
 - Evidence missing: session logs (process lessons come from design-log.md and this session's record only). Going-in concerns: none ("nothing in particular", design-log 2026-10-26 Sign-off).

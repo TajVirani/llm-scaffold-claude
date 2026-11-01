@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/002-review-lessons
+origin_spec: .workflow/specs/done/002-review-lessons
 created: 2026-10-21
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-21
 
 **Summary:** Two notes in the retrospective document template contradict the retrospective skill: its header comment lists rules and profiles among the Tier A files the skill writes, and its Model observations text names a project-root `agent-overrides.yaml` instead of the one under `.workflow/`.
 **Mode:** AFK
-**Origin:** [.workflow/specs/002-review-lessons](../specs/002-review-lessons/spec.md), 0.3.17 scope decision, design-log entry 2026-10-21 Scope decision: retrospective template drift
+**Origin:** [.workflow/specs/done/002-review-lessons](../specs/done/002-review-lessons/spec.md), 0.3.17 scope decision, design-log entry 2026-10-21 Scope decision: retrospective template drift
 
 ## Goal
 
@@ -27,7 +27,7 @@ The module audit for the review-lessons feature noticed both lines while reading
 
 ## Decisions already made
 
-- The review-lessons feature adds `.workflow/review-lessons.md` to the Tier A files the retrospective writes at 5.7 (D1 and D7 in [.workflow/specs/002-review-lessons/design-log.md](../specs/002-review-lessons/design-log.md)); the corrected comment should name it too.
+- The review-lessons feature adds `.workflow/review-lessons.md` to the Tier A files the retrospective writes at 5.7 (D1 and D7 in [.workflow/specs/done/002-review-lessons/design-log.md](../specs/done/002-review-lessons/design-log.md)); the corrected comment should name it too.
 
 ## Evidence
 

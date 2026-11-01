@@ -1,0 +1,36 @@
+status: done
+summary: >-
+  Rework 1 (review pass 1, F1): the review-lessons validation and next-id logic now live in .agents/skills/feature-workflow/scripts/review-lessons.sh (subcommands validate FILE and next-id FILE; exit 0/1 for validate, 2 on usage or environment errors; header per the profile; shellcheck clean). The template's two lines call the script through git rev-parse --show-toplevel and work from a subdirectory too. tests/lint/review-lessons.sh stays 33/33 with unchanged assertions; the new suite tests/scripts/review-lessons.sh passes 24/24; the full harness passes 2612/2612 across 45 suites. retrospective/modules/routing.md needed no change. The wave-1 result is kept as implementation-wave1.yaml.
+task_id: T1
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t1
+branch: task/002-review-lessons/T01-lessons-template-and-guard
+base_commit: be7638e87ae5146fcf2d85f2d059d079d85ae628
+head_commit: 7b7a1efa860f242aba20f801309920c195362438   # after the rework round-3 fix (R2 comment at :49; unparsable-block cases added, suite 26/26)
+files_changed:
+  - .agents/skills/feature-workflow/scripts/review-lessons.sh
+  - .agents/skills/feature-workflow/assets/review-lessons.md
+  - tests/scripts/review-lessons.sh
+  - tests/README.md
+  - PROVENANCE.md
+tests_added:
+  - {file: tests/scripts/review-lessons.sh, test: "validate accepts the template, an RL-001 file and a retired RL-001 file", kind: behaviour}
+  - {file: tests/scripts/review-lessons.sh, test: "validate refuses retired-no-enforced-by, duplicate-id, empty-paths, absolute-path, bad-origin-spec, bad-date, lessons-not-a-list (exit 1, one stderr line naming the field)", kind: negative}
+  - {file: tests/scripts/review-lessons.sh, test: "validate refuses a .. path, a bad id (RL-1), an empty symptom and a file with no fenced block", kind: edge}
+  - {file: tests/scripts/review-lessons.sh, test: "validate refuses an unparsable fenced block (exit 1, one stderr line)", kind: negative}
+  - {file: tests/scripts/review-lessons.sh, test: "next-id on a block that does not parse exits 1 with one stderr line", kind: negative}
+  - {file: tests/scripts/review-lessons.sh, test: "next-id prints RL-001 / RL-002 / RL-002 after retirement", kind: behaviour}
+  - {file: tests/scripts/review-lessons.sh, test: "next-id after RL-999 is RL-1000", kind: edge}
+  - {file: tests/scripts/review-lessons.sh, test: "exit 2 on no argument, subcommand without file, unknown subcommand, missing file", kind: negative}
+  - {file: tests/scripts/review-lessons.sh, test: "shellcheck: review-lessons.sh and its suite", kind: behaviour}
+evidence:
+  red: "bash tests/scripts/review-lessons.sh -> RESULT passed=0 failed=24 (script not yet present)"
+  green: "bash tests/scripts/review-lessons.sh -> 24/24; tests/lint/review-lessons.sh 33/33 before and after; check-write-tier-a 116/116, write-guards 101/101, check-write-paths 153/153; tests/run-all.sh TOTAL passed=2612 failed=0 (45 suites)"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/002-review-lessons --task-id T1 --cwd $PWD -> lint pass, test pass (scoped: own 2, excluded 5)"
+  toolchain: .workflow/specs/done/002-review-lessons/artifacts/T1/toolchain.txt (pass)
+considered_not_built:
+  - "a test that removes jq or yq from PATH for exit 2: fragile here; the check is in require_tools and documented under # Exit:"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+# Script behaviour: header points at the template header as the only home of the entry rules; validate reports the first broken rule as one line (script, file, lessons[i].field, reason); an unparsable block exits 1.

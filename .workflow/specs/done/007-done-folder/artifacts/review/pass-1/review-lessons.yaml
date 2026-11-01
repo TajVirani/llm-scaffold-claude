@@ -1,0 +1,28 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "9e971ade158b5e92da93bf2b150fd68dd55d7e9e"
+head: "b8150ec98019e9e828a7b5c4d294d7f593b8f73c"
+findings: []
+checked:
+  - ".workflow/review-lessons.md (six entries, RL-001 to RL-006, none retired)"
+  - ".workflow/decisions/pitfalls.md (sixteen pitfalls)"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/003-bash-cache-extractor.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/005-cache-build-followups.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/006-result-file-guard.md (Process lessons)"
+  - ".workflow/decisions/retrospectives/008-pr-description-template.md (Process lessons)"
+  - ".workflow/rules.md (ownership owns list, comment policy, install and README rules)"
+  - ".workflow/profiles/shell-scripts.md (test syntax and shellcheck disable rules)"
+  - ".workflow/specs/work-backlog/007-done-folder-disc-001.md (new item, shelf and open-item check)"
+  - ".workflow/deferred/launch-against-done-spec.md (new shelf item, shelf check)"
+  - ".workflow/deferred/ shelf titles and .workflow/specs/work-backlog/ open item titles (duplicate check)"
+  - "git diff 9e971ad...b8150ec excluding the spec folder: .agents/ hunks (hooks, lib, SKILL.md, modules, assets, scripts incl. new move-to-done.sh), PROVENANCE.md, tests/ hunks and tests/README.md, .workflow/cache/ (generation stamp only)"
+not_checked:
+  - "Process pitfalls with no diff surface, not checkable from the change: a mini-review re-check written to the wrong file (pitfall 5), a Phase 1 worktree forked from main (6), a 3.9 gate overlapping a full harness run (11), a review lens matching on the consequence clause (12), a capability id assigned from a stale read (9), a work type lint key pinned to a suite (10). Each describes how a run was driven; settle from run transcripts, not the diff."
+  - "Retrospective process lessons with no diff surface: 002 (capabilities re-read, main moved between 0.6 and 1.1, symptom written mistake-first), 003 (worktree fork, pass counter restart, re-check file name, repo-on-itself ordering, review lens catch), 004 (thin discovery, review-targets without verification-plan, full-harness run limits), 005 (worktree guard denials, boundary config regenerated after the cache run), 006 (fix-round churn, acceptance-criteria misses reaching the orchestrator, install.sh without an owner), 008 (spec line leaving accepted forms open). Settle from the retrospectives' own evidence, not the diff."
+  - "003 action L6 (cache-regeneration filling gaps in flows rules with its own labels): commit 750b383 republished .workflow/cache/flows.md, architecture.md and modules.md. Confirming or clearing a repeat needs the regenerate-caches flows rules and a rerun at 9e971ad to compare labels. Confidence under 80 from the diff alone."
+  - "Pitfall 16 (point at a folder instead of restating the tree): tests/README.md gains suite and fixture rows that restate test-tree names. Rules line 146 and the owns list at line 95 name the root README.md and .agents/README.md, not tests/README.md. Confidence about 45. Settle with a ruling on whether tests/README.md falls under the README rule."
+  - "RL-003 outside the hunk set: .agents/skills/retrospective/SKILL.md lines 12 and 30 still name the spec folder as .workflow/specs/NNN-slug for a standalone retrospective, which a finished spec no longer has after 5.8. That file is not a changed hunk, and the shelf item launch-against-done-spec.md names standalone retrospectives as out of scope. Confidence about 50. Settle with a ruling on whether a standalone retrospective of a moved spec is in scope."
+  - "Six scripts that call wf_norm_folder spec (status-transition.sh, commit-workflow-data.sh, open-task-pr.sh, budget-check.sh, task-waves.sh, check-merge-artifacts.sh) now accept .workflow/specs/done/NNN-slug. Their refusal text and prose still describe live specs, which is not a stale statement, so no RL-003 match. Outside this lens; the end-state or standards lens should decide whether those callers refuse Done folder paths."

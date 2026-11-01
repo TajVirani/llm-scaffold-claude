@@ -1,0 +1,19 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "e049f4dde93474aca594212026144ed7006a917f"
+head: "3de20fad15cedf6f4b6c06ca48fd2918728ba50e"
+findings: []
+checked:
+  - ".workflow/review-lessons.md (RL-001, RL-002 live; no retired entries)"
+  - ".workflow/decisions/pitfalls.md (13 pitfalls read; RL-002 covers the PROVENANCE placeholder pitfall, so it was not compared again)"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md (Process lessons table, six rows)"
+  - ".workflow/decisions/retrospectives/003-bash-cache-extractor.md (Process lessons table, seven rows)"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md (Process lessons table, five rows)"
+  - ".workflow/decisions/retrospectives/005-cache-build-followups.md (Process lessons table, three rows)"
+  - ".workflow/specs/work-backlog/ and .workflow/deferred/ (listed and read by header, to check the shelf-by-concept pitfall against the ten new discovered-work items)"
+  - "git diff e049f4dde93474aca594212026144ed7006a917f...HEAD excluding .workflow/specs/done/006-result-file-guard (43 files, 3492 lines), with hunks read for: .agents/lib/workflow-paths.sh, PROVENANCE.md, .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh, .agents/skills/feature-workflow/modules/implementation-orchestrator.md, .agents/skills/feature-workflow/modules/verification-setup.md, .claude/settings.json, README.md, CHANGELOG.md, .workflow/deferred/worktree-name-parser.md, the ten new work-backlog items, and added lines grepped for heredocs, gate pipes, front-matter writes, worktree creation, wall-clock assertions and body comments naming ids"
+  - "git log e049f4dde93474aca594212026144ed7006a917f..HEAD --oneline and git log --no-merges subjects (commit-subject lesson)"
+not_checked:
+  - "Retrospective 002, mini-review churn (grep-able cosmetic items: ids and paths in body comments, single-bracket tests). The diff shows no mini-review rounds, and the ids and workflow paths found in new or changed shell files sit in file header blocks, which readable-code R4 exempts. A body-comment R4 violation, if any, is a standards-lens finding. Confidence about 30. Would be settled by a read of body comments in changed shell files against readable-code R4."
+  - "Pitfall 'Report a detected call as unresolved; never filter it out' against the worktree guard's allow path when a launch header cannot be parsed (.agents/hooks/worktree-write-guard.sh, header parse with 2>/dev/null, recorded as work-backlog item 006-result-file-guard-disc-003). The pitfall's mistake is a detector dropping a call it found; a fail-open guard decision is a different shape and falls under the shell-scripts fail-closed rule. Confidence about 40. Would be settled by the lens owner deciding whether the pitfall covers fail-open guard decisions."

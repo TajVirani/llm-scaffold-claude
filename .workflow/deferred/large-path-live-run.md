@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/001-large-path
+origin_spec: .workflow/specs/done/001-large-path
 created: 2026-10-22
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-22
 
 **Summary:** The large path's journeys are proven by harness suites that replay the module's command sequences; no orchestrator has yet followed the module on a real initiative.
 **Mode:** HITL
-**Origin:** [001-large-path](../specs/001-large-path/spec.md), 4.8 review finding (gap F12), design-log entry 2026-10-22 Triage, review pass 1
+**Origin:** [001-large-path](../specs/done/001-large-path/spec.md), 4.8 review finding (gap F12), design-log entry 2026-10-22 Triage, review pass 1
 
 ## Goal
 
@@ -27,7 +27,7 @@ The module is prose that an agent follows. The suites are the executable form of
 
 ## Decisions already made
 
-- Every request still starts as a spec; conversion happens from the questioning loop ([design-log.md](../specs/001-large-path/design-log.md) D2, D10).
+- Every request still starts as a spec; conversion happens from the questioning loop ([design-log.md](../specs/done/001-large-path/design-log.md) D2, D10).
 
 ## Evidence
 

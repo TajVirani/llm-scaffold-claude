@@ -1,0 +1,62 @@
+verdict: "pass"
+task_id: "T2"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t2@3e44c5fddbfea88a1e0b05eeff29d09c1750eb1b..HEAD"
+tool_output: ".workflow/specs/done/007-done-folder/artifacts/T2/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/review-lessons.sh:25, review-lessons.sh:89-90, review-lessons.sh:104-105"
+  - n: 2
+    verdict: "not-applicable"
+    location: "none: neither changed file is a hook (both sit under .agents/skills/feature-workflow/scripts/)"
+  - n: 3
+    verdict: "pass"
+    location: "review-lessons.sh:29-30 (regex_literal has no error path), review-lessons.sh:103-107 (a jq failure reaches die at :106, a broken rule reaches refuse at :107)"
+  - n: 4
+    verdict: "pass"
+    location: "review-lessons.sh:15-16 (Exit line, codes 0 1 2 unchanged), review-lessons.sh:33 (die exits 2), review-lessons.sh:36 (refuse exits 1); check-pr-body.sh:25-27 (Exit line unchanged)"
+  - n: 5
+    verdict: "pass"
+    location: "review-lessons.sh:24-25 (sources ../../../lib/workflow-paths.sh through cd -P of BASH_SOURCE, the same form as check-write.sh:61 and resolve-launch.sh:45)"
+  - n: 6
+    verdict: "pass"
+    location: "review-lessons.sh:1-20 and check-pr-body.sh:1-31 (both carry the helper header shape: File as Helper script (not a hook), Purpose, Usage, Exit, Called by, Notes, Sources); no ADR or decision ID in either file"
+  - n: 7
+    verdict: "pass"
+    location: "review-lessons.sh:22 (set -euo pipefail), review-lessons.sh:107, :121, :128 ([[ ]] tests), check-pr-body.sh:33 (set -euo pipefail); no new file, and the diff adds no [ ] test"
+  - n: 8
+    verdict: "pass"
+    location: "review-lessons.sh:29 (regex_literal has its name ARGS : what line), review-lessons.sh:64 (shellcheck disable carries its reason), review-lessons.sh:24 (source= hint needs none)"
+  - n: "R1"
+    verdict: "pass"
+    location: "review-lessons.sh:29, review-lessons.sh:89-90, review-lessons.sh:104-105 (regex_literal, specs_pattern, specs_done_pattern and specs_done say what they hold)"
+  - n: "R2"
+    verdict: "pass"
+    location: "review-lessons.sh:29 (the comment gives the reason for escaping: so a jq test() matches the path literally, which a reader who drops the escaping would break); review-lessons.sh:64 (reason for the SC2016 disable)"
+  - n: "R3"
+    verdict: "pass"
+    location: "review-lessons.sh:29 and :64 say why, not what; review-lessons.sh:6-8 states the accepted origin_spec value"
+  - n: "R4"
+    verdict: "pass"
+    location: "no body comment in the diff names a decision, doc or workflow path (review-lessons.sh:29 and :64 are clean); check-pr-body.sh:3 names pr-body.md, which the script reads, and :28-29 name the caller, both in the header block that readable-code.md R4 leaves to name read paths and callers"
+  - n: "R5"
+    verdict: "pass"
+    location: "review-lessons.sh:6-8 (plain words); check-pr-body.sh:3-5 (Done folder is defined at .agents/lib/workflow-paths.sh:14, the file review-lessons.sh sources); check-pr-body.sh:3 and :28-29 (5.4 and 5.8 are explained by the Called by line naming modules/sign-off.md)"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh:14, :44: WF_SPECS_DONE definition and its API comment, for item 1 and R5"
+  - ".agents/skills/feature-workflow/scripts/review-lessons.sh: whole file in the worktree, for items 3, 4, 7, 8 and R1"
+  - ".agents/skills/feature-workflow/scripts/check-pr-body.sh:1-40: header and first lines, for items 6, 7, R4 and R5"
+  - "sibling scripts under .agents/skills/*/scripts and .agents/hooks: grep for BASH_SOURCE, for item 5 (check-write.sh:61, resolve-launch.sh:45 as the matching form)"
+  - "both changed files: grep for ADR or D-number decision IDs, no match, for items 6 and R4"
+  - ".agents/skills/feature-workflow/assets/review-lessons.md:9: the template origin_spec rule, for the out_of_scope entry"
+  - "main checkout .agents/skills/feature-workflow/references/readable-code.md: rule text and Checking table"
+  - ".workflow/specs/done/007-done-folder/artifacts/T2/mini-review-r1.yaml: opened by mistake while listing the artifacts folder; not used for any verdict in this review"
+out_of_scope_noticed:
+  - kind: "bug"
+    summary: "The lessons template still says origin_spec is .workflow/specs/ then a number and a lowercase slug, while review-lessons.sh now also accepts a folder in the Done folder and a mixed-case slug. The script header says a rule change changes both files, and this diff changes only the script."
+    evidence: ".agents/skills/feature-workflow/assets/review-lessons.md:9; .agents/skills/feature-workflow/scripts/review-lessons.sh:6-8, :88-90"
+    blocker_assessment: "can-wait"
+    reason: "Every entry the template allows still passes validate, so no existing lesson file breaks; the template only under-describes the accepted form until it is updated. I could not see the spec, so I cannot confirm whether another task covers the template."

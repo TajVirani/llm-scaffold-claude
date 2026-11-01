@@ -1,0 +1,52 @@
+verdict: pass
+task_id: T1
+work_type: shell-scripts
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t1@d4899749c45c99f32f8f539fed7a005e2649cc38..HEAD"
+tool_output: ".workflow/specs/done/005-cache-build-followups/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: pass
+    location: "budget-check.sh:131,132,171; commit-workflow-data.sh:53,54; initiative-transition.sh:202; open-task-pr.sh:111,126; status-transition.sh:199,200; task-waves.sh:79,80 (all new .workflow paths come from wf_main_root, wf_norm_folder, wf_load_test_patterns or WF_SPECS variables; no literal .workflow/ string in any added line)"
+  - n: 2
+    verdict: not-applicable
+    location: "no hook file under .agents/hooks/ is in the diff"
+  - n: 3
+    verdict: pass
+    location: "budget-check.sh:131-132,171-179; commit-workflow-data.sh:53-54; initiative-transition.sh:202-203; open-task-pr.sh:111,126; status-transition.sh:199-200; task-waves.sh:79-80 (each new fallible assignment is followed by die or generic_usage, and the 2>/dev/null only hides the helper's own stderr)"
+  - n: 4
+    verdict: not-applicable
+    location: "no exit code is added or changed; die calls keep their previous status (commit-workflow-data.sh die default 2, budget-check.sh die 1 replacing the former exit 1)"
+  - n: 5
+    verdict: pass
+    location: "budget-check.sh:54-57 (both new source lines resolve through cd -P of dirname BASH_SOURCE[0])"
+  - n: 6
+    verdict: pass
+    location: "budget-check.sh:50 (Sources line in the header block edited; names helper paths only, no decision ID, header shape unchanged)"
+  - n: 7
+    verdict: pass
+    location: "no new file; edited scripts keep set -euo pipefail and [[ ]] tests; new lines at budget-check.sh:171-179 use [[ ]] and case"
+  - n: 8
+    verdict: not-applicable
+    location: "no function or shellcheck disable directive is added in the diff; the two added source hints (budget-check.sh:55-57) need no reason"
+  - n: R1
+    verdict: pass
+    location: "budget-check.sh:171-178 (WF_TEST_PATTERNS is the global name wf_is_test_path reads, and the error branch exits at once); budget-check.sh:175 invalid_profile; task-waves.sh:80 SPEC_DIR"
+  - n: R2
+    verdict: pass
+    location: "budget-check.sh:172 (the comment gives the reason the error text is reworded: callers read this script's own wording)"
+  - n: R3
+    verdict: pass
+    location: "no added comment restates the code"
+  - n: R4
+    verdict: pass
+    location: "budget-check.sh:172 (no decision ID, workflow path or URL in the body comment; the header Sources line is exempt)"
+  - n: R5
+    verdict: pass
+    location: "budget-check.sh:172 (plain English, no project shorthand)"
+read_outside_diff:
+  - ".agents/lib/test-paths.sh: header API and wf_load_test_patterns contract, lines 1-12 and 60-82, to confirm WF_TEST_PATTERNS is the global the matcher reads and that the failure reason is printed in place of the list"
+  - ".agents/lib/workflow-paths.sh: function list (grep) to confirm wf_main_root, wf_norm_folder and wf_path exist and that open-task-pr.sh, task-waves.sh and initiative-transition.sh source it"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking at 3.7 list"
+out_of_scope_noticed: []

@@ -1,0 +1,65 @@
+verdict: "fail"
+task_id: "T1"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1@4b6675111e5181c5b718c9e367bba273201fabd3..HEAD (HEAD e9a6861)"
+tool_output: ".workflow/specs/done/006-result-file-guard/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:240,245 (paths built from $WF_WORKTREES and the lib name); .agents/hooks/worktree-write-guard.sh:102 (name from wf_agent_worktree_name); the added .workflow/ literals are header or comment lines only (audit:25; guard:5,15) or a test fixture (tests/hooks/audit-agent-worktrees.sh:98-104)"
+  - n: 2
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:218-233 (kind picked from the header; toolchain run by run-toolchain.sh at :258); .agents/hooks/worktree-write-guard.sh:94-102 (kind picked from the header; name rule in workflow-paths.sh:124-161; scope rule in check-worktree-scope.sh). The duplicated header-to-kind mapping is the header-mapping note already on the shelf, not raised again"
+  - n: 3
+    verdict: "fail"
+    location: ".agents/hooks/worktree-write-guard.sh:102"
+    note: "The lib's reason goes to /dev/null and the name becomes empty, so check-worktree-scope.sh allows writes into the main checkout for a non-isolated implementation or integration agent whose header the lib rejects, with no deny; a spec folder under three digits, e.g. .workflow/specs/12-foo, hits this, and the pre-change guard named s12_t1 and confined it (git show 4b66751:.agents/hooks/worktree-write-guard.sh:87-89). Fix: capture stderr and call deny_json with the lib reason, as the scope rule does at lines 121-124, then rewrite Behaviour line 22 to match."
+  - n: 4
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:77,123,133 (new exit 0 lines, all silent); .agents/hooks/worktree-write-guard.sh:66 (case widened, exit 0 unchanged); no exit code other than 0 is added; the hook headers document the exit in Outputs/handoff (audit:53 'exit code always 0'; guard:25 'exit 0'), and the profile reserves '# Exit:' for helper scripts"
+  - n: 5
+    verdict: "pass"
+    location: ".agents/hooks/worktree-write-guard.sh:59, post-implementation-audit.sh:67, codex-pre-spawn.sh:66 (existing BASH_SOURCE resolution with cd -P, untouched); the diff adds no sibling path, so the item is met vacuously for new code"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/hooks/worktree-write-guard.sh:1-30 (File, Goals, Triggers/inputs, Behaviour, Outputs/handoff, Wiring, Notes, Sources, Requires); .agents/hooks/post-implementation-audit.sh:1-62 (same shape); no decision ID (D<n>, ADR, JRN, F-<n>) in an added header line; the step numbers in guard:17 (1.2, 1.3) are workflow steps, not decision IDs"
+  - n: 7
+    verdict: "pass"
+    location: "no new files (all changes are M); set -euo pipefail at worktree-write-guard.sh:33, post-implementation-audit.sh:64, codex-pre-spawn.sh:35; added code uses [ ] like the surrounding lines in the edited files (audit:77,123,133,222; guard:66,112,120; tests/hooks/audit-agent-worktrees.sh:98-104)"
+  - n: 8
+    verdict: "pass"
+    location: "no function definition and no shellcheck disable directive among the added lines; codex_enc removed (git grep -n codex_enc -- .agents/hooks prints nothing)"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:219,230 (worktree_kind, worktree_value), :240,242 (missing, wt_name); .agents/hooks/worktree-write-guard.sh:95-99 (kind and value mirror the lib's argument names), :102 (name)"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:122 (why an integration stop with no transcript passes), :132 (why Codex integration stops pass), :225 (why integration runs with --exclude-unfinished), :238 (why a rejected name only reaches the warning); .agents/hooks/worktree-write-guard.sh:101 (why an unnamed header keeps the linked-worktree rule)"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/hooks/post-implementation-audit.sh:236 (why the orchestrator's worktree is looked up before the payload cwd), :238; .agents/hooks/worktree-write-guard.sh:101; no added comment restates the line below it"
+  - n: "R4"
+    verdict: "pass"
+    location: "no added body comment names a decision ID, a doc path or a task ID (post-implementation-audit.sh:122,132,225,236,238; worktree-write-guard.sh:75,101; tests/hooks/audit-agent-worktrees.sh:98); the .workflow/ paths in header blocks (audit:25; guard:5,15) are exempt under R4's header rule"
+  - n: "R5"
+    verdict: "pass"
+    location: "post-implementation-audit.sh:225 ('Phase 1' is defined in the file header at :37) and :238 ('isolation' is defined at :28); worktree-write-guard.sh:101 is plain English"
+read_outside_diff: ["/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/lib/workflow-paths.sh: wf_enc and wf_agent_worktree_name, lines 111-161 (name rules, rejection cases, the 3-digit spec number rule at :135)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/skills/feature-workflow/scripts/check-worktree-scope.sh: lines 93-104 (rule 3: no name and no linked worktree is allow)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/skills/feature-workflow/scripts/resolve-launch.sh: FORMATS spec_dir regex at line 103 (accepts any digit count), existence check at 274", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1/.agents/hooks/worktree-write-guard.sh: whole file (sourcing, name derivation, scope call, header)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1/.agents/hooks/post-implementation-audit.sh: whole file (sourcing, integration and transcript exits, worktree choice, toolchain call)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1/.agents/hooks/codex-pre-spawn.sh: sourcing and wf_enc call sites (lines 35, 66, 79, 88)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1/.agents/lib/workflow-paths.sh: read-only probe, wf_agent_worktree_name on .workflow/specs/001-ok (s001_phase_1_claude_code, status 0), 1-foo and 001-_x (status 1)", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/profiles/shell-scripts.md: checklist, the guard fail-closed rule and the # Exit: rule", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/specs/done/006-result-file-guard/design-log.md: lines 306-310, the ruling on the silent integration exit", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/specs/done/006-result-file-guard/tasks/T01-hooks-agent-worktree-names.md: acceptance criteria and the lib contract", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.agents/skills/feature-workflow/references/readable-code.md: rules R1-R5 and the Checking table", "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t1 via git show 4b66751:.agents/hooks/worktree-write-guard.sh: pre-change name rule at lines 84-92 (any digit count)"]
+out_of_scope_noticed:
+  - kind: "decision"
+    summary: "Checklist item 3 says nothing is silently swallowed, but the integration stop with no transcript exits silently by the ruling in the design log. Item 3 passes here on that ruling, so the checklist wording and the ruling disagree."
+    evidence: ".agents/hooks/post-implementation-audit.sh:122-123; .workflow/specs/done/006-result-file-guard/design-log.md:306-310"
+    blocker_assessment: "can-wait"
+    reason: "The ruling settles this task's behaviour, so the review does not fail on it; the wording gap would make a later reviewer fail the same line again."
+  - kind: "decision"
+    summary: "wf_agent_worktree_name needs three or more digits in the spec folder number, as wf_norm_folder does, while resolve-launch and the pre-change guard accepted any digit count. A Phase 3 task in a folder such as 12-foo was confined before and now names no worktree in either hook."
+    evidence: ".agents/lib/workflow-paths.sh:135; git show 4b66751:.agents/hooks/worktree-write-guard.sh:87-88 (pre-change ^[0-9]+$ test)"
+    blocker_assessment: "can-wait"
+    reason: "The repo numbers specs with three digits, so this changes only non-standard folders; the spec should say which digit rule wins before a spec uses one."
+  - kind: "bug"
+    summary: "The worktree-write-guard header Sources line omits lib/workflow-paths.sh, which the hook now sources and calls for the worktree name."
+    evidence: ".agents/hooks/worktree-write-guard.sh:30 (Sources), :59 (source), :102 (call)"
+    blocker_assessment: "can-wait"
+    reason: "A reader of the header would not learn that the guard's worktree names come from the lib; the audit and Codex hooks already list it."

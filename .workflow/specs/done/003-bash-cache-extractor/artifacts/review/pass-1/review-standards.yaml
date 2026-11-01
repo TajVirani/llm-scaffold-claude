@@ -1,0 +1,67 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "86609a64711682747a07bea99a7ed442cf5a827c"
+head: "48d8646a806d8f0c37063c2d026bf9dcc141328f"
+findings:
+  - id: RS-1
+    category: profile
+    severity: medium
+    confidence: 85
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:518-567
+    claim: "build-architecture.sh copies budget-check.sh's DEFAULT_TEST_PATTERNS list and its is_test_path matching into a second skill instead of moving the shared code to .agents/lib/."
+    consequence: "The new comment says the two must match ('Same defaults and matching as the step that counts a change's files against its size limit'), but nothing keeps them matched. When someone changes the default list or the dir/ or glob matching in feature-workflow's budget-check.sh, regenerate-caches keeps the old rules. Flows entry candidates and the size-budget test count then disagree about which files are tests."
+    evidence:
+      basis: ".workflow/profiles/shell-scripts.md File locations: \"Code a second skill needs moves to `.agents/lib/`.\" and \"`.agents/skills/<s>/scripts/`: the skill's executable logic. Never sourced by another skill; shared code goes through `.agents/lib/`.\" The same list and the same three-branch matcher are at .agents/skills/feature-workflow/scripts/budget-check.sh:60-68 and 155-170."
+      diff: "+# Same defaults and matching as the step that counts a change's files against its size limit, so a file that step counts as a test is never an entry candidate.\n+DEFAULT_TEST_PATTERNS='*.test.*\n+is_test_file() {"
+    suggested_fix: "Move the default test patterns and the path matcher into a sourced helper under .agents/lib/ (shared core, through the integration agent). Have budget-check.sh and build-architecture.sh both source it, and delete the copy."
+  - id: RS-2
+    category: smell
+    severity: medium
+    confidence: 80
+    location: .agents/skills/regenerate-caches/scripts/extractors/dependency-cruiser.sh:34-41
+    claim: "Possible Duplicated Code: depcruise_cmd in the new extractor repeats the lookup that tool_cmd in build-architecture.sh still does for the same tool (DEPCRUISE, then node_modules/.bin, then npx --no-install)."
+    consequence: "build-architecture.sh still finds depcruise for the Boundary violations check with tool_cmd (line 373), while the extractor now finds it on its own. If one lookup changes (another env var, a pnpm path, a missing-npx message), the graph and the boundary check in the same architecture cache can run different depcruise binaries or fail in different ways."
+    evidence:
+      basis: "Smell baseline: Duplicated Code (the same logic shape appears in more than one file in the change). tool_cmd is at build-architecture.sh:248."
+      diff: "+depcruise_cmd() {\n+  if [[ -n \"${DEPCRUISE:-}\" ]]; then cmd=(\"$DEPCRUISE\")\n+  elif [[ -x \"$root/node_modules/.bin/depcruise\" ]]; then cmd=(\"$root/node_modules/.bin/depcruise\")"
+    suggested_fix: "Keep one depcruise lookup. Either put the lookup in a small file in the same skill that both scripts source, or have the boundary check call it through the extractor's script."
+  - id: RS-3
+    category: rule
+    severity: low
+    confidence: 90
+    location: PROVENANCE.md:19
+    claim: "The new PROVENANCE.md row calls scripts/extractors/bash.sh and scripts/extractors/dependency-cruiser.sh 'stubbed', but both are full implementations at HEAD."
+    consequence: "PROVENANCE.md is the inventory of what is built and what is not. A maintainer who reads it will think the bash graph extractor is not done yet, and may plan work that is already finished or decide the bash caches are not ready to use."
+    evidence:
+      basis: ".workflow/rules.md Cross-cutting policy: \"Adding, vendoring or removing anything under `.agents/`: update `PROVENANCE.md` in the same change.\" Every other row uses 'implemented' for finished assets."
+      diff: "+`scripts/extractors/bash.sh` and `scripts/extractors/dependency-cruiser.sh` stubbed: first-party graph extractors printing dependency-cruiser's JSON shape"
+    suggested_fix: "Change 'stubbed' to 'implemented'."
+  - id: RS-4
+    category: smell
+    severity: low
+    confidence: 80
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:260-283
+    claim: "Possible Mysterious Name: cruise_json, and the 'dependency-cruiser' wording around it, now holds the merged graph from every graph extractor, bash included, not dependency-cruiser output."
+    consequence: "The new run_extractors writes the bash graph into $cruise_json. A maintainer who reads the name will expect real dependency-cruiser output and may add handling that only depcruise output supports (for example summary.violations), which breaks bash-only projects. This is readable-code R1."
+    evidence:
+      basis: "Smell baseline: Mysterious Name; readable-code.md R1: \"Give each function, variable, type and test a name that says what it is for.\""
+      diff: "+# run_extractors NAME... : writes the merged graph of the named extractors to $cruise_json."
+    suggested_fix: "Rename cruise_json to graph_input_json (or similar) and cruise.json to merged-graph.json."
+checked:
+  - ".workflow/rules.md (all sections: Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1, T2, T3, T4)"
+  - ".workflow/profiles/agent-docs.md (T5, T6, T7, T8)"
+  - ".workflow/profiles/test-harness.md (tests/ files in the diff from the Phase 1 harness)"
+  - "AGENTS.md (CLAUDE.md is a one-line import of it)"
+  - ".workflow/specs/done/003-bash-cache-extractor/design-log.md Placement entry (no ADR link; the entry is the placement record, D1)"
+  - ".workflow/GLOSSARY.md (Graph extractor, Tier B, Cache stamp)"
+  - ".agents/skills/feature-workflow/references/readable-code.md"
+  - "toolchain.json for T1-T8: lint and test passed for all of them; typecheck, format and boundary were skipped because the profile has no command for them"
+  - "Profile subfolder conflict (shell-scripts.md: 'Depth stops at .agents/skills/<s>/scripts/<file>: no subfolders') against scripts/extractors/: suppressed, because the design log records it and files it as proposal P1 for 5.3"
+  - "JRN- and CAP- IDs in the new '# Suite:' header blocks: suppressed, because the header block is exempt and tests/hooks/codex-pre-spawn-initiative.sh already does the same"
+not_checked:
+  - "CODING_STANDARDS.md: not present at the repo root"
+  - "CONTRIBUTING.md: not present at the repo root"
+  - ".workflow/GLOSSARY-MAP.md: not present in the repo"
+  - "Typecheck, format and boundary keys: skipped in every task's toolchain.json (no command; dependency-cruiser cannot read bash). Module ownership was checked by hand against rules.md, and no forbidden dependency was found"

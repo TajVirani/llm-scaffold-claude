@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/001-large-path
+origin_spec: .workflow/specs/done/001-large-path
 created: 2026-10-22
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-22
 
 **Summary:** This repo has no `.workflow/model-map/research.md`, so the first research launch from an initiative here stops at the 00.14 "no model assigned" deny until a human picks one.
 **Mode:** HITL
-**Origin:** [001-large-path](../specs/001-large-path/spec.md), 4.8 review finding (gap F10), design-log entry 2026-10-22 Triage, review pass 1
+**Origin:** [001-large-path](../specs/done/001-large-path/spec.md), 4.8 review finding (gap F10), design-log entry 2026-10-22 Triage, review pass 1
 
 ## Goal
 
@@ -27,7 +27,7 @@ The spec assumed this repo would record the research model in its model map, but
 
 ## Decisions already made
 
-- The research task type takes `spec_dir` only and gets its model through the existing 00.14 flow at first launch (design-log Assumptions, [spec.md](../specs/001-large-path/spec.md)).
+- The research task type takes `spec_dir` only and gets its model through the existing 00.14 flow at first launch (design-log Assumptions, [spec.md](../specs/done/001-large-path/spec.md)).
 
 ## Evidence
 
@@ -44,4 +44,4 @@ The spec assumed this repo would record the research model in its model map, but
 
 ## Later requests
 
-- .workflow/specs/002-review-lessons, 5.9: backlog item `002-review-lessons-disc-001` (found at 2.1): project-setup's model-map tier table and counts also omit `research` (`modules/model-map.md`, `SKILL.md`), so a new project gets no entry either; the item was moved here as the same concept.
+- .workflow/specs/done/002-review-lessons, 5.9: backlog item `002-review-lessons-disc-001` (found at 2.1): project-setup's model-map tier table and counts also omit `research` (`modules/model-map.md`, `SKILL.md`), so a new project gets no entry either; the item was moved here as the same concept.

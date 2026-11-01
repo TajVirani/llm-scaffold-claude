@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00010-worktree-guard-followups
+origin_spec: .workflow/specs/done/00010-worktree-guard-followups
 created: 2026-10-30
 severity: medium
 ---
@@ -8,7 +8,7 @@ severity: medium
 
 **Summary:** Every spelling of an in-place `yq --front-matter=extract` call is refused, not only the ones the settings deny rules match by text.
 **Mode:** HITL
-**Origin:** [00010-worktree-guard-followups](../specs/00010-worktree-guard-followups/spec.md), 4.8 review finding F3, design-log entry 2026-10-30 Triage, review pass 1
+**Origin:** [00010-worktree-guard-followups](../specs/done/00010-worktree-guard-followups/spec.md), 4.8 review finding F3, design-log entry 2026-10-30 Triage, review pass 1
 
 ## Goal
 
@@ -29,7 +29,7 @@ Spec 00010 added four `permissions.deny` rules that refuse `yq --front-matter=ex
 
 ## Decisions already made
 
-- Deny rules in the settings template, not an installer change (design-log D6 in [.workflow/specs/00010-worktree-guard-followups/design-log.md](../specs/00010-worktree-guard-followups/design-log.md)).
+- Deny rules in the settings template, not an installer change (design-log D6 in [.workflow/specs/done/00010-worktree-guard-followups/design-log.md](../specs/done/00010-worktree-guard-followups/design-log.md)).
 - A main-session yq hook was not asked for in 00010 (Deeper prompt, Not asked for).
 
 ## Evidence

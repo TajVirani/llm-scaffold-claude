@@ -1,0 +1,52 @@
+verdict: pass
+task_id: T5
+work_type: shell-scripts
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t5@d4899749c45c99f32f8f539fed7a005e2649cc38..HEAD"
+tool_output: ".workflow/specs/done/005-cache-build-followups/artifacts/T5/toolchain.json"
+items:
+  - n: 1
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:23-25 (diff adds no .workflow path to the script); tests/scripts/cache-scripts.sh:191-205 (test fixture spells its paths, which the item allows)"
+  - n: 2
+    verdict: not-applicable
+    location: "no code in the diff the item applies to (no hook file changed)"
+  - n: 3
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:177 (mktemp failure goes to die), :179 (EXIT trap removes the temp file), :181-184 (validator rejection prints its output to stderr and exits 1, as the header states), :194-201 (missing node or package prints a stderr warning and still reaches echo ok, as the header states)"
+  - n: 4
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:18-19 (Exit codes line lists 0, 1 including the validator rejection, and 2; same form as budget-check.sh:45 and cache-stamp-check.sh:28)"
+  - n: 5
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:25 (skills_dir from cd -P of dirname BASH_SOURCE[0])"
+  - n: 6
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:1-22 (helper header block with File, Purpose, Called by, Steps, Sources, Usage, Output, Exit codes; no decision ID)"
+  - n: 7
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:194 and :195 (new tests use [[ ]], matching the file's existing style); no new script file in the diff; tests/scripts/cache-scripts.sh:191-205 uses the file's existing eq and check helpers"
+  - n: 8
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:148 (write_mermaid_html), :161 (package_reachable), :174 (validate_mermaid), each with its name ARGS : line; no shellcheck disable directive added"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:25-26 (skills_dir, mermaid_validator, mermaid_checklist), :173 (validator_html holds the temp file path), :176 (local report), :148 and :161 and :175 (function names say what each does)"
+  - n: R2
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:178 (why the EXIT trap exists: set -e exits on a failed write), :161-162 (why package_reachable walks upward), :4-9 (why the validator runs only on pre class mermaid HTML)"
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:148, :161, :174 (function summary lines state exit behaviour and scope, not the next line); no body comment restates code"
+  - n: R4
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:162, :178 (body comments name no decision ID, doc or workflow path); test labels at tests/scripts/cache-scripts.sh:191-205 carry JRN-007, but they are test names, not comments, and that label form already exists in the file"
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh:162, :178 (plain sentences; set -e is standard shell vocabulary; Mermaid validator is spelled out in the header)"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1-R5 rules and Checking table"
+  - ".agents/skills/regenerate-caches/scripts/check-staged-cache.sh: full file at HEAD 46c4131, for trap, function and exit-path context"
+  - ".agents/skills/feature-workflow/scripts/budget-check.sh:45, .agents/skills/regenerate-caches/scripts/cache-stamp-check.sh:28, grep of '^# Exit' across .agents/hooks and .agents/skills/*/scripts: sibling Exit header form"
+out_of_scope_noticed: []

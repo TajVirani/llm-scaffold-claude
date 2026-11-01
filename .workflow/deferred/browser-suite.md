@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/004-scoped-test-runs
+origin_spec: .workflow/specs/done/004-scoped-test-runs
 created: 2026-10-22
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-22
 
 **Summary:** This repo has no browser suite, so the light path's 3.10-3.11 browser gate is skipped.
 **Mode:** HITL
-**Origin:** [004-scoped-test-runs](../specs/004-scoped-test-runs/spec.md), 3.14 suite gap, design-log entry 2026-10-22 Suite gap: browser suite
+**Origin:** [004-scoped-test-runs](../specs/done/004-scoped-test-runs/spec.md), 3.14 suite gap, design-log entry 2026-10-22 Suite gap: browser suite
 
 ## Goal
 
@@ -40,6 +40,6 @@ The scaffold is bash scripts plus markdown, with no web UI for a browser to driv
 
 ## Later requests
 
-- .workflow/specs/00011-interrupted-run-cleanup, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit f8029a6e3a461b085c60095d6b3868e17b387b6f.
-- .workflow/specs/00012-extractor-multiline-quotes, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit a51130e3fed52a186c47ad62957a126c0bf8001f.
-- .workflow/specs/00013-validator-diagnostic, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit 5ae07ecabe569190e5bca4a7083232d6009faed5.
+- .workflow/specs/done/00011-interrupted-run-cleanup, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit f8029a6e3a461b085c60095d6b3868e17b387b6f.
+- .workflow/specs/done/00012-extractor-multiline-quotes, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit a51130e3fed52a186c47ad62957a126c0bf8001f.
+- .workflow/specs/done/00013-validator-diagnostic, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit 5ae07ecabe569190e5bca4a7083232d6009faed5.

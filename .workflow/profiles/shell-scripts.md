@@ -57,6 +57,7 @@ graph_extractor: bash # the graph extractor the Tier B cache build runs for this
 - [ ] A new `.workflow/` path in a script is built from `workflow-paths.sh`, never spelled out; a test fixture under `tests/` may spell the paths it builds.
 - [ ] Hook logic stays thin: real work is in the owning skill's script.
 - [ ] Every error path reaches `die()` or the guard's deny output; nothing is silently swallowed, except a silent exit the hook's header documents as intended (for example a stop the audit does not cover).
+- [ ] A write or check inside a loop, function or command substitution whose caller adds `|| die` or `|| exit` carries its own `|| die`: bash suspends `set -e` on the left side of `||`.
 - [ ] A new or changed exit code matches 0/1/2 and is documented in `# Exit:`.
 - [ ] Sibling paths resolve from `BASH_SOURCE` with `cd -P`.
 - [ ] The header block has the shape for its kind (hook or helper) and names no decision ID.

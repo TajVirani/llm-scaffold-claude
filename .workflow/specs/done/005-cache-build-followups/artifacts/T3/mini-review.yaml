@@ -1,0 +1,49 @@
+verdict: pass
+task_id: T3
+work_type: shell-scripts
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t3@2e32c3b04ab1abc36d5450486f080752f906fa60..HEAD
+tool_output: .workflow/specs/done/005-cache-build-followups/artifacts/T3/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: ".agents/skills/regenerate-caches/scripts/build-architecture.sh:391, build-architecture.sh:407, build-architecture.sh:413, .agents/lib/workflow-paths.sh:44"
+  - n: 2
+    verdict: not-applicable
+    location: "build-architecture.sh is a helper script (its header says Helper script, not a hook); no hook code in the diff"
+  - n: 3
+    verdict: pass
+    location: "build-architecture.sh:381-398 (run_boundary_check reports not-run reasons as a return string), build-architecture.sh:409-413 (render_boundary_violations writes the Not checked line to the body)"
+  - n: 4
+    verdict: pass
+    location: "build-architecture.sh:57-59 (# Exit: list does not include the removed depcruise-not-found die, and still lists exit 2 for unparseable --violations-json)"
+  - n: 5
+    verdict: not-applicable
+    location: "no new sibling path resolution in the diff; existing lines 64-66 already use cd -P with BASH_SOURCE"
+  - n: 6
+    verdict: pass
+    location: "build-architecture.sh:1-5 (# File: helper header shape kept), build-architecture.sh:46-52 (added header text names no decision ID)"
+  - n: 7
+    verdict: pass
+    location: "build-architecture.sh:385, build-architecture.sh:407 ([[ ]] used in new code, matching the file); tests/scripts/cache-boundary-check.sh new lines add no test syntax of a different style"
+  - n: 8
+    verdict: pass
+    location: "build-architecture.sh:381 (# run_boundary_check OUT_FILE : ... line present); no shellcheck disable= directive added in the diff"
+  - n: R1
+    verdict: pass
+    location: "build-architecture.sh:381 (run_boundary_check), build-architecture.sh:410 (not_run_reason), tests/scripts/cache-boundary-check.sh:139 (stderr_marker, depcruise-noisy-failing)"
+  - n: R2
+    verdict: pass
+    location: "build-architecture.sh:389-390 (the exit code does not say whether depcruise ran, and stderr is dropped because the body is built from stdout; this gives the reason for 2>/dev/null)"
+  - n: R3
+    verdict: pass
+    location: "build-architecture.sh:381-382 (contract comment describes the outputs, not the next line)"
+  - n: R4
+    verdict: pass
+    location: "build-architecture.sh:381-382, 389-390 (no decision IDs, doc or workflow paths in body comments); header lines 49-52 name no IDs"
+  - n: R5
+    verdict: pass
+    location: "build-architecture.sh:390 ('cache body' is defined in the file header, line 4: .workflow/cache/architecture.md body)"
+read_outside_diff: [".agents/skills/regenerate-caches/scripts/build-architecture.sh: confirmed root is cd'd at line 125 so the relative $WF_BOUNDARIES path resolves, and the header and Exit doc", ".agents/lib/workflow-paths.sh: WF_BOUNDARIES defined at line 44", ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 rules and checking table"]
+out_of_scope_noticed: []

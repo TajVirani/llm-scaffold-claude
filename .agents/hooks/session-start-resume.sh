@@ -17,7 +17,8 @@
 #   - Initiatives (.workflow/initiatives/NNN-slug, sorted by name), each listed once as
 #     `- .workflow/initiatives/NNN-slug: status <s>; current step <id> (since <t>); research pending: <n>`, where <n> counts the questions in
 #     questions.md with state `researching` and the step comes from the gitignored .step in the main checkout. Listed: `exploring`, and
-#     `planned` while a spec made from one of its slices is not `done` on origin/<main_branch> (else <main_branch>; rules-setting.sh
+#     `planned` while a spec made from one of its slices is not `done` on origin/<main_branch>, at the top level of .workflow/specs/ or in
+#     its Done folder, done/ (else <main_branch>; rules-setting.sh
 #     main_branch; when that setting cannot be read, main is used and the offer says so).
 #     Omitted: `done`, and `planned` with every emitted spec done. Read from the local initiative/NNN-slug branch with `git show` when it
 #     exists and is not checked out, else from the working tree, else from origin/initiative/NNN-slug; never by switching branches.
@@ -148,7 +149,8 @@ initiative_file() {
 
 # A spec is done once it is done on the main branch; on its own branch it reads done before the merge lands.
 main_ref="" main_warning=""
-# spec_done_on_main SPEC : succeeds when SPEC's spec.md has status done on origin/<main> (or <main> without a remote copy).
+# spec_done_on_main SPEC : succeeds when SPEC's spec.md has status done on origin/<main> (or <main> without a remote copy),
+#   at the top level of the specs folder or in the Done folder.
 spec_done_on_main() {
   if [ -z "$main_ref" ]; then
     local main err_file
@@ -162,7 +164,12 @@ spec_done_on_main() {
     main_ref=$main
     git -C "$root" rev-parse -q --verify "refs/remotes/origin/$main" >/dev/null 2>&1 && main_ref=origin/$main
   fi
-  [ "$(git -C "$root" show "$main_ref:$WF_SPECS/$1/spec.md" 2>/dev/null | raw_status /dev/stdin)" = "done" ]
+  # Specs merged before the Done folder existed stay at the top level, so both locations count.
+  local folder
+  for folder in "$WF_SPECS" "$WF_SPECS_DONE"; do
+    [ "$(git -C "$root" show "$main_ref:$folder/$1/spec.md" 2>/dev/null | raw_status /dev/stdin)" != "done" ] || return 0
+  done
+  return 1
 }
 
 # Initiatives to resume: every one exploring, or planned with an emitted spec not yet done on main. Each is listed once.

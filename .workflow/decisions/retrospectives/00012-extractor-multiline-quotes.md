@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/00012-extractor-multiline-quotes
+spec: .workflow/specs/done/00012-extractor-multiline-quotes
 date: 2026-10-30
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/00012-extractor-multiline-quotes/spec.md` (capabilities: CAP-005)
-- Report: `.workflow/specs/00012-extractor-multiline-quotes/report.md`
+- Spec: `.workflow/specs/done/00012-extractor-multiline-quotes/spec.md` (capabilities: CAP-005)
+- Report: `.workflow/specs/done/00012-extractor-multiline-quotes/report.md`
 - Tasks: 1 done, 0 deferred (one review finding deferred to `.workflow/deferred/bash-extractor-quote-rules.md`)
 - Evidence available: spec.md, report.md, tasks.md, design-log.md (questioning round 1, triage pass 1, sign-off), proposals.md, `artifacts/T1/` (fix rounds and rework), `artifacts/gate-3.9-w1/`, `artifacts/gate-3.9-w2/`, `artifacts/sign-off-5.4/`, `artifacts/review/pass-1/`, `artifacts/oracle/oracle-diff.txt`, git `9347768..8c637b1`
 - Evidence missing: verification-plan.md not produced (light path); no session logs beyond the design-log entries.

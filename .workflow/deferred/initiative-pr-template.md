@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/008-pr-description-template
+origin_spec: .workflow/specs/done/008-pr-description-template
 created: 2026-10-29
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-29
 
 **Summary:** Give the initiative PR into main (large path, 6.11/6.13) a filled PR template, as the Sign-off PR gets one.
 **Mode:** HITL
-**Origin:** [008-pr-description-template](../specs/008-pr-description-template/spec.md), 0.3.17 scope decision (module-audit, out of scope noticed), design-log entry 2026-10-29 Scope decision: initiative PR template
+**Origin:** [008-pr-description-template](../specs/done/008-pr-description-template/spec.md), 0.3.17 scope decision (module-audit, out of scope noticed), design-log entry 2026-10-29 Scope decision: initiative PR template
 
 ## Goal
 
@@ -27,7 +27,7 @@ Spec 008 adds the PR template to the Sign-off PR only. The initiative PR is a se
 
 ## Decisions already made
 
-- The PR template covers the Sign-off PR only (spec 008 Non-goals, [.workflow/specs/008-pr-description-template/spec.md](../specs/008-pr-description-template/spec.md)).
+- The PR template covers the Sign-off PR only (spec 008 Non-goals, [.workflow/specs/done/008-pr-description-template/spec.md](../specs/done/008-pr-description-template/spec.md)).
 
 ## Evidence
 

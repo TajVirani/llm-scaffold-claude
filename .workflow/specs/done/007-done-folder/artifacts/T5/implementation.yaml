@@ -1,0 +1,22 @@
+status: done
+summary: "Fixed mini-review item 3: the printf that writes each candidate path in list_files_naming now reaches die on failure, because the loop's '|| die' turns set -e off inside it. The same gap was found and fixed in two more places that run with set -e off because they are called inside '$(...) || exit 2': open_sub_items (the printf for each open backlog item) and move_refusal (both echo lines). A lost line there would have let a spec with open sub-items, a status other than done, or a taken Done folder name move anyway."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t5"
+branch: "task/007-done-folder/T05-move-to-done-script"
+base_commit: "7aa3f923c789577092c25de443f2b40ab42facad"
+head_commit: "f2cea4538f971ffedb79601dd3cb96a4157d2b4e"
+files_changed: [".agents/skills/feature-workflow/scripts/move-to-done.sh"]
+tests_added: []
+evidence:
+  red: "not applicable: no portable way makes a write to a file in the mktemp scratch folder, or to a command-substitution pipe, fail on macOS (there is no /dev/full), so no suite case was added"
+  green: "tests/run-all.sh (scoped to scripts/move-to-done): passed=118 failed=0"
+  suite: "bash .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/007-done-folder --task-id T5 --cwd <worktree>; test pass (scripts/move-to-done passed=118 failed=0), lint (shellcheck) pass"
+  toolchain: ".workflow/specs/done/007-done-folder/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "a suite case for the failed write: the write cannot be made to fail portably (no /dev/full on macOS; the scratch folder is created by mktemp inside the script)"
+  - "checks on the roll_back and on_exit stderr printfs: they run with set +e during a rollback on purpose, and calling die there would cut the rollback short"
+  - "checks on the top-level echo/printf lines and on the writes inside move_spec and commit_moves: they run with set -e on, so a failed write already stops the script"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

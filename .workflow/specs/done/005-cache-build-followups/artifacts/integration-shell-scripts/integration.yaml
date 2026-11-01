@@ -1,0 +1,28 @@
+status: "done"
+summary: "Replaced the Phase 1 stubs in .agents/lib/workflow-paths.sh (wf_main_root, wf_norm_folder) and .agents/lib/test-paths.sh (wf_default_test_patterns, wf_load_test_patterns, wf_is_test_path) with working code taken from the per-script copies. Both lib suites pass except the expected leftover-copy grep case; no caller script was touched."
+work_type: "shell-scripts"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.claude/worktrees/agent-a814c559f07dfdc1c"
+branch: "worktree-agent-a814c559f07dfdc1c"
+base_commit: "ddce827a3b57009885f2c5a1d60e874911cc1d16"
+head_commit: "b10a63d5904a2276eea6140bacd02c81949dab64"
+requests:
+  - n: 1
+    verdict: "applied"
+    reason: "Shared-core helpers in .agents/lib/. Reasons go to stderr, not to stdout as the request said for wf_main_root, because tests/scripts/lib-workflow-paths.sh requires an empty stdout on refusal."
+    interface: "source .agents/lib/workflow-paths.sh; wf_main_root DIR prints the main checkout root, status 1 and 'not inside a git repository: DIR' on stderr; wf_norm_folder spec|initiative ARG prints $WF_SPECS/NNN-slug or $WF_INITIATIVES/NNN-slug, status 1 and '<spec|initiative> dir must be <root>/NNN-slug: ARG' on stderr (an unknown kind is also status 1). Neither exits."
+    awaiting_contract: []
+    tests: ["tests/scripts/lib-workflow-paths.sh: JRN-006 wf_main_root and wf_norm_folder cases (30 pass)"]
+  - n: 2
+    verdict: "applied"
+    reason: "Shared-core helper in .agents/lib/; the union of the budget-check.sh and build-architecture.sh rules."
+    interface: "source .agents/lib/test-paths.sh; wf_default_test_patterns prints the nine defaults one per line; wf_load_test_patterns PROFILES_DIR prints the merged list (LC_ALL=C sort -u), or status 1 with the reason on stdout in place of the list ('test_patterns in PROFILES_DIR/x.md must be a list of non-empty path patterns' or 'the Toolchain yaml block does not parse in ...'); wf_is_test_path PATH returns 0/1 using WF_TEST_PATTERNS. Also defines WF_DEFAULT_TEST_PATTERNS and the helpers wf_toolchain_block and wf_profile_test_patterns."
+    awaiting_contract: []
+    tests: ["tests/scripts/lib-test-paths.sh: JRN-005 wf_default_test_patterns, wf_load_test_patterns and wf_is_test_path unit cases (46 pass; the leftover-copy grep case stays red until budget-check.sh and build-architecture.sh switch over)"]
+files_changed: [".agents/lib/workflow-paths.sh", ".agents/lib/test-paths.sh"]
+evidence:
+  toolchain: ".workflow/specs/done/005-cache-build-followups/artifacts/integration-shell-scripts/toolchain.txt (pass)"
+  tests: "tests/run-all.sh --suite scripts/lib-workflow-paths: 30 passed, 0 failed. tests/run-all.sh --suite scripts/lib-test-paths: 46 passed, 1 failed (the expected leftover-copy grep). Full tests/run-all.sh: 3044 passed, 15 failed, all in Phase 1 suites of unfinished tasks (cache-boundary-check JRN-003, cache-repo-architecture JRN-002, cache-scripts JRN-007, extractor-bash JRN-001, task-breakdown JRN-006 open-task-pr absolute-elsewhere rows, lib-test-paths leftover copy)."
+  callers_checked: ["every script that sources .agents/lib/workflow-paths.sh: their suites pass in the full run (status-transition-specs, budget-check, commit-workflow-data, initiative-transition and the hook suites)", "no script sources .agents/lib/test-paths.sh yet"]
+profile_wrong: null
+blocked: null
+discovered_work: []

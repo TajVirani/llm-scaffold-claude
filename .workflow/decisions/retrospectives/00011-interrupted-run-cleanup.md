@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/00011-interrupted-run-cleanup
+spec: .workflow/specs/done/00011-interrupted-run-cleanup
 date: 2026-10-30
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/00011-interrupted-run-cleanup/spec.md` (capabilities: CAP-001)
-- Report: `.workflow/specs/00011-interrupted-run-cleanup/report.md`
+- Spec: `.workflow/specs/done/00011-interrupted-run-cleanup/spec.md` (capabilities: CAP-001)
+- Report: `.workflow/specs/done/00011-interrupted-run-cleanup/report.md`
 - Tasks: 1 done, 0 deferred (the browser-suite gap is a Later requests line on `.workflow/deferred/browser-suite.md`)
 - Evidence available: spec.md, report.md, tasks.md, design-log.md (questioning round 1, triage pass 1, sign-off), proposals.md, `artifacts/T1/` (three implementation and mini-review rounds plus the rework), `artifacts/gate-3.9-w1/`, `artifacts/gate-3.9-w2/`, `artifacts/sign-off-5.4/`, `artifacts/review/pass-1/`, git `3fee587..cc1e584`
 - Evidence missing: verification-plan.md not produced (light path); no session logs beyond this session's design-log entries.

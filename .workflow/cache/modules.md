@@ -1,35 +1,8 @@
 ---
-generated_at_commit: 581e785c5e978c2b7db6d99626f5d42035531426
-generated_at: "2026-10-30T14:55:34Z"
+generated_at_commit: 9e971ade158b5e92da93bf2b150fd68dd55d7e9e
+generated_at: "2026-10-30T15:03:48Z"
 scope:
-  - ".agents/README.md"
-  - ".agents/agents"
-  - ".agents/hooks"
-  - ".agents/install-manifest.txt"
-  - ".agents/lib"
-  - ".agents/output-styles"
-  - ".agents/skills/data-structure-audit"
-  - ".agents/skills/deeper-prompt"
-  - ".agents/skills/deps-audit"
-  - ".agents/skills/deps-update"
-  - ".agents/skills/design-pattern-doc"
-  - ".agents/skills/domain-modeling"
-  - ".agents/skills/feature-workflow"
-  - ".agents/skills/glab"
-  - ".agents/skills/handoff"
-  - ".agents/skills/pr-quality"
-  - ".agents/skills/pr-review-data"
-  - ".agents/skills/project-setup"
-  - ".agents/skills/project-standards"
-  - ".agents/skills/regenerate-caches"
-  - ".agents/skills/retrospective"
-  - ".agents/skills/visual-change-report"
-  - ".agents/skills/writing-for-agents"
-  - "AGENTS.md"
-  - "README.md"
-  - "install.sh"
-  - "scripts"
-  - "tests"
+  - ".agents/README.md .agents/agents .agents/hooks .agents/install-manifest.txt .agents/lib .agents/output-styles .agents/skills/data-structure-audit .agents/skills/deeper-prompt .agents/skills/deps-audit .agents/skills/deps-update .agents/skills/design-pattern-doc .agents/skills/domain-modeling .agents/skills/feature-workflow .agents/skills/glab .agents/skills/handoff .agents/skills/pr-quality .agents/skills/pr-review-data .agents/skills/project-setup .agents/skills/project-standards .agents/skills/regenerate-caches .agents/skills/retrospective .agents/skills/visual-change-report .agents/skills/writing-for-agents AGENTS.md README.md install.sh scripts tests"
 cache_type: modules
 generator: "cache-regeneration"
 ---
@@ -37,7 +10,7 @@ generator: "cache-regeneration"
 
 ## .agents/hooks
 
-- Purpose: Adapts Claude Code and Codex hook events to workflow checks: it denies destructive git commands and disallowed writes, validates and completes sub-agent launches, keeps the import-boundary config in step with rules, runs the toolchain when an implementation agent stops, captures browser-suite evidence, offers to resume in-flight work and generates Codex agent files.
+- Purpose: Checks Claude Code and Codex tool calls and sub-agent launches: denies destructive git commands and writes outside the allowed workflow step, tier or worktree, validates and completes launches, regenerates the boundary config after rules.md writes, files browser-suite evidence, runs the toolchain at stop and offers to resume in-flight work.
 - Files:
   - `.agents/hooks/_codex-patch.sh`
   - `.agents/hooks/_guard-common.sh`
@@ -74,7 +47,7 @@ generator: "cache-regeneration"
 
 ## .agents/lib
 
-- Purpose: Defines, as sourced shell variables and functions, where workflow data lives under the workflow root and which repo paths count as tests.
+- Purpose: Defines where workflow data lives under the workflow folder and which repo paths count as tests, for hooks and skill scripts to source.
 - Files:
   - `.agents/lib/test-paths.sh`
   - `.agents/lib/workflow-paths.sh`
@@ -101,7 +74,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/data-structure-audit
 
-- Purpose: Prints the files changed since the last audited commits, or records the current HEAD as audited in a committed state file.
+- Purpose: Prints the files changed since the last audited commits, or records HEAD in the committed audit state file.
 - Files:
   - `.agents/skills/data-structure-audit/scripts/audit_scope.sh`
 - Depends on:
@@ -111,7 +84,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/feature-workflow
 
-- Purpose: Writes spec, task and initiative status and step markers, checks writes, worktree scope, launch headers, result, review and PR-body files and size budgets, runs the profile toolchain, derives task waves, commits workflow data and opens task PRs for the feature workflow.
+- Purpose: Reads and writes the feature workflow's records and checks its gates: spec, task and initiative status and step markers, launch resolution, write and worktree rules, result, review-findings and PR-body shapes, size budgets, task waves, profile toolchain runs, workflow-data commits and task PRs.
 - Files:
   - `.agents/skills/feature-workflow/scripts/budget-check.sh`
   - `.agents/skills/feature-workflow/scripts/check-merge-artifacts.sh`
@@ -151,7 +124,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/regenerate-caches
 
-- Purpose: Builds the generated parts of the Tier B caches from extracted file graphs, checks cache staleness and staged bodies, and stamps and publishes caches into .workflow/cache/.
+- Purpose: Builds the Tier B cache bodies from the file graph the bash and dependency-cruiser extractors print, checks them for staleness and shape, and stamps and publishes them into .workflow/cache/.
 - Files:
   - `.agents/skills/regenerate-caches/scripts/build-architecture.sh`
   - `.agents/skills/regenerate-caches/scripts/cache-stamp-check.sh`
@@ -168,7 +141,7 @@ generator: "cache-regeneration"
 
 ## install.sh
 
-- Purpose: Copies the manifest-listed .agents/ payload into a target project and sets up its Claude and Codex host shims, hook settings and .gitignore entries.
+- Purpose: Copies the manifest-listed .agents/ payload into a target git repository and sets up its Claude and Codex host shims and .gitignore block.
 - Files:
   - `install.sh`
 - Depends on:
@@ -180,7 +153,7 @@ generator: "cache-regeneration"
 
 ## scripts
 
-- Purpose: Shows what changed upstream since the commit each upstream-lineage.json entry is based on.
+- Purpose: Shows what changed upstream since the commit each upstream-lineage.json entry was based on.
 - Files:
   - `scripts/upstream-diff.sh`
 - Depends on: none
@@ -190,7 +163,7 @@ generator: "cache-regeneration"
 
 ## tests
 
-- Purpose: Runs the scaffold test suites for scripts, hooks and lint, with shared fixtures and assertion helpers.
+- Purpose: Runs the scaffold's script, hook and lint test suites with shared fixtures and assertion helpers and prints a summary.
 - Files:
   - `tests/fixtures/architecture-oracle.sh`
   - `tests/fixtures/claude-settings.sh`

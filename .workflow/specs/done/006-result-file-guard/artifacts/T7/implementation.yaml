@@ -1,0 +1,19 @@
+status: "done"
+summary: "README \"Install and upgrade\" now shows --matchers in the usage line and has a short Hook matchers on upgrade part: the merge, replace and keep modes, the terminal prompt (Enter merges), the no-terminal outcome (merge with a warning, mixed group kept), the plain-list, malformed and two-template-group cases, and --dry-run and --force behaviour. CHANGELOG 2.0.0 Migration has one line on the SubagentStop matcher being widened to integration through that rule. tests/lint/install-matcher-docs.sh passes 20/20."
+task_id: "T7"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t7"
+branch: "task/006-result-file-guard/T07-docs-upgrade-matcher-rule"
+base_commit: "860b1e934ef2fe4210db30c36e6ab17e716eafec"
+head_commit: "c9d5e324f98eae7442055323c18efa890c89a6e2"
+files_changed: ["README.md", "CHANGELOG.md"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite lint/install-matcher-docs; FAIL JRN-014 README \"Install and upgrade\" names the --matchers flag (6 failed: README and CHANGELOG flag, modes, terminal; passed=14 failed=6)"
+  green: "tests/run-all.sh --suite lint/install-matcher-docs; PASS lint/install-matcher-docs passed=20 failed=0"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/006-result-file-guard --task-id T7 --cwd <worktree>; lint pass (frontmatter 40/40, symlinks 45/45, upstream-lineage 13/13), test (scoped to lint/install-matcher-docs) pass"
+  toolchain: ".workflow/specs/done/006-result-file-guard/artifacts/T7/toolchain.txt (pass)"
+considered_not_built: ["Prompt wording (r/k keys, the merge-not-possible prompt variant): the task leaves prompt wording to install.sh, so the README points at outcomes only", "Decision ids (D19-D29, D32) in the new README text: the new lines state outcomes without citing decision records"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

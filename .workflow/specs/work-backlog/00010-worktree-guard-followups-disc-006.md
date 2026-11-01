@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00010-worktree-guard-followups
+origin_spec: .workflow/specs/done/00010-worktree-guard-followups
 origin_step: "3.7"
 discovered_at: 2026-10-30
 status: moved-to-deferred
@@ -15,7 +15,7 @@ Test-suite header comments name journey ids (`JRN-001` ...) as shorthand for the
 ## Evidence
 
 - `tests/hooks/worktree-guard.sh:8-21` (Suite header; lines 14 and 17 were cleaned in spec 00010's rework, the rest still carry ids).
-- T2 rework mini-review, `.workflow/specs/00010-worktree-guard-followups/artifacts/T2/mini-review-r3.yaml`: R5 fail on lines 14 and 17, and `out_of_scope_noticed[0]` for the other header lines.
+- T2 rework mini-review, `.workflow/specs/done/00010-worktree-guard-followups/artifacts/T2/mini-review-r3.yaml`: R5 fail on lines 14 and 17, and `out_of_scope_noticed[0]` for the other header lines.
 - `grep -l '^#.*JRN-0' tests/*/*.sh` lists 39 suites; `tests/README.md` maps each tag to its spec.
 - `.workflow/rules.md` Cross-cutting policy bans journey ids in body comments; the `# File:` header rule names only decision ids.
 
@@ -30,6 +30,6 @@ Wording only: no check's behaviour depends on the header, and CAP-007, CAP-008 a
 
 ## Links
 
-- Origin spec: [spec.md](../00010-worktree-guard-followups/spec.md)
-- Design log entry: [design-log.md](../00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Discovered work: suite-header journey ids)
+- Origin spec: [spec.md](../done/00010-worktree-guard-followups/spec.md)
+- Design log entry: [design-log.md](../done/00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Discovered work: suite-header journey ids)
 - Deferred file: [.workflow/deferred/comment-id-lint.md](../../deferred/comment-id-lint.md)

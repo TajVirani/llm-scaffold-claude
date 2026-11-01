@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/006-result-file-guard
+origin_spec: .workflow/specs/done/006-result-file-guard
 created: 2026-10-29
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-29
 
 **Summary:** Hooks that read an agent worktree name back into its spec number, task or work type use one shared parser instead of their own regexes.
 **Mode:** AFK
-**Origin:** [006-result-file-guard](../specs/006-result-file-guard/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Scope decision: worktree-name parser
+**Origin:** [006-result-file-guard](../specs/done/006-result-file-guard/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Scope decision: worktree-name parser
 
 ## Goal
 
@@ -29,7 +29,7 @@ Spec 006 moves the name encoder and builder into `.agents/lib/workflow-paths.sh`
 
 ## Decisions already made
 
-- Encoder and builder live in `workflow-paths.sh`, pinned to `LC_ALL=C` (design-log D15 in [.workflow/specs/006-result-file-guard/design-log.md](../specs/006-result-file-guard/design-log.md)).
+- Encoder and builder live in `workflow-paths.sh`, pinned to `LC_ALL=C` (design-log D15 in [.workflow/specs/done/006-result-file-guard/design-log.md](../specs/done/006-result-file-guard/design-log.md)).
 
 ## Evidence
 
@@ -48,4 +48,4 @@ Spec 006 moves the name encoder and builder into `.agents/lib/workflow-paths.sh`
 
 ## Later requests
 
-- .workflow/specs/006-result-file-guard, 3.7: the mapping from launch header to worktree kind (task, phase_1 or integration) is written twice, in `worktree-write-guard.sh` and `post-implementation-audit.sh` (T1 mini-review, `artifacts/T1/mini-review.yaml` out_of_scope_noticed).
+- .workflow/specs/done/006-result-file-guard, 3.7: the mapping from launch header to worktree kind (task, phase_1 or integration) is written twice, in `worktree-write-guard.sh` and `post-implementation-audit.sh` (T1 mini-review, `artifacts/T1/mini-review.yaml` out_of_scope_noticed).

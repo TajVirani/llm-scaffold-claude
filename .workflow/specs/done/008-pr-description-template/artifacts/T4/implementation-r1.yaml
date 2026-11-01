@@ -1,0 +1,24 @@
+status: "done"
+summary: "Sign-off now fills pr-body.md at 5.4 from assets/pr-template.md or the host template named by pr_template (stopping and asking when the setting fails), checks it with check-pr-body.sh, shows its full text for approval at 5.5 and logs its hash, and at 5.8 rechecks it and publishes it through the marked bash block (gh --body-file, glab --description-file, or a local --no-ff -F merge with a Conventional Commits subject). 5.2 proposes a pr_template row when the key is unset and a host template exists; SKILL.md lists pr-template.md and pr-body.md; the design-log Sign-off shape gains a PR description approval line."
+task_id: "T4"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t4"
+branch: "task/008-pr-description-template/T04-sign-off-publishes-body"
+base_commit: "fb019a0a1162bb961e834008f7358ca3e80c6904"
+head_commit: "b20dabec6ed2f5270fb2898081f055620c26cd2e"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/sign-off.md"
+  - ".agents/skills/feature-workflow/SKILL.md"
+  - ".agents/skills/feature-workflow/assets/design-log.md"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/sign-off-pr; FAIL scripts/sign-off-pr passed=4 failed=22 (e.g. FAIL JRN-005 shellcheck: the 5.8 publish block: no publish block to check; FAIL JRN-006 sign-off 5.4 runs check-pr-body.sh)"
+  green: "tests/run-all.sh --suite scripts/sign-off-pr; PASS scripts/sign-off-pr passed=26 failed=0"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/008-pr-description-template --task-id T4 --cwd $PWD; lint pass (frontmatter 40/40, symlinks 45/45, upstream-lineage 13/13), test pass (scoped: scripts/sign-off-pr 26/26). Also ran lint/step-list 36/36 and the full tests/run-all.sh: TOTAL passed=3152 failed=0 (58 suites)."
+  toolchain: ".workflow/specs/done/008-pr-description-template/artifacts/T4/toolchain.txt (pass)"
+considered_not_built:
+  - "Linking report.md and the task PRs in a dedicated PR body section: the ten-section template has none, so 5.4 names them under Special things to note instead of changing the template (T2's file)."
+  - "A script to compare the pr-body.md hash at 5.8: the comparison is one git hash-object call against the logged line, kept as prose like the rest of sign-off."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

@@ -1,0 +1,24 @@
+status: "done"
+summary: "Rework 2 patches. A source/. line whose target is a bare name (source lib) is now an unresolved edge. A command whose first word is a plain relative path with a folder (scripts/x.sh) is now reported as a cwd-relative unresolved call. The bare-call check skips quoted prose, case patterns, continued lines, folder names, multi-line quoted strings and jq '. as $h', so the graph of this repo is byte-identical to before the change."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3"
+branch: "task/003-bash-cache-extractor/T03-bash-graph-extractor"
+base_commit: "32c3aa60bd938a569dd7cab0f0157ac1d4a2e5e7"
+head_commit: "c06533dbe6f266ee0ee3a946440dece61d251cc6"
+files_changed: [".agents/skills/regenerate-caches/scripts/extractors/bash.sh", "tests/scripts/extractor-bash.sh"]
+tests_added:
+  - {file: "tests/scripts/extractor-bash.sh", test: "subshell, substitution, glob, option-value, unreadable-target, bare source and bare relative calls are each unresolved with the path text (fixture lines: source lib, scripts/x.sh --flag, v=$(scripts/y.sh), \"scripts/z.sh\")", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "same check, fixture lines that must add nothing: dir=lib/sub, n=$((total/2)), echo $((a/b)), quoted prose with (docs/x.md), case pattern text/plain), continued line src/a.ts, . as $h, tests/, mispaired-quote line, multi-line single-quoted string", kind: "negative"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/extractor-bash; FAIL ... got=...,10 ./ext.sh want=...,10 ./ext.sh,11 lib,12 scripts/x.sh"
+  green: "tests/run-all.sh --suite scripts/extractor-bash; passed=31 failed=0. Mutation check: disabling each guard (continuation/open-quote, case-pattern ), jq . as, spaced double-quote drop) in turn made the check fail with 19 src/a.ts, 17 text/plain, 21 as, 16 docs/x.md / 23 assets/y.md respectively. Extractor run over this repo: output identical to the base commit (md5 of full graph unchanged)."
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/003-bash-cache-extractor --task-id T3 --cwd <worktree>; test (scoped, 1 own suite) pass; full tests/run-all.sh also run: 2891 passed, 0 failed, 53 suites"
+  toolchain: ".workflow/specs/done/003-bash-cache-extractor/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "Bare relative globs (scripts/*.sh) as calls: the plain-path shape rejects them to keep prose and patterns out; the ./scripts/*.sh form is still reported as before."
+  - "Applying the new quote scanner, continuation and case-pattern rules to the existing ./x and bash x detection: the brief asked to keep today's behaviour there."
+  - "Bare `.hidden/x` first words (leading dot without ./): excluded by the shape so ./ and ../ never double-report."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

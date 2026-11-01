@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/004-scoped-test-runs
+origin_spec: .workflow/specs/done/004-scoped-test-runs
 created: 2026-10-22
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-22
 
 **Summary:** The runner selection suite proves parallel and serial runs by wall-clock limits, which a loaded machine can break.
 **Mode:** AFK
-**Origin:** [004-scoped-test-runs](../specs/004-scoped-test-runs/spec.md), 5.9 work-backlog item `004-scoped-test-runs-disc-003.md` (origin step 3.7), design-log entry 2026-10-22 Discovered work: timing-check-thresholds
+**Origin:** [004-scoped-test-runs](../specs/done/004-scoped-test-runs/spec.md), 5.9 work-backlog item `004-scoped-test-runs-disc-003.md` (origin step 3.7), design-log entry 2026-10-22 Discovered work: timing-check-thresholds
 
 ## Goal
 
@@ -23,12 +23,12 @@ The parallel runner shipped with checks that time stub suites sleeping 2 s each 
 
 ## Decisions already made
 
-- Suites run in parallel by default and print in suite order (D8, D9 in [.workflow/specs/004-scoped-test-runs/design-log.md](../specs/004-scoped-test-runs/design-log.md)).
+- Suites run in parallel by default and print in suite order (D8, D9 in [.workflow/specs/done/004-scoped-test-runs/design-log.md](../specs/done/004-scoped-test-runs/design-log.md)).
 
 ## Evidence
 
 - `tests/scripts/run-all-selection.sh:413` and `:419`, as of commit `9fe4e82d5435bd769bfe58f9e39b65d63ae3b662`.
-- T1 profile-mini-review return, `out_of_scope_noticed` (kind refactor): [artifacts/T1/mini-review.yaml](../specs/004-scoped-test-runs/artifacts/T1/mini-review.yaml).
+- T1 profile-mini-review return, `out_of_scope_noticed` (kind refactor): [artifacts/T1/mini-review.yaml](../specs/done/004-scoped-test-runs/artifacts/T1/mini-review.yaml).
 
 ## Acceptance criteria
 
@@ -41,5 +41,5 @@ The parallel runner shipped with checks that time stub suites sleeping 2 s each 
 
 ## Later requests
 
-- .workflow/specs/002-review-lessons, 5.9: backlog item `002-review-lessons-disc-002` (found at 3.9): the "with no -j, suites run concurrently" assertion failed when a 3.9 gate overlapped an agent's full-harness run (`artifacts/gate-3.9-w1b`); the item suggests comparing with a serial run or observing overlapping timestamps instead of a fixed bound; moved here as the same concept.
+- .workflow/specs/done/002-review-lessons, 5.9: backlog item `002-review-lessons-disc-002` (found at 3.9): the "with no -j, suites run concurrently" assertion failed when a 3.9 gate overlapped an agent's full-harness run (`artifacts/gate-3.9-w1b`); the item suggests comparing with a serial run or observing overlapping timestamps instead of a fixed bound; moved here as the same concept.
 - PLAN/workflow-speed-fix.md, 2026-10-22: resolved outside a spec by D101(b): the parallel check proves that the stubs' recorded start and end intervals overlap and the `-j 1` check proves they do not; no elapsed-time limit remains in the suite. Archive this file the next time a spec reaches 0.1.5 with it, or move it to `archive/` by hand.

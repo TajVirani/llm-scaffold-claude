@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00010-worktree-guard-followups
+origin_spec: .workflow/specs/done/00010-worktree-guard-followups
 created: 2026-10-30
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-30
 
 **Summary:** Confirm on a live Claude Code run how a sub-agent's PreToolUse payload looks when its transcript cannot be found, so the worktree guard's missing-transcript deny is checked against the real shape.
 **Mode:** HITL
-**Origin:** [00010-worktree-guard-followups](../specs/00010-worktree-guard-followups/spec.md), 4.8 review finding (remaining gap from review-end-state `not_verifiable`), design-log entry 2026-10-30 Triage, review pass 1
+**Origin:** [00010-worktree-guard-followups](../specs/done/00010-worktree-guard-followups/spec.md), 4.8 review finding (remaining gap from review-end-state `not_verifiable`), design-log entry 2026-10-30 Triage, review pass 1
 
 ## Goal
 
@@ -27,11 +27,11 @@ Spec 00010 made the worktree guard deny a confined implementation or integration
 
 ## Decisions already made
 
-- Fail closed when no agent worktree can be established (design-log D3 in [.workflow/specs/00010-worktree-guard-followups/design-log.md](../specs/00010-worktree-guard-followups/design-log.md)).
+- Fail closed when no agent worktree can be established (design-log D3 in [.workflow/specs/done/00010-worktree-guard-followups/design-log.md](../specs/done/00010-worktree-guard-followups/design-log.md)).
 
 ## Evidence
 
-- Review pass 1, `.workflow/specs/00010-worktree-guard-followups/artifacts/review/pass-1/review-end-state.yaml` `not_verifiable`; guard logic in `.agents/hooks/worktree-write-guard.sh` as of commit `6d40286`. Unverified: needs a live sub-agent launch.
+- Review pass 1, `.workflow/specs/done/00010-worktree-guard-followups/artifacts/review/pass-1/review-end-state.yaml` `not_verifiable`; guard logic in `.agents/hooks/worktree-write-guard.sh` as of commit `6d40286`. Unverified: needs a live sub-agent launch.
 
 ## Acceptance criteria
 

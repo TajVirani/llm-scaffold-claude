@@ -1,0 +1,33 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "9e971ade158b5e92da93bf2b150fd68dd55d7e9e"
+head: "b8150ec98019e9e828a7b5c4d294d7f593b8f73c"
+findings:
+  - id: RE-1
+    category: wrong
+    severity: high
+    confidence: 90
+    location: ".agents/skills/feature-workflow/modules/sign-off.md:192"
+    claim: "The 5.8 one-time sweep runs after 5.7 has set the signing-off spec to done, and move-to-done.sh --sweep moves every top-level done spec with no exception for the current one. So the sweep also moves the spec being signed off, inside the sweep commit. The 5.8 move step after it then exits 2 (spec.md not found at the old path), and the doc tells the orchestrator to stop."
+    consequence: "At this spec's own sign-off, where D16 requires the sweep, following sign-off.md as written puts 007 into done/ inside the sweep commit instead of in a commit of its own, skips the D14 move-then-check-moved-body-then-path-diff order, and halts sign-off at the move step with an exit 2 the doc treats as a stop. The same happens in any target project whose first sign-off runs the catch-up sweep. The stakeholder is left with an unpublished, half-ordered sign-off to sort out by hand."
+    evidence:
+      basis: "design-log.md D16: \"the one-time sweep of 001-006 and 008 runs at 5.8 for this spec only, before the move of 007 itself, committed alone\"; spec.md Constraints (D14): \"5.8 order: commit what is left, check pr-body.md, move and rewrite ..., commit, run check-pr-body.sh on the moved body, show the stakeholder the path-only diff\". sign-off.md 5.7 sets `status ... done --step 5.7` before 5.8."
+      diff: "move-to-done.sh:375-380 `for spec_md in \"$(wf_path \"$ROOT\" \"$WF_SPECS\")\"/*/spec.md; do` ... `[[ \"$status\" == \"done\" ]] || continue` (no skip for the spec on the checked-out spec branch). sign-off.md:192 `run .agents/skills/feature-workflow/scripts/move-to-done.sh --sweep, keep its moves in one commit of their own before this spec's move`. tests/scripts/move-to-done.sh JRN-003 sweeps on spec/013-beta, a spec that is not done, so the 5.8 case (the current spec already done) is never exercised; tests/lint/done-folder-docs.sh has no sweep check."
+    suggested_fix: "Have --sweep leave out the spec named by the checked-out spec branch, or take the current spec as an exclusion argument, and have 5.8 pass it. Or run the sweep before 5.7 sets done. Add a suite case that sweeps on the branch of a done spec."
+checked:
+  - "Diff pinned: baseline 9e971ade158b5e92da93bf2b150fd68dd55d7e9e to HEAD b8150ec98019e9e828a7b5c4d294d7f593b8f73c, 27 files outside the spec folder. Read in full: move-to-done.sh, the diffs to workflow-paths.sh, check-write.sh, review-lessons.sh, check-pr-body.sh, session-start-resume.sh, sign-off.md, discovery.md, large-path.md, SKILL.md, pr-template.md, review-lessons.md and PROVENANCE.md. Code is unchanged since the T5 merge e1f73b2; later commits are workflow data only."
+  - "CAP-NEW-done-folder success criteria compared one by one. Met: the move to done/NNN-slug with status done and no .step; the task-record check; the rewrite across .workflow/ files that skips cache/ and initiatives/; outbound links get an extra ../; pr-body.md is rewritten; the 0.1.1 scan counts done/ children; the Write/Edit deny under done/**; refusal at 5.7 with the open task listed. The only part found wrong is the 5.8 sweep ordering (RE-1)."
+  - "Constraints: D8 (the check runs at 5.7 and again inside the move; move_refusal calls open_sub_items); D2 (the move commits on the checked-out branch and refuses main or a detached HEAD); D14/D15 order and the stop on a faulty moved body (sign-off.md 5.8; the publish marker sits above the block, per the done-folder-docs lint); [0-9]+ patterns in the sweep regex, review-lessons and discovery; the rewrite is limited to WF_DIR with cache/, initiatives/ and local state excluded; the D10 initiative rewrite happens only at 6.13; the D11 deny (check-write.sh KIND=done-folder, checked first; hooks route through check-write.sh); the D13 origin_spec regex plus the template header; plain mv plus git add; WF_SPECS_DONE built from WF_SPECS."
+  - "Non-goals: no initiative closing or folder move, no pruning, no reports, no rewrite outside .workflow/, no force-marking, scoped commit left alone, no launch against a done spec_dir. None were found in the diff."
+  - "Unasked check: the .workflow/cache/* republish, the work-backlog item 007-done-folder-disc-001 and the deferred file launch-against-done-spec.md are workflow data or discovered-work filings the spec lists; no behaviour beyond the capability was found."
+  - "End-state objectives 1-14 compared with the diff and the harness suites. Objective 15 (this repo swept) is under not_verifiable."
+  - "Journeys: JRN-001, 002, 003, 004, 006 and 007 map to tests/scripts/move-to-done.sh (header and sections read), check-write-paths.sh, lib-workflow-paths.sh, review-lessons.sh, sign-off-pr.sh, hooks/session-start-initiatives.sh and lint/done-folder-docs.sh. All of them PASS in artifacts/gate-3.9-w3/toolchain.txt (move-to-done 111/0, check-write-paths 198/0, lib-workflow-paths 122/0, review-lessons 43/0, sign-off-pr 34/0, session-start-initiatives 30/0, done-folder-docs 16/0; TOTAL 3789 passed, 0 failed, 64 suites); toolchain.json status pass."
+  - "Artifacts read: gate-3.9-w3/toolchain.json, toolchain.txt and task-tests.txt; T4/implementation.yaml, implementation-r1.yaml and mini-review-r1.yaml (the 6.13 parts); grep for JRN- across artifacts/."
+  - "Probed the 6.13 sed rewrite from large-path.md on stdin: it rewrites the ../../specs/, .workflow/specs/ and specs/ forms, and leaves 012-alpha-two and specs/done/012-alpha alone."
+not_verifiable:
+  - "JRN-005 and the Success signal (001-006 and 008 under .workflow/specs/done/ in this repo, 009 and 00010 left at the top level, tests/run-all.sh passing afterwards): by D16 this runs at 5.8 and has not happened yet. .workflow/specs/done/ does not exist at HEAD. The orchestrator should check it after the 5.8 sweep, which RE-1 affects."
+  - "End-state objective 'the 6.13 rewrite fixes the initiative's links on the initiative branch': no harness suite runs the 6.13 block. The only evidence is lint/done-folder-docs.sh ('large-path 6.13 names the Done folder'), T4's throwaway-repo claim and my stdin probe. The orchestrator could run the block against a fixture initiative to settle it."
+  - "'Next spec to finish sign-off lands there by itself in its Sign-off PR' (Success signal): this can only be seen on a real later sign-off."
+not_checked:
+  - "TGT-001 to TGT-008 (lint, literal-path, coverage and sweep-time numbers) belong to the targets lens; not measured here."

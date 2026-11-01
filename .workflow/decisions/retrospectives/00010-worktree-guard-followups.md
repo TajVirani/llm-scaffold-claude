@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/00010-worktree-guard-followups
+spec: .workflow/specs/done/00010-worktree-guard-followups
 date: 2026-10-30
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/00010-worktree-guard-followups/spec.md` (capabilities: CAP-007 changed, CAP-008 changed, CAP-010 new)
-- Report: `.workflow/specs/00010-worktree-guard-followups/report.md`
+- Spec: `.workflow/specs/done/00010-worktree-guard-followups/spec.md` (capabilities: CAP-007 changed, CAP-008 changed, CAP-010 new)
+- Report: `.workflow/specs/done/00010-worktree-guard-followups/report.md`
 - Tasks: 4 done (T1-T4), 0 split out; 7 items deferred (`frontmatter-extract-write-guard.md`, `subagent-missing-transcript-path.md`, and five backlog items moved at 5.9), plus Later requests lines on `bash-line-coverage.md` and `comment-id-lint.md`
 - Evidence available: spec.md, verification-plan.md, report.md, tasks.md, design-log.md (rounds 1-3, triage pass 1, sign-off), proposals.md (P1-P4 approved), `artifacts/` (Phase 1 known-bad record, per-task toolchain and mini-review files, review pass 1, gates 3.9 w1/w2/rework1, sign-off-5.4), git `1c5e46d..f276ea1` plus the sign-off commits (25 commits to the 5.4 head; 13 files outside `.workflow/`, +383/-68)
 - Evidence missing: session logs (process lessons come from design-log.md and the stakeholder)

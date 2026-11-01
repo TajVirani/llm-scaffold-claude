@@ -1,0 +1,31 @@
+status: "done"
+summary: "Rework 4.7: an anchored path on a code line that resolves to an extensionless script claimed by its shebang is now a call edge, and a script run by a cwd-relative path in command position (./x, ../x, bash x, sh x) is couldNotResolve with module and line, never guessed. PROVENANCE.md row now says both extractors are implemented (file outside the module, edited because the review patch named it). Run on this repo: 0.53 s, output unchanged versus the previous extractor; full tests/run-all.sh TOTAL passed=2879 failed=0."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3"
+branch: "task/003-bash-cache-extractor/T03-bash-graph-extractor"
+base_commit: "3d15e3dc35373b356869b81f76afe59cbd6de466"
+head_commit: "23fa1fb083e663eb5e71dae29ef34d536b6382df"
+files_changed:
+  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh"
+  - "PROVENANCE.md"
+  - "tests/fixtures/graph-extractors.sh"
+  - "tests/scripts/extractor-bash.sh"
+  - "tests/scripts/cache-bash-project.sh"
+tests_added:
+  - {file: "tests/scripts/extractor-bash.sh", test: "deploy.sh: edges through one variable hop and to an extensionless script claimed by its shebang", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "deploy.sh: cwd-relative ./ and bash script calls are couldNotResolve at their lines, never guessed", kind: "behaviour"}
+  - {file: "tests/scripts/extractor-bash.sh", test: "heredoc bodies, redirection targets, bash -c strings, quoted text and data files add nothing; a missing file and a cwd-relative call are unresolved at their lines", kind: "negative"}
+  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 the cwd-relative ./ call is listed with its file, line and source text", kind: "behaviour"}
+  - {file: "tests/scripts/cache-bash-project.sh", test: "JRN-001 the cwd-relative bash call is listed with its file, line and source text", kind: "behaviour"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/extractor-bash; FAIL deploy.sh: edges through one variable hop and to an extensionless script claimed by its shebang got=lib/strings.sh want=lib/strings.sh,tools/publish; FAIL deploy.sh: cwd-relative ./ and bash script calls are couldNotResolve at their lines got= want=9 ./scripts/stage.sh,10 scripts/build-docs.sh"
+  green: "tests/run-all.sh --suite scripts/extractor-bash; passed=29 failed=0. tests/run-all.sh --suite scripts/cache-bash-project; passed=32 failed=0. Full tests/run-all.sh: TOTAL passed=2879 failed=0 skipped=0 xfail=0 (52 suites)"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/003-bash-cache-extractor --task-id T3 --cwd <worktree>; lint pass, test (scoped) pass"
+  toolchain: ".workflow/specs/done/003-bash-cache-extractor/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "Tracking single-quoted strings across lines: a line inside a multi-line quoted jq/awk program can still look like a command; the path-character check and the quote handling removed every false positive on this repo, so full quote-state tracking was left out"
+  - "couldNotResolve for anchored non-.sh paths that name no claimed file: such a path is usually data (a config or text file), so it is ignored rather than reported"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

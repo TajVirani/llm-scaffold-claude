@@ -1,0 +1,20 @@
+status: done
+summary: "Rework 4.7: start_suite now gives each background suite /dev/null as stdin (job control had dropped bash's implicit /dev/null), covered by a new selection-suite check that a stdin-reading stub suite gets end of file while the runner's stdin is a pipe holding data. The empty-array guard comment in running_suite_groups is narrowed to match only the guarded rows expansion in the summary; the guard is kept."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/.worktrees/s00011_t1"
+branch: "(detached HEAD, light path)"
+base_commit: "d4e07beaaae8dc94692fa7b352a7a537fc8dbfe3"
+head_commit: "0aebc86bb54f6b2152273f00d66178f3312dc57c"
+files_changed: ["tests/run-all.sh", "tests/scripts/run-all-selection.sh"]
+tests_added:
+  - {file: "tests/scripts/run-all-selection.sh", test: "a suite reading stdin gets end of file while the runner's stdin is a pipe with data", kind: "edge"}
+evidence:
+  red: "bash tests/scripts/run-all-selection.sh; FAIL a suite reading stdin gets end of file while the runner's stdin is a pipe with data / got=read caller input want=end of file"
+  green: "bash tests/scripts/run-all-selection.sh; RESULT passed=66 failed=0 skipped=0 xfail=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/00011-interrupted-run-cleanup --task-id T1 --cwd <worktree>; test pass, TOTAL passed=3593 failed=0 skipped=0 xfail=0 (62 suites)"
+  toolchain: ".workflow/specs/done/00011-interrupted-run-cleanup/artifacts/T1/toolchain.txt (pass)"
+considered_not_built: ["Guarding the ${suites[@]} loops: suites is never empty there, and the patch asked only to narrow the comment"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

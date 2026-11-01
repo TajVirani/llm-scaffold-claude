@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/004-scoped-test-runs
+origin_spec: .workflow/specs/done/004-scoped-test-runs
 origin_step: "4.4"
 discovered_at: 2026-10-22
 status: dismissed
@@ -29,6 +29,6 @@ CAP-001 touches `tests/` only and is unaffected. The stakeholder chose to ship t
 
 ## Links
 
-- Origin spec: [spec.md](../004-scoped-test-runs/spec.md)
-- Design log entry: [design-log.md](../004-scoped-test-runs/design-log.md) (section 2026-10-22 Discovered work: workflow-data-cross-spec-commit)
+- Origin spec: [spec.md](../done/004-scoped-test-runs/spec.md)
+- Design log entry: [design-log.md](../done/004-scoped-test-runs/design-log.md) (section 2026-10-22 Discovered work: workflow-data-cross-spec-commit)
 - Dismissed at 5.9: "This is acceptable".

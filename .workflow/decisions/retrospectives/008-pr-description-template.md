@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/008-pr-description-template
+spec: .workflow/specs/done/008-pr-description-template
 date: 2026-10-30
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/008-pr-description-template/spec.md` (capabilities: CAP-006)
-- Report: `.workflow/specs/008-pr-description-template/report.md`
+- Spec: `.workflow/specs/done/008-pr-description-template/spec.md` (capabilities: CAP-006)
+- Report: `.workflow/specs/done/008-pr-description-template/report.md`
 - Tasks: 6 done (T1-T6), 0 split out; 3 scope items shelved at 0.3.17 (`spec-issue-creation.md`, `workflow-settings-home.md`, `initiative-pr-template.md` in `.workflow/deferred/`)
 - Evidence available: `spec.md`, `verification-plan.md`, `report.md`, `tasks.md`, `design-log.md` (two triage entries, decisions D1-D20, sign-off entries), `proposals.md` (P1-P6 approved), `artifacts/` (T1-T6 toolchain and mini-review files, gates 3.9 w1-w3 and rework 1, review cycle 1 and cycle 2 pass files, `sign-off-5.4/`, both Phase 1 harness runs), `.workflow/review-lessons.md`, retrospective 005, git `a36d149..1fa3a87` (47 commits, 147 files, +5869 -74, most of it workflow data and artifacts)
 - Evidence missing: session logs (process lessons come from `design-log.md` and the stakeholder only). The 5.8 half of JRN-007 runs after this retrospective, at the merge.

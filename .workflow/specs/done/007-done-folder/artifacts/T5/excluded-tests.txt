@@ -1,0 +1,2 @@
+tests/lint/done-folder-docs.sh
+tests/scripts/sign-off-pr.sh

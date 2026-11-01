@@ -1,0 +1,70 @@
+verdict: fail
+task_id: T3
+work_type: shell-scripts
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3@32c3aa60bd938a569dd7cab0f0157ac1d4a2e5e7..HEAD
+tool_output: .workflow/specs/done/003-bash-cache-extractor/artifacts/T3/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: the diff adds no .workflow/ path to any script; the only added docs/ text is a test fixture string (tests/scripts/extractor-bash.sh:139)
+  - n: 2
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: the change is in the regenerate-caches skill script extractors/bash.sh, not in a hook
+  - n: 3
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: the diff adds no error path; the new continue branches (bash.sh:396, 399) are classifications of commands, not failures. The dropped real call seen at bash.sh:396 is reported under out_of_scope_noticed
+  - n: 4
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: no exit code is added or changed; the Exit header at bash.sh:21 is untouched
+  - n: 5
+    verdict: not-applicable
+    location: no code in the diff the item applies to
+    note: no sibling path is resolved by the diff
+  - n: 6
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:1-22
+    note: the helper header keeps its File, Purpose, Usage, Output and Exit shape; the changed header lines 6-10 name no decision ID
+  - n: 7
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:318-402, tests/scripts/extractor-bash.sh:109-150
+    note: no new file; the added bash.sh lines are awk inside the existing wrapper, and the test additions use the existing eq and heredoc harness
+  - n: 8
+    verdict: pass
+    location: bash.sh:314-318 split_commands, bash.sh:334-339 report_cwd_relative_calls, bash.sh:360-363 unquoted_code, bash.sh:387-392 report_bare_relative_calls
+    note: every new or re-signed function has its name ARGS : purpose line; no shellcheck directive is added
+  - n: R1
+    verdict: pass
+    location: bash.sh:314-318, bash.sh:360-363, bash.sh:387-392, bash.sh:397 (continued), bash.sh:398 (quote_opened_before)
+    note: function and variable names say what they hold; opened is terse but its meaning is set by the comment at bash.sh:314-315
+  - n: R2
+    verdict: fail
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:323, bash.sh:326
+    note: The record-separator marker `;\036` at bash.sh:323 is a workaround with no reason, and the header at bash.sh:314-315 says what OPENED holds but not why a control character marks each opening. A reader who simplifies `;\036` to `;` makes opened always 0, so `v=$(scripts/y.sh)` (tests/scripts/extractor-bash.sh:133) stops being reported as a call. Add a one-line comment at bash.sh:323 that says the marker survives the split so a `)` closing a subshell is told apart from a case pattern's `)`.
+  - n: R3
+    verdict: pass
+    location: bash.sh:140, bash.sh:314-316, bash.sh:360-362, bash.sh:387-390
+    note: each added comment gives a reason or describes behaviour; none restates the line below
+  - n: R4
+    verdict: pass
+    location: bash.sh:140, bash.sh:314-316, bash.sh:360-362, bash.sh:387-390, tests/scripts/extractor-bash.sh:109-112
+    note: no added comment names a decision ID, a doc or workflow path, a spec or task ID; the only docs/ text is a fixture string
+  - n: R5
+    verdict: pass
+    location: bash.sh:140, bash.sh:314-316, bash.sh:360-362, bash.sh:387-390
+    note: the comments use plain words; PATH, jq and case pattern are standard shell or tool terms
+read_outside_diff:
+  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh: full file, to check the header shape and the sibling wrapper"
+  - "tests/scripts/extractor-bash.sh: fixture lines 109-150, to check the expected outputs of the new forms"
+  - "scratch repo /private/tmp/claude-502/-Users-tvirani-Desktop-Projects-llm-scaffold-claude/d6fca8e2-687e-4572-b63e-846fdf30085c/scratchpad/probe: ran the extractor on a continued && line to confirm the dropped call"
+out_of_scope_noticed:
+  - kind: bug
+    summary: A command that starts on a line continued from an operator is dropped silently. The continued-line skip at bash.sh:396 skips the first command of every continued line, including `scripts/x.sh` after `true && \`, which runs as a call. The test header at tests/scripts/extractor-bash.sh:109 says detected calls are never dropped.
+    evidence: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:396
+    blocker_assessment: blocks-this-task
+    reason: The probe script hooks/t.sh with `true && \` then `scripts/x.sh` produced no dependency at all (rc 0). Only a continued line that follows a word, not an operator, should skip its first command. This is a correctness gap in the task's own new logic, not an error-path issue, so it is outside the checklist.

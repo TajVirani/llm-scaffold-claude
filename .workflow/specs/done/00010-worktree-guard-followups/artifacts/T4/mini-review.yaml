@@ -1,0 +1,33 @@
+verdict: "pass"
+task_id: "T4"
+work_type: "agent-docs"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-00010/.workflow/.worktrees/s00010_t4@329cb87103ccb6c9c1aa4d6ee74d103379e47773..HEAD"
+tool_output: ".workflow/specs/done/00010-worktree-guard-followups/artifacts/T4/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: no SKILL.md is added or changed; the diff touches PROVENANCE.md and assetlist.md only"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: no agent file under agents/ is added; the diff touches PROVENANCE.md and assetlist.md only"
+  - n: "R1"
+    verdict: "not-applicable"
+    location: "no code, test or code comment is added or changed; the added lines are markdown prose in PROVENANCE.md and assetlist.md"
+  - n: "R2"
+    verdict: "not-applicable"
+    location: "no code, test or code comment is added or changed; the added lines are markdown prose in PROVENANCE.md and assetlist.md"
+  - n: "R3"
+    verdict: "not-applicable"
+    location: "no code, test or code comment is added or changed; the added lines are markdown prose in PROVENANCE.md and assetlist.md"
+  - n: "R4"
+    verdict: "not-applicable"
+    location: "no code, test or code comment is added or changed; the added lines are markdown prose in PROVENANCE.md and assetlist.md (the D85 and D91 IDs on the changed rows were already present before this diff)"
+  - n: "R5"
+    verdict: "not-applicable"
+    location: "no code, test or code comment is added or changed; the added lines are markdown prose in PROVENANCE.md and assetlist.md"
+read_outside_diff:
+  - ".agents/hooks/claude-settings.template.json: checked that the SubagentStop matcher implementation|integration matches the assetlist.md post-implementation-audit row changed by this diff"
+  - ".agents/skills/feature-workflow/references/readable-code.md: read the R1 to R5 rules and the 3.7 checking table"
+out_of_scope_noticed: []
