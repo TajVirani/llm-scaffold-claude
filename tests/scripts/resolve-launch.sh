@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Suite: resolve-launch.sh (feature-workflow/scripts).
-# Covers: --requirements table (including the review-lessons lens row), model precedence (override > definition > map), per-task-type launch-header
+# Covers: --requirements table (including the review-lessons lens row and the review-combined row), model precedence (override > definition > map), per-task-type launch-header
 #   requirements, header parsing and malformed headers, --parse-header, flag (orchestrator) mode, worktree and
 #   CLAUDE_PROJECT_DIR project-root resolution, usage errors.
 # shellcheck disable=SC2016,SC2015  # jq programs use single quotes on purpose; A && B || C is deliberate in ok/ko lines
@@ -17,7 +17,7 @@ mkdir -p "$FX"
 cd "$FX" || exit 1
 git init -q -b main . && git config user.email t@t.invalid && git config user.name tester
 mkdir -p .agents/agents .workflow/model-map .workflow/profiles .workflow/specs/007-checkout
-for t in implementation integration profile-mini-review retrieval library-evaluation fact-lookup research module-audit review-standards review-end-state review-targets cache-regeneration standards-discovery; do
+for t in implementation integration profile-mini-review retrieval library-evaluation fact-lookup research module-audit review-standards review-end-state review-targets review-combined cache-regeneration standards-discovery; do
   printf -- '---\nname: %s\ndescription: "x"\n---\nbody\n' "$t" > ".agents/agents/$t.md"
   printf -- '---\ntier: cheap\nclaude: haiku\ncodex: <alias>\n---\n# %s\n' "$t" > ".workflow/model-map/$t.md"
 done
@@ -122,12 +122,15 @@ P=(--project-dir "$FX")
 
 # ── Requirements table ──
 IN=""
-run "requirements: all 14 types" 0 'keys|length==14' "" -- --requirements
+run "requirements: all 15 types" 0 'keys|length==15' "" -- --requirements
 run "requirements: implementation required fields" 0 '.implementation.d31_fields==["spec_dir","task_id","work_type"]' "" -- --requirements --task-type implementation
 run "requirements: review-lessons is listed" 0 'has("review-lessons")' "" -- --requirements
 run "requirements: review-lessons is a Phase 4 lens row" 0 \
   '."review-lessons" == {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"}' \
   "" -- --requirements --task-type review-lessons
+run "requirements: review-combined takes spec_dir only, no profile" 0 \
+  '."review-combined".d31_fields == ["spec_dir"] and ."review-combined".shapes[0].required == ["spec_dir"] and ."review-combined".profile == "none" and ."review-combined".header_optional == false' \
+  "" -- --requirements --task-type review-combined
 run "requirements: unknown type denied" 2 "" "unknown task type" -- --requirements --task-type nope
 
 # ── Model precedence ──
@@ -155,7 +158,7 @@ run "unparseable overrides -> deny" 2 "" "cannot parse YAML: .workflow/agent-ove
 mv "$FX/ov.bak" "$FX/.workflow/agent-overrides.yaml"
 
 # ── Header requirements per task type ──
-for t in retrieval library-evaluation fact-lookup research module-audit review-standards review-end-state review-targets; do
+for t in retrieval library-evaluation fact-lookup research module-audit review-standards review-end-state review-targets review-combined; do
   IN=$(hdr task_type=$t spec_dir=.workflow/specs/007-checkout)
   run "$t: spec_dir only accepted" 0 ".task_type==\"$t\" and .header.spec_dir==\".workflow/specs/007-checkout\"" "" -- --host claude --task-type $t "${P[@]}"
   IN=$(hdr task_type=$t)

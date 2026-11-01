@@ -6,7 +6,7 @@
 #       implementation: spec_dir, task_id; work_type optional, looked up from tasks.md; a mismatch is denied (Phase 1 verification-setup launches: spec_dir, work_type, no task_id)
 #       integration: spec_dir, work_type (a batch with one work type, no task_id)
 #       profile-mini-review: spec_dir, task_id; work_type optional, looked up from tasks.md; a mismatch is denied (one task under one profile)
-#       retrieval, library-evaluation, fact-lookup, module-audit, review-standards, review-end-state, review-targets: spec_dir
+#       retrieval, library-evaluation, fact-lookup, module-audit, review-standards, review-end-state, review-targets, review-lessons, review-combined: spec_dir
 #       cache-regeneration: spec_dir when launched inside a feature (0.2.8); no header for bulk regenerate-caches runs
 #       standards-discovery: header optional, task_type only (project-standards runs outside any feature)
 #   - Deny with reason when a required header field is missing, no model resolves for this host (no .workflow/agent-overrides.yaml entry, no definition `models.<host>`, no model-map entry: surface 00.14), or a coding launch (implementation, integration, profile-mini-review) has no profile (surface 00.19)

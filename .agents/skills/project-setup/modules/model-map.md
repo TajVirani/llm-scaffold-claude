@@ -7,7 +7,7 @@
 | Tier | Task types | Claude alias | Codex |
 | --- | --- | --- | --- |
 | cheap | `retrieval`, `fact-lookup`, `profile-mini-review`, `review-targets`, `library-evaluation`, `review-lessons` | `haiku` | `gpt-6-luna` |
-| strong | `implementation`, `integration`, `review-standards`, `review-end-state`, `module-audit`, `cache-regeneration`, `standards-discovery` | `opus` | `gpt-6-sol` |
+| strong | `implementation`, `integration`, `review-standards`, `review-end-state`, `review-combined`, `module-audit`, `cache-regeneration`, `standards-discovery` | `opus` | `gpt-6-sol` |
 
 For Claude write aliases only, never a dated model ID. The Codex values are model names, not aliases, and Codex retires them. When the project uses Codex (`.codex/` exists or the human says so), run `codex debug models` and confirm each Codex default is listed. If one is not, ask the human for the current cheap or strong model and write that instead. If Codex is not installed here, seed the defaults and say in the report that they are unchecked. Never leave the template's `<alias>` text in a seeded file.
 
@@ -15,7 +15,7 @@ Ask the human once: "Seed the defaults above (recommended), or change a tier's C
 
 ## File shape
 
-Write `.workflow/model-map/<task-type>.md` for each of the 13 task types. This is the filled form of `.agents/skills/project-setup/assets/model-map/TEMPLATE.md`, with every placeholder replaced and the template's guidance comments dropped:
+Write `.workflow/model-map/<task-type>.md` for each task type in the table above. This is the filled form of `.agents/skills/project-setup/assets/model-map/TEMPLATE.md`, with every placeholder replaced and the template's guidance comments dropped:
 
 ```markdown
 ---
