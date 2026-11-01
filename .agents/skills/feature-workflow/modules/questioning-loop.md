@@ -42,7 +42,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
    Q2: <question>
    ````
 
-   On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `fact_lookup`, `task_name` `s<NNN>_fact_lookup` (for example `s007_fact_lookup`), `fork_turns: "none"`.
+   Launch it on your host as [launching](../references/launching.md) says.
 
    Ask the rest of the frontier now; only questions downstream of a pending lookup wait for it. Its return, per question (format fixed in `.agents/agents/fact-lookup.md`):
    - **Answer + Source:** the fact is settled; use it in the recommendation, never ask it.

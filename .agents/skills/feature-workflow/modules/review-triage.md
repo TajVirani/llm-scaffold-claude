@@ -18,7 +18,7 @@ Phase 4 runs once per **pass**. Read `.workflow/specs/NNN-slug/design-log.md` be
 
 ## 2. Launch the four lenses (4.1-4.3, 4.9), or the combined review (4.10)
 
-**Light path: one combined review (4.10).** When `light_path` is `true` in `.workflow/specs/NNN-slug/spec.md` (the small path included), launch one `review-combined` in place of the lenses, with the same minimal prompt below and `task_type: review-combined`; on Codex, `agent_type` `review_combined` and `task_name` `s<NNN>_review_combined`. It covers the end state, the standards and the review lessons, and writes one pass file in the lens shape, `review-combined.yaml`, checked in step 3 like any lens's. There is no `verification-plan.md` and so no targets: write `no targets (light path)` in the triage entry where the targets lens would be named. The rest of this step is the full path.
+**Light path: one combined review (4.10).** When `light_path` is `true` in `.workflow/specs/NNN-slug/spec.md` (the small path included), launch one `review-combined` in place of the lenses, with the same minimal prompt below and `task_type: review-combined`. It covers the end state, the standards and the review lessons, and writes one pass file in the lens shape, `review-combined.yaml`, checked in step 3 like any lens's. There is no `verification-plan.md` and so no targets: write `no targets (light path)` in the triage entry where the targets lens would be named. The rest of this step is the full path.
 
 Launch `review-standards`, `review-end-state`, `review-targets` and `review-lessons` together in one message, in the foreground, and wait for every one before reading any result. Give each the same minimal prompt: the header, then one line of task. Pass nothing else: no diff, no other lens's output, no summary of the feature. Each lens reads its own inputs.
 
@@ -31,12 +31,7 @@ spec_dir: .workflow/specs/NNN-slug
 Review pass <n> of .workflow/specs/NNN-slug. Write the review-findings block to your pass file and return the summary block.
 ````
 
-Repeat with `task_type: review-end-state`, `task_type: review-targets` and `task_type: review-lessons`; `subagent_type` matches `task_type`. On Claude the `pre-launch` hook resolves the model through `resolve-launch.sh` and denies a malformed header. On Codex, build each prompt yourself and launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `review_standards`, `review_end_state`, `review_targets`, `review_lessons`, `task_name` `s<NNN>_<lens>` (`s007_review_standards`, `s007_review_end_state`, `s007_review_targets`, `s007_review_lessons`), `fork_turns: "none"`:
-
-```bash
-echo "Review pass <n> of .workflow/specs/NNN-slug. Write the review-findings block to your pass file and return the summary block." |
-  .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type review-standards --spec-dir .workflow/specs/NNN-slug
-```
+Repeat with `task_type: review-end-state`, `task_type: review-targets` and `task_type: review-lessons`. Launch each on your host as [launching](../references/launching.md) says; on Codex the task body is the one line above.
 
 **`review-targets` runs the build itself.** It starts the build with the profile's `serve`, waits for `serve_ready`, measures and stops it, so start nothing for it. Its pass file is checked as in step 3, including its `measurements:` table.
 
