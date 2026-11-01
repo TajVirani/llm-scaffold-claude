@@ -84,7 +84,7 @@ tasks:
     pr: null
   - id: T6
     title: "Shared-core and per-task gates step files"
-    status: in-progress
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T4]
     touches_core: false

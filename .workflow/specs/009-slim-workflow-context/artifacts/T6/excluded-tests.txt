@@ -1,4 +1,3 @@
-tests/lint/affected-area.sh
 tests/lint/small-path-docs.sh
 tests/lint/shared-rule-homes.sh
 tests/lint/step-routing.sh
