@@ -12,7 +12,7 @@ The small path holds only while the request stays as small as it looked at 0.0.3
 
 - **0.3.3:** the owning module is not clear, so placement needs its own question.
 - **The round:** an answer defers a question to a deep dive, leaves one open, or surfaces a new one (0.3.18 is Yes), so a second round is needed.
-- **0.3.19:** a light-path fact (table in [discovery](discovery.md#0320-light-path-test)) is not clean, or the request needs a library the project does not have.
+- **0.3.19:** a light-path fact (table in [discovery-impact](discovery-impact.md#0320-light-path-test)) is not clean, or the request needs a library the project does not have.
 
 To leave: append a dated `Left the small path: <reason>` line to `design-log.md` and tell the stakeholder in one line, leading with the progress line. Then carry on in the module you are in, as written: placement at 0.3.4, a second round at 0.3.8, the full path after 0.3.20. The small path skipped library evaluation, so launch `library-evaluation` now as discovery 0.2.5 says and paste its report into **Library options** in `codebase-map.md`. From then on one change in this file still applies, because the router keeps loading it while `small_path` is `true`: at 0.3.19, write `small_path: false` with the rest of `spec.md`, and `light_path` from the three facts. Every other step runs as its module says.
 
@@ -33,7 +33,7 @@ Each change below applies only while `design-log.md` has no `Left the small path
 5. **0.3.19 Settle the goal.** When every answer in the round took the recommendation, the last question was the confirmation: log `Summary confirmed in the round` and ask nothing more. When any answer differed, restate the summary with those answers and ask the 0.3.19 confirmation on its own; a correction that reopens the frontier means leave the small path. Write `spec.md` as the loop says, keeping `small_path: true` and `light_path: true` when the three facts are clean.
 
    A loop-back to 0.3.8 (from 4.5, 4.6, 5.6, 00.24 or 00.29) runs the loop as written, with no deeper prompt and no limit of one round; the spec stays on the small path unless 0.3.19 finds a fact that is not clean.
-6. **0.3.20 Light-path pass.** Run discovery's light-path pass (spec branch, budget, one task, commit, `ready-for-dev`), then load implementation-orchestrator at 3.1 at once, with no fresh-session offer.
+6. **0.3.20 Light-path pass.** Run discovery-impact's light-path pass (spec branch, budget, one task, commit, `ready-for-dev`), then load implementation-orchestrator at 3.1 at once, with no fresh-session offer.
 
 ## Phases 3 and 4
 

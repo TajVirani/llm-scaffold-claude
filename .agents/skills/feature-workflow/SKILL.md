@@ -65,6 +65,7 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 | Status | `.step` / condition | Load | Resume at |
 | --- | --- | --- | --- |
 | `draft` | step in 0.3.8–0.3.19, or a loop-back step (0.6, 2.2, 2.3, 4.5, 4.6, 5.6, 00.24, 00.29) | [questioning-loop](modules/questioning-loop.md) | 0.3.8 (recompute the frontier from `design-log.md`) |
+| `draft` | step 0.3.20, or in 0.4.x or 0.5.x | [discovery-impact](modules/discovery-impact.md) | the step in `.step` |
 | `draft` | any other step, or no marker | [discovery](modules/discovery.md) | the step in `.step`; 0.1.6 when there is none |
 | `ready-for-dev` | `light_path: true` | implementation-orchestrator | 3.1 |
 | `ready-for-dev` | step in 2.x | task-breakdown | the step in `.step` |

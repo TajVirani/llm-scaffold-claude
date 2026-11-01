@@ -1,6 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/verification-plan.md: how the feature will be proven. No frontmatter.
-Written by modules/discovery.md at 0.5.1-0.5.4 (End state, Journeys, Fixtures and oracles); Targets added by modules/verification-setup.md at 1.1. Drives the browser suite (1.3), review-end-state (4.2) and review-targets (4.3); report.md (5.4) reports against it.
+Written by modules/discovery-impact.md at 0.5.1-0.5.4 (End state, Journeys, Fixtures and oracles); Targets added by modules/verification-setup.md at 1.1. Drives the browser suite (1.3), review-end-state (4.2) and review-targets (4.3); report.md (5.4) reports against it.
 
 Rules:
   - End state: each objective is binary (pass or fail), observable from outside the code, and names the CAP-### it proves. "Works correctly" is not an objective.
