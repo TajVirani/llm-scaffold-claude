@@ -2,7 +2,7 @@
 # Suite: run-toolchain.sh (feature-workflow/scripts).
 # Covers: toolchain key order and skipping, serve keys never run, --e2e, failure digest and --tail, evidence files,
 #   missing profile / unclassified work type / usage errors, evidence in the checkout an agent worktree sits in, commands run in --cwd,
-#   the tree hash (recorded, --tree-hash, untracked files, workflow data, the Tier A files nothing reads and the model map ignored, rules and profiles counted, a gitignored data folder present),
+#   the tree hash (recorded, --tree-hash, untracked files, workflow data, the Tier A files nothing reads and the model map ignored, rules and profiles counted, a gitignored data folder present, and the orchestrator and sign-off describing it so),
 #   --reuse hits and misses (whole records across profile files, single keys by command), --reuse-check, test_scoped on the own list alone.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -235,6 +235,13 @@ eq scope-own-file "$(tr '\n' ' ' < "$T/own.txt")" "tests/scripts/a.sh tests/scri
 out=$("$RT" --spec-dir .workflow/specs/001-x --task-id T2 2>/dev/null)
 eq scope-none-full "$(tail -n 1 "$M")" full
 eq scope-none-no-flags "$(jq -c '.results[] | select(.key=="test") | has("scoped")' <<<"$out")" false
+
+# The modules that read `tree` describe it as the script builds it: rules.md and the profiles count, so a 5.3 edit to them re-runs.
+# shellcheck disable=SC2034  # read inside the eval'd check strings below
+FW="$AGENTS_SRC/skills/feature-workflow/modules"
+check docs-orchestrator-tree-counts-rules-and-profiles \
+  'grep -F "toolchain.json\` records \`tree\`" "$FW/implementation-orchestrator.md" | grep -qF "\`rules.md\` and the profiles stay in"'
+check docs-sign-off-tree-counts-rules-and-profiles 'grep -F -B 3 -- "--task-id sign-off-5.4" "$FW/sign-off.md" | grep -qF "a 5.3 edit to \`rules.md\` or a profile does"'
 
 shellcheck_files "shellcheck: run-toolchain.sh" "$RT"
 finish

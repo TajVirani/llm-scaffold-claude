@@ -82,7 +82,7 @@ Done when every approved and modified row is written, every rejected row is unto
 
 Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write tool refuses a file named `report.md`, so create it with a Bash heredoc and edit it afterwards. Every claim needs evidence you can point to (no completion claim without evidence first):
 
-- **Tests and CI**: the harness and CI results at the current `HEAD`. Run the harness through the toolchain script, which reuses the newest passing full run on the same tree (workflow-data commits and the 5.3 Tier A edits do not change it) and runs the harness again only when code changed:
+- **Tests and CI**: the harness and CI results at the current `HEAD`. Run the harness through the toolchain script, which reuses the newest passing full run on the same tree (workflow-data commits and the 5.3 edits to capabilities, decisions and the glossary do not change it; a 5.3 edit to `rules.md` or a profile does, and the harness runs again) and runs the harness again only when code changed:
 
   ```bash
   .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id sign-off-5.4 --work-type test-harness --cwd "$PWD" --reuse
