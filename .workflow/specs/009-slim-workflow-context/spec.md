@@ -1,14 +1,14 @@
 ---
-status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "a29eca7c475544a99ccc9d986cde87e02f4f140d" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: "spec/009-slim-workflow-context" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
-impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
+impl_base_revision: "43173e221e107411c8bb560e400023ecd9be0ca0" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
 deferred: [.workflow/deferred/cache-scope-paths.md, .workflow/deferred/in-review-hand-off.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 # origin: NNN-slug-disc-001.md       # optional; filename of the work-backlog item this spec was seeded from; the item is deleted after discovery
 # initiative: NNN-slug               # optional; the initiative this spec was emitted from, present only on an emitted spec
-budget: {max_tasks: 10, max_changed_files: 75}   # absent until written; written at 2.5 (0.3.20 on the light path) from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
+budget: {max_tasks: 10, max_changed_files: 75} # absent until written; written at 2.5 (0.3.20 on the light path) from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
 # blocked_condition: "<what a human must decide or do before work can continue>"   # present only while status is blocked; forms: "discovered work: <slug>", "size budget: <what>", or free text
 ---
 

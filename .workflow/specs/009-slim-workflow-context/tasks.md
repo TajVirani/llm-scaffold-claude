@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "domain-modeling"
     seam: "term-list.sh [--define <term>] command line, driven by tests/scripts/term-list.sh"
     file: tasks/T01-term-list-script.md
@@ -23,7 +23,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "output-styles"
     seam: "the inline term-list command in concise-technical.md, run on this repo's glossary"
     file: tasks/T02-output-style-term-list.md
@@ -39,7 +39,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "references/conventions.md as loaded text, checked by lint/shared-rule-homes and lint/md-links"
     file: tasks/T03-workflow-conventions.md
@@ -55,7 +55,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T1, T3]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "references/launching.md as loaded text, checked by lint/shared-rule-homes and lint/md-links"
     file: tasks/T04-launching-reference.md
@@ -71,7 +71,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T4]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "the 0.2.1 fenced command in discovery.md, run by tests/lint/affected-area.sh; Route table draft rows"
     file: tasks/T05-discovery-split.md
@@ -88,7 +88,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T4]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "implementation-shared-core.md and implementation-gates.md as loaded text: lint/md-links and the re-pointed orchestrator pins"
     file: tasks/T06-shared-core-and-gates.md
@@ -104,7 +104,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T5, T6]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "tests/lint/small-path-docs.sh and tests/lint/shared-rule-homes.sh"
     file: tasks/T07-fold-small-path.md
@@ -121,7 +121,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T7]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "tests/lint/step-routing.sh, lint/md-links and the re-pointed orchestrator pins"
     file: tasks/T08-implementation-step-files.md
@@ -138,7 +138,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T8]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "grep for the removed file names under .agents prints nothing; existing suites pass"
     file: tasks/T09-header-repoints.md
@@ -154,7 +154,7 @@ tasks:
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T2, T9]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "tests/lint/workflow-load-size.sh"
     file: tasks/T10-load-targets.md

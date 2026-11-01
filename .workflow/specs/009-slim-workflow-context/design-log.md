@@ -359,3 +359,8 @@ D22–D25 settle the four conflicts and touch only feature-workflow paths the 0.
 - Stakeholder approved two `parallel_with` pairs whose only overlap is separate rows in `PROVENANCE.md` and `upstream-lineage.json`: term-list script with the conventions file, and the discovery split with the shared-core and gates step files.
 - 2.2: every slice is specifiable from spec.md, design-log.md and verification-plan.md. 2.3: seams agreed with the breakdown. 2.4: no slice touches shared core (`.agents/lib/**`).
 - Decision: **Budget** `{max_tasks: 10, max_changed_files: 75}`. About 40 distinct non-test files change, because script and asset headers must be re-pointed; the 2.6 predicted check sums each task's own file count (about 73), so shared files count once per task. The 3.15 check still reports the real distinct count.
+
+## 2026-11-01 Phase 3 start (3.1)
+
+- Work types: T1 and T9 `shell-scripts`; T2–T8 and T10 `agent-docs`. `impl_base_revision` is 43173e2.
+- **Merge route:** `task_review` reads `pr`, but the stakeholder's standing instruction for this spec is never to push to GitHub, so every task and the spec merge locally (`local`), with no per-task PR.
