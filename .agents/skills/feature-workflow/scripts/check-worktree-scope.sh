@@ -3,25 +3,27 @@
 # Purpose: One home for the worktree-confinement rule behind hooks/worktree-write-guard.sh (Claude) and hooks/codex-write-guard.sh (Codex)
 #   (shared so each host hook stays a thin adapter). The orchestrator creates each agent worktree itself and, on Claude, launches the implementation agent without
 #   `isolation` (the Agent tool has no working-directory input), so only the brief keeps the agent in its worktree. This check backs the brief:
-#   parallel agents must not write into the main checkout or into each other's worktrees.
+#   parallel agents must not write into the spec checkout, the main checkout or each other's worktrees.
 # Usage:
 #   check-worktree-scope.sh --cwd <payload cwd> [--worktree-name <name>] [--confined] (--path <target>... | --command <shell command>)
-#     --cwd            payload cwd; relative --path values resolve against it; also locates the main checkout (git rev-parse --git-common-dir).
-#     --worktree-name  the agent worktree under .workflow/.worktrees/: s<NNN>_t<N> for a Phase 3 task, s<NNN>_phase_1_<work type> for a
+#     --cwd            payload cwd; relative --path values resolve against it; also locates the spec checkout (lib/workflow-paths.sh
+#                      wf_project_root: the main checkout or a spec worktree, the one an agent worktree sits in) and the main checkout.
+#     --worktree-name  the agent worktree under the spec checkout's .workflow/.worktrees/: s<NNN>_t<N> for a Phase 3 task, s<NNN>_phase_1_<work type> for a
 #                      Phase 1 build, s<NNN>_integration_<work type> for an integration batch; on Codex any spawn task_name.
 #     --confined       the caller knows the agent must be confined: with no confinement root, deny every path and command.
 #     --path           a file the tool would write (repeatable).
 #     --command        a Bash command the agent would run.
 # Confinement root, first match wins:
-#   1. --worktree-name given and <main checkout>/.workflow/.worktrees/<name> exists: that directory.
-#   2. --cwd is inside a linked worktree (git-dir differs from git-common-dir; e.g. a Claude `isolation: "worktree"` launch): its top level.
+#   1. --worktree-name given and <spec checkout>/.workflow/.worktrees/<name> exists: that directory.
+#   2. --cwd is inside an agent or isolation worktree (its top level is not the spec checkout; e.g. a Claude `isolation: "worktree"`
+#      launch under .claude/worktrees/): its top level. A spec worktree is the spec checkout itself, never a confinement root.
 #   3. Neither, or --cwd is outside any git repository: with --confined, deny every path and command, temp-dir writes and read-only
 #      commands included, naming the cause (the agent worktree is missing, no name was given, or the cwd is not in a git repository);
 #      without --confined, allow (nothing recorded to confine to).
 # Rules:
-#   path     deny when it lies inside the main checkout (which holds .workflow/.worktrees/ and .claude/worktrees/) but outside the root.
-#            Paths outside the main checkout (a temp dir) are allowed. `.` and `..` are resolved, and symlinks through the deepest existing parent.
-#   command  allow when --cwd is inside the root or outside the main checkout; otherwise the command must start with `cd <dir> &&` where <dir>
+#   path     deny when it lies inside the spec checkout (which holds .workflow/.worktrees/ and .claude/worktrees/) or the main checkout
+#            (which holds the spec worktrees) but outside the root. Paths outside both (a temp dir) are allowed. `.` and `..` are resolved, and symlinks through the deepest existing parent.
+#   command  allow when --cwd is inside the root or outside both checkouts; otherwise the command must start with `cd <dir> &&` where <dir>
 #            is a literal absolute path (quotes allowed) inside the root, as the implementation brief asks. A cd target with `$`, `~` or a
 #            backtick cannot be checked and is denied. Accident prevention only: a command can still cd elsewhere later.
 #            Read-only commands need no `cd`: a command made only of allowlisted reads joined by `|` or `&&` is allowed from anywhere.
@@ -115,42 +117,45 @@ no_root() {
   exit 0
 }
 
-common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || no_root "the cwd $cwd is not in a git repository"
-main_root=$(cd -P "$(dirname "$common")" && pwd)
+spec_root=$(wf_project_root "$cwd" 2>/dev/null) || no_root "the cwd $cwd is not in a git repository"
+spec_root=$(cd -P "$spec_root" && pwd)
+main_root=$(wf_main_root "$cwd" 2>/dev/null) || no_root "the cwd $cwd is not in a git repository"
+main_root=$(cd -P "$main_root" && pwd)
 
 root=""
-if [ -n "$name" ] && [ -d "$main_root/$WF_WORKTREES/$name" ]; then
-  root=$(cd -P "$main_root/$WF_WORKTREES/$name" && pwd)
+if [ -n "$name" ] && [ -d "$spec_root/$WF_WORKTREES/$name" ]; then
+  root=$(cd -P "$spec_root/$WF_WORKTREES/$name" && pwd)
 else
-  gd=$(git -C "$cwd" rev-parse --path-format=absolute --git-dir 2>/dev/null || true)
-  if [ -n "$gd" ] && [ "$(cd -P "$gd" && pwd)" != "$(cd -P "$common" && pwd)" ]; then
-    root=$(cd -P "$(git -C "$cwd" rev-parse --show-toplevel)" && pwd)
-  fi
+  top=$(cd -P "$(git -C "$cwd" rev-parse --show-toplevel)" && pwd)
+  [ "$top" = "$spec_root" ] || root=$top
 fi
 if [ -z "$root" ]; then
   if [ -n "$name" ]; then
-    no_root "$main_root/$WF_WORKTREES/$name does not exist and the cwd $cwd is not in a linked worktree"
+    no_root "$spec_root/$WF_WORKTREES/$name does not exist and the cwd $cwd is not in an agent worktree"
   fi
-  no_root "no agent worktree name was given and the cwd $cwd is not in a linked worktree"
+  no_root "no agent worktree name was given and the cwd $cwd is not in an agent worktree"
 fi
+
+# guarded PATH : PATH lies in the spec checkout or the main checkout, where only the agent's own worktree is open to it.
+guarded() { under "$1" "$spec_root" || under "$1" "$main_root"; }
 
 if [ "$have_cmd" -eq 0 ]; then
   bad=()
   for p in "${paths[@]}"; do
     c=$(canon "$p")
-    if under "$c" "$main_root" && ! under "$c" "$root"; then bad+=("$p"); fi
+    if guarded "$c" && ! under "$c" "$root"; then bad+=("$p"); fi
   done
   if [ "${#bad[@]}" -gt 0 ]; then
-    echo "worktree guard: this agent works only in its agent worktree $root; denied write outside it: ${bad[*]}. Use an absolute path inside $root; the main checkout and other agents' worktrees belong to the orchestrator and other agents." >&2
+    echo "worktree guard: this agent works only in its agent worktree $root; denied write outside it: ${bad[*]}. Use an absolute path inside $root; the spec checkout, the main checkout and other agents' worktrees belong to the orchestrator and other agents." >&2
     exit 2
   fi
-  echo "allow: inside $root or outside the main checkout"
+  echo "allow: inside $root or outside the spec and main checkouts"
   exit 0
 fi
 
 c=$(canon "$cwd")
-if under "$c" "$root" || ! under "$c" "$main_root"; then
-  echo "allow: cwd inside $root or outside the main checkout"
+if under "$c" "$root" || ! guarded "$c"; then
+  echo "allow: cwd inside $root or outside the spec and main checkouts"
   exit 0
 fi
 

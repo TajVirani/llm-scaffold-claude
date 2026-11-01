@@ -14,7 +14,7 @@
 #     --at        for a cross-cutting 00.x id: the linear step it was entered from (discovered work's origin node, 3.1 for 00.19).
 #                 The line shows that step, then the 00.x step after it.
 #                 It may name a large-path step (6.x): the line then shows the large form, then the 00.x step.
-#     Run from the project root (main checkout), where .step lives.
+#     Run from the project root (the spec checkout), where .step lives.
 # stdout: one line; nothing for an intake id (0.0.x: no progress line before a spec exists).
 # Exit codes: 0 printed (or intake); 2 unknown id, an id not on the chosen path (a 6.x id with --path or --spec-dir), a side artifact id (0.3.21, 3.12), or a 00.x id
 #   without --at; 1 usage or environment error (missing steps.tsv, spec.md or .step, missing yq).

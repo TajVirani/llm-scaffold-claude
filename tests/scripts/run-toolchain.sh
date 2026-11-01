@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: run-toolchain.sh (feature-workflow/scripts).
 # Covers: toolchain key order and skipping, serve keys never run, --e2e, failure digest and --tail, evidence files,
-#   missing profile / unclassified work type / usage errors, worktree evidence location, commands run in --cwd,
+#   missing profile / unclassified work type / usage errors, evidence in the checkout an agent worktree sits in, commands run in --cwd,
 #   the tree hash (recorded, --tree-hash, untracked files, workflow data ignored, a gitignored data folder present), --reuse hits and misses, test_scoped on the own list alone.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -66,20 +66,22 @@ eq missing-key "$(jq -r '.results[0].status' <<<"$out")" skipped
 t noprofile-rc 2 "$RT" --spec-dir .workflow/specs/001-x --task-id T1 --work-type nope
 t null-worktype-rc 2 "$RT" --spec-dir .workflow/specs/001-x --task-id T2
 t usage-rc 2 "$RT" --task-id T1
-# worktree: evidence goes to the main checkout
-git worktree add -q "$T/wt" -b wt
+# agent worktree: evidence goes to the checkout it sits in (kept out of git as the install block does)
+echo '.workflow/.worktrees/' >> .git/info/exclude
+WT=$T/repo/.workflow/.worktrees/wt
+git worktree add -q "$WT" -b wt
 rm -rf .workflow/specs/001-x/artifacts
-"$RT" --spec-dir .workflow/specs/001-x --task-id T1 --cwd "$T/wt" >/dev/null 2>&1
+"$RT" --spec-dir .workflow/specs/001-x --task-id T1 --cwd "$WT" >/dev/null 2>&1
 eq wt-rc "$?" 0
 MAIN=$(pwd -P)
 t wt-evidence-main 0 test -f "$MAIN/.workflow/specs/001-x/artifacts/T1/toolchain.json"
-t wt-no-local 0 test ! -e "$T/wt/specs/001-x/artifacts"
+t wt-no-local 0 test ! -e "$WT/specs/001-x/artifacts"
 # commands run in the worktree
 sed 's/boundary: "echo boundary-ok"/boundary: "pwd"/' .workflow/profiles/fake.md > .workflow/profiles/pwd.md
 git_commit_all "$T/repo" p
-(cd "$T/wt" && git merge -q main 2>/dev/null)
-"$RT" --spec-dir .workflow/specs/001-x --task-id T5 --work-type pwd --cwd "$T/wt" >/dev/null 2>&1
-t runs-in-cwd 0 grep -q "$(cd "$T/wt" && pwd -P)" .workflow/specs/001-x/artifacts/T5/toolchain.txt
+(cd "$WT" && git merge -q main 2>/dev/null)
+"$RT" --spec-dir .workflow/specs/001-x --task-id T5 --work-type pwd --cwd "$WT" >/dev/null 2>&1
+t runs-in-cwd 0 grep -q "$(cd "$WT" && pwd -P)" .workflow/specs/001-x/artifacts/T5/toolchain.txt
 grep -v '^test' .workflow/profiles/fake.md > .workflow/profiles/notest.md
 out=$("$RT" --spec-dir .workflow/specs/001-x --task-id T6 --work-type notest 2>/dev/null)
 eq missing-test-skipped "$(jq -r '.results[]|select(.key=="test")|.status' <<<"$out")" skipped
@@ -105,10 +107,10 @@ eq tree-hash-ignores-specs "$("$RT" --tree-hash --cwd "$T/repo")" "$h1"
 echo x > untracked.txt
 check tree-hash-untracked '[ "$("$RT" --tree-hash --cwd "$T/repo")" != "$h1" ]'
 rm -f untracked.txt
-h3=$("$RT" --tree-hash --cwd "$T/wt")
-echo y > "$T/wt/untracked.txt"
-check tree-hash-worktree 'grep -Eqx "[0-9a-f]{40}" <<<"$h3" && [ "$("$RT" --tree-hash --cwd "$T/wt")" != "$h3" ]' "$h3"
-rm -f "$T/wt/untracked.txt"
+h3=$("$RT" --tree-hash --cwd "$WT")
+echo y > "$WT/untracked.txt"
+check tree-hash-worktree 'grep -Eqx "[0-9a-f]{40}" <<<"$h3" && [ "$("$RT" --tree-hash --cwd "$WT")" != "$h3" ]' "$h3"
+rm -f "$WT/untracked.txt"
 printf '.workflow/.handoff/\n' > .gitignore && mkdir -p .workflow/.handoff
 h4=$("$RT" --tree-hash --cwd "$T/repo" 2>/dev/null)
 echo x > .workflow/.handoff/h.md

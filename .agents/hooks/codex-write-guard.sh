@@ -17,8 +17,8 @@
 #       any difference denies. Conservative: a body line that starts with `status:` and is edited also denies.
 #   - Worktree confinement, sub-agents only: the worktree is named by the spawn task_name, read from the session_meta agent_path on the
 #     first line of the payload transcript_path (as post-implementation-audit.sh reads it from agent_transcript_path). When the name is
-#     s<NNN>_... and .workflow/.worktrees/<task_name> exists, every path is also checked by
-#     skills/feature-workflow/scripts/check-worktree-scope.sh: a path inside the main checkout but outside that worktree is denied. No
+#     s<NNN>_... and .workflow/.worktrees/<task_name> exists in the spec checkout, every path is also checked by
+#     skills/feature-workflow/scripts/check-worktree-scope.sh: a path inside the spec or main checkout but outside that worktree is denied. No
 #     session_meta agent_path in the transcript (unverified on 0.155.1 for PreToolUse; SubagentStart's transcript_path was seen to be the
 #     sub-agent's own rollout) or no such worktree: no confinement.
 #   - check-write.sh exit 0 for every path and class: allow (no output). Exit 2: deny with every denied path's reason. Any other exit, an

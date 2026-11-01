@@ -49,8 +49,9 @@
 #   other    everything else                        allow.
 #   (The in-flight scan skips .workflow/specs/work-backlog/.)
 # Triggers/inputs: Reads the gitignored step markers .workflow/specs/NNN-slug/.step and .workflow/initiatives/NNN-slug/.step (formats owned by status-transition.sh and initiative-transition.sh: `step: "<node>"`, `updated_at: "<UTC>"`,
-#   optional `blocked_from`) and the spec.md and initiative.md frontmatter `status`, all from the MAIN checkout found with `git rev-parse --git-common-dir`,
-#   because gitignored state exists only there, not in task worktrees. Needs mikefarah yq v4 only for Tier A checks and --proposed.
+#   optional `blocked_from`) and the spec.md and initiative.md frontmatter `status`, all from the spec checkout that holds the path (lib/workflow-paths.sh
+#   wf_project_root: the main checkout or a spec worktree; a path in an agent worktree counts as the checkout the worktree sits in),
+#   because gitignored state exists only there, not in agent worktrees. Needs mikefarah yq v4 only for Tier A checks and --proposed.
 # Outputs/handoff: exit 0 allow (reason on stdout); exit 2 deny (reason on stderr); exit 1 usage or environment error (adapters should treat it as deny).
 #   Host adapters translate this to their decision format.
 # Called by: hooks/spec-single-writer-guard.sh (--only spec), tier-a-write-guard.sh (--only tier-a), tier-b-write-guard.sh (--only tier-b);
@@ -139,16 +140,6 @@ existing_dir() {
   local p=$1
   while [[ ! -d "$p" ]]; do p=$(dirname "$p"); done
   printf '%s\n' "$p"
-}
-
-main_root() {
-  local common
-  common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
-  if [[ "$(basename "$common")" == ".git" ]]; then
-    (cd -P "$(dirname "$common")" && pwd)
-  else
-    git -C "$1" worktree list --porcelain | sed -n '1s/^worktree //p'
-  fi
 }
 
 marker_get() {
@@ -260,7 +251,8 @@ if [[ $HAVE_AGENT -eq 1 ]]; then
   deny "$REL is protected ($CLASS) and the write comes from a $WHO. Only the main session writes spec.md, tasks.md, $WF_WORK_BACKLOG/, initiative.md and Tier A, at approved steps. Return the proposed change (or the discovered-work report) in your output instead."
 fi
 
-ROOT=$(main_root "$TOP") || die "cannot locate the main checkout from $TOP"
+ROOT=$(wf_project_root "$TOP") || die "cannot locate the spec checkout from $TOP"
+ROOT=$(cd -P "$ROOT" && pwd)
 
 # ---------------------------------------------------------------- .workflow/specs/work-backlog/
 if [[ "$KIND" == "backlog" ]]; then
@@ -359,7 +351,7 @@ for spec in "$ROOT/$WF_SPECS"/*/spec.md; do
   fi
 done
 # The marker, not initiative.md, marks an initiative in flight: initiative.md lives on the initiative branch, while the
-# gitignored marker stays in the main checkout whichever branch is checked out.
+# gitignored marker stays in its checkout whichever branch is checked out.
 for mk in "$ROOT/$WF_INITIATIVES"/*/.step; do
   [[ -f "$mk" ]] || continue
   dir=$(dirname "$mk")

@@ -8,10 +8,11 @@
 #   shell-quoted only when it holds characters outside [A-Za-z0-9_@%+=:,./-], so a plain argv still matches the prefixes below. A Bash call that exits non-zero fires only
 #   PostToolUseFailure on Claude Code 2.1.303 (payload: error, is_interrupt, duration_ms, no tool_response); a failing suite is the run whose
 #   evidence matters most, so both events are wired. The hook never reads tool_response or error: the JSON report is the source. Paths from the payload `cwd` (a task worktree for a sub-agent); .workflow/specs/ and the gitignored .step
-#   markers are read in the main checkout (git rev-parse --git-common-dir), since a 1.4 run happens in a throwaway worktree.
+#   markers are read in the spec checkout (lib/workflow-paths.sh wf_project_root: the main checkout or a spec worktree; an agent
+#   worktree under .workflow/.worktrees/ counts as the checkout it sits in, so a 1.4 run in a scratch worktree there files its evidence in the spec checkout).
 # Match (leading NAME=value env assignments are skipped first; E2E_INJECT_FAULT=1 among them marks the run fault-injected, 1.4):
 #   - the command starts with the `e2e` value of the e2e-browser profile's Toolchain block (.workflow/profiles/e2e-browser.md in cwd, then the main
-#     checkout), or with `npx playwright test`; followed by end of command or whitespace (agents append --grep @JRN-001, --project, -x); or
+#     spec checkout), or with `npx playwright test`; followed by end of command or whitespace (agents append --grep @JRN-001, --project, -x); or
 #   - the command runs run-toolchain.sh with --e2e (3.10); its --spec-dir, --task-id, --cwd and --work-type / --profile are used when they
 #     are literal (a value holding `$` or a backtick is unexpanded text and is ignored).
 #   - A command carrying --list (collect only, the e2e-browser `test` key) never matches.
@@ -19,7 +20,7 @@
 #   A report older than 15 minutes is stale (the run crashed before writing one): nothing is filed.
 # Spec: --spec-dir from a run-toolchain.sh command; otherwise the in-flight spec in .workflow/specs/*/ (status ready-for-dev, in-progress, in-review
 #   or blocked; .workflow/specs/work-backlog/ skipped) whose .step has the latest updated_at; a single in-flight spec without .step also counts.
-# Destination (main checkout): .workflow/specs/NNN-slug/artifacts/<task-id>/ for a run-toolchain.sh run (earlier evidence of this hook in that
+# Destination (spec checkout): .workflow/specs/NNN-slug/artifacts/<task-id>/ for a run-toolchain.sh run (earlier evidence of this hook in that
 #   directory is replaced, as toolchain.txt is), else .workflow/specs/NNN-slug/artifacts/e2e-<run-id>/, run-id = UTC timestamp + short HEAD sha.
 #   Inside: <JRN-###>/ (or untagged/ for a failing test without a journey tag) holding <name>[-retry<r>][-<k>].<ext> (k on a name clash),
 #   e2e-results.json (the report) and evidence-index.json (run, command, stats, and per test: title, file:line, project, tags,
@@ -72,9 +73,7 @@ cwd=$(jq -r '.cwd // "" | strings' <<<"$payload")
 [ -n "$cwd" ] && [ -d "$cwd" ] || cwd=${CLAUDE_PROJECT_DIR:-$PWD}
 cwd=$(cd "$cwd" && pwd -P)
 main_root=$cwd
-if common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
-  main_root=$(cd "$(dirname "$common")" && pwd -P)
-fi
+if spec_root=$(wf_project_root "$cwd" 2>/dev/null); then main_root=$(cd "$spec_root" && pwd -P); fi
 
 # Trim, then skip leading NAME=value assignments.
 rest=$cmd
@@ -128,7 +127,7 @@ case "$rest" in
     ;;
 esac
 
-# Profile: --profile, else .workflow/profiles/<work-type or e2e-browser>.md in the run directory, cwd, then the main checkout.
+# Profile: --profile, else .workflow/profiles/<work-type or e2e-browser>.md in the run directory, cwd, then the spec checkout.
 if [ -z "$profile" ]; then
   wt=e2e-browser
   if [ "$via_toolchain" -eq 1 ]; then w=$(opt --work-type); [ -z "$w" ] || wt=$w; fi

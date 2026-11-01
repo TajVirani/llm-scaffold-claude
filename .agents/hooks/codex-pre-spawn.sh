@@ -19,13 +19,14 @@
 #                             from an initiative, e.g. i004_research) the initiative is checked; any other valid name passes (a
 #                             repeated Phase 0/4 launch adds _r<round>, e.g. s007_fact_lookup_r2, i004_research_r2)
 #     s<NNN> must resolve to exactly one folder .workflow/specs/<NNN>-*; i<NNN> to exactly one initiative, either a folder
-#     .workflow/initiatives/<NNN>-* in the main checkout or a branch initiative/<NNN>-* (local or origin); a <enc(work_type)> must equal enc() of exactly one .workflow/profiles/<wt>.md.
+#     .workflow/initiatives/<NNN>-* in the spec checkout or a branch initiative/<NNN>-* (local or origin); a <enc(work_type)> must equal enc() of exactly one .workflow/profiles/<wt>.md.
 #   - Any failed check: deny with the reason. jq missing, unreadable payload, or the task-type table not readable: deny, fail closed.
 # Outputs/handoff: stdout is nothing (allow) or exactly one deny JSON:
 #   {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"codex-pre-spawn: ..."}}
 #   Exit code always 0.
 # Triggers/inputs: PreToolUse payload for the spawn tool: tool_input {agent_type, message (encrypted), task_name, fork_turns?, model?}.
-#   Project root from the payload `cwd` (no project-dir variable on Codex), normalised to the main checkout (git --git-common-dir).
+#   Project root from the payload `cwd` (no project-dir variable on Codex), normalised to the spec checkout (lib/workflow-paths.sh
+#   wf_project_root).
 # Wiring: codex-hooks.template.json: PreToolUse, matcher ".*spawn_agent" (full-match regex; `spawn_agent` alone does not fire).
 # Notes: The model is not validated here: a toml without `model` takes the spawn value, and the orchestrator passes the
 #   resolve-launch.sh model. It is unverified whether Codex loads hyphenated agent names, hence the enc() form that generate-codex-agents.sh writes.
@@ -57,13 +58,16 @@ task_name=$(jq -r '.tool_input.task_name // "" | strings' <<<"$payload")
 root=$(jq -r '.cwd // "" | strings' <<<"$payload")
 [ -n "$root" ] && [ -d "$root" ] || root=$PWD
 root=$(cd "$root" && pwd)
-if common=$(git -C "$root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
-  root=$(dirname "$common")
+lib=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh
+if [ ! -f "$lib" ]; then
+  # Without the shared library the workflow is not installed here, unless its skill is, which is a broken install.
+  [ ! -d "$root/.agents/skills/feature-workflow" ] || env_deny "$lib not found; reinstall the scaffold"
+  exit 0
 fi
-[ -d "$root/.agents/skills/feature-workflow" ] || exit 0
-# Workflow paths; sourced once the workflow is known to be installed.
 # shellcheck source=../lib/workflow-paths.sh
-. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
+. "$lib"
+if spec_root=$(wf_project_root "$root" 2>/dev/null); then root=$spec_root; fi
+[ -d "$root/.agents/skills/feature-workflow" ] || exit 0
 resolver=$root/.agents/skills/feature-workflow/scripts/resolve-launch.sh
 [ -f "$resolver" ] || env_deny "${resolver#"$root"/} not found although .agents/skills/feature-workflow exists; reinstall the scaffold"
 
@@ -87,13 +91,13 @@ if [ -z "$task_name" ]; then
 fi
 grep -Eq '^[a-z0-9_]+$' <<<"$task_name" || bad "must use only lowercase letters, digits and underscores (Codex rejects anything else)"
 
-# spec_folder NNN : exactly one .workflow/specs/<NNN>-* in the main checkout.
+# spec_folder NNN : exactly one .workflow/specs/<NNN>-* in the spec checkout.
 spec_folder() {
   local d n=0
   for d in "$root/$WF_SPECS/$1"-*/; do [ -d "$d" ] && n=$((n + 1)); done
   [ "$n" -eq 1 ] || bad "names spec s$1, but $n folders match $WF_SPECS/$1-* (need exactly one)"
 }
-# initiative_folder NNN : exactly one initiative <NNN>-*, as a folder in the main checkout or as an initiative/<NNN>-* branch (local or
+# initiative_folder NNN : exactly one initiative <NNN>-*, as a folder in the spec checkout or as an initiative/<NNN>-* branch (local or
 # origin); an initiative still in exploration exists only on its branch until it merges.
 initiative_folder() {
   local d n

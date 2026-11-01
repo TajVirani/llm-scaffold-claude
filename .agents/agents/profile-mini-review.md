@@ -19,7 +19,7 @@ You judge one task's diff against the checklist of its work profile plus the fix
 
 ## Receives
 
-Your launch prompt holds, in order: the launch header (above), the profile's `## Mini-review checklist` section (inserted by the pre-launch hook), then a pointer to the diff: a diff file, or the task's worktree path and base commit. The toolchain output for the task is at `<spec_dir>/artifacts/<task_id>/` in the main checkout: `toolchain.json` (which commands ran and passed) and `toolchain.txt` (their output). Read `.agents/skills/feature-workflow/references/readable-code.md` in the main checkout too: its "Checking at 3.7" lines join the end of the checklist in every project, and its Checking table says when each one fails. That is your whole context. The rest of the profile, the spec and other tasks are outside it; judge the diff against the checklist as written.
+Your launch prompt holds, in order: the launch header (above), the profile's `## Mini-review checklist` section (inserted by the pre-launch hook), then a pointer to the diff: a diff file, or the task's worktree path and base commit. The toolchain output for the task is at `<spec_dir>/artifacts/<task_id>/` in the spec checkout, the checkout you are launched from (the main checkout or the spec's own worktree; `git rev-parse --show-toplevel` from your starting directory prints it): `toolchain.json` (which commands ran and passed) and `toolchain.txt` (their output). Read `.agents/skills/feature-workflow/references/readable-code.md` in the spec checkout too: its "Checking at 3.7" lines join the end of the checklist in every project, and its Checking table says when each one fails. That is your whole context. The rest of the profile, the spec and other tasks are outside it; judge the diff against the checklist as written.
 
 **Re-check launch.** After a fix round that changed only wording, three lines follow the checklist in place of the diff pointer:
 
@@ -64,10 +64,10 @@ A re-check never fails an item on a line the fix diff did not change, unless tha
 
 ## Return
 
-Write the full result block below to your **result file** in the main checkout, `<spec_dir>/artifacts/<task_id>/mini-review.yaml`. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it in one Bash command with one quoted heredoc, creating the folder first:
+Write the full result block below to your **result file** in the spec checkout, `<spec_dir>/artifacts/<task_id>/mini-review.yaml`. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it in one Bash command with one quoted heredoc, creating the folder first:
 
 ```bash
-main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)") && mkdir -p "$main/<spec_dir>/artifacts/<task_id>" && cat > "$main/<spec_dir>/artifacts/<task_id>/mini-review.yaml" <<'EOF'
+spec=$(git rev-parse --show-toplevel) && mkdir -p "$spec/<spec_dir>/artifacts/<task_id>" && cat > "$spec/<spec_dir>/artifacts/<task_id>/mini-review.yaml" <<'EOF'
 verdict: pass
 ...
 EOF
