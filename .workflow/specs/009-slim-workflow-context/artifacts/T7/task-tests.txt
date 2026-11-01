@@ -1,0 +1,2 @@
+tests/lint/small-path-docs.sh
+tests/lint/shared-rule-homes.sh

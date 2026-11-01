@@ -100,7 +100,7 @@ tasks:
     pr: null
   - id: T7
     title: "Fold the small path into its step files"
-    status: pending
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T5, T6]
     touches_core: false

@@ -1,0 +1,43 @@
+verdict: pass
+task_id: T7
+work_type: agent-docs
+mode: re-check
+previous: ".workflow/specs/009-slim-workflow-context/artifacts/T7/mini-review-r1.yaml"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t7@5c5ee3db1ee255cfa9b5cdd261e2ed02722d3a09..2dff2f7a01f3bb621cb08ee307fbfdcc7ce0107b"
+tool_output: ".workflow/specs/009-slim-workflow-context/artifacts/T7/toolchain.json"
+items:
+  - n: 1
+    verdict: not-applicable
+    location: "no skill description in the diff: no added or removed description or name line under .agents/skills; the SKILL.md hunks start at line 46, so its frontmatter is untouched"
+    carried_from: r1
+  - n: 2
+    verdict: not-applicable
+    location: "no agent in the diff: name-status lists only modified feature-workflow files, PROVENANCE.md and one deleted module; no file added under .agents/agents/"
+    carried_from: r1
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/questioning-loop.md:97 (heading Leave the small path), and the bullet labels Placement, The round and The goal in that section name what each trigger covers"
+    carried_from: r1
+  - n: R2
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/sign-off.md:101 (new comment giving the reason for the indent), :102-110 (the indented 5.4 short-report block)"
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/assets/report.md:4 (header block); no comment added in the diff restates what the text below it says"
+    carried_from: r1
+  - n: R4
+    verdict: pass
+    location: ".agents/skills/feature-workflow/assets/report.md:4 names modules/sign-off.md inside the template's leading File header block, the interface doc that readable-code.md R4 exempts; the other added lines are instruction prose, not comments"
+    carried_from: r1
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/questioning-loop.md:97-101 (the Leave the small path section defines small path in plain sentences before using it)"
+    carried_from: r1
+read_outside_diff:
+  - ".agents/skills/feature-workflow/modules/sign-off.md:99-110: the small-path note and the 5.4 block; the new comment at :101 is the only added line, and the block at :102-110 stays indented"
+  - "tests/lint/done-folder-docs.sh:20-33 (step_section): the heading match is anchored at column 0, so the indented title at :103 does not end the 5.4 section; the comment at :101 names no 5.8 or unchanged text, so the suite reads the instruction text"
+  - "scratch worktree of 2dff2f7 (removed before return): tests/run-all.sh --suite lint/done-folder-docs passed=16 failed=0; --suite lint/md-links passed=6 failed=0; --suite lint/small-path-docs passed=52 failed=0; --suite lint/shared-rule-homes passed=23 failed=0"
+  - "toolchain.json names tree e365e63, which is not the tree of 2dff2f7 (cadd706); the four suites above are the post-fix evidence for the comment line"
+  - "the new comment at sign-off.md:101 judged against R1, R3, R4 and R5: it names no decision, path, spec or task ID, restates no code, and gives the reason in plain words"
+not_checked: []
+out_of_scope_noticed: []
