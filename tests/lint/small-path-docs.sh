@@ -12,7 +12,8 @@
 #   and its 0.3.3 note links the leave section; the questioning loop folds the deeper prompt and the summary into the one
 #   round and holds the leave section (its log line, the late library-evaluation and the 0.3.19 small_path: false);
 #   sign-off gives the five-line report, carries the retrospective lessons at 5.5 and asks nothing more at 5.7.
-#   review-triage launches one review-combined on the light path at 4.10 and keeps the four lenses for the full path.
+#   review-triage launches one review-combined on the light path at 4.10 and keeps the four lenses for the full path;
+#   the Codex section of references/launching.md names the combined review's task_name.
 #   steps.tsv has 0.0.3 as intake and 4.10 on the light track right after 4.9, with the four lenses on the full track.
 #   Reads the repo; writes only to a scratch dir.
 # shellcheck disable=SC2016,SC2034,SC2329  # check expressions are single-quoted and eval'd on purpose, and read variables and call helpers shellcheck cannot see
@@ -27,6 +28,7 @@ DISCOVERY=$MODULES/discovery.md
 LOOP=$MODULES/questioning-loop.md
 SIGN_OFF=$MODULES/sign-off.md
 TRIAGE=$MODULES/review-triage.md
+LAUNCHING=$FW_SKILL/references/launching.md
 TEMPLATE=$FW_SKILL/assets/spec.md
 TSV=$FW_SKILL/references/steps.tsv
 
@@ -109,7 +111,8 @@ echo "== review-triage: the combined review on the light path"
 launch=$(section "$TRIAGE" "2. Launch the four lenses")
 check "the launch section names 4.10" 'grep -q "4\.10" <<<"$launch"'
 check "the light path launches review-combined" 'grep -i "light path" <<<"$launch" | grep -q "task_type: review-combined"'
-check "the Codex name for the combined review" 'grep -q "s<NNN>_review_combined" <<<"$launch"'
+check "launching.md gives the combined review its Codex name" \
+  'section "$LAUNCHING" "Codex" | grep -F "\`review-combined\`" | grep -qF "\`s<NNN>_review_combined\`"'
 check "the full path keeps the four lenses" \
   'grep -q "Launch .review-standards., .review-end-state., .review-targets. and .review-lessons. together" <<<"$launch"'
 

@@ -5,7 +5,7 @@ description: Workflow 2.0 entry point for feature work. Sizes a request (trivial
 
 # Feature workflow
 
-The router for Workflow 2.0. It sizes each request and picks the step file to load. Use the smallest amount of process that safely fits the change (design rule 1). Step logic lives in `modules/`; load only the step file the route names, read it fully, and follow it. With the first step file of a session, also load [references/conventions.md](references/conventions.md): the rules every step file follows (one writer for status and step, guarded writes, the size budget, discovered work, sub-agent writes, the progress line and the host differences).
+The router for Workflow 2.0. It sizes each request and picks the step file to load. Use the smallest amount of process that safely fits the change (design rule 1). Step logic lives in `modules/`; load only the step file the route names, read it fully, and follow it. With the first step file of a session, also load [references/conventions.md](references/conventions.md): the rules every step file follows (one writer for status and step, guarded writes, the size budget, discovered work, sub-agent writes, the progress line and the host differences). A step that launches a sub-agent points to [references/launching.md](references/launching.md); read it at that step.
 
 ## 1. Find the state
 
@@ -109,32 +109,7 @@ A `discovered work:` or `size budget:` condition belongs to [discovered-work](mo
 
 Every loop back to 0.3.8 sets `draft`. The step file that owns the gate makes its own status call, then loads [questioning-loop](modules/questioning-loop.md); the loop's [Entry](modules/questioning-loop.md#entry) table lists each gate with its owner and its call.
 
-## 5. Launching a sub-agent
-
-Every launch prompt starts with the launch header on its first line, followed by the task:
-
-````markdown
-```yaml launch-header
-task_type: retrieval
-spec_dir: .workflow/specs/007-csv-export
-```
-
-<task body: only what the agent's definition says it receives>
-````
-
-- Required fields per task type: run `.agents/skills/feature-workflow/scripts/resolve-launch.sh --requirements`. Phase 0 types (`retrieval`, `library-evaluation`, `fact-lookup`, `module-audit`) and `research` take `spec_dir` only. A launch from an initiative (`research`, and `fact-lookup`, `retrieval` or `library-evaluation` asked for one) sets `spec_dir: .workflow/initiatives/NNN-slug`.
-- The task body carries only what `.agents/agents/<type>.md` lists under its inputs. Its return format is fixed in that file; read the return from there rather than expecting another shape.
-- A return that starts `LAUNCH ERROR:` means the header was wrong: fix it and relaunch once.
-- Launch independent agents in one message so they run in parallel. No nested launches.
-- A deny that names **00.14** means no model is configured for that task type: tell the stakeholder, record the model they choose in `.workflow/model-map/<type>.md` (or in `.workflow/agent-overrides.yaml` when the agent definition pins a model for this host), and relaunch. A deny that names **00.19** means a coding launch has no profile: the owning module handles it.
-
-### Host notes
-
-| Concern | Claude Code | Codex |
-| --- | --- | --- |
-| Launch | Agent tool, `subagent_type: <task type>`, prompt = header + task. Leave `model` unset: `hooks/pre-launch.sh` resolves it, prepends any profile, and denies a malformed launch. | Run `printf '%s' "$TASK_BODY" \| .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type <type> --spec-dir .workflow/specs/NNN-slug [--task-id T<n>] [--work-type <wt>]`, then spawn the agent with `agent_type` = `<type>` with `-` replaced by `_` (`fact_lookup`, `profile_mini_review`, `cache_regeneration`; `--task-type` keeps the hyphenated `<type>`), `.prompt` as its prompt, `.model` as its model, `task_name` in the form below and `fork_turns: "none"` (a full-history fork may ignore the spawn `model` override, and it keeps the parent's history out of the sub-agent). `task_name` forms (Codex accepts only `[a-z0-9_]`, no `/`; `enc` lowercases and turns every other character into `_`): `s<NNN>_t<N>` for an implementation task, `s<NNN>_t<N>_r<round>` for its `profile-mini-review`, `s<NNN>_integration_<enc(wt)>`, `s<NNN>_phase_1_<enc(wt)>`, `s<NNN>_cache_<type>` for a `cache-regeneration` inside a feature (`cache_<type>` in a bulk run), and `s<NNN>_<enc(task type)>` for every other type (`s007_fact_lookup`, `s007_review_standards`); a launch from an initiative is `i<NNN>_<enc(task type)>` (`i004_research`, `i004_fact_lookup`) with `--spec-dir .workflow/initiatives/NNN-slug`. `hooks/codex-pre-spawn.sh` denies a malformed name and checks the `s<NNN>` spec folder or the `i<NNN>` initiative folder. Exit 2 is a deny. |
-
-## 6. Templates
+## 5. Templates
 
 Templates for every per-feature file are in [assets/](assets/): `spec.md`, `codebase-map.md`, `design-log.md`, `data-model.md`, `verification-plan.md`, `tasks.md` (the task index), `task.md` (one per task under `tasks/`), `deferred.md`, `proposals.md`, `report.md`, `pr-template.md` (for `pr-body.md`, the Sign-off PR description), and `work-backlog.md` for a spec's `.workflow/specs/work-backlog/` list (`work-item.md` is the older one-file-per-item shape); `initiative.md` and `questions.md` for an initiative folder. The retrospective at 5.7 is the standalone `retrospective` skill.
 

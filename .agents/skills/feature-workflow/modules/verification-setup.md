@@ -68,15 +68,7 @@ git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
 `.workflow/.worktrees/` is gitignored. Name the worktree's absolute path in the brief as the directory the agent works in: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside it. A resumed or relaunched build reuses the worktree while it exists. The merge removes it, so a 1.4 loop back creates it again with the same command, off a spec-branch tip that already holds the earlier round. 1.3 creates its worktree only after the 1.2 merge, so it starts from the harness.
 
 - **Claude.** Call the Agent tool with `subagent_type: implementation` and the prompt above, without `isolation`: the Agent tool has no working-directory option, so the brief keeps the agent in its worktree and `hooks/worktree-write-guard.sh` denies its writes outside it. Leave out `model`: `hooks/pre-launch.sh` resolves the model and prepends the whole profile after the header.
-- **Codex** (advisory). Build the launch with the orchestrator mode (`--task-type implementation`), then spawn (`agent_type` = the definition name with `-` replaced by `_`; `--task-type` keeps the hyphen) with `.prompt` as the message, `.model` as the spawn's model (the generated `.codex/agents/*.toml` never carry `model`, so this is what selects it), `task_name` set to the worktree `<name>` (Codex accepts only `[a-z0-9_]`, no `/`) so the stop audit can find the launch and run the toolchain in its worktree, and `fork_turns: "none"` so the model override applies:
-
-  ```bash
-  .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type implementation \
-    --spec-dir .workflow/specs/NNN-slug --work-type test-harness <<'EOF'
-  <the build brief>
-  EOF
-  ```
-
+- **Codex.** Build and spawn the launch as [launching](../references/launching.md#codex) says, with `--task-type implementation` and `--work-type` from the header; the `task_name` is the worktree `<name>`.
 - **Denied outside its worktree.** An agent that keeps getting denied, or edits the spec checkout through Bash, is never relaunched another way: isolation cannot be configured from this repo, and an isolation launch is refused the result-file write to the spec checkout. Block the spec at its node: `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step <1.2 or 1.3> --blocked "phase-1-<work_type> cannot work inside its agent worktree: <the deny>"`.
 - **No profile.** A deny that names 00.19 means `.workflow/profiles/<work-type>.md` is missing. Create it with the human from `.workflow/profiles/TEMPLATE.md` (the shipped `test-harness` and `e2e-browser` examples are a starting point): `.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 00.19`, then Write the new profile, then launch again. With no human available, block the spec: `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step 00.19 --blocked "no <work-type> profile; a human must define .workflow/profiles/<work-type>.md"`.
 

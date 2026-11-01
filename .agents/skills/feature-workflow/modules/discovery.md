@@ -1,6 +1,6 @@
 # Discovery (Phase 0)
 
-Turn a request into a spec folder that says what to build, where it goes, what it touches and how it will be proven. You run in the main session; the corpus (Tier A docs, Tier B caches, the shelf) reaches you only as sub-agent extracts, except `.workflow/GLOSSARY.md`, which you read whole (design rule 3). Conventions for status, step markers and guarded writes are in [../references/conventions.md](../references/conventions.md), and launches in [../SKILL.md](../SKILL.md#5-launching-a-sub-agent); this module names the exact calls.
+Turn a request into a spec folder that says what to build, where it goes, what it touches and how it will be proven. You run in the main session; the corpus (Tier A docs, Tier B caches, the shelf) reaches you only as sub-agent extracts, except `.workflow/GLOSSARY.md`, which you read whole (design rule 3). Conventions for status, step markers and guarded writes are in [../references/conventions.md](../references/conventions.md), and launches in [../references/launching.md](../references/launching.md); this module names the exact calls.
 
 Work raised during Phase 0 that sits outside the agreed scope goes through the scope gate 0.3.16–0.3.17 to `.workflow/deferred/`, never to `.workflow/specs/work-backlog/`; the discovered-work protocol (00.21–00.29) covers Phases 1–4 only.
 
@@ -73,7 +73,7 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 
    Done when every raised term is agreed or confirmed as an existing entry, and the launches for this cache state are out.
 4. **0.2.8 Regenerate and restamp** each cache whose status is `stale`, `missing` or `invalid`. Leave them running: retrieval and the questioning go on meanwhile. When each returns, check and publish its staged body as the second bullet says, between rounds. Launch here only when step 3 did not, for example when 0.2.7 found nothing stale at the time and a later check does.
-   - The launch: one `cache-regeneration` per cache type (parallel). On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `cache_regeneration`, `task_name` `s<NNN>_cache_<type>` (for example `s007_cache_modules`), `fork_turns: "none"`. It receives no Tier A and not the previous cache. The prompt is the launch header followed by exactly the four task lines `.agents/agents/cache-regeneration.md` defines:
+   - The launch: one `cache-regeneration` per cache type (parallel). Launch each on your host as [launching](../references/launching.md) says. It receives no Tier A and not the previous cache. The prompt is the launch header followed by exactly the four task lines `.agents/agents/cache-regeneration.md` defines:
 
      ````markdown
      ```yaml launch-header
@@ -122,7 +122,7 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
    External systems: .workflow/rules.md, section "External systems"
    ````
 
-   On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `retrieval` and `library_evaluation`, `task_name` `s<NNN>_<agent>` (for example `s007_retrieval`, `s007_library_evaluation`), `fork_turns: "none"`.
+   Launch both on your host as [launching](../references/launching.md) says.
 
 6. **0.2.6 Write `codebase-map.md`** from [../assets/codebase-map.md](../assets/codebase-map.md) and the two returns only, each part as its return lands. Use the name agreed at 0.2.2 wherever a return used a proposed term the stakeholder renamed:
    - `cache_stamps` frontmatter ← the `cache_stamps` block of the `retrieval` return (`null` for a cache it read from the code). When a regenerated cache is published later, set its stamp to the published one.
@@ -213,7 +213,7 @@ The three facts (all must be clean for the light path):
    What the feature changes in it: <the 0.4.4 rows for this module>
    ````
 
-   On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `module_audit`, `task_name` `s<NNN>_module_audit` (for example `s007_module_audit`), `fork_turns: "none"`.
+   Launch it on your host as [launching](../references/launching.md) says.
 
    Write its return into `codebase-map.md`: **Module audit** ← its `## Module audit` table; append its **Seams and interfaces (additions)** rows to **Seams and interfaces**; append its **Not found** lines. A `cache disagrees with code` line is a stamp problem: rerun 0.2.7–0.2.8 for that cache, never edit an extract.
 

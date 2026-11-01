@@ -61,7 +61,7 @@ The rules every step file follows (one writer, the exit codes, set the step then
   git push -u origin initiative/NNN-slug   # task_review pr or pr-blocking, and an origin remote exists; never under local
   ```
 
-- **Launches** carry `spec_dir: .workflow/initiatives/NNN-slug` in the launch header, and run only while the checkout is on the initiative branch (the launch check needs the folder on disk). On Codex the `task_name` is `i<NNN>_<task type with - as _>`, for example `i004_research`, `i004_fact_lookup`.
+- **Launches** carry `spec_dir: .workflow/initiatives/NNN-slug` in the launch header, and run only while the checkout is on the initiative branch (the launch check needs the folder on disk). Launch on your host as [launching](../references/launching.md) says, which also gives the Codex initiative task names.
 
 ## 0.3.23 Convert a spec into an initiative
 

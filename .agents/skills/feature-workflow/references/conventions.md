@@ -53,4 +53,4 @@ For a spec it reads the step from `.step` and the path from `light_path` unless 
 | Write guards | `spec-single-writer-guard`, `tier-a-write-guard`, `tier-b-write-guard` hooks. | Before each guarded write run `.agents/skills/feature-workflow/scripts/check-write.sh --cwd "$PWD" --path <file>` (for `spec.md` add `--proposed <file holding the new content>`); write only on exit 0 (advisory). |
 | Other skills | Skill tool, e.g. `domain-modeling`. | `$domain-modeling`, or read its `SKILL.md`. |
 
-Codex hooks replace a direct script call, here or in the launch rules, only for events a live Codex run has verified; until then the calls stand.
+Codex hooks replace a direct script call, here or in [launching](launching.md), only for events a live Codex run has verified; until then the calls stand.
