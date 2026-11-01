@@ -4,8 +4,9 @@
 #   variables and functions only. bash 3.2 compatible.
 # Provides:
 #   folder_fixture_repo DIR  git repo on branch spec/001-alpha holding spec 001-alpha (spec.md, tasks.md with T1),
-#                            initiative 001-ini (initiative.md, questions.md) and the local-state ignore block; a worktree at
-#                            DIR-wt and a folder DIR-elsewhere, outside any repository, holding 001-alpha and 001-ini.
+#                            initiative 001-ini (initiative.md, questions.md) and the local-state ignore block; an agent
+#                            worktree at DIR/.workflow/.worktrees/wt-folders, which the scripts resolve to DIR, the checkout
+#                            it sits in, and a folder DIR-elsewhere, outside any repository, holding 001-alpha and 001-ini.
 #                            Sets FOLDER_REPO and FOLDER_WT.
 #   folder_inputs KIND       one "<form>|<cwd>|<arg>" line per input form for KIND (spec or initiative): relative,
 #                            dot-relative with a trailing slash, absolute under the main checkout, absolute under the
@@ -34,10 +35,10 @@ folder_fixture_repo() {
     '.workflow/.cache-staging/' '.workflow/.standards-staging/' >"$p/.gitignore"
   git_commit_all "$p" "fixture: workflow folders"
   git -C "$p" branch -q -m spec/001-alpha
-  git -C "$p" worktree add -q "$p-wt" -b wt-folders
+  git -C "$p" worktree add -q "$p/.workflow/.worktrees/wt-folders" -b wt-folders
   mkdir -p "$p-elsewhere/001-alpha" "$p-elsewhere/001-ini"
   FOLDER_REPO=$p
-  FOLDER_WT=$p-wt
+  FOLDER_WT=$p/.workflow/.worktrees/wt-folders
 }
 
 folder_inputs() {
