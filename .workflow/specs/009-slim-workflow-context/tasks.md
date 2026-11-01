@@ -134,7 +134,7 @@ tasks:
     pr: null
   - id: T9
     title: "Script and asset headers re-pointed"
-    status: pending
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T8]
     touches_core: false
