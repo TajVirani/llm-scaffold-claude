@@ -145,5 +145,5 @@ agents_rc=$?
 eq "every relative link and anchor in the markdown under .agents/ resolves" "$agents_rc" 0
 [ "$agents_rc" -eq 0 ] || printf '%s\n' "$agents_report" | sed 's/^/       /'
 
-shellcheck_files "shellcheck: links suite" "$TESTS_DIR/lint/links.sh"
+shellcheck_files "shellcheck: md-links suite" "$TESTS_DIR/lint/md-links.sh"
 finish
