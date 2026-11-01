@@ -34,7 +34,7 @@
 #   the usage line of the mode the other arguments select, on stdout); 1 task-mode usage error (bad arguments, spec or task not
 #   found); 2 generic-mode usage error (a missing --head, --base or --title, an option missing its value or unknown, task-mode
 #   arguments mixed in, a --record directory outside the initiatives root or without initiative.md, --cwd outside a git repository).
-# Called by: modules/implementation-orchestrator.md (3.16) when rules-setting.sh task_review prints pr or pr-blocking (task mode);
+# Called by: modules/implementation-waves.md (3.16) when rules-setting.sh task_review prints pr or pr-blocking (task mode);
 #   modules/large-path.md (6.11 and 6.13, the initiative merge into main) under the same settings (generic mode).
 # Notes: Requires git; mikefarah yq v4 in task mode and for --record; gh or glab only for the matching host. Pushing the branches is
 #   covered by the stakeholder's task_review setting (standing consent). Never force-pushes. bash 3.2 compatible.

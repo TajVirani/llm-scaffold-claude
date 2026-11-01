@@ -19,7 +19,7 @@
 #   spec/<NNN-slug>; a detached HEAD included), or a merge, cherry-pick or revert is in progress;
 #   2 usage or environment error (bad arguments, not a git repository, spec.md missing, yq missing, local state not gitignored,
 #   git add or commit failing).
-# Called by: modules/implementation-orchestrator.md (wave start, end of 3.16, hand off).
+# Called by: modules/implementation-waves.md (wave start, end of 3.16) and modules/implementation-finish.md (hand off).
 # Notes: Requires git and mikefarah yq v4. Never pushes. bash 3.2 compatible.
 # Sources: first-party. Pattern: status-transition.sh (spec-checkout resolution, spec-dir normalising).
 

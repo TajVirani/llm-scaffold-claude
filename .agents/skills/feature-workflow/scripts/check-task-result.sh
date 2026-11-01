@@ -61,7 +61,8 @@
 # Exit: 0 the shape is valid and the table was printed; 1 one or more shape errors (one line each on stdout, nothing else);
 #   2 usage error, missing or unreadable file, YAML that does not parse, unknown kind, or missing jq or mikefarah yq v4
 #   (message on stderr).
-# Called by: modules/implementation-orchestrator.md (after each implementation, integration and mini-review agent returns)
+# Called by: modules/implementation-gates.md (after each implementation and mini-review agent returns; the check itself is described
+#   in modules/implementation-waves.md), modules/implementation-shared-core.md (after each integration agent returns)
 #   and modules/verification-setup.md (after the Phase 1 implementation agents return).
 # Notes: bash 3.2 compatible; needs jq and mikefarah yq v4.
 # Sources: first-party.
