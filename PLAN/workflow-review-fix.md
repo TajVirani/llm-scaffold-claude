@@ -48,3 +48,7 @@ Merge order onto `fix/workflow-review`: U2, U1, U3, U4, U5. Every unit runs `tes
 ## Status
 
 Built on `fix/workflow-review`: U2, U1, U3, U4 and U5 merged in that order, then reconciled. Each decision's "Built:" note in `assetlist.md` (D102–D112) records what landed and where it differs from the text above (D108 keeps `rules.md` and the profiles in the tree hash).
+
+An independent review pass on the merged branch proved and fixed eight defects: `spec-worktree.sh remove` deleting the worktree before a refused branch delete, tree-hash wording in 3.5 and 5.4, a leftover light-path fast-forward at 3.9, the 0.1.1 number scan and the router's spec listing undercounting from a spec worktree, the module table sending 4.8 to deferred-handoff, `review-combined`'s step number, and this status line. Full suite: 4279 passed, 0 failed.
+
+Waiting on the stakeholder before `main`: the protected-file edits (the Small path glossary entry, the `# Suite:` header line in `rules.md`, the Relationships line on task branches, the archived shelf path at `pitfalls.md:33`), the `review-combined` model-map entry, and approval of the glossary and profile changes already on the branch.
