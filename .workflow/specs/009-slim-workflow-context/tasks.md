@@ -117,7 +117,7 @@ tasks:
     pr: null
   - id: T8
     title: "Setup, waves and finish step files; orchestrator removed"
-    status: pending
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T7]
     touches_core: false

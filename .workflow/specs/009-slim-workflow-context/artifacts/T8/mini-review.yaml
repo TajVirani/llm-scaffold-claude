@@ -1,0 +1,40 @@
+verdict: "pass"
+task_id: "T8"
+work_type: "agent-docs"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t8@0cfd07e2fb4b33e31b1d662b6b6e94bb2dd9b4e9..HEAD"
+tool_output: ".workflow/specs/009-slim-workflow-context/artifacts/T8/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no skill description in the diff: .agents/skills/feature-workflow/SKILL.md frontmatter (lines 1-4) is untouched and no added or changed description line appears in the diff"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no agent file in the diff: git diff --name-status shows no change under .agents/agents/ or .claude/; the two added files are step-file modules (implementation-setup.md, implementation-finish.md), not agents"
+  - n: "R1"
+    verdict: "pass"
+    location: "tests/lint/agent-worktree-docs.sh:26-28, tests/lint/review-escalation-docs.sh:30-32 (SETUP, WAVES, FINISH name the step files they point at)"
+  - n: "R2"
+    verdict: "pass"
+    location: "tests/lint/step-routing.sh:128-129 (the string compare carries its reason: awk compares 3.1 and 3.10 as equal numbers)"
+  - n: "R3"
+    verdict: "pass"
+    location: "tests/lint/step-routing.sh:128-129 (the one body comment added gives a reason and does not restate the awk expression on line 130)"
+  - n: "R4"
+    verdict: "pass"
+    location: "tests/lint/step-routing.sh:128-129 (body comment names only step numbers 3.1 and 3.10, which are not decision, doc, spec or task ids); tests/lint/agent-worktree-docs.sh:2-5, tests/lint/review-escalation-docs.sh:2-5 and tests/hooks/worktree-guard.sh:20 name workflow paths in # Suite / Covers header blocks, which R4 allows"
+  - n: "R5"
+    verdict: "pass"
+    location: "tests/lint/step-routing.sh:128-129 (plain sentences, no project shorthand)"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: the R1-R5 rules and the Checking table"
+  - ".agents/skills/feature-workflow/SKILL.md lines 1-6: frontmatter unchanged by the diff"
+  - "tests/lint/step-routing.sh lines 100-175: how holders, holder_count and check_group use the string compare"
+  - ".agents/skills/feature-workflow/modules/implementation-waves.md and implementation-finish.md headings: every re-pointed anchor (316-merge-the-wave, 313-do-both-suites-exist, stops, discovered-work-0021, evidence-and-the-ledger, resume-and-rework, wave-start-task-branches-and-worktrees, 310-311-browser-suite-against-the-running-feature, 314-record-each-missing-suite, hand-off) resolves to a heading"
+  - ".agents/skills/feature-workflow/references/steps.tsv: pure-decimal step ids checked for textual variants of one number (none found)"
+not_checked:
+  - "Whether the moved text in implementation-setup.md, implementation-waves.md and implementation-finish.md is word for word apart from re-pointed links: not a checklist item here; settle by diffing the old orchestrator sections against the new files with link targets masked."
+  - "Whether the re-pointed test pins in tests/lint/agent-worktree-docs.sh, tests/lint/review-escalation-docs.sh and tests/hooks/worktree-guard.sh check no less than before: not a checklist item here; the suites pass (toolchain test key, scoped) but pin strength was not compared with the old pins."
+  - "Step-routing fix: the string compare cannot hide a duplicate spelled the same way, and no textual variants of a pure-decimal step id exist in steps.tsv, so it weakens nothing in this repo. The scratch run of lint/step-routing at HEAD gave passed=28 failed=0."
+out_of_scope_noticed: []

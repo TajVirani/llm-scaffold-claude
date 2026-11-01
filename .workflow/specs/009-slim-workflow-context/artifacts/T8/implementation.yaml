@@ -1,0 +1,54 @@
+status: done
+summary: "implementation-orchestrator.md is split into implementation-setup.md (3.1), implementation-waves.md (wave loop with 3.13 and 3.9, launching, evidence, resume, 4.7 rework, discovered work, stops) and implementation-finish.md (3.10-3.11, 3.14, hand off), and deleted; the router, task-breakdown, discovery-impact, review-triage, large-path, shared-core and gates files, PROVENANCE, upstream-lineage and the test pins are re-pointed. tests/run-all.sh passes except lint/workflow-load-size (T10's): the implementation resume measures 57660 bytes against the 55000 limit and the new-feature start 48938 (the router gained one Route row). Also changed outside the predicted files: tests/lint/review-escalation-docs.sh and tests/README.md (pins and suite rows naming the orchestrator), and tests/lint/step-routing.sh, which compared step ids as numbers in awk (3.1 == 3.10) and failed once those ids sat in different files."
+task_id: "T8"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t8"
+branch: "task/009-slim-workflow-context/T08-implementation-step-files"
+base_commit: "0cfd07e2fb4b33e31b1d662b6b6e94bb2dd9b4e9"
+head_commit: "cdc48c96e576e87e38b49527404402ef975e96b8"
+files_changed:
+  - ".agents/skills/feature-workflow/SKILL.md"
+  - ".agents/skills/feature-workflow/modules/discovery-impact.md"
+  - ".agents/skills/feature-workflow/modules/implementation-finish.md"
+  - ".agents/skills/feature-workflow/modules/implementation-gates.md"
+  - ".agents/skills/feature-workflow/modules/implementation-orchestrator.md"
+  - ".agents/skills/feature-workflow/modules/implementation-setup.md"
+  - ".agents/skills/feature-workflow/modules/implementation-shared-core.md"
+  - ".agents/skills/feature-workflow/modules/implementation-waves.md"
+  - ".agents/skills/feature-workflow/modules/large-path.md"
+  - ".agents/skills/feature-workflow/modules/review-triage.md"
+  - ".agents/skills/feature-workflow/modules/task-breakdown.md"
+  - "PROVENANCE.md"
+  - "upstream-lineage.json"
+  - "tests/README.md"
+  - "tests/hooks/worktree-guard.sh"
+  - "tests/lint/agent-worktree-docs.sh"
+  - "tests/lint/review-escalation-docs.sh"
+  - "tests/lint/step-routing.sh"
+tests_added:
+  - {file: "tests/lint/step-routing.sh", test: "every 3.x id is held by exactly one step file (ids compared as strings, so 3.1 and 3.10 stay apart)", kind: edge}
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "no isolation launch, detached task worktree or fast-forward merge in implementation-setup, -waves and -finish; the gate runs before the 3.16 merge in implementation-waves.md", kind: behaviour}
+  - {file: "tests/lint/review-escalation-docs.sh", test: "the wave loop routes current work back to the task; nothing filed without a ruling in setup, waves or finish", kind: behaviour}
+  - {file: "tests/hooks/worktree-guard.sh", test: "JRN-005 implementation-waves.md says a confined agent whose agent worktree is missing is denied", kind: behaviour}
+evidence:
+  red: "tests/run-all.sh --suite lint/step-routing after the split; FAIL every 3.x id is held by exactly one step file got= 3.1(2: implementation-finish implementation-setup) 3.10(2: implementation-finish implementation-setup). Mutation check after the fix: a '## 3.1 duplicate' heading in finish still fails with 3.1(2: implementation-finish implementation-setup)."
+  green: "tests/run-all.sh --suite lint/step-routing; PASS passed=28 failed=0. lint/md-links 6/6, lint/agent-worktree-docs 65/65, lint/review-escalation-docs 72/72, hooks/worktree-guard 238/238, lint/shared-rule-homes 23/23, lint/step-list 36/36."
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/009-slim-workflow-context --task-id T8 --cwd \"$PWD\"; lint pass, test (scoped, own 1, excluded 1) pass. Full tests/run-all.sh: TOTAL passed=4456 failed=2 (75 suites), only lint/workflow-load-size fails (T10)."
+  toolchain: ".workflow/specs/009-slim-workflow-context/artifacts/T8/toolchain.txt (pass)"
+considered_not_built:
+  - "Trimming implementation-waves.md toward the 55000-byte resume limit: T10 owns the load targets; the split here only moves text (resume now 57660 bytes)."
+  - "Re-pointing assetlist.md and checklist.md, which still describe implementation-orchestrator.md: scaffold-only inventory and history outside .agents/, not named by the task."
+  - "Script and asset header comments naming implementation-orchestrator.md: T9's, left as they are."
+  - "verification-setup.md: in the predicted files but names no orchestrator path or anchor, so nothing to re-point."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "the diff adds or changes no skill description; SKILL.md frontmatter is untouched"}
+  - {item: 2, verdict: not-applicable, note: "no new agent definition"}
+  - {item: R1, verdict: pass, note: "suite variables SETUP, WAVES, FINISH name the step files they point at (tests/lint/agent-worktree-docs.sh:25-27, review-escalation-docs.sh:30-32)"}
+  - {item: R2, verdict: pass, note: "the string compare in tests/lint/step-routing.sh:129-130 carries its reason (awk compares 3.1 and 3.10 as equal numbers)"}
+  - {item: R3, verdict: pass, note: "the only new body comment gives a reason, it does not restate the awk line"}
+  - {item: R4, verdict: pass, note: "no comment names a decision, task id or .workflow/ path; check-comments.sh exits 0 on the diff"}
+  - {item: R5, verdict: pass, note: "suite headers and the step-routing comment use plain words"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over every changed and new file exits 0 with no lines"}
