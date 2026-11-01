@@ -4,7 +4,8 @@
 #   aliases and without its definition, and skips the Relationships and Flagged ambiguities sections. With a glossary map
 #   naming two context glossaries it prints the terms of both, each line labelled with its context, and leaves out a root
 #   glossary the map does not name. --define prints exactly the one whole entry (with or without an _Avoid_ line, and a
-#   term from a mapped context), and exits non-zero for a term no glossary holds. Usage errors exit 2.
+#   term from a mapped context), and exits non-zero for a term no glossary holds. Usage errors exit 2, and so does a map
+#   that links no context glossary (a misspelt or missing ## Contexts heading) or a context link with an empty path.
 #   Map links resolve from the project root, as the glossary format's own example (./src/ordering/GLOSSARY.md) does.
 # Env: TEST_BASH=<bash binary> runs the script under another bash (default: bash).
 # shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose, and call helpers shellcheck cannot see
@@ -140,6 +141,29 @@ defined=$(term_list "$MAPPED" --define "Payment run")
 check "--define finds a term in a mapped context" \
   'grep -qxF "**Payment run**:" <<<"$defined" && grep -qxF "One batch of payments collected on the same day." <<<"$defined"' "$defined"
 check "--define prints that entry only" '! grep -qF Invoice <<<"$defined"' "$defined"
+
+echo "== a glossary map that names no readable glossary"
+# map_fixture NAME MAP_BODY : a project holding a root glossary and a GLOSSARY-MAP.md with MAP_BODY; prints its root.
+map_fixture() {
+  local dir=$WORK/$1
+  git_init_repo "$dir"
+  copy_agents "$dir"
+  mkdir -p "$dir/.workflow"
+  printf '# Root\n\n## Language\n\n**Leftover**:\nA root term.\n' >"$dir/.workflow/GLOSSARY.md"
+  printf '%s\n' "$2" >"$dir/.workflow/GLOSSARY-MAP.md"
+  printf '%s\n' "$dir"
+}
+EMPTY_PATH=$(map_fixture empty-path "$(printf '%s\n' '# Glossary Map' '' '## Contexts' '' '- [Billing](./)')")
+t "a context link with an empty path exits 2" 2 term_list "$EMPTY_PATH"
+empty_path_err=$(term_list "$EMPTY_PATH" 2>&1 >/dev/null)
+check "the empty-path message names the context" 'grep -qF Billing <<<"$empty_path_err"' "$empty_path_err"
+MISSPELT=$(map_fixture misspelt "$(printf '%s\n' '# Glossary Map' '' '## Context' '' '- [Billing](./src/billing/GLOSSARY.md)')")
+t "a map whose Contexts heading is misspelt exits 2" 2 term_list "$MISSPELT"
+misspelt_err=$(term_list "$MISSPELT" 2>&1 >/dev/null)
+check "the misspelt-heading message names the Contexts section" 'grep -qF "## Contexts" <<<"$misspelt_err"' "$misspelt_err"
+t "--define on a map naming no context exits 2" 2 term_list "$MISSPELT" --define Leftover
+NO_HEADING=$(map_fixture no-heading '# Glossary Map')
+t "a map with no Contexts section exits 2" 2 term_list "$NO_HEADING"
 
 shellcheck_files "shellcheck: term-list.sh" "$AGENTS_SRC/skills/domain-modeling/scripts/term-list.sh"
 finish
