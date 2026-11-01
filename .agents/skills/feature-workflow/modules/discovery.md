@@ -31,6 +31,8 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
    ST status .workflow/specs/NNN-slug draft --step 0.1.4
    ```
 
+   On the small path: also set `small_path: true` and `light_path: true` in the frontmatter. A small-path spec is a light-path spec, so the progress line counts the light path from the start.
+
 5. **0.1.5 Off the shelf?** Yes when the stakeholder points at a `.workflow/deferred/` file, or names an item whose concept matches a file name in `.workflow/deferred/` (list names only) and confirms it is that item. Yes → run [deferred-handoff](deferred-handoff.md#archive) **Archive**. No → continue. A concept match found later by `retrieval` comes back to this step (see 0.2.6).
 6. **0.1.6 Draft the goal.** `ST step .workflow/specs/NNN-slug 0.1.6`, then write the **Why** paragraph as understood from the request (or from the archived brief's Goal, or the work item's Problem). Leave other sections as placeholders; 0.3.19 settles them.
 
@@ -131,6 +133,8 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 
    Launch both on your host as [launching](../references/launching.md) says.
 
+   On the small path: launch `retrieval` alone, here and beside the term gate (step 3), and no `library-evaluation`. At 0.2.6 write **Library options** in `codebase-map.md` as `None (small path: not evaluated).`
+
 6. **0.2.6 Write `codebase-map.md`** from [../assets/codebase-map.md](../assets/codebase-map.md) and the two returns only, each part as its return lands. Use the name agreed at 0.2.2 wherever a return used a proposed term the stakeholder renamed:
    - `cache_stamps` frontmatter ← the `cache_stamps` block of the `retrieval` return (`null` for a cache it read from the code). When a regenerated cache is published later, set its stamp to the published one.
    - **Affected area** ← the 0.2.1 list. **Relevant code**, **Seams and interfaces**, **Prior decisions**, **Not found** ← the same-named sections of the `retrieval` return.
@@ -148,11 +152,15 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 2. **0.3.3 Owning module clear?** Read the **Ownership** block of `.workflow/rules.md` whole. Clear when every path the change touches falls under one module's `owns` in that block.
    - Yes → go to [0.3.22](#hand-off-to-the-questioning-loop). No placement ADR is needed.
    - No → **0.3.4 Resolve placement** with the stakeholder: put the candidate modules to them as one question with your recommendation (from **Seams and interfaces** and **Prior decisions**), then log a **Placement** entry in `design-log.md` (create it from [../assets/design-log.md](../assets/design-log.md) if missing; that is node 0.3.21).
+   - On the small path: a No first means [leave the small path](questioning-loop.md#leave-the-small-path), then 0.3.4 runs as written.
 3. **0.3.5–0.3.7 Conflicts and the ADR.** Invoke `domain-modeling` for placement: it checks the placement against the ADRs and `.workflow/rules.md` (0.3.5), has the stakeholder conform or supersede (0.3.6), and writes the placement ADR under step `0.3.7`, or a design-log entry when the placement fails the three-part ADR test. A rule conflict becomes a 5.3 proposal, never a mid-feature rule edit.
 
 ### Hand off to the questioning loop
 
 1. **0.3.22 Deeper prompt.** Invoke the `deeper-prompt` skill. It restates the request one level up with its goals, downstream work, tools and gotchas, and appends the block to `design-log.md` as a **Deeper prompt** entry marked `Agreement: pending`; its "ready to pass on?" question is not asked on its own but rides on the questioning loop's first ask. Runs on both paths (light versus full is decided later, at 0.3.20), and only on this first entry: loop-backs to 0.3.8 go straight to the loop.
+
+   On the small path: skip the skill's step 2 questions. Fill **Downstream**, **Tools and technologies** and **Gotchas** from the request and the work item (`none known` where they say nothing); the block's agreement still rides on the loop's first ask.
+
 2. Load [questioning-loop.md](questioning-loop.md) with the block as its input. It asks for the block's agreement in its first ask, runs 0.3.8–0.3.19 and returns at 0.3.20 to [discovery-impact.md](discovery-impact.md#0320-light-path-test).
 
 ## Done

@@ -46,10 +46,12 @@ Done when you hold one `.workflow/specs/NNN-slug/` to resume, an initiative hand
 
 **0.0.3: small path?** Yes when the request already names all three: the file to change, the cause (what goes wrong and why, or what is missing), and the test that will prove the fix. A work-backlog item usually does, in its Problem, Evidence and Suggested scope. It must also look like a light-path change: one owning module, nothing irreversible. Ask in one line when unsure, recommending your answer.
 
-- **Yes:** load [modules/discovery.md](modules/discovery.md) and [modules/small-path.md](modules/small-path.md), and start at 0.1. The small path runs the light path with less ceremony; small-path says what changes at each step.
+- **Yes:** load [modules/discovery.md](modules/discovery.md) and start at 0.1; discovery writes `small_path: true` at 0.1.4.
 - **No:** load [modules/discovery.md](modules/discovery.md) and start at 0.1.
 
-Light versus full path is decided later, at 0.3.20, once the questioning loop has settled the design. Do not pick it at intake. The small path is the one route picked at intake, and it drops to the light or full path as soon as the request proves bigger ([Leave the small path](modules/small-path.md#leave-the-small-path)). The large path is not picked at intake either: the questioning loop converts the spec into an initiative when it finds several features (0.3.23).
+The small path runs the light path with less ceremony, through the same step files: each step it changes carries an "On the small path:" note in its step file. A note applies while `small_path` is `true` in `spec.md` and `design-log.md` has no `Left the small path` line.
+
+Light versus full path is decided later, at 0.3.20, once the questioning loop has settled the design. Do not pick it at intake. The small path is the one route picked at intake, and it drops to the light or full path as soon as the request proves bigger ([Leave the small path](modules/questioning-loop.md#leave-the-small-path)). The large path is not picked at intake either: the questioning loop converts the spec into an initiative when it finds several features (0.3.23).
 
 ## 3. Route by status
 
@@ -78,8 +80,6 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 | `blocked` | `blocked_condition` starts `discovered work:` or `size budget:` | [discovered-work](modules/discovered-work.md) | its "Resuming a blocked spec here" section (00.22 or 00.28) |
 | `blocked` | any other condition | none until a human resolves it | see [Blocked](#blocked) |
 | `done` | any | none | Read it as context only, from `.workflow/specs/done/NNN-slug/` once 5.8 has moved it (specs finished before the Done folder existed may still sit at the top level). A new change to a finished feature is new work: size it. |
-
-**Small path.** When `small_path` is `true`, also load [small-path](modules/small-path.md) beside the module the table names, and follow its changes for that module's steps. A `done` spec loads nothing.
 
 The rework row checks the task records, not `.step`: once a reopened task passes its gates the orchestrator's `set-task --step` calls (3.16, 3.9, 3.11) and 3.15 move the step off 4.7. It applies when `yq --front-matter=extract '[.tasks[] | select(.status == "in-progress")] | length' .workflow/specs/NNN-slug/tasks.md` is above 0; with none `in-progress`, the 5.x and review-triage rows apply.
 
@@ -116,5 +116,5 @@ Templates for every per-feature file are in [assets/](assets/): `spec.md`, `code
 
 ## Done
 
-- A trivial edit was made directly, or a spec folder exists and the module its status names is loaded with `references/conventions.md` (and small-path beside it for a small-path spec).
+- A trivial edit was made directly, or a spec folder exists and the module its status names is loaded with `references/conventions.md`.
 - Every status and step change went through `status-transition.sh`, and every guarded write happened at its step.

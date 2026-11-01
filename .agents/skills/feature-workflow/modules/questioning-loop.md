@@ -67,6 +67,8 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 8. **0.3.16–0.3.17 Scope gate.** For each answer that puts work outside the agreed scope, run [deferred-handoff](deferred-handoff.md#write) **Write** at step `0.3.17`. It writes `.workflow/deferred/<slug>.md`, adds it to `spec.md` `deferred` and Non-goals, and logs the **Scope decision**.
 9. **0.3.18 Questions remaining?** Answers reshape the tree: settled decisions push the frontier outward and surface new questions. Any open or newly surfaced → `ST step .workflow/specs/NNN-slug 0.3.8` and run the next round. None → 0.3.19.
 
+On the small path: entered from discovery, the loop runs one round. The deeper prompt's agreement is its first question (Entry step 2), and the settled-design summary is always its last question ([Last round](#settle-the-goal)). An answer that defers a question to a deep dive, leaves one open, or surfaces a new one (0.3.18 is Yes) means [leave the small path](#leave-the-small-path). A loop-back to 0.3.8 (from 4.5, 4.6, 5.6, 00.24 or 00.29) runs the loop as written, with no limit of one round; the spec stays on the small path unless 0.3.19 finds a fact that is not clean.
+
 ## Settle the goal
 
 **0.3.19 Confirm or revise the goal.** The frontier is empty when every branch is visited and nothing is silently assumed. Summarise the settled design in a few lines and have the stakeholder confirm shared understanding; a correction reopens the frontier. The confirmation rides on an ask that happens anyway:
@@ -88,7 +90,21 @@ ST step .workflow/specs/NNN-slug 0.3.19
 - **Open Questions:** empty; anything still open means the loop is not done.
 - Frontmatter `light_path`: `true` only when all three facts are clean. Leave `status` and every other key as they are.
 
+On the small path: keep `small_path: true` and `light_path: true` when the three facts are clean. A fact that is not clean, a library the project does not have, or a correction that reopens the frontier means [leave the small path](#leave-the-small-path) first.
+
 Load [discovery-impact](discovery-impact.md#0320-light-path-test) at 0.3.20. The size `budget` is not written here: discovery-impact writes it at 0.3.20 on the light path, task-breakdown at 2.5 on the full path.
+
+## Leave the small path
+
+The small path holds only while the request stays as small as it looked at 0.0.3. Leave it the moment any of these is true:
+
+- **Placement (0.3.3):** the owning module is not clear, so placement needs its own question.
+- **The round:** an answer defers a question to a deep dive, leaves one open, or surfaces a new one (0.3.18 is Yes), so a second round is needed.
+- **The goal (0.3.19):** a light-path fact (table in [discovery-impact](discovery-impact.md#0320-light-path-test)) is not clean, or the request needs a library the project does not have.
+
+To leave: append a dated `Left the small path: <reason>` line to `design-log.md` and tell the stakeholder in one line, leading with the progress line. Then carry on in the step file you are in, as written: placement at 0.3.4, a second round at 0.3.8, the full path after 0.3.20. The small path skipped library evaluation, so launch `library-evaluation` now as [discovery](discovery.md#02-retrieve-existing-system-context) 0.2.5 says and paste its report into **Library options** in `codebase-map.md`. From then on no "On the small path:" note applies, but one write remains: at 0.3.19, write `small_path: false` with the rest of `spec.md`, and `light_path` from the three facts.
+
+Done when the line is logged, the stakeholder has been told and `library-evaluation` is launched.
 
 ## Done
 
