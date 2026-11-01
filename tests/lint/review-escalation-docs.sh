@@ -84,6 +84,8 @@ check "triage verdicts have no maybe-false" '! grep -q "maybe-false" "$TRIAGE"'
 check "triage verdicts include unproven" 'grep -q "\`unproven\`: no reproduction" "$TRIAGE"'
 check "triage step 7 loads no deferred-handoff" '! section "$TRIAGE" "7. " | grep -q "deferred-handoff"'
 check "triage step 7 writes the Gaps line" 'section "$TRIAGE" "7. " | grep -q "Gaps:"'
+handoff_row=$(grep -F '| [deferred-handoff](modules/deferred-handoff.md) |' "$FW_SKILL/SKILL.md")
+check "SKILL.md's module table enters deferred-handoff from no 4.8" '[ -n "$handoff_row" ] && ! grep -q "4\.8" <<<"$handoff_row"' "$handoff_row"
 
 echo "== sign-off: one question over the list"
 S55=$(section "$SIGN_OFF" "5.5 ")
