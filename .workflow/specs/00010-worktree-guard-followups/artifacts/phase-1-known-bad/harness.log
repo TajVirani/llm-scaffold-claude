@@ -1,0 +1,286 @@
+== scripts/budget-check
+== scripts/build-architecture
+== scripts/cache-bash-project
+== scripts/cache-boundary-check
+== scripts/cache-js-unchanged
+== scripts/cache-missing-extractor-key
+== scripts/cache-mixed-extractors
+== scripts/cache-repo-architecture
+== scripts/cache-scripts
+== scripts/check-merge-artifacts
+== scripts/check-pr-body
+== scripts/check-review-findings
+== scripts/check-task-result
+== scripts/check-write-paths
+== scripts/check-write-tier-a
+== scripts/commit-workflow-data
+== scripts/extractor-bash
+== scripts/generate-boundary-config
+== scripts/generate-codex-agents
+== scripts/graph-extractor-selection
+== scripts/initiative-conversion
+== scripts/initiative-emission
+== scripts/initiative-merge
+== scripts/initiative-transition
+== scripts/install-claude-settings
+FAIL JRN-007 the settings template: permissions.deny holds Bash(yq *--front-matter=extract* -i*) once
+       got=0 want=1
+FAIL JRN-007 the settings template: permissions.deny holds Bash(yq *-i* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 the settings template: permissions.deny holds Bash(yq *--front-matter=extract* --inplace*) once
+       got=0 want=1
+FAIL JRN-007 the settings template: permissions.deny holds Bash(yq *--inplace* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 the settings template: its only deny entries naming --front-matter=extract are the four rules
+       got=[] want=["Bash(yq *--front-matter=extract* --inplace*)","Bash(yq *--front-matter=extract* -i*)","Bash(yq *--inplace* --front-matter=extract*)","Bash(yq *-i* --front-matter=extract*)"]
+FAIL JRN-007 this repo's .claude/settings.json: permissions.deny holds Bash(yq *--front-matter=extract* -i*) once
+       got=0 want=1
+FAIL JRN-007 this repo's .claude/settings.json: permissions.deny holds Bash(yq *-i* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 this repo's .claude/settings.json: permissions.deny holds Bash(yq *--front-matter=extract* --inplace*) once
+       got=0 want=1
+FAIL JRN-007 this repo's .claude/settings.json: permissions.deny holds Bash(yq *--inplace* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 this repo's .claude/settings.json: its only deny entries naming --front-matter=extract are the four rules
+       got=[] want=["Bash(yq *--front-matter=extract* --inplace*)","Bash(yq *--front-matter=extract* -i*)","Bash(yq *--inplace* --front-matter=extract*)","Bash(yq *-i* --front-matter=extract*)"]
+FAIL JRN-007 the template's deny list starts with the four rules
+       got=["Edit(.workflow/cache/**)","Edit(.workflow/initiatives/*/.step)","Edit(.workflow/specs/*/.step)"] want=["Bash(yq *--front-matter=extract* --inplace*)","Bash(yq *--front-matter=extract* -i*)","Bash(yq *--inplace* --front-matter=extract*)","Bash(yq *-i* --front-matter=extract*)"]
+FAIL JRN-007 empty target: permissions.deny holds Bash(yq *--front-matter=extract* -i*) once
+       got=0 want=1
+FAIL JRN-007 empty target: permissions.deny holds Bash(yq *-i* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 empty target: permissions.deny holds Bash(yq *--front-matter=extract* --inplace*) once
+       got=0 want=1
+FAIL JRN-007 empty target: permissions.deny holds Bash(yq *--inplace* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 empty target after a re-run: permissions.deny holds Bash(yq *--front-matter=extract* -i*) once
+       got=0 want=1
+FAIL JRN-007 empty target after a re-run: permissions.deny holds Bash(yq *-i* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 empty target after a re-run: permissions.deny holds Bash(yq *--front-matter=extract* --inplace*) once
+       got=0 want=1
+FAIL JRN-007 empty target after a re-run: permissions.deny holds Bash(yq *--inplace* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 install over a user deny entry: permissions.deny holds Bash(yq *--front-matter=extract* -i*) once
+       got=0 want=1
+FAIL JRN-007 install over a user deny entry: permissions.deny holds Bash(yq *-i* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 install over a user deny entry: permissions.deny holds Bash(yq *--front-matter=extract* --inplace*) once
+       got=0 want=1
+FAIL JRN-007 install over a user deny entry: permissions.deny holds Bash(yq *--inplace* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 re-run over a user deny entry: permissions.deny holds Bash(yq *--front-matter=extract* -i*) once
+       got=0 want=1
+FAIL JRN-007 re-run over a user deny entry: permissions.deny holds Bash(yq *-i* --front-matter=extract*) once
+       got=0 want=1
+FAIL JRN-007 re-run over a user deny entry: permissions.deny holds Bash(yq *--front-matter=extract* --inplace*) once
+       got=0 want=1
+FAIL JRN-007 re-run over a user deny entry: permissions.deny holds Bash(yq *--inplace* --front-matter=extract*) once
+       got=0 want=1
+== scripts/install-codex-config
+== scripts/install-codex-tui
+== scripts/install-hosts
+== scripts/install-payload
+== scripts/install-upgrade
+== scripts/lib-test-paths
+== scripts/lib-workflow-paths
+== scripts/resolve-launch-initiative
+== scripts/resolve-launch
+== scripts/review-lessons
+== scripts/run-all-selection
+== scripts/run-toolchain
+== scripts/sign-off-pr
+== scripts/status-transition-specs
+== scripts/status-transition-tasks
+== scripts/step-progress
+== scripts/task-breakdown
+== scripts/upstream-diff
+== hooks/audit-agent-worktrees
+== hooks/audit-sync-resume
+== hooks/block-destructive-git
+== hooks/codex-adapters
+== hooks/codex-pre-spawn-initiative
+== hooks/codex-shim
+== hooks/evidence-capture
+== hooks/initiative-write-guards
+== hooks/pre-launch
+== hooks/session-start-initiatives
+== hooks/worktree-guard
+FAIL JRN-001 task without a worktree on disk -> deny naming the missing worktree
+       rc=0 out=
+FAIL JRN-001 sub-agent transcript missing -> deny naming the transcript
+       rc=0 out=
+FAIL JRN-001 task agent whose worktree s007_t9 is missing: Write to the main checkout -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose worktree s007_t9 is missing: Write to a temp dir outside the repo -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose worktree s007_t9 is missing: read-only Bash 'cat f' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose worktree s007_t9 is missing: Bash 'ls -la > x' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose sub-agent transcript is missing: Write to the main checkout -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose sub-agent transcript is missing: Write to a temp dir outside the repo -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose sub-agent transcript is missing: read-only Bash 'cat f' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose sub-agent transcript is missing: Bash 'ls -la > x' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose first message has no launch header: Write to the main checkout -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose first message has no launch header: Write to a temp dir outside the repo -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose first message has no launch header: read-only Bash 'cat f' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose first message has no launch header: Bash 'ls -la > x' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose launch header is not valid YAML: Write to the main checkout -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose launch header is not valid YAML: Write to a temp dir outside the repo -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose launch header is not valid YAML: read-only Bash 'cat f' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose launch header is not valid YAML: Bash 'ls -la > x' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 integration agent whose worktree s007_integration_web is missing: Write to the main checkout -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 integration agent whose worktree s007_integration_web is missing: Write to a temp dir outside the repo -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 integration agent whose worktree s007_integration_web is missing: read-only Bash 'cat f' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 integration agent whose worktree s007_integration_web is missing: Bash 'ls -la > x' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose cwd is outside any git repo: Write there -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent whose cwd is outside any git repo: Bash 'cat f' -> deny naming the cause
+       rc=0 out=
+FAIL JRN-001 task agent without a worktree: Bash -> deny naming the missing worktree
+       rc=0 out=
+FAIL JRN-006 task agent read-only 'sed -n '$p' f' ($ or backtick only inside single quotes) from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-006 task agent read-only 'sed -n -e '1p' -e '$p' f' ($ or backtick only inside single quotes) from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-006 task agent read-only 'grep 'x$' f' ($ or backtick only inside single quotes) from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-006 task agent read-only 'grep '`' f' ($ or backtick only inside single quotes) from the main checkout -> allow
+       rc=0 out={"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3 && <command
+FAIL JRN-003 payload 'not json' that is not a JSON object -> deny JSON, exit 0
+       rc=0 out=
+FAIL JRN-003 payload '[1,2]' that is not a JSON object -> deny JSON, exit 0
+       rc=0 out=
+FAIL JRN-003 jq not on PATH, workflow installed -> static deny JSON naming jq, exit 0
+       rc=0 out=
+FAIL JRN-004 --confined, named worktree missing -> exit 2 with a reason on stderr
+       rc=1 err=check-worktree-scope.sh: unknown argument: --confined
+FAIL JRN-004 --confined with no --worktree-name, main-checkout cwd -> exit 2 with a reason on stderr
+       rc=1 err=check-worktree-scope.sh: unknown argument: --confined
+FAIL JRN-004 --confined, cwd outside any repo -> exit 2 naming the cause
+       rc=1 err=check-worktree-scope.sh: unknown argument: --confined
+FAIL JRN-004 --confined, named worktree missing, cwd in a linked worktree -> exit 0 (confined to it)
+       got=1 want=0
+FAIL JRN-005 write outside the worktree -> deny reason says agent worktree, not task worktree
+       rc=2 err=worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3; denied write outside it: /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/src/a.ts. Use an absolute path inside /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3; the main checkout and other tasks' worktrees belong to the orchestrator and other agents.
+FAIL JRN-005 Bash without a leading cd -> deny reason says agent worktree, not task worktree
+       rc=2 err=worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj. The command does not start with `cd <worktree> &&`. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3 && <command>
+FAIL JRN-005 cd to a path that is not literal -> deny reason says agent worktree, not task worktree
+       rc=2 err=worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj. The cd target '$WT' is not a literal path. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3 && <command>
+FAIL JRN-005 cd to a relative path -> deny reason says agent worktree, not task worktree
+       rc=2 err=worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj. The cd target 'src' is not an absolute path. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3 && <command>
+FAIL JRN-005 cd outside the worktree -> deny reason says agent worktree, not task worktree
+       rc=2 err=worktree guard: this agent works only in its task worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3, and this shell starts in /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj. The cd target '/private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj' is outside the worktree. Start the command with: cd /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.bBu0uv/proj/.workflow/.worktrees/s007_t3 && <command>
+FAIL JRN-005 --confined with no confinement root -> deny reason says agent worktree, not task worktree
+       rc=1 err=check-worktree-scope.sh: unknown argument: --confined
+FAIL JRN-005 named worktree missing, not --confined -> allow message never says task worktree
+       rc=0 out=allow: no task worktree recorded (.workflow/.worktrees/s007_t9 does not exist) and the agent is not in a linked worktree
+FAIL JRN-005 check-worktree-scope.sh: the # File: line never says task worktree
+       # File: Shared script (host-neutral, not a hook): decide whether a sub-agent's file write or shell command stays inside its task worktree.
+FAIL JRN-005 worktree-write-guard.sh: the # File: line never says task worktree
+       # File: Hook (Claude adapter): keep an implementation or integration sub-agent inside its task worktree.
+FAIL JRN-005 check-worktree-scope.sh --help names the agent worktree shape s<NNN>_phase_1_
+       --help lacks s<NNN>_phase_1_: #   check-worktree-scope.sh --cwd <payload cwd> [--worktree-name <name>] (--path <target>... | --command <shell command>)
+FAIL JRN-005 check-worktree-scope.sh --help names the agent worktree shape s<NNN>_integration_
+       --help lacks s<NNN>_integration_: #   check-worktree-scope.sh --cwd <payload cwd> [--worktree-name <name>] (--path <target>... | --command <shell command>)
+FAIL JRN-005 implementation-orchestrator.md says a confined agent whose agent worktree is missing is denied
+       no sentence names a missing agent worktree as denied
+== hooks/write-guards
+== lint/agent-worktree-docs
+FAIL JRN-009 the post-implementation-audit row gives the matcher implementation|integration
+       | `post-implementation-audit` | hook | New (D91: calls `run-toolchain.sh --reuse`, reusing a passing record for an unchanged tree) | `hooks/post-implementation-audit.sh` | 3.5–3.8 | `SubagentStop`, matcher `implementation` (script also filters) |
+FAIL JRN-009 the worktree-write-guard row says agent worktree, not task worktree
+       | `worktree-write-guard` | Keeps an implementation or integration sub-agent inside its task worktree (D85). | Deny a Write/Edit/NotebookEdit outside the task worktree and a Bash command that does not start with `cd <worktree> &&`, through `check-worktree-scope.sh`. | PreToolUse on Write/Edit/NotebookEdit and Bash, sub-agent calls only (payload carries `agent_id`, `agent_type` implementation or integration). | Block. | 3.3 | New | `PreToolUse`, matcher `Write\|Edit\|NotebookEdit\|Bash` |
+FAIL JRN-009 D85 item 6 says Phase 1 builds and integration batches run in orchestrator-made agent worktrees
+         6. **Orchestrator-created worktrees on both hosts.** At wave start the orchestrator runs `git worktree add .workflow/.worktrees/<task_name> -b <branch> spec/NNN-slug` (`<task_name>` = `s<NNN>_t<N>`) and launches the implementer in it; Claude no longer uses `isolation: "worktree"` for task launches. 3.16 merges `--no-ff` in task-id order with the message `Merge T3: <title>` kept (4.7 finds owners by it), then removes the worktree and deletes the branch; the next wave forks from the new tip. Phase 1 builds and integration batches keep their existing worktree handling. The Agent tool has no wor
+FAIL JRN-009 D85 item 6 keeps no isolation relaunch fallback
+         6. **Orchestrator-created worktrees on both hosts.** At wave start the orchestrator runs `git worktree add .workflow/.worktrees/<task_name> -b <branch> spec/NNN-slug` (`<task_name>` = `s<NNN>_t<N>`) and launches the implementer in it; Claude no longer uses `isolation: "worktree"` for task launches. 3.16 merges `--no-ff` in task-id order with the message `Merge T3: <title>` kept (4.7 finds owners by it), then removes the worktree and deletes the branch; the next wave forks from the new tip. Phase 1 builds and integration batches keep their existing worktree handling. The Agent tool has no wor
+== lint/frontmatter
+== lint/install-matcher-docs
+== lint/review-lessons
+== lint/step-list
+== lint/symlinks
+== lint/upstream-lineage
+
+== summary
+PASS scripts/budget-check                   passed=77   failed=0   skipped=0   xfail=0   27s
+PASS scripts/build-architecture             passed=87   failed=0   skipped=0   xfail=0   29s
+PASS scripts/cache-bash-project             passed=32   failed=0   skipped=0   xfail=0   8s
+PASS scripts/cache-boundary-check           passed=21   failed=0   skipped=0   xfail=0   10s
+PASS scripts/cache-js-unchanged             passed=13   failed=0   skipped=0   xfail=0   4s
+PASS scripts/cache-missing-extractor-key    passed=9    failed=0   skipped=0   xfail=0   3s
+PASS scripts/cache-mixed-extractors         passed=8    failed=0   skipped=0   xfail=0   4s
+PASS scripts/cache-repo-architecture        passed=6    failed=0   skipped=0   xfail=0   4s
+PASS scripts/cache-scripts                  passed=54   failed=0   skipped=0   xfail=0   25s
+PASS scripts/check-merge-artifacts          passed=23   failed=0   skipped=0   xfail=0   9s
+PASS scripts/check-pr-body                  passed=47   failed=0   skipped=0   xfail=0   12s
+PASS scripts/check-review-findings          passed=119  failed=0   skipped=0   xfail=0   9s
+PASS scripts/check-task-result              passed=117  failed=0   skipped=0   xfail=0   20s
+PASS scripts/check-write-paths              passed=153  failed=0   skipped=0   xfail=0   62s
+PASS scripts/check-write-tier-a             passed=116  failed=0   skipped=0   xfail=0   63s
+PASS scripts/commit-workflow-data           passed=34   failed=0   skipped=0   xfail=0   8s
+PASS scripts/extractor-bash                 passed=40   failed=0   skipped=0   xfail=0   4s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   8s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   25s
+PASS scripts/graph-extractor-selection      passed=38   failed=0   skipped=0   xfail=0   12s
+PASS scripts/initiative-conversion          passed=28   failed=0   skipped=0   xfail=0   5s
+PASS scripts/initiative-emission            passed=22   failed=0   skipped=0   xfail=0   5s
+PASS scripts/initiative-merge               passed=63   failed=0   skipped=0   xfail=0   23s
+PASS scripts/initiative-transition          passed=74   failed=0   skipped=0   xfail=0   11s
+FAIL scripts/install-claude-settings        passed=44   failed=27  skipped=0   xfail=0   91s
+PASS scripts/install-codex-config           passed=20   failed=0   skipped=0   xfail=0   58s
+PASS scripts/install-codex-tui              passed=8    failed=0   skipped=0   xfail=0   48s
+PASS scripts/install-hosts                  passed=17   failed=0   skipped=0   xfail=0   67s
+PASS scripts/install-payload                passed=55   failed=0   skipped=0   xfail=0   54s
+PASS scripts/install-upgrade                passed=125  failed=0   skipped=0   xfail=0   183s
+PASS scripts/lib-test-paths                 passed=47   failed=0   skipped=0   xfail=0   8s
+PASS scripts/lib-workflow-paths             passed=103  failed=0   skipped=0   xfail=0   3s
+PASS scripts/resolve-launch-initiative      passed=19   failed=0   skipped=0   xfail=0   5s
+PASS scripts/resolve-launch                 passed=95   failed=0   skipped=0   xfail=0   32s
+PASS scripts/review-lessons                 passed=26   failed=0   skipped=0   xfail=0   3s
+PASS scripts/run-all-selection              passed=46   failed=0   skipped=0   xfail=0   30s
+PASS scripts/run-toolchain                  passed=69   failed=0   skipped=0   xfail=0   31s
+PASS scripts/sign-off-pr                    passed=30   failed=0   skipped=0   xfail=0   3s
+PASS scripts/status-transition-specs        passed=229  failed=0   skipped=0   xfail=0   41s
+PASS scripts/status-transition-tasks        passed=143  failed=0   skipped=0   xfail=0   43s
+PASS scripts/step-progress                  passed=66   failed=0   skipped=0   xfail=0   5s
+PASS scripts/task-breakdown                 passed=132  failed=0   skipped=0   xfail=0   28s
+PASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   6s
+PASS hooks/audit-agent-worktrees            passed=23   failed=0   skipped=0   xfail=0   5s
+PASS hooks/audit-sync-resume                passed=56   failed=0   skipped=0   xfail=0   66s
+PASS hooks/block-destructive-git            passed=144  failed=0   skipped=0   xfail=0   14s
+PASS hooks/codex-adapters                   passed=99   failed=0   skipped=0   xfail=0   53s
+PASS hooks/codex-pre-spawn-initiative       passed=17   failed=0   skipped=0   xfail=0   8s
+PASS hooks/codex-shim                       passed=38   failed=0   skipped=0   xfail=0   20s
+PASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   23s
+PASS hooks/initiative-write-guards          passed=21   failed=0   skipped=0   xfail=0   18s
+PASS hooks/pre-launch                       passed=20   failed=0   skipped=0   xfail=0   14s
+PASS hooks/session-start-initiatives        passed=26   failed=0   skipped=0   xfail=0   12s
+FAIL hooks/worktree-guard                   passed=179  failed=48  skipped=0   xfail=0   105s
+PASS hooks/write-guards                     passed=101  failed=0   skipped=0   xfail=0   61s
+FAIL lint/agent-worktree-docs               passed=31   failed=4   skipped=0   xfail=0   0s
+PASS lint/frontmatter                       passed=40   failed=0   skipped=0   xfail=0   6s
+PASS lint/install-matcher-docs              passed=20   failed=0   skipped=0   xfail=0   1s
+PASS lint/review-lessons                    passed=33   failed=0   skipped=0   xfail=0   8s
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   17s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   0s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   3s
+TOTAL passed=3599 failed=79 skipped=0 xfail=0 (62 suites)
+FAILED suites: scripts/install-claude-settings hooks/worktree-guard lint/agent-worktree-docs

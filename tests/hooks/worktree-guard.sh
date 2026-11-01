@@ -11,6 +11,15 @@
 #   the main checkout), passes the guard from the main checkout, and run for real leaves the file in
 #   the main checkout's artifacts/<id>/, where check-task-result.sh accepts it. JRN-009: read-only commands (allowlisted reads
 #   joined by | or &&) pass without the leading cd; writing or exec flags, shell forms and other commands still need it.
+#   Fail closed: an implementation or integration agent whose agent worktree cannot be established (the named agent worktree
+#   is missing, sub-agent transcript missing, launch header missing or not valid YAML, cwd outside any git repo) is denied every
+#   call, reads and temp-dir writes included, with a reason naming the cause; JRN-002 an isolation (linked-worktree cwd) launch
+#   with its agent worktree missing or not named stays confined to its cwd worktree; a payload that is not a JSON object, and a
+#   PATH without jq, get a deny JSON; JRN-004 check-worktree-scope.sh --confined exits 2 when no root is found and exit 0 without
+#   it, so the Codex guard is unchanged; JRN-005 deny and allow messages, both scripts' # File: lines and --help say "agent
+#   worktree" and name the Phase 1 and integration shapes, and implementation-orchestrator.md says a missing agent worktree is
+#   denied; JRN-006 a `$` or backtick inside single quotes passes the read-only check, and one outside them, a backslash or an
+#   unterminated quote still needs the cd.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -70,14 +79,21 @@ AIG='{"agent_id":"ig","agent_type":"integration"}'
 
 guard() { out=$(printf '%s' "$1" | (cd "$P" && bash "$H/worktree-write-guard.sh" 2>/dev/null)); rc=$?; }
 reason() { jq -r '.hookSpecificOutput.permissionDecisionReason // empty' <<<"$out"; }
-expect() { # name allow|deny payload [reason-regex]
-  guard "$3"
+# judge NAME allow|deny [REASON_REGEX] : passes when the last guard run (out, rc) made that decision; allow means exit 0 and no output.
+judge() {
   if [ "$2" = allow ]; then
     if [ "$rc" = 0 ] && [ -z "$out" ]; then ok "$1"; else ko "$1" "rc=$rc out=$out"; fi
   elif [ "$rc" = 0 ] && [ "$(jq -r '.hookSpecificOutput.permissionDecision' <<<"$out" 2>/dev/null)" = deny ]; then
-    if [ -z "${4:-}" ] || reason | grep -Eq -- "$4"; then ok "$1"; else ko "$1" "reason lacks /$4/: $(reason)"; fi
+    if [ -z "${3:-}" ] || reason | grep -Eq -- "$3"; then ok "$1"; else ko "$1" "reason lacks /$3/: $(reason)"; fi
   else ko "$1" "rc=$rc out=$out"; fi
 }
+expect() { guard "$3"; judge "$1" "$2" "${4:-}"; } # name allow|deny payload [reason-regex]
+
+# The cause each deny reason must name when an agent's worktree cannot be established.
+WORKTREE_MISSING='(does not exist|missing|not found)'
+TRANSCRIPT_MISSING='transcript.*(not found|missing|does not exist)'
+HEADER_NOT_PARSED='[Hh]eader.*(not parsed|unparsable|parse|malformed|missing|not found|invalid)|no launch header'
+NOT_IN_GIT_REPO='not (in|inside) a git repo'
 
 echo "== Claude: file tools"
 expect "main session write to the main checkout -> allow" allow "$(pl Write "$P/src/a.ts")"
@@ -90,17 +106,47 @@ expect "task agent '..' escape from its worktree -> deny" deny "$(pl Write "$W3/
 expect "task agent relative path (resolves to the main checkout) -> deny" deny "$(pl Write "src/a.ts" "$P" "$A3")"
 expect "task agent NotebookEdit outside -> deny" deny "$(pl NotebookEdit "$P/n.ipynb" "$P" "$A3")"
 expect "task agent write to a temp dir outside the repo -> allow" allow "$(pl Write "$WORK/scratch.txt" "$P" "$A3")"
-expect "task without a worktree on disk -> allow (nothing to confine to)" allow "$(pl Write "$P/src/a.ts" "$P" "$A9")"
-expect "sub-agent transcript missing -> allow" allow "$(pl Write "$P/src/a.ts" "$P" "$NOTR")"
+expect "JRN-001 task without a worktree on disk -> deny naming the missing worktree" deny "$(pl Write "$P/src/a.ts" "$P" "$A9")" \
+  "s007_t9.*$WORKTREE_MISSING"
+expect "JRN-001 sub-agent transcript missing -> deny naming the transcript" deny "$(pl Write "$P/src/a.ts" "$P" "$NOTR")" "$TRANSCRIPT_MISSING"
 expect "other agent type (fact-lookup) -> allow" allow "$(pl Write "$P/src/a.ts" "$P" '{"agent_id":"a3","agent_type":"fact-lookup"}')"
 ATP=$(jq -cn --arg t "$TR/sess/subagents/agent-a3.jsonl" '{agent_id:"q",agent_type:"implementation",agent_transcript_path:$t}')
 expect "agent_transcript_path in the payload is used when present" deny "$(pl Write "$P/src/a.ts" "$P" "$ATP")"
 
 echo "== Claude: isolation and integration (linked-worktree cwd)"
-expect "isolation agent (no named worktree) write in its cwd worktree -> allow" allow "$(pl Write "$ISO/src/a.ts" "$ISO" "$A9")"
-expect "isolation agent write to the main checkout -> deny" deny "$(pl Write "$P/src/a.ts" "$ISO" "$A9")" "agent-iso"
-expect "integration agent write to the main checkout -> deny" deny "$(pl Write "$P/src/core.ts" "$ISO" "$AI")"
-expect "integration agent write in its worktree -> allow" allow "$(pl Write "$ISO/src/core.ts" "$ISO" "$AI")"
+expect "JRN-002 isolation agent (agent worktree missing) write in its cwd worktree -> allow" allow "$(pl Write "$ISO/src/a.ts" "$ISO" "$A9")"
+expect "JRN-002 isolation agent (agent worktree missing) write to the main checkout -> deny" deny "$(pl Write "$P/src/a.ts" "$ISO" "$A9")" "agent-iso"
+expect "JRN-002 integration agent write to the main checkout -> deny" deny "$(pl Write "$P/src/core.ts" "$ISO" "$AI")"
+expect "JRN-002 integration agent write in its worktree -> allow" allow "$(pl Write "$ISO/src/core.ts" "$ISO" "$AI")"
+mk_sub nohdr $'Build T5. This prompt carries no launch header.'
+NOHEADER='{"agent_id":"nohdr","agent_type":"implementation"}'
+expect "JRN-002 isolation agent with no launch header: write in its cwd worktree -> allow" allow "$(pl Write "$ISO/src/a.ts" "$ISO" "$NOHEADER")"
+expect "JRN-002 isolation agent with no launch header: write to the main checkout -> deny" deny "$(pl Write "$P/src/a.ts" "$ISO" "$NOHEADER")" "agent-iso"
+
+echo "== Claude: an agent whose worktree cannot be established is denied every call (JRN-001)"
+mk_sub badyaml $'```yaml launch-header\ntask_type: implementation\nspec_dir: [unclosed\n```\n\nBuild T5.'
+BADHEADER='{"agent_id":"badyaml","agent_type":"implementation"}'
+# unconfinable_journey LABEL AGENT_JSON CAUSE_REGEX : from the main checkout, a write there, a write to a temp dir, a read and a
+#   redirecting Bash command are each denied with a reason matching CAUSE_REGEX.
+unconfinable_journey() {
+  local label=$1 agent=$2 cause=$3
+  expect "JRN-001 $label: Write to the main checkout -> deny naming the cause" deny "$(pl Write "$P/src/a.ts" "$P" "$agent")" "$cause"
+  expect "JRN-001 $label: Write to a temp dir outside the repo -> deny naming the cause" deny \
+    "$(pl Write "$WORK/scratch.txt" "$P" "$agent")" "$cause"
+  expect "JRN-001 $label: read-only Bash 'cat f' -> deny naming the cause" deny "$(pl Bash 'cat f' "$P" "$agent")" "$cause"
+  expect "JRN-001 $label: Bash 'ls -la > x' -> deny naming the cause" deny "$(pl Bash 'ls -la > x' "$P" "$agent")" "$cause"
+}
+unconfinable_journey "task agent whose worktree s007_t9 is missing" "$A9" "s007_t9.*$WORKTREE_MISSING"
+unconfinable_journey "task agent whose sub-agent transcript is missing" "$NOTR" "$TRANSCRIPT_MISSING"
+unconfinable_journey "task agent whose first message has no launch header" "$NOHEADER" "$HEADER_NOT_PARSED"
+unconfinable_journey "task agent whose launch header is not valid YAML" "$BADHEADER" "$HEADER_NOT_PARSED"
+unconfinable_journey "integration agent whose worktree s007_integration_web is missing" "$AI" "s007_integration_web.*$WORKTREE_MISSING"
+OUTSIDE=$WORK/outside-any-repo
+mkdir -p "$OUTSIDE"
+expect "JRN-001 task agent whose cwd is outside any git repo: Write there -> deny naming the cause" deny \
+  "$(pl Write "$OUTSIDE/a.ts" "$OUTSIDE" "$A3")" "$NOT_IN_GIT_REPO"
+expect "JRN-001 task agent whose cwd is outside any git repo: Bash 'cat f' -> deny naming the cause" deny \
+  "$(pl Bash 'cat f' "$OUTSIDE" "$A3")" "$NOT_IN_GIT_REPO"
 
 echo "== Claude: Bash"
 expect "task agent Bash with cd <worktree> && -> allow" allow "$(pl Bash "cd $W3 && git status" "$P" "$A3")"
@@ -111,7 +157,8 @@ expect "task agent Bash cd to another worktree -> deny" deny "$(pl Bash "cd $W4 
 expect "task agent Bash cd \$VAR -> deny (not literal)" deny "$(pl Bash 'cd "$WT" && ls' "$P" "$A3")" "not a literal path"
 expect "task agent Bash 'cd dir; cmd' -> deny (needs &&)" deny "$(pl Bash "cd $W3; ls" "$P" "$A3")"
 expect "task agent Bash whose cwd is already its worktree -> allow" allow "$(pl Bash 'ls' "$W3" "$A3")"
-expect "task agent without a worktree: Bash -> allow" allow "$(pl Bash 'ls' "$P" "$A9")"
+expect "JRN-001 task agent without a worktree: Bash -> deny naming the missing worktree" deny "$(pl Bash 'ls' "$P" "$A9")" \
+  "s007_t9.*$WORKTREE_MISSING"
 
 echo "== Claude: read-only commands without cd (JRN-009)"
 for cmd in 'cat src/a.ts' 'head -n 5 src/a.ts' 'tail -n 5 src/a.ts' 'grep -n x src/a.ts' 'rg x src' 'ls src' 'wc -l src/a.ts' \
@@ -154,6 +201,16 @@ for cmd in "sed -n 'sxaxbxwout.txt' f" "sed -n '\\xaxwout.txt' f" 'sed -n -f scr
 done
 for cmd in "sed -n '/w/p' f" "sed -n '1,5p' src/view.ts" "sed -n -e '1p' -e '5p' f" "sed -n '/a b/,/c/!p' words.txt" 'sed -nE 3p f'; do
   expect "JRN-009 task agent sed print-only script '$cmd' from the main checkout -> allow" allow "$(pl Bash "$cmd" "$P" "$A3")"
+done
+
+echo "== Claude: \$ and backticks inside single quotes in read-only commands (JRN-006)"
+for cmd in "sed -n '\$p' f" "sed -n -e '1p' -e '\$p' f" "grep 'x\$' f" "grep 'a' f | tail -n 1" "grep '\`' f"; do
+  expect "JRN-006 task agent read-only '$cmd' (\$ or backtick only inside single quotes) from the main checkout -> allow" allow \
+    "$(pl Bash "$cmd" "$P" "$A3")"
+done
+for cmd in 'grep "x$" f' 'cat $HOME/f' 'grep \$ f' 'grep `id` f' "grep 'a'\\''\$' f" "grep 'x\$ f"; do
+  expect "JRN-006 task agent '$cmd' (\$, backtick or backslash outside single quotes, or an open quote) without cd -> deny with the cd hint" \
+    deny "$(pl Bash "$cmd" "$P" "$A3")" "cd .*s007_t3 &&"
 done
 
 echo "== Claude: result files from the briefs (JRN-002, JRN-003, JRN-004)"
@@ -237,9 +294,23 @@ expect "JRN-003 integration agent Bash write without cd -> deny with the cd hint
 
 result_journey JRN-004 "Phase 3 task agent" "$A3" "$IMPL_DOC" implementation.yaml T3 "$W3" "$(implementation_result T3 "$W3")"
 
-echo "== fail closed"
-out=$(printf 'not json' | (cd "$P" && bash "$H/worktree-write-guard.sh" 2>/dev/null)); rc=$?
-check "unparsable payload -> allow silently (main-session safe)" '[ $rc -eq 0 ] && [ -z "$out" ]' "rc=$rc out=$out"
+echo "== fail closed (JRN-003)"
+for payload in 'not json' '[1,2]'; do
+  guard "$payload"
+  judge "JRN-003 payload '$payload' that is not a JSON object -> deny JSON, exit 0" deny
+done
+NOJQ=$WORK/bin-without-jq
+mkdir -p "$NOJQ"
+for tool in bash git cat head tail mktemp rm rmdir dirname basename mkdir tr sed awk grep env ls cp mv ln wc sort cut readlink uname date; do
+  tool_path=$(command -v "$tool" 2>/dev/null) || continue
+  case "$tool_path" in /*) ln -s "$tool_path" "$NOJQ/$tool" ;; esac
+done
+check "JRN-003 fixture: the jq-less PATH has bash and git but no jq" \
+  '[ -x "$NOJQ/bash" ] && [ -x "$NOJQ/git" ] && ! (PATH=$NOJQ; command -v jq >/dev/null 2>&1)'
+# The hook may exit before reading stdin, so the payload comes from a file: a pipe would let the writer die of SIGPIPE.
+pl Write "$P/src/a.ts" "$P" "$A3" > "$WORK/nojq.json"
+out=$(cd "$P" && env PATH="$NOJQ" "$NOJQ/bash" "$H/worktree-write-guard.sh" < "$WORK/nojq.json" 2>/dev/null); rc=$?
+judge "JRN-003 jq not on PATH, workflow installed -> static deny JSON naming jq, exit 0" deny 'jq'
 N=$WORK/noflow
 mkdir -p "$N/.agents/hooks" && cp "$H/worktree-write-guard.sh" "$N/.agents/hooks/"
 # The hook exits before reading stdin here, so the payload comes from a file: a pipe would let the writer die of SIGPIPE.
@@ -253,7 +324,77 @@ eq "no --path or --command -> exit 1" "$rc" 1
 rc=0; bash "$SCOPE" --cwd "$P" --worktree-name ../x --path a >/dev/null 2>&1 || rc=$?
 eq "worktree name with a slash -> exit 1" "$rc" 1
 rc=0; bash "$SCOPE" --cwd "$WORK" --worktree-name s007_t3 --path "$WORK/a" >/dev/null 2>&1 || rc=$?
-eq "cwd outside any repo -> allow" "$rc" 0
+eq "JRN-004 cwd outside any repo without --confined -> allow" "$rc" 0
+# scope ARGS... : runs check-worktree-scope.sh; sets scope_rc, scope_out (stdout) and scope_err (stderr).
+scope() {
+  scope_rc=0
+  scope_out=$(bash "$SCOPE" "$@" 2>"$WORK/scope-err") || scope_rc=$?
+  scope_err=$(cat "$WORK/scope-err")
+}
+scope --cwd "$P" --worktree-name s007_t9 --path "$P/a" --confined
+check "JRN-004 --confined, agent worktree missing -> exit 2 with a reason on stderr" '[ "$scope_rc" = 2 ] && [ -n "$scope_err" ]' \
+  "rc=$scope_rc err=$scope_err"
+scope --cwd "$P" --worktree-name s007_t9 --path "$P/a"
+eq "JRN-004 agent worktree missing, not --confined -> exit 0 as before" "$scope_rc" 0
+scope --cwd "$P" --path "$P/a" --confined
+check "JRN-004 --confined with no --worktree-name, main-checkout cwd -> exit 2 with a reason on stderr" \
+  '[ "$scope_rc" = 2 ] && [ -n "$scope_err" ]' "rc=$scope_rc err=$scope_err"
+scope --cwd "$WORK" --worktree-name s007_t3 --path "$WORK/a" --confined
+check "JRN-004 --confined, cwd outside any repo -> exit 2 naming the cause" \
+  '[ "$scope_rc" = 2 ] && grep -Eq "$NOT_IN_GIT_REPO" <<<"$scope_err"' "rc=$scope_rc err=$scope_err"
+scope --cwd "$ISO" --worktree-name s007_t9 --path "$ISO/a" --confined
+eq "JRN-004 --confined, agent worktree missing, cwd in a linked worktree -> exit 0 (confined to it)" "$scope_rc" 0
+
+echo "== agent worktree wording (JRN-005)"
+# deny_wording LABEL ARGS... : the scope check denies with a reason that says "agent worktree" and never "task worktree".
+deny_wording() {
+  local label=$1
+  shift
+  scope "$@"
+  check "JRN-005 $label -> deny reason says agent worktree, not task worktree" \
+    '[ "$scope_rc" = 2 ] && grep -qi "agent worktree" <<<"$scope_err" && ! grep -qi "task worktree" <<<"$scope_err"' \
+    "rc=$scope_rc err=$scope_err"
+}
+deny_wording "write outside the worktree" --cwd "$P" --worktree-name s007_t3 --path "$P/src/a.ts"
+deny_wording "Bash without a leading cd" --cwd "$P" --worktree-name s007_t3 --command 'npm test'
+deny_wording "cd to a path that is not literal" --cwd "$P" --worktree-name s007_t3 --command 'cd "$WT" && npm test'
+deny_wording "cd to a relative path" --cwd "$P" --worktree-name s007_t3 --command 'cd src && npm test'
+deny_wording "cd outside the worktree" --cwd "$P" --worktree-name s007_t3 --command "cd $P && npm test"
+deny_wording "--confined with no confinement root" --cwd "$P" --worktree-name s007_t9 --path "$P/src/a.ts" --confined
+# allow_wording LABEL ARGS... : the scope check allows with a message that never says "task worktree".
+allow_wording() {
+  local label=$1
+  shift
+  scope "$@"
+  check "JRN-005 $label -> allow message never says task worktree" '[ "$scope_rc" = 0 ] && ! grep -qi "task worktree" <<<"$scope_out"' \
+    "rc=$scope_rc out=$scope_out"
+}
+allow_wording "agent worktree missing, not --confined" --cwd "$P" --worktree-name s007_t9 --path "$P/src/a.ts"
+allow_wording "write inside the worktree" --cwd "$P" --worktree-name s007_t3 --path "$W3/a.ts"
+allow_wording "Bash with cd into the worktree" --cwd "$P" --worktree-name s007_t3 --command "cd $W3 && npm test"
+allow_wording "read-only command" --cwd "$P" --worktree-name s007_t3 --command 'cat f'
+for script in "$SCOPE" "$H/worktree-write-guard.sh"; do
+  file_line=$(sed -n 2p "$script")
+  check "JRN-005 ${script##*/}: the # File: line never says task worktree" \
+    '[[ "$file_line" == "# File:"* ]] && ! grep -qi "task worktree" <<<"$file_line"' "$file_line"
+done
+scope_help=$(bash "$SCOPE" --help 2>&1)
+for shape in 's<NNN>_t<N>' 's<NNN>_phase_1_' 's<NNN>_integration_'; do
+  check "JRN-005 check-worktree-scope.sh --help names the agent worktree shape $shape" 'grep -qF -- "$shape" <<<"$scope_help"' \
+    "--help lacks $shape: $(grep -F -- '--worktree-name' <<<"$scope_help")"
+done
+# One sentence must hold all three phrases: the doc already has separate sentences about the stop audit's warning for a
+#   missing worktree and about agents that keep getting denied, and neither says a missing worktree is denied.
+# shellcheck disable=SC2034  # read inside the eval'd check string below
+missing_worktree_denied=$(awk '{
+    n = split($0, sentences, /\. /)
+    for (i = 1; i <= n; i++) {
+      s = tolower(sentences[i])
+      if (s ~ /agent worktree/ && s ~ /missing/ && s ~ /denied|denies/) print NR ": " sentences[i]
+    }
+  }' "$P/.agents/skills/feature-workflow/modules/implementation-orchestrator.md")
+check "JRN-005 implementation-orchestrator.md says a confined agent whose agent worktree is missing is denied" \
+  '[ -n "$missing_worktree_denied" ]' "no sentence names a missing agent worktree as denied"
 
 echo "== Codex: codex-write-guard.sh worktree check"
 mk_rollout() { # file task_name
@@ -268,18 +409,11 @@ wp() { # patch transcript
 }
 add() { printf '*** Begin Patch\n*** Add File: %s\n+x\n*** End Patch\n' "$1"; }
 cguard() { out=$(printf '%s' "$1" | (cd "$P" && bash "$H/codex-write-guard.sh" 2>/dev/null)); rc=$?; }
-cexpect() { # name allow|deny payload [regex]
-  cguard "$3"
-  if [ "$2" = allow ]; then
-    if [ "$rc" = 0 ] && [ -z "$out" ]; then ok "$1"; else ko "$1" "rc=$rc out=$out"; fi
-  elif [ "$rc" = 0 ] && [ "$(jq -r '.hookSpecificOutput.permissionDecision' <<<"$out" 2>/dev/null)" = deny ]; then
-    if [ -z "${4:-}" ] || reason | grep -Eq -- "$4"; then ok "$1"; else ko "$1" "reason lacks /$4/: $(reason)"; fi
-  else ko "$1" "rc=$rc out=$out"; fi
-}
+cexpect() { cguard "$3"; judge "$1" "$2" "${4:-}"; } # name allow|deny payload [regex]
 cexpect "Codex task agent: patch inside its worktree (relative) -> allow" allow "$(wp "$(add .workflow/.worktrees/s007_t3/src/a.ts)" "$WORK/rollout-t3.jsonl")"
 cexpect "Codex task agent: patch in the main checkout -> deny" deny "$(wp "$(add src/a.ts)" "$WORK/rollout-t3.jsonl")" "src/a.ts: worktree guard"
 cexpect "Codex task agent: patch in another worktree -> deny" deny "$(wp "$(add "$W4/a.ts")" "$WORK/rollout-t3.jsonl")"
-cexpect "Codex task agent without a worktree -> allow" allow "$(wp "$(add src/a.ts)" "$WORK/rollout-t9.jsonl")"
+cexpect "JRN-004 Codex task agent without a worktree -> allow (Codex unchanged)" allow "$(wp "$(add src/a.ts)" "$WORK/rollout-t9.jsonl")"
 cexpect "Codex transcript without session_meta -> allow" allow "$(wp "$(add src/a.ts)" "$TR/sess.jsonl")"
 out=$(jq -cn --arg p "$(add src/a.ts)" --arg c "$P" --arg tp "$WORK/rollout-t3.jsonl" \
   '{session_id:"s",transcript_path:$tp,cwd:$c,hook_event_name:"PreToolUse",tool_name:"apply_patch",tool_input:{command:$p}}' \

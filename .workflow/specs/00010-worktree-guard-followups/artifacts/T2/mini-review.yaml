@@ -1,0 +1,70 @@
+verdict: pass
+task_id: T2
+work_type: shell-scripts
+mode: re-check
+previous: ".workflow/specs/00010-worktree-guard-followups/artifacts/T2/mini-review-r3.yaml"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-00010/.workflow/.worktrees/s00010_t2@7aad2386310d629393a3628def7958d86c266ad1..6219d5c356a650eca64192c7b702a4a854e79eb6"
+tool_output: ".workflow/specs/00010-worktree-guard-followups/artifacts/T2/toolchain.json"
+items:
+  - n: 1
+    verdict: not-applicable
+    location: "no code in the diff the item applies to: the diff adds no .workflow/ path to any script"
+    carried_from: r3
+  - n: 2
+    verdict: not-applicable
+    location: "no code in the diff the item applies to: the hook logic is unchanged, only a header comment"
+    carried_from: r3
+  - n: 3
+    verdict: not-applicable
+    location: "no code in the diff the item applies to: no error path is added or changed"
+    carried_from: r3
+  - n: 4
+    verdict: not-applicable
+    location: "no code in the diff the item applies to: no exit code is added or changed; tests/hooks/worktree-guard.sh:335,338,346 keep their assertions and only their names change"
+    carried_from: r3
+  - n: 5
+    verdict: not-applicable
+    location: "no code in the diff the item applies to: no sibling path or BASH_SOURCE line is touched"
+    carried_from: r3
+  - n: 6
+    verdict: pass
+    location: ".agents/hooks/worktree-write-guard.sh:1-41 (File line, Goals, Triggers/inputs and Behaviour kept; names no decision ID such as D12, G8 or ADR); tests/hooks/worktree-guard.sh:1-24 (Suite header names no decision ID; its journey IDs are judged under R5)"
+    carried_from: r3
+  - n: 7
+    verdict: not-applicable
+    location: "no code in the diff the item applies to: no new file, and no edited line changes shell syntax"
+    carried_from: r3
+  - n: 8
+    verdict: not-applicable
+    location: "no code in the diff the item applies to: no function and no shellcheck directive is added"
+    carried_from: r3
+  - n: R1
+    verdict: pass
+    location: ".agents/hooks/worktree-write-guard.sh:29; tests/hooks/worktree-guard.sh:117,118,335,338,346,372 (changed check names say what each check proves, using the one term agent worktree)"
+    carried_from: r3
+  - n: R2
+    verdict: pass
+    location: "tests/hooks/worktree-guard.sh:92 (the only changed body comment; it carries no workaround or trade-off a reader would undo)"
+    carried_from: r3
+  - n: R3
+    verdict: pass
+    location: "tests/hooks/worktree-guard.sh:92 (says what the regex variables below are for and does not restate the code)"
+    carried_from: r3
+  - n: R4
+    verdict: pass
+    location: "tests/hooks/worktree-guard.sh:92 (body comment with no decision, journey, spec, task or doc reference; the journey IDs on changed lines 14 and 17 sit in the Suite header block, which R4 does not govern)"
+    carried_from: r3
+  - n: R5
+    verdict: pass
+    location: "tests/hooks/worktree-guard.sh:14,15,17 (the changed header lines now name no journey ID; launch header and agent worktree are defined in the code at .agents/hooks/worktree-write-guard.sh:5,11), tests/hooks/worktree-guard.sh:92 (plain sentence), .agents/hooks/worktree-write-guard.sh:29 (plain sentence)"
+read_outside_diff:
+  - ".workflow/specs/00010-worktree-guard-followups/artifacts/T2/mini-review-r3.yaml: the previous round's result file, read to carry items through and to find the failed R5 item"
+  - "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-00010/.workflow/.worktrees/s00010_t2: fix diff 56cbf29..6219d5c (only tests/hooks/worktree-guard.sh:14,15,17) and full diff 7aad238..6219d5c (two files, 11 insertions and 11 deletions), read in full"
+  - ".agents/hooks/worktree-write-guard.sh:5,11: grep for launch header and agent worktree, to confirm both terms are defined in the code for the R5 pass"
+  - "tests/hooks/worktree-guard.sh:1-40: the Suite header and the start of the setup, read for the changed header lines"
+out_of_scope_noticed:
+  - kind: refactor
+    summary: "The Suite header still carries journey IDs on lines this diff does not touch (8, 9, 12, 16, 18, 19, 21), the same shorthand the fix round removed from changed lines 14 and 17."
+    evidence: "tests/hooks/worktree-guard.sh:8,9,12,16,18,19,21"
+    blocker_assessment: can-wait
+    reason: "R5 and item 6 judge changed lines only, so these stay out of the verdict; the same cleanup could go into a later round if the task is reopened."

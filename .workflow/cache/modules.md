@@ -1,8 +1,35 @@
 ---
-generated_at_commit: 58019c8c55ed4443f78f085b13abdfb5d96c28ea
-generated_at: "2026-10-30T15:08:10Z"
+generated_at_commit: 581e785c5e978c2b7db6d99626f5d42035531426
+generated_at: "2026-10-30T14:55:34Z"
 scope:
-  - ".agents/README.md .agents/agents .agents/hooks .agents/install-manifest.txt .agents/lib .agents/output-styles .agents/skills/data-structure-audit .agents/skills/deeper-prompt .agents/skills/deps-audit .agents/skills/deps-update .agents/skills/design-pattern-doc .agents/skills/domain-modeling .agents/skills/feature-workflow .agents/skills/glab .agents/skills/handoff .agents/skills/pr-quality .agents/skills/pr-review-data .agents/skills/project-setup .agents/skills/project-standards .agents/skills/regenerate-caches .agents/skills/retrospective .agents/skills/visual-change-report .agents/skills/writing-for-agents AGENTS.md README.md install.sh scripts tests"
+  - ".agents/README.md"
+  - ".agents/agents"
+  - ".agents/hooks"
+  - ".agents/install-manifest.txt"
+  - ".agents/lib"
+  - ".agents/output-styles"
+  - ".agents/skills/data-structure-audit"
+  - ".agents/skills/deeper-prompt"
+  - ".agents/skills/deps-audit"
+  - ".agents/skills/deps-update"
+  - ".agents/skills/design-pattern-doc"
+  - ".agents/skills/domain-modeling"
+  - ".agents/skills/feature-workflow"
+  - ".agents/skills/glab"
+  - ".agents/skills/handoff"
+  - ".agents/skills/pr-quality"
+  - ".agents/skills/pr-review-data"
+  - ".agents/skills/project-setup"
+  - ".agents/skills/project-standards"
+  - ".agents/skills/regenerate-caches"
+  - ".agents/skills/retrospective"
+  - ".agents/skills/visual-change-report"
+  - ".agents/skills/writing-for-agents"
+  - "AGENTS.md"
+  - "README.md"
+  - "install.sh"
+  - "scripts"
+  - "tests"
 cache_type: modules
 generator: "cache-regeneration"
 ---
@@ -10,7 +37,7 @@ generator: "cache-regeneration"
 
 ## .agents/hooks
 
-- Purpose: Runs as Claude Code and Codex hooks that guard file writes, deny destructive git commands, validate sub-agent launches, keep the import-boundary config in step with `.workflow/rules.md`, file browser-suite evidence and offer to resume work, and generates Codex agent files.
+- Purpose: Adapts Claude Code and Codex hook events to workflow checks: it denies destructive git commands and disallowed writes, validates and completes sub-agent launches, keeps the import-boundary config in step with rules, runs the toolchain when an implementation agent stops, captures browser-suite evidence, offers to resume in-flight work and generates Codex agent files.
 - Files:
   - `.agents/hooks/_codex-patch.sh`
   - `.agents/hooks/_guard-common.sh`
@@ -47,7 +74,7 @@ generator: "cache-regeneration"
 
 ## .agents/lib
 
-- Purpose: Defines where workflow data lives under `.workflow/` and which repo paths count as tests, as sourced shell variables and functions.
+- Purpose: Defines, as sourced shell variables and functions, where workflow data lives under the workflow root and which repo paths count as tests.
 - Files:
   - `.agents/lib/test-paths.sh`
   - `.agents/lib/workflow-paths.sh`
@@ -74,7 +101,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/data-structure-audit
 
-- Purpose: Prints the files changed since the last audited commits and records audited commits in `.workflow/data-structure-audit-state.jsonl`.
+- Purpose: Prints the files changed since the last audited commits, or records the current HEAD as audited in a committed state file.
 - Files:
   - `.agents/skills/data-structure-audit/scripts/audit_scope.sh`
 - Depends on:
@@ -84,7 +111,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/feature-workflow
 
-- Purpose: Writes spec, task and initiative status, decides whether writes and commands are allowed, resolves sub-agent launches, runs profile toolchains, checks result, findings and PR body files, and commits workflow data on the spec branch.
+- Purpose: Writes spec, task and initiative status and step markers, checks writes, worktree scope, launch headers, result, review and PR-body files and size budgets, runs the profile toolchain, derives task waves, commits workflow data and opens task PRs for the feature workflow.
 - Files:
   - `.agents/skills/feature-workflow/scripts/budget-check.sh`
   - `.agents/skills/feature-workflow/scripts/check-merge-artifacts.sh`
@@ -112,7 +139,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/project-setup
 
-- Purpose: Generates import-boundary tool config under `.workflow/tools/boundaries/` from the Ownership and Shared core blocks of `.workflow/rules.md`.
+- Purpose: Generates import-boundary tool config under .workflow/tools/boundaries/ from the Ownership and Shared core blocks of .workflow/rules.md.
 - Files:
   - `.agents/skills/project-setup/scripts/generate-boundary-config.sh`
 - Depends on:
@@ -124,7 +151,7 @@ generator: "cache-regeneration"
 
 ## .agents/skills/regenerate-caches
 
-- Purpose: Builds, checks, stamps and publishes the Tier B caches from the file graph its bash and dependency-cruiser extractors print, and reports which caches are stale.
+- Purpose: Builds the generated parts of the Tier B caches from extracted file graphs, checks cache staleness and staged bodies, and stamps and publishes caches into .workflow/cache/.
 - Files:
   - `.agents/skills/regenerate-caches/scripts/build-architecture.sh`
   - `.agents/skills/regenerate-caches/scripts/cache-stamp-check.sh`
@@ -141,7 +168,7 @@ generator: "cache-regeneration"
 
 ## install.sh
 
-- Purpose: Copies the files named by `.agents/install-manifest.txt` into a target project's `.agents/` and sets up its Claude and Codex host shims.
+- Purpose: Copies the manifest-listed .agents/ payload into a target project and sets up its Claude and Codex host shims, hook settings and .gitignore entries.
 - Files:
   - `install.sh`
 - Depends on:
@@ -153,7 +180,7 @@ generator: "cache-regeneration"
 
 ## scripts
 
-- Purpose: Shows what changed upstream for each `upstream-lineage.json` entry since the commit it was based on.
+- Purpose: Shows what changed upstream since the commit each upstream-lineage.json entry is based on.
 - Files:
   - `scripts/upstream-diff.sh`
 - Depends on: none
@@ -163,7 +190,7 @@ generator: "cache-regeneration"
 
 ## tests
 
-- Purpose: Runs the scaffold's test suites over its hooks, scripts, install script and docs, with shared assertion helpers and fixture builders.
+- Purpose: Runs the scaffold test suites for scripts, hooks and lint, with shared fixtures and assertion helpers.
 - Files:
   - `tests/fixtures/architecture-oracle.sh`
   - `tests/fixtures/claude-settings.sh`

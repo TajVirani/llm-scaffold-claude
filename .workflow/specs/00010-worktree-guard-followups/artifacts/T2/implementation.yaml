@@ -1,0 +1,19 @@
+status: done
+summary: "Mini-review fix round: deleted the JRN-001 (line 14) and JRN-003 (line 17) tokens from the fail-closed lines of the tests/hooks/worktree-guard.sh Suite header, keeping the words; the other header lines are unchanged. Wording only; suite still 227/227 and the toolchain passes."
+task_id: "T2"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-00010/.workflow/.worktrees/s00010_t2"
+branch: "task/00010-worktree-guard-followups/T02-worktree-guard-fails-closed"
+base_commit: "56cbf299464203b9c95b051e8842e95f761f6b67"
+head_commit: "6219d5c356a650eca64192c7b702a4a854e79eb6"
+files_changed: ["tests/hooks/worktree-guard.sh"]
+tests_added: []
+evidence:
+  red: "n/a: wording-only fix, no new behaviour"
+  green: "tests/run-all.sh (scoped by run-toolchain.sh); PASS hooks/worktree-guard passed=227 failed=0"
+  suite: "bash .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00010-worktree-guard-followups --task-id T2 --cwd <worktree>; exit 0, lint pass, test pass 227/227"
+  toolchain: ".workflow/specs/00010-worktree-guard-followups/artifacts/T2/toolchain.txt (pass)"
+considered_not_built: ["Removing the remaining JRN tags (JRN-002, JRN-004, JRN-005, JRN-006, JRN-009) from the Suite header: the fix round said to leave the other header lines as they are"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
