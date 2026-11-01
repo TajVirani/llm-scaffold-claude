@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Suite: lint over the orchestrator modules verification-setup.md, implementation-orchestrator.md and the step files it loads
-#   (implementation-shared-core.md for 3.2, implementation-gates.md for 3.4-3.8) and the agent docs implementation.md and
-#   integration.md: agent worktrees for Phase 1 and integration launches, and the artifacts merge gate.
+# Suite: lint over the orchestrator modules verification-setup.md and the Phase 3 step files (implementation-setup.md for
+#   3.1, implementation-waves.md for the wave loop, implementation-shared-core.md for 3.2, implementation-gates.md for 3.4-3.8,
+#   implementation-finish.md for 3.10-3.14 and the hand off) and the agent docs implementation.md and integration.md: agent
+#   worktrees for Phase 1 and integration launches, and the artifacts merge gate.
 # Covers: JRN-008: no line tells the orchestrator to launch an agent with `isolation: "worktree"` (a sentence saying never to is
 #   fine) and no isolation fallback is left; Phase 1 and integration agent worktrees are created with
 #   `git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug`, their wf/ branch is merged with no
@@ -22,7 +23,9 @@ preflight
 
 MODULES=$FW_SKILL/modules
 VS=$MODULES/verification-setup.md
-IO=$MODULES/implementation-orchestrator.md
+SETUP=$MODULES/implementation-setup.md
+WAVES=$MODULES/implementation-waves.md
+FINISH=$MODULES/implementation-finish.md
 SHARED_CORE=$MODULES/implementation-shared-core.md
 GATES=$MODULES/implementation-gates.md
 IMPL=$AGENTS_SRC/agents/implementation.md
@@ -78,7 +81,7 @@ gate_before_site() {
 }
 
 echo "== no isolation launch and no isolation fallback (JRN-008)"
-for doc in "$VS" "$IO" "$SHARED_CORE" "$GATES"; do
+for doc in "$VS" "$SETUP" "$WAVES" "$SHARED_CORE" "$GATES" "$FINISH"; do
   found=$(isolation_launches "$doc")
   check "JRN-008 ${doc##*/} tells no launch to use isolation: \"worktree\"" '[ -z "$found" ]' "$found"
   found=$(unnegated_clauses "$doc" 'baseref')
@@ -109,14 +112,14 @@ done
 echo "== artifacts gate before each merge (JRN-008)"
 check "JRN-008 the gate runs before the 1.2 and 1.3 merge" 'gate_before_site "$VS" "git merge --no-ff"'
 check "JRN-008 the gate runs before the 3.2 integration merge" 'gate_before_site "$SHARED_CORE" "Merge integration-"'
-check "JRN-008 the gate runs before the 3.16 task merge" 'gate_before_site "$IO" "git merge --no-ff -m \"Merge T"'
-for doc in "$IO" "$SHARED_CORE" "$GATES"; do
+check "JRN-008 the gate runs before the 3.16 task merge" 'gate_before_site "$WAVES" "git merge --no-ff -m \"Merge T"'
+for doc in "$SETUP" "$WAVES" "$SHARED_CORE" "$GATES" "$FINISH"; do
   check "the light path has no detached task worktree in ${doc##*/}" '[ -z "$(lines "$doc" "git worktree add --detach")" ]' \
     "$(lines "$doc" "git worktree add --detach")"
   check "the light path merges no task by fast-forward in ${doc##*/}" '[ -z "$(lines "$doc" "--ff-only")" ]' "$(lines "$doc" "--ff-only")"
   check "${doc##*/} names no light-path fast-forward" '[ -z "$(lines "$doc" "fast-forward")" ]' "$(lines "$doc" "fast-forward")"
 done
-calls=$(cat "$VS" "$IO" "$SHARED_CORE" "$GATES" | grep 'check-merge-artifacts\.sh' || true)
+calls=$(cat "$VS" "$SETUP" "$WAVES" "$SHARED_CORE" "$GATES" "$FINISH" | grep 'check-merge-artifacts\.sh' || true)
 check "JRN-008 every gate call passes --rev" '[ -n "$calls" ] && ! grep -v -- "--rev" <<<"$calls" | grep -q .' "$calls"
 check "JRN-008 no gate call is piped into another command" '[ -n "$calls" ] && ! grep -qE "check-merge-artifacts\.sh[^|]*\|[^|]" <<<"$calls"' "$calls"
 

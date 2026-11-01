@@ -1,10 +1,16 @@
-# Phase 3: Implementation
+# Phase 3: Implementation, the wave loop
 
-You run the build: classify every task, launch one implementation agent per task in dependency **waves**, pass each task through the four gates, and merge between waves. You never write feature code yourself; agents do, and the gates judge it. You are done when every task record is `done` (or `split-out`), the harness and the browser suite pass on the merged spec branch (or a light-path suite gap is recorded), the spec is `in-review`, and the workflow data you wrote under `.workflow/` is committed on the spec branch. The spec branch is **red by design** until then: Phase 1 committed tests for behaviour no task has built yet, so the full suite goes green only after the last wave (3.9, 3.11). Work outside the agreed scope is never folded into a task: it goes to `modules/discovered-work.md` (00.21-00.29).
+You run the build: launch one implementation agent per task in dependency **waves**, pass each task through the four gates, and merge between waves. Before the first wave, 3.1 classifies every task in [implementation-setup](implementation-setup.md); after the last wave, [implementation-finish](implementation-finish.md) runs the browser suite and hands off. You never write feature code yourself; agents do, and the gates judge it. You are done when every task record is `done` (or `split-out`), the harness and the browser suite pass on the merged spec branch (or a light-path suite gap is recorded), the spec is `in-review`, and the workflow data you wrote under `.workflow/` is committed on the spec branch. The spec branch is **red by design** until then: Phase 1 committed tests for behaviour no task has built yet, so the full suite goes green only after the last wave (3.9, 3.11). Work outside the agreed scope is never folded into a task: it goes to `modules/discovered-work.md` (00.21-00.29).
 
 Call the scripts from the project root exactly as written below, with the repo-relative `.agents/skills/feature-workflow/scripts/` prefix (sandboxed projects exclude these exact command lines). Status and task records change only through `status-transition.sh`.
 
 **The project root is the spec checkout.** That is the spec worktree `.workflow/.spec-worktrees/NNN-slug` that 1.1 (0.3.20 on the light path) created on the spec branch, or the main checkout for a spec started before spec worktrees existed. The session works there (see [Route by status](../SKILL.md#3-route-by-status) for moving it in): every relative path and command below runs in it, the step marker and `artifacts/` live in it, and agent worktrees nest inside it under `.workflow/.worktrees/`. The scripts resolve it themselves, from an agent worktree too.
+
+## Resume and rework
+
+**On resume** (status `in-progress`, `impl_base_revision` set): when a task's `work_type` is null (`yq --front-matter=extract '.tasks[] | select(.work_type == null) | .id' .workflow/specs/NNN-slug/tasks.md` prints an id), load `modules/implementation-setup.md` first, run 3.1, and come back here. Then skip `done` tasks. For an `in-progress` task, its worktree is `.workflow/.worktrees/<task_name>` on the record's `branch` (or `yq '.worktree'` on the newest `implementation.yaml`, or the `cwd` in `toolchain.json`). If the worktree has commits and a clean audit, continue at 3.7 ([gates](implementation-gates.md#per-task-gates-34-38)); otherwise launch it again (a fresh launch; the task stays `in-progress`). If `.step` says 3.16 or 3.15, the wave's merges may be done but its budget check is not: run 3.15 before the next frontier. If `.step` says 3.10, 3.11 or 3.14, the waves are done: load `modules/implementation-finish.md` and continue there. After `modules/discovered-work.md` unblocks the spec at 00.28, resume the same way, at the point the block interrupted.
+
+**Rework entry (4.7).** `review-triage` reopens tasks (`set-task --status in-progress --step 4.7`) and loads this step file with one patch line per finding, spec status still `in-review`. 3.1 does not run (its status change cannot take `in-review` back to `in-progress`); rename each reopened task's `implementation.yaml` and `mini-review.yaml` first ([keep earlier rounds](#evidence-and-the-ledger)), then launch it fresh with its patch lines in the brief (its mini-review is a full one), in a new task branch and worktree off the spec-branch tip ([wave start](#wave-start-task-branches-and-worktrees)), run the gates, then 3.16, 3.15, 3.13 and 3.9 as below and 3.10-3.11 in [implementation-finish](implementation-finish.md#310-311-browser-suite-against-the-running-feature), and set `in-review` again at 3.11 (or 3.14), which returns to `review-triage`.
 
 ## Launching agents
 
@@ -56,28 +62,6 @@ d=.workflow/specs/NNN-slug/artifacts/T3; k=$(( $(find "$d" -maxdepth 1 -name 'mi
 
 The one resume for a missing or invalid file renames nothing: the agent rewrites the same file.
 
-**Rework entry (4.7).** `review-triage` reopens tasks (`set-task --status in-progress --step 4.7`) and loads this module with one patch line per finding, spec status still `in-review`. Skip 3.1's status change (`in-review` cannot go back to `in-progress`); rename each reopened task's `implementation.yaml` and `mini-review.yaml` first ([keep earlier rounds](#evidence-and-the-ledger)), then launch it fresh with its patch lines in the brief (its mini-review is a full one), in a new task branch and worktree off the spec-branch tip ([wave start](#wave-start-task-branches-and-worktrees)), run the gates, then 3.16, 3.15, 3.9 and 3.10-3.11 as below, and set `in-review` again at 3.11 (or 3.14), which returns to `review-triage`.
-
-**On resume** (status `in-progress`): skip `done` tasks. For an `in-progress` task, its worktree is `.workflow/.worktrees/<task_name>` on the record's `branch` (or `yq '.worktree'` on the newest `implementation.yaml`, or the `cwd` in `toolchain.json`). If the worktree has commits and a clean audit, continue at 3.7 ([gates](implementation-gates.md#per-task-gates-34-38)); otherwise launch it again (a fresh launch; the task stays `in-progress`). If `.step` says 3.16 or 3.15, the wave's merges may be done but its budget check is not: run 3.15 before the next frontier. After `modules/discovered-work.md` unblocks the spec at 00.28, resume the same way, at the point the block interrupted.
-
-## 3.1 Classify each task and start
-
-1. **Classify.** For every task whose `work_type` is null (`yq --front-matter=extract '.tasks[] | select(.work_type == null) | .id' .workflow/specs/NNN-slug/tasks.md`), pick the profile in `.workflow/profiles/` whose `## File locations` cover the task's module and kind of work, and record it. A work type is set once and never reclassified:
-
-   ```bash
-   .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T3 --work-type <work-type> --step 3.1
-   ```
-
-   **00.18 No.** A task that fits no profile is a finding: either the task is badly cut or a work type is missing. For a missing work type, create the profile with the human from `.workflow/profiles/TEMPLATE.md` (`.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 00.19`, then Write `.workflow/profiles/<work-type>.md`). With no human available: `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step 00.19 --blocked "task T3 has no profile; define .workflow/profiles/<work-type>.md"`.
-
-2. **Start.** `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug in-progress --step 3.1` (from `ready-for-dev`, or again on resume).
-
-3. **Record the implementation base.** Check you are in the spec checkout on the spec branch (`git branch --show-current` prints the `spec_branch` from `spec.md`). If `impl_base_revision` is `""`, Edit it to `git rev-parse HEAD` now (the step is 3.1): the spec-branch tip, which holds the Phase 1 commit and the committed breakdown. On the light path, also set `baseline_revision` to the same sha if it is `""` (the spec branch's first commit, from 0.3.20). Both are never overwritten on resume or rework. The 3.15 size budget counts only files changed since `impl_base_revision`, so the Phase 1 harness and suite count only when a task changes them again.
-
-4. **3.13: do both suites exist?** On the full path, yes: Phase 1 built them and `## Suites` in `verification-plan.md` names their commands. On the light path, look it up (a fact, not a question): the harness exists when the repo has a unit or integration test command to run (the profile Toolchain `test` key); the browser suite exists when `.workflow/profiles/e2e-browser.md` has a non-empty `e2e` command. Each missing suite skips its gate and is recorded at 3.14.
-
-**Done when:** every task has a `work_type`, the spec is `in-progress`, `impl_base_revision` is a full SHA, and you know which suites exist.
-
 ## The wave loop
 
 Repeat until no task is `pending`. A `split-out` task is terminal: it is never launched, never in a frontier, and never counted by an "every task is done" check. Each wave runs 3.2, the [wave start](#wave-start-task-branches-and-worktrees), 3.3, the per-task gates 3.4-3.8, then 3.16 (merge), 3.15 (budget), 3.13 and 3.9, in that order. The frontier is every pending task whose dependencies are all `done`:
@@ -87,7 +71,7 @@ yq --front-matter=extract '[.tasks[] | select(.status == "done") | .id] as $done
   | .tasks[] | select(.status == "pending" and ((.depends_on - $done) | length) == 0) | .id' .workflow/specs/NNN-slug/tasks.md
 ```
 
-An empty frontier with tasks still pending means they wait on a `blocked` task: go to [Stops](#stops).
+An empty frontier with tasks still pending means they wait on a `blocked` task: go to [Stops](#stops). When no task is left `pending` and the last wave has passed 3.9 (or skipped it at 3.13), load `modules/implementation-finish.md` for 3.10-3.11, 3.14 and the hand off.
 
 ### Shared-core changes before the wave
 
@@ -174,13 +158,20 @@ Once per wave, after its merges:
 
 It prints `{max_tasks, tasks, max_changed_files, changed_files, over[], source, basis, target, merge_base, excluded, files, test_files}`. `changed_files` is the review load of the feature's PR/MR: the files in the diff from the merge-base of `HEAD` and `main_branch` (`rules-setting.sh main_branch`) that also changed since `impl_base_revision`, outside the spec folder and the work-backlog, minus tests. So merging `main_branch` into the spec branch adds nothing, the Phase 1 harness and suite count only when a task changes them again, and test files go to `test_files`. `excluded` gives each figure left out (`tests`, `spec_backlog`, `harness_only`, `merge_base`); `files` lists what counted. When neither `main_branch` nor `origin/<main_branch>` exists locally, it counts `impl_base_revision..HEAD` instead, with a warning and a `note` (`merge_base: null`), so caught-up changes count: fetch or fix `main_branch` and run it again. When `impl_base_revision` is unset it falls back to `baseline_revision` with a warning on stderr and in `note` (`basis: "baseline_revision"`; the Phase 1 files then count): set `impl_base_revision` as in 3.1 before the next wave. Only when both are unset is `changed_files` `null`.
 
-- **Exit 0, within budget:** go to 3.13 (the suites known from 3.1), then 3.9.
-- **Exit 2, over budget:** load `modules/discovered-work.md` with origin node `3.15`, found by `budget-check.sh`, the condition `size budget: <count> changed files, max_changed_files <max>` (name each entry of `over`), and the JSON as evidence. It runs 00.21, 00.22 and the 00.29 split, re-scope or approve choice. When it returns at 00.28 (split or approve), continue at 3.13; on re-scope the spec is `draft` and this module ends. A split has already set the tasks whose work became backlog items to `split-out` (`set-task --status split-out --step 00.29`); skip them from here on.
+- **Exit 0, within budget:** go to 3.13, then 3.9.
+- **Exit 2, over budget:** load `modules/discovered-work.md` with origin node `3.15`, found by `budget-check.sh`, the condition `size budget: <count> changed files, max_changed_files <max>` (name each entry of `over`), and the JSON as evidence. It runs 00.21, 00.22 and the 00.29 split, re-scope or approve choice. When it returns at 00.28 (split or approve), continue at 3.13; on re-scope the spec is `draft` and Phase 3 ends here. A split has already set the tasks whose work became backlog items to `split-out` (`set-task --status split-out --step 00.29`); skip them from here on.
 - **Exit 1:** a usage or environment error (reason on stderr: a missing tool or file, a malformed `budget` or `test_patterns`, an unknown baseline commit, an invalid `main_branch`). Fix the cause and run it again; never treat it as within budget. A JSON `note` with `changed_files: null` means the files were not counted (neither `impl_base_revision` nor `baseline_revision` is set): set them as in 3.1 before going on.
+
+### 3.13 Do both suites exist?
+
+After each wave's 3.15, look up which suites exist (a fact, not a question). On the full path both do: Phase 1 built them and `## Suites` in `verification-plan.md` names their commands. On the light path, the harness exists when the repo has a unit or integration test command to run (the profile Toolchain `test` key); the browser suite exists when `.workflow/profiles/e2e-browser.md` has a non-empty `e2e` command. A missing suite skips only its own gate, 3.9 for the harness and 3.10-3.11 for the browser suite, and is recorded at [3.14](implementation-finish.md#314-record-each-missing-suite); it is never reported as a pass.
+
+- **The harness exists:** run 3.9.
+- **It is missing:** skip 3.9 and go on as 3.9's **Yes** does.
 
 ### 3.9 Tests pass and CI green?
 
-After each wave's 3.15, if the harness exists, run the harness on the merged spec branch through the toolchain script, `<N>` the wave number:
+After each wave's 3.13, when the harness exists, run the harness on the merged spec branch through the toolchain script, `<N>` the wave number:
 
 ```bash
 .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id gate-3.9-w<N> --work-type test-harness --cwd "$PWD" --exclude-unfinished --reuse
@@ -193,37 +184,14 @@ The spec branch is red by design until the last wave, so the bar depends on the 
 - **Not the last wave:** passes when every test that passed at `impl_base_revision` still passes and every test of a `done` task passes: the scoped run exits 0. Tests of tasks not yet merged are excluded and may still fail.
 - **The last wave** (no task left `pending`): every task is `done`, so nothing is excluded and the whole harness must pass. CI green is required only here. When Phase 1 ran as tests in tasks (`Phase 1: tests in tasks` in `design-log.md`), run the deferred 1.4 check on the merged wave first ([verification-setup](verification-setup.md#14-do-both-suites-fail-a-known-bad-build), "Tests in tasks").
 
-- **Yes:** next frontier.
+- **Yes:** next frontier; after the last wave, load `modules/implementation-finish.md`.
 - **No:** find the task whose module and seam the failing tests cover and reopen it:
 
   ```bash
   .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T3 --status in-progress --step 3.9
   ```
 
-  Give it a fix round (resume its agent, or a fresh launch when the worktree is gone), then 3.5-3.8, 3.16, 3.15 and 3.9 again. If the task cannot continue (a stop, or the fifth round fails), record it with `set-task .workflow/specs/NNN-slug T3 --status blocked --step 3.9` and go to [Stops](#stops).
-
-## 3.10-3.11 Browser suite against the running feature
-
-After the last wave passes 3.9 (or straight after its 3.15 when only the browser suite exists), run the browser suite yourself with Bash on the merged spec branch: the browser-suite command from `## Suites` (the `e2e` key of `.workflow/profiles/e2e-browser.md`), or `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id e2e-<run> --work-type e2e-browser --cwd "$PWD" --e2e`, which runs the profile's other command keys (`lint`, `typecheck`, `format`, `boundary`, `test`) and then `e2e` last. The 3.5 stop audit never runs `e2e`, and the evidence-capture hook does not run the suite either: it only files the run's screenshots, traces, console and network logs under `artifacts/` by run and journey id (3.12). Where that hook is not wired (Codex, or before it is installed), copy the runner's output into `artifacts/<run>/<JRN-id>/` yourself.
-
-- **3.11 Yes, every journey passes:** `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug in-review --step 3.11`, then [hand off](#hand-off).
-- **No:** for each failing journey, take the capability it proves (`## Journeys`, Proves column) and reopen the task serving it: `.agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T3 --status in-progress --step 3.11`. Give it a fix round, then 3.5-3.8, 3.16, 3.15, 3.9 and 3.10 again. A task that cannot continue: `set-task .workflow/specs/NNN-slug T3 --status blocked --step 3.11`, then [Stops](#stops).
-
-## 3.13-3.14 Light path without suites
-
-When 3.1 found a suite missing (light path only), run the suite that exists and skip only the missing suite's gate: 3.9 for the harness, 3.10-3.11 for the browser suite. Record each gap; it is never reported as a pass:
-
-1. **Record each missing suite on the shelf.** A project that lacked the suite before already has a shelf file for it; list the suite-gap files and read each one's Summary line:
-
-   ```bash
-   grep -l '^\*\*Origin:\*\*.*3\.14 suite gap' .workflow/deferred/*.md
-   ```
-
-   - **A file for this suite exists** (its Summary names the same missing suite): add to it without asking. `.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 3.14`, then append one line to its **Later requests** section, `- .workflow/specs/NNN-slug, 3.14: <suite> gate skipped again; <why the suite is still missing> at commit <git rev-parse HEAD>.`, add the file's path to `deferred` in `spec.md` and log a one-line note in `design-log.md`.
-   - **None exists** (the first time this project shows the gap): load `modules/deferred-handoff.md` with the missing suite as a `3.14 suite gap` item. It writes `.workflow/deferred/<slug>.md`, sets step 3.14 and adds the path to `deferred` in `spec.md`.
-
-   In that same `spec.md` write, add one line per skipped gate under `## Known gaps` with the shelf file's link.
-2. **Only the harness exists:** once every task is `done` or `split-out` and 3.9 passes, `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug in-review --step 3.14`. **Only the browser suite exists:** 3.11 sets `in-review` as above. **Neither exists:** set `in-review` at 3.14 once every task is `done` or `split-out`, and go straight to Phase 4. Sign-off flags the gap in the 5.4 report.
+  Give it a fix round (resume its agent, or a fresh launch when the worktree is gone), then 3.5-3.8 ([gates](implementation-gates.md#per-task-gates-34-38)), 3.16, 3.15 and 3.9 again. If the task cannot continue (a stop, or the fifth round fails), record it with `set-task .workflow/specs/NNN-slug T3 --status blocked --step 3.9` and go to [Stops](#stops).
 
 ## Discovered work (00.21)
 
@@ -238,7 +206,7 @@ Never widen a task or brief on your own. Load `modules/discovered-work.md` once 
 - **Unproven.** One design-log line; nothing else. Continue the wave.
 - **Current work.** A proven problem on lines or files this spec changes, simple to fix: the task that owns those lines fixes it. For a task still in its gates, add it to that task's next fix round (a 3.7 entry joins the 3.8 fix list); for a task already `done`, reopen it as 3.9 does (`set-task ... --status in-progress --step 3.9`) and give it a fix round. No question to the stakeholder.
 - **For the stakeholder.** The module records it `to ask` and returns at once; it is asked with the others at the next ask, or at 5.5. Nothing is blocked and no launch is held: continue the wave where you were, and resume the reporting task on its own scope when it stopped for the entry.
-- **Blocker.** The module blocks the spec (`blocked_condition: "discovered work: <slug>"`), presents every blocker that has arrived in one call and records the ruling. While it waits: tasks already running finish and pass through their gates (3.4-3.8), but you merge nothing and start no new launch (3.2 or 3.3) until the user answers. When it returns at 00.28, the spec is back at `blocked_from` and you continue the wave loop unchanged: resume the reporting task on its own scope only. If it ends at 00.24 (the spec is `draft`, back to 0.3.8) or leaves the spec `blocked` for a human, this module ends; leave the worktrees in place so a later resume finds them.
+- **Blocker.** The module blocks the spec (`blocked_condition: "discovered work: <slug>"`), presents every blocker that has arrived in one call and records the ruling. While it waits: tasks already running finish and pass through their gates (3.4-3.8), but you merge nothing and start no new launch (3.2 or 3.3) until the user answers. When it returns at 00.28, the spec is back at `blocked_from` and you continue the wave loop unchanged: resume the reporting task on its own scope only. If it ends at 00.24 (the spec is `draft`, back to 0.3.8) or leaves the spec `blocked` for a human, Phase 3 stops here; leave the worktrees in place so a later resume finds them.
 
 ## Stops
 
@@ -259,6 +227,3 @@ A stop halts the task. Let the rest of the wave finish its gates and merge what 
 | Agent keeps working outside its worktree (repeated worktree-guard denies, or spec-checkout edits through Bash) | Never relaunch it another way: isolation cannot be configured from this repo, and an isolation launch is refused the result-file write to the spec checkout. Block the task with the denies as the condition. | 3.3 (3.2 for an integration batch) |
 | `hitl` task with no human input available (3.3) | Leave it `pending`; once the rest of the wave has merged, block with what the task needs from a human (its task file's **Mode** line). | 3.3 |
 
-## Hand off
-
-Task worktrees and branches are already gone (3.16). Remove what is left: `git worktree list`, then `git worktree remove <path>` for each remaining implementation or integration worktree under `.workflow/.worktrees/`, and `git branch -d <branch>` for its merged branch. Commit the workflow data the last gates wrote (3.9 and 3.10 evidence, the `in-review` status): `.agents/skills/feature-workflow/scripts/commit-workflow-data.sh .workflow/specs/NNN-slug -m "Workflow data for NNN-slug: implementation done"`. Then load `modules/review-triage.md`.

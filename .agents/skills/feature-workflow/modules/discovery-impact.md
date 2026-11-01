@@ -50,9 +50,9 @@ The three facts (all must be clean for the light path):
 
   Seeded from a work item: now delete the item (see [Seeded from a work item](discovery.md#seeded-from-a-work-item)).
 
-  If `tasks.md` already exists (a loop-back on a light-path spec), keep it: its task records change only through `set-task`. If the revised goal needs work the existing task does not cover, take the full path instead. Then [offer a fresh session](#offer-a-fresh-session) and load implementation-orchestrator at 3.1 (it captures `baseline_revision` and `impl_base_revision` there).
+  If `tasks.md` already exists (a loop-back on a light-path spec), keep it: its task records change only through `set-task`. If the revised goal needs work the existing task does not cover, take the full path instead. Then [offer a fresh session](#offer-a-fresh-session) and load [implementation-setup](implementation-setup.md) at 3.1 (it captures `baseline_revision` and `impl_base_revision` there).
 
-  On the small path: make no fresh-session offer; load implementation-orchestrator at 3.1 at once.
+  On the small path: make no fresh-session offer; load [implementation-setup](implementation-setup.md) at 3.1 at once.
 - **`light_path: false` (full path).** Continue at 0.4.
 
 ## 0.4 Model the impact (full path)

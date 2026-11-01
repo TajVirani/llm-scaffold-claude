@@ -14,7 +14,7 @@ Phase 4 runs once per **pass**. Read `.workflow/specs/NNN-slug/design-log.md` be
 
 **After a rework with no verified high patch.** When the spec is back at `in-review` and the newest triage entry's outcome is `rework <k> of 5` with no patch row verified `high`, the rework's own gates were its check: start no new pass. Run step 7 if that pass has no `Gaps:` line yet, then load `modules/sign-off.md`.
 
-**Resuming.** If any task record in `tasks.md` is `in-progress`, a rework is under way whatever `.step` says (the orchestrator's gates move it off 4.7): load `modules/implementation-orchestrator.md` for those tasks instead, as the router does. Otherwise, if the newest triage entry has an `Outcome:` line and `.step` names 4.5 to 4.8, that pass is already decided: finish its exit instead of starting a new pass; for a pass with no `Gaps:` line, run step 7. If `.step` names a node from 00.21 to 00.28, a discovered-work entry was being handled: finish it through `modules/discovered-work.md`, then continue at 6.0 with the next one.
+**Resuming.** If any task record in `tasks.md` is `in-progress`, a rework is under way whatever `.step` says (Phase 3's gates move it off 4.7): load `modules/implementation-waves.md` for those tasks instead, at its Rework entry, as the router does. Otherwise, if the newest triage entry has an `Outcome:` line and `.step` names 4.5 to 4.8, that pass is already decided: finish its exit instead of starting a new pass; for a pass with no `Gaps:` line, run step 7. If `.step` names a node from 00.21 to 00.28, a discovered-work entry was being handled: finish it through `modules/discovered-work.md`, then continue at 6.0 with the next one.
 
 ## 2. Launch the four lenses (4.1-4.3, 4.9), or the combined review (4.10)
 
@@ -159,7 +159,7 @@ Set the outcome line to `loop back (4.6 third pass)` and load `modules/questioni
 .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T<n> --status in-progress --step 4.7
 ```
 
-`set-task` allows `done` to `in-progress` only with `--step 4.7`. Set the outcome line to `rework <used + 1> of 5` and load `modules/implementation-orchestrator.md` for those tasks, handing it each patch as one line: `<file:line> - <what is wrong> - <what the smallest fix must do>`. The orchestrator relaunches `implementation`, re-runs the gates, sets `in-review` again at 3.11 (or 3.14), and returns here. When a patch entry is verified `high`, that return starts pass `n + 1`; when none is, Phase 4 ends after the rework (step 1, "After a rework with no verified high patch").
+`set-task` allows `done` to `in-progress` only with `--step 4.7`. Set the outcome line to `rework <used + 1> of 5` and load `modules/implementation-waves.md` for those tasks (its Rework entry), handing it each patch as one line: `<file:line> - <what is wrong> - <what the smallest fix must do>`. The wave loop relaunches `implementation`, re-runs the gates, sets `in-review` again at 3.11 (or 3.14), and returns here. When a patch entry is verified `high`, that return starts pass `n + 1`; when none is, Phase 4 ends after the rework (step 1, "After a rework with no verified high patch").
 
 ### 6.4 Rework ceiling reached (4.7 No)
 

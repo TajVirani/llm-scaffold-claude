@@ -125,9 +125,10 @@ for step_file in "$MODULES_DIR"/*.md; do
 done
 router_intake_ids | sed 's|$|	SKILL|' >"$WORK/router.tsv"
 
-# holders ID : the step files that hold ID, space-separated, sorted.
-holders() { awk -F'\t' -v id="$1" '$1 == id { print $2 }' "$WORK/held.tsv" | sort -u | tr '\n' ' ' | sed 's/ $//'; }
-holder_count() { awk -F'\t' -v id="$1" '$1 == id' "$WORK/held.tsv" | cut -f2 | sort -u | grep -c .; }
+# holders ID : the step files that hold ID, space-separated, sorted. Ids are compared as strings: awk would compare 3.1 and
+#   3.10 as numbers and find them equal.
+holders() { awk -F'\t' -v id="$1" '$1 "" == id "" { print $2 }' "$WORK/held.tsv" | sort -u | tr '\n' ' ' | sed 's/ $//'; }
+holder_count() { awk -F'\t' -v id="$1" '$1 "" == id ""' "$WORK/held.tsv" | cut -f2 | sort -u | grep -c .; }
 # Reach is worked out once per step file: every id a file holds shares it, and the greps are slow per id.
 for step_file in "$MODULES_DIR"/*.md; do
   name=$(basename "$step_file" .md)

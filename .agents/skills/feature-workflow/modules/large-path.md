@@ -227,7 +227,7 @@ The same sequence merges `planned` here and `done` at 6.13; `<state>` is the one
   .agents/skills/feature-workflow/scripts/open-task-pr.sh --head initiative/NNN-slug --base "$main" --title "Initiative NNN-slug: <state>" --record .workflow/initiatives/NNN-slug
   ```
 
-  `pr-blocking`: wait for approval as task PRs do at [3.16](implementation-orchestrator.md#316-merge-the-wave), and tell the stakeholder which PR/MR waits. `skipped: <reason>`: append the reason to `design-log.md`, commit it, and merge as `local` does.
+  `pr-blocking`: wait for approval as task PRs do at [3.16](implementation-waves.md#316-merge-the-wave), and tell the stakeholder which PR/MR waits. `skipped: <reason>`: append the reason to `design-log.md`, commit it, and merge as `local` does.
 - **`local`.** No push and no PR/MR.
 
 Then merge, with `--no-ff` so main keeps one merge commit per state:
