@@ -1,6 +1,6 @@
 ---
 name: review-combined
-description: Combined review lens (workflow steps 4.1, 4.2 and 4.9 on the light and small paths). One reviewer in place of the standards, end-state and lessons lenses. Checks the whole change since baseline_revision against spec.md, the project's written standards and its recorded review lessons, proving each finding with a reproduction run in a scratch worktree or a quoted rule or spec line. Writes proven findings to one pass file for review-triage and returns a short summary. Changes nothing in the checkout but that file; does not measure targets (review-targets).
+description: Combined review lens (workflow step 4.10 on the light and small paths). One reviewer in place of the standards, end-state and lessons lenses. Checks the whole change since baseline_revision against spec.md, the project's written standards and its recorded review lessons, proving each finding with a reproduction run in a scratch worktree or a quoted rule or spec line. Writes proven findings to one pass file for review-triage and returns a short summary. Changes nothing in the checkout but that file; does not measure targets (review-targets).
 tools: Read, Grep, Glob, Bash
 ---
 

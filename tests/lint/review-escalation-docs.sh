@@ -119,7 +119,10 @@ fm() { yq --front-matter=extract "$1" "$COMBINED" 2>/dev/null; }
 eq "frontmatter keys are exactly name, description, tools" "$(fm 'keys | join(",")')" "name,description,tools"
 eq "name is review-combined" "$(fm '.name')" "review-combined"
 eq "tools are Read, Grep, Glob, Bash" "$(fm '.tools')" "Read, Grep, Glob, Bash"
-check "description leads with its role and steps" '[[ $(fm ".description") == "Combined review lens (workflow steps 4.1, 4.2 and 4.9"* ]]' "$(fm '.description')"
+check "description leads with its role and its step, 4.10 as steps.tsv numbers it" \
+  '[[ $(fm ".description") == "Combined review lens (workflow step 4.10 "* ]] && grep -qx "4.10	4	light	Combined review" "$FW_SKILL/references/steps.tsv"' \
+  "$(fm '.description')"
+check "assetlist.md places review-combined at 4.10" 'grep -E "^\| \`review-combined\` \| agent" "$REPO_ROOT/assetlist.md" | grep -q "| 4.10 "'
 check "it writes the review-combined pass file" 'grep -q "artifacts/review/pass-<n>/review-combined.yaml" "$COMBINED"'
 check "install-manifest.txt lists agents/review-combined.md" 'grep -qx "agents/review-combined.md" "$MANIFEST"'
 agents_header=$(grep -E '^# --- Agents \([0-9]+\)$' "$MANIFEST")
