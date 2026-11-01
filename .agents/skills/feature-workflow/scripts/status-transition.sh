@@ -352,7 +352,7 @@ if [[ "$MODE" == "set-spec" ]]; then
     want="spec/${SPEC_DIR#"$WF_SPECS"/}"
     [[ "$OPT_SBRANCH" == "$want" ]] || die "spec_branch must be $want for $SPEC_DIR: '$OPT_SBRANCH'"
     git -C "$ROOT" show-ref --verify --quiet "refs/heads/$OPT_SBRANCH" \
-      || die "spec_branch $OPT_SBRANCH is not a local branch in $ROOT; create it first (git switch -c $OPT_SBRANCH)"
+      || die "spec_branch $OPT_SBRANCH is not a local branch in $ROOT; create it first (spec-worktree.sh create $SPEC_DIR)"
     SCUR=$(yq --front-matter=extract '.spec_branch // ""' "$SPEC")
     [[ -z "$SCUR" || "$SCUR" == "$OPT_SBRANCH" ]] || illegal "$SPEC_DIR already names spec_branch '$SCUR'"
     export SBV=$OPT_SBRANCH

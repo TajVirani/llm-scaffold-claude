@@ -44,9 +44,10 @@
 #   toolchain.json results for test carry `scoped` (true when test_scoped ran), `own` and `excluded` (selector counts) when scoping applied.
 # Tree hash: a git tree object id for the checkout's content at --cwd's repository top level, tracked and untracked files alike (ignored files
 #   stay out), minus the workflow data folders (specs, initiatives, deferred, decisions, .handoff, .worktrees, .cache-staging, .standards-staging
-#   under the workflow root), so writing evidence or a step marker never changes it, and minus the Tier A files sign-off edits (capabilities.md,
-#   review-lessons.md, GLOSSARY.md, rules.md) and the profiles: a profile edit that changes a command still misses, because Reuse compares each
-#   command. Built in a temporary index; the checkout's index is not touched.
+#   under the workflow root), so writing evidence or a step marker never changes it, and minus the Tier A files sign-off and the retrospective
+#   edit that no script or test reads (capabilities.md, review-lessons.md, GLOSSARY.md, the decisions folder above, and model-map/). rules.md
+#   and the profiles stay in: cache scripts and the project's tests read them, so an edit there must re-run the commands. Built in a temporary
+#   index; the checkout's index is not touched.
 # Reuse (--reuse): candidates are <spec-dir>/artifacts/*/toolchain.json, this task's own record first, then the others by directory name.
 #   A candidate matches when its status is pass, its `tree` equals this checkout's, every key this run would execute is `pass` there with the
 #   same command (a `skipped` key does not match), and it is either unscoped or its task_id is this task id. Which profile file named the
@@ -76,11 +77,11 @@ set -euo pipefail
 
 die() { echo "run-toolchain.sh: $*" >&2; exit 2; }
 
-# tree_hash DIR : print the tree hash of DIR's repository content, without the workflow data folders, the Tier A files and the profiles.
+# tree_hash DIR : print the tree hash of DIR's repository content, without the workflow data folders and the Tier A files nothing reads.
 tree_hash() {
   local top real idx err rc=0 hash="" path
   local left_out=("$WF_SPECS" "$WF_INITIATIVES" "$WF_DEFERRED" "$WF_DECISIONS" "$WF_HANDOFF" "$WF_WORKTREES" "$WF_CACHE_STAGING" "$WF_STANDARDS_STAGING"
-    "$WF_CAPABILITIES" "$WF_REVIEW_LESSONS" "$WF_GLOSSARY" "$WF_RULES" "$WF_PROFILES")
+    "$WF_CAPABILITIES" "$WF_REVIEW_LESSONS" "$WF_GLOSSARY" "$WF_MODEL_MAP")
   local excludes=()
   top=$(git -C "$1" rev-parse --show-toplevel 2>/dev/null) || die "--cwd is not inside a git repository: $1"
   # git add refuses a pathspec naming an ignored path, even an exclude; git add skips ignored paths anyway.

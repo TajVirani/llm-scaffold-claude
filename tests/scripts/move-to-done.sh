@@ -3,7 +3,7 @@
 # Covers: the interface: the script is executable, and no argument or an unknown option exits 2.
 #   JRN-001: --check on a spec whose task record T2 is pending exits 1, names T2 and not the done tasks, and changes no file,
 #   ref or index entry; two open records are both named; a backlog item from the spec with a status outside open, promoted,
-#   moved-to-deferred and dismissed is named, while one from another spec is not; on the spec's backlog list (D105) open,
+#   moved-to-deferred and dismissed is named, while one from another spec is not; on the spec's backlog list open,
 #   promoted and split lines pass, while a line with another status, no status or no evidence is named by line number, and
 #   another spec's list is not read; the 5.7 sequence (the check, then
 #   status-transition.sh status done --step 5.7) leaves the spec in-review; once every record is done or split-out the check

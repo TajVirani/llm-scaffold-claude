@@ -280,7 +280,7 @@ check "backlog only (no in-flight spec) still offers" 'grep -q "work-backlog/: 7
 for i in 1 2 3 4 5 6 7; do printf -- '---\nstatus: dismissed\n---\n' > "$P/.workflow/specs/work-backlog/001-demo-disc-00$i.md"; done
 out=$(ss "$P")
 check "no open backlog and no specs -> nothing" '[ -z "$out" ]' "$out"
-# D105: one backlog list per spec, one line per kept item; open lines count, promoted lines and other files do not.
+# One backlog list per spec, one line per kept item; open lines count, promoted lines and other files do not.
 printf -- '---\nstatus: open\n---\n# item\n' > "$P/.workflow/specs/work-backlog/001-demo-disc-001.md"
 printf '%s\n' "# Work backlog: 002-list" "" "- [open] B1 bug (4.4): A. Evidence: a." "- [promoted] B2 bug (3.7): B. Evidence: b. -> .workflow/specs/003-next" \
   "- [open] B3 refactor (4.4): C. Evidence: c." > "$P/.workflow/specs/work-backlog/002-list.md"

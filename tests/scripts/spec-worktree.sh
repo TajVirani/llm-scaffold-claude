@@ -100,7 +100,7 @@ for pair in "001-alpha|$TA|$WA" "002-beta|$TB|$WB"; do
   script run-toolchain.sh --spec-dir ".workflow/specs/$spec" --task-id T1 --cwd "$task" --work-type shell >/dev/null 2>&1
   check "$spec: run-toolchain from the task worktree files toolchain.json in its spec worktree" \
     '[ -f "$spec_wt/.workflow/specs/$spec/artifacts/T1/toolchain.json" ] && [ ! -e "$task/.workflow/specs/$spec/artifacts" ]'
-  # The brief's rule: the spec checkout is the worktree path less /.workflow/.worktrees/<name>.
+  # The brief's rule: the spec checkout is the agent worktree path less its last three parts.
   spec_checkout=$(cd "$task/../../.." && pwd -P)
   eq "$spec: the brief's spec-checkout rule names the spec worktree" "$spec_checkout" "$spec_wt"
   cmd=$(brief_result_command "$P/.agents/agents/implementation.md" implementation.yaml)
