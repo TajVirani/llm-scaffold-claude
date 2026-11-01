@@ -13,7 +13,7 @@ Three task types launch here. Each prompt opens with the ```` ```yaml launch-hea
 | Task type | Node | Header fields | Agent tool options (Claude) |
 | --- | --- | --- | --- |
 | `implementation` | 3.3 | `spec_dir`, `task_id`, `work_type` (the value recorded at 3.1; a disagreeing value is denied) | `run_in_background: true`; working directory = the task worktree you created at wave start (see **Claude** below) |
-| `integration` | 3.2 | `spec_dir`, `work_type` (a batch, no `task_id`) | working directory = the integration worktree you create at [3.2](#32-integration-batches-one-work-type-each) (see **Claude** below) |
+| `integration` | 3.2 | `spec_dir`, `work_type` (a batch, no `task_id`) | working directory = the integration worktree you create at [3.2](implementation-shared-core.md#32-integration-batches-one-work-type-each) (see **Claude** below) |
 | `profile-mini-review` | 3.7 | `spec_dir`, `task_id`, `work_type` | none (read-only) |
 
 ````text
@@ -27,12 +27,12 @@ work_type: backend-api
 ````
 
 - **Claude.** Set `subagent_type` to the task type.
-  An implementation launch runs in the task worktree you created at [wave start](#wave-start-task-branches-and-worktrees), an integration launch in the integration worktree you create at [3.2](#32-integration-batches-one-work-type-each).
+  An implementation launch runs in the task worktree you created at [wave start](#wave-start-task-branches-and-worktrees), an integration launch in the integration worktree you create at [3.2](implementation-shared-core.md#32-integration-batches-one-work-type-each).
   The Agent tool has no working-directory option (a sub-agent starts in the main session's directory), so launch it without `isolation` and confine it by the brief: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside the worktree. `hooks/worktree-write-guard.sh` enforces this for implementation and integration sub-agents: it reads the agent worktree from the launch header (`.workflow/.worktrees/s<NNN>_t<N>` for a task, `s<NNN>_integration_<enc(work_type)>` for an integration batch) and denies a Write, Edit or NotebookEdit inside the main checkout but outside it, and a Bash command without that leading `cd` (accident prevention; a command can still reach out after its `cd`). The stop audit finds the worktree itself and warns when it is missing. A confined agent whose agent worktree is missing is denied every call, reads and temp-dir writes included, so recreate the worktree (as at wave start or 3.2) before you relaunch the agent. An agent that keeps getting denied, or edits the main checkout through Bash, is never relaunched another way: it is a [stop](#stops).
   Name the worktree's absolute path in the brief as the directory the agent works in. Leave out `model` and the profile: `hooks/pre-launch.sh` resolves both through `resolve-launch.sh` and returns the launch with the model set and the profile inserted after the header. A deny naming 00.14 means no model is assigned for the type (fix `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` with the human); a deny naming 00.18 or 00.19 is handled in 3.1.
 - **Codex.** Build and spawn each launch as [launching](../references/launching.md#codex) says, passing `--task-id` and `--work-type` from the header. Its task-name table gives the name for each launch here, and its agent-worktree rule says where each spawn runs.
 - **Briefs are context pointers.** An implementation brief names the task file (`.workflow/specs/NNN-slug/<file>` from the record, committed on the spec branch so the worktree has it), the worktree path, the `codebase-map.md` extract for its module, and any shared-core interface integration applied for it. Nothing about other tasks; the task file is not pasted.
-- **Resume, don't restart.** Send fix requests to the same agent (on Claude, SendMessage to the agent id from the Agent result); it keeps its worktree and context. A 3.8 fix round that changes behaviour is the exception ([Fix rounds](#per-task-gates-34-38)). When an agent cannot be continued, launch a fresh one with the same header and add to the brief: "first merge branch `<branch>` into yours, then fix: <findings>".
+- **Resume, don't restart.** Send fix requests to the same agent (on Claude, SendMessage to the agent id from the Agent result); it keeps its worktree and context. A 3.8 fix round that changes behaviour is the exception ([Fix rounds](implementation-gates.md#per-task-gates-34-38)). When an agent cannot be continued, launch a fresh one with the same header and add to the brief: "first merge branch `<branch>` into yours, then fix: <findings>".
 
 ## Evidence and the ledger
 
@@ -58,7 +58,7 @@ The one resume for a missing or invalid file renames nothing: the agent rewrites
 
 **Rework entry (4.7).** `review-triage` reopens tasks (`set-task --status in-progress --step 4.7`) and loads this module with one patch line per finding, spec status still `in-review`. Skip 3.1's status change (`in-review` cannot go back to `in-progress`); rename each reopened task's `implementation.yaml` and `mini-review.yaml` first ([keep earlier rounds](#evidence-and-the-ledger)), then launch it fresh with its patch lines in the brief (its mini-review is a full one), in a new task branch and worktree off the spec-branch tip ([wave start](#wave-start-task-branches-and-worktrees)), run the gates, then 3.16, 3.15, 3.9 and 3.10-3.11 as below, and set `in-review` again at 3.11 (or 3.14), which returns to `review-triage`.
 
-**On resume** (status `in-progress`): skip `done` tasks. For an `in-progress` task, its worktree is `.workflow/.worktrees/<task_name>` on the record's `branch` (or `yq '.worktree'` on the newest `implementation.yaml`, or the `cwd` in `toolchain.json`). If the worktree has commits and a clean audit, continue at 3.7; otherwise launch it again (a fresh launch; the task stays `in-progress`). If `.step` says 3.16 or 3.15, the wave's merges may be done but its budget check is not: run 3.15 before the next frontier. After `modules/discovered-work.md` unblocks the spec at 00.28, resume the same way, at the point the block interrupted.
+**On resume** (status `in-progress`): skip `done` tasks. For an `in-progress` task, its worktree is `.workflow/.worktrees/<task_name>` on the record's `branch` (or `yq '.worktree'` on the newest `implementation.yaml`, or the `cwd` in `toolchain.json`). If the worktree has commits and a clean audit, continue at 3.7 ([gates](implementation-gates.md#per-task-gates-34-38)); otherwise launch it again (a fresh launch; the task stays `in-progress`). If `.step` says 3.16 or 3.15, the wave's merges may be done but its budget check is not: run 3.15 before the next frontier. After `modules/discovered-work.md` unblocks the spec at 00.28, resume the same way, at the point the block interrupted.
 
 ## 3.1 Classify each task and start
 
@@ -89,39 +89,9 @@ yq --front-matter=extract '[.tasks[] | select(.status == "done") | .id] as $done
 
 An empty frontier with tasks still pending means they wait on a `blocked` task: go to [Stops](#stops).
 
-### 3.2 Integration batches, one work type each
+### Shared-core changes before the wave
 
-Before launching the wave, collect its shared-core change requests: the **Notes** request of every frontier task with `touches_core: true`, plus shared-core requests from `scope-expansion` results. Group them by the requesting task's `work_type`, one batch per work type, so each launch carries exactly one profile. Launch the batches one at a time (header `task_type: integration`, `spec_dir`, `work_type`); each brief is a numbered list of requests, each stating the change and the contract its consumer needs, without task context.
-
-**The integration worktree.** Before launching a batch, from the spec checkout, create its worktree on a `wf/` branch off the spec-branch tip. `<name>` is `s<NNN>_integration_<enc(work_type)>`, for example `s007_integration_web` (`enc` lowercases and turns every character outside `[a-z0-9]` into `_`), the name the worktree guard finds it by:
-
-```bash
-git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
-```
-
-`.workflow/.worktrees/` is gitignored. Name the worktree's absolute path in the brief as the directory the agent works in. A resumed batch or a fix round reuses the worktree. The merge removes it, so a later batch of the same work type creates it again off the new spec-branch tip.
-
-When a batch returns, check its result file ([Reading a result file](#evidence-and-the-ledger)) and route on the printed table:
-
-```bash
-.agents/skills/feature-workflow/scripts/check-task-result.sh .workflow/specs/NNN-slug/artifacts/integration-<work_type>/integration.yaml
-```
-
-- **Batch `status`** (top level; `.agents/agents/integration.md` "Return"). `done` or `partial`: handle each request by its verdict below (`partial` means some requests were rejected or conflict). `discovered-work`: out-of-scope work stopped the batch and nothing was applied; go to [Discovered work](#discovered-work-0021) at step 3.2 with its `discovered_work[]` entries. `profile-wrong`: a [stop](#stops) at step 3.2, quoting `profile_wrong.line`. `blocked`: read `blocked.reason`; a fact you look up and resume the agent, a decision you put to the stakeholder, or block the spec at step 3.2 when no answer is available.
-- **`discovered_work[]`.** A non-empty list goes to [Discovered work](#discovered-work-0021) at step 3.2 whatever the status, `done` and `partial` included. While that module has the spec `blocked`, hold this batch's merge as 3.16 does; merge the `applied` work once it returns at 00.28.
-- **Toolchain.** The agent runs `run-toolchain.sh` itself with `--exclude-unfinished`, so the Phase 1 tests of tasks not yet `done` are excluded from its `test` run rather than left for you to judge. On Claude the stop audit then runs the full toolchain in the integration worktree with the same scoping and `--reuse`; on Codex no stop audit runs for integration. Read `artifacts/integration-<work_type>/` as at 3.5-3.6: the batch is clean when `toolchain.json` says `pass` and no `audit.json` sits beside it; `audit.json` with outcome `gave-up` means resume the agent with `toolchain-digest.txt`, as does a `toolchain.json` that does not say `pass`; `audit.json` with outcome `warning` means the audit could not run (for example, the worktree was missing), so run it yourself with `--task-id integration-<work_type> --work-type <work_type> --exclude-unfinished --cwd <worktree> --reuse`.
-- **Verdicts** (per request: `applied`, `reject-not-shared-core`, `reject-other-work-type`, `conflict`, `blocked`). `applied`: the change is on the batch branch; [merge the batch](#32-integration-batches-one-work-type-each) before the wave launches, and pass the new interface into the requesting tasks' briefs. `reject-other-work-type`: move the request to that work type's batch. `reject-not-shared-core`: it is module work for the requesting task; put it in that task's brief. `conflict`: a decision; put both options to the stakeholder, re-batch with their answer, or block the spec at step 3.2 when no answer is available. `blocked`: its `reason` names what stops it; when that is an entry in `discovered_work[]`, the request waits for that ruling and is re-batched after 00.28; otherwise handle it like `conflict`.
-- **Merge the batch.** When at least one request is `applied`, merge the batch in the spec checkout, on the spec branch. The branch is the one the result file names (`yq '.branch'`): `wf/NNN-slug/<name>`, the branch you created. Run the artifacts gate first, each line as its own command, never piped (a pipe hides the gate's exit code), then merge and remove the worktree and branch:
-
-  ```bash
-  .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh --spec-dir .workflow/specs/NNN-slug --rev wf/NNN-slug/<name>
-  git merge --no-ff -m "Merge integration-<work_type>" wf/NNN-slug/<name>
-  git worktree remove .workflow/.worktrees/<name>
-  git branch -d wf/NNN-slug/<name>
-  ```
-
-  Merge only on gate exit 0. Exit 1 prints each path under `artifacts/` that the branch adds, changes or deletes: resume the agent with those lines to drop that change from its branch (its result file belongs in the spec checkout only), then run the gate again. Exit 2 is a usage or environment error: fix the cause and run it again. With nothing `applied`, skip the gate and the merge and run only the two clean-up lines.
-- Integration output gets no mini-review: that task type requires a `task_id`.
+Before launching the wave, look for shared-core change requests: the **Notes** request of a frontier task with `touches_core: true`, or a shared-core request from a `scope-expansion` result. When there is one, load `modules/implementation-shared-core.md` and run 3.2 there: it batches the requests by work type, launches each batch in its own integration worktree and merges what was applied, then returns here for the wave start. With none, go straight to the wave start.
 
 ### Wave start: task branches and worktrees
 
@@ -132,7 +102,7 @@ After 3.2's merges, commit the workflow data you have written since the last com
 git worktree add .workflow/.worktrees/<task_name> -b <branch> spec/NNN-slug
 ```
 
-A record with `branch: null` (a light-path spec written before light-path tasks got branches) still gets a task branch: use `task/NNN-slug/T01-<slug>`, the stem of its `file`, as `<branch>` here and at 3.16. A worktree that already exists (resume, fix round, rework) is reused. Integration worktrees are created at 3.2 as above.
+A record with `branch: null` (a light-path spec written before light-path tasks got branches) still gets a task branch: use `task/NNN-slug/T01-<slug>`, the stem of its `file`, as `<branch>` here and at 3.16. A worktree that already exists (resume, fix round, rework) is reused. Integration worktrees are created at 3.2, in `modules/implementation-shared-core.md`.
 
 ### 3.3 Launch the wave
 
@@ -148,46 +118,9 @@ For each frontier task, mark it started, then launch it in the background in its
 
 Launch all of the wave's tasks before handling any return. Results arrive on their own; handle each as it lands.
 
-### Per-task gates (3.4-3.8)
+### Gates for each returned task
 
-For each returned implementation, check the `implementation.yaml` the agent wrote ([Reading a result file](#evidence-and-the-ledger)): `.agents/skills/feature-workflow/scripts/check-task-result.sh .workflow/specs/NNN-slug/artifacts/<task-id>/implementation.yaml`. Then:
-
-1. **Route the result `status`.** `done` continues below. `discovered-work` goes to [Discovered work](#discovered-work-0021). `profile-wrong`, `scope-expansion` and `blocked` go to [Stops](#stops). Separately, a non-empty `discovered_work[]` goes to [Discovered work](#discovered-work-0021) whatever the status, `done` included (a `can-wait` item may accompany a finished task); a `done` task keeps going through its gates while that module handles it.
-2. **3.4 Negative and edge cases.** `tests_added` includes `negative` or `edge` tests, or the summary says why none apply. Otherwise resume the agent to add them.
-3. **3.5-3.6 Tool audit clean?** On Claude the stop audit has already run the profile toolchain with `--reuse` (the command keys `lint`, `typecheck`, `format`, `boundary` and `test`; never `serve` or `serve_ready`) and blocked the agent's stop until it passed. `toolchain.json` records `tree`, the hash of the checkout's content without the workflow data folders and the Tier A files no test reads (`capabilities.md`, `review-lessons.md`, `GLOSSARY.md`, `decisions/`, `model-map/`); `rules.md` and the profiles stay in, so an edit to them runs the commands again. When the agent's own 3.5 run passed on the same tree with the same commands, the audit runs nothing: it copies that record and adds `reused_from`, the evidence dir it came from. A reused pass is a pass. Read `artifacts/<task-id>/`:
-   - `toolchain.json` says `pass` and there is no `audit.json`: **clean**.
-   - `audit.json` with outcome `gave-up`: the agent stopped on the same failure three times. **Not clean**: a fix round with `toolchain-digest.txt`.
-   - `audit.json` with outcome `warning` (or a new line in `artifacts/audit-warnings.jsonl`): the audit could not run. Run it yourself: `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id T3 --cwd <worktree> --reuse`. Exit 0 is clean; exit 1 is a fix round with its digest; exit 2 is a header or profile problem the agent cannot fix: relaunch with a corrected header, or treat a profile problem as `profile-wrong`.
-   - On Codex the stop audit works the same way, finding the task from the spawn `task_name`. A malformed `task_name` makes it warn, so handle it as the `warning` case above.
-
-   The audit's `test` key judges this task's own tests: tests other tasks will make green are still red on the spec branch by design and never fail this task's gate.
-   The scoping comes from the records: each record's `tests` lists the Phase 1 tests that task turns green (assigned at 2.5). `run-toolchain.sh` runs the profile's `test_scoped` command whenever the task's own list or the excluded set (the `tests` of every other task not yet `done`) is non-empty, with the task's own in `$WF_TASK_TESTS` and the excluded in `$WF_EXCLUDE_TESTS`. With own tests listed, only the task's own suites run; with none, every suite minus the excluded ones. Only when both are empty does it run `test` whole. The `test` result in `toolchain.json` records `own` (the count of the task's own selectors), `excluded`, and `scoped: true` whenever `test_scoped` ran. The full harness, and with it regressions outside the task's suites, is the 3.9 gate's job. A profile without `test_scoped` cannot be scoped: a failing `test` is then reported as `unscoped` with a warning in `toolchain.json` and does not block, so check that output yourself and add `test_scoped` to the profile.
-
-   No agent looks at the diff until this is clean.
-4. **3.7 Mini-review.** Launch `profile-mini-review` (header `spec_dir`, `task_id`, `work_type`). Hand over the diff as the task worktree path and the base commit (`yq '.base_commit'` on `implementation.yaml`; the reviewer runs `git -C <worktree> diff <base_commit>...HEAD`), plus `.workflow/specs/NNN-slug/artifacts/<task-id>/toolchain.json`; no diff file is written. After a wording-only fix round the launch is a re-check instead (see Fix rounds below). When it returns, check the `mini-review.yaml` it wrote: `.agents/skills/feature-workflow/scripts/check-task-result.sh .workflow/specs/NNN-slug/artifacts/<task-id>/mini-review.yaml`. Each item is a number (the profile checklist's position, or `R1`-`R5` for the readable-code lines), a verdict, a location and, for `fail` and `tool-covered`, a one-line note; `tool-covered` items and `fail` notes ending `(rule candidate)` feed the 5.2 proposals. A non-empty `out_of_scope_noticed` never changes the verdict: hand each entry to [Discovered work](#discovered-work-0021) with origin node `3.7`, as for `discovered_work[]`. An entry it returns as **current work** (a proven problem on lines or files this task changes, usually marked `blocks-this-task`) joins this task's 3.8 fix list as one more item, `oos <evidence location>: <summary>`, so the task gets a fix round even when the verdict is `pass`; the mini-review's `not_checked` lines go nowhere.
-5. **3.8 Mini-review passes?** The fix list is the failed items (`n`, `location`, `note`: the checker's `fail` rows) plus any `oos` items 3.7 added. A non-empty fix list is a fix round, routed below. An empty one (`verdict: pass` and no `oos` item) means the task is ready to merge at 3.16.
-
-**Fix rounds.** A fix round hands the implementer the failing gate's output, followed by the gates again from 3.5 (the stop audit fires on its next stop). 3.6, 3.8, 3.9 and 3.11 failures all count. For a 3.8 fix list, what must change decides who fixes it and how. An `oos` item is judged like a failed item: it takes a wording route only when it is wording only, and otherwise makes the round a behaviour fix.
-
-- **Wording patch.** Every item on the fix list is a comment, a name or another readable-code item, fixing it changes no behaviour, and every note gives the new text (or says to delete the comment). Make the edit yourself instead of resuming the implementer:
-  1. Rename `mini-review.yaml` to `mini-review-r<k>.yaml`. Read `head_commit` and `base_commit` from `implementation.yaml`: that `head_commit` is the previous head.
-  2. In the task worktree, make each edit exactly as its note gives it, and nothing else.
-  3. Run the toolchain, since no stop audit fires for your edit: `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id <task-id> --cwd <worktree>`. Exit 1: the edit broke a check, so take the Wording only route below with the fix list and the digest, renaming only `implementation.yaml` there, since `mini-review.yaml` is already renamed.
-  4. Commit in the worktree with a Conventional Commit subject and the task id in the body (`git -C <worktree> commit -am "docs: <the wording change>" -m "<task-id>: wording fix from the 3.7 mini-review"`). Set the new commit as `head_commit` in `implementation.yaml` (`yq -i '.head_commit = "<new sha>"'`), so the record names the task branch's tip: the re-check reads it as the new head, and the 3.16 merge takes the branch with the patch on it.
-  5. Launch `profile-mini-review` as a **re-check**, with the three lines the Wording only route below gives: the previous head from step 1, the new commit as the new head.
-
-  The patch counts as a round. A note that leaves the new text open goes the Wording only route.
-- **Wording only.** Every item on the fix list is a comment, a name or another readable-code item, and fixing it changes no behaviour, but a note leaves the new text to the implementer. Rename `mini-review.yaml` to `mini-review-r<k>.yaml` and `implementation.yaml` to `implementation-r<k>.yaml` ([keep earlier rounds](#evidence-and-the-ledger); each name counts its own `k`), then resume the same agent with the fix list, one line each, `<n> <location>: <note>` (an `oos` item as 3.7 wrote it). Its profile is already in its prompt, so the number names the checklist line. When it returns with a clean check and a clean audit (3.5-3.6), launch `profile-mini-review` as a **re-check**: the header, then these three lines in place of the diff pointer. The previous head is the `head_commit` the failed review judged: read it from the `implementation-r<k>.yaml` renamed at this 3.8 failure, not from a later one that a 3.6 fix round in between renamed, or the fix diff misses the first round's changes. Take the new `head_commit` and `base_commit` from the new `implementation.yaml`:
-
-  ```text
-  re-check of: .workflow/specs/NNN-slug/artifacts/<task-id>/mini-review-r<k>.yaml
-  fix diff: <worktree> <that head_commit>..<new head_commit>
-  full diff: <worktree> <base_commit>..<new head_commit>
-  ```
-
-  The reviewer judges only what the fix touched plus the items that failed before, and copies every other verdict through (`.agents/agents/profile-mini-review.md`, Re-check rule).
-- **Behaviour fix.** Any item on the fix list needs the code to behave differently: rename both files as above, launch a fresh agent with the same header, and add to the brief "first merge branch `<branch>` into yours, then fix: <the fix list>". Its next mini-review is a full one.
- Five rounds per task at most; at the cap, go to [Stops](#stops).
+When the first implementation agent of a wave returns, load `modules/implementation-gates.md` and pass every returned task through it: result routing, the 3.4 negative and edge cases, the 3.5-3.6 tool audit, the 3.7 mini-review and 3.8 with its fix rounds. A task that passes 3.8 waits for 3.16 below. Every later pass through 3.5-3.8 runs from the same file: a fix round after 3.9 or 3.11, a 3.16 merge conflict or `pr-blocking` review, and a resume that continues at 3.7.
 
 ### 3.16 Merge the wave
 
