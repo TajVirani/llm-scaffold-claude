@@ -2,7 +2,7 @@
 origin_spec: .workflow/specs/007-done-folder
 origin_step: "4.4"
 discovered_at: 2026-10-30
-status: open
+status: dismissed
 kind: bug
 ---
 

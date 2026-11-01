@@ -1,5 +1,5 @@
 ---
-status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: done # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "9e971ade158b5e92da93bf2b150fd68dd55d7e9e" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: spec/007-done-folder # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "9bd7f698f78051ca6212463706bad4eccd714761" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten

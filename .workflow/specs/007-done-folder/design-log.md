@@ -261,3 +261,16 @@ Outcome: clean, to sign-off
 ## 2026-10-31 Tier A approval (5.3)
 
 - Answer: "Dont add the pitfall notes - these are one offs. Do 5, the rest is good - finish sign-off". P1, P2, P5 approved; P3, P4 rejected (one-offs).
+
+## 2026-10-31 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes: "Dont add the pitfall notes - these are one offs. Do 5, the rest is good - finish sign-off"
+- PR description: approved. Changes asked before approval: none
+- Backlog 007-done-folder-disc-001.md: dismissed: "Non issue, ignore"
+- Backlog 007-done-folder-disc-002.md: dismissed: "Non issue"
+- Going-in concerns: "Useless findings, or things that should just be fixed as part of the work."
+- Backlog 007-done-folder-disc-001.md and disc-002.md set dismissed (5.9), as ruled at 5.5.
+
+## 2026-10-31 Retrospective notes
+
+- Retrospective: [007-done-folder.md](../../decisions/retrospectives/007-done-folder.md), verdict `accepted-with-open-items` (JRN-005 runs at 5.8). Recorded: one process lesson (own-task defects fixed in the fix round; covered by the carried 00011/00013 action item) and one model observation (`.workflow/model-map/profile-mini-review.md`). No pitfalls, no review lessons. Answer: "Record both".
