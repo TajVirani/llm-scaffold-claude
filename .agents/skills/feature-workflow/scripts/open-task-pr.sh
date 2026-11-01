@@ -4,19 +4,21 @@
 # Purpose: Task mode is the task review record of task_review `pr` / `pr-blocking`: push the spec branch and the task branch to `origin`,
 #   then open a pull request (GitHub, gh) or merge request (GitLab, glab) from the task branch into the spec branch, and print its URL.
 #   Generic mode does the same for a head and base branch the caller names, pushing only the head. Anything that prevents it (setting
-#   `local` in task mode, light-path task without a branch, missing head branch, no origin, unknown host, CLI missing or not logged in,
+#   `local` in task mode, which rules-setting.sh also prints for an origin on neither GitHub nor GitLab, with its reason; an older
+#   light-path task without a branch; missing head branch, no origin, unknown host, CLI missing or not logged in,
 #   push or create failing) prints `skipped: <reason>` and exits 0, so the caller logs the reason and merges locally anyway.
 # Usage:
 #   Task mode:
 #   open-task-pr.sh <spec-dir> <task-id> [--cwd <dir>] [--record] [--dry-run]
 #     <spec-dir>  `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it).
 #     <task-id>   T<n>; its tasks.md record gives `branch`, `title` and `file`.
-#     --cwd       any directory in the project or one of its worktrees (default $PWD); git runs in the MAIN checkout.
+#     --cwd       any directory in the project or one of its worktrees (default $PWD); git runs in the spec checkout
+#                 (lib/workflow-paths.sh wf_project_root).
 #     --record    after a PR/MR is opened (or found), write its URL with status-transition.sh set-task <spec-dir> <task-id> --pr <url> --step 3.16.
 #     --dry-run   print the push and create commands instead of running them (still exits 0).
 #   Generic mode (any of --head, --base, --title or --body selects it; no positional arguments):
 #   open-task-pr.sh --head <branch> --base <branch> --title <text> [--body <text>] [--cwd <dir>] [--record <initiative-dir>] [--dry-run]
-#     --head      the branch to push and open the PR/MR from; it must exist locally in the main checkout.
+#     --head      the branch to push and open the PR/MR from; it must exist locally.
 #     --base      the branch the PR/MR targets; it is not pushed.
 #     --title     the PR/MR title. --body: its description (default: the title).
 #     --record    after a PR/MR is opened (or found), write its URL with initiative-transition.sh set-pr <initiative-dir> <url>; the directory is
@@ -108,7 +110,7 @@ else
   if ! command -v yq >/dev/null 2>&1 || ! yq --version 2>/dev/null | grep -q mikefarah; then die "mikefarah yq v4 not found on PATH"; fi
 fi
 
-ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD" $((GENERIC + 1))
+ROOT=$(wf_project_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD" $((GENERIC + 1))
 
 if [[ $GENERIC -eq 1 ]]; then
   if [[ $RECORD -eq 1 ]]; then
@@ -136,9 +138,12 @@ else
   SPEC_BRANCH=$(yq --front-matter=extract '.spec_branch // ""' "$SPEC" 2>/dev/null)
   [[ -n "$SPEC_BRANCH" && "$SPEC_BRANCH" != null ]] || SPEC_BRANCH="spec/$SLUG"
 
-  MODE=$(bash "$SCRIPTS/rules-setting.sh" task_review --cwd "$ROOT" 2>/dev/null) || skip "cannot read task_review from $WF_RULES (rules-setting.sh failed)"
-  [[ "$MODE" != local ]] || skip "task_review is local"
-  [[ -n "$BRANCH" && "$BRANCH" != null ]] || skip "task $TASK_ID has no branch (light path: it commits on $SPEC_BRANCH)"
+  # The setting's note says why a pr setting reads as local (no PR host), and that reason is the one worth printing.
+  SETTING=$(bash "$SCRIPTS/rules-setting.sh" task_review --cwd "$ROOT" 2>&1) || skip "cannot read task_review from $WF_RULES (rules-setting.sh failed)"
+  MODE=${SETTING##*$'\n'}
+  WHY=$(sed -n 's/^rules-setting\.sh: \(task_review is .*, read as local: .*\)$/\1/p' <<<"$SETTING")
+  [[ "$MODE" != local ]] || skip "${WHY:-task_review is local}"
+  [[ -n "$BRANCH" && "$BRANCH" != null ]] || skip "task $TASK_ID has no branch (an older light-path task: it commits on $SPEC_BRANCH)"
   git -C "$ROOT" show-ref --verify --quiet "refs/heads/$BRANCH" || skip "task branch $BRANCH does not exist locally"
   git -C "$ROOT" show-ref --verify --quiet "refs/heads/$SPEC_BRANCH" || skip "spec branch $SPEC_BRANCH does not exist locally"
 

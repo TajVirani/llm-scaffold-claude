@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Suite: task-breakdown helpers (feature-workflow/scripts): task-waves.sh (predicted-file overlap, implied edges, parallel_with,
-#   cycles, waves, JSON), rules-setting.sh (## Workflow settings, task_review, main_branch), open-task-pr.sh (gh / glab stubs on PATH, skip paths,
+#   cycles, waves, JSON), rules-setting.sh (## Workflow settings, task_review, main_branch, read from the checkout an agent worktree sits
+#   in; task_review read as local with its reason when origin is on no PR host), open-task-pr.sh (gh / glab stubs on PATH, skip paths,
 #   --record; never the network) and run-toolchain.sh test scoping (other unfinished tasks' Phase 1 tests excluded, test_scoped,
 #   --exclude-unfinished, unscoped warning). JRN-006: each spec folder form for task-waves.sh and open-task-pr.sh task mode,
 #   and each initiative folder form for open-task-pr.sh --record, gives the exit code and message it gave before the shared
@@ -127,8 +128,27 @@ MB=$WORK/mb; git_init_repo "$MB"; git_commit_all "$MB" init
 eq "main_branch default main without origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" main
 git -C "$MB" update-ref refs/remotes/origin/develop HEAD; git -C "$MB" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/develop
 eq "main_branch default from origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" develop
-mkdir -p "$WORK/p/.workflow"; printf '## Workflow settings\n\n```yaml\ntask_review: local\n```\n' > "$WORK/p/.workflow/rules.md"
-eq "main checkout rules from worktree cwd" "$(RS task_review --cwd "$WORK/p-wt")" local
+mkdir -p "$WORK/p/.workflow"; printf '## Workflow settings\n\n```yaml\nmain_branch: release/9\n```\n' > "$WORK/p/.workflow/rules.md"
+git -C "$WORK/p" worktree add -q "$WORK/p/.workflow/.worktrees/s001_t1" -b task/001-demo/T01-x 2>/dev/null
+eq "rules of the checkout an agent worktree sits in, from the agent worktree" "$(RS main_branch --cwd "$WORK/p/.workflow/.worktrees/s001_t1")" release/9
+eq "a separate worktree reads its own rules (none here: the default)" "$(RS main_branch --cwd "$WORK/p-wt" 2>/dev/null)" main
+echo "== rules-setting.sh task_review and the PR host"
+TR=$WORK/tr; git_init_repo "$TR"; git_commit_all "$TR" init
+printf '## Workflow settings\n\n```yaml\ntask_review: pr-blocking\n```\n' > "$WORK/trr.md"
+eq "no origin: pr reads local" "$(RS task_review --cwd "$TR" 2>/dev/null)" local
+eq "no origin: the note says why" "$(RS task_review --cwd "$TR" 2>&1 >/dev/null | tail -n 1)" "rules-setting.sh: task_review is pr, read as local: there is no origin remote"
+git -C "$TR" remote add origin "$WORK/elsewhere.git"
+eq "a local-path origin: pr reads local" "$(RS task_review --cwd "$TR" 2>/dev/null)" local
+eq "a local-path origin: the note names it" "$(RS task_review --cwd "$TR" 2>&1 >/dev/null | tail -n 1)" \
+  "rules-setting.sh: task_review is pr, read as local: the origin remote $WORK/elsewhere.git is neither on GitHub nor on GitLab"
+git -C "$TR" remote set-url origin https://github.com/o/r.git
+eq "a GitHub origin: pr stays pr" "$(RS task_review --cwd "$TR" 2>/dev/null)" pr
+git -C "$TR" remote set-url origin git@gitlab.com:o/r.git
+mkdir -p "$TR/.workflow" && cp "$WORK/trr.md" "$TR/.workflow/rules.md"
+eq "a GitLab origin: pr-blocking stays pr-blocking" "$(RS task_review --cwd "$TR")" pr-blocking
+git -C "$TR" remote remove origin
+eq "no origin: pr-blocking reads local" "$(RS task_review --cwd "$TR" 2>/dev/null)" local
+eq "--rules reads the file as written, with no host check" "$(RS task_review --rules "$WORK/trr.md" --cwd "$TR")" pr-blocking
 
 echo "== rules-setting.sh pr_template (JRN-004, spec 008)"
 # The host template repo also holds files at ../t.md, -t.md and .github/t.txt, so those values are refused for their
@@ -223,7 +243,7 @@ EOF
 done
 OTP() { env PATH="$P/bin:$PATH" bash "$S/open-task-pr.sh" "$@"; }
 SPECD=.workflow/specs/007-shop
-out=$(OTP $SPECD T2 --cwd "$P" 2>/dev/null); eq "no origin -> skipped" "$out" "skipped: no origin remote"
+out=$(OTP $SPECD T2 --cwd "$P" 2>/dev/null); eq "no origin -> task_review reads local, skipped with the reason" "$out" "skipped: task_review is pr, read as local: there is no origin remote"
 git -C "$P" remote add origin https://github.com/o/r.git
 git -C "$P" config remote.origin.pushurl "$WORK/origin.git"
 out=$(OTP $SPECD T1 --cwd "$P" 2>/dev/null); rc=$?
@@ -249,7 +269,7 @@ eq "glab: url printed" "$out" "https://gitlab.com/o/r/-/merge_requests/5"
 check "glab: create args" 'grep -q "^glab mr create --target-branch spec/007-shop --source-branch task/007-shop/T02-cart" "$STUBLOG"' "$(cat "$STUBLOG")"
 git -C "$P" remote set-url origin https://example.org/o/r.git
 out=$(OTP $SPECD T2 --cwd "$P" 2>/dev/null)
-check "unknown host -> skipped" 'grep -q "^skipped: origin host is neither GitHub nor GitLab" <<<"$out"' "$out"
+eq "unknown host -> task_review reads local, skipped with the reason" "$out" "skipped: task_review is pr, read as local: the origin remote https://example.org/o/r.git is neither on GitHub nor on GitLab"
 git -C "$P" remote set-url origin https://github.com/o/r.git
 mkdir -p "$P/.workflow"; printf '## Workflow settings\n\n```yaml\ntask_review: local\n```\n' > "$P/.workflow/rules.md"
 out=$(OTP $SPECD T2 --cwd "$P" 2>/dev/null); eq "task_review local -> skipped" "$out" "skipped: task_review is local"
@@ -320,8 +340,8 @@ eq "--skip test still wins" "$(jq -r '.results[] | select(.key=="test") | .statu
 echo "== JRN-006 spec and initiative folder forms"
 folder_fixture_repo "$WORK/folders"
 SPEC_REASON="spec dir must be .workflow/specs/NNN-slug"
-# The fixture has no task branch and no origin, so an accepted folder reaches the first skip after the folder is read.
-TASK_MODE_ACCEPTED="0|open-task-pr.sh: skipped: task branch task/001-alpha/T01-demo does not exist locally"
+# The fixture has no origin, so task_review reads local and an accepted folder reaches that skip, the first after the folder is read.
+TASK_MODE_ACCEPTED="0|open-task-pr.sh: skipped: task_review is pr, read as local: there is no origin remote"
 RECORD_ACCEPTED="0|open-task-pr.sh: skipped: no origin remote"
 while IFS='|' read -r form cwd arg; do
   eq "JRN-006 task-waves takes the $form spec folder as before" \
