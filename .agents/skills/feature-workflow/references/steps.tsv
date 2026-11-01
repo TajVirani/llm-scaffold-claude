@@ -105,14 +105,14 @@ P6	6	phase	Large path
 4.5	4	both	Route findings
 4.6	4	both	Third pass with findings?
 4.7	4	both	Rework attempts remaining?
-4.8	4	both	Deferred handoffs
+4.8	4	both	Record the gaps
 5.1	5	both	Reconcile spec.md
 5.2	5	both	Propose Tier A updates
 5.3	5	both	Approve the proposals
 5.4	5	both	Report
 5.5	5	both	Stakeholder approves?
 5.6	5	both	Re-enter on a change request
-5.9	5	both	Offer backlog items
+5.9	5	both	Carry out backlog rulings
 5.7	5	both	Retrospective
 5.8	5	both	Merge and close
 6.1	6	large	Enter the initiative
@@ -151,8 +151,8 @@ P6	6	phase	Large path
 00.22	-	cross	Discovered work: present
 00.23	-	cross	Discovered work: blocker?
 00.24	-	cross	Discovered work: back to discovery?
-00.25	-	cross	Discovered work: next feature?
-00.26	-	cross	Discovered work: write the backlog item
-00.27	-	cross	Discovered work: backlog item
+00.25	-	cross	Discovered work: batched ask
+00.26	-	cross	Discovered work: add the backlog line
+00.27	-	cross	Discovered work: backlog list
 00.28	-	cross	Discovered work: resume
 00.29	-	cross	Size budget: split, re-scope or approve

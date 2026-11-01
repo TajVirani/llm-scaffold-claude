@@ -38,13 +38,14 @@ Resolve which feature this request is about before doing anything else. Take the
 
 **"Grill me" / "stress-test my plan".** Treat it as a request to run the questioning loop (0.3.8 on) for the current spec. Resolve the spec by branches 2-4 and route by status; if none is in flight, start at discovery. There is no separate grill skill: the questioning loop owns it, and the vendored `grilling` and `grill-me` were deleted.
 
-**Work-backlog items.** `.workflow/specs/work-backlog/` holds discovered work that a stakeholder chose to tackle as a next feature. It is not a spec: never route it by status. When you list in-flight specs, or the request starts new work, also list the open items:
+**Work-backlog items.** `.workflow/specs/work-backlog/` holds discovered work that a stakeholder chose to keep for later: one list per spec, `<NNN-slug>.md`, one line per item, plus older one-file-per-item entries (`<NNN-slug>-disc-<###>.md`). It is not a spec: never route it by status. When you list in-flight specs, or the request starts new work, also list the open items:
 
 ```bash
-for f in .workflow/specs/work-backlog/*.md; do [ -f "$f" ] && [ "$(yq --front-matter=extract '.status' "$f")" = open ] && printf '%s\t%s\n' "$f" "$(yq --front-matter=extract '.origin_spec' "$f")"; done
+grep -H '^- \[open\]' .workflow/specs/work-backlog/*.md 2>/dev/null
+for f in .workflow/specs/work-backlog/*-disc-*.md; do [ -f "$f" ] && [ "$(yq --front-matter=extract '.status' "$f")" = open ] && printf '%s\t%s\n' "$f" "$(yq --front-matter=extract '.origin_spec' "$f")"; done
 ```
 
-When the stakeholder picks one, it is new work seeded from the item: size it, and discovery seeds 0.1 from it, marks the item `promoted` at 0.1.4 and deletes it once discovery finishes ([discovery](modules/discovery.md#seeded-from-a-work-item)). The origin spec's sign-off (5.9) also offers each open item.
+When the stakeholder picks one, it is new work seeded from the item: size it, and discovery seeds 0.1 from it and marks it `promoted` at 0.1.4 ([discovery](modules/discovery.md#seeded-from-a-work-item)). The origin spec's sign-off (5.5) asks about its list in one question.
 
 Done when you hold one `.workflow/specs/NNN-slug/` to resume, an initiative handed to the large path, or a new request to size.
 
@@ -153,7 +154,7 @@ Every loop back to 0.3.8 sets `draft`. The module that owns the gate makes the c
   | Path-only rewrites of a moved spec's path, in Tier A files, design logs and every other `.workflow/` file outside `cache/` and `initiatives/` | 5.8, by `.agents/skills/feature-workflow/scripts/move-to-done.sh` only, which changes nothing but that path; the initiative's files are re-pointed at 6.13 |
 
   A spec.md write never changes `status` or `blocked_condition`. Everything else in the spec folder (`codebase-map.md`, `design-log.md`, `data-model.md`, `verification-plan.md`) is unguarded.
-- **Never grow the spec mid-build.** Work found outside the agreed scope in Phases 1–4 goes to [discovered-work](modules/discovered-work.md) (00.21), never into `spec.md` or `tasks.md`. A blocker blocks the spec until the stakeholder rules; work that can wait is filed to the shelf or the work backlog without a ruling, the build goes on, and the stakeholder sees it at 5.9. In Phase 0 it goes through the scope gate 0.3.16–0.3.17. A Tier A change outside its steps becomes a proposal in `proposals.md` for 5.3.
+- **Never grow the spec mid-build.** Work found outside the agreed scope in Phases 1–4 goes to [discovered-work](modules/discovered-work.md) (00.21), never into `spec.md` or `tasks.md` on your own. Every report is proven first; an unproven one is one log line. A proven problem on the current work goes back to the worker as a fix. A blocker blocks the spec until the stakeholder rules. Everything else (convoluted, scope-expanding or out of scope) waits, the build goes on, and the stakeholder rules on it in one batched question at the next ask or at 5.5: fold in, keep for later (one line on the spec's backlog list) or drop. In Phase 0 it goes through the scope gate 0.3.16–0.3.17. A Tier A change outside its steps becomes a proposal in `proposals.md` for 5.3.
 - **Sub-agents write only their own result file.** Besides the code a coding agent builds (and the staged cache of `cache-regeneration`), a sub-agent writes one file: its findings or result file under the spec's `artifacts/`. The Phase 4 lenses write their pass files; `implementation`, `integration` and `profile-mini-review` write their result files; the main session checks each with a script and never retypes it. Everything else a sub-agent returns as text, and the main session writes files from it. The guards deny a sub-agent's writes to the guarded workflow files.
 
 ### Progress line
@@ -212,7 +213,7 @@ Codex hooks replace the direct script calls only for events a live Codex run has
 | [sign-off](modules/sign-off.md) | 5.1–5.9 (5.5 Yes → 5.9 → 5.7 → 5.8) | review-triage | done; [Re-entry](#4-re-entry-56-and-loop-backs) (5.5 No); discovery for a work item started at 5.9; large-path 6.13 for a spec that carries `initiative:` |
 | [large-path](modules/large-path.md) | 0.3.23, 6.1–6.13 (rounds 6.2–6.8, emission 6.9, planned 6.10–6.11, reopen 6.12, done 6.13) | questioning-loop (0.3.19 or a round, conversion); [Find the state](#1-find-the-state) for an initiative; sign-off (after 5.8) | discovery 0.1 seeded from a slice (6.9); the router for an emitted spec an open question depends on; done |
 
-Templates for every per-feature file are in [assets/](assets/): `spec.md`, `codebase-map.md`, `design-log.md`, `data-model.md`, `verification-plan.md`, `tasks.md` (the task index), `task.md` (one per task under `tasks/`), `deferred.md`, `proposals.md`, `report.md`, `pr-template.md` (for `pr-body.md`, the Sign-off PR description), and `work-item.md` for `.workflow/specs/work-backlog/` items; `initiative.md` and `questions.md` for an initiative folder. The retrospective at 5.7 is the standalone `retrospective` skill.
+Templates for every per-feature file are in [assets/](assets/): `spec.md`, `codebase-map.md`, `design-log.md`, `data-model.md`, `verification-plan.md`, `tasks.md` (the task index), `task.md` (one per task under `tasks/`), `deferred.md`, `proposals.md`, `report.md`, `pr-template.md` (for `pr-body.md`, the Sign-off PR description), and `work-backlog.md` for a spec's `.workflow/specs/work-backlog/` list (`work-item.md` is the older one-file-per-item shape); `initiative.md` and `questions.md` for an initiative folder. The retrospective at 5.7 is the standalone `retrospective` skill.
 
 ## Done
 

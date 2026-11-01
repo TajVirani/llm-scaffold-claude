@@ -38,15 +38,15 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
 
 ### Seeded from a work item
 
-A request can come from a `.workflow/specs/work-backlog/<origin>-disc-<###>.md` item: sign-off chose **Start it** at 5.9 of the origin spec, or the stakeholder picked an open item at any later time. It is not off the shelf: 0.1.5 is No. The same steps apply however it started.
+A request can come from a work item: a line `B<n>` on a backlog list `.workflow/specs/work-backlog/<origin>.md`, or an older item file `.workflow/specs/work-backlog/<origin>-disc-<###>.md`. Sign-off chose **Start it** at 5.9 of the origin spec, or the stakeholder picked an open item at any later time. It is not off the shelf: 0.1.5 is No. The same steps apply however it started.
 
-- **Seed.** Read the item whole. Its title and **Suggested scope and size** are the request for 0.1.2; its **Problem** drafts the Why at 0.1.6; its **Evidence** and **Why not a blocker** become the first facts for retrieval and the questioning loop.
+- **Seed.** Read the line, or the item file whole. Its problem (with the title and **Suggested scope and size** of an older file) is the request for 0.1.2 and drafts the Why at 0.1.6; its evidence (and an older file's **Why not a blocker**) become the first facts for retrieval and the questioning loop. For a line, also read the origin spec's **Discovered work** entry for it in that spec's `design-log.md`.
 - **At 0.1.4** (step 0.1.4 admits both writes), while writing `spec.md`:
-  - add `origin: <item file name>` to the new spec's frontmatter (for example `origin: 007-csv-export-disc-002.md`);
-  - edit the item's frontmatter to `status: promoted` and `promoted_to: .workflow/specs/NNN-slug` (Edit; on Codex check the write first with `check-write.sh`). Change nothing else in it.
-- **Origin entry.** Create `design-log.md` from [../assets/design-log.md](../assets/design-log.md) if needed and append a dated **Origin** entry: the item file name, its origin spec and step, and its Problem and Evidence copied in full. This entry is the lasting record, because the item file is deleted below.
+  - add `origin: <item>` to the new spec's frontmatter: `<origin>.md#B<n>` for a line (for example `origin: 00012-csv-export.md#B2`), the file name for an older item (for example `origin: 007-csv-export-disc-002.md`);
+  - mark it promoted. A line: Edit it from `- [open]` to `- [promoted]` and add ` -> .workflow/specs/NNN-slug` at its end. An older file: Edit its frontmatter to `status: promoted` and `promoted_to: .workflow/specs/NNN-slug`. Change nothing else (on Codex check the write first with `check-write.sh`).
+- **Origin entry.** Create `design-log.md` from [../assets/design-log.md](../assets/design-log.md) if needed and append a dated **Origin** entry: the item, its origin spec and step, and its problem and evidence copied in full. This entry is the lasting record.
 - **Started from 5.9:** after 0.1.6, hand the new folder name back to sign-off. The new spec waits in `draft` and resumes through the router.
-- **Delete the item when discovery finishes.** When this spec passes 0.6 (Clear) or the 0.3.20 light-path test, remove the item so no stale copy remains: `rm .workflow/specs/work-backlog/<item file>`. The `origin` key and the design-log Origin entry keep the history.
+- **Older item files only: delete the item when discovery finishes.** When this spec passes 0.6 (Clear) or the 0.3.20 light-path test, remove it so no stale copy remains: `rm .workflow/specs/work-backlog/<item file>`. The `origin` key and the design-log Origin entry keep the history. A promoted line stays on its list as the pointer to this spec.
 
 ### Seeded from a slice
 

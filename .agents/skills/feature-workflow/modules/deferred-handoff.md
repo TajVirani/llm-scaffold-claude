@@ -8,21 +8,21 @@ Run [Write](#write), [Archive](#archive) or [Re-point at conversion](#re-point-a
 
 ## Write
 
-Used at 0.3.17 (outside agreed scope), 3.14 (light-path suite gap), 4.8 (deferred review findings and remaining gaps) and 5.9 (an open `.workflow/specs/work-backlog/` item the stakeholder moves to the shelf at sign-off).
+Used at 0.3.17 (outside agreed scope), 3.14 (light-path suite gap), and for a discovered-work item or backlog line only when the stakeholder asks for a shelf file (at a batched ask, or at 5.9). Review and sign-off never write one on their own: a kept item is a line on the spec's backlog list (`modules/discovered-work.md`, 00.26).
 
 1. **Name the concept.** A short kebab-case name for what is shelved, not the incident: `csv-export.md`, not `review-finding-3.md`.
 2. **Check the shelf.** List `.workflow/deferred/*.md` (not `.workflow/deferred/archive/`) and open any file whose name could be the same concept. Match by concept, not keyword: "night theme" matches `dark-mode.md`.
-   - **Match:** tell the stakeholder: "This matches `.workflow/deferred/<slug>.md`, shelved because <reason>. Same item?" If they confirm, append one line to its **Later requests** section (`- .workflow/specs/NNN-slug, <step>: <one line>`) instead of writing a new file. If they say it is distinct, choose a distinct name and continue.
+   - **Match:** append one line to its **Later requests** section (`- .workflow/specs/NNN-slug, <step>: <one line>`) instead of writing a new file, without asking; the match is your call, and the Return names the file under `appended:`. When the two are clearly distinct concepts that only share words, choose a distinct name and continue.
    - **No match:** continue.
 3. **Fill the template.** Copy [../assets/deferred.md](../assets/deferred.md) to `.workflow/deferred/<slug>.md` (create `.workflow/deferred/` if missing) and fill every section; delete the template comment and any optional section left empty.
 
-   | Field | 0.3.17 scope decision | 3.14 suite gap | 4.8 review finding | 5.9 work-backlog item |
-   | --- | --- | --- | --- | --- |
-   | `origin_spec` | `.workflow/specs/NNN-slug` | same | same | the item's `origin_spec` (this spec) |
-   | `created` | today, `date -u +%F` | same | same | same |
-   | `severity` | delete the key | delete the key | the verified triage severity: `high`, `medium` or `low`. A `maybe-false` finding takes the severity it would have if true and says "unverified" under Evidence | delete the key |
-   | **Mode** | HITL when a human must decide; AFK when an agent can act alone | AFK unless the suite needs a human choice | as the finding needs | as the item needs |
-   | **Origin** | `0.3.17 scope decision` + design-log entry | `3.14 suite gap` | `4.8 review finding` + triage row `F<n>` | `5.9 work-backlog item` + the item file name and its origin step; Problem and Evidence copied from the item |
+   | Field | 0.3.17 scope decision | 3.14 suite gap | Stakeholder's shelf request |
+   | --- | --- | --- | --- |
+   | `origin_spec` | `.workflow/specs/NNN-slug` | same | this spec |
+   | `created` | today, `date -u +%F` | same | same |
+   | `severity` | delete the key | delete the key | the verified triage severity (`high`, `medium` or `low`) for a review finding; else delete the key |
+   | **Mode** | HITL when a human must decide; AFK when an agent can act alone | AFK unless the suite needs a human choice | as the item needs |
+   | **Origin** | `0.3.17 scope decision` + design-log entry | `3.14 suite gap` | `shelf request` + the step it was asked at, the triage row `F<n>` or the backlog line or item file, and its Discovered work entry; Problem and Evidence copied from the item |
 
    Write it to these rules:
    - **Durable.** Describe behaviour, interfaces and contracts. File paths and line numbers appear only under Evidence, each with the commit it was true at (`git rev-parse HEAD`).
@@ -31,16 +31,16 @@ Used at 0.3.17 (outside agreed scope), 3.14 (light-path suite gap), 4.8 (deferre
    - **Reference, don't duplicate.** Link the origin spec, its design-log entry and any ADR instead of copying them.
    - **Redact** secrets, credentials and personal data.
    - **Acceptance criteria** are specific and independently checkable. **Out of scope** names the adjacent work this item does not cover.
-4. **Record it in the spec.** Set the caller's step, then add the path to the `deferred` list in `spec.md` frontmatter (leave `status` and every other key as they are):
+4. **Record it in the spec** at 0.3.17, 3.14 and 5.9. Set the caller's step, then add the path to the `deferred` list in `spec.md` frontmatter (leave `status` and every other key as they are):
 
    ```bash
-   .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug <0.3.17 | 3.14 | 4.8 | 5.9>
+   .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug <0.3.17 | 3.14 | 5.9>
    ```
 
-   At 0.3.17 also add the item to **Non-goals**. At 3.14 the orchestrator adds the **Known gaps** line in the same write. At 5.9 sign-off also sets the work item `status: moved-to-deferred` and links the new `.workflow/deferred/` file in its **Links** (step 5.9 admits that write). On Codex, check the write first (see SKILL.md, Host notes).
-5. **Log it** in `design-log.md` with the matching entry shape: a **Scope decision** entry at 0.3.17 (with HITL or AFK), the `Route` cell of the triage row at 4.8 (`defer (.workflow/deferred/<slug>.md)`), a one-line note at 3.14 and at 5.9.
+   At 0.3.17 also add the item to **Non-goals**. At 3.14 the orchestrator adds the **Known gaps** line in the same write. At 5.9 sign-off also takes the item off the backlog (its line deleted, or an older item file set `moved-to-deferred` with the link). A shelf request at any other step is not added to `deferred`; its log line is the record. On Codex, check the write first (see SKILL.md, Host notes).
+5. **Log it** in `design-log.md` with the matching entry shape: a **Scope decision** entry at 0.3.17 (with HITL or AFK), a one-line note at 3.14, and for a shelf request the item's `Ruling:` line naming the file.
 
-Done when every item the caller handed over is a file under `.workflow/deferred/` (or a Later requests line), listed in `spec.md` `deferred`, and logged in `design-log.md`.
+Done when every item the caller handed over is a file under `.workflow/deferred/` (or a Later requests line), listed in `spec.md` `deferred` where step 4 applies, and logged in `design-log.md`.
 
 ## Archive
 

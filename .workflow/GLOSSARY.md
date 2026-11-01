@@ -53,7 +53,7 @@ The per-work-type file of operating instructions for coding agents: file locatio
 _Avoid_: Persona, config
 
 **Task type**:
-The kind of sub-agent a launch runs, one per agent definition: retrieval, library-evaluation, cache-regeneration, fact-lookup, module-audit, implementation, integration, profile-mini-review, review-standards, review-end-state, review-targets, review-lessons, standards-discovery. Not the same as **work type**.
+The kind of sub-agent a launch runs, one per agent definition: retrieval, library-evaluation, cache-regeneration, fact-lookup, module-audit, implementation, integration, profile-mini-review, review-standards, review-end-state, review-targets, review-lessons, review-combined, standards-discovery. Not the same as **work type**.
 _Avoid_: Agent role
 
 **Model map**:
@@ -163,11 +163,11 @@ Everything outside the changed files that a change can affect if it is wrong: th
 _Avoid_: Impact area, footprint (the light-path test's size measure)
 
 **Discovered work**:
-Work found outside a spec's agreed scope while the feature is under way. Agents report it and never fix it; a blocker is ruled on by the user before anything continues, and a can-wait item is filed to the **Work backlog** without a ruling and offered at sign-off.
+Work found outside a spec's agreed scope while the feature is under way. Agents report it with its proof and never fix it. An unproven report is one log line; a simple fix on the current work goes back to the worker; a blocker is ruled on by the user before anything continues; anything else waits for one batched question, where the user folds it in, keeps it for later on the **Work backlog**, or drops it.
 _Avoid_: Scope creep, side quest
 
 **Work backlog**:
-The project-level folder of small work items created from discovered work that is not a blocker: filed without a ruling, or chosen by the user as a next feature, and offered at sign-off.
+The project-level folder of discovered work the user kept for later: one list per spec, one line per item, each a candidate next feature. Nothing goes on it without the user's ruling.
 _Avoid_: Deferred shelf, issue tracker
 
 **Size budget**:
@@ -179,7 +179,7 @@ _Avoid_: Quota, cap
 - A **Work type** has exactly one **Work profile**; a launch's **Work profile** is chosen from the task's **Work type**.
 - A **Task type** is resolved to a model through the **Model map**, using the **Launch header**.
 - **Tier B** caches carry a **Cache stamp**; **Tier A** does not.
-- **Discovered work** that is not a blocker becomes an item in the **Work backlog**; out-of-scope items found during discovery go through a **Deferred handoff** instead.
+- **Discovered work** the user keeps for later becomes one line on its spec's list in the **Work backlog**; out-of-scope items found during discovery go through a **Deferred handoff** instead.
 - A crossed **Size budget** is handled like **Discovered work**.
 - The **Deeper prompt** is the input from which the questioning loop computes its first **Frontier**.
 - Each task has one **Task file** and, on the full path, one **Task branch**; every **Task branch** forks from and merges into the spec's one **Spec branch**.
