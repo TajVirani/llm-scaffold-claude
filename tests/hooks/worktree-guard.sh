@@ -17,8 +17,8 @@
 #   with its agent worktree missing or not named stays confined to its cwd worktree; a payload that is not a JSON object, and a
 #   PATH without jq, get a deny JSON; JRN-004 check-worktree-scope.sh --confined exits 2 when no root is found and exit 0 without
 #   it, so the Codex guard is unchanged; JRN-005 deny and allow messages, both scripts' # File: lines and --help say "agent
-#   worktree" and name the Phase 1 and integration shapes, and implementation-orchestrator.md says a missing agent worktree is
-#   denied; JRN-006 a `$` or backtick inside single quotes passes the read-only check, and one outside them, a backslash or an
+#   worktree" and name the Phase 1 and integration shapes, and implementation-waves.md says a missing agent worktree is denied;
+#   JRN-006 a `$` or backtick inside single quotes passes the read-only check, and one outside them, a backslash or an
 #   unterminated quote still needs the cd. A spec run in its own spec worktree (.workflow/.spec-worktrees/NNN-slug): its agent
 #   worktree nests inside it and confines the agent from the spec worktree cwd or its own; writes elsewhere in the spec worktree, in
 #   the main checkout or in another spec's agent worktree are denied; an agent with no agent worktree is denied rather than
@@ -397,8 +397,8 @@ missing_worktree_denied=$(awk '{
       s = tolower(sentences[i])
       if (s ~ /agent worktree/ && s ~ /missing/ && s ~ /denied|denies/) print NR ": " sentences[i]
     }
-  }' "$P/.agents/skills/feature-workflow/modules/implementation-orchestrator.md")
-check "JRN-005 implementation-orchestrator.md says a confined agent whose agent worktree is missing is denied" \
+  }' "$P/.agents/skills/feature-workflow/modules/implementation-waves.md")
+check "JRN-005 implementation-waves.md says a confined agent whose agent worktree is missing is denied" \
   '[ -n "$missing_worktree_denied" ]' "no sentence names a missing agent worktree as denied"
 
 echo "== Codex: codex-write-guard.sh worktree check"

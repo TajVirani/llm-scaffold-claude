@@ -60,7 +60,7 @@ Read the spec's frontmatter and step marker, then load the module the table name
 **Work in the spec checkout.** From 1.1 (0.3.20 on the light path) a spec runs in its spec worktree, `.workflow/.spec-worktrees/NNN-slug` inside the main checkout, on its spec branch; its `.step`, `artifacts/` and agent worktrees live there. A spec started before spec worktrees existed runs in the main checkout on its spec branch. When the session is elsewhere, move it in before reading anything: on Claude Code, call the `EnterWorktree` tool with the worktree's absolute path; on other hosts, ask the stakeholder to reopen the session in that folder (write a handoff first if the session holds context worth keeping). Every module's commands then run from there.
 
 ```bash
-yq --front-matter=extract '.status, .light_path, .small_path // false, .blocked_condition // ""' .workflow/specs/NNN-slug/spec.md
+yq --front-matter=extract '.status, .light_path, .small_path // false, .blocked_condition // "", .impl_base_revision' .workflow/specs/NNN-slug/spec.md
 cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_from (gitignored; in the spec checkout only)
 ```
 
@@ -69,19 +69,20 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 | `draft` | step in 0.3.8–0.3.19, or a loop-back step (0.6, 2.2, 2.3, 4.5, 4.6, 5.6, 00.24, 00.29) | [questioning-loop](modules/questioning-loop.md) | 0.3.8 (recompute the frontier from `design-log.md`) |
 | `draft` | step 0.3.20, or in 0.4.x or 0.5.x | [discovery-impact](modules/discovery-impact.md) | the step in `.step` |
 | `draft` | any other step, or no marker | [discovery](modules/discovery.md) | the step in `.step`; 0.1.6 when there is none |
-| `ready-for-dev` | `light_path: true` | implementation-orchestrator | 3.1 |
+| `ready-for-dev` | `light_path: true` | [implementation-setup](modules/implementation-setup.md) | 3.1 |
 | `ready-for-dev` | step in 2.x | task-breakdown | the step in `.step` |
 | `ready-for-dev` | step 00.28 (resumed after discovered work) | task-breakdown if `tasks.md` exists, else verification-setup | task-breakdown 2.6; verification-setup at its first unfinished 1.x step |
 | `ready-for-dev` | otherwise | verification-setup | the 1.x step in `.step`, else 1.1 |
-| `in-progress` | any | implementation-orchestrator | 3.1 (task records in `tasks.md` say what is done) |
-| `in-review` | any task record `in-progress` (a rework under way), whatever the step | implementation-orchestrator | the rework: relaunch the reopened tasks, then back to review-triage |
+| `in-progress` | `impl_base_revision` is `""` | [implementation-setup](modules/implementation-setup.md) | 3.1 |
+| `in-progress` | otherwise | [implementation-waves](modules/implementation-waves.md) | its On resume (task records in `tasks.md` say what is done) |
+| `in-review` | any task record `in-progress` (a rework under way), whatever the step | [implementation-waves](modules/implementation-waves.md) | its Rework entry (4.7): relaunch the reopened tasks, then back to review-triage |
 | `in-review` | step in 5.x | sign-off | the step in `.step` (order 5.1–5.5, then 5.9, 5.7, 5.8) |
 | `in-review` | otherwise | review-triage | the 4.x step in `.step`, else 4.1 (4.10 on the light path) |
 | `blocked` | `blocked_condition` starts `discovered work:` or `size budget:` | [discovered-work](modules/discovered-work.md) | its "Resuming a blocked spec here" section (00.22 or 00.28) |
 | `blocked` | any other condition | none until a human resolves it | see [Blocked](#blocked) |
 | `done` | any | none | Read it as context only, from `.workflow/specs/done/NNN-slug/` once 5.8 has moved it (specs finished before the Done folder existed may still sit at the top level). A new change to a finished feature is new work: size it. |
 
-The rework row checks the task records, not `.step`: once a reopened task passes its gates the orchestrator's `set-task --step` calls (3.16, 3.9, 3.11) and 3.15 move the step off 4.7. It applies when `yq --front-matter=extract '[.tasks[] | select(.status == "in-progress")] | length' .workflow/specs/NNN-slug/tasks.md` is above 0; with none `in-progress`, the 5.x and review-triage rows apply.
+The rework row checks the task records, not `.step`: once a reopened task passes its gates Phase 3's `set-task --step` calls (3.16, 3.9, 3.11) and 3.15 move the step off 4.7. It applies when `yq --front-matter=extract '[.tasks[] | select(.status == "in-progress")] | length' .workflow/specs/NNN-slug/tasks.md` is above 0; with none `in-progress`, the 5.x and review-triage rows apply.
 
 Tell the stakeholder where you are resuming, led by the [progress line](references/conventions.md#progress-line). Module files are `modules/<name>.md`. A resumed module re-reads its inputs from disk (spec folder, `design-log.md`, `tasks.md`); never rebuild state from memory.
 
