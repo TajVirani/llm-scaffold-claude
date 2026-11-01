@@ -1,6 +1,6 @@
 ---
 name: feature-workflow
-description: Workflow 2.0 entry point for feature work. Sizes a request (trivial edit, light path or full path), runs discovery, resumes an in-flight spec at the phase its status names, and plans a subject too large for one spec as an initiative (large path). Use when starting a feature, resuming or changing work in .workflow/specs/NNN-slug/ or .workflow/initiatives/NNN-slug/, acting on a session-start resume offer, or when asked to grill me / stress-test my plan.
+description: Workflow 2.0 entry point for feature work. Sizes a request (trivial edit, small path, light path or full path), runs discovery, resumes an in-flight spec at the phase its status names, and plans a subject too large for one spec as an initiative (large path). Use when starting a feature, resuming or changing work in .workflow/specs/NNN-slug/ or .workflow/initiatives/NNN-slug/, acting on a session-start resume offer, or when asked to grill me / stress-test my plan.
 modules:
   - discovery
   - questioning-loop
@@ -12,6 +12,7 @@ modules:
   - review-triage
   - sign-off
   - large-path
+  - small-path
 progressive_loading: true
 ---
 
@@ -53,16 +54,21 @@ Done when you hold one `.workflow/specs/NNN-slug/` to resume, an initiative hand
 **0.0.1: trivial edit the stakeholder will review themselves?** A typo, a copy change, a one-line config tweak the stakeholder will read in the diff. Ask in one line when unsure, recommending your answer. If a bug could escape into production, it is not trivial.
 
 - **Yes, 0.0.2:** make the edit directly. No spec folder, no workflow, no status. Stop here.
+- **No:** go to 0.0.3.
+
+**0.0.3: small path?** Yes when the request already names all three: the file to change, the cause (what goes wrong and why, or what is missing), and the test that will prove the fix. A work-backlog item usually does, in its Problem, Evidence and Suggested scope. It must also look like a light-path change: one owning module, nothing irreversible. Ask in one line when unsure, recommending your answer.
+
+- **Yes:** load [modules/discovery.md](modules/discovery.md) and [modules/small-path.md](modules/small-path.md), and start at 0.1. The small path runs the light path with less ceremony; small-path says what changes at each step.
 - **No:** load [modules/discovery.md](modules/discovery.md) and start at 0.1.
 
-Light versus full path is decided later, at 0.3.20, once the questioning loop has settled the design. Do not pick it at intake. The large path is not picked at intake either: the questioning loop converts the spec into an initiative when it finds several features (0.3.23).
+Light versus full path is decided later, at 0.3.20, once the questioning loop has settled the design. Do not pick it at intake. The small path is the one route picked at intake, and it drops to the light or full path as soon as the request proves bigger ([Leave the small path](modules/small-path.md#leave-the-small-path)). The large path is not picked at intake either: the questioning loop converts the spec into an initiative when it finds several features (0.3.23).
 
 ## 3. Route by status
 
 Read the spec's frontmatter and step marker, then load the module the table names.
 
 ```bash
-yq --front-matter=extract '.status, .light_path, .blocked_condition // ""' .workflow/specs/NNN-slug/spec.md
+yq --front-matter=extract '.status, .light_path, .small_path // false, .blocked_condition // ""' .workflow/specs/NNN-slug/spec.md
 cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_from (gitignored; main checkout only)
 ```
 
@@ -77,10 +83,12 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 | `in-progress` | any | implementation-orchestrator | 3.1 (task records in `tasks.md` say what is done) |
 | `in-review` | any task record `in-progress` (a rework under way), whatever the step | implementation-orchestrator | the rework: relaunch the reopened tasks, then back to review-triage |
 | `in-review` | step in 5.x | sign-off | the step in `.step` (order 5.1–5.5, then 5.9, 5.7, 5.8) |
-| `in-review` | otherwise | review-triage | the 4.x step in `.step`, else 4.1 |
+| `in-review` | otherwise | review-triage | the 4.x step in `.step`, else 4.1 (4.10 on the light path) |
 | `blocked` | `blocked_condition` starts `discovered work:` or `size budget:` | [discovered-work](modules/discovered-work.md) | its "Resuming a blocked spec here" section (00.22 or 00.28) |
 | `blocked` | any other condition | none until a human resolves it | see [Blocked](#blocked) |
 | `done` | any | none | Read it as context only, from `.workflow/specs/done/NNN-slug/` once 5.8 has moved it (specs finished before the Done folder existed may still sit at the top level). A new change to a finished feature is new work: size it. |
+
+**Small path.** When `small_path` is `true`, also load [small-path](modules/small-path.md) beside the module the table names, and follow its changes for that module's steps. A `done` spec loads nothing.
 
 The rework row checks the task records, not `.step`: once a reopened task passes its gates the orchestrator's `set-task --step` calls (3.16, 3.9, 3.11) and 3.15 move the step off 4.7. It applies when `yq --front-matter=extract '[.tasks[] | select(.status == "in-progress")] | length' .workflow/specs/NNN-slug/tasks.md` is above 0; with none `in-progress`, the 5.x and review-triage rows apply.
 
@@ -208,13 +216,14 @@ Codex hooks replace the direct script calls only for events a live Codex run has
 | [verification-setup](modules/verification-setup.md) | 1.1–1.5 | discovery (0.6) | task-breakdown |
 | [task-breakdown](modules/task-breakdown.md) | 2.1–2.6 | verification-setup | implementation-orchestrator; questioning-loop (2.2, 2.3); discovered-work (2.1, 2.6) |
 | [implementation-orchestrator](modules/implementation-orchestrator.md) | 3.1–3.16 | task-breakdown; discovery (light path); review-triage (4.7 rework) | review-triage (`in-review`); discovered-work |
-| [review-triage](modules/review-triage.md) | 4.1–4.9 | implementation-orchestrator | sign-off; questioning-loop (4.5, 4.6); implementation-orchestrator (4.7 rework); discovered-work (4.4) |
+| [review-triage](modules/review-triage.md) | 4.1–4.10 | implementation-orchestrator | sign-off; questioning-loop (4.5, 4.6); implementation-orchestrator (4.7 rework); discovered-work (4.4) |
 | [sign-off](modules/sign-off.md) | 5.1–5.9 (5.5 Yes → 5.9 → 5.7 → 5.8) | review-triage | done; [Re-entry](#4-re-entry-56-and-loop-backs) (5.5 No); discovery for a work item started at 5.9; large-path 6.13 for a spec that carries `initiative:` |
+| [small-path](modules/small-path.md) | 0.0.3; changes to 0.1.4, 0.2.4–0.2.6, 0.3.8–0.3.22, 5.4, 5.5 and 5.7 | [Size the request](#2-size-the-request) (0.0.3); [Route by status](#3-route-by-status) for a spec with `small_path: true` | none of its own: it runs beside discovery, questioning-loop, implementation-orchestrator, review-triage and sign-off; on leaving the small path those run as written |
 | [large-path](modules/large-path.md) | 0.3.23, 6.1–6.13 (rounds 6.2–6.8, emission 6.9, planned 6.10–6.11, reopen 6.12, done 6.13) | questioning-loop (0.3.19 or a round, conversion); [Find the state](#1-find-the-state) for an initiative; sign-off (after 5.8) | discovery 0.1 seeded from a slice (6.9); the router for an emitted spec an open question depends on; done |
 
 Templates for every per-feature file are in [assets/](assets/): `spec.md`, `codebase-map.md`, `design-log.md`, `data-model.md`, `verification-plan.md`, `tasks.md` (the task index), `task.md` (one per task under `tasks/`), `deferred.md`, `proposals.md`, `report.md`, `pr-template.md` (for `pr-body.md`, the Sign-off PR description), and `work-item.md` for `.workflow/specs/work-backlog/` items; `initiative.md` and `questions.md` for an initiative folder. The retrospective at 5.7 is the standalone `retrospective` skill.
 
 ## Done
 
-- A trivial edit was made directly, or a spec folder exists and the module its status names is loaded.
+- A trivial edit was made directly, or a spec folder exists and the module its status names is loaded (with small-path beside it for a small-path spec).
 - Every status and step change went through `status-transition.sh`, and every guarded write happened at its step.

@@ -3,6 +3,7 @@ flowchart TD
     intake(["0.0 - Feature request"])
     gTrivial{"0.0.1 - Trivial edit the stakeholder will review themselves?"}
     direct(["0.0.2 - Edit directly; no workflow"])
+    gSmall{"0.0.3 - Small path? The request names the file, the cause and the test"}
 
     subgraph TierA["Tier A - authored project context: what the code cannot say. Agent proposes, human approves"]
         dContext[/"00.1 - .workflow/GLOSSARY.md: canonical terms"/]
@@ -161,6 +162,7 @@ flowchart TD
         aReq["4.2 - Sub-agent: goal and end-state conformance"]
         aTargets["4.3 - Sub-agent: measurable targets met"]
         aLessons["4.9 - Sub-agent: recorded review lessons, pitfalls and retrospectives"]
+        aCombined["4.10 - Sub-agent: combined review of end state, standards and lessons; light and small paths, in place of 4.1, 4.2 and 4.9"]
         triage["4.4 - Triage each finding from each lens's findings file, checked by check-review-findings.sh: verify it at the named location, assign severity, dismiss noise with a recorded reason"]
         gRoute{"4.5 - Route each surviving finding"}
         gThird{"4.6 - Another pass only after a high-severity patch?"}
@@ -211,6 +213,7 @@ flowchart TD
     hook -.->|"launch on the resolved model"| aReq
     hook -.->|"launch on the resolved model"| aTargets
     hook -.->|"launch on the resolved model"| aLessons
+    hook -.->|"launch on the resolved model"| aCombined
     hook -.->|"launch on the resolved model"| integrator
     orch -->|"every launch: header block + task"| hook
 
@@ -241,7 +244,9 @@ flowchart TD
     %% 0.0 Sizing at intake
     intake --> gTrivial
     gTrivial -->|"Yes"| direct
-    gTrivial -->|"No"| scan
+    gTrivial -->|"No"| gSmall
+    gSmall -->|"Yes: small_path and light_path true at 0.1.4; the small-path module runs beside each phase module"| scan
+    gSmall -->|"No"| scan
 
     %% 0.1 Initialise
     scan --> slug --> folder
@@ -389,20 +394,18 @@ flowchart TD
     skipSuites -->|"records the gap"| spec
     skipSuites -->|"harness exists: run 3.9"| gGreen
     skipSuites -->|"only the browser suite exists: run 3.10"| e2e
-    skipSuites -->|"neither exists, status: in-review"| aStd
-    skipSuites --> aReq
-    skipSuites --> aTargets
-    skipSuites --> aLessons
+    skipSuites -->|"neither exists, status: in-review"| aCombined
     skipSuites -.->|"gap flagged at sign-off"| report
     gGreen -->|"No: reopen the task, done to in-progress"| impl
     gGreen -->|"Yes"| e2e --> gE2E
-    gGreen -->|"Yes, no browser suite on the light path: status: in-review"| aStd
+    gGreen -->|"Yes, no browser suite on the light path: status: in-review"| aCombined
     e2e --> evidence
     gE2E -->|"No: reopen the task, done to in-progress"| impl
     gE2E -->|"Yes, status: in-review"| aStd
     gE2E --> aReq
     gE2E --> aTargets
     gE2E --> aLessons
+    gE2E -->|"Yes on the light path, status: in-review"| aCombined
     harnessDoc -.->|"gates every batch"| gGreen
     harnessDoc -.->|"the suite that runs here"| e2e
 
@@ -411,6 +414,7 @@ flowchart TD
     aReq --> triage
     aTargets --> triage
     aLessons --> triage
+    aCombined --> triage
     triage --> gRoute
     gRoute -->|"Patch: unambiguous code fix"| gThird
     gRoute -->|"Defer: real, but not this change"| gaps
@@ -506,11 +510,11 @@ flowchart TD
 
     class scan,slug,draft,area,place,deeper,answerable,ask,deepdive,shelve,settle,impact,classify,endstate,budgets,harness,browser,cut,orch,toolAudit,e2e,triage,gaps,reconcile,propose,report,retro,hook,inject,dwBlock,dwPresent,dwWrite,dwResume,waveMerge stage
     class agree0,agree1,agree2,reuse,supersede,journeys,fixtures,selfreview,reenter,archiveStep,assignModel,newProfile,skipSuites step
-    class retrieve,derive,libs,audit,lookup,impl,integrator,miniReview,aStd,aReq,aTargets,aLessons agent
+    class retrieve,derive,libs,audit,lookup,impl,integrator,miniReview,aStd,aReq,aTargets,aLessons,aCombined agent
     class dContext,dCap,dRules,dLog,folder,map,dlog,dataModel,vplan,adrDoc,harnessDoc,tasks,defFile,dwItem,defArchive,evidence,modelFile,pTemplate,pFile doc
     class cModules,cFlows,cArch cache
     class regen,setup external
-    class gTrivial,gModel,gProfile,gFromDef,gTerm0,gSufficient,gDup,gPlace,gADR,gAny,gDefer,gTerm1,gScope,gOpen,gLight,gTerm2,gConflict,gReady,gHarness,gSpecifiable,gSeams,gCore,gTool,gMini,gSuites,gGreen,gE2E,gRoute,gThird,gRounds,gApproveDocs,gApprove,gDwBlocker,gDwDiscovery,gDwNext,gDwBudget,gTaskBudget,gWaveBudget,backlogOffer gate
+    class gTrivial,gSmall,gModel,gProfile,gFromDef,gTerm0,gSufficient,gDup,gPlace,gADR,gAny,gDefer,gTerm1,gScope,gOpen,gLight,gTerm2,gConflict,gReady,gHarness,gSpecifiable,gSeams,gCore,gTool,gMini,gSuites,gGreen,gE2E,gRoute,gThird,gRounds,gApproveDocs,gApprove,gDwBlocker,gDwDiscovery,gDwNext,gDwBudget,gTaskBudget,gWaveBudget,backlogOffer gate
     class spec index
     class convert,lgEnter,lgWriteBack,lgFrontier,lgAsk,lgSlices,lgLog,lgEmit,lgPlanned,lgMerge,lgReopen stage
     class lgLaunch agent

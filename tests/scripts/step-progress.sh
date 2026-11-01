@@ -5,7 +5,9 @@
 #   intake (no line), side artifacts, unknown ids, --spec-dir defaults from spec.md light_path and .step, usage errors;
 #   JRN-007: the large form for the first and last large-track rows, the conversion node and a phase 0 row still in the
 #   "Phase 1 of 6" form; large-track numbering (6.10 vs 6.1) and a 6.x id refused on --path full, light or --spec-dir;
-#   JRN-007 (review lessons): Phase 4 has 9 steps on both paths, 4.9 is step 4, 4.4 step 5 and 4.8 step 9, read from .step.
+#   JRN-007 (review lessons): on the full path Phase 4 has 9 steps, 4.9 is step 4, 4.4 step 5 and 4.8 step 9, read from .step;
+#   on the light path the combined review 4.10 replaces the four lenses, so Phase 4 has 6 steps and the lenses are off the path;
+#   a small-path spec (small_path and light_path true) counts as the light path, and the 0.0.3 sizing step prints nothing.
 # Env: TEST_BASH=<bash binary> runs the script under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -41,7 +43,8 @@ eq "light: 0.3.8 keeps its position, smaller total" "$(sp 0.3.8 --path light)" "
 eq "light: 0.3.20 ends Phase 0" "$(sp 0.3.20 --path light)" "Phase 1 of 4 · step 36 of 36 — Discovery: Light-path test (0.3.20)"
 eq "light: 3.1 is Phase 2 of 4" "$(sp 3.1 --path light)" "Phase 2 of 4 · step 1 of 15 — Implementation: Classify tasks and start (3.1)"
 eq "light: 3.14 is counted" "$(sp 3.14 --path light)" "Phase 2 of 4 · step 12 of 15 — Implementation: Record the suite gap (3.14)"
-eq "light: 4.1" "$(sp 4.1 --path light)" "Phase 3 of 4 · step 1 of 9 — Review and triage: Standards review (4.1)"
+eq "light: 4.10 opens Phase 4" "$(sp 4.10 --path light)" "Phase 3 of 4 · step 1 of 6 — Review and triage: Combined review (4.10)"
+eq "full: 4.1 is the first lens, not 4.10" "$(sp 4.1)" "Phase 5 of 6 · step 1 of 9 — Review and triage: Standards review (4.1)"
 eq "light: 5.8" "$(sp 5.8 --path light)" "Phase 4 of 4 · step 9 of 9 — Sign-off: Merge and close (5.8)"
 
 # Loop steps keep their number: the same id always prints the same line.
@@ -52,10 +55,16 @@ eq "loop: a later wave's 3.3 has the same number" "$(sp 3.3)" "Phase 4 of 6 · s
 t "full-only step on the light path exits 2" 2 "$TEST_BASH" "$SP" 0.4.1 --path light
 t "Phase 1 step on the light path exits 2" 2 "$TEST_BASH" "$SP" 1.1 --path light
 t "light-only 3.14 on the full path exits 2" 2 "$TEST_BASH" "$SP" 3.14
+t "light-only 4.10 on the full path exits 2" 2 "$TEST_BASH" "$SP" 4.10
+for lens in 4.1 4.2 4.3 4.9; do
+  t "full-path lens $lens on the light path exits 2" 2 "$TEST_BASH" "$SP" "$lens" --path light
+done
 t "side artifact 0.3.21 exits 2" 2 "$TEST_BASH" "$SP" 0.3.21
 t "side artifact 3.12 exits 2" 2 "$TEST_BASH" "$SP" 3.12
 t "intake 0.0.1 exits 0" 0 "$TEST_BASH" "$SP" 0.0.1
 eq "intake prints nothing" "$(sp 0.0.1)" ""
+t "intake 0.0.3 (small path?) exits 0" 0 "$TEST_BASH" "$SP" 0.0.3
+eq "intake 0.0.3 prints nothing" "$(sp 0.0.3)" ""
 t "unknown id exits 2" 2 "$TEST_BASH" "$SP" 9.9
 err=$("$TEST_BASH" "$SP" 0.3.99 2>&1 >/dev/null)
 check "unknown id names the id on stderr" '[[ "$err" == *"unknown step id '"'"'0.3.99'"'"'"* ]]' "$err"
@@ -77,7 +86,7 @@ eq "--spec-dir: unsized spec counts the full path, step from .step" "$(sp --spec
 yq --front-matter=process -i '.light_path = true' "$D/spec.md"
 printf 'step: "3.9"\n' >"$D/.step"
 eq "--spec-dir: light_path true counts the light path" "$(sp --spec-dir .workflow/specs/001-alpha/)" "Phase 2 of 4 · step 13 of 15 — Implementation: Tests pass and CI green? (3.9)"
-eq "--spec-dir: an explicit id wins over .step" "$(sp --spec-dir .workflow/specs/001-alpha 4.2)" "Phase 3 of 4 · step 2 of 9 — Review and triage: End-state review (4.2)"
+eq "--spec-dir: an explicit id wins over .step" "$(sp --spec-dir .workflow/specs/001-alpha 4.4)" "Phase 3 of 4 · step 2 of 6 — Review and triage: Triage findings (4.4)"
 eq "--spec-dir: --path overrides light_path" "$(sp --spec-dir .workflow/specs/001-alpha 1.1 --path full)" "Phase 2 of 6 · step 1 of 5 — Verification setup: Measurable targets (1.1)"
 printf 'step: "00.21"\nblocked_from: "in-progress"\n' >"$D/.step"
 t "--spec-dir: a 00.x marker needs --at" 2 "$TEST_BASH" "$SP" --spec-dir .workflow/specs/001-alpha
@@ -98,11 +107,21 @@ progress_at() {
   sp --spec-dir "$LESSONS_SPEC"
 }
 eq "JRN-007 full: 4.9 is step 4 of 9" "$(progress_at false 4.9)" "Phase 5 of 6 · step 4 of 9 — Review and triage: Review lessons lens (4.9)"
-eq "JRN-007 light: 4.9 is step 4 of 9" "$(progress_at true 4.9)" "Phase 3 of 4 · step 4 of 9 — Review and triage: Review lessons lens (4.9)"
+t "JRN-007 light: 4.9 is off the light path" 2 "$TEST_BASH" "$SP" --spec-dir "$LESSONS_SPEC" 4.9 --path light
 eq "JRN-007 full: 4.4 is step 5 of 9" "$(progress_at false 4.4)" "Phase 5 of 6 · step 5 of 9 — Review and triage: Triage findings (4.4)"
-eq "JRN-007 light: 4.4 is step 5 of 9" "$(progress_at true 4.4)" "Phase 3 of 4 · step 5 of 9 — Review and triage: Triage findings (4.4)"
+eq "light: 4.4 is step 2 of 6, after the combined review" "$(progress_at true 4.4)" "Phase 3 of 4 · step 2 of 6 — Review and triage: Triage findings (4.4)"
 eq "JRN-007 full: 4.8 is step 9 of 9" "$(progress_at false 4.8)" "Phase 5 of 6 · step 9 of 9 — Review and triage: Deferred handoffs (4.8)"
-eq "JRN-007 light: 4.8 is step 9 of 9" "$(progress_at true 4.8)" "Phase 3 of 4 · step 9 of 9 — Review and triage: Deferred handoffs (4.8)"
+eq "light: 4.8 is step 6 of 6" "$(progress_at true 4.8)" "Phase 3 of 4 · step 6 of 6 — Review and triage: Deferred handoffs (4.8)"
+
+# A small-path spec carries light_path: true from 0.1.4, so it counts as the light path from the start.
+SMALL_SPEC=.workflow/specs/003-small
+mkdir -p "$WORK/$SMALL_SPEC"
+cp "$FW_SKILL/assets/spec.md" "$WORK/$SMALL_SPEC/spec.md"
+yq --front-matter=process -i '.small_path = true | .light_path = true' "$WORK/$SMALL_SPEC/spec.md"
+printf 'step: "0.3.8"\n' >"$WORK/$SMALL_SPEC/.step"
+eq "small: Phase 0 counts as the light path" "$(sp --spec-dir "$SMALL_SPEC")" "Phase 1 of 4 · step 23 of 36 — Discovery: Compute the frontier (0.3.8)"
+printf 'step: "4.10"\n' >"$WORK/$SMALL_SPEC/.step"
+eq "small: the combined review opens Phase 4" "$(sp --spec-dir "$SMALL_SPEC")" "Phase 3 of 4 · step 1 of 6 — Review and triage: Combined review (4.10)"
 
 # The large track. The expected lines are built from the large-track rows of steps.tsv.
 large_rows() { grep -v '^#' "$FW_SKILL/references/steps.tsv" | awk -F'\t' '$3 == "large"'; }
