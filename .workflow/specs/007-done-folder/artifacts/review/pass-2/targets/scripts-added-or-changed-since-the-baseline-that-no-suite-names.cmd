@@ -1,2 +1,0 @@
-BASE=$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/007-done-folder/spec.md 2>/dev/null || yq --front-matter=extract '.baseline_revision' .workflow/specs/007-done-folder/spec.md)
-git diff --name-only --diff-filter=AM "$BASE"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- "$(basename "$f")" tests/ || echo "$f"; done | wc -l | tr -d ' '

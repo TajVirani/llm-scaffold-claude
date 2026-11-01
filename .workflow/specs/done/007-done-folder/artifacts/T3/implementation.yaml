@@ -1,0 +1,19 @@
+status: done
+summary: "spec_done_on_main in the session-start hook now treats a spec as done on main when its spec.md reads done at the top level of the specs folder or in the Done folder (built from WF_SPECS_DONE), so a planned initiative whose specs moved into done/ is not offered. The in-flight spec scan already globs one level and never lists done/ specs; no change was needed there. Header Behaviour line and the function usage comment were updated."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t3"
+branch: "task/007-done-folder/T03-session-start-done-on-main"
+base_commit: "3e44c5fddbfea88a1e0b05eeff29d09c1750eb1b"
+head_commit: "3ec55cb8bef2346b767002d0e3a2edc7994d65a0"
+files_changed: [".agents/hooks/session-start-resume.sh"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite hooks/session-start-initiatives; FAIL JRN-004 a planned initiative whose emitted spec is done in the Done folder on main is not offered; FAIL JRN-004 a planned initiative with one emitted spec done in done/ and one done at the top level is not offered (passed=28 failed=2)"
+  green: "tests/run-all.sh --suite hooks/session-start-initiatives; passed=30 failed=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/007-done-folder --task-id T3 --cwd <worktree>; test pass (scoped, own=1, excluded=6)"
+  toolchain: ".workflow/specs/done/007-done-folder/artifacts/T3/toolchain.txt (pass)"
+considered_not_built: ["Skipping a folder named done in the in-flight spec scan: the scan globs specs/*/spec.md one level deep, so specs/done/NNN-slug/spec.md is never matched, and the Phase 1 test for it already passes", "New tests: the Phase 1 suite already covers done/ only, mixed top-level and done/, and a not-done spec in done/"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

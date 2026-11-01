@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/007-done-folder
+origin_spec: .workflow/specs/done/007-done-folder
 origin_step: "3.4"
 discovered_at: 2026-10-30
 status: dismissed
@@ -14,9 +14,9 @@ When large-path 6.13 closes an initiative, it rewrites the initiative's links to
 
 ## Evidence
 
-- T4 implementation result (`.workflow/specs/007-done-folder/artifacts/T4/implementation.yaml`, `discovered_work[0]`): "6.13 must rewrite the initiative's links to specs moved into done/, but move-to-done.sh offers no form for that (--check, <spec-dir>, --sweep only). T4 put a sed loop in the 6.13 doc block".
+- T4 implementation result (`.workflow/specs/done/007-done-folder/artifacts/T4/implementation.yaml`, `discovered_work[0]`): "6.13 must rewrite the initiative's links to specs moved into done/, but move-to-done.sh offers no form for that (--check, <spec-dir>, --sweep only). T4 put a sed loop in the 6.13 doc block".
 - `.agents/skills/feature-workflow/modules/large-path.md` § 6.13, the rewrite loop (T4 commit `c863498`).
-- Also seen: .workflow/specs/007-done-folder, 4.4: no harness suite runs the 6.13 rewrite block; the only evidence is a text check in `tests/lint/done-folder-docs.sh` and T4's stdin probe (review-end-state pass 1, `not_verifiable`). A script mode would bring a suite case with it.
+- Also seen: .workflow/specs/done/007-done-folder, 4.4: no harness suite runs the 6.13 rewrite block; the only evidence is a text check in `tests/lint/done-folder-docs.sh` and T4's stdin probe (review-end-state pass 1, `not_verifiable`). A script mode would bring a suite case with it.
 
 ## Why not a blocker
 
@@ -29,5 +29,5 @@ The doc loop meets D10: T4 tried it in a throwaway repo, where it rewrote only s
 
 ## Links
 
-- Origin spec: [spec.md](../007-done-folder/spec.md)
-- Design log entry: [design-log.md](../007-done-folder/design-log.md) (section 2026-10-30 Discovered work: initiative-link-rewrite-form)
+- Origin spec: [spec.md](../done/007-done-folder/spec.md)
+- Design log entry: [design-log.md](../done/007-done-folder/design-log.md) (section 2026-10-30 Discovered work: initiative-link-rewrite-form)

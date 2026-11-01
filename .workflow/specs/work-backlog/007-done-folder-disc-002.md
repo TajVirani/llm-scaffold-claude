@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/007-done-folder
+origin_spec: .workflow/specs/done/007-done-folder
 origin_step: "4.4"
 discovered_at: 2026-10-30
 status: dismissed
@@ -16,7 +16,7 @@ The integration agent's definition tells it to commit one message per applied re
 
 - `.agents/agents/integration.md:71` ("Commit in your worktree, one commit per applied request where practical, each message naming the request number.") vs `.agents/agents/implementation.md:81` ("Commit subjects are Conventional Commits ... never a bare task id"), as of commit `b8150ec`.
 - Commits `efd0c38` and `131f786` on `spec/007-done-folder` (integration batch `integration-shell-scripts`): subjects without a type prefix. Reported by review-standards, pass 1 (RS-1, RS-2).
-- Also seen: .workflow/specs/007-done-folder, 4.4: implementation commit `5874348` uses the type `perf`, outside the six types the commit rule allows (review-standards pass 3, RS-1); review-lessons pass 3 (RL-1) matched the integration commits to the retrospective 004 lesson on Conventional Commits subjects.
+- Also seen: .workflow/specs/done/007-done-folder, 4.4: implementation commit `5874348` uses the type `perf`, outside the six types the commit rule allows (review-standards pass 3, RS-1); review-lessons pass 3 (RL-1) matched the integration commits to the retrospective 004 lesson on Conventional Commits subjects.
 
 ## Why not a blocker
 
@@ -29,5 +29,5 @@ CAP-NEW-done-folder and JRN-001 to JRN-007 do not depend on commit subjects; the
 
 ## Links
 
-- Origin spec: [spec.md](../007-done-folder/spec.md)
-- Design log entry: [design-log.md](../007-done-folder/design-log.md) (section 2026-10-30 Triage, review pass 1)
+- Origin spec: [spec.md](../done/007-done-folder/spec.md)
+- Design log entry: [design-log.md](../done/007-done-folder/design-log.md) (section 2026-10-30 Triage, review pass 1)

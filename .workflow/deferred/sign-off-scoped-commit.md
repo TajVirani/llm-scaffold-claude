@@ -46,4 +46,4 @@ Untracked spec folders travel across every branch switch, and the earlier commit
 
 ## Later requests
 
-- .workflow/specs/007-done-folder, 0.3.17: the 5.8 done-folder move adds a path rewrite to the same commit, so an untracked seeded spec swept onto the branch would also have its links rewritten there (module-audit; `modules/sign-off.md:132,161`, `modules/discovery.md:53` as of 02bc2180c63747418ec73d1c52047e045dc0d537).
+- .workflow/specs/done/007-done-folder, 0.3.17: the 5.8 done-folder move adds a path rewrite to the same commit, so an untracked seeded spec swept onto the branch would also have its links rewritten there (module-audit; `modules/sign-off.md:132,161`, `modules/discovery.md:53` as of 02bc2180c63747418ec73d1c52047e045dc0d537).

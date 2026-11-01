@@ -1,2 +1,0 @@
-BASE=$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/007-done-folder/spec.md 2>/dev/null || yq --front-matter=extract '.baseline_revision' .workflow/specs/007-done-folder/spec.md)
-git diff --name-only --diff-filter=A "$BASE"..HEAD -- .agents | while read -r f; do r=${f#.agents/}; m=0; while IFS= read -r l; do case "$r" in "$l"|"${l%/}"/*) m=1;; esac; done < .agents/install-manifest.txt; [ "$m" = 1 ] || echo "manifest: $f"; grep -qF -- "$(basename "$f")" PROVENANCE.md || echo "provenance: $f"; done | wc -l | tr -d ' '

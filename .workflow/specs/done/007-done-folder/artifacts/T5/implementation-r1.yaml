@@ -1,0 +1,35 @@
+status: "done"
+summary: "move-to-done.sh now implements --check (lists open task records and work-backlog items, changes nothing), the move (refuses a spec that is not done, has open sub-items or a taken Done folder name, or is on the main branch or a detached HEAD; then mv, deletes .step, adds one ../ to outbound links, rewrites the spec path across .workflow/ outside cache/ and initiatives/, commits on the checked-out branch) and --sweep (one commit; a done spec failing the check is reported, left in place, exit 1). All 54 Phase 1 cases plus 12 new edge and negative cases pass, and so does the full harness; PROVENANCE.md gains the script in the feature-workflow row."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t5"
+branch: "task/007-done-folder/T05-move-to-done-script"
+base_commit: "9b2d534c7c0fe8cd7a9fab20b43a3d05cbe832da"
+head_commit: "94ff394256414e8437c40a90b08b9d0012bf315f"
+files_changed: [".agents/skills/feature-workflow/scripts/move-to-done.sh", "PROVENANCE.md", "tests/scripts/move-to-done.sh"]
+tests_added:
+  - {file: "tests/scripts/move-to-done.sh", test: "edge a path ending a sentence and two paths one space apart are all rewritten", kind: "edge"}
+  - {file: "tests/scripts/move-to-done.sh", test: "edge a link back into the spec through its parent and a reference-style link both resolve after the move", kind: "edge"}
+  - {file: "tests/scripts/move-to-done.sh", test: "edge the move with extra path forms exits 0", kind: "edge"}
+  - {file: "tests/scripts/move-to-done.sh", test: "edge moving a spec already in the Done folder exits 2", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "edge --check accepts a spec already in the Done folder", kind: "edge"}
+  - {file: "tests/scripts/move-to-done.sh", test: "moving on the main branch exits 1 and changes nothing", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "sweeping on a detached HEAD exits 1 and changes nothing", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "an untracked done spec moves and is committed", kind: "edge"}
+  - {file: "tests/scripts/move-to-done.sh", test: "the sweep with one done spec failing the check exits 1", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "the sweep names the spec it left and its open task", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "the failing spec stays at the top level with its step marker", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "the passing spec still moves and is committed", kind: "behaviour"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/move-to-done on the stub: FAIL no argument exits 2; FAIL JRN-001 --check with T2 pending exits 1; FAIL JRN-002 the spec sits at .workflow/specs/done/012-alpha; FAIL JRN-003 --sweep exits 0 (passed=40 failed=50). The edge cases passed on first run, so I mutated the script (no sentence-end boundary, no reference-link handling, sweep never flagged): FAIL edge a path ending a sentence...; FAIL edge a link back into the spec...; FAIL the sweep with one done spec failing the check exits 1; script restored afterwards."
+  green: "tests/run-all.sh --suite scripts/move-to-done: TOTAL passed=102 failed=0; full tests/run-all.sh: TOTAL passed=3780 failed=0 skipped=0 xfail=0 (64 suites)"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/007-done-folder --task-id T5 --cwd <worktree>; lint exit 0, test pass (scripts/move-to-done passed=102 failed=0)"
+  toolchain: ".workflow/specs/done/007-done-folder/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "Requiring the checked-out branch to equal the spec's spec_branch for a single move: the AC asks only for the current branch and never main, and the sweep runs on another spec's branch; refusing main and a detached HEAD covers that."
+  - "Rolling back after a failure mid-move (mv done, rewrite or commit failing): every refusal check runs before mv, so only an I/O or git error can stop the script halfway. It then exits 2 and names the failure."
+  - "Angle-bracket link targets (](<path with spaces>)) in the moved spec: they are skipped by the ../ adjustment; none appear in the spec templates."
+  - "Tying a work-backlog item to the spec by its origin_spec value: items are matched by the <NNN-slug>-disc-*.md file name glob, the reuse pattern sign-off 5.5 uses."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

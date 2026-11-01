@@ -1,0 +1,56 @@
+verdict: fail
+task_id: T5
+work_type: shell-scripts
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t5@9b2d534c7c0fe8cd7a9fab20b43a3d05cbe832da..HEAD"
+tool_output: ".workflow/specs/done/007-done-folder/artifacts/T5/toolchain.json"
+items:
+  - n: 1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:48,55,66,193,302-304,312-316,371 (every .workflow path is built with wf_path or a WF_ variable; spec.md, tasks.md and .step name files inside a spec folder, and no WF_ variable covers them)"
+  - n: 2
+    verdict: not-applicable
+    location: "no hook file in the diff (changed files: move-to-done.sh, tests/scripts/move-to-done.sh, PROVENANCE.md)"
+  - n: 3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:47,89,179 (each 2>/dev/null lookup ends in die), 120-160 (roll_back reports each change it cannot undo on stderr); filters, not errors: 317, 372, 374"
+  - n: 4
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:99,366,389 (exit 0), die with 1 at the refusal branches, default die 2, 170 (on_exit forwards 2 after a rollback); every external command outside a guard is absent, and the header # Exit: block at line 19 documents 0, 1 and 2"
+  - n: 5
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:34,36,179 (sibling sourced and run from BASH_SOURCE with cd -P)"
+  - n: 6
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:1-27 (helper shape: File, Purpose, Usage, Exit, stdout, Called by, Notes, Sources); no decision ID in the header; line 27 names modules/sign-off.md under Called by, which a header may do"
+  - n: 7
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:31 (set -euo pipefail); no new file (git diff --summary shows none); tests/scripts/move-to-done.sh uses double brackets on 60 lines (45 in the base) and has no single-bracket test"
+  - n: 8
+    verdict: pass
+    location: "move-to-done.sh: each of the 13 bash functions (die 40, usage 42, resolve_spec 45, open_sub_items 53, roll_back 120, on_exit 162, refuse_unsafe_checkout 175, move_refusal 191, replace_file 202, add_up_level_to_outbound_links 214, point_at_done_folder 257, move_spec 283, commit_moves 335) and the two awk functions (217, 230) has its name ARGS : comment on the line above; tests/scripts/move-to-done.sh:64-65 for failing_git; the script adds no shellcheck disable; the source hint at move-to-done.sh:33 needs no reason; the one disable at tests/scripts/move-to-done.sh:37 has a reason and is unchanged from the base"
+  - n: "R1"
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:318-319 (found holds the grep status and the case after it reads it); names such as MOVED_FROM, STEP_COPY, SAVED_COPY, PATHSPECS and move_refusal say what they hold"
+  - n: "R2"
+    verdict: fail
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:327-328,344"
+    note: "Lines 327-328 (the tracked check) and 344 (--no-renames) carry no reason, and a maintainer who tidies them breaks the script: without the check an untracked spec makes git add fail on a path that matches nothing, so the run rolls back with exit 2; without --no-renames the name-only list holds only the new path, so commit leaves the old path's deletion staged and still reports success. Add a one-line reason comment at each."
+  - n: "R3"
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:295,301 (reason comments); the function comments above roll_back and move_spec say what each leaves changed, which the code alone does not show"
+  - n: "R4"
+    verdict: fail
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:282"
+    note: "Line 282 names workflow folders by path (cache/ and initiatives/), and the list is already wrong: the code excludes six folders at lines 312-316, not two. Rewrite the sentence without the folder names and give the reason the exclusions exist (rule candidate)."
+  - n: "R5"
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/move-to-done.sh:301-304 (step marker is not defined by name, but the code beside it moves .step, so a newcomer can follow it)"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh: confirmed the WF_ variables the script uses (WF_SPECS_DONE, WF_WORK_BACKLOG, WF_DIR, WF_CACHE, WF_INITIATIVES, WF_WORKTREES, WF_HANDOFF, WF_CACHE_STAGING, WF_STANDARDS_STAGING) and that no step-marker variable exists (items 1, 8)"
+  - ".agents/skills/feature-workflow/scripts/commit-workflow-data.sh lines 1-25: sibling helper header, for the header shape (item 6)"
+  - "tests/scripts/move-to-done.sh lines 1-40 and the base version from git show 9b2d534: suite header and the existing bracket syntax (items 7, 8)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: the R1-R5 rules and the Checking table these lines are judged against"
+  - ".workflow/specs/done/007-done-folder/artifacts/T5/toolchain.json: lint (shellcheck) and the scoped test ran and passed; no typecheck, format or boundary command is configured"
+out_of_scope_noticed: []

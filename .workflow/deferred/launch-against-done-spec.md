@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/007-done-folder
+origin_spec: .workflow/specs/done/007-done-folder
 created: 2026-10-30
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-30
 
 **Summary:** A sub-agent launch whose `spec_dir` names a spec in the Done folder is refused, so nothing can launch an agent for a finished spec.
 **Mode:** HITL
-**Origin:** [007-done-folder](../specs/007-done-folder/spec.md), 0.3.17 scope decision, design-log entry 2026-10-30 Scope decision: launch against a finished spec
+**Origin:** [007-done-folder](../specs/done/007-done-folder/spec.md), 0.3.17 scope decision, design-log entry 2026-10-30 Scope decision: launch against a finished spec
 
 ## Goal
 
@@ -28,7 +28,7 @@ Spec 007 moves a finished spec into the **Done folder** (`.workflow/specs/done/N
 
 ## Decisions already made
 
-- The move happens at 5.8, after every sign-off launch (D2, D14 in [.workflow/specs/007-done-folder/design-log.md](../specs/007-done-folder/design-log.md)).
+- The move happens at 5.8, after every sign-off launch (D2, D14 in [.workflow/specs/done/007-done-folder/design-log.md](../specs/done/007-done-folder/design-log.md)).
 
 ## Evidence
 

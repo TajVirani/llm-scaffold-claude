@@ -1,0 +1,102 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "9e971ade158b5e92da93bf2b150fd68dd55d7e9e"
+head: "d55e87767f25c52e615297aea3ffcb78d1e17774"
+measurements:
+  - target: "TGT-001 Script lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/007-done-folder/artifacts/review/pass-2/targets/script-lint-clean.txt"
+    reason: ""
+  - target: "TGT-002 Harness lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "0 shellcheck findings"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/007-done-folder/artifacts/review/pass-2/targets/harness-lint-clean.txt"
+    reason: ""
+  - target: "TGT-003 Agent-docs lint clean"
+    kind: errors
+    threshold: "exit 0; each lint suite reports 0 failed"
+    command: "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage"
+    measured: "failed=0 in all four suites (lint/frontmatter passed=40, lint/step-list passed=36, lint/symlinks passed=45, lint/upstream-lineage passed=13)"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/007-done-folder/artifacts/review/pass-2/targets/agent-docs-lint-clean.txt"
+    reason: ""
+  - target: "TGT-004 Literal Done folder paths in scripts outside the path library"
+    kind: errors
+    threshold: "0 printed"
+    command: "git grep -n -E 'specs/done' -- '.agents/hooks/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | grep -v -E '^[^:]+:[0-9]+:[[:space:]]*#' | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/007-done-folder/artifacts/review/pass-2/targets/literal-done-folder-paths-in-scripts-outside-the-path-library.txt"
+    reason: ""
+  - target: "TGT-005 Scripts added or changed since the baseline that no suite names"
+    kind: coverage
+    threshold: "0 printed"
+    command: "BASE=$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/007-done-folder/spec.md 2>/dev/null || yq --front-matter=extract '.baseline_revision' .workflow/specs/done/007-done-folder/spec.md); git diff --name-only --diff-filter=AM \"$BASE\"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- \"$(basename \"$f\")\" tests/ || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/007-done-folder/artifacts/review/pass-2/targets/scripts-added-or-changed-since-the-baseline-that-no-suite-names.txt"
+    reason: ""
+  - target: "TGT-006 Files added under .agents/ since the baseline missing from the manifest (or a listed directory) or from PROVENANCE.md"
+    kind: coverage
+    threshold: "0 printed"
+    command: "BASE=$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/007-done-folder/spec.md 2>/dev/null || yq --front-matter=extract '.baseline_revision' .workflow/specs/done/007-done-folder/spec.md); git diff --name-only --diff-filter=A \"$BASE\"..HEAD -- .agents | while read -r f; do r=${f#.agents/}; m=0; while IFS= read -r l; do case \"$r\" in \"$l\"|\"${l%/}\"/*) m=1;; esac; done < .agents/install-manifest.txt; [ \"$m\" = 1 ] || echo \"manifest: $f\"; grep -qF -- \"$(basename \"$f\")\" PROVENANCE.md || echo \"provenance: $f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/007-done-folder/artifacts/review/pass-2/targets/files-added-under-agents-since-the-baseline-missing-from-the-manifest-or-a-listed-directory-or-from-provenance-md.txt"
+    reason: ""
+  - target: "TGT-007 Wall time of move-to-done.sh --sweep on a scratch clone at the baseline (moves 001-006 and 008, rewrites their links)"
+    kind: performance
+    threshold: "real <= 30 s, best of 3"
+    command: "BASE=$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/007-done-folder/spec.md 2>/dev/null || yq --front-matter=extract '.baseline_revision' .workflow/specs/done/007-done-folder/spec.md); for i in 1 2 3; do tmp=$(mktemp -d); git clone -q . \"$tmp/r\" && git -C \"$tmp/r\" checkout -q -b tgt-sweep \"$BASE\" && rm -rf \"$tmp/r/.agents\" && cp -R .agents \"$tmp/r/.agents\" && (cd \"$tmp/r\" && { /usr/bin/time -p .agents/skills/feature-workflow/scripts/move-to-done.sh --sweep >/dev/null || echo FAIL; }) 2>&1 | awk '/^real/{print $2} /^FAIL$/{print}'; rm -rf \"$tmp\"; done | sort -n | head -1"
+    measured: "52.23 s (smallest of three real times; no run printed FAIL)"
+    result: fail
+    exit_code: 0
+    raw_output: ".workflow/specs/done/007-done-folder/artifacts/review/pass-2/targets/wall-time-of-move-to-done-sh-sweep-on-a-scratch-clone-at-the-baseline-moves-001-006-and-008-rewrites-their-links.txt"
+    reason: "exit 0 by design: the command prints the smallest real time and does not apply the threshold, so the exit code does not disagree with the number. The individual run times are not in the raw output."
+  - target: "TGT-008 Line coverage of changed shell code"
+    kind: coverage
+    threshold: "not measured"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "Cannot be measured: no bash coverage tool is installed and the scaffold bans new dependencies. TGT-005 and the 3.7 profile checklist stand in for it. No command in the table; nothing run."
+findings:
+  - id: RT-1
+    category: target
+    severity: high
+    confidence: 100
+    location: "verification-plan.md#targets: TGT-007 Wall time of move-to-done.sh --sweep on a scratch clone at the baseline"
+    claim: "Wall time of move-to-done.sh --sweep on a scratch clone at the baseline measured 52.23 s (best of 3), threshold real <= 30 s"
+    consequence: "The sweep does not meet the 30 s wall-time target the spec committed to (source: stakeholder decision 2026-10-30, recorded at verification-plan.md 1.1)."
+    evidence:
+      basis: ".workflow/specs/done/007-done-folder/artifacts/review/pass-2/targets/wall-time-of-move-to-done-sh-sweep-on-a-scratch-clone-at-the-baseline-moves-001-006-and-008-rewrites-their-links.txt"
+      diff: ""
+    suggested_fix: ""
+checked:
+  - "TGT-001 Script lint clean"
+  - "TGT-002 Harness lint clean"
+  - "TGT-003 Agent-docs lint clean"
+  - "TGT-004 Literal Done folder paths in scripts outside the path library"
+  - "TGT-005 Scripts added or changed since the baseline that no suite names"
+  - "TGT-006 Files added under .agents/ since the baseline missing from the manifest (or a listed directory) or from PROVENANCE.md"
+  - "TGT-007 Wall time of move-to-done.sh --sweep on a scratch clone at the baseline (moves 001-006 and 008, rewrites their links)"
+  - "tree: .agents/ equals HEAD (uncommitted changes are under .workflow/ only), so the measured scripts are the HEAD scripts"
+not_checked:
+  - "build: no serve in the profiles for shell-scripts or agent-docs (serve is empty in both); nothing started, no target needed a running build"
+  - "TGT-008 Line coverage of changed shell code: not measurable: Cannot be measured: no bash coverage tool is installed and the scaffold bans new dependencies. TGT-005 and the 3.7 profile checklist stand in for it."

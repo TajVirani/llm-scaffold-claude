@@ -1,0 +1,21 @@
+status: "done"
+summary: "move-to-done.sh now opens its candidate list, match list and search error log with a die before the search, so a scratch file it cannot write ends the run with exit 2 and a rollback instead of a commit with links still at the old path. A new suite case stubs mktemp to plant a folder where the match list goes and checks exit 2, the message and an unchanged tree; it failed against the previous script (rc=0, committed). TGT-007 sweep-time with BASE=9e971ade158b5e92da93bf2b150fd68dd55d7e9e: 15.81 s best of 3 (target 30 s or less)."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t5"
+branch: "task/007-done-folder/T05-move-to-done-script"
+base_commit: "58743489e7f5a99f5a31890954e6f727fc2dc420"
+head_commit: "7aa3f923c789577092c25de443f2b40ab42facad"
+files_changed: [".agents/skills/feature-workflow/scripts/move-to-done.sh", "tests/scripts/move-to-done.sh"]
+tests_added:
+  - {file: "tests/scripts/move-to-done.sh", test: "a search list that cannot be written exits 2, rolls back and commits nothing", kind: "negative"}
+evidence:
+  red: "bash tests/scripts/move-to-done.sh; FAIL a search list that cannot be written exits 2, rolls back and commits nothing (rc=0: line 304: .../matches: Is a directory ... moved .workflow/specs/012-alpha -> .workflow/specs/done/012-alpha, committed 202ee03...); RESULT passed=117 failed=1"
+  green: "bash tests/scripts/move-to-done.sh; RESULT passed=118 failed=0 skipped=0 xfail=0"
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/007-done-folder --task-id T5 --cwd <worktree>; lint pass, test pass (scripts/move-to-done passed=118 failed=0)"
+  toolchain: ".workflow/specs/done/007-done-folder/artifacts/T5/toolchain.txt (pass)"
+  sweep_time: "verification-plan sweep-time with BASE=9e971ade158b5e92da93bf2b150fd68dd55d7e9e: 15.81 (seconds, best of 3; target <= 30)"
+considered_not_built: ["A test for an unwritable SEARCH_ERRORS file: with the old code that path already ended in exit 2 (a folder there reads as non-empty and reaches the die), so it cannot show the bug; the new open-with-die covers it the same way as the match list.", "A test for an unwritable candidate list: under set -e the old code already exited and rolled back; the added die only gives it a clear message."]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

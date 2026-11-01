@@ -1,0 +1,32 @@
+status: done
+summary: "Sign-off 5.7 runs move-to-done.sh --check before done; 5.8 checks the body, offers the one-time --sweep, moves the spec, checks the moved body (a fault is a move bug and stops unpublished), shows the path-only pr-body.md diff with the go-ahead and publishes with SPEC_DIR on the Done folder, the publish block untouched. Discovery 0.1.1 counts the Done folder's children, large-path spec_done_on_main checks both places and 6.13 re-points initiative links with an in-doc sed loop, and SKILL.md, the PR template and review-lessons template headers state the new rules. Files outside the predicted list: none."
+task_id: "T4"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s007_t4"
+branch: "task/007-done-folder/T04-sign-off-discovery-large-path-docs"
+base_commit: "f74efd5b45162ee6bac6874c1be7917bf72c85b1"
+head_commit: "c863498"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/sign-off.md"
+  - ".agents/skills/feature-workflow/modules/discovery.md"
+  - ".agents/skills/feature-workflow/modules/large-path.md"
+  - ".agents/skills/feature-workflow/SKILL.md"
+  - ".agents/skills/feature-workflow/assets/pr-template.md"
+  - ".agents/skills/feature-workflow/assets/review-lessons.md"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite lint/done-folder-docs: passed=2 failed=14 (e.g. 'FAIL JRN-001 5.7 runs move-to-done.sh --check on the spec'); tests/run-all.sh --suite scripts/sign-off-pr: passed=31 failed=3 ('FAIL JRN-006 the 5.8 SPEC_DIR setting names the Done folder path')"
+  green: "tests/run-all.sh --suite lint/done-folder-docs: 16/16 passed; tests/run-all.sh --suite scripts/sign-off-pr: 34/34 passed; the snippet cases in tests/scripts/move-to-done.sh (0.1.1 counts done/ children, spec_done_on_main top level and done/) pass, the rest wait for T5"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/007-done-folder --task-id T4 --cwd <worktree>: test pass (scoped, own 2, excluded 1); full tests/run-all.sh: 3718 passed, 50 failed, all in scripts/move-to-done (T5 stub)"
+  toolchain: ".workflow/specs/done/007-done-folder/artifacts/T4/toolchain.txt (pass)"
+considered_not_built:
+  - "A design-log entry or body fix after the move: D15 forbids writes into the moved folder, so 5.8 stops instead"
+  - "Naming the sweep's own commit behaviour: the T5 interface does not say whether --sweep commits itself, so 5.8 says to commit whatever it leaves in git status"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: decision
+    summary: "6.13 must rewrite the initiative's links to specs moved into done/, but move-to-done.sh offers no form for that (--check, <spec-dir>, --sweep only). T4 put a sed loop in the 6.13 doc block; T5's planned header says the script is called by large-path 6.13, which would then be wrong, or a script mode could replace the loop."
+    evidence: ".agents/skills/feature-workflow/modules/large-path.md 6.13 'None listed' block; .workflow/specs/done/007-done-folder/tasks/T05-move-to-done-script.md AC 'Called by: sign-off 5.7 and 5.8, large-path 6.13'"
+    blocker_assessment: "can-wait"
+    reason: "The doc loop works (checked in a throwaway repo: rewrites only specs in done/ on main, keeps a longer name sharing the prefix), so 6.13 is correct as written; the choice only affects T5's header or a later script mode."

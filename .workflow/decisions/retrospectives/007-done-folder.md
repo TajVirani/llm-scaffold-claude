@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/007-done-folder
+spec: .workflow/specs/done/007-done-folder
 date: 2026-10-31
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/007-done-folder/spec.md` (capabilities: CAP-011)
-- Report: `.workflow/specs/007-done-folder/report.md`
+- Spec: `.workflow/specs/done/007-done-folder/spec.md` (capabilities: CAP-011)
+- Report: `.workflow/specs/done/007-done-folder/report.md`
 - Tasks: 5 done, 0 deferred (2 shelf items written at discovery: `sign-off-scoped-commit.md` Later requests line, `launch-against-done-spec.md`)
 - Evidence available: `artifacts/sign-off-5.4/toolchain.txt` (3951 passed, 0 failed), gate records `artifacts/gate-3.9-*`, review pass files `artifacts/review/pass-1..3/`, task result and mini-review files under `artifacts/T1`-`T5`, `design-log.md`
 - Evidence missing: JRN-005 (the sweep of this repo) runs at 5.8, after this retrospective.
