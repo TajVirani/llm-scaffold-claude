@@ -12,8 +12,8 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 
    | From | Owner | Status call before loading the loop | Seed question |
    | --- | --- | --- | --- |
-   | 0.4.7 goal conflict | discovery | none (already `draft`); `ST step .workflow/specs/NNN-slug 0.3.8` | The conflict between the impact model and the goal |
-   | 0.6 not clear | discovery | none (already `draft`); `ST step .workflow/specs/NNN-slug 0.3.8` | Each exit-gate check that was not clear |
+   | 0.4.7 goal conflict | discovery-impact | none (already `draft`); `ST step .workflow/specs/NNN-slug 0.3.8` | The conflict between the impact model and the goal |
+   | 0.6 not clear | discovery-impact | none (already `draft`); `ST step .workflow/specs/NNN-slug 0.3.8` | Each exit-gate check that was not clear |
    | Scope change after 0.6, before 1.1 starts | verification-setup | `ST status .workflow/specs/NNN-slug draft --step 0.6` (refused once 1.1 has started) | The stakeholder's change, verbatim |
    | 2.2 / 2.3 | task-breakdown | `ST status .workflow/specs/NNN-slug draft --step 2.2` or `--step 2.3` | What made the spec unspecifiable, or the interfaces under test not agreed |
    | 4.5 / 4.6 | review-triage | `ST status .workflow/specs/NNN-slug draft --step 4.5` or `--step 4.6` | The triage finding `F<n>` that needs a decision, or the upstream problem the third pass exposed |
@@ -76,7 +76,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 
 **One feature?** Before writing `spec.md`, check that the settled design is one feature: one capability set with one success signal, buildable as one spec. No → convert at [0.3.23](large-path.md#0323-convert-a-spec-into-an-initiative) and write nothing here; the large path takes the design log with it. Yes → continue.
 
-Once confirmed, evaluate the **0.3.20 light-path facts** (table in [discovery.md](discovery.md#0320-light-path-test)) so the same write records them, then write `spec.md`:
+Once confirmed, evaluate the **0.3.20 light-path facts** (table in [discovery-impact.md](discovery-impact.md#0320-light-path-test)) so the same write records them, then write `spec.md`:
 
 ```bash
 ST step .workflow/specs/NNN-slug 0.3.19
@@ -88,7 +88,7 @@ ST step .workflow/specs/NNN-slug 0.3.19
 - **Open Questions:** empty; anything still open means the loop is not done.
 - Frontmatter `light_path`: `true` only when all three facts are clean. Leave `status` and every other key as they are.
 
-Return to [discovery](discovery.md#0320-light-path-test) at 0.3.20. The size `budget` is not written here: discovery writes it at 0.3.20 on the light path, task-breakdown at 2.5 on the full path.
+Load [discovery-impact](discovery-impact.md#0320-light-path-test) at 0.3.20. The size `budget` is not written here: discovery-impact writes it at 0.3.20 on the light path, task-breakdown at 2.5 on the full path.
 
 ## Done
 

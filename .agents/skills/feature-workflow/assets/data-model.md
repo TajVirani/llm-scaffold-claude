@@ -1,6 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/data-model.md: the schema this feature creates or changes. No frontmatter.
-Written by modules/discovery.md at 0.4.4-0.4.5; read by task-breakdown at 2.1, which orders migration tasks by the Migrations section.
+Written by modules/discovery-impact.md at 0.4.4-0.4.5; read by task-breakdown at 2.1, which orders migration tasks by the Migrations section.
 
 Rules:
   - Classify every part the change touches: `create` (new), `extend` (adds to an existing part without changing what is there), `refactor` (changes the existing shape or meaning), `unchanged` (read or depended on, not modified). List `unchanged` parts too, so reviewers see what was deliberately left alone.

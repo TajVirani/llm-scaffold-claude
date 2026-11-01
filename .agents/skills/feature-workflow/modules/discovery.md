@@ -1,6 +1,6 @@
 # Discovery (Phase 0)
 
-Turn a request into a spec folder that says what to build, where it goes, what it touches and how it will be proven. You run in the main session; the corpus (Tier A docs, Tier B caches, the shelf) reaches you only as sub-agent extracts, except `.workflow/GLOSSARY.md`, which you read whole (design rule 3). Conventions for status, step markers and guarded writes are in [../references/conventions.md](../references/conventions.md), and launches in [../references/launching.md](../references/launching.md); this module names the exact calls.
+Turn a request into a spec folder that says what to build, where it goes, what it touches and how it will be proven. This file runs discovery up to the questioning loop: 0.1–0.3.7 and 0.3.22. The loop hands on at 0.3.20 to [discovery-impact.md](discovery-impact.md), which holds the light-path test, 0.4–0.6 and the fresh-session offer. You run in the main session; the corpus (Tier A docs, Tier B caches, the shelf) reaches you only as sub-agent extracts, except the glossary's term list and the `.workflow/rules.md` blocks a step names (design rule 3). Conventions for status, step markers and guarded writes are in [../references/conventions.md](../references/conventions.md), and launches in [../references/launching.md](../references/launching.md); this module names the exact calls.
 
 Work raised during Phase 0 that sits outside the agreed scope goes through the scope gate 0.3.16–0.3.17 to `.workflow/deferred/`, never to `.workflow/specs/work-backlog/`; the discovered-work protocol (00.21–00.29) covers Phases 1–4 only.
 
@@ -21,7 +21,7 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
    ```
 
    `.workflow/specs/work-backlog/`, the Done folder `.workflow/specs/done/` itself and any other folder without a numeric prefix are not specs and never count; the children of the Done folder are finished specs and do count. The new number is the highest plus one, zero-padded to five digits (`printf '%05d' $((10#$highest + 1))`; `00001` when nothing prints). Older specs keep their three-digit numbers: a spec number may have any number of digits, and only its value orders it.
-2. **0.1.2 Slug.** Two to four lowercase kebab-case words from the request, action-noun where it reads well, keeping technical terms ("Implement OAuth2 for the API" → `oauth2-api`). Use `.workflow/GLOSSARY.md` terms when the request names a known concept.
+2. **0.1.2 Slug.** Two to four lowercase kebab-case words from the request, action-noun where it reads well, keeping technical terms ("Implement OAuth2 for the API" → `oauth2-api`). Use the glossary's term when the request names a known concept; the term list (0.2.1) names them.
 3. **0.1.3** `mkdir -p .workflow/specs/NNN-slug`.
 4. **0.1.4 `spec.md`.** Set the step, write the template, then record the status through the script:
 
@@ -56,7 +56,14 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 
 ## 0.2 Retrieve existing system context
 
-1. **0.2.1 Affected area.** Read `.workflow/GLOSSARY.md` whole (and, with a `.workflow/GLOSSARY-MAP.md`, the context glossaries it maps to the area). Read the **Ownership** and **Shared core** YAML blocks of `.workflow/rules.md`. Name the affected area as module names plus repo-relative paths: the `owns` globs with any trailing `/**` or `*` removed, since the cache scripts take plain paths, never globs. Write it to yourself as the area list used below.
+1. **0.2.1 Affected area.** Name the affected area as module names plus repo-relative paths, from the `owns` globs of the **Ownership** block in `.workflow/rules.md`. This command prints one line per module with its `owns` paths, each with any trailing `/**` or `*` removed, since the cache scripts take plain paths, never globs. It reads nothing else from `rules.md`: the whole Ownership block is read at 0.3.3, and the Shared core block at 0.3.20.
+
+   ```bash
+   awk '/^## /{f=($0 ~ /^## Ownership[[:space:]]*$/); next} f && /^```ya?ml/{y=1; next} y && /^```/{exit} y' .workflow/rules.md \
+     | yq '.modules // {} | to_entries | .[] | .key + ": " + ((.value.owns // []) | map(sub("/\*\*$"; "") | sub("\*$"; "")) | join(" "))'
+   ```
+
+   Keep the lines for the modules the request touches as the area list used below. Then read the project's terms with `.agents/skills/domain-modeling/scripts/term-list.sh`: one line per glossary entry, with the aliases to avoid (with a `.workflow/GLOSSARY-MAP.md`, every context glossary it maps, each line labelled by its context). Never read the glossary whole: when a term in the request matches one on the list, read that entry alone with `term-list.sh --define <term>`.
 2. **0.2.7 Cache stamps match HEAD?** Run the check before any agent reads `.workflow/cache/`, and before the term gate asks anything, since its result decides what launches beside that ask:
 
    ```bash
@@ -138,7 +145,7 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 1. **0.3.1 Capability already exists?** Check the goal against the capabilities in **Prior decisions** and, for the candidate names, `grep -n -i '<term>' .workflow/capabilities.md`.
    - Yes → **0.3.2 Reframe** as a change to that capability: it keeps its `CAP-###`. Log the reframe in `design-log.md`; 0.3.19 writes it into `spec.md`.
    - No → a new capability gets a provisional `CAP-NEW-<slug>` (lowercase kebab-case, unique in this spec) until 5.3.
-2. **0.3.3 Owning module clear?** Clear when every path the change touches falls under one module's `owns` in the Ownership block.
+2. **0.3.3 Owning module clear?** Read the **Ownership** block of `.workflow/rules.md` whole. Clear when every path the change touches falls under one module's `owns` in that block.
    - Yes → go to [0.3.22](#hand-off-to-the-questioning-loop). No placement ADR is needed.
    - No → **0.3.4 Resolve placement** with the stakeholder: put the candidate modules to them as one question with your recommendation (from **Seams and interfaces** and **Prior decisions**), then log a **Placement** entry in `design-log.md` (create it from [../assets/design-log.md](../assets/design-log.md) if missing; that is node 0.3.21).
 3. **0.3.5–0.3.7 Conflicts and the ADR.** Invoke `domain-modeling` for placement: it checks the placement against the ADRs and `.workflow/rules.md` (0.3.5), has the stakeholder conform or supersede (0.3.6), and writes the placement ADR under step `0.3.7`, or a design-log entry when the placement fails the three-part ADR test. A rule conflict becomes a 5.3 proposal, never a mid-feature rule edit.
@@ -146,117 +153,11 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 ### Hand off to the questioning loop
 
 1. **0.3.22 Deeper prompt.** Invoke the `deeper-prompt` skill. It restates the request one level up with its goals, downstream work, tools and gotchas, and appends the block to `design-log.md` as a **Deeper prompt** entry marked `Agreement: pending`; its "ready to pass on?" question is not asked on its own but rides on the questioning loop's first ask. Runs on both paths (light versus full is decided later, at 0.3.20), and only on this first entry: loop-backs to 0.3.8 go straight to the loop.
-2. Load [questioning-loop.md](questioning-loop.md) with the block as its input. It asks for the block's agreement in its first ask, runs 0.3.8–0.3.19 and returns here at 0.3.20.
-
-## 0.3.20 Light-path test
-
-The questioning loop evaluated the three facts at 0.3.19 and wrote `light_path` into `spec.md`; at 0.3.20 spec.md is writable only for the size `budget` and `spec_branch`. Read it back:
-
-```bash
-yq --front-matter=extract '.light_path' .workflow/specs/NNN-slug/spec.md
-```
-
-The three facts (all must be clean for the light path):
-
-| Fact | Clean when |
-| --- | --- |
-| Intent gaps | Nothing the stakeholder left unsaid that they would notice in the result; **Open Questions** in `spec.md` is empty. |
-| Irreversible actions | No irreversible migration, data deletion, destructive external call, or removal of a public contract. |
-| Footprint | One owning module, one capability, small: as a rule of thumb about 100 changed lines; more than five files that are not simple or mechanical is not small. Read it from `codebase-map.md`. |
-
-- **`light_path: true` (pass).** Write the size budget, the one-task `tasks.md` index and its task file, create the spec worktree, which commits them on the spec branch, move the session into it, then set the status:
-
-  ```bash
-  ST step .workflow/specs/NNN-slug 0.3.20
-  # Read the project defaults from .workflow/rules.md "## Size budget":
-  awk '/^## /{f=($0 ~ /^## Size budget[[:space:]]*$/); next} f && /^```ya?ml/{y=1; next} y && /^```/{exit} y' .workflow/rules.md | yq -o=json '.size_budget'
-  # Edit the spec.md frontmatter line to `budget: {max_tasks: <n>, max_changed_files: <n>}` with those values,
-  # unless the stakeholder agreed other values (log them in design-log.md). No block in rules.md: keep the template's 10 / 30.
-  # Leave status and every other key alone.
-  # Write .workflow/specs/NNN-slug/tasks/T01-<slug>.md from ../assets/task.md (what to build, seam,
-  #   acceptance criteria from the capability's success line, predicted files, size, mode, notes).
-  # Write the index .workflow/specs/NNN-slug/tasks.md from ../assets/tasks.md with one record:
-  #   id: T1, title, status: pending, capability: <the spec's CAP id>, depends_on: [],
-  #   touches_core: <true if a touched path is under Shared core>, work_type: null,
-  #   module: <owning module>, seam: <interface under test agreed in the loop>,
-  #   file: tasks/T01-<slug>.md, branch: task/NNN-slug/T01-<slug>, predicted_files, size, mode, parallel_with: [], pr: null
-  # and a one-row Waves table; validate it with the yq validator in ../assets/tasks.md (prints true).
-  # Spec branch in its own worktree off the main branch; the first commit carries the spec folder and discovery's other workflow data.
-  .agents/skills/feature-workflow/scripts/spec-worktree.sh create .workflow/specs/NNN-slug   # prints `worktree <path>`; a loop-back finds it and changes nothing
-  # Move the session into <path> (Claude Code: the EnterWorktree tool with that path; other hosts: reopen the session there).
-  # In the spec worktree: Edit the spec.md frontmatter line to `spec_branch: spec/NNN-slug`.
-  ST status .workflow/specs/NNN-slug ready-for-dev --step 0.3.20
-  ```
-
-  `spec-worktree.sh create` prints `worktree <path>` and `baseline <sha>`; exit 1 names what to fix first, as at [1.1](verification-setup.md#11-measurable-targets-and-the-baseline). T1 gets its task branch and worktree at wave start and merges `--no-ff` at 3.16, as a full-path task does; a `mode: hitl` T1 still gets the 3.3 pause.
-
-  Seeded from a work item: now delete the item (see [Seeded from a work item](#seeded-from-a-work-item)).
-
-  If `tasks.md` already exists (a loop-back on a light-path spec), keep it: its task records change only through `set-task`. If the revised goal needs work the existing task does not cover, take the full path instead. Then [offer a fresh session](#offer-a-fresh-session) and load implementation-orchestrator at 3.1 (it captures `baseline_revision` and `impl_base_revision` there).
-- **`light_path: false` (full path).** Continue at 0.4.
-
-## 0.4 Model the impact (full path)
-
-1. **0.4.1 Map onto schema and interfaces.** From `codebase-map.md`, list each entity, field, relationship and interface the change touches.
-2. **0.4.2 Term gate.** A new concept with no canonical name → `domain-modeling` for gate 0.4.2 (writes under step `0.4.3`).
-3. **0.4.4 Classify** each part `create`, `extend`, `refactor` or `unchanged`. Append an **Impact classification** entry to `design-log.md`.
-4. **0.4.5 Write `data-model.md`** from [../assets/data-model.md](../assets/data-model.md): Summary, Entities (GLOSSARY terms, validation rules with the CAP they come from, state transitions), ordered Migrations marked reversible or irreversible.
-5. **0.4.6 Launch `module-audit`** on the owning module:
-
-   ````markdown
-   ```yaml launch-header
-   task_type: module-audit
-   spec_dir: .workflow/specs/NNN-slug
-   ```
-
-   Owning module: <name>, paths: <owns globs>
-   What the feature changes in it: <the 0.4.4 rows for this module>
-   ````
-
-   Launch it on your host as [launching](../references/launching.md) says.
-
-   Write its return into `codebase-map.md`: **Module audit** ← its `## Module audit` table; append its **Seams and interfaces (additions)** rows to **Seams and interfaces**; append its **Not found** lines. A `cache disagrees with code` line is a stamp problem: rerun 0.2.7–0.2.8 for that cache, never edit an extract.
-
-   Its **Out of scope noticed** lines are never dropped and never folded into the change: run each one through the Phase 0 scope gate, the 0.3.16–0.3.17 deferred path ([questioning-loop](questioning-loop.md) step 8): [deferred-handoff](deferred-handoff.md#write) **Write** at step `0.3.17` writes `.workflow/deferred/<slug>.md`, adds it to `spec.md` `deferred` and Non-goals, and logs the **Scope decision**, with the line's kind, summary and evidence as the item. A `blocks-this-task` line whose fix the goal cannot do without is not deferred: it is a goal conflict for 0.4.7.
-6. **0.4.7 Conflicts with the goal or the placement?**
-   - **Goal** → `ST step .workflow/specs/NNN-slug 0.3.8`, load the questioning loop with the conflict as the first frontier question.
-   - **Placement** → back to 0.3.3 with the audit findings.
-   - **No** → 0.5.
-
-## 0.5 Define the end state
-
-1. `ST step .workflow/specs/NNN-slug 0.5.1`.
-2. Write `verification-plan.md` from [../assets/verification-plan.md](../assets/verification-plan.md):
-   - **0.5.1 End state:** binary, observable objectives, each naming the capability it proves.
-   - **0.5.2 Journeys:** `JRN-001`, `JRN-002`, ... with steps, expected outcome and the check that will run it (`MISSING` until 1.3 builds it).
-   - **0.5.3 Fixtures and oracles:** where test data comes from and how a correct result is known.
-   - Leave **Targets** for 1.1.
-3. In `spec.md` (step 0.5.1 is still set), write the **Success signal** as the end-state summary and fill **Links**.
-
-## 0.6 Exit gate
-
-All four must be clear, each checkable in a named file:
-
-| Check | Clear when |
-| --- | --- |
-| Scope | `spec.md` Non-goals and `deferred` list every ruled-out item; Open Questions is empty. |
-| System impact | `codebase-map.md` has the module audit; no unresolved `cache disagrees with code`. |
-| Data changes | `data-model.md` classifies every touched part and orders the migrations. |
-| Testable objectives | Every capability in `spec.md` has an end-state objective and at least one journey in `verification-plan.md`. |
-
-- **Not clear** → `ST step .workflow/specs/NNN-slug 0.3.8`, load the questioning loop with each gap as a frontier question.
-- **Clear** → `ST status .workflow/specs/NNN-slug ready-for-dev --step 0.6`; for a spec seeded from a work item, delete the item (see [Seeded from a work item](#seeded-from-a-work-item)); then [offer a fresh session](#offer-a-fresh-session) and load verification-setup at 1.1.
-
-## Offer a fresh session
-
-The spec is `ready-for-dev`, so everything implementation needs is on disk. Load the next module now: the run continues without asking. When this session has looped back to 0.3.8 two or more times, its context is long, so add one line under the progress line of your next update: "This session is long: say *hand off* to continue `NNN-slug` in a fresh session." Then go on; it is an offer, never a question you wait for.
-
-When the stakeholder takes it, load the `handoff` skill and write a handoff for this spec. Then tell them to clear the context (`/clear` in Claude Code) or open a new session and ask to resume `NNN-slug`. On the light path the spec already has its spec worktree (0.3.20), so name it: a new session opened there starts in the spec checkout, and one opened elsewhere moves in first ([Route by status](../SKILL.md#3-route-by-status), "Work in the spec checkout"). On the full path 1.1 creates it. The new session routes by the spec's status and `.step`. Stop here.
+2. Load [questioning-loop.md](questioning-loop.md) with the block as its input. It asks for the block's agreement in its first ask, runs 0.3.8–0.3.19 and returns at 0.3.20 to [discovery-impact.md](discovery-impact.md#0320-light-path-test).
 
 ## Done
 
-- `spec.md` is `ready-for-dev` (light or full path) and links every support file that exists; on the light path it carries `budget`.
-- A spec seeded from a work item carries `origin` and a design-log Origin entry; the item was marked `promoted` at 0.1.4 and deleted once discovery finished.
-- A spec seeded from a slice carries `initiative` and a design-log Origin entry with the slice's binding decisions.
-- `codebase-map.md` was written only from agent returns and carries the stamps; `design-log.md` holds the placement, impact and scope decisions.
-- Light path: `tasks.md` has one valid record with its task file, committed on `spec/NNN-slug`. Full path: `data-model.md` and `verification-plan.md` exist and pass 0.6.
+- `spec.md` exists at `draft` with its Why drafted.
+- A spec seeded from a work item carries `origin` and a design-log Origin entry, and the item is marked `promoted`; a spec seeded from a slice carries `initiative` and a design-log Origin entry with the slice's binding decisions.
+- `codebase-map.md` was written only from agent returns and carries the stamps; `design-log.md` holds any placement decision and the **Deeper prompt** entry.
+- The questioning loop is loaded, and returns at 0.3.20 to [discovery-impact.md](discovery-impact.md).

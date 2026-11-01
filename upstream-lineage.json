@@ -1156,7 +1156,7 @@
       "reviewed_at": "2026-10-19"
     },
     {
-      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "path": ".agents/skills/feature-workflow/modules/discovery-impact.md",
       "kind": "derived",
       "upstream_repo": "bmad-code-org/BMAD-METHOD",
       "upstream_path": "docs/build/build-a-change.md",
@@ -1169,7 +1169,7 @@
       "reviewed_at": "2026-10-19"
     },
     {
-      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "path": ".agents/skills/feature-workflow/modules/discovery-impact.md",
       "kind": "derived",
       "upstream_repo": "bmad-code-org/BMAD-METHOD",
       "upstream_path": "skills/bmad-build/customize.toml",
