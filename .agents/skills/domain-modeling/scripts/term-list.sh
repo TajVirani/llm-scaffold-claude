@@ -16,18 +16,17 @@
 #                                 line between them.
 # Exit: 0 printed; 1 the term is not in any glossary; 2 usage error, or a glossary or map that cannot be read.
 # Notes: bash 3.2 compatible.
-# Sources: first-party.
+# Sources: first-party. Glossary and map paths: .agents/lib/workflow-paths.sh.
 
 set -euo pipefail
 
 PROG="term-list.sh"
 USAGE="usage: term-list.sh [--define <term>]"
-# Spelled here instead of taken from the shared workflow-paths helper, because domain-modeling may depend only on the
-# feature-workflow skill and so sources nothing from the shared helper folder.
-ROOT_GLOSSARY=.workflow/GLOSSARY.md
-GLOSSARY_MAP=.workflow/GLOSSARY-MAP.md
 
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 2; }
+
+# shellcheck source=../../../lib/workflow-paths.sh
+. "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh" || die "cannot load workflow-paths.sh"
 
 # list_terms CONTEXT GLOSSARY : prints one line per entry of GLOSSARY with its aliases, prefixed [CONTEXT] when CONTEXT is set.
 list_terms() {
@@ -112,18 +111,18 @@ esac
 # Parallel lists: the glossaries to read and the context each belongs to ("" for the root glossary).
 contexts=()
 glossaries=()
-if [[ -e "$GLOSSARY_MAP" ]]; then
-  links=$(map_contexts "$GLOSSARY_MAP") || die "cannot read $GLOSSARY_MAP"
+if [[ -e "$WF_GLOSSARY_MAP" ]]; then
+  links=$(map_contexts "$WF_GLOSSARY_MAP") || die "cannot read $WF_GLOSSARY_MAP"
   while IFS=$'\t' read -r context glossary; do
     [[ -n "$glossary" ]] || continue
-    [[ -r "$glossary" ]] || die "cannot read $glossary, the $context glossary $GLOSSARY_MAP links"
+    [[ -r "$glossary" ]] || die "cannot read $glossary, the $context glossary $WF_GLOSSARY_MAP links"
     contexts+=("$context")
     glossaries+=("$glossary")
   done <<<"$links"
-elif [[ -e "$ROOT_GLOSSARY" ]]; then
-  [[ -r "$ROOT_GLOSSARY" ]] || die "cannot read $ROOT_GLOSSARY"
+elif [[ -e "$WF_GLOSSARY" ]]; then
+  [[ -r "$WF_GLOSSARY" ]] || die "cannot read $WF_GLOSSARY"
   contexts=("")
-  glossaries=("$ROOT_GLOSSARY")
+  glossaries=("$WF_GLOSSARY")
 fi
 
 if [[ -n "$define_term" ]]; then
