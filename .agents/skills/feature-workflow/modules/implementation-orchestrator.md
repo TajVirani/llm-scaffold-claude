@@ -162,7 +162,7 @@ For each returned implementation, check the `implementation.yaml` the agent wrot
 
 1. **Route the result `status`.** `done` continues below. `discovered-work` goes to [Discovered work](#discovered-work-0021). `profile-wrong`, `scope-expansion` and `blocked` go to [Stops](#stops). Separately, a non-empty `discovered_work[]` goes to [Discovered work](#discovered-work-0021) whatever the status, `done` included (a `can-wait` item may accompany a finished task); a `done` task keeps going through its gates while that module handles it.
 2. **3.4 Negative and edge cases.** `tests_added` includes `negative` or `edge` tests, or the summary says why none apply. Otherwise resume the agent to add them.
-3. **3.5-3.6 Tool audit clean?** On Claude the stop audit has already run the profile toolchain with `--reuse` (the command keys `lint`, `typecheck`, `format`, `boundary` and `test`; never `serve` or `serve_ready`) and blocked the agent's stop until it passed. `toolchain.json` records `tree`, the hash of the checkout's content without the workflow data folders. When the agent's own 3.5 run passed on the same tree and profile, the audit runs nothing: it copies that record and adds `reused_from`, the evidence dir it came from. A reused pass is a pass. Read `artifacts/<task-id>/`:
+3. **3.5-3.6 Tool audit clean?** On Claude the stop audit has already run the profile toolchain with `--reuse` (the command keys `lint`, `typecheck`, `format`, `boundary` and `test`; never `serve` or `serve_ready`) and blocked the agent's stop until it passed. `toolchain.json` records `tree`, the hash of the checkout's content without the workflow data folders, the Tier A files and the profiles. When the agent's own 3.5 run passed on the same tree with the same commands, the audit runs nothing: it copies that record and adds `reused_from`, the evidence dir it came from. A reused pass is a pass. Read `artifacts/<task-id>/`:
    - `toolchain.json` says `pass` and there is no `audit.json`: **clean**.
    - `audit.json` with outcome `gave-up`: the agent stopped on the same failure three times. **Not clean**: a fix round with `toolchain-digest.txt`.
    - `audit.json` with outcome `warning` (or a new line in `artifacts/audit-warnings.jsonl`): the audit could not run. Run it yourself: `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id T3 --cwd <worktree> --reuse`. Exit 0 is clean; exit 1 is a fix round with its digest; exit 2 is a header or profile problem the agent cannot fix: relaunch with a corrected header, or treat a profile problem as `profile-wrong`.
@@ -264,12 +264,12 @@ After each wave's 3.15, if the harness exists, run the harness on the merged spe
 .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id gate-3.9-w<N> --work-type test-harness --cwd "$PWD" --exclude-unfinished --reuse
 ```
 
-It runs the `test-harness` profile's keys, `test` being the harness command recorded in `## Suites`, with the `tests` of every task not yet `done` excluded through the profile's `test_scoped` key; evidence lands in `artifacts/gate-3.9-w<N>/`. With `--reuse`, a passing full record for the same merged tree and profile is copied (`reused_from`) and nothing runs again. Without `test_scoped` a failing `test` is reported `unscoped` (a warning, exit 0): read `toolchain.txt` yourself and judge it by the bar below. This is now the rare case, a profile that has no `test_scoped` key. Also run the CI check when it has a local entry point. Report CI green only from a run you saw.
+It runs the `test-harness` profile's keys, `test` being the harness command recorded in `## Suites`, with the `tests` of every task not yet `done` excluded through the profile's `test_scoped` key; evidence lands in `artifacts/gate-3.9-w<N>/`. With `--reuse`, a passing record of the same merged tree with the same commands is copied (`reused_from`) and nothing runs again. Short of that, a key whose exact command already passed on this tree is not run again: when the merged tree is the one the task's own run passed (one task, or a light-path fast-forward), its `test` result is reused even though that run used another profile, and only this profile's `lint` runs. The reused result carries `reused_from`. Without `test_scoped` a failing `test` is reported `unscoped` (a warning, exit 0): read `toolchain.txt` yourself and judge it by the bar below. This is now the rare case, a profile that has no `test_scoped` key. Also run the CI check when it has a local entry point. Report CI green only from a run you saw.
 
 The spec branch is red by design until the last wave, so the bar depends on the wave:
 
 - **Not the last wave:** passes when every test that passed at `impl_base_revision` still passes and every test of a `done` task passes: the scoped run exits 0. Tests of tasks not yet merged are excluded and may still fail.
-- **The last wave** (no task left `pending`): every task is `done`, so nothing is excluded and the whole harness must pass. CI green is required only here.
+- **The last wave** (no task left `pending`): every task is `done`, so nothing is excluded and the whole harness must pass. CI green is required only here. When Phase 1 ran as tests in tasks (`Phase 1: tests in tasks` in `design-log.md`), run the deferred 1.4 check on the merged wave first ([verification-setup](verification-setup.md#14-do-both-suites-fail-a-known-bad-build), "Tests in tasks").
 
 - **Yes:** next frontier.
 - **No:** find the task whose module and seam the failing tests cover and reopen it:
@@ -291,7 +291,16 @@ After the last wave passes 3.9 (or straight after its 3.15 when only the browser
 
 When 3.1 found a suite missing (light path only), run the suite that exists and skip only the missing suite's gate: 3.9 for the harness, 3.10-3.11 for the browser suite. Record each gap; it is never reported as a pass:
 
-1. Load `modules/deferred-handoff.md` with each missing suite as a `3.14 suite gap` item. It writes `.workflow/deferred/<slug>.md`, sets step 3.14 and adds the path to `deferred` in `spec.md`; in that same `spec.md` write, add one line per skipped gate under `## Known gaps` with the handoff link.
+1. **Record each missing suite on the shelf.** A project that lacked the suite before already has a shelf file for it; list the suite-gap files and read each one's Summary line:
+
+   ```bash
+   grep -l '^\*\*Origin:\*\*.*3\.14 suite gap' .workflow/deferred/*.md
+   ```
+
+   - **A file for this suite exists** (its Summary names the same missing suite): add to it without asking. `.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 3.14`, then append one line to its **Later requests** section, `- .workflow/specs/NNN-slug, 3.14: <suite> gate skipped again; <why the suite is still missing> at commit <git rev-parse HEAD>.`, add the file's path to `deferred` in `spec.md` and log a one-line note in `design-log.md`.
+   - **None exists** (the first time this project shows the gap): load `modules/deferred-handoff.md` with the missing suite as a `3.14 suite gap` item. It writes `.workflow/deferred/<slug>.md`, sets step 3.14 and adds the path to `deferred` in `spec.md`.
+
+   In that same `spec.md` write, add one line per skipped gate under `## Known gaps` with the shelf file's link.
 2. **Only the harness exists:** once every task is `done` or `split-out` and 3.9 passes, `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug in-review --step 3.14`. **Only the browser suite exists:** 3.11 sets `in-review` as above. **Neither exists:** set `in-review` at 3.14 once every task is `done` or `split-out`, and go straight to Phase 4. Sign-off flags the gap in the 5.4 report.
 
 ## Discovered work (00.21)

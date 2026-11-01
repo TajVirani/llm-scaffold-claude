@@ -48,7 +48,7 @@ Spec: [spec.md](spec.md)
 
 ## YYYY-MM-DD Deeper prompt
 
-<!-- 0.3.22. Written by the deeper-prompt skill once the stakeholder explicitly agrees; the questioning loop takes it as input. A re-agreed prompt is a new entry; the loop reads the newest. -->
+<!-- 0.3.22. Written by the deeper-prompt skill with its agreement pending; the questioning loop asks for it in its first ask and logs the answer in that round. A changed prompt is a new entry; the loop reads the newest. -->
 
 **Ask:** <the request, restated at the elevated level>
 
@@ -65,7 +65,9 @@ Spec: [spec.md](spec.md)
 
 **Original request:** "<verbatim>"
 
-Revisions: <one line per restate round: what the stakeholder changed>, or "agreed as first restated".
+Revisions: <one line per restate round: what the stakeholder changed>, or "first restatement".
+
+Agreement: <pending, asked in the first questioning ask | agreed in Questioning round <n>>
 
 ## YYYY-MM-DD Questioning round <n>
 

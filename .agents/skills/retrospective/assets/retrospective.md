@@ -24,6 +24,18 @@ How to fill it in:
 - Evidence available: <test output, metrics, review findings, design-log.md>
 - Evidence missing: <what could not be gathered, or "None.">
 
+## Measurements
+
+Counted from the spec folder and git as `modules/evidence.md` says; `not recorded` where the files do not hold the number.
+
+| Measure | Value |
+| --- | --- |
+| Elapsed | <first log date; first and last commit time; span> |
+| Waits | <answers recorded; minutes: not recorded> |
+| Agent launches | <implementation n, mini-review n, integration n, review lenses n; discovery: not recorded> |
+| Harness runs | <n run (n pass, n fail), n reused> |
+| Findings by class | <triage: n high, n medium, n low, n maybe-false, n false; routes: n patch, n defer, n dismissed, n discovered work; mini-review fails n> |
+
 ## Result against the spec
 
 Judge the combined result of all tasks against `spec.md`, not task by task.

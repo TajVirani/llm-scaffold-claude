@@ -5,11 +5,11 @@
 #   and with --reuse the earlier records at .workflow/specs/NNN-slug/artifacts/*/toolchain.json.
 # Outputs/handoff: Tool output saved to .workflow/specs/NNN-slug/artifacts/<task-id>/toolchain.txt; exit 0 = clean (orchestrator launches profile-mini-review), non-zero = failures printed for the implementer, so the stop is blocked until they are fixed.
 # Called by: post-implementation-audit.sh (Claude, SubagentStop adapter, always with --reuse); the orchestrator directly on Codex or other hosts without that event.
-# Steps: 3.5, 3.6; 3.9 (gate run with --exclude-unfinished and --reuse); 5.4 (with --reuse).
+# Steps: 3.5, 3.6; 3.9 (gate run with --exclude-unfinished and --reuse); 5.4 (with --reuse); 5.8 (--reuse-check after a local merge).
 # Sources: first-party.
 #
 # CLI: run-toolchain.sh --spec-dir <.workflow/specs/NNN-slug> --task-id <id> [--cwd <dir>] [--work-type <name> | --profile <path>]
-#                       [--e2e] [--skip <key>]... [--exclude-unfinished] [--reuse] [--tail <N>] [-h]
+#                       [--e2e] [--skip <key>]... [--exclude-unfinished] [--reuse | --reuse-check] [--tail <N>] [-h]
 #      run-toolchain.sh --tree-hash [--cwd <dir>]
 #   --spec-dir   feature directory; relative paths resolve against the main checkout. Required (not with --tree-hash).
 #   --task-id    task id (T1, ...); names the evidence directory. Required (not with --tree-hash).
@@ -21,7 +21,10 @@
 #                results as status skipped, reason "skipped by caller". Used for Phase 1 stop audits, which skip `test` because new tests are red by design.
 #   --exclude-unfinished  scope `test` for a gate run whose --task-id is not a task record (e.g. the 3.9 harness gate, `--task-id gate-3.9-w2`):
 #                exclude the Phase 1 tests of every task whose status is not done (see Test scoping). A task-record --task-id scopes automatically.
-#   --reuse      before running anything, look for an earlier passing record of the same checkout content (see Reuse); on a hit copy it and run nothing.
+#   --reuse      before running anything, look for an earlier passing record of the same checkout content (see Reuse); on a hit copy it and run nothing,
+#                otherwise run only the keys no earlier record passed with the same command.
+#   --reuse-check  look for a whole-record hit as --reuse does and only report it: on a hit print the task id that ran the commands and exit 0,
+#                on a miss print nothing and exit 1. Runs nothing and writes nothing (sign-off's check after a local merge). Not with --reuse.
 #   --tree-hash  print the tree hash of --cwd (see Tree hash) on stdout and exit 0; needs no spec dir, task id or profile.
 #   --tail       lines of output kept per failing command in the digest (default 40).
 # Test scoping (Phase 1 tests are red by design until the task that owns them is merged):
@@ -41,13 +44,18 @@
 #   toolchain.json results for test carry `scoped` (true when test_scoped ran), `own` and `excluded` (selector counts) when scoping applied.
 # Tree hash: a git tree object id for the checkout's content at --cwd's repository top level, tracked and untracked files alike (ignored files
 #   stay out), minus the workflow data folders (specs, initiatives, deferred, decisions, .handoff, .worktrees, .cache-staging, .standards-staging
-#   under the workflow root), so writing evidence or a step marker never changes it. Built in a temporary index; the checkout's index is not touched.
+#   under the workflow root), so writing evidence or a step marker never changes it, and minus the Tier A files sign-off edits (capabilities.md,
+#   review-lessons.md, GLOSSARY.md, rules.md) and the profiles: a profile edit that changes a command still misses, because Reuse compares each
+#   command. Built in a temporary index; the checkout's index is not touched.
 # Reuse (--reuse): candidates are <spec-dir>/artifacts/*/toolchain.json, this task's own record first, then the others by directory name.
-#   A candidate matches when its status is pass, its `tree` equals this checkout's, its profile is the same file (compared relative to each
-#   run's --cwd), every key this run would execute is `pass` there with the same command (a `skipped` key does not match), and it is either
-#   unscoped or its task_id is this task id. On a hit its toolchain.txt and toolchain.json are copied into this evidence dir (left in place
-#   when the hit is this dir), the json's task_id, cwd and evidence_dir are set to this run's and `reused_from` names the task that ran the
-#   commands; any toolchain-digest.txt there is removed, the summary is printed as for a run, and the exit is 0.
+#   A candidate matches when its status is pass, its `tree` equals this checkout's, every key this run would execute is `pass` there with the
+#   same command (a `skipped` key does not match), and it is either unscoped or its task_id is this task id. Which profile file named the
+#   commands does not matter. On a hit its toolchain.txt and toolchain.json are copied into this evidence dir (left in place when the hit is
+#   this dir), the json's task_id, work_type, profile, cwd and evidence_dir are set to this run's and `reused_from` names the task that ran the commands; any
+#   toolchain-digest.txt there is removed, the summary is printed as for a run, and the exit is 0.
+#   Without a whole-record hit, each key is looked up on its own in the same order: a key whose exact command is `pass` in a passing candidate
+#   of the same tree (a scoped result only from this task's own record) is not run. Its result is copied with `reused_from` and its
+#   toolchain.txt section names the record; the other keys run. So a gate under another profile whose `test` matches the task's runs only its lint.
 # Commands: keys lint, typecheck, format, boundary, test (then e2e) from the profile's Toolchain yaml block, run in that order with `bash -c` in --cwd.
 #   `test` is the harness command that 3.5 runs and the 3.9 gate reuses.
 #   Empty or absent keys are skipped. All commands run even after a failure so one block reply lists every failure. Other keys are ignored,
@@ -56,8 +64,9 @@
 #   toolchain.json (the summary below) and toolchain-digest.txt (failure digest; present only on failure).
 # stdout: one JSON object {status: pass|fail, task_id, work_type, profile, cwd, evidence_dir, tree, ran, results:[{key, command, status: pass|fail|skipped|unscoped, exit_code, reason?, scoped?, own?, excluded?}], digest, warnings?, reused_from?}.
 #   digest is "" on pass; on failure it is bounded text suitable as a SubagentStop block reason. The digest is also printed to stderr on failure.
-#   With --tree-hash, stdout is the 40-hex tree hash alone.
-# Exit: 0 all run commands passed (or a reuse hit, or --tree-hash printed); 1 at least one failed; 2 usage or config error, including --cwd outside a git repository (message on stderr, no JSON).
+#   With --tree-hash, stdout is the 40-hex tree hash alone. With --reuse-check, stdout is the hit's task id alone, or nothing.
+# Exit: 0 all run commands passed (or a reuse hit, or --tree-hash printed); 1 at least one failed, or --reuse-check found no hit;
+#   2 usage or config error, including --cwd outside a git repository (message on stderr, no JSON).
 # Requires: bash, jq, mikefarah yq v4, git.
 
 set -euo pipefail
@@ -67,15 +76,16 @@ set -euo pipefail
 
 die() { echo "run-toolchain.sh: $*" >&2; exit 2; }
 
-# tree_hash DIR : print the tree hash of DIR's repository content, without the workflow data folders.
+# tree_hash DIR : print the tree hash of DIR's repository content, without the workflow data folders, the Tier A files and the profiles.
 tree_hash() {
-  local top real idx err rc=0 hash="" folder
-  local data_dirs=("$WF_SPECS" "$WF_INITIATIVES" "$WF_DEFERRED" "$WF_DECISIONS" "$WF_HANDOFF" "$WF_WORKTREES" "$WF_CACHE_STAGING" "$WF_STANDARDS_STAGING")
+  local top real idx err rc=0 hash="" path
+  local left_out=("$WF_SPECS" "$WF_INITIATIVES" "$WF_DEFERRED" "$WF_DECISIONS" "$WF_HANDOFF" "$WF_WORKTREES" "$WF_CACHE_STAGING" "$WF_STANDARDS_STAGING"
+    "$WF_CAPABILITIES" "$WF_REVIEW_LESSONS" "$WF_GLOSSARY" "$WF_RULES" "$WF_PROFILES")
   local excludes=()
   top=$(git -C "$1" rev-parse --show-toplevel 2>/dev/null) || die "--cwd is not inside a git repository: $1"
-  # git add refuses a pathspec naming an ignored folder, even an exclude; git add skips ignored folders anyway.
-  for folder in "${data_dirs[@]}"; do
-    git -C "$top" check-ignore -q -- "$folder" || excludes+=(":(exclude)$folder")
+  # git add refuses a pathspec naming an ignored path, even an exclude; git add skips ignored paths anyway.
+  for path in "${left_out[@]}"; do
+    git -C "$top" check-ignore -q -- "$path" || excludes+=(":(exclude)$path")
   done
   real=$(git -C "$top" rev-parse --path-format=absolute --git-path index) || die "cannot locate the git index for $top"
   idx=$(mktemp "${TMPDIR:-/tmp}/run-toolchain-index.XXXXXX") || die "cannot create a temporary index"
@@ -87,7 +97,7 @@ tree_hash() {
     exec 2>"$err"
     cd "$top" || exit 1
     export GIT_INDEX_FILE="$idx"
-    git rm -r -q --cached --ignore-unmatch -- "${data_dirs[@]}" >/dev/null &&
+    git rm -r -q --cached --ignore-unmatch -- "${left_out[@]}" >/dev/null &&
       git add -A -- . "${excludes[@]}" &&
       git write-tree
   ) || rc=$?
@@ -101,7 +111,7 @@ tree_hash() {
   printf '%s\n' "$hash"
 }
 
-spec_dir="" task_id="" cwd="." work_type="" profile="" want_e2e=0 tail_n=40 skips=" " excl_unfinished=0 reuse=0 tree_only=0
+spec_dir="" task_id="" cwd="." work_type="" profile="" want_e2e=0 tail_n=40 skips=" " excl_unfinished=0 reuse=0 reuse_check=0 tree_only=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --spec-dir) [ $# -ge 2 ] || die "--spec-dir needs a value"; spec_dir=$2; shift 2 ;;
@@ -117,6 +127,7 @@ while [ $# -gt 0 ]; do
     --tail) [ $# -ge 2 ] || die "--tail needs a value"; tail_n=$2; shift 2 ;;
     --exclude-unfinished) excl_unfinished=1; shift ;;
     --reuse) reuse=1; shift ;;
+    --reuse-check) reuse_check=1; shift ;;
     --tree-hash) tree_only=1; shift ;;
     -h|--help) sed -n '2,/^set -euo/p' "$0" | sed '$d'; exit 0 ;;
     *) die "unknown argument: $1" ;;
@@ -132,6 +143,7 @@ fi
 
 [ -n "$spec_dir" ] || die "missing --spec-dir"
 [ -n "$task_id" ] || die "missing --task-id"
+[ "$reuse" -eq 0 ] || [ "$reuse_check" -eq 0 ] || die "--reuse and --reuse-check cannot be combined"
 case "$tail_n" in ''|*[!0-9]*) die "--tail must be a non-negative integer" ;; esac
 command -v jq >/dev/null 2>&1 || die "jq not found"
 command -v yq >/dev/null 2>&1 || die "yq not found (mikefarah yq v4 required)"
@@ -192,7 +204,6 @@ warnings='[]'
 
 tree=$(tree_hash "$cwd")
 evidence_dir=$spec_abs/artifacts/$task_id
-mkdir -p "$evidence_dir" || die "cannot create $evidence_dir"
 
 keys=(lint typecheck format boundary test)   # serve, serve_ready, config, rule_set are never run
 [ "$want_e2e" -eq 1 ] && keys+=(e2e)
@@ -225,41 +236,72 @@ done
 # An unreadable or older record without a tree is not an error, only a miss: the commands then run as usual.
 reuse_match() {
   [ -f "$(dirname "$1")/toolchain.txt" ] || return 1
-  jq -e --arg tree "$tree" --arg prel "${profile#"$cwd"/}" --arg task "$task_id" --argjson need "$planned" '
-    (.profile as $p | (.cwd // "") as $c | if ($c != "" and ($p | startswith($c + "/"))) then $p[($c | length) + 1:] else $p end) as $crel
-    | .status == "pass" and .tree == $tree and $crel == $prel
+  jq -e --arg tree "$tree" --arg task "$task_id" --argjson need "$planned" '
+    .status == "pass" and .tree == $tree
       and (.results as $r | all($need[]; . as $n | any($r[]; .key == $n.key and .status == "pass" and .command == $n.command)))
       and ((any(.results[]; .scoped == true) | not) or .task_id == $task)' "$1" >/dev/null 2>&1
 }
 
-if [ "$reuse" -eq 1 ]; then
-  hit=""
+# reused_key FILE KEY COMMAND : print KEY's result from the record at FILE, stamped with the task that ran it, when it passed there with
+# COMMAND on this tree; print nothing otherwise.
+reused_key() {
+  jq -c --arg tree "$tree" --arg task "$task_id" --arg k "$2" --arg c "$3" --arg src "$(dirname "$1")/toolchain.txt" '
+    select(.status == "pass" and .tree == $tree) | . as $rec
+    | first(.results[] | select(.key == $k and .command == $c and .status == "pass" and (.scoped != true or $rec.task_id == $task)))
+    | . + {reused_from: (.reused_from // $rec.reused_from // $rec.task_id), reused_txt: $src}' "$1" 2>/dev/null || true
+}
+
+plan_reused=()
+for i in "${!keys[@]}"; do plan_reused[i]=""; done
+if [ "$reuse" -eq 1 ] || [ "$reuse_check" -eq 1 ]; then
   own_record=$evidence_dir/toolchain.json
-  if [ -f "$own_record" ] && reuse_match "$own_record"; then hit=$own_record; fi
-  if [ -z "$hit" ]; then
-    for cand in "$spec_abs"/artifacts/*/toolchain.json; do
-      [ "$cand" != "$own_record" ] || continue
-      if [ -f "$cand" ] && reuse_match "$cand"; then hit=$cand; break; fi
-    done
+  candidates=()
+  [ ! -f "$own_record" ] || candidates+=("$own_record")
+  for cand in "$spec_abs"/artifacts/*/toolchain.json; do
+    if [ -f "$cand" ] && [ "$cand" != "$own_record" ]; then candidates+=("$cand"); fi
+  done
+  hit=""
+  for cand in ${candidates[@]+"${candidates[@]}"}; do
+    if reuse_match "$cand"; then hit=$cand; break; fi
+  done
+  if [ "$reuse_check" -eq 1 ]; then
+    [ -n "$hit" ] || exit 1
+    jq -r '.reused_from // .task_id' "$hit" || die "cannot read $hit"
+    exit 0
   fi
   if [ -n "$hit" ]; then
     hit_dir=$(dirname "$hit")
-    summary=$(jq --arg task "$task_id" --arg cwd "$cwd" --arg ev "$evidence_dir" \
-      '. + {task_id:$task, cwd:$cwd, evidence_dir:$ev, reused_from:(.reused_from // .task_id)}' "$hit") || die "cannot read $hit"
+    mkdir -p "$evidence_dir" || die "cannot create $evidence_dir"
+    summary=$(jq --arg task "$task_id" --arg wt "$work_type" --arg profile "$profile" --arg cwd "$cwd" --arg ev "$evidence_dir" \
+      '. + {task_id:$task, work_type:$wt, profile:$profile, cwd:$cwd, evidence_dir:$ev, reused_from:(.reused_from // .task_id)}' "$hit") || die "cannot read $hit"
     [ "$hit_dir" = "$evidence_dir" ] || cp "$hit_dir/toolchain.txt" "$evidence_dir/toolchain.txt" || die "cannot copy $hit_dir/toolchain.txt"
     printf '%s\n' "$summary" > "$evidence_dir/toolchain.json"
     rm -f "$evidence_dir/toolchain-digest.txt"
     printf '%s\n' "$summary"
     exit 0
   fi
+  for i in "${!keys[@]}"; do
+    [ -z "${plan_skip[$i]}" ] || continue
+    for cand in ${candidates[@]+"${candidates[@]}"}; do
+      plan_reused[i]=$(reused_key "$cand" "${keys[$i]}" "${plan_cmd[$i]}")
+      [ -z "${plan_reused[$i]}" ] || break
+    done
+  done
 fi
 
+mkdir -p "$evidence_dir" || die "cannot create $evidence_dir"
 : > "$evidence_dir/toolchain.txt"
 results='[]' digest="" ran=0 failed=0
 for i in "${!keys[@]}"; do
   key=${keys[$i]} cmd=${plan_cmd[$i]} scoped=${plan_scoped[$i]} unscoped=${plan_unscoped[$i]}
   if [ -n "${plan_skip[$i]}" ]; then
     results=$(jq -c --arg k "$key" --arg r "${plan_skip[$i]}" '. + [{key:$k, command:"", status:"skipped", exit_code:null, reason:$r}]' <<<"$results")
+    continue
+  fi
+  if [ -n "${plan_reused[$i]}" ]; then
+    src=$(jq -r '.reused_txt' <<<"${plan_reused[$i]}")
+    printf '== %s: %s\n(not run: passed on this tree in %s)\n== %s exit 0\n\n' "$key" "$cmd" "$src" "$key" >> "$evidence_dir/toolchain.txt"
+    results=$(jq -c --argjson r "${plan_reused[$i]}" '. + [$r | del(.reused_txt)]' <<<"$results")
     continue
   fi
   log=$(mktemp)
