@@ -85,7 +85,7 @@ map_contexts() {
   awk '
     { sub(/\r$/, "") }
     /^## / { in_contexts = ($0 ~ /^## Contexts[[:space:]]*$/); next }
-    in_contexts && /^[-*][[:space:]]+\[[^]]+\]\([^)]+\)/ {
+    in_contexts && /^[-*][[:space:]]+\[[^]]+\]\([^)]*\)/ {
       link = $0
       sub(/^[-*][[:space:]]+\[/, "", link)
       context = link
@@ -118,12 +118,12 @@ if [ -e "$WF_GLOSSARY_MAP" ]; then
   [ -n "$links" ] || die "$WF_GLOSSARY_MAP links no context glossary under its ## Contexts heading"
   while IFS=$'\t' read -r context glossary; do
     [ -n "$glossary" ] || die "the $context context in $WF_GLOSSARY_MAP links no glossary path"
-    [ -r "$glossary" ] || die "cannot read $glossary, the $context glossary $WF_GLOSSARY_MAP links"
+    [ -f "$glossary" ] && [ -r "$glossary" ] || die "the $context context in $WF_GLOSSARY_MAP links $glossary, which is not a readable file"
     contexts+=("$context")
     glossaries+=("$glossary")
   done <<<"$links"
 elif [ -e "$WF_GLOSSARY" ]; then
-  [ -r "$WF_GLOSSARY" ] || die "cannot read $WF_GLOSSARY"
+  [ -f "$WF_GLOSSARY" ] && [ -r "$WF_GLOSSARY" ] || die "$WF_GLOSSARY is not a readable file"
   contexts=("")
   glossaries=("$WF_GLOSSARY")
 fi

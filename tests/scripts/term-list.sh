@@ -5,7 +5,8 @@
 #   naming two context glossaries it prints the terms of both, each line labelled with its context, and leaves out a root
 #   glossary the map does not name. --define prints exactly the one whole entry (with or without an _Avoid_ line, and a
 #   term from a mapped context), and exits non-zero for a term no glossary holds. Usage errors exit 2, and so does a map
-#   that links no context glossary (a misspelt or missing ## Contexts heading) or a context link with an empty path.
+#   that links no context glossary (a misspelt or missing ## Contexts heading), a context link with an empty path or with
+#   nothing between its parentheses, and a context link or root glossary that is a folder rather than a file.
 #   Map links resolve from the project root, as the glossary format's own example (./src/ordering/GLOSSARY.md) does.
 # Env: TEST_BASH=<bash binary> runs the script under another bash (default: bash).
 # shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose, and call helpers shellcheck cannot see
@@ -157,6 +158,15 @@ EMPTY_PATH=$(map_fixture empty-path "$(printf '%s\n' '# Glossary Map' '' '## Con
 t "a context link with an empty path exits 2" 2 term_list "$EMPTY_PATH"
 empty_path_err=$(term_list "$EMPTY_PATH" 2>&1 >/dev/null)
 check "the empty-path message names the context" 'grep -qF Billing <<<"$empty_path_err"' "$empty_path_err"
+NO_PATH=$(map_fixture no-path "$(printf '%s\n' '# Glossary Map' '' '## Contexts' '' '- [Billing]()')")
+t "a context link with nothing between its parentheses exits 2" 2 term_list "$NO_PATH"
+no_path_err=$(term_list "$NO_PATH" 2>&1 >/dev/null)
+check "the no-path message names the context" 'grep -qF Billing <<<"$no_path_err"' "$no_path_err"
+FOLDER_LINK=$(map_fixture folder-link "$(printf '%s\n' '# Glossary Map' '' '## Contexts' '' '- [Ordering](./src/ordering/)')")
+mkdir -p "$FOLDER_LINK/src/ordering"
+t "a context link to a folder exits 2" 2 term_list "$FOLDER_LINK"
+folder_link_err=$(term_list "$FOLDER_LINK" 2>&1 >/dev/null)
+check "the folder-link message names the context" 'grep -qF Ordering <<<"$folder_link_err"' "$folder_link_err"
 MISSPELT=$(map_fixture misspelt "$(printf '%s\n' '# Glossary Map' '' '## Context' '' '- [Billing](./src/billing/GLOSSARY.md)')")
 t "a map whose Contexts heading is misspelt exits 2" 2 term_list "$MISSPELT"
 misspelt_err=$(term_list "$MISSPELT" 2>&1 >/dev/null)
@@ -164,6 +174,13 @@ check "the misspelt-heading message names the Contexts section" 'grep -qF "## Co
 t "--define on a map naming no context exits 2" 2 term_list "$MISSPELT" --define Leftover
 NO_HEADING=$(map_fixture no-heading '# Glossary Map')
 t "a map with no Contexts section exits 2" 2 term_list "$NO_HEADING"
+
+echo "== a root glossary that is a folder"
+ROOT_FOLDER=$WORK/root-folder
+git_init_repo "$ROOT_FOLDER"
+copy_agents "$ROOT_FOLDER"
+mkdir -p "$ROOT_FOLDER/.workflow/GLOSSARY.md"
+t "a root glossary that is a folder exits 2" 2 term_list "$ROOT_FOLDER"
 
 shellcheck_files "shellcheck: term-list.sh" "$AGENTS_SRC/skills/domain-modeling/scripts/term-list.sh"
 finish
