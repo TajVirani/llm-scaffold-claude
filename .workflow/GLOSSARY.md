@@ -82,6 +82,10 @@ _Avoid_: Common rules, shared rules (clash with shared core)
 The short route for a small, clear request: three facts clean (no intent gaps, no irreversible actions, small footprint) lead to a one-task plan and straight to implementation against the existing suites.
 _Avoid_: Fast track, quick mode
 
+**Small path**:
+The route picked at intake for a request that already names the file to change, the cause and the test that proves the fix, as a work-backlog item usually does. It is built as a **light path** spec, with one questioning round, no library evaluation, one combined review, a five-line report and the retrospective folded into the sign-off ask. It drops to the light or full path as soon as the request proves bigger.
+_Avoid_: Quick fix, mini path, backlog path
+
 **Full path**:
 The complete route for any request that does not qualify for the **light path**: discovery, verification setup, task breakdown, implementation, review and sign-off.
 _Avoid_: Heavy path, medium path
@@ -190,7 +194,7 @@ _Avoid_: Quota, cap
 - **Discovered work** the user keeps for later becomes one line on its spec's list in the **Work backlog**; out-of-scope items found during discovery go through a **Deferred handoff** instead.
 - A crossed **Size budget** is handled like **Discovered work**.
 - The **Deeper prompt** is the input from which the questioning loop computes its first **Frontier**.
-- Each task has one **Task file** and, on the full path, one **Task branch**; every **Task branch** forks from and merges into the spec's one **Spec branch**.
+- Each task has one **Task file** and one **Task branch**, on every path; every **Task branch** forks from and merges into the spec's one **Spec branch**.
 - A **Large path** runs on exactly one **Initiative** and emits one or more specs; each emitted spec takes the **Light path** or the **Full path**.
 - A spec whose discovery finds several features converts into an **Initiative**; a **Deferred handoff** item that grows large or unclear seeds one.
 - An **Initiative** holds many **Initiative questions** and many **Slices**; each **Slice** becomes exactly one spec, and an **Initiative question** may depend on an emitted spec.

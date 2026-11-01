@@ -30,7 +30,7 @@ Entry shape (newest first):
 - What happened: the shipped `assets/pr-template.md` issue stub named `.workflow/deferred/spec-issue-creation.md`, a file only this scaffold repo holds, so every target project's Sign-off PR would cite a dead path (F1, medium, a rework); the T6 fix round then failed mini-review R4 for naming `.workflow/deferred/` in the same template's guidance.
 - Where: `.agents/skills/*/assets/` (installed into target projects)
 - Spec: .workflow/specs/done/008-pr-description-template
-- Prevented by: none yet (the shelved lint `.workflow/deferred/comment-id-lint.md`, widened at T6 to asset-template guidance comments)
+- Prevented by: partly. `check-comments.sh` now fails ids and `.workflow/` paths in shell comments; asset-template guidance comments are not covered yet (design: `.workflow/deferred/archive/comment-id-lint.md`)
 
 ## Grep the modules for the old behaviour when a loop-back decision changes a script
 - What happened: D19 (from the 4.5 loop-back) made `check-pr-body.sh` project mode read every heading level, but `modules/sign-off.md` 5.4 still said a host template had only `##` headings and that exit 2 meant "no `##` headings"; both review lenses flagged it (F7, F8, medium), costing rework 1.
