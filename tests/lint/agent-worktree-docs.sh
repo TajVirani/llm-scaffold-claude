@@ -108,6 +108,7 @@ check "JRN-008 the gate runs before the 3.2 integration merge" 'gate_before_site
 check "JRN-008 the gate runs before the 3.16 task merge" 'gate_before_site "$IO" "git merge --no-ff -m \"Merge T"'
 check "the light path has no detached task worktree" '[ -z "$(lines "$IO" "git worktree add --detach")" ]' "$(lines "$IO" "git worktree add --detach")"
 check "the light path merges no task by fast-forward" '[ -z "$(lines "$IO" "--ff-only")" ]' "$(lines "$IO" "--ff-only")"
+check "the orchestrator names no light-path fast-forward" '[ -z "$(lines "$IO" "fast-forward")" ]' "$(lines "$IO" "fast-forward")"
 calls=$(cat "$VS" "$IO" | grep 'check-merge-artifacts\.sh' || true)
 check "JRN-008 every gate call passes --rev" '[ -n "$calls" ] && ! grep -v -- "--rev" <<<"$calls" | grep -q .' "$calls"
 check "JRN-008 no gate call is piped into another command" '[ -n "$calls" ] && ! grep -qE "check-merge-artifacts\.sh[^|]*\|[^|]" <<<"$calls"' "$calls"
