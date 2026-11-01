@@ -73,7 +73,7 @@ t "generated agents are current (--check)" 0 "$TEST_BASH" "$A/.agents/hooks/gene
 check "hooks.json equals the Codex template" '[ "$(jq -S . "$A/.codex/hooks.json")" = "$(jq -S . "$SC/.agents/hooks/codex-hooks.template.json")" ]'
 check "config.toml parses to the template values" '[ "$(yq -p toml -o json -I=0 . "$A/.codex/config.toml")" = "$(yq -p toml -o json -I=0 . "$SC/.agents/hooks/codex-config.template.toml")" ]'
 eq "config.toml sets the Codex context bar" "$(yq -p toml -o json -I=0 .tui.status_line "$A/.codex/config.toml")" '["model-with-reasoning","context-remaining","current-dir","git-branch"]'
-for p in '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.cache-staging/' '.workflow/.worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/'; do
+for p in '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.cache-staging/' '.workflow/.worktrees/' '.workflow/.spec-worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/'; do
   check ".gitignore has $p" 'grep -qxF -- "$p" "$A/.gitignore"'
 done
 check "install creates no .workflow/" '[ ! -e "$A/.workflow" ]'

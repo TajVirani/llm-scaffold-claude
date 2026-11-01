@@ -28,8 +28,9 @@
 #      .codex/config.toml. yq v4 reads TOML but cannot write tables, so the
 #      config is edited through marker blocks that later runs refresh in place; user text outside them is never rewritten.
 #      The tui block sets the built-in Codex status line; a [tui] table the user already has is kept with a warning.
-#   5. <target>/.gitignore: .workflow/specs/*/.step, .workflow/.cache-staging/, .workflow/.worktrees/, .workflow/.handoff/ and
-#      .workflow/.standards-staging/ in a marker block, since they hold local, in-progress state. Paths come from .agents/lib/workflow-paths.sh.
+#   5. <target>/.gitignore: .workflow/specs/*/.step, .workflow/initiatives/*/.step, .workflow/.cache-staging/, .workflow/.worktrees/,
+#      .workflow/.spec-worktrees/ (the worktrees specs run in), .workflow/.handoff/ and .workflow/.standards-staging/ in a marker
+#      block, since they hold local, in-progress state. Paths come from .agents/lib/workflow-paths.sh.
 #   Never creates or touches .workflow/: every project-owned file (GLOSSARY.md, rules.md, agent-overrides.yaml, model-map/,
 #   profiles/, decisions/, deferred/, specs/, ...) lives there and is created by the project-setup skill; nor the project's own docs/ and e2e/.
 #   Scaffold-only files (PLAN/, tests/, assetlist.md, checklist.md, PROVENANCE.md, CHANGELOG.md, upstream-lineage.json, scripts/,
@@ -82,7 +83,7 @@ CODEX_HOOKS_TPL=$SRC/hooks/codex-hooks.template.json
 CODEX_CONFIG_TPL=$SRC/hooks/codex-config.template.toml
 # shellcheck source=.agents/lib/workflow-paths.sh
 . "$SRC/lib/workflow-paths.sh"
-GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_INITIATIVES/*/.step" "$WF_CACHE_STAGING/" "$WF_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/")
+GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_INITIATIVES/*/.step" "$WF_CACHE_STAGING/" "$WF_WORKTREES/" "$WF_SPEC_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/")
 SHIM_DIRS="skills agents output-styles"
 
 die() { echo "install.sh: error: $*" >&2; exit 2; }

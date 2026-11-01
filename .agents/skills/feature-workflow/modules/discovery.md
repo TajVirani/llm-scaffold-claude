@@ -8,13 +8,11 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
 
 ## 0.1 Initialise the feature folder
 
-1. **0.1.1 Scan.** Find the highest number any spec has taken. A spec number lives on after its folder leaves the working tree: on a spec branch, in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (that spec folder is deleted, and its number is never reused). A finished spec also leaves the top level: 5.8 moves it into the Done folder, `.workflow/specs/done/`. So count the `NNN-slug` spec folders at the top level and in the Done folder, the `spec/*` branches local and on `origin`, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
+1. **0.1.1 Scan.** Find the highest number any spec has taken. Run it from the main checkout, where new work starts. A spec number lives on after its folder leaves the top level of `.workflow/specs/`: in its spec worktree while it runs (1.1, or 0.3.20 on the light path, moves the folder to `.workflow/.spec-worktrees/NNN-slug`), in the Done folder `.workflow/specs/done/` once 5.8 has moved it, in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (that spec folder is deleted, and its number is never reused). Branches are not counted: 5.8 deletes a spec branch once it merges, and every spec it held is already in one of these places. So count the `NNN-slug` spec folders at the top level and in the Done folder, the spec worktrees, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
 
    ```bash
    {
-     for d in .workflow/specs/[0-9]*-*/ .workflow/specs/done/[0-9]*-*/; do [ -d "$d" ] && basename "$d"; done
-     git for-each-ref --format='%(refname:lstrip=3)' refs/heads/spec
-     git for-each-ref --format='%(refname:lstrip=4)' refs/remotes/origin/spec
+     for d in .workflow/specs/[0-9]*-*/ .workflow/specs/done/[0-9]*-*/ .workflow/.spec-worktrees/[0-9]*-*/; do [ -d "$d" ] && basename "$d"; done
      for f in .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && yq --front-matter=extract '.origin, (.slices // [] | .[].spec)' "$f"; done
      for ref in $(git for-each-ref --format='%(refname)' refs/heads/initiative refs/remotes/origin/initiative); do
        git show "$ref:.workflow/initiatives/${ref##*/}/initiative.md" 2>/dev/null | yq --front-matter=extract '.origin, (.slices // [] | .[].spec)'
@@ -166,13 +164,10 @@ The three facts (all must be clean for the light path):
 | Irreversible actions | No irreversible migration, data deletion, destructive external call, or removal of a public contract. |
 | Footprint | One owning module, one capability, small: as a rule of thumb about 100 changed lines; more than five files that are not simple or mechanical is not small. Read it from `codebase-map.md`. |
 
-- **`light_path: true` (pass).** Create the spec branch, write the size budget, the one-task `tasks.md` index and its task file, commit them, then set the status:
+- **`light_path: true` (pass).** Write the size budget, the one-task `tasks.md` index and its task file, create the spec worktree, which commits them on the spec branch, move the session into it, then set the status:
 
   ```bash
   ST step .workflow/specs/NNN-slug 0.3.20
-  # Spec branch (the light path has no task branch): off the main branch, carrying the uncommitted spec folder with it.
-  git switch -c spec/NNN-slug "$(.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch)"   # already on spec/NNN-slug (a loop-back): skip
-  # Edit the spec.md frontmatter line to `spec_branch: spec/NNN-slug`.
   # Read the project defaults from .workflow/rules.md "## Size budget":
   awk '/^## /{f=($0 ~ /^## Size budget[[:space:]]*$/); next} f && /^```ya?ml/{y=1; next} y && /^```/{exit} y' .workflow/rules.md | yq -o=json '.size_budget'
   # Edit the spec.md frontmatter line to `budget: {max_tasks: <n>, max_changed_files: <n>}` with those values,
@@ -184,13 +179,16 @@ The three facts (all must be clean for the light path):
   #   id: T1, title, status: pending, capability: <the spec's CAP id>, depends_on: [],
   #   touches_core: <true if a touched path is under Shared core>, work_type: null,
   #   module: <owning module>, seam: <interface under test agreed in the loop>,
-  #   file: tasks/T01-<slug>.md, branch: null, predicted_files, size, mode, parallel_with: [], pr: null
+  #   file: tasks/T01-<slug>.md, branch: task/NNN-slug/T01-<slug>, predicted_files, size, mode, parallel_with: [], pr: null
   # and a one-row Waves table; validate it with the yq validator in ../assets/tasks.md (prints true).
-  git add .workflow/specs/NNN-slug && git commit -m "Spec NNN-slug"   # the spec branch's first commit
+  # Spec branch in its own worktree off the main branch; the first commit carries the spec folder and discovery's other workflow data.
+  .agents/skills/feature-workflow/scripts/spec-worktree.sh create .workflow/specs/NNN-slug   # prints `worktree <path>`; a loop-back finds it and changes nothing
+  # Move the session into <path> (Claude Code: the EnterWorktree tool with that path; other hosts: reopen the session there).
+  # In the spec worktree: Edit the spec.md frontmatter line to `spec_branch: spec/NNN-slug`.
   ST status .workflow/specs/NNN-slug ready-for-dev --step 0.3.20
   ```
 
-  T1 commits straight onto the spec branch at 3.3 (`branch: null`); a `mode: hitl` T1 still gets the 3.3 pause.
+  `spec-worktree.sh create` prints `worktree <path>` and `baseline <sha>`; exit 1 names what to fix first, as at [1.1](verification-setup.md#11-measurable-targets-and-the-baseline). T1 gets its task branch and worktree at wave start and merges `--no-ff` at 3.16, as a full-path task does; a `mode: hitl` T1 still gets the 3.3 pause.
 
   Seeded from a work item: now delete the item (see [Seeded from a work item](#seeded-from-a-work-item)).
 

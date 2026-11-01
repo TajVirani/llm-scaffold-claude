@@ -121,11 +121,19 @@ _Avoid_: Status line (the host's context bar), progress bar
 ### Branches and tasks
 
 **Spec branch**:
-The branch `spec/NNN-slug` that carries all of one spec's work, created off main at 1.1 (0.3.20 on the light path). Red by design from the Phase 1 commit until the last wave merges; reaches main only through the sign-off PR (D85).
+The branch `spec/NNN-slug` that carries all of one spec's work, created off main at 1.1 (0.3.20 on the light path) and checked out in the spec's **Spec worktree**. Red by design from the Phase 1 commit until the last wave merges; reaches main only through the sign-off PR or local merge, and is deleted with the safe `git branch -d` once merged (D85, D111, D112).
 _Avoid_: Feature branch, integration branch
 
+**Spec worktree**:
+The git worktree `.workflow/.spec-worktrees/NNN-slug` inside the main checkout, on the **Spec branch**, that one spec runs in from 1.1 (0.3.20 on the light path) until sign-off removes it. The main checkout stays on its own branch, so several specs run in one clone (D111).
+_Avoid_: Spec clone, feature worktree
+
+**Spec checkout**:
+The checkout that holds one spec's step marker, `artifacts/` and agent worktrees, and where the orchestrator's session works: its **Spec worktree**, or the main checkout for a spec started before spec worktrees. Scripts find it with `wf_project_root` in `.agents/lib/workflow-paths.sh`, which maps an **Agent worktree** to the checkout it sits in (D111).
+_Avoid_: Main checkout (only the repository's first worktree), project root (ambiguous)
+
 **Task branch**:
-The short-lived branch `task/NNN-slug/Tnn-<slug>` one implementer works on, in its own worktree under `.workflow/.worktrees/`, forked from the **Spec branch** tip at wave start and deleted after it merges back (D85).
+The short-lived branch `task/NNN-slug/Tnn-<slug>` one implementer works on, on both paths, in its own **Agent worktree** under the **Spec checkout**'s `.workflow/.worktrees/`, forked from the **Spec branch** tip at wave start, merged back `--no-ff` and deleted after the merge (D85, D111).
 _Avoid_: Worktree branch, feature branch
 
 **Task file**:
@@ -133,15 +141,15 @@ The Markdown file `tasks/Tnn-<slug>.md` that holds one task's body (what to buil
 _Avoid_: Ticket, task section
 
 **Agent worktree**:
-The git worktree under `.workflow/.worktrees/<name>` that the orchestrator creates for one coding launch (a Phase 3 task, a Phase 1 build or an integration batch), named `s<NNN>_t<N>`, `s<NNN>_phase_1_<work type>` or `s<NNN>_integration_<work type>`. The worktree guard confines the agent to it.
+The git worktree under the **Spec checkout**'s `.workflow/.worktrees/<name>` that the orchestrator creates for one coding launch (a Phase 3 task, a Phase 1 build or an integration batch), named `s<NNN>_t<N>`, `s<NNN>_phase_1_<work type>` or `s<NNN>_integration_<work type>`. The worktree guard confines the agent to it.
 _Avoid_: Task worktree (Phase 1 and integration are not tasks), named worktree, isolation worktree (Claude Code's own `isolation: "worktree"`)
 
 **Result file**:
-The one YAML file a coding or review sub-agent (implementation, integration, profile-mini-review) writes under `<spec_dir>/artifacts/<id>/` in the main checkout, holding its structured result for the orchestrator to check by script. Not a Phase 4 lens's pass file.
+The one YAML file a coding or review sub-agent (implementation, integration, profile-mini-review) writes under `<spec_dir>/artifacts/<id>/` in the **Spec checkout**, holding its structured result for the orchestrator to check by script. Not a Phase 4 lens's pass file.
 _Avoid_: Return file, output file, result block (the block is its content)
 
 **Artifacts gate**:
-The check `check-merge-artifacts.sh` runs before every merge into the spec branch (1.2, 1.3, 3.2, 3.16, the light-path fast-forward). It refuses a branch or commit that adds, changes or deletes anything under `<spec_dir>/artifacts/` since its merge-base with the spec branch.
+The check `check-merge-artifacts.sh` runs before every merge into the spec branch (1.2, 1.3, 3.2, 3.16). It refuses a branch or commit that adds, changes or deletes anything under `<spec_dir>/artifacts/` since its merge-base with the spec branch.
 _Avoid_: Merge gate (too broad), artifacts check
 
 **Done folder**:
