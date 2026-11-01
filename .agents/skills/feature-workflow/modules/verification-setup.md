@@ -1,6 +1,6 @@
 # Phase 1: Verification setup
 
-You build the checks that will prove the feature, and prove that they can fail, before anyone writes feature code. You are done when every target in `verification-plan.md` has a threshold and an exact command, `baseline_revision` is set, the harness and the browser suite are merged into the spec branch, both suites have gone **red** on a known-bad build, every new test failing on an assertion, and the Phase 1 work is committed on the spec branch (1.5).
+You build the checks that will prove the feature, and prove that they can fail, before anyone writes feature code; a spec that adds nothing new to prove leaves the tests to its tasks instead ([Tests in tasks](#tests-in-tasks)). You are done when every target in `verification-plan.md` has a threshold and an exact command, `baseline_revision` is set, the harness and the browser suite are merged into the spec branch, both suites have gone **red** on a known-bad build, every new test failing on an assertion, and the Phase 1 work is committed on the spec branch (1.5).
 
 Everything here runs in the main session at spec status `ready-for-dev`. Phase 1 writes no status except `blocked` (1.4, 00.19; 00.21 through `modules/discovered-work.md`). Call the scripts from the project root exactly as written below, with the repo-relative `.agents/skills/feature-workflow/scripts/` prefix (sandboxed projects exclude these exact command lines). Mark each Phase 1 node as you enter it (`.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 1.<n>`) so a resumed session returns to it.
 
@@ -28,6 +28,17 @@ Everything here runs in the main session at spec status `ready-for-dev`. Phase 1
 2. **Fill the Targets table** of `verification-plan.md` (`## Targets`). First, when the handoff's resume or `design-log.md` records that the main branch moved since discovery (a "Main moved since handoff" entry), read the changes it lists in the affected area, and note in `design-log.md` any change to a contract the spec relies on. Cover performance, errors and coverage. Each row needs a threshold, the exact command that measures it, and the source of the threshold: a `spec.md` constraint, a `.workflow/rules.md` line, or a stakeholder decision. Thresholds the spec and rules do not give are decisions, so ask them: put every open threshold to the stakeholder in one round, each with a recommended value. A target that cannot be measured stays in the table with the reason in place of the command. A target never names the test harness or its pass count: the 3.9 gate proves the harness passes, so a Targets row measures something else.
 
 **Done when:** you are on `spec/NNN-slug`, `spec_branch` names it, `baseline_revision` is the full SHA of its first commit, and every row of `## Targets` has threshold, command (or the reason it cannot be measured) and source.
+
+## Tests in tasks
+
+Decide this after 1.1. A spec that adds no new capability (every capability in `spec.md` is an existing `CAP-###`, none is `CAP-NEW-*`) and needs no new suite (the harness exists, and so does the browser suite when a journey needs one) builds nothing in Phase 1: its implementers write the tests test-first inside their tasks, and 1.4 runs once, on the merged wave.
+
+- Skip the 1.2 and 1.3 launches, and log one line in `design-log.md`: `Phase 1: tests in tasks (no new capability or suite)`.
+- Set each journey's Check column in `## Journeys` to `in task`. Task breakdown puts each journey into the acceptance criteria of the task whose capability it proves; no task gets a `tests` list, so the spec branch stays green and every 3.9 gate runs the whole harness.
+- 1.4 waits for Phase 3: it runs once after the last wave is merged, before that wave's 3.9 gate (see [1.4](#14-do-both-suites-fail-a-known-bad-build), "Tests in tasks").
+- Go to 1.5 now: fill `## Suites`, and leave its 1.4 evidence cells as `after the last wave`.
+
+Any other full-path spec runs 1.2-1.4 as below.
 
 ## Launching a Phase 1 build
 
@@ -141,6 +152,15 @@ Record each run (fault, command, exit code, each new test with its first error m
     --blocked "<suite> cannot be made to fail a known-bad build: <what was tried>"
   ```
 
+**Tests in tasks.** The known-bad build is the merged wave's tests on the code as it was before the tasks. In a throwaway worktree at the spec-branch tip, put every file the tasks changed outside the test paths (the profiles' `test_patterns`) back as it was at `impl_base_revision`, deleting the files they added:
+
+```bash
+git diff --name-only <impl_base_revision> HEAD                  # in the scratch worktree; keep the test files
+git restore --source=<impl_base_revision> -- <each non-test file>
+```
+
+Run the harness, and the browser suite when it exists, with machine output under `artifacts/phase-1-known-bad/`, and record it as above. **Pass:** every test the tasks added fails on an assertion. A test that passes on the old code proves nothing: reopen the task that wrote it with that test named, give it a fix round, and run this check again after its merge. Then replace each `in task` in the Check column with the test name and fill the 1.4 evidence cells of `## Suites`.
+
 **Done when:** both suites have a recorded red run on a known-bad build in which every new test fails on an assertion.
 
 ## 1.5 Record the suites and hand off
@@ -154,6 +174,6 @@ git status --short                    # only spec-folder files may remain; anyth
 git add .workflow/specs/NNN-slug && git commit -m "Phase 1 for NNN-slug: suites red by design"
 ```
 
-From here the spec branch is **red by design**: the new harness tests and journeys fail until the tasks that make them pass are merged. It stays red through Phase 3 and goes green only when the last wave is merged and the full suite passes (3.9 after the last wave, 3.11, then Phase 4). Task branches fork from this state; 3.1 records the spec-branch tip as `impl_base_revision`, so Phase 1 files never count toward a task's diff, and count toward the 3.15 size budget only when a task changes them again.
+From here the spec branch is **red by design** (green with [tests in tasks](#tests-in-tasks), which has no Phase 1 tests yet): the new harness tests and journeys fail until the tasks that make them pass are merged. It stays red through Phase 3 and goes green only when the last wave is merged and the full suite passes (3.9 after the last wave, 3.11, then Phase 4). Task branches fork from this state; 3.1 records the spec-branch tip as `impl_base_revision`, so Phase 1 files never count toward a task's diff, and count toward the 3.15 size budget only when a task changes them again.
 
 **Done when:** `## Suites` is filled and `git status --short` shows nothing under the spec folder. Then load `modules/task-breakdown.md`.
