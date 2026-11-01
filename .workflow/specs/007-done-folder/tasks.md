@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Done folder path and write deny"
     status: done
-    capability: CAP-NEW-done-folder
+    capability: CAP-011
     depends_on: []
     touches_core: true
     work_type: shell-scripts
@@ -20,7 +20,7 @@ tasks:
   - id: T2
     title: "Review lessons accept the Done folder"
     status: done
-    capability: CAP-NEW-done-folder
+    capability: CAP-011
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -37,7 +37,7 @@ tasks:
   - id: T3
     title: "Session start sees done-on-main in the Done folder"
     status: done
-    capability: CAP-NEW-done-folder
+    capability: CAP-011
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -54,7 +54,7 @@ tasks:
   - id: T4
     title: "Sign-off, discovery and large-path docs for the Done folder"
     status: done
-    capability: CAP-NEW-done-folder
+    capability: CAP-011
     depends_on: [T2]
     touches_core: false
     work_type: agent-docs
@@ -71,7 +71,7 @@ tasks:
   - id: T5
     title: "move-to-done.sh check, move and sweep"
     status: done
-    capability: CAP-NEW-done-folder
+    capability: CAP-011
     depends_on: [T1, T4]
     touches_core: false
     work_type: shell-scripts

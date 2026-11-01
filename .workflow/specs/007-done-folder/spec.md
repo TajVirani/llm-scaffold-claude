@@ -17,7 +17,7 @@ Finished specs stay in `.workflow/specs/` next to the ones still in flight, so o
 
 ## Capabilities
 
-- **CAP-NEW-done-folder** Close a finished spec into the Done folder
+- **CAP-011** Close a finished spec into the Done folder
   - **intent:** At sign-off the workflow checks that a spec and all its sub-items are finished and moves it into `.workflow/specs/done/` with every link to it still resolving, so the specs folder shows only in-flight work.
   - **success:** After sign-off 5.8 on a fixture project, the spec sits at `.workflow/specs/done/NNN-slug/` on the spec branch with `status: done`, every task record `done` or `split-out`, no `.step`, every `.workflow/` file outside `cache/` and `initiatives/` that named `.workflow/specs/NNN-slug` now naming `.workflow/specs/done/NNN-slug`, the spec's outbound relative links resolving, the published PR description (`pr-body.md`) naming the `done/` path, the next 0.1.1 scan not reusing its number, and a Write/Edit under `done/` denied; a spec with an open task is refused at 5.7 with that task listed and nothing changed.
 
@@ -28,7 +28,8 @@ Finished specs stay in `.workflow/specs/` next to the ones still in flight, so o
 - 5.8 order: commit what is left, check `pr-body.md`, move and rewrite (the rewrite covers `pr-body.md` like any spec file), commit, run `check-pr-body.sh` on the moved body, show the stakeholder the path-only diff with the publish go-ahead, publish from `.workflow/specs/done/NNN-slug` (D14). Every body fix happens before the move; a fault on the moved body stops sign-off unpublished as a move bug, and nothing writes into the moved folder (D15).
 - Spec numbers have any digit count (`wf_norm_folder`, 0.1.1): every pattern this feature adds uses `[0-9]+`, never a fixed width.
 - The rewrite changes only the moved spec's path string, in `.workflow/` files only, including the moved spec's own files; it skips `.workflow/cache/` and `.workflow/initiatives/` (D3, D10, D12). The move script is the one writer allowed to do it in Tier A files and append-only design logs (D6).
-- Initiative files are rewritten only at 6.13, on the initiative branch (D10).
+- Initiative files are rewritten only at 6.13, on the initiative branch (D10). As built, 6.13 runs its own rewrite loop in `modules/large-path.md` with the same path boundary as the script; one script form is backlog item `007-done-folder-disc-001`.
+- The one-time `--sweep` of older finished specs runs at 5.8 as its own commit, before the signing-off spec's own move, and leaves in place the spec whose `spec_branch` is checked out, for that move (D16, review F1).
 - Every Write/Edit under `.workflow/specs/done/**` is denied (D11).
 - The review-lessons `origin_spec` rule accepts `done/` and the `wf_norm_folder` slug class, with the template header kept in step (D13).
 - Plain `mv` plus `git add`, not `git mv`: the folder may be untracked and `.step` is gitignored. Bash 3.2, yq v4.
@@ -50,8 +51,8 @@ On this repo, every spec done on main before this feature (001–006 and 008) si
 
 ## Assumptions
 
-- The local `.step` marker is deleted on the move rather than carried into `done/`, so no gitignore or deny-rule pattern needs a `done/*/.step` form (stated in the 0.3.19 summary, confirmed with the summary).
-- The move belongs inside step 5.8 rather than a new step id, so the progress-line step count only changes if task breakdown finds it must.
+- Confirmed: the local `.step` marker is deleted on the move rather than carried into `done/` (set aside during the move so a failed run can restore it), so no gitignore or deny-rule pattern needs a `done/*/.step` form.
+- Confirmed: the move belongs inside step 5.8; no new step id was added, and the progress-line step count is unchanged.
 
 ## Links
 
@@ -59,4 +60,5 @@ On this repo, every spec done on main before this feature (001–006 and 008) si
 - Design log: [design-log.md](design-log.md)
 - Data model: [data-model.md](data-model.md)
 - Verification plan: [verification-plan.md](verification-plan.md)
-- Shelf item: [.workflow/deferred/sign-off-scoped-commit.md](../../deferred/sign-off-scoped-commit.md)
+- Shelf items: [.workflow/deferred/sign-off-scoped-commit.md](../../deferred/sign-off-scoped-commit.md), [.workflow/deferred/launch-against-done-spec.md](../../deferred/launch-against-done-spec.md)
+- Report: [report.md](report.md)

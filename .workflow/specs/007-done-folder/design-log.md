@@ -63,7 +63,7 @@ Rounds: 1 draft (ask + goals proposed; stakeholder answered downstream "no", too
 
 ## 2026-10-29 Goal confirmed (0.3.19)
 
-- Summary of D2-D8 plus sweep mode and `.step` removal on move, restated to the stakeholder. Answer: "matches". One feature (CAP-NEW-done-folder). Light-path facts: intent gaps clean, no irreversible action, footprint not small (lib, hooks, feature-workflow, retrospective, tests) → **D9** full path, `light_path: false`.
+- Summary of D2-D8 plus sweep mode and `.step` removal on move, restated to the stakeholder. Answer: "matches". One feature (CAP-011). Light-path facts: intent gaps clean, no irreversible action, footprint not small (lib, hooks, feature-workflow, retrospective, tests) → **D9** full path, `light_path: false`.
 
 ## 2026-10-29 Impact classification
 
@@ -165,7 +165,7 @@ Seeded by the module-audit refresh: after the move the D11 deny blocks every Wri
 
 ## 2026-10-30 Exit gate 0.6 (after rounds 4-5)
 
-- Scope: clear (Non-goals and `deferred` list sign-off-scoped-commit and launch-against-done-spec; no open questions). System impact: clear (module-audit refresh in codebase-map; the five `cache disagrees with code` lines resolved by republishing all three caches at 9e971ad and refreshing retrieval). Data changes: clear (data-model M1-M4, pr-body row). Testable objectives: clear (CAP-NEW-done-folder has 15 objectives and JRN-001-JRN-007).
+- Scope: clear (Non-goals and `deferred` list sign-off-scoped-commit and launch-against-done-spec; no open questions). System impact: clear (module-audit refresh in codebase-map; the five `cache disagrees with code` lines resolved by republishing all three caches at 9e971ad and refreshing retrieval). Data changes: clear (data-model M1-M4, pr-body row). Testable objectives: clear (CAP-011 has 15 objectives and JRN-001-JRN-007).
 
 ## 2026-10-30 Targets (1.1)
 
@@ -253,3 +253,11 @@ TGT-007 measured by the lens at 12.86 s best of 3 (threshold 30 s): met. Gaps (n
 
 Failed lenses: none
 Outcome: clean, to sign-off
+
+## 2026-10-31 Main merged into the spec branch (sign-off)
+
+- `main` 581e785..469ade4 (specs 00010-00013 and a trivial bug fix) merged as `8ffe585`; only the three Tier B caches conflicted, kept at the spec branch's 9e971ad stamp (both sides stale for the merged tree). New ids after the merge: the capability takes the next free number (CAP-009 and CAP-010 are taken); review lessons continue from RL-008.
+
+## 2026-10-31 Tier A approval (5.3)
+
+- Answer: "Dont add the pitfall notes - these are one offs. Do 5, the rest is good - finish sign-off". P1, P2, P5 approved; P3, P4 rejected (one-offs).
