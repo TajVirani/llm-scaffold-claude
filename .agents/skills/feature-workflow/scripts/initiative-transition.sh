@@ -48,7 +48,8 @@
 #   updated_at: "<UTC ISO-8601, e.g. 2026-10-21T12:00:00Z>"
 #
 # Exit: 0 done; 1 usage or environment error (missing yq, not a git repo, missing folder or file, unknown slice or question
-#   id, malformed value); 2 illegal transition or a result the template validator rejects, with the reason on stderr.
+#   id, malformed value, or a template validator yq cannot run, reported with yq's own error text); 2 illegal transition
+#   or a result the template validator rejects, with the reason on stderr.
 # Called by: the large-path module, at each step that changes initiative state; open-task-pr.sh --record (set-pr).
 # Notes: Never calls status-transition.sh and is never called by it. Requires git and mikefarah yq v4.
 # Sources: first-party; validators from feature-workflow/assets/initiative.md and assets/questions.md. Pattern:
@@ -154,16 +155,25 @@ QUESTIONS_VALIDATOR='
     (([.questions[].id] | unique | length) == (.questions | length))
 '
 
-# write_validated FILE VALIDATOR EXPR : apply the yq EXPR to a copy of FILE and move it into place only when VALIDATOR accepts it
+# write_validated FILE VALIDATOR EXPR : apply the yq EXPR to a copy of FILE and move it into place only when VALIDATOR accepts it;
+#   a rejection exits 2, a validator yq cannot run exits 1 with yq's output
 write_validated() {
-  local file=$1 validator=$2 expr=$3 tmp
+  local file=$1 validator=$2 expr=$3 tmp verdict verdict_rc=0
   tmp=$(mktemp "${file}.XXXXXX")
   cp "$file" "$tmp"
   yq --front-matter=process -i "$expr" "$tmp" || { rm -f "$tmp"; die "cannot update $file"; }
-  if ! yq --front-matter=extract -e "$validator" "$tmp" >/dev/null 2>&1; then
-    rm -f "$tmp"
-    die "refusing to write $file: the result fails the validator of its template in feature-workflow/assets" 2
-  fi
+  # No -e: with it a false verdict also exits non-zero with an error on stderr, and a rejection could not be told apart from a
+  # validator yq cannot run.
+  verdict=$(yq --front-matter=extract "$validator" "$tmp" 2>&1) || verdict_rc=$?
+  case "$verdict_rc:$verdict" in
+    0:true) ;;
+    0:false)
+      rm -f "$tmp"
+      die "refusing to write $file: the result fails the validator of its template in feature-workflow/assets" 2 ;;
+    *)
+      rm -f "$tmp"
+      die "cannot run the template validator on $file (yq exit $verdict_rc): $verdict" ;;
+  esac
   mv -f "$tmp" "$file"
 }
 

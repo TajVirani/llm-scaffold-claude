@@ -16,6 +16,7 @@
 #   matcher kept with one Warnings line (also with --matchers=replace), a template matcher that is not a plain alternation
 #   never merged; JRN-013 the prompt at a pseudo-terminal (script(1); skipped when no form of it works): its text, Enter
 #   merges, r replaces, k keeps, a mixed group's prompt lists every hook, Enter keeps under a non-plain template matcher.
+#   JRN-008: the upgrade re-run, the JRN-011 third run and the two-template-groups re-run each exit 0 as well as writing nothing.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Every install.sh run reads stdin from /dev/null, an open pipe or a pseudo-terminal, never from the caller's terminal, and
 # the runs that could wait on input are killed after 20 s, so a prompting installer cannot hang the suite.
@@ -180,6 +181,7 @@ check "file no install shipped is kept" '[ -f "$U/.workflow/data-structure-audit
 check "VERSION no longer lists the dropped skill" '! grep -q "^skills/glab/" "$U/.agents/VERSION" && grep -q "^skills/feature-workflow/SKILL.md$" "$U/.agents/VERSION"'
 before=$(snap "$U")
 "$TEST_BASH" "$WORK/sc2/install.sh" "$U" >/dev/null 2>&1 </dev/null
+eq "JRN-008 the upgrade re-run exits 0" "$?" 0
 eq "upgrade re-run changes nothing" "$(snap "$U")" "$before"
 
 echo "== project-owned files untouched; .gitignore user lines kept"
@@ -278,6 +280,7 @@ check "JRN-011 no Warnings line names a hook of a match-all or covering group" \
   '! warning_lines "$out" | grep -qE "evidence-capture|pre-launch|worktree-write-guard"' "$out"
 before=$(snap "$N")
 INSTW "$N" --host claude >/dev/null 2>&1
+eq "JRN-008 the JRN-011 third run exits 0" "$?" 0
 eq "JRN-011 a third run writes nothing" "$(snap "$N")" "$before"
 
 echo "== --matchers answers every group; --dry-run previews; --force alone; a non-plain matcher (JRN-012)"
@@ -406,6 +409,7 @@ for split_case in 'no-terminal kept' 'merge kept' 'replace dropped' 'keep kept';
 done
 before=$(snap "$WORK/split-no-terminal")
 INSTW "$WORK/split-no-terminal" --host claude >/dev/null 2>&1
+eq "JRN-008 two template groups in one group: the re-run exits 0" "$?" 0
 eq "JRN-012 two template groups in one group: a re-run writes nothing" "$(snap "$WORK/split-no-terminal")" "$before"
 
 USER_PRE_HOOK=./scripts/user-pre-tool.sh

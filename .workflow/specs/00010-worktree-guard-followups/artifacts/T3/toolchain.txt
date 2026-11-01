@@ -1,0 +1,11 @@
+== lint: git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+== lint exit 0
+
+== test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
+== scripts/install-claude-settings
+
+== summary
+PASS scripts/install-claude-settings        passed=71   failed=0   skipped=0   xfail=0   36s
+TOTAL passed=71 failed=0 skipped=0 xfail=0 (1 suites)
+== test exit 0
+

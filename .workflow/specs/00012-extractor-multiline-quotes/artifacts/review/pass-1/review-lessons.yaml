@@ -1,0 +1,35 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "9347768cc6b32ccc89cea7fe536052fc87c8d4ee"
+head: "783c26fbe70f8422723b827a065b63c7a98b8a89"
+findings:
+  - id: RL-1
+    category: lesson
+    severity: medium
+    confidence: 85
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:222-223"
+    claim: "The new quote walk hides every character of a double-quoted string that spans lines, except a $(...) inside it, so a backtick command substitution inside such a string is no longer read. The base revision reported it: split_commands splits on backtick (bash.sh base line 395) and report_cwd_relative_calls ran on the same line (base line 161), so a ./x.sh in backticks on a continuation line was an unresolved edge. The change repeats the pitfall that the extractor drops a call it had already detected."
+    consequence: "A script the shell runs from a multi-line double-quoted string, such as a usage text or a message built across lines, drops out of the Unresolved edges of the architecture cache, so readers who rely on that list see fewer unresolved calls than the code makes."
+    evidence:
+      basis: "pitfalls.md: 'Report a detected call as unresolved; never filter it out' (What happened: the bash graph extractor dropped script calls it had already detected through filters and option scans). The new bash.sh header names only a $(...) inside a double-quoted string as a run-by-the-shell exception; backticks are not named."
+      diff: "} else { | keep_or_hide(ch, spans[depth])"
+    suggested_fix: "Keep the text of a backtick span inside a double-quoted string the way the $(...) context keeps its text, name backticks in the header's exception, and add a fixture case to tests/scripts/extractor-bash.sh: a multi-line double-quoted usage text holding a backtick ./x.sh line, expecting that call. Medium: also propose recording it as a review lesson at the next 5.7, symptom: the extractor hides a call the shell runs inside a multi-line double-quoted string."
+checked:
+  - ".workflow/review-lessons.md (block parsed with yq: six lessons, none retired)"
+  - ".workflow/decisions/pitfalls.md"
+  - ".workflow/decisions/retrospectives/00011-interrupted-run-cleanup.md"
+  - ".workflow/decisions/retrospectives/002-review-lessons.md"
+  - ".workflow/decisions/retrospectives/003-bash-cache-extractor.md"
+  - ".workflow/decisions/retrospectives/004-scoped-test-runs.md"
+  - ".workflow/decisions/retrospectives/005-cache-build-followups.md"
+  - ".workflow/decisions/retrospectives/006-result-file-guard.md"
+  - ".workflow/decisions/retrospectives/008-pr-description-template.md"
+  - ".agents/skills/regenerate-caches/scripts/extractors/bash.sh (HEAD and base revision)"
+  - ".agents/skills/regenerate-caches/SKILL.md (RL-003 prose check: no description of the extractor's reading rules)"
+  - ".workflow/cache/architecture.md (header only)"
+  - "tests/scripts/extractor-bash.sh, tests/fixtures/architecture-oracle.sh, tests/scripts/cache-repo-architecture.sh (diff hunks; RL-006 and RL-001 path checks)"
+not_checked:
+  - "Suspicion at 60, not reported: an unquoted # after a blank ends the walked line (walk_quotes, the # branch, bash.sh line 228), so a call after a parameter expansion such as x=${s%% #*}; ./y.sh loses ./y.sh, which the base revision reported. Settled by one extractor run on that line, expecting the ./y.sh edge."
+  - "Stale comment, not reported: bash.sh line 149 says a jq '. as $name' binding in a multi-line jq program reads the same way, but the new walk hides that line. RL-003 names module and SKILL.md prose, and no regenerate-caches module, SKILL.md or other script describes the extractor's reading rules, so no lesson matches. A standards read of the comment would settle it."
+  - "Stale cache, not yet a repeat: .workflow/cache/architecture.md (generated_at_commit 58019c8c55ed4443f78f085b13abdfb5d96c28ea; its scope covers .agents/skills/regenerate-caches and tests) is not regenerated in this diff and still lists the four paths the new oracle drops. That is the stale-cache-before-5.8 pattern of retrospective 005. Settled at sign-off by a regeneration and cache-stamp-check."

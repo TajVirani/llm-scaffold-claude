@@ -1,0 +1,19 @@
+status: "done"
+summary: "check-worktree-scope.sh now takes --confined: with no confinement root (named agent worktree missing, no name, or cwd outside any git repo) it denies every path and command with exit 2 and a worktree guard reason naming the cause, and without the flag it still allows. The read-only chain check scans quotes left to right, so $ and backticks inside single quotes pass while $, backtick or backslash outside them, or an unterminated quote, deny. Wording says agent worktree, --help lists the Phase 1 and integration shapes, and implementation-orchestrator.md has the missing-worktree-denied sentence. Every JRN-004, JRN-005 (scope and doc) and JRN-006 check in tests/hooks/worktree-guard.sh passes now; the JRN-001 and JRN-003 checks, and the JRN-005 check on the worktree-write-guard.sh File line, remain for T2."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-00010/.workflow/.worktrees/s00010_t1"
+branch: "task/00010-worktree-guard-followups/T01-scope-check-fails-closed"
+base_commit: "329cb87103ccb6c9c1aa4d6ee74d103379e47773"
+head_commit: "5e345a02df606020adfca796e5256c282cedf356"
+files_changed: [".agents/skills/feature-workflow/scripts/check-worktree-scope.sh", ".agents/skills/feature-workflow/modules/implementation-orchestrator.md"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite hooks/worktree-guard at base 329cb87; 48 failed, including FAIL JRN-004 --confined, named worktree missing -> exit 2 with a reason on stderr, FAIL JRN-006 task agent read-only 'sed -n '$p' f' ... -> allow, FAIL JRN-005 implementation-orchestrator.md says a confined agent whose agent worktree is missing is denied"
+  green: "tests/run-all.sh --suite hooks/worktree-guard at head 5e345a0; passed=198 failed=29. Every JRN-004, JRN-005 scope/doc and JRN-006 check passes, as does shellcheck: worktree guard. The 29 failures left are T2 checks: 25 JRN-001 hook checks, 3 JRN-003 checks and the JRN-005 worktree-write-guard.sh File-line check."
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00010-worktree-guard-followups --task-id T1 --cwd <worktree>; test (scoped, own 0, excluded 3) TOTAL passed=3345 failed=0 (59 suites)"
+  toolchain: ".workflow/specs/00010-worktree-guard-followups/artifacts/T1/toolchain.txt (pass)"
+considered_not_built: ["Quote-aware splitting on |, && and ;: the task keeps splitting quote-blind; a quoted | only costs a needless cd", "Guard-time measured with the existing s00010_t1 worktree as root and the main checkout as cwd, not the plan's mkdir/rmdir of s00010_tgt (the rmdir was refused by a safety check); best of 3 real 0.03 s against the 0.5 s target"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

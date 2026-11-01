@@ -1,0 +1,54 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "9347768cc6b32ccc89cea7fe536052fc87c8d4ee"
+head: "783c26fbe70f8422723b827a065b63c7a98b8a89"
+findings:
+  - id: RS-1
+    category: smell
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:188-259,398-404,469-473,511-535"
+    claim: "Possible Duplicated Code: the change adds a full quote walker (walk_quotes) but leaves three other quote pairers in place (blank_case_patterns, split_commands, unquoted_code), and it edits each of them. The four now follow different quoting rules."
+    consequence: "walk_quotes understands $'...' escapes, comments and backslashes, but the per-line readers fed from its output do not. On a line such as y=$'a\\'b' scripts/foo.sh, unquoted_code and split_commands both treat the escaped quote as closing the string, so the call after it on the same line is dropped. The next quoting fix will have to be made in four places, and the maintainer who misses one gets readers that disagree again."
+    evidence:
+      basis: "Smell baseline: Duplicated Code (the same logic shape appears in more than one hunk or file in the change)"
+      diff: "+function walk_quotes(text, still_open_at_end, rewriting,   depth, kind, ... | -  out = \"\"; quote = open_quote; at_command_start = 1 / +  out = \"\"; quote = \"\"; at_command_start = 1 | +function unquoted_code(text,   out, span, quote, i, ch) {"
+    suggested_fix: "Have the later readers work from walk_quotes' view of the line (for example a per-character quoted/unquoted mask it fills in), so quote rules live in one function."
+  - id: RS-2
+    category: standard
+    severity: low
+    confidence: 80
+    location: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:14-16"
+    claim: "The new text in the # File: header says 'a quoted string on one line is read as before'. That describes the change against an earlier version, not how the script behaves."
+    consequence: "Someone reading the interface doc at HEAD cannot tell how a one-line quoted string is read, because 'as before' refers to a version they cannot see. The phrase becomes meaningless once the change merges."
+    evidence:
+      basis: "rules.md Cross-cutting policy: \"The `# File:` header block is a script's interface doc\"; readable-code.md R5: \"Write plainly. ... no project shorthand a newcomer would not know.\""
+      diff: "+#   the text of a quoted string that spans lines are not read either, except a `$(...)` inside a double-quoted one, which\n+#   the shell runs; a quoted string on one line is read as before."
+    suggested_fix: "State the behaviour directly, e.g. 'a quoted string that opens and closes on one line is read in place, as the per-line readers pair its quotes'."
+  - id: RS-3
+    category: discovered-work
+    kind: refactor
+    summary: "The bare-source guard for a jq '. as $name' binding exists only for lines inside multi-line jq programs, and its comment says so. This change hides every quoted string that spans lines from all readers, so the extractor should no longer reach those lines. The guard and its comment now describe a case that does not occur."
+    evidence: ".agents/skills/regenerate-caches/scripts/extractors/bash.sh:149-150 (\"A jq `. as $name` binding in a multi-line jq program reads the same way.\"; added in c06533d), against the new code_outside_spanning_quotes at :193"
+    blocker_assessment: can-wait
+    reason: "The guard is harmless dead weight: it suppresses nothing that is now read. Removing it is a cleanup outside this change's lines."
+checked:
+  - "AGENTS.md (root; CLAUDE.md is a one-line @AGENTS.md import)"
+  - ".workflow/rules.md (all sections: Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, External systems, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (work type of T1)"
+  - ".workflow/profiles/test-harness.md (governs the tests/ files in the diff; gate-3.9-w1 ran under it)"
+  - ".workflow/specs/00012-extractor-multiline-quotes/design-log.md Placement entry (no placement ADR; the entry is the placement record: owning module regenerate-caches, suite and fixture under tests)"
+  - ".workflow/GLOSSARY.md (naming baseline incl. Flagged ambiguities; 'Graph extractor' _Avoid_ 'Extractor': the bare short form in new test names follows the suite's existing usage, so not reported)"
+  - ".agents/skills/feature-workflow/references/readable-code.md"
+  - "Smell baseline (Fowler set in the lens definition)"
+  - "T1 tool output: .workflow/specs/00012-extractor-multiline-quotes/artifacts/T1/toolchain.json (lint pass, test pass)"
+  - "gate-3.9-w1 tool output: .workflow/specs/00012-extractor-multiline-quotes/artifacts/gate-3.9-w1/toolchain.json (test-harness lint pass, test pass)"
+  - "Commit subjects 9347768..HEAD: Conventional Commits on code commits; 'Workflow data for ...' subjects are the documented commit-workflow-data.sh form; no Co-Authored-By or AI mention"
+not_checked:
+  - "CODING_STANDARDS.md: not present at repo root"
+  - "CONTRIBUTING.md: not present at repo root"
+  - ".workflow/GLOSSARY-MAP.md: no such file in the repo (.agents/skills/project-setup/assets/GLOSSARY.md is an install template, not this repo's baseline)"
+  - "Placement ADR: none linked (design-log Placement entry says 'No placement ADR')"
+  - "T1 and gate-3.9-w1 typecheck, format, boundary keys: skipped, 'no command' in both profiles; nothing re-run"
+  - "Outside this lens: function-name detection (bash.sh:121) and the '((' heredoc guard (bash.sh:171) still read raw rather than the quote-aware line, so a column-0 'function name' inside a multi-line awk string could still be recorded as a bash function in exports. This is behaviour, not a standard. Running the extractor on a sourced fixture holding such an awk block would settle it (end-state lens)."

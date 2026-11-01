@@ -1,0 +1,59 @@
+verdict: pass
+task_id: T1
+work_type: shell-scripts
+mode: full
+previous: null
+diff: .workflow/.worktrees/s00010_t1@329cb87103ccb6c9c1aa4d6ee74d103379e47773..HEAD
+tool_output: .workflow/specs/00010-worktree-guard-followups/artifacts/T1/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-worktree-scope.sh:122, 123, 132 build the agent worktree path from WF_WORKTREES, sourced at line 49 and defined at .agents/lib/workflow-paths.sh:58; no executable line spells .workflow/
+  - n: 2
+    verdict: pass
+    location: no code in the diff the item applies to; the diff edits no hook, and the rule logic sits in the owning skill script check-worktree-scope.sh lines 1-283
+  - n: 3
+    verdict: pass
+    location: check-worktree-scope.sh:52 (usage_err), 111-112 (confined deny), 114-115 (allow with reason), 130-134 (no root goes to no_root, never silent), 125 (git-dir probe error is swallowed but falls through to the 130-134 branch)
+  - n: 4
+    verdict: pass
+    location: check-worktree-scope.sh:112 (new exit 2 deny), 115 (exit 0 allow), 52 (exit 1 usage); all three codes are in 0/1/2; the codes are documented in the header line 41 under the Outputs/handoff label, which check-write.sh:51 also uses; the file has no Exit label line
+  - n: 5
+    verdict: pass
+    location: check-worktree-scope.sh:49 resolves workflow-paths.sh from BASH_SOURCE with cd -P; the diff adds no other sibling path
+  - n: 6
+    verdict: pass
+    location: check-worktree-scope.sh:2-44 header has File, Purpose, Usage, Outputs/handoff, Called by, Sources and Requires, the helper shape; grep finds no decision ID in the file
+  - n: 7
+    verdict: pass
+    location: no new file in the diff; the edited file keeps its [ ] tests, and the new lines 110, 131, 228, 234 follow that style; [[ ]] stays on regex matches at lines 170, 180, 186
+  - n: 8
+    verdict: pass
+    location: "check-worktree-scope.sh:108 (no_root) and 221-222 (expansions_only_single_quoted) carry the name ARGS : what line; the diff adds no shellcheck disable, and the one source hint at line 48 needs none"
+  - n: R1
+    verdict: pass
+    location: check-worktree-scope.sh:109 (no_root), 223 (expansions_only_single_quoted), 54, 60, 110 (confined), 224-234 (rest, unquoted, quote, quoted) name what each holds
+  - n: R2
+    verdict: pass
+    location: check-worktree-scope.sh:222 (why double quotes are tracked), 36-40 (why the scan is not a shell parser); no added workaround lacks its reason, and the loop test at line 228 is the usual termination idiom
+  - n: R3
+    verdict: pass
+    location: check-worktree-scope.sh:108 and 221-222 are the required function header lines and give the cause and purpose, not a line-by-line restatement
+  - n: R4
+    verdict: pass
+    location: check-worktree-scope.sh:2-44 names .workflow/.worktrees paths, which the header exemption allows; no body comment in the diff names a decision, doc, spec or task ID; the task ID appears only in the commit message
+  - n: R5
+    verdict: pass
+    location: check-worktree-scope.sh:2-44, 108, 221-222 use plain technical terms (git-dir, cwd, temp-dir); no project shorthand is undefined in the code
+read_outside_diff:
+  - .agents/lib/workflow-paths.sh lines 34 and 58, for the WF_DIR and WF_WORKTREES definitions behind item 1
+  - .agents/hooks/worktree-write-guard.sh lines 110-122, grep only, to confirm the hook passes no --confined flag yet (out_of_scope entry)
+  - .agents/hooks/codex-write-guard.sh line 136, grep only, same check for the Codex guard
+  - .agents/skills/feature-workflow/scripts/check-write.sh line 51, for the exit-code header label behind item 4
+  - tests/hooks/worktree-guard.sh and tests/README.md, grep only, to see which spec behaviour the flag serves
+out_of_scope_noticed:
+  - kind: bug
+    summary: implementation-orchestrator.md line 29 says a confined agent whose agent worktree is missing is denied every call, but no hook passes --confined yet; grep finds no caller in .agents/hooks, so the sentence describes behaviour this commit does not have.
+    evidence: .agents/skills/feature-workflow/modules/implementation-orchestrator.md:29 and .agents/hooks/worktree-write-guard.sh:110-122
+    blocker_assessment: can-wait
+    reason: wiring the flag lives in files outside this diff, probably a later task of this spec; this task changes only the script, and the doc runs ahead of the behaviour until then.

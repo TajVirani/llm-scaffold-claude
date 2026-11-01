@@ -1,0 +1,2 @@
+tests/hooks/worktree-guard.sh
+tests/scripts/install-claude-settings.sh

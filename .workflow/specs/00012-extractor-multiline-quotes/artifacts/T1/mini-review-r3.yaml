@@ -1,0 +1,66 @@
+verdict: pass
+task_id: T1
+work_type: shell-scripts
+mode: re-check
+previous: .workflow/specs/00012-extractor-multiline-quotes/artifacts/T1/mini-review-r2.yaml
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude-bugs/.workflow/.worktrees/s00012_t1@6f37f4c50bbcf2e86139023744a77d6571d47767..d81918d1149c70a3925f63be582f40ace3e1c1c1
+tool_output: .workflow/specs/00012-extractor-multiline-quotes/artifacts/T1/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: no added line in the diff builds a .workflow path; added lines name only capability and journey IDs in suite headers
+    carried_from: r2
+  - n: 2
+    verdict: not-applicable
+    location: no hook file in the diff
+    carried_from: r2
+  - n: 3
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:585-588 keeps the awk and jq failure die calls; tests/scripts/extractor-bash.sh:322-323 and 348-349 check the exit status of both extractor runs before their output is used, so the quote_deps 2>/dev/null at line 327 cannot hide a failed run
+    carried_from: r2
+  - n: 4
+    verdict: not-applicable
+    location: no exit code added or changed; bash.sh:24-25 Exit line and bash.sh:32 die are unchanged
+    carried_from: r2
+  - n: 5
+    verdict: not-applicable
+    location: no script in the diff resolves its own sibling path; the dirname text appears only inside fixture heredocs at tests/scripts/extractor-bash.sh:255 and 313
+    carried_from: r2
+  - n: 6
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:1-27 helper header with File Purpose Usage Output Exit Requires Sources, and no decision ID
+    carried_from: r2
+  - n: 7
+    verdict: pass
+    location: bash.sh:28 set -euo pipefail and bash.sh:37-57 keep double-bracket tests; no new file in the diff; the test additions at tests/scripts/extractor-bash.sh:248-354 use no test brackets
+    carried_from: r2
+  - n: 8
+    verdict: pass
+    location: bash.sh:188 code_outside_spanning_quotes, bash.sh:200 walk_quotes, bash.sh:254 keep_or_hide and tests/scripts/extractor-bash.sh:324 quote_deps each carry a name ARGS line; the diff adds no shellcheck disable
+    carried_from: r2
+  - n: R1
+    verdict: pass
+    location: bash.sh:88 QUOTED_TEXT, bash.sh:99 open_contexts, bash.sh:188-258 still_open_at_end and heredoc_start_at name what they hold; tests/scripts/extractor-bash.sh:250 Q follows the file's existing one-letter X and R convention for fixture paths
+    carried_from: r2
+  - n: R2
+    verdict: pass
+    location: bash.sh:241-243 the comment at 241 gives the reason (the second < would otherwise match heredoc_start and skip the rest of the file), so the here-string branch at 242 is not redundant; the other workaround guards in the full diff already carry reasons (the (( guard comment and the comment-line skip at bash.sh:112)
+  - n: R3
+    verdict: pass
+    location: bash.sh:112 and bash.sh:188-205 describe behaviour and reasons and do not restate the line below; tests/scripts/extractor-bash.sh:249 and 324 give reasons
+    carried_from: r2
+  - n: R4
+    verdict: pass
+    location: bash.sh:112 and bash.sh:188-205 name no ID, doc or workflow path; the JRN-001 and CAP-005 IDs at tests/scripts/extractor-bash.sh:9-15 sit in the suite header, were carried over from the old header line rather than added, and name capabilities rather than decisions
+    carried_from: r2
+  - n: R5
+    verdict: pass
+    location: bash.sh:188-205 uses plain terms; the ANSI-C string is explained inline by its quote example, and QUOTED_TEXT is defined at bash.sh:88
+    carried_from: r2
+read_outside_diff:
+  - .agents/skills/feature-workflow/references/readable-code.md - rule text and Checking at 3.7 lines
+  - .agents/skills/regenerate-caches/scripts/extractors/bash.sh - fix commit d81918d and the full diff of this file, to judge R2 against every added comment and workaround, and the new comment against R3 to R5
+  - .agents/skills/regenerate-caches/scripts/extractors/bash.sh lines 236-246 - position of the new comment inside the walk_quotes branch chain, read in the worktree
+  - artifacts/T1/toolchain.json tree 41b9dc25 - git diff-tree against the fixed commit shows no difference in .agents, tests, scripts or install.sh, so the toolchain run covers the fixed code
+  - artifacts/T1/mini-review-r2.yaml - previous round, the re-check base
+out_of_scope_noticed: []

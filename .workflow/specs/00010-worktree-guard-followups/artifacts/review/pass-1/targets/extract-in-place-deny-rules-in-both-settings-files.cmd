@@ -1,0 +1,1 @@
+for f in .agents/hooks/claude-settings.template.json .claude/settings.json; do jq -r '.permissions.deny[]' "$f"; done | grep -cxF -e 'Bash(yq *--front-matter=extract* -i*)' -e 'Bash(yq *-i* --front-matter=extract*)' -e 'Bash(yq *--front-matter=extract* --inplace*)' -e 'Bash(yq *--inplace* --front-matter=extract*)'

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Suite: status-transition.sh (feature-workflow/scripts): task records and spec keys.
 # Covers: set-task transitions, work_type and capability rules, the tasks.md validator and its copy in assets/tasks.md,
+#   a validator yq cannot run (exit 1 with yq's diagnostic, nothing written),
 #   split-out tasks and backlog seeding at 0.1.4, task bodies under tasks/, record fields, set-task --pr, set-spec
 #   (spec_branch, impl_base_revision) and budget-check.sh --predicted over the task records.
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
@@ -100,7 +101,39 @@ yq --front-matter=process -i '.tasks[1].capability="nope"' "$R/$G/tasks.md"
 before=$(shasum "$R/$G/tasks.md")
 t "invalid tasks.md -> write refused"       1 ST set-task $G T2 --status in-progress
 eq "tasks.md unchanged after refusal" "$(shasum "$R/$G/tasks.md")" "$before"
+err=$(ST set-task $G T2 --status in-progress 2>&1 >/dev/null)
+check "a rejection keeps the schema-validator message" 'grep -q "^status-transition.sh: refusing to write .*tasks.md: the result fails the tasks.md schema validator" <<<"$err"' "$err"
+check "a rejection carries no yq error text" '! grep -q "Error:" <<<"$err"' "$err"
 yq --front-matter=process -i '.tasks[1].capability="CAP-001"' "$R/$G/tasks.md"
+
+# A yq that fails only the validator call, the one expression that names touches_core, as a broken validator would.
+mkdir -p "$F/failing-validator-yq"
+cat >"$F/failing-validator-yq/yq" <<EOF
+#!/usr/bin/env bash
+case "\$*" in *touches_core*) echo "Error: simulated validator failure" >&2; exit 1 ;; esac
+exec "$(command -v yq)" "\$@"
+EOF
+chmod +x "$F/failing-validator-yq/yq"
+tasks_before=$(shasum "$R/$G/tasks.md")
+step_before=$(cat "$R/$G/.step")
+err=$(PATH="$F/failing-validator-yq:$PATH" ST set-task $G T2 --status in-progress --step 3.9 2>&1 >/dev/null); rc=$?
+eq "a validator yq cannot run exits 1" "$rc" 1
+check "a validator error reports yq's diagnostic" 'grep -q "simulated validator failure" <<<"$err"' "$err"
+eq "a validator error leaves tasks.md byte-identical" "$(shasum "$R/$G/tasks.md")" "$tasks_before"
+eq "a validator error leaves .step unchanged" "$(cat "$R/$G/.step")" "$step_before"
+t "a validator error leaves no tasks.md copy" 1 bash -c "ls '$R/$G' | grep -q 'tasks.md\.'"
+# A validator that runs but prints neither true nor false is broken too, not a rejection.
+mkdir -p "$F/non-boolean-validator-yq"
+cat >"$F/non-boolean-validator-yq/yq" <<EOF
+#!/usr/bin/env bash
+case "\$*" in *touches_core*) echo "null"; exit 0 ;; esac
+exec "$(command -v yq)" "\$@"
+EOF
+chmod +x "$F/non-boolean-validator-yq/yq"
+err=$(PATH="$F/non-boolean-validator-yq:$PATH" ST set-task $G T2 --status in-progress 2>&1 >/dev/null); rc=$?
+eq "a non-boolean validator result exits 1" "$rc" 1
+check "a non-boolean validator result is reported as a validator error" 'grep -q "cannot run the tasks.md schema validator.*: null$" <<<"$err"' "$err"
+eq "a non-boolean validator result leaves tasks.md byte-identical" "$(shasum "$R/$G/tasks.md")" "$tasks_before"
 for c in CAP-007 CAP-NEW-guest-checkout CAP-1234 CAP-NEW-x; do
   yq --front-matter=process -i ".tasks[1].capability=\"$c\"" "$R/$G/tasks.md"
   t "capability $c passes validator"     0 ST set-task $G T2 --work-type backend

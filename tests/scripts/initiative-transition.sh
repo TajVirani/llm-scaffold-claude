@@ -2,7 +2,8 @@
 # Suite: initiative-transition.sh (feature-workflow/scripts), the single writer for initiatives; JRN-002 "Explore across sessions".
 # Covers: the frontier before and after a research question settles; set-question launch, reset and settle (launched map, settled
 #   line); a researching question surviving a session end and counted by the session-start offer; illegal question, slice and
-#   status transitions exit 2 with a reason; step and set-pr writes; usage errors exit 1. JRN-006 of spec 005: each
+#   status transitions exit 2 with a reason; a template validator yq cannot run exits 1 with yq's diagnostic and writes
+#   nothing; step and set-pr writes; usage errors exit 1. JRN-006 of spec 005: each
 #   initiative folder form gives the exit code and message it gave before the shared normaliser.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -99,7 +100,26 @@ yq --front-matter=process -i '.slices[1].depends_on = ["S7"]' "$P/$INI/initiativ
 sum_before=$(cksum <"$P/$INI/initiative.md")
 refused "JRN-002 a write the validator rejects is refused" IT set-pr "$INI" https://github.com/o/r/pull/8
 eq "JRN-002 a refused write leaves initiative.md byte-identical" "$(cksum <"$P/$INI/initiative.md")" "$sum_before"
+err=$(IT set-pr "$INI" https://github.com/o/r/pull/8 2>&1 >/dev/null)
+check "JRN-002 a rejection keeps the template-validator message" 'grep -q "^initiative-transition.sh: refusing to write .*initiative\.md: the result fails the validator of its template" <<<"$err"' "$err"
+check "JRN-002 a rejection carries no yq error text" '! grep -q "Error:" <<<"$err"' "$err"
 yq --front-matter=process -i '.slices[1].depends_on = ["S1"]' "$P/$INI/initiative.md"
+
+echo "== JRN-002 a validator yq cannot run"
+# A yq that fails only the initiative validator, the one call that applies all_c to initiative.md, as a broken validator would.
+mkdir -p "$WORK/failing-validator-yq"
+cat >"$WORK/failing-validator-yq/yq" <<EOF
+#!/usr/bin/env bash
+case "\$*" in *'all_c('*initiative.md*) echo "Error: simulated validator failure" >&2; exit 1 ;; esac
+exec "$(command -v yq)" "\$@"
+EOF
+chmod +x "$WORK/failing-validator-yq/yq"
+sum_before=$(cksum <"$P/$INI/initiative.md")
+err=$(cd "$P" && PATH="$WORK/failing-validator-yq:$PATH" bash "$P/$IT_REL" set-pr "$INI" https://github.com/o/r/pull/8 2>&1 >/dev/null); rc=$?
+eq "JRN-002 a validator yq cannot run exits 1" "$rc" 1
+check "JRN-002 a validator error reports yq's diagnostic" 'grep -q "simulated validator failure" <<<"$err"' "$err"
+eq "JRN-002 a validator error leaves initiative.md byte-identical" "$(cksum <"$P/$INI/initiative.md")" "$sum_before"
+check "JRN-002 a validator error leaves no initiative.md copy" '! ls "$P/$INI" | grep -q "initiative\.md\."' "$(ls "$P/$INI")"
 
 echo "== JRN-002 emitted slices, planned and reopen"
 IT set-question "$INI" IQ2 --state settled --settled "Adopt the surveyed format." >/dev/null 2>&1

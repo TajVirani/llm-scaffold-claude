@@ -3,8 +3,8 @@
 #   a copy of this repo's working tree (the published cache's scope, rules.md and work profiles; tracked and untracked
 #   files, ignored ones left out) committed into a scratch repo, so the run never writes to the repo.
 # Covers: Unresolved edges has no entry for the `case` patterns at install.sh:133 and install.sh:187, and keeps every
-#   other entry of the cache published stamped e530f63 (matched on file and source text, so a line that moved still
-#   counts). CAP-005.
+#   other entry of the cache published stamped e530f63 except the paths quoted in multi-line strings (matched on file and
+#   source text, so a line that moved still counts). CAP-005.
 # shellcheck disable=SC2016  # literal Markdown backticks in single quotes
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"

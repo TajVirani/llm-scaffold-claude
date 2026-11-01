@@ -1,0 +1,19 @@
+status: done
+summary: "The settings template and this repo's .claude/settings.json now open their deny lists with the four yq --front-matter=extract in-place rules (-i and --inplace, before and after the extract option); the existing deny entries and the extract allow entry are unchanged. claude-settings.template.md documents the rules, why deny-before-allow keeps reads working, and that other spellings such as -Pi are not covered."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-00010/.workflow/.worktrees/s00010_t3"
+branch: "task/00010-worktree-guard-followups/T03-settings-deny-extract-in-place"
+base_commit: "329cb87103ccb6c9c1aa4d6ee74d103379e47773"
+head_commit: "65c126d1bf0c3b3fe62c5bb2a337599d0a6a708d"
+files_changed: [".agents/hooks/claude-settings.template.json", ".agents/hooks/claude-settings.template.md", ".claude/settings.json"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/install-claude-settings; FAIL JRN-007 install over a user deny entry: permissions.deny holds Bash(yq *--inplace* --front-matter=extract*) once got=0 want=1 (passed=44 failed=27)"
+  green: "tests/run-all.sh --suite scripts/install-claude-settings; PASS passed=71 failed=0 skipped=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/00010-worktree-guard-followups --task-id T3 --cwd <worktree>; test (scoped, own=1) pass, lint pass"
+  toolchain: ".workflow/specs/00010-worktree-guard-followups/artifacts/T3/toolchain.txt (pass)"
+considered_not_built: ["Rules for other in-place spellings (-Pi, --inplace=true): the task names exactly four rules and documents the text-matching gap instead", "Phase 1 already owns the JRN-007 tests in tests/scripts/install-claude-settings.sh, so no new tests were added"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

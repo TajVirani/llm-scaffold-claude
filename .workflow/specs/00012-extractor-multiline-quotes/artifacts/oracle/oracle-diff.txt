@@ -1,0 +1,11 @@
+# Oracle: extractors/bash.sh over --scope . at dc56cc8fa734bb1bcd68bb52fc63193417047b3f (after rework 1)
+# base extractor: 6f37f4c (pre-change); head extractor: dc56cc8fa734bb1bcd68bb52fc63193417047b3f. Records: source, line, module, resolved|UNRESOLVED.
+# base records: 437; head records: 432
+226,227d225
+< tests/scripts/build-architecture.sh	138	$PLUGIN_DIR/$PLUGIN.sh	UNRESOLVED
+< tests/scripts/build-architecture.sh	139	$ROOT/ops/gone.sh	UNRESOLVED
+231,232d228
+< tests/scripts/build-architecture.sh	341	$PLUGIN_DIR/$PLUGIN.sh	UNRESOLVED
+< tests/scripts/build-architecture.sh	342	$ROOT/ops/gone.sh	UNRESOLVED
+311d306
+< tests/scripts/extractor-bash.sh	210	./x	UNRESOLVED

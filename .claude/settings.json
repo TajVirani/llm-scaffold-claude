@@ -154,6 +154,10 @@
       "Bash(.agents/skills/regenerate-caches/scripts/publish-cache.sh:*)"
     ],
     "deny": [
+      "Bash(yq *--front-matter=extract* -i*)",
+      "Bash(yq *-i* --front-matter=extract*)",
+      "Bash(yq *--front-matter=extract* --inplace*)",
+      "Bash(yq *--inplace* --front-matter=extract*)",
       "Edit(.workflow/cache/**)",
       "Edit(.workflow/specs/*/.step)"
     ]
