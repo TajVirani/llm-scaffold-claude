@@ -148,7 +148,15 @@ Set the outcome line to `loop back (4.6 third pass)` and load `modules/questioni
 
 ### 6.3 Rework attempts remain (4.7 Yes)
 
-If any **patch** entry remains and rework used is below 5: run 4.8 for the deferred entries, then reopen each task that owns a patch location. Find the owner from the history since the baseline (`git log --format='%H %s' <baseline_revision>..HEAD -- <path>`, where each worktree merge names its task id), falling back to the task (never a `split-out` one) whose `module` in `.workflow/specs/NNN-slug/tasks.md` owns the path under `.workflow/rules.md`. For each owning task:
+**Wording patch first.** When every **patch** entry is `low`, is wording only (a comment or a name; fixing it changes no behaviour) and its smallest fix is the new text itself, patch it yourself instead of reopening tasks; the rework count is untouched:
+
+1. Run 4.8 for the deferred entries.
+2. In the checkout that has the spec branch, make each edit exactly as its fix gives it, and nothing else.
+3. Run the toolchain of the work type that owns each edited path: `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id wording-p<n> --work-type <work_type> --cwd <that checkout>`. Exit 1: the edit broke a check, so undo your edits by hand and continue with the rework below for those entries.
+4. Commit there with a Conventional Commit subject and the finding ids in the body (`docs: <the wording change>`, body `F<n>, F<m>: wording patch from review pass <n>`).
+5. Set the outcome line to `clean, to sign-off`, add the line `Patched directly: F<n>, F<m> (<short sha>)` under it, and load `modules/sign-off.md`.
+
+**Rework.** If any **patch** entry remains and rework used is below 5: run 4.8 for the deferred entries, then reopen each task that owns a patch location. Find the owner from the history since the baseline (`git log --format='%H %s' <baseline_revision>..HEAD -- <path>`, where each worktree merge names its task id), falling back to the task (never a `split-out` one) whose `module` in `.workflow/specs/NNN-slug/tasks.md` owns the path under `.workflow/rules.md`. For each owning task:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T<n> --status in-progress --step 4.7
