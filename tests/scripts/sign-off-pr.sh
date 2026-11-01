@@ -108,7 +108,7 @@ check "JRN-005 sign-off 5.8 holds the publish block after its marker" '[[ -n $BL
   "no fenced bash block right after <!-- 5.8 publish commands --> in modules/sign-off.md"
 check "JRN-005 the publish block has a gh pr create line" 'grep -q "gh pr create" <<<"$BLOCK"'
 check "JRN-005 the publish block has a glab mr create line" 'grep -q "glab mr create" <<<"$BLOCK"'
-check "JRN-005 the publish block has a git merge --no-ff -F line" 'grep -q "git merge --no-ff -F" <<<"$BLOCK"'
+check "JRN-005 the publish block has a git merge --no-ff -F line" 'grep -Eq "git (-C [^ ]+ )?merge --no-ff -F" <<<"$BLOCK"'
 
 # The spec branch is checked out because sign-off publishes from it. A local bare origin lets any push line in the block
 # succeed without a network.

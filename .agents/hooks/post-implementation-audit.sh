@@ -9,7 +9,7 @@
 #   from the launch header: the payload carries no prompt, so read agent_transcript_path (JSONL), take the first user message (first entry
 #   with type "user", message.role "user", not isMeta, with text content: a string, or the joined text blocks of an array) and parse its
 #   ```yaml launch-header block with resolve-launch.sh --parse-header --task-type <agent_type>. Scripts and evidence are found in the
-#   main checkout (git rev-parse --git-common-dir), like pre-launch.sh.
+#   spec checkout (lib/workflow-paths.sh wf_project_root: the main checkout or a spec worktree), like pre-launch.sh.
 #   Codex: the spawn message is encrypted, so the task comes from the plaintext spawn task_name instead. A Codex transcript starts with a
 #   session_meta record whose payload.agent_path is /root/<task_name> (payload.source.subagent.thread_spawn.agent_path as fallback); its last
 #   segment is parsed. Codex accepts only [a-z0-9_] in a task_name, so the orchestrator encodes:
@@ -17,19 +17,20 @@
 #     s<NNN>_phase_1_<enc(wt)>     Phase 1 launch; work_type = the one .workflow/profiles/<wt>.md whose enc(name) matches (enc: lowercase, non [a-z0-9] -> _)
 #     s<NNN>_integration_<enc(wt)> integration batch (a Codex integration agent is not audited; on an implementation agent: warning)
 #   Anything else, or no single matching spec folder or profile: allowed with a warning, like a missing Claude header.
-#   Codex has no worktree sub-agents: the payload cwd is the main checkout. The orchestrator creates the worktree as
-#   <main checkout>/.workflow/.worktrees/<task_name> (a Phase 3 task: branch task/<NNN-slug>/T<nn>-<slug> from the tasks.md record;
-#   Phase 1: wf/<NNN-slug>/<task_name>), so the toolchain runs there; evidence stays in the main checkout. No such directory: allowed with a
-#   warning, since auditing the main checkout would test the wrong tree.
+#   Codex has no worktree sub-agents: the payload cwd is the spec checkout. The orchestrator creates the worktree as
+#   <spec checkout>/.workflow/.worktrees/<task_name> (a Phase 3 task: branch task/<NNN-slug>/T<nn>-<slug> from the tasks.md record;
+#   Phase 1: wf/<NNN-slug>/<task_name>), so the toolchain runs there; evidence stays in the spec checkout. No such directory: allowed with a
+#   warning, since auditing the spec checkout would test the wrong tree.
 #   Claude launches (Phase 3 task, Phase 1 and integration): the orchestrator also creates the agent worktree itself, under the name Codex
 #   uses (lib/workflow-paths.sh wf_agent_worktree_name: .workflow/.worktrees/s<NNN>_t<N>, s<NNN>_phase_1_<enc(wt)> or
 #   s<NNN>_integration_<enc(wt)>), and launches the agent without isolation, because the Agent tool has no working-directory input (Claude
 #   Code docs, sub-agents and worktrees pages, checked 2026-10-19). The audit runs the toolchain in that directory when it exists. Fallback:
-#   the launch used isolation: "worktree" (payload cwd is a linked worktree, e.g. .claude/worktrees/agent-<id>), so that cwd is audited.
-#   Neither (no agent worktree and the payload cwd is the main checkout): allowed with a warning naming the missing worktree.
+#   the launch used isolation: "worktree" (payload cwd is in an isolation worktree, e.g. .claude/worktrees/agent-<id>, whose top level is
+#   not the spec checkout), so that cwd is audited.
+#   Neither (no agent worktree and the payload cwd is the spec checkout itself): allowed with a warning naming the missing worktree.
 # Behaviour:
 #   - agent_type other than implementation or integration, a Codex integration agent, an integration agent whose transcript is missing or
-#     unreadable (either host), or no .agents/skills/feature-workflow in the main checkout: exit 0, no output, no evidence file.
+#     unreadable (either host), or no .agents/skills/feature-workflow in the spec checkout: exit 0, no output, no evidence file.
 #   - Task launch header (spec_dir, task_id[, work_type]): run-toolchain.sh --spec-dir --task-id --cwd <worktree> --reuse [--work-type] (Claude:
 #     .workflow/.worktrees/s<NNN>_t<N>, else the isolation-worktree payload cwd; Codex: .workflow/.worktrees/<task_name>). run-toolchain.sh
 #     scopes `test` to the task (other unfinished tasks' Phase 1 tests excluded). Without a
@@ -41,7 +42,7 @@
 #   - Integration header (spec_dir, work_type), Claude only: run-toolchain.sh with --work-type, the evidence id `integration-<work_type>` (the
 #     folder its result file uses) and --exclude-unfinished, the scoping of the integration agent's own run; the full toolchain, no --skip.
 #   - run-toolchain.sh exit 0: exit 0, no output (evidence already saved by the script); the loop counter is cleared.
-#   - exit 1: {"decision":"block","reason":<digest>}. Loop guard: <spec>/artifacts/<task-id>/audit-loop.json (main checkout) holds the sha256
+#   - exit 1: {"decision":"block","reason":<digest>}. Loop guard: <spec>/artifacts/<task-id>/audit-loop.json (spec checkout) holds the sha256
 #     of the last digest and a repeat count. The count restarts at 1 when stop_hook_active is false or the digest changed, and goes up by one
 #     when stop_hook_active is true and the digest is identical. At 3 identical failures in a row the stop is allowed, and the give-up is
 #     recorded in <spec>/artifacts/<task-id>/audit.json (toolchain.json keeps status "fail" for the orchestrator).
@@ -55,10 +56,10 @@
 # Wiring: claude-settings.template.json (merged into <target>/.claude/settings.json by install.sh): SubagentStop, matcher "implementation|integration" (matches agent type); the script also filters on agent_type.
 #   codex-hooks.template.json (<target>/.codex/hooks.json): SubagentStop with no matcher; the agent_type filter does the work.
 # Notes: Codex SubagentStop block-with-reason and stop_hook_active verified on 0.155.1; agent_path in the
-#   transcript checked against the 0.155.1 run-3 rollouts. Codex has no worktree sub-agents, so the payload cwd is the main checkout and the
+#   transcript checked against the 0.155.1 run-3 rollouts. Codex has no worktree sub-agents, so the payload cwd is the spec checkout and the
 #   worktree is found from the task_name (.workflow/.worktrees/<task_name>, see above).
 #   The loop guard compares exact digests: tool output that embeds timings or other varying text resets the count, so such a loop ends only when the agent stops changing nothing.
-# Sources: first-party; hooks/pre-launch.sh (main-checkout resolution); lib/workflow-paths.sh (wf_enc, wf_agent_worktree_name).
+# Sources: first-party; hooks/pre-launch.sh (spec-checkout resolution); lib/workflow-paths.sh (wf_enc, wf_agent_worktree_name).
 # Requires: bash, jq, mikefarah yq v4 (through the shared scripts), git (optional), shasum or sha256sum.
 
 set -euo pipefail
@@ -80,9 +81,7 @@ cwd=$(jq -r '.cwd // "" | strings' <<<"$payload")
 [ -n "$cwd" ] && [ -d "$cwd" ] || cwd=${CLAUDE_PROJECT_DIR:-$PWD}
 cwd=$(cd "$cwd" && pwd)
 main_root=$cwd
-if common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
-  main_root=$(dirname "$common")
-fi
+if spec_root=$(wf_project_root "$cwd" 2>/dev/null); then main_root=$spec_root; fi
 scripts=$main_root/.agents/skills/feature-workflow/scripts
 [ -d "$main_root/.agents/skills/feature-workflow" ] || exit 0
 
@@ -168,7 +167,7 @@ codex_task() {
   # A Phase 1 warning is filed under its evidence id (task_id is re-read from the header afterwards).
   [ -n "$task_id" ] || task_id=phase-1-$wt
   [ -d "$main_root/$WF_WORKTREES/$name" ] ||
-    warn_allow "Codex task_name '$name': no worktree at $WF_WORKTREES/$name in the main checkout; the toolchain was not run (it would audit the main checkout, not the implementer's work)"
+    warn_allow "Codex task_name '$name': no worktree at $WF_WORKTREES/$name in the spec checkout; the toolchain was not run (it would audit the spec checkout, not the implementer's work)"
   cwd=$(cd "$main_root/$WF_WORKTREES/$name" && pwd)
 }
 
@@ -244,10 +243,9 @@ if [ -z "$agent_path" ]; then
   if [ -n "$wt_name" ] && [ -d "$main_root/$WF_WORKTREES/$wt_name" ]; then
     cwd=$(cd "$main_root/$WF_WORKTREES/$wt_name" && pwd)
   else
-    gd=$(git -C "$cwd" rev-parse --path-format=absolute --git-dir 2>/dev/null || true)
-    gc=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
-    if [ -z "$gd" ] || [ "$gd" = "$gc" ]; then
-      warn_allow "$task_id: $missing and the agent ran in the main checkout; the toolchain was not run (it would audit the main checkout, not the agent's work)"
+    top=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null || true)
+    if [ -z "$top" ] || [ "$top" = "$main_root" ]; then
+      warn_allow "$task_id: $missing and the agent ran in the spec checkout; the toolchain was not run (it would audit the spec checkout, not the agent's work)"
     fi
   fi
 fi

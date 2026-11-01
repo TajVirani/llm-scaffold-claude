@@ -10,6 +10,7 @@
 .workflow/initiatives/*/.step
 .workflow/.cache-staging/
 .workflow/.worktrees/
+.workflow/.spec-worktrees/
 .workflow/.handoff/
 .workflow/.standards-staging/
 # <<< workflow-2.0 scaffold: gitignore <<<

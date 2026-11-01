@@ -18,9 +18,10 @@
 #                                                   comes before the spec-file and glossary rules, so done/spec.md, done/.step and a
 #                                                   glossary inside a moved spec are not read as a spec named `done` or as Tier A.
 #   spec     .workflow/specs/work-backlog/**                  deny sub-agents. Main session: allow only when the origin spec's .step names 00.26
-#                                                   (write the item) or 5.9 (status / promoted link), or when the newest .step of
+#                                                   (add a line) or 5.9 (the sign-off rulings), or when the newest .step of
 #                                                   any spec names 0.1.4 (a new spec seeded from the item marks it promoted). The origin
-#                                                   spec comes from the file name <NNN-slug>-disc-<###>.md; any other name is denied.
+#                                                   spec comes from the file name: the spec's backlog list <NNN-slug>.md, or an older
+#                                                   item file <NNN-slug>-disc-<###>.md; any other name is denied.
 #                                                   Deleting a promoted item (Bash rm at the new spec's 0.6 / 0.3.20) is not a file-tool
 #                                                   write and is not checked here.
 #                                                   .workflow/specs/work-backlog/ is not a spec folder: the spec.md/tasks.md/.step rules and the
@@ -49,8 +50,9 @@
 #   other    everything else                        allow.
 #   (The in-flight scan skips .workflow/specs/work-backlog/.)
 # Triggers/inputs: Reads the gitignored step markers .workflow/specs/NNN-slug/.step and .workflow/initiatives/NNN-slug/.step (formats owned by status-transition.sh and initiative-transition.sh: `step: "<node>"`, `updated_at: "<UTC>"`,
-#   optional `blocked_from`) and the spec.md and initiative.md frontmatter `status`, all from the MAIN checkout found with `git rev-parse --git-common-dir`,
-#   because gitignored state exists only there, not in task worktrees. Needs mikefarah yq v4 only for Tier A checks and --proposed.
+#   optional `blocked_from`) and the spec.md and initiative.md frontmatter `status`, all from the spec checkout that holds the path (lib/workflow-paths.sh
+#   wf_project_root: the main checkout or a spec worktree; a path in an agent worktree counts as the checkout the worktree sits in),
+#   because gitignored state exists only there, not in agent worktrees. Needs mikefarah yq v4 only for Tier A checks and --proposed.
 # Outputs/handoff: exit 0 allow (reason on stdout); exit 2 deny (reason on stderr); exit 1 usage or environment error (adapters should treat it as deny).
 #   Host adapters translate this to their decision format.
 # Called by: hooks/spec-single-writer-guard.sh (--only spec), tier-a-write-guard.sh (--only tier-a), tier-b-write-guard.sh (--only tier-b);
@@ -68,16 +70,16 @@ PROG=check-write.sh
 # 1.1 and 3.1 (baseline_revision: full path at 1.1, light path at 3.1), 3.14 (Known gaps, deferred[]),
 # 4.6 (followup_review_recommended), 5.3 (provisional capability ids rewritten),
 # 0.3.20 and 2.5 (budget written with tasks.md), 00.29 (budget raised after an approved overrun),
-# 5.9 (a backlog item moved to .workflow/deferred/ adds to deferred[]).
+# 5.9 (a backlog item moved to the deferred shelf adds to deferred[]).
 SPEC_STEPS="0.1.4 0.1.6 0.3.17 0.3.19 0.3.20 0.5.1 1.1 2.5 3.1 3.14 4.6 4.8 5.1 5.3 5.9 00.29"
 TASKS_STEPS="2.5 0.3.20"
-BACKLOG_STEPS="00.26 5.9"                         # .workflow/specs/work-backlog/** items (origin spec's .step)
+BACKLOG_STEPS="00.26 5.9"                         # work-backlog items (origin spec's .step)
 BACKLOG_SEED_STEP="0.1.4"                         # newest .step of any spec (new spec seeded from an item)
 INITIATIVE_STEPS="6.1 6.7 6.9"                    # initiative.md: entry, slice planning, slice emission (the initiative's own .step)
 GLOSSARY_STEPS="0.2.3 0.3.15 0.4.3 5.3 6.6"       # the term gates (6.6 is the initiative one) and sign-off
 TIER_A_STEPS="0.3.7 5.3 5.7"                     # every other Tier A path (rules.md, capabilities.md, decisions/**)
-PROFILE_EDIT_STEPS="5.3"                          # an existing .workflow/profiles/** file
-PROFILE_CREATE_STEPS="00.19 5.3"                  # a new .workflow/profiles/** file (00.19 in-flow, 5.3 approved proposal)
+PROFILE_EDIT_STEPS="5.3"                          # an existing work profile file
+PROFILE_CREATE_STEPS="00.19 5.3"                  # a new work profile file (00.19 in-flow, 5.3 approved proposal)
 REVIEW_LESSONS_STEPS="5.7"                        # the review-lessons file: only the retrospective records a lesson
 
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 1; }
@@ -141,16 +143,6 @@ existing_dir() {
   printf '%s\n' "$p"
 }
 
-main_root() {
-  local common
-  common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
-  if [[ "$(basename "$common")" == ".git" ]]; then
-    (cd -P "$(dirname "$common")" && pwd)
-  else
-    git -C "$1" worktree list --porcelain | sed -n '1s/^worktree //p'
-  fi
-}
-
 marker_get() {
   local file=$1 key=$2
   [[ -f "$file" ]] || return 0
@@ -194,7 +186,7 @@ LC=$(lower "$REL")
 # ---------------------------------------------------------------- classify
 CLASS=other KIND=""
 # Lower-cased guarded roots from lib/workflow-paths.sh. Prefix tests compare whole segments ("$P"/*), so a
-# look-alike such as .workflow/specs-x/ or .workflow/cache2/ is not matched.
+# look-alike folder such as specs-x/ or cache2/ beside the real one is not matched.
 P_CACHE=$(lower "$WF_CACHE") P_SPECS=$(lower "$WF_SPECS") P_BACKLOG=$(lower "$WF_WORK_BACKLOG") P_SPECS_DONE=$(lower "$WF_SPECS_DONE")
 P_PROFILES=$(lower "$WF_PROFILES") P_DECISIONS=$(lower "$WF_DECISIONS")
 P_RULES=$(lower "$WF_RULES") P_CAPABILITIES=$(lower "$WF_CAPABILITIES") P_INITIATIVES=$(lower "$WF_INITIATIVES")
@@ -221,7 +213,7 @@ elif [[ "$INITIATIVE_REST" =~ ^[^/]+/\.step$ ]]; then
 elif [[ "$INITIATIVE_REST" =~ ^[^/]+/initiative\.md$ ]]; then
   CLASS=spec KIND=initiative
 elif [[ "$LC" == "glossary.md" || "$LC" == */glossary.md || "$LC" == "glossary-map.md" || "$LC" == */glossary-map.md ]]; then
-  CLASS=tier-a KIND=glossary                 # any depth, so .workflow/GLOSSARY.md and per-context glossaries
+  CLASS=tier-a KIND=glossary                 # any depth, so the root glossary and per-context glossaries
 elif [[ "$LC" == "$P_PROFILES" || "$LC" == "$P_PROFILES"/* ]]; then
   CLASS=tier-a KIND=profile
 elif [[ "$LC" == "$P_REVIEW_LESSONS" ]]; then
@@ -260,15 +252,18 @@ if [[ $HAVE_AGENT -eq 1 ]]; then
   deny "$REL is protected ($CLASS) and the write comes from a $WHO. Only the main session writes spec.md, tasks.md, $WF_WORK_BACKLOG/, initiative.md and Tier A, at approved steps. Return the proposed change (or the discovered-work report) in your output instead."
 fi
 
-ROOT=$(main_root "$TOP") || die "cannot locate the main checkout from $TOP"
+ROOT=$(wf_project_root "$TOP") || die "cannot locate the spec checkout from $TOP"
+ROOT=$(cd -P "$ROOT" && pwd)
 
-# ---------------------------------------------------------------- .workflow/specs/work-backlog/
+# ---------------------------------------------------------------- work-backlog items
 if [[ "$KIND" == "backlog" ]]; then
   ITEM=${REL:${#WF_WORK_BACKLOG}+1}
-  if [[ ! "$ITEM" =~ ^([0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*)-disc-[0-9]{3,}\.md$ ]]; then
-    deny "$REL: backlog items are named $WF_WORK_BACKLOG/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9."
+  # The item-file pattern is tried first: its name would also match the list pattern with the wrong origin.
+  if [[ "$ITEM" =~ ^([0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*)-disc-[0-9]{3,}\.md$ ]] || [[ "$ITEM" =~ ^([0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*)\.md$ ]]; then
+    ORIGIN=${BASH_REMATCH[1]}
+  else
+    deny "$REL: the backlog holds one list per spec, $WF_WORK_BACKLOG/<origin NNN-slug>.md, and older item files $WF_WORK_BACKLOG/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9."
   fi
-  ORIGIN=${BASH_REMATCH[1]}
   STEP=$(marker_get "$ROOT/$WF_SPECS/$ORIGIN/.step" step)
   if [[ -n "$STEP" ]] && in_list "$STEP" "$BACKLOG_STEPS"; then
     allow "$REL: work-backlog item, main session at step $STEP ($WF_SPECS/$ORIGIN)"
@@ -285,7 +280,7 @@ if [[ "$KIND" == "backlog" ]]; then
   if [[ "$NEW_STEP" == "$BACKLOG_SEED_STEP" ]]; then
     allow "$REL: work-backlog item, main session seeding $NEW_SPEC at step 0.1.4"
   fi
-  deny "$REL: origin spec $WF_SPECS/$ORIGIN is at step ${STEP:-<none>}; work-backlog items are written only at 00.26 (new item) or 5.9 (status at sign-off) of the origin spec, or at 0.1.4 of a new spec seeded from the item. Set the step with status-transition.sh step $WF_SPECS/$ORIGIN 00.26 | 5.9."
+  deny "$REL: origin spec $WF_SPECS/$ORIGIN is at step ${STEP:-<none>}; work-backlog lists and items are written only at 00.26 (a kept item's line) or 5.9 (the sign-off rulings) of the origin spec, or at 0.1.4 of a new spec seeded from the item. Set the step with status-transition.sh step $WF_SPECS/$ORIGIN 00.26 | 5.9."
 fi
 
 # ---------------------------------------------------------------- tasks.md
@@ -359,7 +354,7 @@ for spec in "$ROOT/$WF_SPECS"/*/spec.md; do
   fi
 done
 # The marker, not initiative.md, marks an initiative in flight: initiative.md lives on the initiative branch, while the
-# gitignored marker stays in the main checkout whichever branch is checked out.
+# gitignored marker stays in its checkout whichever branch is checked out.
 for mk in "$ROOT/$WF_INITIATIVES"/*/.step; do
   [[ -f "$mk" ]] || continue
   dir=$(dirname "$mk")

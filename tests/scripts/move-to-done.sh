@@ -3,7 +3,9 @@
 # Covers: the interface: the script is executable, and no argument or an unknown option exits 2.
 #   JRN-001: --check on a spec whose task record T2 is pending exits 1, names T2 and not the done tasks, and changes no file,
 #   ref or index entry; two open records are both named; a backlog item from the spec with a status outside open, promoted,
-#   moved-to-deferred and dismissed is named, while one from another spec is not; the 5.7 sequence (the check, then
+#   moved-to-deferred and dismissed is named, while one from another spec is not; on the spec's backlog list open,
+#   promoted and split lines pass, while a line with another status, no status or no evidence is named by line number, and
+#   another spec's list is not read; the 5.7 sequence (the check, then
 #   status-transition.sh status done --step 5.7) leaves the spec in-review; once every record is done or split-out the check
 #   exits 0, changes nothing, and the 5.7 sequence reaches done; a missing spec folder exits 2.
 #   JRN-002: moving the done spec 012-alpha puts it at .workflow/specs/done/012-alpha with no step marker, the same
@@ -97,7 +99,7 @@ set_task() {
 # set_status FILE STATUS : write a frontmatter status straight into FILE.
 set_status() { NEW_STATUS=$2 yq --front-matter=process -i '.status = strenv(NEW_STATUS)' "$1"; }
 
-# word_changes REPO FROM TO OLD NEW : the words removed or added between commits FROM and TO under .workflow/ and docs/, one
+# word_changes REPO FROM TO OLD NEW : the words removed or added between commits FROM and TO under the workflow folder and docs/, one
 #   per line with its - or + sign. A file under the folder NEW in TO is compared with the same file under OLD in FROM. Git's
 #   own rename detection is not used because it misses a small file whose path strings changed.
 word_changes() {
@@ -169,6 +171,27 @@ check "JRN-001 --check names a backlog item from the spec whose status is not a 
   '[[ $RC == 1 && $OUT == *012-alpha-disc-002* ]]' "rc=$RC: $OUT"
 check "JRN-001 --check does not name a backlog item from another spec" '[[ $OUT != *013-beta-disc-001* ]]' "$OUT"
 set_status "$P/.workflow/specs/work-backlog/012-alpha-disc-002.md" dismissed
+
+# The spec's backlog list: open and promoted lines are closed; any other status, or a line out of shape, is named.
+LIST="$P/.workflow/specs/work-backlog/012-alpha.md"
+OTHER_LIST="$P/.workflow/specs/work-backlog/013-beta.md"
+printf '%s\n' "# Work backlog: 012-alpha" "" \
+  "- [open] B1 bug (4.4): A suite hangs when stdin is a terminal. Evidence: bash tests/run-all.sh </dev/tty: no exit after 60 s." \
+  "- [promoted] B2 requirement (3.7): Reports cannot be exported. Evidence: spec.md CAP-002 names no export. -> .workflow/specs/014-gamma" \
+  "- [open] B3 budget-split (00.29, split out of T4, T5): The export task. Evidence: budget-check.sh over by 2 files." >"$LIST"
+printf '%s\n' "# Work backlog: 013-beta" "" "- [in-progress] B1 bug (4.4): x. Evidence: y." >"$OTHER_LIST"
+mtd "$P" --check "$DONE_SPEC"
+eq "D105 --check passes with open, promoted and split lines on the spec's list" "$RC" 0
+printf '%s\n' "- [in-progress] B4 bug (4.4): A probe fails. Evidence: bash probe.sh exits 1." "- B5 a note with no status" \
+  "- [open] B6 bug (4.4): Says what is wrong but gives no proof." >>"$LIST"
+mtd "$P" --check "$DONE_SPEC"
+check "D105 --check names a list line with a status outside open and promoted" \
+  '[[ $RC == 1 && $OUT == *"open: backlog line .workflow/specs/work-backlog/012-alpha.md:6 (in-progress)"* ]]' "rc=$RC: $OUT"
+check "D105 --check names a line with no status, and an open line with no evidence, as malformed" \
+  '[[ $OUT == *"012-alpha.md:7 (malformed)"* && $OUT == *"012-alpha.md:8 (malformed)"* ]]' "$OUT"
+check "D105 --check names no well-formed line and nothing from another spec's list" \
+  '[[ $OUT != *"012-alpha.md:3"* && $OUT != *"012-alpha.md:4"* && $OUT != *"012-alpha.md:5"* && $OUT != *013-beta.md* ]]' "$OUT"
+rm -f "$LIST" "$OTHER_LIST"
 
 git_commit_all "$P" "fixture: every record of 012-alpha closed"
 BEFORE=$(tree_digest "$P")

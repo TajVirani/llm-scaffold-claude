@@ -8,18 +8,16 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
 
 ## 0.1 Initialise the feature folder
 
-1. **0.1.1 Scan.** Find the highest number any spec has taken. A spec number lives on after its folder leaves the working tree: on a spec branch, in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (that spec folder is deleted, and its number is never reused). A finished spec also leaves the top level: 5.8 moves it into the Done folder, `.workflow/specs/done/`. So count the `NNN-slug` spec folders at the top level and in the Done folder, the `spec/*` branches local and on `origin`, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
+1. **0.1.1 Scan.** Find the highest number any spec has taken. The scan runs in the main checkout, where new work starts and the spec worktrees sit, even when the session is in a spec worktree (5.9 seeds the next spec from there): its subshell moves there and leaves the session where it is. A spec number lives on after its folder leaves the top level of `.workflow/specs/`: in its spec worktree while it runs (1.1, or 0.3.20 on the light path, moves the folder to `.workflow/.spec-worktrees/NNN-slug`), in the Done folder `.workflow/specs/done/` once 5.8 has moved it, in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (that spec folder is deleted, and its number is never reused). Branches are not counted: 5.8 deletes a spec branch once it merges, and every spec it held is already in one of these places. So count the `NNN-slug` spec folders at the top level and in the Done folder, the spec worktrees, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
 
    ```bash
-   {
-     for d in .workflow/specs/[0-9]*-*/ .workflow/specs/done/[0-9]*-*/; do [ -d "$d" ] && basename "$d"; done
-     git for-each-ref --format='%(refname:lstrip=3)' refs/heads/spec
-     git for-each-ref --format='%(refname:lstrip=4)' refs/remotes/origin/spec
+   ( cd "$(git worktree list --porcelain | sed -n '1s/^worktree //p')" && {
+     for d in .workflow/specs/[0-9]*-*/ .workflow/specs/done/[0-9]*-*/ .workflow/.spec-worktrees/[0-9]*-*/; do [ -d "$d" ] && basename "$d"; done
      for f in .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && yq --front-matter=extract '.origin, (.slices // [] | .[].spec)' "$f"; done
      for ref in $(git for-each-ref --format='%(refname)' refs/heads/initiative refs/remotes/origin/initiative); do
        git show "$ref:.workflow/initiatives/${ref##*/}/initiative.md" 2>/dev/null | yq --front-matter=extract '.origin, (.slices // [] | .[].spec)'
      done
-   } | grep -oE '^[0-9]+' | sort -n | tail -1
+   } ) | grep -oE '^[0-9]+' | sort -n | tail -1
    ```
 
    `.workflow/specs/work-backlog/`, the Done folder `.workflow/specs/done/` itself and any other folder without a numeric prefix are not specs and never count; the children of the Done folder are finished specs and do count. The new number is the highest plus one, zero-padded to five digits (`printf '%05d' $((10#$highest + 1))`; `00001` when nothing prints). Older specs keep their three-digit numbers: a spec number may have any number of digits, and only its value orders it.
@@ -38,15 +36,15 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
 
 ### Seeded from a work item
 
-A request can come from a `.workflow/specs/work-backlog/<origin>-disc-<###>.md` item: sign-off chose **Start it** at 5.9 of the origin spec, or the stakeholder picked an open item at any later time. It is not off the shelf: 0.1.5 is No. The same steps apply however it started.
+A request can come from a work item: a line `B<n>` on a backlog list `.workflow/specs/work-backlog/<origin>.md`, or an older item file `.workflow/specs/work-backlog/<origin>-disc-<###>.md`. Sign-off chose **Start it** at 5.9 of the origin spec, or the stakeholder picked an open item at any later time. It is not off the shelf: 0.1.5 is No. The same steps apply however it started.
 
-- **Seed.** Read the item whole. Its title and **Suggested scope and size** are the request for 0.1.2; its **Problem** drafts the Why at 0.1.6; its **Evidence** and **Why not a blocker** become the first facts for retrieval and the questioning loop.
+- **Seed.** Read the line, or the item file whole. Its problem (with the title and **Suggested scope and size** of an older file) is the request for 0.1.2 and drafts the Why at 0.1.6; its evidence (and an older file's **Why not a blocker**) become the first facts for retrieval and the questioning loop. For a line, also read the origin spec's **Discovered work** entry for it in that spec's `design-log.md`.
 - **At 0.1.4** (step 0.1.4 admits both writes), while writing `spec.md`:
-  - add `origin: <item file name>` to the new spec's frontmatter (for example `origin: 007-csv-export-disc-002.md`);
-  - edit the item's frontmatter to `status: promoted` and `promoted_to: .workflow/specs/NNN-slug` (Edit; on Codex check the write first with `check-write.sh`). Change nothing else in it.
-- **Origin entry.** Create `design-log.md` from [../assets/design-log.md](../assets/design-log.md) if needed and append a dated **Origin** entry: the item file name, its origin spec and step, and its Problem and Evidence copied in full. This entry is the lasting record, because the item file is deleted below.
+  - add `origin: <item>` to the new spec's frontmatter: `<origin>.md#B<n>` for a line (for example `origin: 00012-csv-export.md#B2`), the file name for an older item (for example `origin: 007-csv-export-disc-002.md`);
+  - mark it promoted. A line: Edit it from `- [open]` to `- [promoted]` and add ` -> .workflow/specs/NNN-slug` at its end. An older file: Edit its frontmatter to `status: promoted` and `promoted_to: .workflow/specs/NNN-slug`. Change nothing else (on Codex check the write first with `check-write.sh`).
+- **Origin entry.** Create `design-log.md` from [../assets/design-log.md](../assets/design-log.md) if needed and append a dated **Origin** entry: the item, its origin spec and step, and its problem and evidence copied in full. This entry is the lasting record.
 - **Started from 5.9:** after 0.1.6, hand the new folder name back to sign-off. The new spec waits in `draft` and resumes through the router.
-- **Delete the item when discovery finishes.** When this spec passes 0.6 (Clear) or the 0.3.20 light-path test, remove the item so no stale copy remains: `rm .workflow/specs/work-backlog/<item file>`. The `origin` key and the design-log Origin entry keep the history.
+- **Older item files only: delete the item when discovery finishes.** When this spec passes 0.6 (Clear) or the 0.3.20 light-path test, remove it so no stale copy remains: `rm .workflow/specs/work-backlog/<item file>`. The `origin` key and the design-log Origin entry keep the history. A promoted line stays on its list as the pointer to this spec.
 
 ### Seeded from a slice
 
@@ -70,11 +68,11 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
    It prints one JSON object (`.stale`, `.stamps`, `.caches[] | {cache_type, status, stale_paths, reason}`). Exit 0: every cache is fresh. Exit 1: some are `stale` or `missing` and need 0.2.8. Exit 2 → read `.caches[].reason`: an `invalid` cache is treated like a stale one; a tooling or usage error stops the step and is reported to the stakeholder. Every exit except a tooling or usage error goes to step 3, which sends the launches this result needs beside the term gate.
 3. **0.2.2 Term gate, with the launches beside it.** Does the request use a new, ambiguous or conflicting term? Note each raised term with the name you would propose. Then send the launches below in the same message as the gate's first question, so the agents run while the stakeholder answers:
    - **Every cache fresh (0.2.7 exit 0):** launch `retrieval` and `library-evaluation` as step 5 says, their briefs carrying the raised terms as `proposed, pending the 0.2.2 gate`.
-   - **Some cache needs 0.2.8:** launch the `cache-regeneration` agents as step 4 says. `retrieval` and `library-evaluation` launch at step 5, once the caches are published.
+   - **Some cache needs 0.2.8:** launch the `cache-regeneration` agents in the background as step 4 says, and `retrieval` and `library-evaluation` beside them as step 5 says, with every cache 0.2.7 did not find fresh listed under `Stale caches`. Retrieval reads the code for those, so nothing waits for publishing.
    - **The ask:** with a term raised, invoke the `domain-modeling` skill for gate 0.2.2; it agrees each term with the stakeholder and writes the glossary under step `0.2.3` as each answer lands. With none raised, there is no ask; send the launches alone.
 
    Done when every raised term is agreed or confirmed as an existing entry, and the launches for this cache state are out.
-4. **0.2.8 Regenerate and restamp** each cache whose status is `stale`, `missing` or `invalid`. When the agents launched at step 3 return, check and publish each staged body as the second bullet says. Launch here only when step 3 did not, for example when 0.2.7 found nothing stale at the time and a later check does.
+4. **0.2.8 Regenerate and restamp** each cache whose status is `stale`, `missing` or `invalid`. Leave them running: retrieval and the questioning go on meanwhile. When each returns, check and publish its staged body as the second bullet says, between rounds. Launch here only when step 3 did not, for example when 0.2.7 found nothing stale at the time and a later check does.
    - The launch: one `cache-regeneration` per cache type (parallel). On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `cache_regeneration`, `task_name` `s<NNN>_cache_<type>` (for example `s007_cache_modules`), `fork_turns: "none"`. It receives no Tier A and not the previous cache. The prompt is the launch header followed by exactly the four task lines `.agents/agents/cache-regeneration.md` defines:
 
      ````markdown
@@ -98,9 +96,9 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
      # architecture only: add --generator "$(.agents/skills/regenerate-caches/scripts/build-architecture.sh --print-generator)"
      ```
 
-     `check-staged-cache.sh` exit 0 → publish. Exit 1 (problems listed on stderr): resume the agent once with those lines; if it fails again, do not publish. `publish-cache.sh` exit 0 published; exit 1 means the staged file is missing, empty or fails validation. For any cache not published, carry it into the `retrieval` launch as stale (it then reads the code for it and reports its stamp as `null`) and tell the stakeholder which cache is out of date.
+     `check-staged-cache.sh` exit 0 → publish. Exit 1 (problems listed on stderr): resume the agent once with those lines; if it fails again, do not publish. `publish-cache.sh` exit 0 published; exit 1 means the staged file is missing, empty or fails validation. A cache not published stays out of date: tell the stakeholder which one. Retrieval already read the code for it, so nothing is relaunched.
 
-5. **0.2.4 / 0.2.5 Launch `retrieval` and `library-evaluation`** in one message: beside the term-gate ask when every cache was fresh (step 3), else once step 4 has published. `Agreed terms` is the terms agreed at 0.2.2 when the gate has finished, else each raised term followed by `(proposed, pending the 0.2.2 gate)`.
+5. **0.2.4 / 0.2.5 Launch `retrieval` and `library-evaluation`** in one message, beside the term-gate ask (step 3), whatever the cache state: a cache being regenerated goes under `Stale caches`. `Agreed terms` is the terms agreed at 0.2.2 when the gate has finished, else each raised term followed by `(proposed, pending the 0.2.2 gate)`.
 
    ````markdown
    ```yaml launch-header
@@ -127,7 +125,7 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
    On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `retrieval` and `library_evaluation`, `task_name` `s<NNN>_<agent>` (for example `s007_retrieval`, `s007_library_evaluation`), `fork_turns: "none"`.
 
 6. **0.2.6 Write `codebase-map.md`** from [../assets/codebase-map.md](../assets/codebase-map.md) and the two returns only, each part as its return lands. Use the name agreed at 0.2.2 wherever a return used a proposed term the stakeholder renamed:
-   - `cache_stamps` frontmatter ← the `cache_stamps` block of the `retrieval` return (after 0.2.8 these are the freshly published stamps).
+   - `cache_stamps` frontmatter ← the `cache_stamps` block of the `retrieval` return (`null` for a cache it read from the code). When a regenerated cache is published later, set its stamp to the published one.
    - **Affected area** ← the 0.2.1 list. **Relevant code**, **Seams and interfaces**, **Prior decisions**, **Not found** ← the same-named sections of the `retrieval` return.
    - **Library options** ← the `library-evaluation` report, pasted whole in place of the template table, with its Evidence URLs intact. A `Hold` or `Blocked: missing context` return goes in as returned and its missing items become questions for the loop.
    - Delete the template comment and placeholder rows; write `None.` for an empty section.
@@ -147,8 +145,8 @@ The large path emits a settled slice of an initiative as a spec ([6.9](large-pat
 
 ### Hand off to the questioning loop
 
-1. **0.3.22 Deeper prompt.** Invoke the `deeper-prompt` skill. It restates the request one level up with its goals, downstream work, tools and gotchas, revises until the stakeholder explicitly agrees, and appends the agreed block to `design-log.md` as a **Deeper prompt** entry. Runs on both paths (light versus full is decided later, at 0.3.20), and only on this first entry: loop-backs to 0.3.8 go straight to the loop.
-2. Load [questioning-loop.md](questioning-loop.md) with the agreed block as its input. It runs 0.3.8–0.3.19 and returns here at 0.3.20.
+1. **0.3.22 Deeper prompt.** Invoke the `deeper-prompt` skill. It restates the request one level up with its goals, downstream work, tools and gotchas, and appends the block to `design-log.md` as a **Deeper prompt** entry marked `Agreement: pending`; its "ready to pass on?" question is not asked on its own but rides on the questioning loop's first ask. Runs on both paths (light versus full is decided later, at 0.3.20), and only on this first entry: loop-backs to 0.3.8 go straight to the loop.
+2. Load [questioning-loop.md](questioning-loop.md) with the block as its input. It asks for the block's agreement in its first ask, runs 0.3.8–0.3.19 and returns here at 0.3.20.
 
 ## 0.3.20 Light-path test
 
@@ -166,13 +164,10 @@ The three facts (all must be clean for the light path):
 | Irreversible actions | No irreversible migration, data deletion, destructive external call, or removal of a public contract. |
 | Footprint | One owning module, one capability, small: as a rule of thumb about 100 changed lines; more than five files that are not simple or mechanical is not small. Read it from `codebase-map.md`. |
 
-- **`light_path: true` (pass).** Create the spec branch, write the size budget, the one-task `tasks.md` index and its task file, commit them, then set the status:
+- **`light_path: true` (pass).** Write the size budget, the one-task `tasks.md` index and its task file, create the spec worktree, which commits them on the spec branch, move the session into it, then set the status:
 
   ```bash
   ST step .workflow/specs/NNN-slug 0.3.20
-  # Spec branch (the light path has no task branch): off the main branch, carrying the uncommitted spec folder with it.
-  git switch -c spec/NNN-slug "$(.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch)"   # already on spec/NNN-slug (a loop-back): skip
-  # Edit the spec.md frontmatter line to `spec_branch: spec/NNN-slug`.
   # Read the project defaults from .workflow/rules.md "## Size budget":
   awk '/^## /{f=($0 ~ /^## Size budget[[:space:]]*$/); next} f && /^```ya?ml/{y=1; next} y && /^```/{exit} y' .workflow/rules.md | yq -o=json '.size_budget'
   # Edit the spec.md frontmatter line to `budget: {max_tasks: <n>, max_changed_files: <n>}` with those values,
@@ -184,13 +179,16 @@ The three facts (all must be clean for the light path):
   #   id: T1, title, status: pending, capability: <the spec's CAP id>, depends_on: [],
   #   touches_core: <true if a touched path is under Shared core>, work_type: null,
   #   module: <owning module>, seam: <interface under test agreed in the loop>,
-  #   file: tasks/T01-<slug>.md, branch: null, predicted_files, size, mode, parallel_with: [], pr: null
+  #   file: tasks/T01-<slug>.md, branch: task/NNN-slug/T01-<slug>, predicted_files, size, mode, parallel_with: [], pr: null
   # and a one-row Waves table; validate it with the yq validator in ../assets/tasks.md (prints true).
-  git add .workflow/specs/NNN-slug && git commit -m "Spec NNN-slug"   # the spec branch's first commit
+  # Spec branch in its own worktree off the main branch; the first commit carries the spec folder and discovery's other workflow data.
+  .agents/skills/feature-workflow/scripts/spec-worktree.sh create .workflow/specs/NNN-slug   # prints `worktree <path>`; a loop-back finds it and changes nothing
+  # Move the session into <path> (Claude Code: the EnterWorktree tool with that path; other hosts: reopen the session there).
+  # In the spec worktree: Edit the spec.md frontmatter line to `spec_branch: spec/NNN-slug`.
   ST status .workflow/specs/NNN-slug ready-for-dev --step 0.3.20
   ```
 
-  T1 commits straight onto the spec branch at 3.3 (`branch: null`); a `mode: hitl` T1 still gets the 3.3 pause.
+  `spec-worktree.sh create` prints `worktree <path>` and `baseline <sha>`; exit 1 names what to fix first, as at [1.1](verification-setup.md#11-measurable-targets-and-the-baseline). T1 gets its task branch and worktree at wave start and merges `--no-ff` at 3.16, as a full-path task does; a `mode: hitl` T1 still gets the 3.3 pause.
 
   Seeded from a work item: now delete the item (see [Seeded from a work item](#seeded-from-a-work-item)).
 
@@ -251,10 +249,9 @@ All four must be clear, each checkable in a named file:
 
 ## Offer a fresh session
 
-The spec is `ready-for-dev`, so everything implementation needs is on disk, while this session's context is full of discovery. Before loading the next module, ask the stakeholder: continue here, or start fresh?
+The spec is `ready-for-dev`, so everything implementation needs is on disk. Load the next module now: the run continues without asking. When this session has looped back to 0.3.8 two or more times, its context is long, so add one line under the progress line of your next update: "This session is long: say *hand off* to continue `NNN-slug` in a fresh session." Then go on; it is an offer, never a question you wait for.
 
-- **Continue**: load the next module now.
-- **Fresh**: load the `handoff` skill and write a handoff for this spec. Then tell the stakeholder to clear the context (`/clear` in Claude Code) or open a new session and ask to resume `NNN-slug`; the new session routes by the spec's status and `.step` ([Route by status](../SKILL.md#3-route-by-status)). Stop here.
+When the stakeholder takes it, load the `handoff` skill and write a handoff for this spec. Then tell them to clear the context (`/clear` in Claude Code) or open a new session and ask to resume `NNN-slug`. On the light path the spec already has its spec worktree (0.3.20), so name it: a new session opened there starts in the spec checkout, and one opened elsewhere moves in first ([Route by status](../SKILL.md#3-route-by-status), "Work in the spec checkout"). On the full path 1.1 creates it. The new session routes by the spec's status and `.step`. Stop here.
 
 ## Done
 

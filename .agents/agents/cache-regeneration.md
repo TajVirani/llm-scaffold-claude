@@ -21,7 +21,7 @@ Staging path: .workflow/.cache-staging/<cache type>.md
 
 Return only `LAUNCH ERROR: <what is wrong>` when a header is malformed or names another task type, a line is missing, the cache type is not one of the three, the staging path is not `.workflow/.cache-staging/<cache type>.md`, or a scope path is absolute, contains `..` or a glob.
 
-Then run `git rev-parse HEAD` in the main checkout (`git rev-parse --path-format=absolute --git-common-dir`, its parent directory). If it differs from `Commit`, return `REGENERATION ERROR: HEAD is <sha>, task says <sha>`: the stamp would not match the body.
+Then run `git rev-parse HEAD` in the checkout you are launched from (`git rev-parse --show-toplevel` from your starting directory; the main checkout, or a spec worktree on a loop back). If it differs from `Commit`, return `REGENERATION ERROR: HEAD is <sha>, task says <sha>`: the stamp would not match the body.
 
 ## 2. Inputs you never use
 
@@ -33,7 +33,7 @@ Then run `git rev-parse HEAD` in the main checkout (`git rev-parse --path-format
 
 Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
 
-Run every command from the main checkout root. `S=.agents/skills/regenerate-caches/scripts`. Pass every scope path as its own `--scope`. Never pass `.workflow/tools/boundaries/...` in Scope to the build (stamp-only; the script ignores it with a warning).
+Run every command from that checkout's root. `S=.agents/skills/regenerate-caches/scripts`. Pass every scope path as its own `--scope`. Never pass `.workflow/tools/boundaries/...` in Scope to the build (stamp-only; the script ignores it with a warning).
 
 ### architecture
 

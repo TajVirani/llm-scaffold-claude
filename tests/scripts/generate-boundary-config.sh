@@ -14,7 +14,7 @@ SETUP="$WORK/scaffold/.agents/skills/project-setup"
 GEN="$SETUP/scripts/generate-boundary-config.sh"
 CFG=.workflow/tools/boundaries/dependency-cruiser.cjs
 
-# proj NAME RULES_TEXT : fresh project dir with .workflow/rules.md; prints its path.
+# proj NAME RULES_TEXT : fresh project dir whose rules file holds RULES_TEXT; prints its path.
 proj() {
   mkdir -p "$WORK/$1/.workflow"
   printf '%s' "$2" > "$WORK/$1/.workflow/rules.md"

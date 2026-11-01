@@ -108,7 +108,7 @@ Then poll `serve_ready` once more. If it still answers, run the snippet again; i
 - One finding per `fail` row, `RT-1`, `RT-2`, … in table order, with `category: target`, `severity: high` (a missed target is a threshold the spec committed to, and high is the grade that can block) and `confidence: 100` (measured, not inferred).
 - `checked`: each target measured, and each profile whose `serve` you used. `not_checked`: each `not_measurable` target as "<target>: not measurable: <reason>", plus the gaps from steps 2 and 5.
 
-**Discovered work** (category `discovered-work`). A problem you notice in passing that lies outside this change, such as a `serve` command that is broken on the baseline too or a measurement command in `verification-plan.md` that cannot run as written. Report it only with concrete evidence; it carries no severity or confidence, and you never fix it. Triage runs the discovered-work protocol for it.
+**Discovered work** (category `discovered-work`). A problem you notice in passing that lies outside this change, such as a `serve` command that is broken on the baseline too or a measurement command in `verification-plan.md` that cannot run as written. Report it only with its proof in `evidence`: the command you ran and its output; a suspicion you could not run is one `not_checked` line instead. It carries no severity or confidence, and you never fix it. Triage runs the discovered-work protocol for it.
 
 ## Return
 

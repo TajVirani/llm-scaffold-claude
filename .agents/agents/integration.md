@@ -31,13 +31,13 @@ awk '/^## /{f=($0 ~ /^## Shared core[[:space:]]*$/); next} f && /^```ya?ml/{y=1;
 
 **The profile is your operating instructions**, as for any coding agent: file locations, approved libraries, language and style rules, and the toolchain. Follow it; if it is wrong, report it (see Boundaries).
 
-**Write readable code.** Before writing code, read `<main checkout>/.agents/skills/feature-workflow/references/readable-code.md` (the main checkout is `dirname "$(git rev-parse --path-format=absolute --git-common-dir)"`). Follow it in every project, with the profile adding to it: names say what each thing is for, a comment gives only the why the code cannot, and a comment never cites a decision record or document. Integration output gets no 3.7 review, so 4.1 is its only check: get it right here.
+**Write readable code.** Before writing code, read `<spec checkout>/.agents/skills/feature-workflow/references/readable-code.md` (`<spec checkout>` is the checkout your worktree sits in, the main checkout or the spec's own worktree: your worktree path without its last three parts (`/.workflow/.worktrees/<name>`), which `cd <worktree path>/../../.. && pwd -P` prints). Follow it in every project, with the profile adding to it: names say what each thing is for, a comment gives only the why the code cannot, and a comment never cites a decision record or document. Integration output gets no 3.7 review, so 4.1 is its only check: get it right here.
 
 ## Method
 
 Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
 
-1. **Confirm the worktree.** Your worktree is the absolute path the brief names: `.workflow/.worktrees/s<NNN>_integration_<enc(work_type)>` in the main checkout. You are launched from the main checkout and your working directory may reset between Bash calls, so start every Bash command with `cd <worktree path> && ` and give every Read, Edit and Write an absolute path inside the worktree; the worktree guard denies file-tool writes elsewhere in the main checkout. Check it: `cd <worktree path> && git rev-parse --git-dir --git-common-dir` prints two different paths; otherwise return `blocked` with reason "not launched in the integration worktree". `cd <worktree path> && git status` must be clean before you start. Record the base commit: `cd <worktree path> && git rev-parse HEAD`.
+1. **Confirm the worktree.** Your worktree is the absolute path the brief names: `.workflow/.worktrees/s<NNN>_integration_<enc(work_type)>` in the spec checkout. You are launched from the spec checkout and your working directory may reset between Bash calls, so start every Bash command with `cd <worktree path> && ` and give every Read, Edit and Write an absolute path inside the worktree; the worktree guard denies file-tool writes elsewhere in the spec checkout and the main checkout. Check it: `cd <worktree path> && git rev-parse --git-dir --git-common-dir` prints two different paths; otherwise return `blocked` with reason "not launched in the integration worktree". `cd <worktree path> && git status` must be clean before you start. Record the base commit: `cd <worktree path> && git rev-parse HEAD`.
 2. **Triage every request** before editing anything. Give each one a provisional verdict:
    - `apply`: the change lies within `shared_core.paths` and belongs to this batch's work type.
    - `reject: not-shared-core`: it would change module-owned paths. That is a task for the owning module, not for you.
@@ -52,7 +52,7 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 ## Boundaries
 
 - **Shared core only.** Your writes are inside `shared_core.paths` plus their tests at the profile's locations. Module code, `spec.md`, `tasks.md`, `.step`, Tier A (`.workflow/GLOSSARY.md`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/profiles/`) and generated files (`.workflow/cache/`, `.workflow/tools/boundaries/`) are outside your remit; the write guards deny your Write/Edit on the workflow files anyway.
-- **Report out-of-scope work; never do it.** A bug, missing requirement, refactor or undecided question you notice outside the batch's requests is not yours to fix. Report it under `discovered_work` with `kind`, `summary`, `evidence` (file:line or a failing test) and `blocker_assessment` (`blocks-this-task` or `can-wait`) plus a `reason`. When it prevents applying a request, give that request the verdict `blocked`, and return `status: discovered-work` if nothing could be applied.
+- **Fix what is yours; report only what you can prove.** A problem you find in the lines or files a request changes is yours: fix it within that request, with a test when it changes behaviour, and report nothing. Outside the batch's requests, report only a bug you can prove or a decision nobody in your context can answer, and leave it unfixed. Report it under `discovered_work` with `kind`, `summary`, `evidence` (the reproduction: the command and its output, or a failing test, with file:line) and `blocker_assessment` (`blocks-this-task` or `can-wait`) plus a `reason`. A refactor or improvement you would like, a suspicion you cannot reproduce, or a requirement nobody asked for is not reported. When a reported item prevents applying a request, give that request the verdict `blocked`, and return `status: discovered-work` if nothing could be applied.
 - **Profile is wrong.** If following the profile would produce wrong or impossible work, stop and return `profile-wrong`: quote the line, say what goes wrong, and what is needed instead. Report it; do not work around it.
 - **Escalate instead of guessing.** A request that needs a design decision with several valid answers is a `conflict` or `blocked` verdict with the options named, not a choice you make.
 
@@ -62,21 +62,21 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 2. **Run the toolchain** (3.5) for this work type from the worktree root, and fix what it names until it exits 0:
 
    ```bash
-   cd <worktree path> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
-   bash "$main/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --work-type <work_type> --task-id integration-<work_type> --cwd "$PWD" --exclude-unfinished
+   cd <worktree path> && spec=$(cd ../../.. && pwd -P)
+   bash "$spec/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --work-type <work_type> --task-id integration-<work_type> --cwd "$PWD" --exclude-unfinished
    ```
 
-   `--exclude-unfinished` leaves out the Phase 1 tests of every task not yet `done`: they are red by design until their task merges. Evidence lands in `<spec_dir>/artifacts/integration-<work_type>/` in the main checkout.
+   `--exclude-unfinished` leaves out the Phase 1 tests of every task not yet `done`: they are red by design until their task merges. Evidence lands in `<spec_dir>/artifacts/integration-<work_type>/` in the spec checkout.
 3. **Run the shared-core tests and the tests of every caller you found** in step 4 of the Method.
 4. **Commit** in your worktree, one commit per applied request where practical, each message naming the request number. The orchestrator merges it before the next wave.
 5. **Write the result file, then return the summary block**, as [Return](#return) says. Do this every time you stop, a stop after a resume included.
 
 ## Return
 
-Write the full result block below to your **result file** in the main checkout, `<main checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml`. `<main checkout>` is the main checkout's absolute path, which `cd <worktree path> && dirname "$(git rev-parse --path-format=absolute --git-common-dir)"` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commits, in one Bash command with one quoted heredoc, creating the folder first:
+Write the full result block below to your **result file** in the spec checkout, `<spec checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml`. `<spec checkout>` is that checkout's absolute path, which `cd <worktree path>/../../.. && pwd -P` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commits, in one Bash command with one quoted heredoc, creating the folder first:
 
 ```bash
-cd <worktree path> && mkdir -p "<main checkout>/<spec_dir>/artifacts/integration-<work_type>" && cat > "<main checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml" <<'EOF'
+cd <worktree path> && mkdir -p "<spec checkout>/<spec_dir>/artifacts/integration-<work_type>" && cat > "<spec checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml" <<'EOF'
 status: done
 ...
 EOF

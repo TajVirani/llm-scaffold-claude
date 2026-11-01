@@ -3,7 +3,7 @@
 # Goals:
 #   - A Claude implementation agent (Phase 3 task or Phase 1) and an integration agent are launched WITHOUT `isolation` (the Agent tool
 #     has no working-directory input) and work in the agent worktree the orchestrator created under .workflow/.worktrees/. Only the brief
-#     keeps them there, so parallel agents could edit the main checkout or each other's worktrees. This hook denies, for those agents, a
+#     keeps them there, so parallel agents could edit the spec checkout, the main checkout or each other's worktrees. This hook denies, for those agents, a
 #     Write/Edit/NotebookEdit outside the worktree and a Bash command that does not start with `cd <worktree> &&` (the brief's rule).
 #     Main-session calls are not confined.
 # Triggers/inputs: PreToolUse JSON for Write|Edit|NotebookEdit and Bash. Confines only when the payload carries agent_id (sub-agent calls
@@ -25,7 +25,7 @@
 #   - An implementation or integration sub-agent: always checked with check-worktree-scope.sh --confined.
 #     - A header the lib cannot name (e.g. a spec_dir that is not a <NNN>-<slug> folder): deny every call with the lib's reason, fail
 #       closed, with or without isolation.
-#     - The named agent worktree exists: confine to it. Otherwise, a linked-worktree cwd (a launch with isolation: "worktree"): confine to
+#     - The named agent worktree exists: confine to it. Otherwise, a cwd in an isolation worktree (a launch with isolation: "worktree"; a spec worktree does not count): confine to
 #       that worktree. Otherwise (the named agent worktree is missing, transcript not found, launch header missing or not parsed, cwd outside any git
 #       repository): deny every call, reads and temp-dir writes included; the reason names the cause, with the transcript or header cause
 #       the hook found added to the scope check's reason.

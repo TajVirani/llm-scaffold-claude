@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Suite: check-write.sh (feature-workflow/scripts): path classes and spec files.
 # Covers: Tier B and the .step marker, the .workflow/ prefixes and their look-alikes, spec.md per step (widened steps,
-#   --proposed edits, creation at 0.1.4), tasks.md (set-task is the only record writer) and .workflow/specs/work-backlog.
+#   --proposed edits, creation at 0.1.4), tasks.md (set-task is the only record writer) and .workflow/specs/work-backlog (older item
+#   files and the per-spec backlog list <NNN-slug>.md: main session at the origin spec's 00.26 or 5.9 only).
 #   JRN-004 (spec 007): every Write/Edit under .workflow/specs/done/** is denied for the main session and a sub-agent, from the
 #   main checkout and a worktree, in any case and as an absolute path, including done/.step, done/spec.md beside a stray
 #   done/.step at a spec writer step, and a glossary file inside a moved spec at a glossary step; one of the three hook classes
@@ -167,6 +168,18 @@ t "backlog tasks.md is not a spec file"     2 CW --cwd "$R" --path .workflow/spe
 t "backlog .step is not a marker (named msg)" 0 bash -c "CW --cwd '$R' --path .workflow/specs/work-backlog/.step 2>&1 | grep -q 'disc-'"
 t "backlog origin without marker deny"      2 CW --cwd "$R" --path .workflow/specs/work-backlog/099-none-disc-001.md
 t "backlog other origin's step not used"    2 CW --cwd "$R" --path .workflow/specs/work-backlog/002-beta-disc-001.md
+# The spec's backlog list, one line per kept item: the same origin and step rules as an item file.
+WL=.workflow/specs/work-backlog/006-delta.md
+t "backlog list at 00.26 allow"             0 CW --cwd "$R" --path $WL
+t "backlog list sub-agent deny"             2 CW --cwd "$R" --path $WL --agent impl
+ST step $D 5.9 >/dev/null
+t "backlog list at 5.9 allow"               0 CW --cwd "$R" --path $WL
+for s in 3.7 4.4 5.5; do ST step $D $s >/dev/null; t "backlog list at $s deny" 2 CW --cwd "$R" --path $WL; done
+t "backlog list deny message names the list" 0 bash -c "CW --cwd '$R' --path .workflow/specs/work-backlog/no-number.md 2>&1 | grep -q '<origin NNN-slug>.md'"
+ST step $D 00.26 >/dev/null
+t "backlog list of another spec deny"       2 CW --cwd "$R" --path .workflow/specs/work-backlog/002-beta.md
+t "backlog list without a number deny"      2 CW --cwd "$R" --path .workflow/specs/work-backlog/no-number.md
+t "backlog list nested deny"                2 CW --cwd "$R" --path .workflow/specs/work-backlog/006-delta/006-delta.md
 mkdir -p "$R/.workflow/specs/work-backlog"; printf -- '---\nstatus: draft\n---\n' > "$R/.workflow/specs/work-backlog/spec.md"
 yq --front-matter=process -i '.status="done"' "$R/$D/spec.md"
 t "in-flight scan ignores work-backlog"     0 bash -c "CW --cwd '$R' --path .workflow/rules.md | grep -q 'no feature in flight'"

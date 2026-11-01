@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Suite: hooks/post-implementation-audit.sh (SubagentStop), hooks/rules-boundary-config-sync.sh (PostToolUse) and
 #   hooks/session-start-resume.sh (SessionStart).
-# Covers: audit block / loop counter / give-up / evidence in the main checkout, phase-1 and malformed headers,
+# Covers: audit block / loop counter / give-up / evidence in the checkout an isolation worktree sits in, phase-1 and malformed headers,
 #   a passing self-run reused by the stop audit;
 #   rules.md -> boundary config sync (block on parse error, missing yq, worktree); resume offer listing,
-#   discovered-work and size-budget prompts, work-backlog count, output cap.
+#   discovered-work and size-budget prompts, work-backlog count (older item files and the open lines of a spec's backlog list), output cap.
 # The three share one fixture project, so the sections run in order.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -63,8 +63,10 @@ lint: "true"
 S
 cp .agents/skills/project-setup/assets/docs/rules.md .workflow/rules.md
 git add -A >/dev/null && git commit -qm init
-git worktree add -q "$B/wt" -b wt1 2>/dev/null
-WT=$B/wt
+# An isolation worktree (a Claude `isolation: "worktree"` launch) sits inside the checkout, kept out of git as Claude does.
+echo '.claude/worktrees/' >> .git/info/exclude
+git worktree add -q "$P/.claude/worktrees/wt" -b wt1 2>/dev/null
+WT=$P/.claude/worktrees/wt
 
 H=$P/.agents/hooks
 mk_transcript() { # file prompt
@@ -123,7 +125,7 @@ mk_transcript "$B/p3r.jsonl" "$HDR_P3R"
 out=$(stop_payload "$B/p3r.jsonl" false | bash "$H/post-implementation-audit.sh" 2>/dev/null)
 check "phase 3 task with failing test key -> test still runs, stop blocked (only Phase 1 skips it)" '[ "$(jq -r .decision <<<"$out")" = block ] && [ "$(jq -r ".results[]|select(.key==\"test\")|.status" "$P/.workflow/specs/001-demo/artifacts/T9/toolchain.json")" = fail ]' "$out"
 
-# Claude task launches run in the orchestrator-made worktree .workflow/.worktrees/s<NNN>_t<N>, not an isolation cwd
+# Claude task launches run in the agent worktree the orchestrator made (s<NNN>_t<N>), not an isolation cwd
 rm -f "$EV/audit-loop.json" "$EV/audit.json"
 out=$(stop_payload "$B/t1.jsonl" false implementation "$P" | bash "$H/post-implementation-audit.sh" 2>/dev/null)
 check "main-checkout cwd, no task worktree -> allow + warning, toolchain not run" '[ -z "$(jq -r ".decision // empty" <<<"$out")" ] && jq -r .systemMessage <<<"$out" | grep -q "s001_t1" && [ "$(jq -r .outcome "$EV/audit.json")" = warning ]' "$out"
@@ -278,6 +280,18 @@ check "backlog only (no in-flight spec) still offers" 'grep -q "work-backlog/: 7
 for i in 1 2 3 4 5 6 7; do printf -- '---\nstatus: dismissed\n---\n' > "$P/.workflow/specs/work-backlog/001-demo-disc-00$i.md"; done
 out=$(ss "$P")
 check "no open backlog and no specs -> nothing" '[ -z "$out" ]' "$out"
+# One backlog list per spec, one line per kept item; open lines count, promoted lines and other files do not.
+printf -- '---\nstatus: open\n---\n# item\n' > "$P/.workflow/specs/work-backlog/001-demo-disc-001.md"
+printf '%s\n' "# Work backlog: 002-list" "" "- [open] B1 bug (4.4): A. Evidence: a." "- [promoted] B2 bug (3.7): B. Evidence: b. -> .workflow/specs/003-next" \
+  "- [open] B3 refactor (4.4): C. Evidence: c." > "$P/.workflow/specs/work-backlog/002-list.md"
+printf '%s\n' "- [open] B9 bug (4.4): stray. Evidence: z." > "$P/.workflow/specs/work-backlog/notes.md"
+out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
+check "backlog list: open lines counted by list#id beside an open item file; promoted line and stray file skipped" \
+  'grep -q "work-backlog/: 3 (001-demo-disc-001.md, 002-list.md#B1, 002-list.md#B3)" <<<"$ctx" && ! grep -q "B2\|B9" <<<"$ctx"' "$ctx"
+rm "$P/.workflow/specs/work-backlog/001-demo-disc-001.md"
+printf '%s\n' "# Work backlog: 002-list" "" "- [promoted] B2 bug (3.7): B. Evidence: b. -> .workflow/specs/003-next" > "$P/.workflow/specs/work-backlog/002-list.md"
+out=$(ss "$P")
+check "backlog list with only promoted lines and no specs -> nothing" '[ -z "$out" ]' "$out"
 rm -rf "$P/.workflow/specs/work-backlog"
 
 echo "== session-start-resume: session handoffs (.workflow/.handoff/)"

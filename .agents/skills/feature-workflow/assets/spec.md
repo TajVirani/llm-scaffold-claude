@@ -3,10 +3,11 @@ status: draft                       # draft | ready-for-dev | in-progress | in-r
 baseline_revision: ""               # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: ""                     # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: ""              # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
-light_path: false                   # true once the 0.3.20 light-path test passes
+light_path: false                   # true once the 0.3.20 light-path test passes; true from 0.1.4 on the small path
+small_path: false                   # true from 0.1.4 when intake (0.0.3) picked the small path; false once it leaves it (0.3.19)
 followup_review_recommended: false  # true when triage recommends another review pass after this one
 deferred: []                        # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
-# origin: NNN-slug-disc-001.md       # optional; filename of the work-backlog item this spec was seeded from; the item is deleted after discovery
+# origin: NNN-slug.md#B1             # optional; the work-backlog line this spec was seeded from (<list file>#B<n>), or an older item file NNN-slug-disc-001.md
 # initiative: NNN-slug               # optional; the initiative this spec was emitted from, present only on an emitted spec
 # budget: {max_tasks: 10, max_changed_files: 30}   # absent until written; written at 2.5 (0.3.20 on the light path) from .workflow/rules.md "Size budget"; raised only by an approved overrun (00.29)
 # blocked_condition: "<what a human must decide or do before work can continue>"   # present only while status is blocked; forms: "discovered work: <slug>", "size budget: <what>", or free text
@@ -27,9 +28,10 @@ Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`). stat
   - spec_branch: string, `spec/NNN-slug`. Created off the main branch and written at 1.1 (0.3.20 on the light path); every task branch forks from it and merges back into it, and sign-off 5.8 merges it into main through a PR. "" until created.
   - impl_base_revision: string, the full SHA of the spec-branch tip at 3.1: the Phase 1 commit plus the committed breakdown on the full path, the first commit on the light path. The 3.15 size budget counts only files changed since it (and in the PR/MR against `main_branch`, tests excluded), so Phase 1 harness and suite files count only when Phase 3 changes them again. "" until 3.1, then never overwritten.
   - light_path: boolean.
+  - small_path: boolean, absent on specs written before the small path existed (read as false). Set true at 0.1.4 when intake 0.0.3 picked the small path, together with light_path: true, since a small-path spec is built as a light-path spec; written false at 0.3.19 when the spec left the small path. small_path: true always comes with light_path: true.
   - followup_review_recommended: boolean, default false.
   - deferred: list of strings, repo-relative paths under .workflow/deferred/ (0.3.17, 3.14, 4.8). Empty list when none.
-  - origin: optional string, the filename of the .workflow/specs/work-backlog/ item this spec was seeded from. Set at 0.1.4 when seeded from a backlog item; the item is deleted at 0.6 (0.3.20 on the light path) after its content is carried into this spec. Convention: the spec body opens its Why with a line "Origin: <work-item filename>, <one-phrase problem>."
+  - origin: optional string, the .workflow/specs/work-backlog/ item this spec was seeded from: `<list file>#B<n>` for a line on a backlog list, or the file name of an older per-item file. Set at 0.1.4 when seeded from a backlog item; the line stays on its list as `promoted`, while an older item file is deleted at 0.6 (0.3.20 on the light path) after its content is carried into this spec. Convention: the spec body opens its Why with a line "Origin: <item>, <one-phrase problem>."
   - initiative: optional string, the `NNN-slug` folder name under .workflow/initiatives/ of the initiative this spec was emitted from. Written at 0.1.4 only when the spec is seeded from a slice; absent on every other spec. The initiative folder lives on main or on its `initiative/NNN-slug` branch. Convention: the spec body opens its Why with a line "Origin: initiative <NNN-slug>, slice S<n> (<slice title>). <one-phrase goal>.", and the design log opens with an Origin entry carrying the slice's binding decisions.
   - budget: optional map `{max_tasks: int, max_changed_files: int}`. Absent (the shipped template leaves it commented out) until 2.5 (0.3.20 on the light path) writes it; until then the rules.md fallback applies. The defaults come from the `## Size budget` block of .workflow/rules.md. 2.6 checks the task count, 3.15 the changed-file count. An approved overrun raises it for this spec only (00.29).
   - blocked_condition: string. Present only while status is `blocked`; status-transition.sh adds it on entering `blocked` and removes it on leaving. Discovered-work and size-budget halts (00.21) use `discovered work: <slug>` and `size budget: <what>`.
@@ -49,6 +51,8 @@ Validate the frontmatter (prints true, exits non-zero otherwise):
     (((.spec_branch // "") | tag) == "!!str") and
     (((.impl_base_revision // "") | tag) == "!!str") and
     ((.light_path | tag) == "!!bool") and
+    (((.small_path // false) | tag) == "!!bool") and
+    (((.small_path // false) == false) or (.light_path == true)) and
     ((.followup_review_recommended | tag) == "!!bool") and
     ((.deferred | tag) == "!!seq") and
     (((.origin // "") | tag) == "!!str") and

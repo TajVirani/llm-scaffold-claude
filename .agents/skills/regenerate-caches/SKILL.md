@@ -12,7 +12,7 @@ Schema and body shapes: [assets/cache-frontmatter.md](assets/cache-frontmatter.m
 ## Ground rules
 
 - **Never write under `.workflow/cache/` yourself.** `tier-b-write-guard` denies every Write/Edit there. Only `publish-cache.sh` moves files in, and always call it with exactly the prefix `.agents/skills/regenerate-caches/scripts/publish-cache.sh` (the sandbox exclusion matches that command line).
-- **Work in the main checkout.** Every script defaults to the main checkout, even from a worktree. Caches describe `HEAD` of that checkout.
+- **Work in the checkout the session runs in.** Every script defaults to that checkout (the main checkout, or a spec worktree on a loop back to discovery), and an agent worktree resolves to the checkout it sits in. Caches describe `HEAD` of that checkout.
 - **Regenerate, never patch.** Each run derives a cache from scratch. Never hand the agent the previous cache or any Tier A file.
 - **Leave git alone.** Do not commit. The report tells the human which `.workflow/cache/` files changed.
 

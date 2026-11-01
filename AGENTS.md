@@ -24,7 +24,7 @@ The scaffold repo is its own target project, so work on it goes through `feature
 
 - `.claude/` is Claude-specific wiring only: `settings.json` plus `skills`, `agents` and `output-styles` symlinks into `.agents/`. Do not add content there that another agent would need.
 - `.agents/lib/workflow-paths.sh` is the one home for paths under `.workflow/` (in target projects and in this repo); hooks and skill scripts build paths from it.
-- The `.gitignore` block for local workflow state (`.workflow/specs/*/.step`, `.workflow/initiatives/*/.step`, `.cache-staging/`, `.worktrees/`, `.handoff/`, `.standards-staging/`) is written by `install.sh` in target projects. In this repo it was added by hand and must be kept in step with `GI_ENTRIES` in `install.sh`.
+- The `.gitignore` block for local workflow state (`.workflow/specs/*/.step`, `.workflow/initiatives/*/.step`, `.cache-staging/`, `.worktrees/`, `.spec-worktrees/`, `.handoff/`, `.standards-staging/`) is written by `install.sh` in target projects. In this repo it was added by hand and must be kept in step with `GI_ENTRIES` in `install.sh`.
 - `.agents/agents/` holds host-neutral sub-agent definitions; Codex tomls are generated from them.
 - `.codex/` holds shim docs only; `install.sh` creates the Codex config and agent tomls in target projects.
 - `CLAUDE.md` is a one-line `@AGENTS.md` import. Edit `AGENTS.md`, not `CLAUDE.md`.
@@ -53,9 +53,9 @@ The scaffold is bash 3.2 scripts plus markdown skills and agent definitions, tes
 
 ## Running and verifying
 
-- shell-scripts: lint `git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR` · test `tests/run-all.sh`.
+- shell-scripts: lint `git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh` · test `tests/run-all.sh`.
 - agent-docs: lint `tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage` · test `tests/run-all.sh`.
-- test-harness: lint `git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR` · test `tests/run-all.sh`.
+- test-harness: lint `git ls-files -z -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -- 'tests/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh` · test `tests/run-all.sh`.
 - No CI: `tests/run-all.sh` run by hand is the whole gate. `--suite <name>` runs one suite; `--list` names them.
 
 ## Compaction

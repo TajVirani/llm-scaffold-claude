@@ -21,7 +21,7 @@
 
 ```yaml
 # Command keys, run by run-toolchain.sh at 3.5 in this order: lint, typecheck, format, boundary, test. Exact command per key; "" when not applicable. e2e is not run at 3.5: the orchestrator runs it at 3.10 via run-toolchain.sh `--e2e` (or the suite command); evidence-capture only collects the artifacts.
-lint: "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+lint: "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh"
 typecheck: ""   # e.g. tsc --noEmit
 format: ""      # a check command, e.g. prettier --check .
 boundary: ""    # e.g. depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs src (config generated from .workflow/rules.md)
@@ -47,3 +47,5 @@ graph_extractor: bash # the graph extractor the Tier B cache build runs for this
 - [ ] External tools and network are stubbed (stubs on PATH, recorded payloads, `file://` upstreams); no live network call.
 - [ ] A new or changed script has a suite ending in a `shellcheck_files` assertion over its components.
 - [ ] Fixtures stay inside the `new_workdir` temp dir; no committed fixture, absolute or home path.
+
+Readable-code R4 is `tool-covered` by the `lint` key's comment lint (`.agents/skills/feature-workflow/scripts/check-comments.sh`), which fails on a decision, journey or task id or a `.workflow/` path in a body comment, and on a decision or task id in a header block: mark R4 `tool-covered` with that lint, and judge R4 only for a changed comment that points at another document (a `docs/` path, an internal URL). Under R5, leave ids to the lint and judge other shorthand.

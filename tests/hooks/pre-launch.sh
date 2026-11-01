@@ -166,7 +166,7 @@ NW=$T/nowf; mkdir -p "$NW/.agents/hooks"; cp "$HOOK" "$NW/.agents/hooks/"
 out=$(payload Agent implementation "$HDR" "$NW" | bash "$NW/.agents/hooks/pre-launch.sh"); rc=$?
 [ $rc = 0 ] && [ -z "$out" ] && ok "workflow absent -> silent" || ko "no workflow" "rc=$rc $out"
 
-# 8b workflow installed but project not set up (no .workflow/model-map/profiles) -> deny 00.14
+# 8b workflow installed but project not set up (no model map or profiles) -> deny 00.14
 NS=$T/nosetup; mkdir -p "$NS"; cp -R "$AGENTS_SRC" "$NS/.agents"; mkdir -p "$NS/.workflow/specs/001-demo"; cp "$FX/.workflow/specs/001-demo/tasks.md" "$NS/.workflow/specs/001-demo/"
 out=$(payload Agent implementation "$HDR" "$NS" | bash "$NS/.agents/hooks/pre-launch.sh"); rc=$?
 jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.permissionDecisionReason|test("00.14"))' <<<"$out" >/dev/null \

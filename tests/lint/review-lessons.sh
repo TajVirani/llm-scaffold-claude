@@ -86,7 +86,7 @@ check "the toml is named review_lessons" 'grep -qx "name = \"review_lessons\"" "
 
 echo "== steps.tsv row"
 row49=$(grep -E '^4\.9	' "$TSV")
-eq "4.9 is phase 4 on both paths" "$(cut -f2,3 <<<"$row49")" "$(printf '4\tboth')"
+eq "4.9 is phase 4 on the full path (the light path runs the combined review)" "$(cut -f2,3 <<<"$row49")" "$(printf '4\tfull')"
 eq "4.9 comes right after 4.3" "$(grep -v '^#' "$TSV" | cut -f1 | grep -A1 -x '4\.3' | tail -n 1)" "4.9"
 
 shellcheck_files "shellcheck: review-lessons suite and fixtures" "$TESTS_DIR/lint/review-lessons.sh" "$TESTS_DIR/fixtures/review-lessons.sh"

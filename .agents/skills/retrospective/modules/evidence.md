@@ -13,7 +13,7 @@ List what the feature produced so every later step works from artifacts rather t
 | `.workflow/specs/NNN-slug/design-log.md` | Triage entries from each review pass (finding ids, verdicts, routes), decisions and their reversals, deep dives |
 | `.workflow/specs/NNN-slug/proposals.md` | What 5.3 approved, modified or rejected |
 | `.workflow/specs/NNN-slug/artifacts/` | Toolchain output per task, browser evidence per journey |
-| `.workflow/deferred/*.md` whose `origin_spec` is this spec | What was shelved, and why |
+| `.workflow/specs/work-backlog/NNN-slug.md`, and `.workflow/deferred/*.md` whose `origin_spec` is this spec | What the stakeholder kept for later, and what was shelved, and why |
 | Git, from `baseline_revision` to `HEAD` | `git log --oneline <baseline>..HEAD` and `git diff --stat <baseline>..HEAD`: commits and change volume |
 | `.workflow/review-lessons.md`, when present | Recorded review lessons: a new candidate that repeats one is "already present", and one this feature's approved 5.3 proposals now enforce is a retirement candidate |
 | The previous retrospective | The highest-numbered other file in `.workflow/decisions/retrospectives/` |
@@ -31,4 +31,24 @@ Never hide a gap. Each later step that needs an absent source records a narrowed
 - No session logs: process lessons come only from `design-log.md` and the stakeholder, and the document says so.
 - No triage entries: findings come from `report.md` and step 3 only.
 
-Done when every row of the inventory is recorded in Summary as a path, `missing`, or "not produced", with the git range stated.
+## Measurements
+
+Fill the document's **Measurements** table from the spec folder and git. Each number comes from a file; write `not recorded` for one the files do not hold, never an estimate. Run from the project root, `<range>` being the git range above:
+
+```bash
+S=.workflow/specs/NNN-slug
+git log --reverse --format=%cI <range> | sed -n '1p;$p'          # Elapsed: first and last commit time
+grep -cE 'Answer:|^- (Approval|PR description|Backlog [^:]*|Going-in concerns):' "$S/design-log.md"   # Waits: answers recorded
+for k in implementation mini-review integration; do printf '%s %s\n' "$k" "$(ls "$S"/artifacts/*/"$k"*.yaml 2>/dev/null | wc -l)"; done
+printf 'review lenses %s\n' "$(ls "$S"/artifacts/review/pass-*/*.yaml 2>/dev/null | wc -l)"
+jq -r 'select((.reused_from // .task_id) == .task_id) | .results[] | select(.key == "test" and .reused_from == null and .status != "skipped") | .status' "$S"/artifacts/*/toolchain.json | sort | uniq -c   # Harness runs
+grep -l '^verdict: "fail"' "$S"/artifacts/*/mini-review*.yaml | wc -l    # mini-review fails
+```
+
+- **Elapsed:** the first design-log entry's date, then the first and last commit times and the span between them in hours and minutes.
+- **Waits:** the count of answers the log records. The minutes spent waiting are not in the files: `not recorded`.
+- **Agent launches:** one result file per launch or fix round, by type. Discovery launches leave no file: `not recorded`.
+- **Harness runs:** the records whose `test` ran, by status; the other records with a `test` result reused it. Each evidence dir keeps only its newest run, so the count is a floor.
+- **Findings by class:** the triage entries' rows in `design-log.md` by verdict (`high`, `medium`, `low`, `false`, `unproven`) and by route (patch, decision needed, discovered work, proposal, none), and the mini-review fails.
+
+Done when every row of the inventory is recorded in Summary as a path, `missing`, or "not produced", with the git range stated, and every Measurements row holds a number or `not recorded`.

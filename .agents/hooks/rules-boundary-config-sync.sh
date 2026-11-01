@@ -4,8 +4,9 @@
 #   - Re-run skills/project-setup/scripts/generate-boundary-config.sh, which emits per-language config under .workflow/tools/boundaries/
 #   - Fail if the fenced yaml ownership/shared-core blocks do not parse
 # Triggers/inputs: PostToolUse JSON for Write/Edit/NotebookEdit (tool_input.file_path, or notebook_path for NotebookEdit). Paths from the payload
-#   `cwd`. Acts only when the written file is .workflow/rules.md of the main checkout (git rev-parse --git-common-dir) or of the checkout the
-#   cwd is in (a worktree); the generator then runs for that project root, so the config lands next to the rules.md that changed.
+#   `cwd`. Acts only when the written file is .workflow/rules.md of the main checkout (git rev-parse --git-common-dir), of the spec checkout
+#   (lib/workflow-paths.sh wf_project_root: a spec worktree, or the checkout an agent worktree sits in) or of the worktree the cwd is in;
+#   the generator then runs for that project root, so the config lands next to the rules.md that changed.
 # Codex equivalent: codex-rules-sync.sh (PostToolUse `apply_patch` adapter for the same regeneration).
 # Behaviour:
 #   - Other tools or paths, or no .agents/skills/project-setup/scripts/generate-boundary-config.sh in the main checkout: exit 0, no output.
@@ -41,14 +42,15 @@ case "$path" in /*) ;; *) path=$cwd/$path ;; esac
 [ -d "$(dirname "$path")" ] || exit 0
 path=$(cd "$(dirname "$path")" && pwd -P)/$(basename "$path")
 
-main_root=$cwd top=$cwd
+main_root=$cwd spec_root=$cwd top=$cwd
 if common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
   main_root=$(cd "$(dirname "$common")" && pwd -P)
+  spec_root=$(cd "$(wf_project_root "$cwd")" && pwd -P)
   top=$(cd "$(git -C "$cwd" rev-parse --show-toplevel)" && pwd -P)
 fi
 
 project=""
-for root in "$main_root" "$top"; do
+for root in "$main_root" "$spec_root" "$top"; do
   if [ "$path" = "$root/$WF_RULES" ]; then project=$root; break; fi
 done
 [ -n "$project" ] || exit 0

@@ -19,8 +19,9 @@
 #   initiative-transition.sh set-pr       <initiative-dir> <url>|null [--cwd <dir>]
 #       merge_pr: the URL of the PR/MR that merges the initiative branch, or null to clear it.
 #   <initiative-dir> is `.workflow/initiatives/NNN-slug` (relative to the project root, or an absolute path ending in it).
-# Worktrees: initiative.md, questions.md and .step are read and written in the MAIN checkout, found with
-#   `git rev-parse --git-common-dir` from --cwd (default: $PWD). Gitignored .step exists only there.
+# Worktrees: initiative.md, questions.md and .step are read and written in the checkout --cwd is in (default:
+#   $PWD; an agent worktree counts as the checkout it sits in), found with lib/workflow-paths.sh wf_project_root. Gitignored .step
+#   exists only there.
 #
 # Initiative status transitions:
 #   from                     to          condition
@@ -209,13 +210,13 @@ done
   || die "--state, --settled and --launched belong to the set-question subcommand"
 [[ -d "$OPT_CWD" ]] || die "--cwd is not a directory: $OPT_CWD"
 
-ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
+ROOT=$(wf_project_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
 INI_DIR=$(wf_norm_folder initiative "${POS[0]}" 2>/dev/null) || die "initiative dir must be $WF_INITIATIVES/NNN-slug: ${POS[0]}"
 ABS_DIR="$ROOT/$INI_DIR"
 INITIATIVE="$ABS_DIR/initiative.md"
 QUESTIONS="$ABS_DIR/questions.md"
 MARKER="$ABS_DIR/.step"
-[[ -d "$ABS_DIR" ]] || die "initiative folder not found in the main checkout: $ABS_DIR"
+[[ -d "$ABS_DIR" ]] || die "initiative folder not found in this checkout: $ABS_DIR"
 
 if [[ ! -f "$INITIATIVE" ]]; then
   # The step that copies the template sets the marker first, so the guards allow that write.
@@ -225,7 +226,7 @@ if [[ ! -f "$INITIATIVE" ]]; then
     printf '%s: %s step %s (initiative.md not created yet)\n' "$PROG" "$INI_DIR" "${POS[1]}"
     exit 0
   fi
-  die "initiative.md not found in the main checkout: $INITIATIVE"
+  die "initiative.md not found in this checkout: $INITIATIVE"
 fi
 require_yq
 
@@ -270,7 +271,7 @@ if [[ "$MODE" == "set-question" ]]; then
   in_list "$OPT_STATE" "$QUESTION_STATES" || die "unknown question state '$OPT_STATE' (expected one of: $QUESTION_STATES)"
   [[ -z "$OPT_LAUNCHED" || "$OPT_LAUNCHED" == "clear" ]] || in_list "$OPT_LAUNCHED" "$LAUNCH_TASK_TYPES" \
     || die "unknown launch task type '$OPT_LAUNCHED' (expected one of: $LAUNCH_TASK_TYPES, or clear)"
-  [[ -f "$QUESTIONS" ]] || die "questions.md not found in the main checkout: $QUESTIONS"
+  [[ -f "$QUESTIONS" ]] || die "questions.md not found in this checkout: $QUESTIONS"
   count=$(yq --front-matter=extract '[.questions[] | select(.id == strenv(QID))] | length' "$QUESTIONS") \
     || die "cannot read the questions: array in $QUESTIONS"
   [[ "$count" == "1" ]] || die "question $QID appears $count times in $QUESTIONS (expected exactly once)"
@@ -338,7 +339,7 @@ if [[ "$MODE" == "set-slice" ]]; then
   case "$SCUR>$OPT_STATUS" in
     "planned>emitted")
       [[ -n "$OPT_SPEC" ]] || reject_slice "pass --spec naming the spec the slice was emitted as"
-      [[ -f "$QUESTIONS" ]] || die "questions.md not found in the main checkout: $QUESTIONS"
+      [[ -f "$QUESTIONS" ]] || die "questions.md not found in this checkout: $QUESTIONS"
       slice_question_ids=$(yq --front-matter=extract '.slices[] | select(.id == strenv(SID)) | .questions[]' "$INITIATIVE") \
         || die "cannot read the questions of $SID in $INITIATIVE"
       # shellcheck disable=SC2086 # one id per word on purpose
@@ -371,7 +372,7 @@ case "$CUR>$NEW" in
     pending_slices=$(yq --front-matter=extract '.slices[] | select(.status == "planned") | .id' "$INITIATIVE" | tr '\n' ' ') \
       || die "cannot read the slices: array in $INITIATIVE"
     [[ -z "$pending_slices" ]] || reject_status "slices not yet emitted: ${pending_slices% }"
-    [[ -f "$QUESTIONS" ]] || die "questions.md not found in the main checkout: $QUESTIONS"
+    [[ -f "$QUESTIONS" ]] || die "questions.md not found in this checkout: $QUESTIONS"
     open_questions=$(yq --front-matter=extract '.questions[] | select(.state == "open" or .state == "researching") | .id' "$QUESTIONS" | tr '\n' ' ') \
       || die "cannot read the questions: array in $QUESTIONS"
     [[ -z "$open_questions" ]] || reject_status "questions still open or researching: ${open_questions% }"

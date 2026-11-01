@@ -20,8 +20,10 @@
 #       header whose task_type disagrees, and accept a header-less prompt when that type allows it (prints {}). stdout: the header as JSON.
 #   resolve-launch.sh --requirements [--task-type <type>]
 #       Print the requirements table (or one entry) as JSON.
-# Project root (--project-dir, else $CLAUDE_PROJECT_DIR, else the current directory): always normalised to the main checkout via
-#   `git rev-parse --git-common-dir`, so a worktree cwd works; .workflow/agent-overrides.yaml, .workflow/model-map/, .workflow/profiles/, .agents/agents/ and .workflow/specs/ are read there, because gitignored state exists only in the main checkout.
+# Project root (--project-dir, else $CLAUDE_PROJECT_DIR, else the current directory): always normalised to the spec checkout with
+#   lib/workflow-paths.sh wf_project_root (the checkout it is in, or the one an agent worktree sits in), so an agent worktree cwd works;
+#   .workflow/agent-overrides.yaml, .workflow/model-map/, .workflow/profiles/, .agents/agents/ and .workflow/specs/ are read there, because
+#   gitignored state exists only in the spec checkout.
 # spec_dir: a spec folder .workflow/specs/NNN-slug, or, for the types the table marks initiative_launch (research, fact-lookup, retrieval,
 #   library-evaluation), an initiative folder .workflow/initiatives/NNN-slug. Either must exist under the project root.
 # Model: <root>/agent-overrides.yaml [type][host] > <root>/.agents/agents/<type>.md frontmatter models.<host> > <root>/model-map/<type>.md
@@ -80,6 +82,7 @@ D31_TABLE=$(cat <<'JSON'
   "review-end-state":   {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "review-targets":     {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "review-lessons":     {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
+  "review-combined":    {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4, light and small paths: one lens in place of standards, end-state and lessons", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "cache-regeneration": {
     "d31_fields": ["spec_dir"],
     "shapes": [
@@ -97,7 +100,7 @@ D31_TABLE=$(cat <<'JSON'
 JSON
 )
 
-# Field formats (task ids per the tasks.md schema; work_type names a file under .workflow/profiles/).
+# Field formats (task ids per the tasks.md schema; work_type names a work profile file).
 SPECS_RE=$(printf '%s' "$WF_SPECS" | sed 's/\./[.]/g')   # literal dots, no JSON escaping needed
 INITIATIVES_RE=$(printf '%s' "$WF_INITIATIVES" | sed 's/\./[.]/g')
 FORMATS='{"spec_dir": "^'"$SPECS_RE"'/[0-9]+-[A-Za-z0-9._-]+/?$", "task_id": "^T[0-9]+$", "work_type": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}'
@@ -256,13 +259,12 @@ else
 fi
 validate_header "$task_type" >/dev/null
 
-# Project root: main checkout, where gitignored state lives.
+# Project root: the spec checkout, where gitignored state lives.
 root=${project_dir:-${CLAUDE_PROJECT_DIR:-$PWD}}
 [ -d "$root" ] || usage_err "project directory not found: $root"
 root=$(cd "$root" && pwd)
-if common=$(git -C "$root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
-  root=$(dirname "$common")
-fi
+# Outside git the directory itself is the root, as before spec worktrees.
+if spec_root=$(wf_project_root "$root" 2>/dev/null); then root=$spec_root; fi
 
 hfield() { jq -r --arg k "$1" '.[$k] // ""' <<<"$header_json"; }
 spec_dir="" task_id="" work_type=""

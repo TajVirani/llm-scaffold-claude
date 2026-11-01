@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: regenerate-caches scripts (publish-cache.sh, cache-stamp-check.sh, the Mermaid check of check-staged-cache.sh).
 # Covers: publishing and stamping Tier B caches, fresh/stale/missing/invalid classification, area filter, worktree use
-#   of the main checkout, front-matter stripping, and input rejections. JRN-007: the cache-regeneration agent names no skill
+#   of the checkout an agent worktree sits in, and of its own HEAD from a spec worktree, front-matter stripping, and input rejections. JRN-007: the cache-regeneration agent names no skill
 #   path outside regenerate-caches; check-staged-cache.sh flows runs validate_mermaid.mjs when node, mermaid and jsdom are
 #   present (a node stand-in on PATH, stub packages), and otherwise still prints ok with exit 0 and says on stderr that the
 #   body is not machine-validated, naming the hand checklist; exit codes 1 and 2 unchanged.
@@ -44,18 +44,26 @@ echo q >README
 git_commit_all "$B/repo" readme
 out=$("$S/cache-stamp-check.sh" --area src/a)
 eq unrelated-fresh "$(jq -r '[.caches[].status]|join(",")' <<<"$out")" fresh,fresh,fresh
-# worktree: stale-check and publish from a worktree use the main checkout
-git worktree add -q ../wt -b wtb
-(cd ../wt && echo w >src/a/w && git add -A && git commit -qm wt-commit)
+# worktree: stale-check and publish from an agent worktree use the checkout it sits in
+AWT=.workflow/.worktrees/wt
+git worktree add -q "$AWT" -b wtb
+(cd "$AWT" && echo w >src/a/w && git add -A && git commit -qm wt-commit)
 mainhead=$(git rev-parse HEAD)
-out=$(cd ../wt && "$S/cache-stamp-check.sh")
+out=$(cd "$AWT" && "$S/cache-stamp-check.sh")
 eq wt-check-head "$(jq -r .head <<<"$out")" "$mainhead"
 eq wt-check-reads-main "$(jq -r '.caches[0].status' <<<"$out")" fresh
 echo body > .workflow/.cache-staging/modules.md
-(cd ../wt && "$S/publish-cache.sh" "$B/repo/.workflow/.cache-staging/modules.md" modules src/a >/dev/null)
+(cd "$AWT" && "$S/publish-cache.sh" "$B/repo/.workflow/.cache-staging/modules.md" modules src/a >/dev/null)
 eq wt-pub-rc "$?" 0
 eq wt-pub-sha "$(yq --front-matter=extract .generated_at_commit .workflow/cache/modules.md)" "$mainhead"
-eq wt-no-local-write "$(git -C ../wt status --porcelain | wc -l | tr -d ' ')" 0
+eq wt-no-local-write "$(git -C "$AWT" status --porcelain | wc -l | tr -d ' ')" 0
+git worktree remove --force "$AWT"
+# a spec worktree is a checkout of its own: the stale check reads its HEAD and its caches
+git worktree add -q ../spec-wt -b spec/001-x
+(cd ../spec-wt && echo s >src/a/s && git add -A && git commit -qm spec-commit)
+out=$(cd ../spec-wt && "$S/cache-stamp-check.sh")
+eq spec-wt-check-head "$(jq -r .head <<<"$out")" "$(git -C ../spec-wt rev-parse HEAD)"
+eq spec-wt-check-stale "$(jq -r '.caches[0].status' <<<"$out")" stale
 # invalid: unquoted timestamp
 cp .workflow/cache/flows.md "$B/flows.bak"
 sed -i.bak 's/^generated_at: "\(.*\)"/generated_at: \1/' .workflow/cache/flows.md

@@ -3,8 +3,8 @@
 # Covers: one valid file per kind (implementation, integration, mini-review) with its header line and rows, a stop status's
 #   line, the kind taken from the file name and from --kind, one malformed file per shape rule (exit 1, the message names
 #   the field), task_id against the artifacts folder for implementation and mini-review files, the stop-status fields for
-#   implementation and integration, a mini-review verdict that disagrees with its items, carried_from
-#   outside re-check mode, a multi-document file, and the exit-2 cases: no argument, missing file, YAML that does not parse,
+#   implementation and integration, the implementation self_review list (required when status is done, optional and still
+#   shape-checked on a stop status), a mini-review verdict that disagrees with its items, carried_from outside re-check mode, a multi-document file, and the exit-2 cases: no argument, missing file, YAML that does not parse,
 #   a name that implies no kind, an unknown --kind.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -84,12 +84,17 @@ discovered_work:
     evidence: "tests/run-all.sh:210"
     blocker_assessment: can-wait
     reason: "unrelated to this task"
+self_review:
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the changed shell files: clean"}
+  - {item: 1, verdict: not-applicable, note: ""}
+  - {item: 3, verdict: fixed, note: "check-task-result.sh:120 now reaches die() when jq fails"}
+  - {item: R3, verdict: pass}
 Y
 
 run_ctr "$IMPL"
 eq "a valid implementation file exits 0" "$RC" 0
 eq "the implementation header line" "$(line 1)" \
-  "status: done  task: T1  head: 9f8e7d6  files: 2  tests: 4 (behaviour 2, negative 1, edge 1)  discovered_work: 1"
+  "status: done  task: T1  head: 9f8e7d6  files: 2  tests: 4 (behaviour 2, negative 1, edge 1)  discovered_work: 1  self_review: 4 (fixed 1)"
 eq "the implementation summary line joins the summary onto one line" "$(line 2)" \
   "summary: check-task-result.sh validates the three result files. It prints a bounded table."
 eq "the implementation discovered-work row" "$(line 3)" \
@@ -98,13 +103,14 @@ eq "a done implementation prints no stop line" "$(wc -l <<<"$OUT" | tr -d ' ')" 
 
 # Stop statuses print the stop field; a null head_commit is allowed for them and prints as "-".
 STOP="$ART/T2/implementation.yaml"
-variant "$IMPL" "$STOP" '.task_id = "T2" | .status = "blocked" | .head_commit = null | .discovered_work = []
+variant "$IMPL" "$STOP" '.task_id = "T2" | .status = "blocked" | .head_commit = null | .discovered_work = [] | del(.self_review)
   | .blocked = {"reason": "the fixture repo has no main branch", "tried": "git init", "needed": "a main branch"}'
 run_ctr "$STOP"
 eq "a blocked implementation with a null head exits 0" "$RC" 0
 eq "a null head prints as a dash" "$(line 1)" \
-  "status: blocked  task: T2  head: -  files: 2  tests: 4 (behaviour 2, negative 1, edge 1)  discovered_work: 0"
+  "status: blocked  task: T2  head: -  files: 2  tests: 4 (behaviour 2, negative 1, edge 1)  discovered_work: 0  self_review: 0 (fixed 0)"
 eq "a blocked implementation ends with blocked.reason" "$(line 3)" "blocked.reason: the fixture repo has no main branch"
+check "a stop status without self_review is accepted" '[[ $RC == 0 ]]' "$OUT"
 
 variant "$IMPL" "$WORK/stop-sx/implementation.yaml" '.status = "scope-expansion" | .scope_expansion = {"requested_paths": ["install.sh", "README.md"], "reason": "r"}'
 run_ctr "$WORK/stop-sx/implementation.yaml"
@@ -274,6 +280,22 @@ expect_error "implementation: scope-expansion without requested paths" "$IMPL" \
 expect_error "implementation: blocked without blocked.reason" "$IMPL" '.status = "blocked"' "blocked.reason: "
 expect_error "implementation: discovered-work with no entries" "$IMPL" '.status = "discovered-work" | .discovered_work = []' \
   "discovered_work: empty, required"
+expect_error "implementation: done without self_review" "$IMPL" 'del(.self_review)' \
+  "self_review: missing or empty, required when status is done"
+expect_error "implementation: done with an empty self_review" "$IMPL" '.self_review = []' \
+  "self_review: missing or empty, required when status is done"
+expect_error "implementation: self_review not a list" "$IMPL" '.self_review = "all fine"' "self_review: not a list"
+expect_error "implementation: self_review entry not a mapping" "$IMPL" '.self_review[0] = "comment-lint"' "self_review\\[0\\]: not a mapping"
+expect_error "implementation: self_review item out of range" "$IMPL" '.self_review[3].item = "R6"' \
+  "self_review\\[3\\].item: 'R6' is not a checklist number, R1 to R5 or comment-lint"
+expect_error "implementation: self_review item zero" "$IMPL" '.self_review[1].item = 0' "self_review\\[1\\].item: '0'"
+expect_error "implementation: self_review verdict unknown" "$IMPL" '.self_review[0].verdict = "fail"' \
+  "self_review\\[0\\].verdict: 'fail' is not pass, fixed or not-applicable"
+expect_error "implementation: self_review fixed without a note" "$IMPL" 'del(.self_review[2].note)' \
+  "self_review\\[2\\].note: missing or empty, required when the verdict is fixed"
+expect_error "implementation: self_review note not a string" "$IMPL" '.self_review[3].note = ["a"]' "self_review\\[3\\].note: not a string"
+expect_error "implementation: a blocked stop with a malformed self_review" "$IMPL" \
+  '.status = "blocked" | .blocked = {"reason": "r"} | .self_review = [{"item": 1, "verdict": "maybe"}]' "self_review\\[0\\].verdict: 'maybe'"
 
 # Two breaches in one file give two lines.
 variant "$IMPL" "$WORK/two/implementation.yaml" '.status = "x" | .summary = ""'

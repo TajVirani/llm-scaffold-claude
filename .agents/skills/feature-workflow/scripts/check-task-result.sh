@@ -26,6 +26,10 @@
 #     blocked are each null or a mapping; discovered_work is a list of discovered-work entries.
 #   - profile-wrong needs profile_wrong.line; scope-expansion needs a non-empty scope_expansion.requested_paths list;
 #     blocked needs blocked.reason; discovered-work needs a non-empty discovered_work.
+#   - self_review, the agent's walk of the checklist over its own diff, is a list of {item, verdict, note}: item an integer
+#     of 1 or more (a profile checklist line), R1 to R5 (a readable-code line) or comment-lint; verdict pass, fixed or
+#     not-applicable; note a string, non-empty on fixed. It is required and non-empty when status is done. A stop status
+#     may leave it out, since the agent can stop before it reviews; when present it is checked the same way.
 #   integration:
 #   - status is done, partial, profile-wrong, discovered-work or blocked; summary, work_type, worktree and base_commit are
 #     non-empty strings; branch is a string or null; head_commit as above.
@@ -44,7 +48,7 @@
 #     and is allowed only in re-check mode.
 #   - read_outside_diff is a list; out_of_scope_noticed is a list of discovered-work entries.
 # stdout on exit 0, a header line, then tab-separated rows (values cut to 120 characters, tabs and line breaks become spaces):
-#   implementation: status: <s>  task: <id>  head: <sha7>  files: <n>  tests: <n> (behaviour <b>, negative <n>, edge <e>)  discovered_work: <k>
+#   implementation: status: <s>  task: <id>  head: <sha7>  files: <n>  tests: <n> (behaviour <b>, negative <n>, edge <e>)  discovered_work: <k>  self_review: <r> (fixed <f>)
 #     then `summary: <text>` (cut to 240 characters); one row per discovered-work entry
 #     (kind, blocker_assessment, evidence, summary); for a stop status one line naming the stop field and its content:
 #     `profile_wrong.line: <line>`, `scope_expansion.requested_paths: <a, b>` or `blocked.reason: <reason>`.
@@ -167,6 +171,26 @@ def check_stop_fields:
       "discovered_work: empty, required when status is discovered-work"
     else empty end;
 
+def check_self_review_entry($at):
+  if type != "object" then "\($at): not a mapping"
+  else
+    (if (.item | is_int and . >= 1) or ((.item | type) == "string" and (.item | test("^(R[1-5]|comment-lint)$"))) then empty
+     else "\($at).item: '\(.item | text)' is not a checklist number, R1 to R5 or comment-lint" end),
+    (if (.verdict | one_of(["pass", "fixed", "not-applicable"])) then empty
+     else "\($at).verdict: '\(.verdict | text)' is not pass, fixed or not-applicable" end),
+    (if .note == null or (.note | type) == "string" then empty else "\($at).note: not a string" end),
+    (if .verdict == "fixed" and ((.note | str_filled) | not) then "\($at).note: missing or empty, required when the verdict is fixed"
+     else empty end)
+  end;
+
+# The self-review happens just before a clean stop, so only a done result must carry it.
+def check_self_review:
+  if (.status | text) == "done" and ((.self_review | list_len) == 0) and (.self_review == null or (.self_review | is_list)) then
+    "self_review: missing or empty, required when status is done"
+  elif .self_review == null then empty
+  elif (.self_review | is_list) | not then "self_review: not a list"
+  else .self_review | to_entries[] | .key as $i | .value | check_self_review_entry("self_review[\($i)]") end;
+
 def check_implementation($folder):
   (.status | text) as $s
   | need_enum("status"; ["done", "profile-wrong", "scope-expansion", "discovered-work", "blocked"]),
@@ -190,6 +214,7 @@ def check_implementation($folder):
     need_list("considered_not_built"),
     null_or_map("profile_wrong"), null_or_map("scope_expansion"), null_or_map("blocked"),
     check_dw_list("discovered_work"),
+    check_self_review,
     check_stop_fields;
 
 def check_integration:
@@ -269,7 +294,8 @@ def count($list; $key; $value): [$list[] | select(.[$key] == $value)] | length;
 
 def table_implementation:
   .tests_added as $t
-  | "status: \(.status)  task: \(.task_id)  head: \(.head_commit | sha7)  files: \(.files_changed | length)  tests: \($t | length) (behaviour \(count($t; "kind"; "behaviour")), negative \(count($t; "kind"; "negative")), edge \(count($t; "kind"; "edge")))  discovered_work: \(.discovered_work | length)",
+  | (.self_review // []) as $r
+  | "status: \(.status)  task: \(.task_id)  head: \(.head_commit | sha7)  files: \(.files_changed | length)  tests: \($t | length) (behaviour \(count($t; "kind"; "behaviour")), negative \(count($t; "kind"; "negative")), edge \(count($t; "kind"; "edge")))  discovered_work: \(.discovered_work | length)  self_review: \($r | length) (fixed \(count($r; "verdict"; "fixed")))",
     "summary: \(.summary | one_line | .[0:240])",
     (.discovered_work[] | dw_row),
     (if .status == "profile-wrong" then "profile_wrong.line: \(.profile_wrong.line | cut)"

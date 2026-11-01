@@ -7,9 +7,9 @@
 #   isolation (linked-worktree cwd) confinement; integration agents; Codex task_name from session_meta; settings wiring; shellcheck.
 #   JRN-002, JRN-003: a Phase 1 implementation agent (header work_type, no task_id) and an integration agent confined to their
 #   agent worktrees s007_phase_1_shell_scripts and s007_integration_shell_scripts. JRN-002 to JRN-004: the result-file command
-#   read from implementation.md and integration.md starts with `cd <agent worktree> &&` (a launch-checkout placeholder fills as
-#   the main checkout), passes the guard from the main checkout, and run for real leaves the file in
-#   the main checkout's artifacts/<id>/, where check-task-result.sh accepts it. JRN-009: read-only commands (allowlisted reads
+#   read from implementation.md and integration.md starts with `cd <agent worktree> &&` (a launch- or spec-checkout placeholder
+#   fills as the main checkout, where the fixture's spec runs), passes the guard from the main checkout, and run for real leaves
+#   the file in that checkout's artifacts/<id>/, where check-task-result.sh accepts it. JRN-009: read-only commands (allowlisted reads
 #   joined by | or &&) pass without the leading cd; writing or exec flags, shell forms and other commands still need it.
 #   Fail closed: an implementation or integration agent whose agent worktree cannot be established (the named agent worktree
 #   is missing, sub-agent transcript missing, launch header missing or not valid YAML, cwd outside any git repo) is denied every
@@ -19,7 +19,10 @@
 #   it, so the Codex guard is unchanged; JRN-005 deny and allow messages, both scripts' # File: lines and --help say "agent
 #   worktree" and name the Phase 1 and integration shapes, and implementation-orchestrator.md says a missing agent worktree is
 #   denied; JRN-006 a `$` or backtick inside single quotes passes the read-only check, and one outside them, a backslash or an
-#   unterminated quote still needs the cd.
+#   unterminated quote still needs the cd. A spec run in its own spec worktree (.workflow/.spec-worktrees/NNN-slug): its agent
+#   worktree nests inside it and confines the agent from the spec worktree cwd or its own; writes elsewhere in the spec worktree, in
+#   the main checkout or in another spec's agent worktree are denied; an agent with no agent worktree is denied rather than
+#   confined to the spec worktree.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -225,7 +228,7 @@ fill_placeholders() {
     rest=${BASH_REMATCH[3]}
     lower=$(printf '%s' "$key" | tr '[:upper:]' '[:lower:]')
     case "$lower" in
-      *main*) value=$P ;;
+      *main* | *"spec checkout"* | *spec_checkout*) value=$P ;; # the fixture runs its spec in the main checkout
       *spec_dir* | *"spec dir"*) value=.workflow/specs/007-demo ;;
       *task_id* | *"task id"*) value=$3 ;;
       *work_type* | *"work type"*) value=shell-scripts ;;
@@ -242,7 +245,8 @@ implementation_result() {
   printf '%s\n' 'status: done' 'summary: "Fixture result."' "task_id: $1" "worktree: $2" 'branch: wf/007-demo/fixture' \
     'base_commit: "1a2b3c4d"' 'head_commit: "9f8e7d6c"' 'files_changed: [tests/x.sh]' 'tests_added:' \
     '  - {file: tests/x.sh, test: a case, kind: behaviour}' 'evidence:' "  toolchain: artifacts/$1/toolchain.txt (pass)" \
-    'considered_not_built: []' 'profile_wrong: null' 'scope_expansion: null' 'blocked: null' 'discovered_work: []'
+    'considered_not_built: []' 'profile_wrong: null' 'scope_expansion: null' 'blocked: null' 'discovered_work: []' \
+    'self_review:' '  - {item: comment-lint, verdict: pass, note: "no comment names an id or a workflow path"}'
 }
 # integration_result WORKTREE : an integration block check-task-result.sh accepts.
 integration_result() {
@@ -252,7 +256,8 @@ integration_result() {
     '  toolchain: artifacts/integration-shell-scripts/toolchain.txt (pass)' 'profile_wrong: null' 'blocked: null' 'discovered_work: []'
 }
 # result_journey JRN AGENT_LABEL AGENT_JSON DOC FILE_NAME RESULT_ID WORKTREE BODY : the brief's command passes the guard from the
-#   main checkout, and run for real leaves a file check-task-result.sh accepts in the main checkout and none in the worktree copy.
+#   main checkout, and run for real leaves a file check-task-result.sh accepts in the spec checkout (here the main checkout) and
+#   none in the worktree copy.
 result_journey() {
   local jrn=$1 label=$2 agent=$3 doc=$4 file=$5 id=$6 wt=$7 body=$8 opening cmd landed copy
   opening=$(brief_result_command "$doc" "$file")
@@ -268,7 +273,7 @@ result_journey() {
   copy=$wt/.workflow/specs/007-demo/artifacts/$id/$file
   rm -f "$landed" "$copy"
   (cd "$P" && bash -c "$cmd") >/dev/null 2>&1
-  check "$jrn $label: the command leaves $file in the main checkout's artifacts/$id/" '[ -f "$landed" ]'
+  check "$jrn $label: the command leaves $file in the spec checkout's artifacts/$id/" '[ -f "$landed" ]'
   check "$jrn $label: the command leaves no $file in the worktree copy" '[ ! -e "$copy" ]'
   t "$jrn $label: check-task-result.sh accepts the file" 0 bash "$P/.agents/skills/feature-workflow/scripts/check-task-result.sh" "$landed"
 }
@@ -419,6 +424,30 @@ out=$(jq -cn --arg p "$(add src/a.ts)" --arg c "$P" --arg tp "$WORK/rollout-t3.j
   '{session_id:"s",transcript_path:$tp,cwd:$c,hook_event_name:"PreToolUse",tool_name:"apply_patch",tool_input:{command:$p}}' \
   | (cd "$P" && bash "$H/codex-write-guard.sh" 2>/dev/null)); rc=$?
 check "Codex main session (no agent_id) unaffected" '[ $rc -eq 0 ] && [ -z "$out" ]' "rc=$rc out=$out"
+
+echo "== Claude: a spec run in its own spec worktree"
+# The orchestrator runs spec 008 in a spec worktree inside the main checkout; its agent worktree nests inside the spec worktree.
+SW=$P/.workflow/.spec-worktrees/008-wt
+git -C "$P" worktree add -q "$SW" -b spec/008-wt
+git -C "$SW" worktree add -q "$SW/.workflow/.worktrees/s008_t1" -b task/008-wt/T01-a
+SWT=$SW/.workflow/.worktrees/s008_t1
+mk_sub s1 $'```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/008-wt\ntask_id: T1\nwork_type: web\n```\n\nBuild T1.'
+mk_sub s9 $'```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/008-wt\ntask_id: T9\nwork_type: web\n```\n\nBuild T9.'
+S1='{"agent_id":"s1","agent_type":"implementation"}'
+S9='{"agent_id":"s9","agent_type":"implementation"}'
+expect "spec worktree: main session write in the spec worktree -> allow" allow "$(pl Write "$SW/src/a.ts" "$SW")"
+expect "spec worktree: task agent write in its agent worktree -> allow" allow "$(pl Write "$SWT/src/a.ts" "$SW" "$S1")"
+expect "spec worktree: task agent write elsewhere in the spec worktree -> deny" deny "$(pl Write "$SW/src/a.ts" "$SW" "$S1")" "s008_t1.*denied write outside it"
+expect "spec worktree: task agent write to the main checkout -> deny" deny "$(pl Write "$P/src/a.ts" "$SW" "$S1")" "s008_t1.*denied write outside it"
+expect "spec worktree: task agent write to another spec's agent worktree -> deny" deny "$(pl Write "$W3/src/a.ts" "$SW" "$S1")" "s008_t1"
+expect "spec worktree: task agent Bash with cd into its agent worktree -> allow" allow "$(pl Bash "cd $SWT && touch x" "$SW" "$S1")"
+expect "spec worktree: task agent Bash without cd -> deny with the cd hint" deny "$(pl Bash 'touch src/x' "$SW" "$S1")" "cd .*s008_t1 &&"
+expect "spec worktree: task agent whose cwd is its agent worktree, write inside -> allow" allow "$(pl Write "$SWT/b.ts" "$SWT" "$S1")"
+expect "spec worktree: task agent whose cwd is its agent worktree, write to the spec worktree -> deny" deny "$(pl Write "$SW/b.ts" "$SWT" "$S1")" "s008_t1"
+expect "spec worktree: task agent with no agent worktree is denied, never confined to the spec worktree" deny \
+  "$(pl Write "$SW/src/a.ts" "$SW" "$S9")" "s008_t9.*$WORKTREE_MISSING"
+rc=0; bash "$SCOPE" --cwd "$SW" --confined --path "$SW/x" >/dev/null 2>&1 || rc=$?
+eq "spec worktree: check-worktree-scope.sh --confined with no name from a spec worktree -> exit 2 (no confinement root)" "$rc" 2
 
 echo "== wiring"
 # shellcheck disable=SC2034  # TPL is read inside the eval-ed check strings below

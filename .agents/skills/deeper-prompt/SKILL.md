@@ -15,7 +15,7 @@ Make the request **deeper, not bigger**: sharpen its intent, goals and constrain
   .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 0.3.22
   ```
 
-  If `design-log.md` already holds a **Deeper prompt** entry the stakeholder agreed to, the step is done: go to [Hand off](#4-hand-off).
+  If `design-log.md` already holds a **Deeper prompt** entry, agreed or still pending its question in the questioning loop's first ask, the step is done: go back to discovery, which loads the loop.
 - **Standalone**: the request in the conversation. Nothing is written to disk; the agreed block is the result.
 
 ## 1. Draft the elevation and the goals
@@ -40,7 +40,10 @@ One message: open with the **What this changes** and **Why** lines from step 1 (
 
 ## 3. Restate and revise
 
-Restate the whole ask back as the block below, with your change summary, elevation and goals from step 1 presented as proposals, and ask: "Is this ready to pass on, or what should change?"
+Restate the whole ask back as the block below, with your change summary, elevation and goals from step 1 presented as proposals, and the question "Is this ready to pass on, or what should change?".
+
+- **Inside the workflow** the question is not a round of its own: it rides on the questioning loop's first ask, so go to [Hand off](#4-hand-off) with the block as restated. The loop shows the block, asks the question first and handles a change (its Entry step).
+- **Standalone** ask it now, and revise as below.
 
 ```markdown
 **What this changes:** <what will be different once this ships, one or two sentences>
@@ -66,16 +69,16 @@ Restate the whole ask back as the block below, with your change summary, elevati
 - **Changes:** apply them to the block, restate the whole block again, and ask again.
 - **Agreement:** an explicit yes ("yes", "ready", "pass it on"). "Whatever you think" is not agreement: restate and ask for the yes.
 
-Loop until agreement. Done when the stakeholder has explicitly agreed to the block as last shown.
+Loop until agreement. Done when the stakeholder has explicitly agreed to the block as last shown, or, inside the workflow, when the block is handed off with its question pending.
 
 ## 4. Hand off
 
-- **Inside the workflow:** append the agreed block to `.workflow/specs/NNN-slug/design-log.md` as a **Deeper prompt** entry (create the log from `.agents/skills/feature-workflow/assets/design-log.md` if missing), with each revision round summarised in one line. Then return to discovery, which loads the questioning loop at 0.3.8; the loop frames its design tree from this block.
+- **Inside the workflow:** append the block to `.workflow/specs/NNN-slug/design-log.md` as a **Deeper prompt** entry (create the log from `.agents/skills/feature-workflow/assets/design-log.md` if missing) ending `Agreement: pending, asked in the first questioning ask`. Then return to discovery, which loads the questioning loop at 0.3.8; the loop asks for the agreement and frames its design tree from this block.
 - **Standalone:** return the agreed block. When the next step is the feature workflow, it starts there with this block as the request.
 
 ## Done
 
-- The block was restated in full and the stakeholder explicitly agreed to it.
+- The block was restated in full and the stakeholder explicitly agreed to it, or, inside the workflow, it is logged with its agreement pending for the loop's first ask.
 - Every message to the stakeholder opened with **What this changes** and **Why**.
 - Every goal traces to the request; every addition the request did not ask for sits under **Not asked for**.
-- Inside the workflow, the agreed block is in `design-log.md` as a **Deeper prompt** entry.
+- Inside the workflow, the block is in `design-log.md` as a **Deeper prompt** entry.

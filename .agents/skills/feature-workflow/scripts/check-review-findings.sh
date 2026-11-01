@@ -2,8 +2,9 @@
 # File: Helper script (not a hook): check the shape of one Phase 4 lens's review-findings file and print a bounded table of it.
 # Purpose: Triage (4.4) reads each lens's findings through this script instead of reading the whole block, so a malformed block is
 #   caught before triage and the orchestrator sees one header line and one row per finding. The script only reads the file.
-#   Lens: the file's `lens` field, which is required and must be review-standards, review-end-state, review-targets or review-lessons; when the file
-#   name is a lens name (`<lens>.yaml`), the two must agree. The lens sets the id prefix (RS, RE, RT, RL) and the allowed categories.
+#   Lens: the file's `lens` field, which is required and must be review-standards, review-end-state, review-targets, review-lessons or
+#   review-combined; when the file name is a lens name (`<lens>.yaml`), the two must agree. The lens sets the id prefix (RS, RE, RT, RL, RC)
+#   and the allowed categories.
 #   Pass: the file's `pass` field when present, else the `pass-<n>` directory the file sits in
 #   (`.workflow/specs/NNN-slug/artifacts/review/pass-<n>/<lens>.yaml`); when both are present they must agree.
 # Usage:
@@ -12,13 +13,16 @@
 # Shape rules (each failure is one line on stdout, `<field>: <problem>`, the field written as `findings[<i>].<key>`,
 #   `measurements[<i>].<key>` or a top-level key):
 #   - lens as above; status is done or blocked; findings is a list.
-#   - findings ids are unique and match <PFX>-<n> (RS for review-standards, RE for review-end-state, RT for review-targets, RL for review-lessons).
+#   - findings ids are unique and match <PFX>-<n> (RS for review-standards, RE for review-end-state, RT for review-targets, RL for review-lessons,
+#     RC for review-combined).
 #   - category is one the lens may use: review-standards standard, rule, profile, placement, naming, smell; review-end-state
-#     missing, unasked, wrong; review-targets target; review-lessons lesson; any lens discovered-work.
+#     missing, unasked, wrong; review-targets target; review-lessons lesson; review-combined any of those but target; any lens
+#     discovered-work.
 #   - a discovered-work finding has kind (bug, requirement, refactor, scope-expansion, decision), summary, evidence,
 #     blocker_assessment (blocks-this-task, can-wait) and reason, all non-empty.
 #   - any other finding has severity (high, medium, low), confidence an integer from 80 to 100 (lower is never reported),
-#     and a non-empty location and claim.
+#     and a non-empty location and claim; a high or medium one also carries its proof, a non-empty evidence.reproduction
+#     (a run) or evidence.basis (a quoted rule, spec or lesson line).
 #   - checked, not_checked and not_verifiable, when present, are lists.
 #   - review-targets only: measurements is a list; each row has a non-empty target, a result of pass, fail or not_measurable,
 #     a non-empty measured unless not_measurable, and a non-empty reason when not_measurable.
@@ -73,7 +77,8 @@ def lenses: {
   "review-standards": {prefix: "RS", categories: ["standard", "rule", "profile", "placement", "naming", "smell"]},
   "review-end-state": {prefix: "RE", categories: ["missing", "unasked", "wrong"]},
   "review-targets":   {prefix: "RT", categories: ["target"]},
-  "review-lessons":   {prefix: "RL", categories: ["lesson"]}
+  "review-lessons":   {prefix: "RL", categories: ["lesson"]},
+  "review-combined":  {prefix: "RC", categories: ["missing", "unasked", "wrong", "standard", "rule", "profile", "placement", "naming", "smell", "lesson"]}
 };
 def text: if . == null then "" else tostring end;
 def filled: (text | length) > 0;
@@ -91,7 +96,7 @@ read -r -d '' JQ_CHECK <<'JQ' || true
 def check_root($path_lens; $path_pass):
   (file_lens as $lens
    | if $lens == "" then "lens: missing"
-     elif (lenses | has($lens)) | not then "lens: '\($lens)' is not review-standards, review-end-state, review-targets or review-lessons"
+     elif (lenses | has($lens)) | not then "lens: '\($lens)' is not review-standards, review-end-state, review-targets, review-lessons or review-combined"
      elif (lenses | has($path_lens)) and $path_lens != $lens then "lens: '\($lens)' does not match the file name \($path_lens).yaml"
      else empty end),
   (if has("pass") then
@@ -120,7 +125,9 @@ def check_graded($at):
    | if ($c | type) != "number" or $c != ($c | floor) or $c < 0 or $c > 100 then "\($at).confidence: '\($c | text)' is not an integer from 0 to 100"
      elif $c < 80 then "\($at).confidence: \($c) is below the 80 cutoff"
      else empty end),
-  (["location", "claim"][] as $k | if (.[$k] | filled) then empty else "\($at).\($k): missing or empty" end);
+  (["location", "claim"][] as $k | if (.[$k] | filled) then empty else "\($at).\($k): missing or empty" end),
+  (if (.severity | one_of(["high", "medium"])) and (.evidence | if type == "object" then (.reproduction | filled) or (.basis | filled) else false end | not)
+   then "\($at).evidence: a \(.severity) finding needs evidence.reproduction or evidence.basis" else empty end);
 
 def check_finding($lens; $i):
   "findings[\($i)]" as $at

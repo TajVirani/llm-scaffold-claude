@@ -7,7 +7,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 ## Entry
 
 1. `ST step .workflow/specs/NNN-slug 0.3.8` (marks where to resume).
-2. Read the newest **Deeper prompt** entry in `design-log.md` (0.3.22): its agreed Ask, Goals, Downstream, Tools and Gotchas are the loop's input and frame the design tree; its **Not asked for** items stay out of scope. Then read `spec.md` (the draft goal), `codebase-map.md` (where recommended answers come from) and `design-log.md` (decisions already made; create it from [../assets/design-log.md](../assets/design-log.md) if missing).
+2. Read the newest **Deeper prompt** entry in `design-log.md` (0.3.22): its Ask, Goals, Downstream, Tools and Gotchas are the loop's input and frame the design tree; its **Not asked for** items stay out of scope. When its `Agreement:` line says pending and no later Questioning round logs the answer, the next ask carries it (the first round, or the 0.3.19 summary when no round is needed): open the message with the block and make its first question "Pass this deeper prompt on as written?", with "Yes (Recommended)" and "Change it". Log the answer as that round's first question. A change: apply it, append the revised block as a new **Deeper prompt** entry (`Agreement: agreed in Questioning round <n>`), and ask again, in the next round, every answer the change touches. Then read `spec.md` (the draft goal), `codebase-map.md` (where recommended answers come from) and `design-log.md` (decisions already made; create it from [../assets/design-log.md](../assets/design-log.md) if missing).
 3. On a loop-back, seed the tree with the reason you came back:
 
    | From | Seed question |
@@ -23,6 +23,8 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 ## The round
 
 1. **0.3.8 Compute the frontier.** Map the open decisions as a design tree: each decision branches into the decisions that hang off it. The frontier is every open decision whose prerequisites are settled. Order it highest priority first: decisions that change scope or unblock the most others lead. A question whose answer depends on another question still open in this round waits for a later round.
+
+   **A new step in an ordered chain.** When a frontier decision would add a step, mode or check to an ordered chain of rules (a guard's allow and deny order, a pipeline, a fallback list), put "where in the order does it go?" on the frontier in the same round, worded as "if yes, where?", with the position you recommend from `codebase-map.md`.
 
    **Several features?** When the tree holds more than one capability with its own success signal or its own owning module, put a conversion question first on the frontier: "This is several features: convert the spec into an initiative and plan each one as its own spec?" The stakeholder decides. Yes → convert at [0.3.23](large-path.md#0323-convert-a-spec-into-an-initiative) after logging the round; the loop ends there. No → keep the tree as one feature and continue.
 2. **0.3.9 Any answerable?** No → go to [0.3.19](#settle-the-goal).
@@ -66,7 +68,10 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 
 ## Settle the goal
 
-**0.3.19 Confirm or revise the goal.** The frontier is empty when every branch is visited and nothing is silently assumed. Summarise the settled design in a few lines and ask the stakeholder to confirm shared understanding; a correction reopens the frontier.
+**0.3.19 Confirm or revise the goal.** The frontier is empty when every branch is visited and nothing is silently assumed. Summarise the settled design in a few lines and have the stakeholder confirm shared understanding; a correction reopens the frontier. The confirmation rides on an ask that happens anyway:
+
+- **Last round.** When the round you are about to ask can be the last one (no answer to it opens a new question), add the summary as its last question, written on your recommended answers: "If you take every recommendation, this is the settled design: <summary>. Right?" Every answer taking its recommendation and a yes here confirm it.
+- **Otherwise** (an answer departed from its recommendation, a deep dive or term gate changed the design, or no round was needed), ask the revised summary as one ask, together with anything still pending, such as the deeper prompt's agreement.
 
 **One feature?** Before writing `spec.md`, check that the settled design is one feature: one capability set with one success signal, buildable as one spec. No → convert at [0.3.23](large-path.md#0323-convert-a-spec-into-an-initiative) and write nothing here; the large path takes the design log with it. Yes → continue.
 
@@ -87,5 +92,6 @@ Return to [discovery](discovery.md#0320-light-path-test) at 0.3.20. The size `bu
 ## Done
 
 - The frontier is empty and the stakeholder confirmed the summary as one feature, or the spec was handed to the large path at 0.3.23.
+- The deeper prompt's agreement is logged in a round: none is left pending.
 - Every round, deep dive and scope ruling is in `design-log.md` with decision ids; every new term is in the glossary; every shelved item is a `.workflow/deferred/` file listed in `spec.md`.
 - `spec.md` holds the final goal, capabilities and `light_path`, written at step 0.3.19.

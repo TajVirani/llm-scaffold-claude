@@ -6,7 +6,7 @@
 #       implementation: spec_dir, task_id; work_type optional, looked up from tasks.md; a mismatch is denied (Phase 1 verification-setup launches: spec_dir, work_type, no task_id)
 #       integration: spec_dir, work_type (a batch with one work type, no task_id)
 #       profile-mini-review: spec_dir, task_id; work_type optional, looked up from tasks.md; a mismatch is denied (one task under one profile)
-#       retrieval, library-evaluation, fact-lookup, module-audit, review-standards, review-end-state, review-targets: spec_dir
+#       retrieval, library-evaluation, fact-lookup, module-audit, review-standards, review-end-state, review-targets, review-lessons, review-combined: spec_dir
 #       cache-regeneration: spec_dir when launched inside a feature (0.2.8); no header for bulk regenerate-caches runs
 #       standards-discovery: header optional, task_type only (project-standards runs outside any feature)
 #   - Deny with reason when a required header field is missing, no model resolves for this host (no .workflow/agent-overrides.yaml entry, no definition `models.<host>`, no model-map entry: surface 00.14), or a coding launch (implementation, integration, profile-mini-review) has no profile (surface 00.19)
@@ -21,8 +21,8 @@
 #   - resolve-launch.sh exit 0: allow + updatedInput; exit 2: deny with its stderr reason; any other failure (exit 1, bad JSON, no model,
 #     jq missing, unreadable payload): deny, fail closed, with an environment-error reason.
 # Triggers/inputs: PreToolUse JSON on stdin for the Agent tool. Paths from the payload `cwd`, not $CLAUDE_PROJECT_DIR; $CLAUDE_PROJECT_DIR
-#   and then the hook's working directory are used only when the payload has no usable cwd. The root is normalised to the main checkout
-#   (git rev-parse --git-common-dir), so a worktree cwd works.
+#   and then the hook's working directory are used only when the payload has no usable cwd. The root is normalised to the spec checkout
+#   (lib/workflow-paths.sh wf_project_root: the main checkout or a spec worktree; an agent worktree counts as the checkout it sits in).
 # Outputs/handoff: stdout is exactly one JSON object or nothing:
 #   {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","updatedInput":{...}}}
 #   {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"pre-launch: ..."}}
@@ -56,14 +56,20 @@ case "$tool_name" in Agent|Task) ;; *) exit 0 ;; esac
 subagent_type=$(jq -r '.tool_input.subagent_type // "" | strings' <<<"$payload")
 [ -n "$subagent_type" ] || exit 0
 
-# ── Project root: payload cwd > $CLAUDE_PROJECT_DIR > $PWD, normalised to the main checkout ──
+# ── Project root: payload cwd > $CLAUDE_PROJECT_DIR > $PWD, normalised to the spec checkout ──
 root=$(jq -r '.cwd // "" | strings' <<<"$payload")
 [ -n "$root" ] && [ -d "$root" ] || root=${CLAUDE_PROJECT_DIR:-}
 [ -n "$root" ] && [ -d "$root" ] || root=$PWD
 root=$(cd "$root" && pwd)
-if common=$(git -C "$root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
-  root=$(dirname "$common")
+lib=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh
+if [ ! -f "$lib" ]; then
+  # Without the shared library the workflow is not installed here, unless its skill is, which is a broken install.
+  [ ! -d "$root/.agents/skills/feature-workflow" ] || env_deny "$lib not found; reinstall the scaffold"
+  exit 0
 fi
+# shellcheck source=../lib/workflow-paths.sh
+. "$lib"
+if spec_root=$(wf_project_root "$root" 2>/dev/null); then root=$spec_root; fi
 
 [ -d "$root/.agents/skills/feature-workflow" ] || exit 0
 resolver=$root/.agents/skills/feature-workflow/scripts/resolve-launch.sh

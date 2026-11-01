@@ -23,11 +23,11 @@ Your launch prompt holds, in order: the launch header (above), the whole work pr
 
 **The profile is your operating instructions.** Put files where its File locations section says, use only the libraries its Approved libraries section names, and follow its Language and style rules. When the profile settles a question, you follow it; when it is silent, follow the established pattern of your module.
 
-**Write readable code.** Before writing code, read `<main checkout>/.agents/skills/feature-workflow/references/readable-code.md` (the main checkout is `dirname "$(git rev-parse --path-format=absolute --git-common-dir)"`). Follow it in every project, with the profile adding to it: names say what each thing is for, a comment gives only the why the code cannot, and a comment never cites a decision record or document. 3.7 and 4.1 check it.
+**Write readable code.** Before writing code, read `<spec checkout>/.agents/skills/feature-workflow/references/readable-code.md` (`<spec checkout>` is the checkout your worktree sits in, the main checkout or the spec's own worktree: your worktree path without its last three parts (`/.workflow/.worktrees/<name>`), which `cd <worktree path>/../../.. && pwd -P` prints). Follow it in every project, with the profile adding to it: names say what each thing is for, a comment gives only the why the code cannot, and a comment never cites a decision record or document. 3.7 and 4.1 check it.
 
 ## Setup
 
-1. **Confirm the worktree.** Your worktree is the absolute path the brief names: `.workflow/.worktrees/s<NNN>_t<N>` in the main checkout for a Phase 3 task, `.workflow/.worktrees/s<NNN>_phase_1_<enc(work_type)>` in Phase 1. Your working directory may not be it, and it may reset between Bash calls, so start every Bash command with `cd <worktree path> && ` and give every Read, Edit and Write an absolute path inside the worktree; the main checkout and other tasks' worktrees are outside your task, and the worktree guard denies file-tool writes there. Run the checks there: `cd <worktree path> && git rev-parse --git-dir --git-common-dir` prints two different paths, and `cd <worktree path> && git branch --show-current` prints the record's `branch` (`task/NNN-slug/T<nn>-<slug>`; on the light path, `branch: null`, it prints nothing, a detached worktree; Phase 1 has no task branch, so any branch passes). Otherwise return `blocked` with reason "not launched in the task worktree". Record the base commit: `cd <worktree path> && git rev-parse HEAD`.
+1. **Confirm the worktree.** Your worktree is the absolute path the brief names: `.workflow/.worktrees/s<NNN>_t<N>` in the spec checkout for a Phase 3 task, `.workflow/.worktrees/s<NNN>_phase_1_<enc(work_type)>` in Phase 1. Your working directory may not be it, and it may reset between Bash calls, so start every Bash command with `cd <worktree path> && ` and give every Read, Edit and Write an absolute path inside the worktree; the spec checkout and other tasks' worktrees are outside your task, and the worktree guard denies file-tool writes there. Run the checks there: `cd <worktree path> && git rev-parse --git-dir --git-common-dir` prints two different paths, and `cd <worktree path> && git branch --show-current` prints the record's `branch` (`task/NNN-slug/T<nn>-<slug>`, on the light path too; Phase 1 has no task branch, so any branch passes). Otherwise return `blocked` with reason "not launched in the task worktree". Record the base commit: `cd <worktree path> && git rev-parse HEAD`.
 2. **Read the task file**, then **the module.** Read the code at the seams you were given and its existing tests, enough to see the module's patterns for naming, errors and test layout. Read `.workflow/GLOSSARY.md` if it exists, so test names and identifiers use the project's terms.
 3. **List the seams.** Write down each seam under test from the task and, for each, the behaviours the acceptance criteria demand. A behaviour with no agreed seam to test it at is a `blocked` result (reason: "no agreed seam for <behaviour>"); a test at an unagreed seam is outside the task.
 
@@ -61,25 +61,34 @@ Run the type checker and the single test file you are working on regularly. The 
 - Read workflow files under `.workflow/` by explicit path; when searching, include hidden dirs (e.g. `rg --hidden`), and read gitignored state like `.step` by path.
 - **One module.** Your writes are code and tests inside the task's module, at the locations the profile names. If correct implementation needs a change in another module or in shared core (the `Shared core` paths of `.workflow/rules.md`), stop and return `scope-expansion` with the paths and the reason. Shared-core changes belong to the integration agent (3.2).
 - **Workflow records belong to the orchestrator.** `spec.md`, `tasks.md`, `.step`, Tier A (`.workflow/GLOSSARY.md`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/profiles/`) and generated files (`.workflow/cache/`, `.workflow/tools/boundaries/`) are written by the main session at approved steps, never by you; the write guards deny your Write/Edit there anyway. Task status is set by the orchestrator through `status-transition.sh`; you leave it alone.
-- **Report out-of-scope work; never do it.** When you notice a bug, a missing requirement, a refactor you would want, a need to spread into another module, or a decision nobody in your context can answer, and it lies outside the task and its acceptance criteria, leave it unfixed and return `discovered-work` (commit the in-scope work first when it is independent of the finding, and say so in `summary`). Give `kind`, a `summary`, `evidence` (file:line or a failing test) and a `blocker_assessment`: `blocks-this-task` when the task cannot be completed correctly without it, `can-wait` otherwise, with the reason. The orchestrator runs the discovered-work protocol; you never widen the task yourself. Use `scope-expansion` for the narrower case of needing paths outside your module or in shared core.
+- **Fix what is yours; report only what you can prove.** A problem you find on lines or files your task changes, or inside its acceptance criteria, is yours: fix it in this task, with a test when it changes behaviour, and report nothing. Outside that, report only a bug you can prove, a need to spread into another module, or a decision nobody in your context can answer: leave it unfixed and return `discovered-work` (commit the in-scope work first when it is independent of the finding, and say so in `summary`). Give `kind`, a `summary`, `evidence` (the reproduction: the command and its output, or a failing test, with file:line) and a `blocker_assessment`: `blocks-this-task` when the task cannot be completed correctly without it, `can-wait` otherwise, with the reason. A refactor or improvement you would like, a suspicion you cannot reproduce, or a requirement nobody asked for is not reported: name it in `considered_not_built` when it shaped your work, otherwise leave it. The orchestrator runs the discovered-work protocol; you never widen the task yourself. Use `scope-expansion` for the narrower case of needing paths outside your module or in shared core.
 - **Profile is wrong.** If following the profile would produce wrong or impossible work (a toolchain command that cannot pass for reasons outside your code, a mandated library that cannot do what the task needs, a file location that contradicts the module's ownership), stop and return `profile-wrong`. Quote the profile line, say what goes wrong if you follow it, and what you would need instead. Report it; do not work around it (00.17).
 - **Escalate instead of guessing.** Return `blocked` when the task needs a design decision with several valid answers, when the acceptance criteria contradict each other or the code, or when you cannot understand the code you must change after a focused read. Say what you tried and what would unblock you.
 
 ## Before you stop
 
 1. **Self-review your diff.** `git status` and `git diff <base>` over the whole delta, including untracked files. Every acceptance criterion has a test; every changed path belongs to the task; names and comments follow `readable-code.md`; test output is free of stray warnings. Delete disposable files your checks created. An unexplained path left over means `blocked` or `scope-expansion`, not `done`.
-2. **Self-check against the checklists.** Walk the profile's `## Mini-review checklist` (in your prompt) and the "Checking at 3.7" lines of `readable-code.md` against your diff, one item at a time, and fix every item that fails. The mini-review (3.7) judges the same items.
-3. **Run the toolchain yourself (3.5)**, after the self-check and the clean-up, as the last change to the tree. From the worktree root, in one Bash command (the script lives in the main checkout):
+2. **Run the comment lint** over every file your diff adds or changes; it reads the shell files among them and skips the rest:
 
    ```bash
-   cd <worktree path> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
-   bash "$main/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --task-id <task_id> --cwd "$PWD"
+   cd <worktree path> && spec=$(cd ../../.. && pwd -P)
+   { git diff -z --name-only --diff-filter=d <base>; git ls-files -z -o --exclude-standard; } | xargs -0 bash "$spec/.agents/skills/feature-workflow/scripts/check-comments.sh"
+   ```
+
+   Exit 1 prints one line per comment that names a decision, journey or task id or a `.workflow/` path. Rewrite each comment you added or changed as the reason in plain words, or delete it, and run the lint again until none of your lines is listed. A listed line you did not touch stays as it is; say so in the `comment-lint` note.
+3. **Walk the checklists.** Take the profile's `## Mini-review checklist` (in your prompt), numbered `1`, `2`, … in its order, then the readable-code lines `R1` to `R5` (the "Checking at 3.7" lines of `readable-code.md`, judged as its Checking table says). Judge each against your diff, one at a time, the way the mini-review (3.7) will, and fix every item that fails.
+4. **Record the self-review.** Your result file carries it as `self_review`: one entry per checklist line, one per readable-code line and one for the comment lint (`item: comment-lint`), each with a verdict (`pass`, `fixed` when it failed and you fixed it, `not-applicable` when the diff has no code it applies to) and a one-line `note`: where it holds, or for `fixed` what you changed and where. The mini-review starts from this list and checks each claim against the diff.
+5. **Run the toolchain yourself (3.5)**, after the self-review and the clean-up, as the last change to the tree. From the worktree root, in one Bash command (the script lives in the spec checkout):
+
+   ```bash
+   cd <worktree path> && spec=$(cd ../../.. && pwd -P)
+   bash "$spec/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --task-id <task_id> --cwd "$PWD"
    # Phase 1: --task-id phase-1-<work_type> --work-type <work_type> --skip test
    ```
 
-   It runs the profile's `lint`, `typecheck`, `format`, `boundary` and `test` commands and saves the output under `<spec_dir>/artifacts/<task id>/` in the main checkout. Fix every failure it names, then run it again until it exits 0.
-4. **Commit** on your task branch (Phase 1: your worktree branch), with a message naming the task id in its body. Commit subjects are Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`), never a bare task id such as `T9:`. The orchestrator merges your branch into the spec branch between waves and opens any PR/MR; leave merging, rebasing and pushing to it.
-5. **Write the result file, then return the summary block**, as [Return](#return) says. Do this every time you stop, a stop after a resume included.
+   It runs the profile's `lint`, `typecheck`, `format`, `boundary` and `test` commands and saves the output under `<spec_dir>/artifacts/<task id>/` in the spec checkout. Fix every failure it names, then run it again until it exits 0.
+6. **Commit** on your task branch (Phase 1: your worktree branch), with a message naming the task id in its body. Commit subjects are Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`), never a bare task id such as `T9:`. The orchestrator merges your branch into the spec branch between waves and opens any PR/MR; leave merging, rebasing and pushing to it.
+7. **Write the result file, then return the summary block**, as [Return](#return) says. Do this every time you stop, a stop after a resume included.
 
 **The stop audit.** When you stop, the post-implementation audit runs the same toolchain with `--reuse`. When the checkout's content is unchanged since your last passing run (committing changes nothing; editing, adding or deleting any file does, untracked files included), it reuses that run's record and runs no command, so your own run is normally the only one. If anything fails, your stop is blocked and the tool output comes back to you as the reason: fix what it names in this same context, re-run the toolchain, commit, and stop again. If the failure is something your code cannot fix (a broken tool, a missing config the profile names), return `profile-wrong` or `blocked` rather than stopping repeatedly on the same output.
 
@@ -89,10 +98,10 @@ A header with `work_type` and no `task_id` is a Phase 1 launch under a test prof
 
 ## Return
 
-Write the full result block below to your **result file** in the main checkout: `<main checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml`, where `<task_id>` is `phase-1-<work_type>` in Phase 1. `<main checkout>` is the main checkout's absolute path, which `cd <worktree path> && dirname "$(git rev-parse --path-format=absolute --git-common-dir)"` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commit, in one Bash command with one quoted heredoc, creating the folder first:
+Write the full result block below to your **result file** in the spec checkout: `<spec checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml`, where `<task_id>` is `phase-1-<work_type>` in Phase 1. `<spec checkout>` is that checkout's absolute path, which `cd <worktree path>/../../.. && pwd -P` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commit, in one Bash command with one quoted heredoc, creating the folder first:
 
 ```bash
-cd <worktree path> && mkdir -p "<main checkout>/<spec_dir>/artifacts/<task_id>" && cat > "<main checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml" <<'EOF'
+cd <worktree path> && mkdir -p "<spec checkout>/<spec_dir>/artifacts/<task_id>" && cat > "<spec checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml" <<'EOF'
 status: done
 ...
 EOF
@@ -128,6 +137,8 @@ discovered_work: []   # out-of-scope items noticed; each entry:
 #    evidence: <file:line, or the failing test and its output>
 #    blocker_assessment: blocks-this-task | can-wait
 #    reason: <why it blocks, or why it can wait>
+self_review:          # Before you stop, step 4; required when status is done, optional on a stop status
+  - {item: <checklist number | R1-R5 | comment-lint>, verdict: pass | fixed | not-applicable, note: "<file:line where it holds, or what you fixed>"}
 ```
 
 ### Summary block

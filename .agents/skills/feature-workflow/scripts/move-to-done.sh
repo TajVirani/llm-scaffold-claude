@@ -13,10 +13,13 @@
 #                                                      the one whose spec_branch is the checked-out branch
 #     <spec-dir>  `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it); --check also
 #                 takes a spec already in the Done folder.
-#     --cwd       any directory in the project or one of its worktrees (default $PWD); git runs in the MAIN checkout.
-# Closed means: a task record is `done` or `split-out`; a work-backlog item `<NNN-slug>-disc-*.md` is `open`, `promoted`,
-#   `moved-to-deferred` or `dismissed`. The spec's own status does not matter to --check.
-# stdout: one `open: ...` line per open task record or item; `check passed: <spec-dir>`; for a move, `moved <old> -> <new>`
+#     --cwd       any directory in the project or one of its worktrees (default $PWD); git runs in the spec checkout
+#                 (lib/workflow-paths.sh wf_project_root: the checkout it is in, or the one an agent worktree sits in).
+# Closed means: a task record is `done` or `split-out`; every line of the spec's backlog list `<NNN-slug>.md` that starts `- `
+#   is a well-formed `- [open] B<n> <kind> (<node>): ...` or `- [promoted] ...` line (a line kept for later or started as a
+#   spec); an older work-backlog item `<NNN-slug>-disc-*.md` is `open`, `promoted`, `moved-to-deferred` or `dismissed`. The
+#   spec's own status does not matter to --check.
+# stdout: one `open: ...` line per open task record, item or malformed backlog line; `check passed: <spec-dir>`; for a move, `moved <old> -> <new>`
 #   per spec and `committed <sha>`; for a sweep, `left in place: <spec-dir>` per spec that failed, `skipped: <spec-dir> (moved
 #   by its own sign-off step)` for the spec on the checked-out branch, or `nothing to sweep`.
 # Exit: 0 check passed, or moved and committed, or nothing to sweep (a sweep that only skips the checked-out spec has
@@ -32,7 +35,7 @@
 # Notes: Requires git and mikefarah yq v4. Never pushes. bash 3.2 compatible. At sign-off the spec being signed off is
 #   already `done` when the sweep runs, so the sweep skips it: the sweep commit holds only the older specs, and the spec's
 #   own `move-to-done.sh <spec-dir>` after it still finds the folder at the top level.
-# Sources: first-party. Pattern: commit-workflow-data.sh (main-checkout resolution, explicit staging, path-limited commit).
+# Sources: first-party. Pattern: commit-workflow-data.sh (spec-checkout resolution, explicit staging, path-limited commit).
 
 set -euo pipefail
 
@@ -57,12 +60,21 @@ resolve_spec() {
 
 # open_sub_items SPEC_DIR : print one line per task record or work-backlog item of SPEC_DIR that is not closed.
 open_sub_items() {
-  local spec_dir=$1 tasks item status
+  local spec_dir=$1 tasks list item status
   tasks=$(wf_path "$ROOT" "$spec_dir/tasks.md")
   if [[ -f "$tasks" ]]; then
     yq --front-matter=extract \
       '(.tasks // [])[] | select(.status != "done" and .status != "split-out") | "open: task " + .id + " (" + (.status // "no status") + ")"' \
       "$tasks" || die "cannot read the task records in $spec_dir/tasks.md"
+  fi
+  list="$(wf_path "$ROOT" "$WF_WORK_BACKLOG")/${spec_dir##*/}.md"
+  if [[ -f "$list" ]]; then
+    awk -v f="$WF_WORK_BACKLOG/${list##*/}" '
+      /^- / && $0 !~ /^- \[(open|promoted)\] B[0-9]+ (bug|requirement|refactor|scope-expansion|decision|budget-split) \([0-9.]+[^)]*\): .+ Evidence: .+/ {
+        status = $0; sub(/^- \[/, "", status); sub(/\].*$/, "", status)
+        if (status == $0 || status ~ /^(open|promoted)$/) status = "malformed"
+        printf "open: backlog line %s:%d (%s)\n", f, NR, status
+      }' "$list" || die "cannot read the backlog list $WF_WORK_BACKLOG/${list##*/}"
   fi
   for item in "$(wf_path "$ROOT" "$WF_WORK_BACKLOG")/${spec_dir##*/}"-disc-*.md; do
     [[ -f "$item" ]] || continue
@@ -93,7 +105,7 @@ else
 fi
 
 command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4"
-ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
+ROOT=$(wf_project_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
 
 if [[ "$MODE" == check ]]; then
   SPEC_DIR=$(resolve_spec "$SPEC_ARG") || exit 2
@@ -187,11 +199,11 @@ trap on_exit EXIT
 refuse_unsafe_checkout() {
   local current main h
   current=$(git -C "$ROOT" branch --show-current) || die "cannot read the checked-out branch in $ROOT"
-  [[ -n "$current" ]] || die "the main checkout has a detached HEAD; check out the spec branch first" 1
+  [[ -n "$current" ]] || die "the spec checkout has a detached HEAD; check out the spec branch first" 1
   main=$(bash "$SCRIPT_DIR/rules-setting.sh" main_branch --cwd "$ROOT" 2>/dev/null) ||
     die "cannot read the main branch name (rules-setting.sh main_branch)"
   CURRENT_BRANCH=$current
-  [[ "$current" != "$main" ]] || die "the main checkout is on the main branch $main; the move commits on the spec branch" 1
+  [[ "$current" != "$main" ]] || die "the spec checkout is on the main branch $main; the move commits on the spec branch" 1
   for h in MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD; do
     if git -C "$ROOT" rev-parse -q --verify "$h" >/dev/null; then
       die "a merge, cherry-pick or revert is in progress in $ROOT; finish or abort it first" 1
