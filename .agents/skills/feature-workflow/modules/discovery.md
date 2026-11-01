@@ -8,16 +8,16 @@ Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/statu
 
 ## 0.1 Initialise the feature folder
 
-1. **0.1.1 Scan.** Find the highest number any spec has taken. Run it from the main checkout, where new work starts. A spec number lives on after its folder leaves the top level of `.workflow/specs/`: in its spec worktree while it runs (1.1, or 0.3.20 on the light path, moves the folder to `.workflow/.spec-worktrees/NNN-slug`), in the Done folder `.workflow/specs/done/` once 5.8 has moved it, in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (that spec folder is deleted, and its number is never reused). Branches are not counted: 5.8 deletes a spec branch once it merges, and every spec it held is already in one of these places. So count the `NNN-slug` spec folders at the top level and in the Done folder, the spec worktrees, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
+1. **0.1.1 Scan.** Find the highest number any spec has taken. The scan runs in the main checkout, where new work starts and the spec worktrees sit, even when the session is in a spec worktree (5.9 seeds the next spec from there): its subshell moves there and leaves the session where it is. A spec number lives on after its folder leaves the top level of `.workflow/specs/`: in its spec worktree while it runs (1.1, or 0.3.20 on the light path, moves the folder to `.workflow/.spec-worktrees/NNN-slug`), in the Done folder `.workflow/specs/done/` once 5.8 has moved it, in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (that spec folder is deleted, and its number is never reused). Branches are not counted: 5.8 deletes a spec branch once it merges, and every spec it held is already in one of these places. So count the `NNN-slug` spec folders at the top level and in the Done folder, the spec worktrees, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
 
    ```bash
-   {
+   ( cd "$(git worktree list --porcelain | sed -n '1s/^worktree //p')" && {
      for d in .workflow/specs/[0-9]*-*/ .workflow/specs/done/[0-9]*-*/ .workflow/.spec-worktrees/[0-9]*-*/; do [ -d "$d" ] && basename "$d"; done
      for f in .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && yq --front-matter=extract '.origin, (.slices // [] | .[].spec)' "$f"; done
      for ref in $(git for-each-ref --format='%(refname)' refs/heads/initiative refs/remotes/origin/initiative); do
        git show "$ref:.workflow/initiatives/${ref##*/}/initiative.md" 2>/dev/null | yq --front-matter=extract '.origin, (.slices // [] | .[].spec)'
      done
-   } | grep -oE '^[0-9]+' | sort -n | tail -1
+   } ) | grep -oE '^[0-9]+' | sort -n | tail -1
    ```
 
    `.workflow/specs/work-backlog/`, the Done folder `.workflow/specs/done/` itself and any other folder without a numeric prefix are not specs and never count; the children of the Done folder are finished specs and do count. The new number is the highest plus one, zero-padded to five digits (`printf '%05d' $((10#$highest + 1))`; `00001` when nothing prints). Older specs keep their three-digit numbers: a spec number may have any number of digits, and only its value orders it.
