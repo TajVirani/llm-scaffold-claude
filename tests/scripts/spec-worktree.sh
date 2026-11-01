@@ -6,8 +6,8 @@
 #   and the baseline; a second spec created while the first runs; discovery's 0.1.1 scan counts both from a spec worktree; status-transition.sh, run-toolchain.sh, the implementation
 #   brief's result-file command (its spec checkout taken from the worktree path), commit-workflow-data.sh, check-merge-artifacts.sh
 #   and check-write.sh, each run from a spec worktree or its task worktree, read and write that spec's .step, artifacts and branch
-#   only; session-start-resume.sh lists both specs from the main checkout and from a spec worktree, naming where each runs; the
-#   sign-off local merge run from a spec worktree lands on main in the main checkout; remove refuses an unmerged branch, a branch the main checkout's HEAD lacks and a nested
+#   only; session-start-resume.sh lists both specs from the main checkout and from a spec worktree, naming where each runs, and so does the router's
+#   own listing (Find the state) from a spec worktree; the sign-off local merge run from a spec worktree lands on main in the main checkout; remove refuses an unmerged branch, a branch the main checkout's HEAD lacks and a nested
 #   agent worktree, then removes the worktree and deletes the merged branch; create refusals (mid-merge, from another spec's
 #   worktree, a checkout on the spec branch, no spec.md, usage) and a repeat create that changes nothing; shellcheck.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
