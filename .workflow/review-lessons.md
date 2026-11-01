@@ -23,36 +23,36 @@ lessons:
   - id: RL-001
     symptom: "A change adds a task type or an agent definition but leaves a hard-coded count or list stale: the Agents (N) header of install-manifest.txt, the agents row and the 'the N agents/*.md' line of PROVENANCE.md, project-setup's model-map tier table and its 'N task types' lines, or the type counts pinned in tests/scripts/resolve-launch.sh and tests/lint/step-list.sh."
     paths: [".agents/agents/**", ".agents/install-manifest.txt", "PROVENANCE.md", ".agents/skills/project-setup/**"]
-    origin_spec: .workflow/specs/002-review-lessons
+    origin_spec: .workflow/specs/done/002-review-lessons
     date: 2026-10-22
   - id: RL-002
     symptom: "A change makes a Phase 1 stub or helper real, or starts sourcing it, but its PROVENANCE.md row still says placeholder or 'to be sourced by'."
     paths: ["PROVENANCE.md", ".agents/lib/**"]
-    origin_spec: .workflow/specs/005-cache-build-followups
+    origin_spec: .workflow/specs/done/005-cache-build-followups
     date: 2026-10-29
   - id: RL-003
     symptom: "A change alters what a script accepts, prints or exits with, but the module or SKILL.md prose that tells agents how to call it or read its result still describes the old behaviour."
     paths: [".agents/skills/*/modules/**", ".agents/skills/*/SKILL.md", ".agents/skills/*/scripts/**"]
-    origin_spec: .workflow/specs/008-pr-description-template
+    origin_spec: .workflow/specs/done/008-pr-description-template
     date: 2026-10-30
   - id: RL-004
     symptom: "A file under an installed skill's assets/ or modules/ names a specific .workflow/deferred/, .workflow/specs/ or .workflow/decisions/ file that only this scaffold repo holds, so every target project gets a dead path."
     paths: [".agents/skills/*/assets/**", ".agents/skills/*/modules/**"]
-    origin_spec: .workflow/specs/008-pr-description-template
+    origin_spec: .workflow/specs/done/008-pr-description-template
     date: 2026-10-30
   - id: RL-005
     symptom: "A guard treats a tool as a read and denies its write forms with a regex denylist over flags or script text, so an unusual spelling (a custom delimiter, an attached file name, a script file) still passes as a read; allowlist the read forms instead."
     paths: [".agents/skills/feature-workflow/scripts/check-worktree-scope.sh", ".agents/hooks/**"]
-    origin_spec: .workflow/specs/006-result-file-guard
+    origin_spec: .workflow/specs/done/006-result-file-guard
     date: 2026-10-30
   - id: RL-006
     symptom: "A test extracts a command from an agent doc and fills different path placeholders (worktree, checkout, launched-in) with the same expected path, so a doc that names the wrong checkout still passes."
     paths: ["tests/**"]
-    origin_spec: .workflow/specs/006-result-file-guard
+    origin_spec: .workflow/specs/done/006-result-file-guard
     date: 2026-10-30
   - id: RL-007
     symptom: "A change that hides quoted text from the bash graph extractor also hides a command substitution in one of its forms ($(...) or backticks) inside double quotes, so a real call stops being reported."
     paths: [".agents/skills/regenerate-caches/scripts/extractors/**"]
-    origin_spec: .workflow/specs/00012-extractor-multiline-quotes
+    origin_spec: .workflow/specs/done/00012-extractor-multiline-quotes
     date: 2026-10-30
 ```

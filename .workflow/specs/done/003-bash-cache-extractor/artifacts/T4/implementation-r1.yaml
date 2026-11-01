@@ -1,0 +1,22 @@
+status: "done"
+summary: "Without tsc output, --cache modules now renders a module's Public interface from the graph's exports (sorted union of its files' functions, `- `name` (function)`), keeping Not generated for modules with no exports entry; run_extractors merges each extractor's exports. --cache entries also drops files matching any work profile's Toolchain test_patterns (budget-check.sh defaults and matching), with the JS/TS rule kept. JRN-001 and JRN-004 pass and the full harness is green."
+task_id: "T4"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t4"
+branch: "task/003-bash-cache-extractor/T04-bash-interface-and-entries"
+base_commit: "7ce6886222a8b4951beb5a28e7ac56f2f58b7a1e"
+head_commit: "7b834af9f30d474d1138d8eab6e8c83d5df25de5"
+files_changed:
+  - ".agents/skills/regenerate-caches/scripts/build-architecture.sh"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/cache-bash-project; FAIL JRN-001 lib Public interface is the union of its sourced files' functions (got '- Public interface: Not generated: no tsconfig.json.'); FAIL JRN-001 entry candidates ... (got bin/build.sh,bin/release,tests/build-test.sh); FAIL JRN-001 the test file is not an entry candidate. passed=17 failed=3"
+  green: "tests/run-all.sh --suite scripts/cache-bash-project: passed=20 failed=0; scripts/cache-mixed-extractors: passed=8 failed=0; scripts/build-architecture (tsc/--dts-dir Public interface unchanged): passed=85 failed=0; cache-js-unchanged 13/13, cache-scripts 36/36, cache-missing-extractor-key 9/9"
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/003-bash-cache-extractor --task-id T4 --cwd $PWD; lint pass, test (scoped, own 2 suites) pass. Full tests/run-all.sh: TOTAL passed=2866 failed=0 skipped=0 xfail=0 (52 suites)"
+  toolchain: ".workflow/specs/done/003-bash-cache-extractor/artifacts/T4/toolchain.txt (pass)"
+considered_not_built:
+  - "Sharing test_patterns reading and matching with budget-check.sh through .agents/lib/: would be a shared-core change, none agreed; the logic is duplicated with a comment naming budget-check.sh as the source of the semantics"
+  - "New harness tests for a malformed test_patterns (exit 2) and an all-empty exports module (none exported): tests/ is another module; both paths checked by hand in a scratch fixture (malformed test_patterns printed the die message and exit 2)"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

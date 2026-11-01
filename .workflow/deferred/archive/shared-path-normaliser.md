@@ -1,6 +1,6 @@
 ---
-superseded_by: .workflow/specs/005-cache-build-followups
-origin_spec: .workflow/specs/001-large-path
+superseded_by: .workflow/specs/done/005-cache-build-followups
+origin_spec: .workflow/specs/done/001-large-path
 created: 2026-10-21
 ---
 
@@ -8,7 +8,7 @@ created: 2026-10-21
 
 **Summary:** One helper that resolves and validates a workflow folder path (`.workflow/specs/NNN-slug`, `.workflow/initiatives/NNN-slug`) for every workflow script, replacing the per-script copies.
 **Mode:** AFK
-**Origin:** [001-large-path](../specs/001-large-path/spec.md), 0.3.17 scope decision, design-log entry 2026-10-21 Scope decision: shared path normaliser
+**Origin:** [001-large-path](../specs/done/001-large-path/spec.md), 0.3.17 scope decision, design-log entry 2026-10-21 Scope decision: shared path normaliser
 
 ## Goal
 
@@ -30,7 +30,7 @@ The feature-workflow scripts follow the convention that each script is self-cont
 
 ## Decisions already made
 
-- D1 placement: the large path is owned by feature-workflow (design-log in [.workflow/specs/001-large-path/design-log.md](../specs/001-large-path/design-log.md)).
+- D1 placement: the large path is owned by feature-workflow (design-log in [.workflow/specs/done/001-large-path/design-log.md](../specs/done/001-large-path/design-log.md)).
 - Module audit constraint: scripts are self-contained; helpers are copied per script; only `workflow-paths.sh` is sourced.
 
 ## Evidence

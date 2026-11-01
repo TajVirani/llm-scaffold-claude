@@ -1,0 +1,25 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "3fee587d96a73c6c2692e3cb534b5883aa7c7324"
+head: "d30834741ed085a695372015632f200bb4b9a06e"
+findings: []
+checked:
+  - "AGENTS.md (root; governs tests/ and the whole repo; CLAUDE.md is a one-line @AGENTS.md import)"
+  - ".workflow/rules.md (Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, External systems, Required versions)"
+  - ".workflow/profiles/test-harness.md (only work type in tasks.md: T1 test-harness)"
+  - ".agents/skills/feature-workflow/references/readable-code.md (R1-R5 against every comment and name the diff adds)"
+  - ".workflow/GLOSSARY.md (no workflow concept named in the changed code or comments)"
+  - ".workflow/specs/done/00011-interrupted-run-cleanup/design-log.md (Reframe entry is the placement record: every touched path under tests/, no placement ADR; diff stays in tests/ and workflow data)"
+  - ".workflow/specs/done/00011-interrupted-run-cleanup/artifacts/T1/toolchain.json (lint shellcheck pass, test pass)"
+  - ".workflow/specs/done/00011-interrupted-run-cleanup/artifacts/gate-3.9-w1/toolchain.json (lint pass, test pass)"
+  - "tests/README.md suite table row for scripts/run-all-selection (no new suite, so no row required)"
+  - "Commit subjects baseline..HEAD against rules.md Conventional Commits and no-trailer rule (fix:/docs: on code commits; 'Workflow data for' commits follow the established workflow-tool pattern on main)"
+  - "Bash 3.2 constructs in the diff (indices expansion with empty-array guard, local arr=(), process substitution, set -m): none of the forbidden bash 4 constructs"
+  - "Smell baseline over tests/run-all.sh and tests/scripts/run-all-selection.sh: the bounded polling loops (stop_and_exit, wait_for_file, process_gone, interrupt_runner) were weighed as possible Duplicated Code and dropped below 80: each has its own condition and timeout and no written standard or shared helper in tests/lib/common.sh covers polling"
+not_checked:
+  - "CODING_STANDARDS.md: not present at repo root"
+  - "CONTRIBUTING.md: not present at repo root"
+  - ".workflow/GLOSSARY-MAP.md: not present in the repo"
+  - "T1 and gate-3.9-w1 toolchain keys typecheck, format, boundary: skipped ('no command' in test-harness profile)"
+  - "Placement ADR: none linked; design-log Reframe entry records that no placement ADR was needed"

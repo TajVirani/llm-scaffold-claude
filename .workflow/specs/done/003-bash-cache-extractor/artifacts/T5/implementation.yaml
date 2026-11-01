@@ -1,0 +1,25 @@
+status: done
+summary: "regenerate-caches SKILL.md step 1 now reads the extractors with build-architecture.sh --print-generator and checks depcruise only for the dependency-cruiser extractor or when a boundary config exists; step 7 publishes architecture with --generator \"$(build-architecture.sh --print-generator)\". cache-frontmatter.md describes generator as the sorted, comma-joined extractor names, the extractor-based file graph, and the Unresolved edges section with the line field."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t5"
+branch: "task/003-bash-cache-extractor/T05-regenerate-caches-docs"
+base_commit: "7ce6886222a8b4951beb5a28e7ac56f2f58b7a1e"
+head_commit: "c1a77a8e882b286eeed3babcc581031100f93cfa"
+files_changed: [".agents/skills/regenerate-caches/SKILL.md", ".agents/skills/regenerate-caches/assets/cache-frontmatter.md"]
+tests_added: []
+evidence:
+  red: "None: docs task with no seam; checked by the agent-docs lint suites."
+  green: "run-toolchain.sh lint (lint/frontmatter, lint/symlinks, lint/upstream-lineage) pass"
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/003-bash-cache-extractor --task-id T5 --cwd $PWD; test (scoped, own 0, excluded 2) pass, TOTAL passed=2838 failed=0 (50 suites)"
+  toolchain: ".workflow/specs/done/003-bash-cache-extractor/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "Saying depcruise is needed only when a profile names dependency-cruiser: build-architecture.sh also runs depcruise for Boundary violations whenever .workflow/tools/boundaries/dependency-cruiser.cjs exists (this repo has one), so the docs state both conditions."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: bug
+    summary: "When every work profile names graph_extractor none, build-architecture.sh --print-generator prints an empty line, and publish-cache.sh rejects an empty --generator, so an architecture cache cannot be published. SKILL.md now tells the orchestrator to skip architecture and report it in that case."
+    evidence: ".agents/skills/regenerate-caches/scripts/publish-cache.sh:68 ([[ -n \"$generator\" ]] || die); build-architecture.sh:193-196 (print-generator prints an empty line when no extractor is selected)"
+    blocker_assessment: "can-wait"
+    reason: "Projects with no code profile have no file graph to cache; the documented skip is safe until the intended behaviour is decided."

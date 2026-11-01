@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00010-worktree-guard-followups
+origin_spec: .workflow/specs/done/00010-worktree-guard-followups
 origin_step: "3.7"
 discovered_at: 2026-10-30
 status: moved-to-deferred
@@ -15,7 +15,7 @@ The worktree guard finds its hooks folder with a plain `cd` on one line and with
 ## Evidence
 
 - `.agents/hooks/worktree-write-guard.sh:63-64` (plain `cd`) and `:72` (`cd -P`), at T2 head `bb1b749`.
-- T2 mini-review, `.workflow/specs/00010-worktree-guard-followups/artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed[3]`.
+- T2 mini-review, `.workflow/specs/done/00010-worktree-guard-followups/artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed[3]`.
 
 ## Why not a blocker
 
@@ -28,6 +28,6 @@ Pre-existing and untouched by spec 00010; no failure was found, and every instal
 
 ## Links
 
-- Origin spec: [spec.md](../00010-worktree-guard-followups/spec.md)
-- Design log entry: [design-log.md](../00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Discovered work: T2 mini-review notes)
+- Origin spec: [spec.md](../done/00010-worktree-guard-followups/spec.md)
+- Design log entry: [design-log.md](../done/00010-worktree-guard-followups/design-log.md) (section 2026-10-30 Discovered work: T2 mini-review notes)
 - Deferred file: [.workflow/deferred/worktree-guard-hooks-dir.md](../../deferred/worktree-guard-hooks-dir.md)

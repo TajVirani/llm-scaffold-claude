@@ -1,0 +1,19 @@
+status: "done"
+summary: "Rework of review pass 1 finding F2. The 3.2 Toolchain bullet in implementation-orchestrator.md now says that on Claude the stop audit runs the full toolchain in the integration worktree (same scoping, --reuse), and that on Codex none runs. It tells the orchestrator to read artifacts/integration-<work_type>/ as at 3.5-3.6. The clean gate now reads plainly: the batch is clean when toolchain.json says pass and no audit.json sits beside it."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t5"
+branch: "task/006-result-file-guard/T05-orchestrator-agent-worktrees"
+base_commit: "13c00bdcea87dd5406bcc70c38b6a54421b50b1b"
+head_commit: "9ce47b819773754d43a5507ebe78a3db9f3f5d77"
+files_changed: [".agents/skills/feature-workflow/modules/implementation-orchestrator.md"]
+tests_added: []
+evidence:
+  red: "No new test: this rework only changes the wording of one doc line. The failing evidence is triage finding F2 (design-log.md, Triage, review pass 1): line 120 said no stop audit fires for integration."
+  green: "tests/run-all.sh --suite lint/agent-worktree-docs; passed=27 failed=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/006-result-file-guard --task-id T5 --cwd <worktree>; exit 0, lint pass, test (scoped) pass"
+  toolchain: ".workflow/specs/done/006-result-file-guard/artifacts/T5/toolchain.txt (pass)"
+considered_not_built: ["A test asserting the integration audit wording: the brief asked for the smallest text fix and no other change"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

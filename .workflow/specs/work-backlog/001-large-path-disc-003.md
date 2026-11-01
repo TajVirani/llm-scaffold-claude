@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/001-large-path
+origin_spec: .workflow/specs/done/001-large-path
 origin_step: "3.7"
 discovered_at: 2026-10-22
 status: open
@@ -29,5 +29,5 @@ Behaviour is unchanged and both hook suites pin it (`tests/hooks/session-start-i
 
 ## Links
 
-- Origin spec: [spec.md](../001-large-path/spec.md)
-- Design log entry: [design-log.md](../001-large-path/design-log.md) (section 2026-10-22 Discovered work: initiative-branch-lookup-duplicated)
+- Origin spec: [spec.md](../done/001-large-path/spec.md)
+- Design log entry: [design-log.md](../done/001-large-path/design-log.md) (section 2026-10-22 Discovered work: initiative-branch-lookup-duplicated)

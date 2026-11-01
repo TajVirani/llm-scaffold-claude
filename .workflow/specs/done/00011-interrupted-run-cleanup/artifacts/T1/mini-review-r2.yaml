@@ -1,0 +1,49 @@
+verdict: pass
+task_id: T1
+work_type: test-harness
+mode: re-check
+previous: .workflow/specs/done/00011-interrupted-run-cleanup/artifacts/T1/mini-review-r1.yaml
+diff: .workflow/.worktrees/s00011_t1@9e1643edfe40fd1c597adc2b1b9def5493643aeb..ba1cf2f1e18957fd09552c7acbcee2ac33d0869a
+tool_output: .workflow/specs/done/00011-interrupted-run-cleanup/artifacts/T1/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: "tests/scripts/run-all-selection.sh:243-251, tests/scripts/run-all-selection.sh:296-313 (only local sleep, kill, env, find and bash run, no network call and no external service)"
+    carried_from: r1
+  - n: 2
+    verdict: pass
+    location: "tests/scripts/run-all-selection.sh (final shellcheck_files assertion over tests/run-all.sh and the suite, just before finish)"
+    carried_from: r1
+  - n: 3
+    verdict: pass
+    location: "tests/scripts/run-all-selection.sh:18-24 (FIXTURE_TESTS, RUNNER and MARKERS all under WORK), tests/scripts/run-all-selection.sh:300-305 (interrupt TMPDIR set to WORK tmp-SIGNAL, so the runner results dir stays inside WORK)"
+    carried_from: r1
+  - n: R1
+    verdict: pass
+    location: "tests/run-all.sh:184-244 (suite_pids, running_suite_groups, any_group_alive, stop_and_exit), tests/scripts/run-all-selection.sh:243-340 (sleeper, wait_for_file, process_gone, interrupt_runner, check_interrupt)"
+    carried_from: r1
+  - n: R2
+    verdict: pass
+    location: "tests/run-all.sh:209-211 (reason comment added in the fix diff at 209-210, guard at 211); full-diff check: tests/run-all.sh:189-190 (job control reason), the comments above start_in_own_group, interrupt_runner and check_interrupt in tests/scripts/run-all-selection.sh all give reasons; the trap that ignores signals at tests/run-all.sh:231 has no comment and is not a fail, because removing it only changes the exit code a second, different signal produces (see out_of_scope_noticed for the accuracy of the 209-210 reason)"
+  - n: R3
+    verdict: pass
+    location: "tests/run-all.sh:184-190, tests/run-all.sh:224-225, tests/scripts/run-all-selection.sh:243-244, tests/scripts/run-all-selection.sh:333 (each comment gives a reason or states a contract, none restates the next line)"
+    carried_from: r1
+  - n: R4
+    verdict: pass
+    location: "tests/run-all.sh:15-18, tests/scripts/run-all-selection.sh:9-10 (header interface docs only, no decision ID, doc path, spec or task ID in any body comment added)"
+    carried_from: r1
+  - n: R5
+    verdict: pass
+    location: "tests/scripts/run-all-selection.sh:262-290 (process_gone and start_in_own_group comments explain reaping and SIGINT in plain terms, no project shorthand), tests/run-all.sh:189-190"
+    carried_from: r1
+read_outside_diff:
+  - "tests/run-all.sh lines 184-246 at ba1cf2f: the guard, the signal traps and stop_and_exit, read for the R2 full-diff check"
+  - "a probe under /bin/bash (GNU bash 3.2.57) in a temporary directory: with set -u, the values form of an empty array errors as unbound, but the indices form used in the guard and the INT trap path does not; used to test the reason in the fix comment"
+  - "mini-review-r1.yaml: previous round, copied through for every item the fix diff does not reach"
+out_of_scope_noticed:
+  - kind: refactor
+    summary: "The reason comment at tests/run-all.sh:209-210 says bash 3.2 treats an empty array as unbound and that the guard is needed. On bash 3.2.57 the error comes only from the values form, and the guarded indices form does not error when empty, so the stated reason looks wrong for the expression it guards and the guard may be unnecessary there."
+    evidence: "tests/run-all.sh:209-211"
+    blocker_assessment: can-wait
+    reason: "Keeping the guard is harmless, so nothing breaks now. The comment misattributes the cause, and no checklist item judges whether a stated reason is accurate. The implementer or the next reader should check the reason on each supported bash version before relying on it."

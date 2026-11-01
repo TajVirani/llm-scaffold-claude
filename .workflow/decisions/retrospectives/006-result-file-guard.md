@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/006-result-file-guard
+spec: .workflow/specs/done/006-result-file-guard
 date: 2026-10-30
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/006-result-file-guard/spec.md` (capabilities: CAP-007, CAP-008)
-- Report: `.workflow/specs/006-result-file-guard/report.md`
+- Spec: `.workflow/specs/done/006-result-file-guard/spec.md` (capabilities: CAP-007, CAP-008)
+- Report: `.workflow/specs/done/006-result-file-guard/report.md`
 - Tasks: 7 done, 0 deferred (T1-T7 in `tasks.md`)
 - Evidence available: `report.md`; `verification-plan.md`; `design-log.md` (triage passes 1-2, rulings D16-D32, discovered work); `proposals.md` (P1-P5 approved); `artifacts/` (per-task toolchain and mini-review rounds, `gate-3.9-*`, `review/pass-1`, `review/pass-2`, `sign-off-5.4`). Git `e049f4d..HEAD`: 56 commits, 32 non-workflow files, +2113 / −127.
 - Evidence missing: session logs, so process lessons come from `design-log.md`, the result files and the stakeholder. The first session's handoff is `.workflow/.handoff/006-result-file-guard.md`.
@@ -55,7 +55,7 @@ In this spec's own build:
 | Line coverage of changed shell code not measured | `verification-plan.md` Targets; D17 | accept: no bash coverage tool, and no new dependency allowed | - |
 | F1 (high) briefs named the launch checkout | `design-log.md` Triage, review pass 1 | fixed (rework 1) | - |
 | F2 (low) 3.2 said no stop audit for integration | `design-log.md` Triage, review pass 1 | fixed (rework 1) | - |
-| F3, F4, F5 and discovered items disc-003, 005, 007 | `design-log.md` Discovered work entries | started as spec 00010 | `.workflow/specs/00010-worktree-guard-followups` |
+| F3, F4, F5 and discovered items disc-003, 005, 007 | `design-log.md` Discovered work entries | started as spec 00010 | `.workflow/specs/done/00010-worktree-guard-followups` |
 | disc-002 spec folder digit rule | `design-log.md` Sign-off (5.5) | fix now (quick fix after 5.8, outside the flow) | - |
 
 ## Previous-retrospective follow-through

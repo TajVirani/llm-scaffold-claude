@@ -1,0 +1,19 @@
+status: done
+summary: "build-architecture.sh now sources .agents/lib/test-paths.sh and uses wf_load_test_patterns and wf_is_test_path for --cache entries; its own default list, loader and is_test_file matcher are gone. The JS regex line is byte-identical to the baseline; invalid test_patterns still exit 2 with the repo-relative profile path. The only remaining red case in tests/scripts/lib-test-paths.sh is the leftover-copy grep, which needs budget-check.sh changed by T01."
+task_id: "T2"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t2"
+branch: "task/005-cache-build-followups/T02-entry-candidates-shared-test-paths"
+base_commit: "d4899749c45c99f32f8f539fed7a005e2649cc38"
+head_commit: "f94d7c73d51c5a2502bc120c0d25407f3164c709"
+files_changed: [".agents/skills/regenerate-caches/scripts/build-architecture.sh"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/lib-test-paths; FAIL JRN-005 no shell file under .agents/ outside lib/test-paths.sh lists the default test patterns (git grep -l -F '*_test.go' -- '.agents/*.sh' listed budget-check.sh and build-architecture.sh)"
+  green: "tests/run-all.sh --suite scripts/lib-test-paths: passed=46 failed=1 (remaining failure names only budget-check.sh, owned by T01); tests/run-all.sh --suite scripts/build-architecture: 87/87 passed; git grep now lists only lib/test-paths.sh and budget-check.sh"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/005-cache-build-followups --task-id T2 --cwd <worktree>; lint passed, test failed 46/47 on the T01-dependent grep case only"
+  toolchain: ".workflow/specs/done/005-cache-build-followups/artifacts/T2/toolchain.txt (fail)"
+considered_not_built: ["changing budget-check.sh: owned by T01, outside this task"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

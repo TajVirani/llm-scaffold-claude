@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/005-cache-build-followups
+origin_spec: .workflow/specs/done/005-cache-build-followups
 created: 2026-10-28
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-28
 
 **Summary:** Every script, hook and agent doc finds the main checkout through the shared `wf_main_root` helper instead of its own copy.
 **Mode:** AFK
-**Origin:** [005-cache-build-followups](../specs/005-cache-build-followups/spec.md), 0.3.17 scope decision, design-log entry 2026-10-28 Scope decision: main-checkout resolver
+**Origin:** [005-cache-build-followups](../specs/done/005-cache-build-followups/spec.md), 0.3.17 scope decision, design-log entry 2026-10-28 Scope decision: main-checkout resolver
 
 ## Goal
 
@@ -29,7 +29,7 @@ Spec 005 adds `wf_main_root` to the shared library and moves only the six featur
 
 ## Decisions already made
 
-- `wf_main_root` and `wf_norm_folder` live in `.agents/lib/workflow-paths.sh` (design-log D4 in [.workflow/specs/005-cache-build-followups/design-log.md](../specs/005-cache-build-followups/design-log.md)).
+- `wf_main_root` and `wf_norm_folder` live in `.agents/lib/workflow-paths.sh` (design-log D4 in [.workflow/specs/done/005-cache-build-followups/design-log.md](../specs/done/005-cache-build-followups/design-log.md)).
 - Only the six normaliser scripts moved in spec 005 (D5).
 
 ## Evidence

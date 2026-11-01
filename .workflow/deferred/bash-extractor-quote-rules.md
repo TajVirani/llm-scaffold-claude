@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00012-extractor-multiline-quotes
+origin_spec: .workflow/specs/done/00012-extractor-multiline-quotes
 created: 2026-10-30
 severity: medium
 ---
@@ -8,7 +8,7 @@ severity: medium
 
 **Summary:** The bash graph extractor pairs quotes in several places with different rules, and one of them drops a real call that follows an escaped quote inside an ANSI-C `$'...'` string on the same line.
 **Mode:** AFK
-**Origin:** [00012-extractor-multiline-quotes](../specs/00012-extractor-multiline-quotes/spec.md), 4.8 review finding, design-log entry 2026-10-30 Triage, review pass 1 (F2)
+**Origin:** [00012-extractor-multiline-quotes](../specs/done/00012-extractor-multiline-quotes/spec.md), 4.8 review finding, design-log entry 2026-10-30 Triage, review pass 1 (F2)
 
 ## Goal
 
@@ -24,18 +24,18 @@ Spec 00012 added a walker that carries quotes across lines and shares that state
 
 ## Constraints
 
-- Stays in the extractor's awk program; no new parser or binary ([codebase-map of 00012](../specs/00012-extractor-multiline-quotes/codebase-map.md) § Library options).
+- Stays in the extractor's awk program; no new parser or binary ([codebase-map of 00012](../specs/done/00012-extractor-multiline-quotes/codebase-map.md) § Library options).
 - A detected call is never filtered: it is an edge or `couldNotResolve` (`.workflow/decisions/pitfalls.md`, "Report a detected call as unresolved; never filter it out"; [ADR-0003](../decisions/adr/0003-graph-extractor-per-profile.md)).
 - bash 3.2 rules for the scripts themselves (`.workflow/rules.md` § Required versions).
 
 ## Decisions already made
 
-- One quote state per line, shared by every reader (D1); a word-initial `#` outside quotes ends the code (D2); plain text in a multi-line double quote is data while a command substitution in it is code (D3); a quoted `<<` is not a heredoc (D4), in [design-log.md of 00012](../specs/00012-extractor-multiline-quotes/design-log.md).
+- One quote state per line, shared by every reader (D1); a word-initial `#` outside quotes ends the code (D2); plain text in a multi-line double quote is data while a command substitution in it is code (D3); a quoted `<<` is not a heredoc (D4), in [design-log.md of 00012](../specs/done/00012-extractor-multiline-quotes/design-log.md).
 
 ## Evidence
 
 - Probe at commit `783c26fbe70f8422723b827a065b63c7a98b8a89`: a file holding `y=$'it\'s'; ./same-line-after-ansi.sh` gives no record for `./same-line-after-ansi.sh` from `.agents/skills/regenerate-caches/scripts/extractors/bash.sh`, nor from the pre-00012 extractor at `6f37f4c`. Verified (medium): a real call is dropped.
-- review-standards RS-1, `.workflow/specs/00012-extractor-multiline-quotes/artifacts/review/pass-1/review-standards.yaml`: walk_quotes, blank_case_patterns, split_commands and unquoted_code in `bash.sh` follow different quoting rules.
+- review-standards RS-1, `.workflow/specs/done/00012-extractor-multiline-quotes/artifacts/review/pass-1/review-standards.yaml`: walk_quotes, blank_case_patterns, split_commands and unquoted_code in `bash.sh` follow different quoting rules.
 
 ## Acceptance criteria
 

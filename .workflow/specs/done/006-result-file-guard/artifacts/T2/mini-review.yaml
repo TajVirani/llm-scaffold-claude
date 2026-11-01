@@ -1,0 +1,69 @@
+verdict: pass
+task_id: T2
+work_type: shell-scripts
+mode: re-check
+previous: .workflow/specs/done/006-result-file-guard/artifacts/T2/mini-review-r1.yaml
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t2@fea2c48a84335657159438e3dde2c65a2958ea1f..06f4d3da33111309d3a6917fd611aee35df560d0
+tool_output: .workflow/specs/done/006-result-file-guard/artifacts/T2/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:25,50-51,59
+    carried_from: r1
+  - n: 2
+    verdict: not-applicable
+    location: "no hook file in the diff; the script is a helper"
+    carried_from: r1
+  - n: 3
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:47,49-50,53-55,59-60,64
+    carried_from: r1
+  - n: 4
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:15-16,29,64
+    carried_from: r1
+  - n: 5
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:25
+    carried_from: r1
+  - n: 6
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:2-20
+    carried_from: r1
+  - n: 7
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:22,38,47,61; tests/scripts/check-merge-artifacts.sh:81,91"
+    carried_from: r1
+  - n: 8
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:24,29,31,34; tests/scripts/check-merge-artifacts.sh:9,10,88"
+  - n: R1
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:32,53-55,59; tests/scripts/check-merge-artifacts.sh:85,89,91
+    carried_from: r1
+  - n: R2
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:57-58; tests/scripts/check-merge-artifacts.sh:88
+    carried_from: r1
+  - n: R3
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:32,57-58; tests/scripts/check-merge-artifacts.sh:88
+    carried_from: r1
+  - n: R4
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:32,57-58; tests/scripts/check-merge-artifacts.sh:88
+    carried_from: r1
+  - n: R5
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:32,57-58; tests/scripts/check-merge-artifacts.sh:88
+    carried_from: r1
+read_outside_diff:
+  - "mini-review-r1.yaml: previous round's file, carried items and the failed item 8"
+  - "toolchain.json: tool keys and the rule set already checked"
+  - ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh: full file at 06f4d3d, for item 8 (die, usage and commit_of comments) and the R2-R5 read of the two fix lines"
+  - "tests/scripts/check-merge-artifacts.sh: full file, for item 8 shellcheck directives and source hint"
+  - ".agents/skills/feature-workflow/scripts/commit-workflow-data.sh: sibling header shape and die() form (item 8)"
+  - ".agents/skills/feature-workflow/scripts/initiative-transition.sh: sibling die() with its comment line at 68 (item 8)"
+  - ".agents/skills/feature-workflow/scripts/check-review-findings.sh: sibling die() and usage() comment placement (item 8)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking table"
+out_of_scope_noticed: []

@@ -1,0 +1,18 @@
+verdict: pass
+task_id: T4
+work_type: agent-docs
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t4@68c0b4e575679e5261a14524e5609d9b3e9bc32f..HEAD
+tool_output: .workflow/specs/done/002-review-lessons/artifacts/T4/toolchain.json
+items:
+  - {n: 1, verdict: pass, location: "SKILL.md:206 (module-table row only; the frontmatter description at :3 is unchanged)", note: ""}
+  - {n: 2, verdict: not-applicable, location: "no new agent; review-triage.md:21-34 edits lens launch text", note: ""}
+  - {n: R1, verdict: pass, location: "modules/review-triage.md:62, :74", note: ""}
+  - {n: R2, verdict: not-applicable, location: "no code comment in the diff (four markdown files)", note: ""}
+  - {n: R3, verdict: not-applicable, location: "", note: ""}
+  - {n: R4, verdict: not-applicable, location: "skill procedure prose, not code comments (sign-off.md:124, review-triage.md:62-74)", note: ""}
+  - {n: R5, verdict: pass, location: "modules/review-triage.md:62, :74; modules/sign-off.md:124", note: ""}
+read_outside_diff:
+  - ".agents/skills/feature-workflow/SKILL.md:3 (description untouched)"
+  - ".agents/skills/feature-workflow/references/readable-code.md"
+  - "artifacts/T4/toolchain.json"
+out_of_scope_noticed: []

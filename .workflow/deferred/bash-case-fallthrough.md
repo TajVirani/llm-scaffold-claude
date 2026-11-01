@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/005-cache-build-followups
+origin_spec: .workflow/specs/done/005-cache-build-followups
 created: 2026-10-28
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-28
 
 **Summary:** The bash graph extractor recognises the bash 4 `case` arm terminators `;&` and `;;&` as arm ends.
 **Mode:** AFK
-**Origin:** [005-cache-build-followups](../specs/005-cache-build-followups/spec.md), 0.3.17 scope decision, design-log entry 2026-10-28 Scope decision: bash case fall-through terminators
+**Origin:** [005-cache-build-followups](../specs/done/005-cache-build-followups/spec.md), 0.3.17 scope decision, design-log entry 2026-10-28 Scope decision: bash case fall-through terminators
 
 ## Goal
 
@@ -28,7 +28,7 @@ Spec 005 teaches the extractor where a `case` block starts and ends and skips ea
 
 ## Decisions already made
 
-- The `case` fix tracks `case ... in` / `esac` state and skips only arm pattern lists (design-log D3 in [.workflow/specs/005-cache-build-followups/design-log.md](../specs/005-cache-build-followups/design-log.md)).
+- The `case` fix tracks `case ... in` / `esac` state and skips only arm pattern lists (design-log D3 in [.workflow/specs/done/005-cache-build-followups/design-log.md](../specs/done/005-cache-build-followups/design-log.md)).
 
 ## Evidence
 

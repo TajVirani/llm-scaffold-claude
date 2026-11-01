@@ -1,0 +1,23 @@
+verdict: fail
+task_id: T1
+work_type: shell-scripts
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t1@be7638e87ae5146fcf2d85f2d059d079d85ae628..HEAD (rework 1, round 1)
+tool_output: .workflow/specs/done/002-review-lessons/artifacts/T1/toolchain.json
+items:
+  - {n: 1, verdict: pass, location: "review-lessons.sh:79-80 (origin_spec regex is data; no .workflow path built)", note: ""}
+  - {n: 2, verdict: not-applicable, location: "helper, not a hook", note: ""}
+  - {n: 3, verdict: pass, location: "review-lessons.sh:28,31-34,38-42,49-50,93,105,116", note: ""}
+  - {n: 4, verdict: pass, location: "review-lessons.sh:13-14 (# Exit: 0, 1, 2) against the exits", note: ""}
+  - {n: 5, verdict: pass, location: "no sibling path resolution", note: ""}
+  - {n: 6, verdict: pass, location: "review-lessons.sh:1-18 (header shape as check-review-findings.sh); no decision ID", note: ""}
+  - {n: 7, verdict: fail, location: "tests/scripts/review-lessons.sh:30, :38", note: "Single-bracket [ ] tests where the checklist asks for [[ ]]; change :30 to [[ $RC -eq 1 && $(printf '%s\\n' \"$ERR\" | wc -l | tr -d ' ') -eq 1 && $ERR == *\"$2\"* ]] and :38 to '[[ $RC -eq 0 && -z $ERR ]]' (rule candidate: grep lint for single-bracket tests in new shell files)"}
+  - {n: 8, verdict: pass, location: "function header lines and directive reasons in both files", note: ""}
+  - {n: R1, verdict: pass, location: "review-lessons.sh:25,28,47,57-87,90,98; tests/scripts/review-lessons.sh:18", note: ""}
+  - {n: R2, verdict: pass, location: "review-lessons.sh:2-8, :55", note: ""}
+  - {n: R3, verdict: pass, location: "function header lines", note: ""}
+  - {n: R4, verdict: fail, location: "review-lessons.sh:4, :15-16; tests/scripts/review-lessons.sh:2", note: "Header comments name the template file, a workflow module path and a skill directory (rule candidate: grep lint for path tokens in shell comments)"}
+  - {n: R5, verdict: pass, location: "review-lessons.sh:3-8,14,39", note: ""}
+read_outside_diff:
+  - "artifacts/T1/toolchain.json; .agents/lib/workflow-paths.sh:13,26; tests/lib/common.sh:15; check-review-findings.sh:1-25; tests/scripts/check-review-findings.sh:1-12; tests/ bracket forms"
+out_of_scope_noticed: []
+# Orchestrator ruling (3.8): item 7 is a fix round (syntax only). R4: the script's `# File:` header block may name the files it reads and what calls it (rules.md Cross-cutting policy; `check-review-findings.sh` uses the same `Called by:` form) and the suite's `# Suite: <script> (<folder>)` line is the sibling suites' form, so those lines are compliant; the two rule candidates go to 5.2.

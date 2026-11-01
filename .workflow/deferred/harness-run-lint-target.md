@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/002-review-lessons
+origin_spec: .workflow/specs/done/002-review-lessons
 created: 2026-10-22
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-22
 
 **Summary:** A Targets row whose command runs a work type's lint suites through the test runner is reported "not measurable" by the targets lens, so that lint never appears as measured in the sign-off report even though the 3.9 gate ran it green.
 **Mode:** AFK
-**Origin:** [002-review-lessons](../specs/002-review-lessons/spec.md), 4.8 review finding (gap F4), design-log entry 2026-10-22 Triage, review pass 1
+**Origin:** [002-review-lessons](../specs/done/002-review-lessons/spec.md), 4.8 review finding (gap F4), design-log entry 2026-10-22 Triage, review pass 1
 
 ## Goal
 
@@ -28,11 +28,11 @@ In this repo the agent-docs profile's `lint` key is four lint suites run through
 
 ## Decisions already made
 
-- Targets filled at 1.1 of 002-review-lessons with the agent-docs lint row sourced from the profile's `lint` key (design-log 2026-10-22, Phase 1 note, in [design-log.md](../specs/002-review-lessons/design-log.md)).
+- Targets filled at 1.1 of 002-review-lessons with the agent-docs lint row sourced from the profile's `lint` key (design-log 2026-10-22, Phase 1 note, in [design-log.md](../specs/done/002-review-lessons/design-log.md)).
 
 ## Evidence
 
-- `verification-plan.md` § Targets row 3 and `artifacts/review/pass-1/review-targets.yaml` (`result: not_measurable`, reason "the harness is proven at 3.9, not a target; the command runs tests/run-all.sh"), in `.workflow/specs/002-review-lessons/`, as of commit `be7638e87ae5146fcf2d85f2d059d079d85ae628`.
+- `verification-plan.md` § Targets row 3 and `artifacts/review/pass-1/review-targets.yaml` (`result: not_measurable`, reason "the harness is proven at 3.9, not a target; the command runs tests/run-all.sh"), in `.workflow/specs/done/002-review-lessons/`, as of commit `be7638e87ae5146fcf2d85f2d059d079d85ae628`.
 - `artifacts/gate-3.9-w2/toolchain.txt` in the same folder: `PASS lint/frontmatter`, `PASS lint/step-list`, `PASS lint/symlinks`, `PASS lint/upstream-lineage` in the full run (44 suites, 2588 passed), same commit.
 
 ## Acceptance criteria

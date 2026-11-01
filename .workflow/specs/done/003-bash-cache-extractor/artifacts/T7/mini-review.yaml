@@ -1,0 +1,34 @@
+verdict: "pass"
+task_id: "T7"
+work_type: "agent-docs"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t7@f84d86f4222268bb78e1b5a5a98567d0c7675b85..HEAD"
+tool_output: ".workflow/specs/done/003-bash-cache-extractor/artifacts/T7/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to"
+    note: "The diff changes no skill description; it edits only .agents/agents/cache-regeneration.md (body lines 44 and 101)."
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to"
+    note: "The diff adds no agent; it edits the existing agent .agents/agents/cache-regeneration.md, and its description line 3 is unchanged."
+  - n: "R1"
+    verdict: "pass"
+    location: "no code in the diff the item applies to: no name added or changed"
+  - n: "R2"
+    verdict: "pass"
+    location: "no code in the diff the item applies to: no comment added or changed"
+  - n: "R3"
+    verdict: "pass"
+    location: "no code in the diff the item applies to: no comment added or changed"
+  - n: "R4"
+    verdict: "pass"
+    location: "no code in the diff the item applies to: no comment added or changed"
+  - n: "R5"
+    verdict: "pass"
+    location: "no code in the diff the item applies to: no comment added or changed"
+read_outside_diff:
+  - ".agents/skills/regenerate-caches/scripts/build-architecture.sh:24,35,80: confirmed --print-generator exists, so the new step 3 instruction in the agent resolves to a real flag"
+out_of_scope_noticed: []

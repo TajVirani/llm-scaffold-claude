@@ -1,0 +1,20 @@
+status: "done"
+summary: "report_cwd_relative_calls now ends the bash/sh flag scan only on a short-option cluster holding c (-c, -ec); long options such as --norc are skipped like other flags, so `bash --norc tools/norc.sh` gives a couldNotResolve entry. The edge-forms fixture gained that line plus `bash -ec \"./inline-e.sh\"`, which still adds nothing."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3"
+branch: "task/003-bash-cache-extractor/T03-bash-graph-extractor"
+base_commit: "23fa1fb083e663eb5e71dae29ef34d536b6382df"
+head_commit: "54384c8745d889d08421347597dcd42040f7d26a"
+files_changed: [".agents/skills/regenerate-caches/scripts/extractors/bash.sh", "tests/scripts/extractor-bash.sh"]
+tests_added:
+  - {file: "tests/scripts/extractor-bash.sh", test: "heredoc bodies, redirection targets, bash -c and -ec strings, quoted text and data files add nothing; a missing file and cwd-relative calls, after a long option too, are unresolved at their lines", kind: "edge"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/extractor-bash; FAIL ... got=8 $here/missing.sh,12 ./run-me want=8 $here/missing.sh,12 ./run-me,13 tools/norc.sh"
+  green: "tests/run-all.sh --suite scripts/extractor-bash; passed=29 failed=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/003-bash-cache-extractor --task-id T3 --cwd <worktree>; lint exit 0, test exit 0 (29/29). Full tests/run-all.sh: TOTAL passed=2879 failed=0 skipped=0 xfail=0 (52 suites)"
+  toolchain: ".workflow/specs/done/003-bash-cache-extractor/artifacts/T3/toolchain.txt (pass)"
+considered_not_built: ["parsing options that take an argument (bash -o pipefail x.sh, --rcfile f): not asked for; the word after such an option is not a cwd-relative script path in practice"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

@@ -1,6 +1,6 @@
 ---
-superseded_by: .workflow/specs/003-bash-cache-extractor
-origin_spec: .workflow/specs/003-bash-cache-extractor
+superseded_by: .workflow/specs/done/003-bash-cache-extractor
+origin_spec: .workflow/specs/done/003-bash-cache-extractor
 created: 2026-10-22
 ---
 
@@ -8,7 +8,7 @@ created: 2026-10-22
 
 **Summary:** The architecture cache's Boundary violations section names a dependency-cruiser config even in a project that has no JS/TS code and cannot use one.
 **Mode:** AFK
-**Origin:** [.workflow/specs/003-bash-cache-extractor](../specs/003-bash-cache-extractor/spec.md), 0.3.17 scope decision, design-log entry 2026-10-21 Scope decision: boundary-check-wording
+**Origin:** [.workflow/specs/done/003-bash-cache-extractor](../specs/done/003-bash-cache-extractor/spec.md), 0.3.17 scope decision, design-log entry 2026-10-21 Scope decision: boundary-check-wording
 
 ## Goal
 
@@ -28,7 +28,7 @@ Found by the module audit of spec 003, which adds a bash graph extractor. A boun
 
 ## Decisions already made
 
-- Boundary checking for bash is out of scope (spec 003 Non-goals; design-log D1-D13 in [design-log.md](../specs/003-bash-cache-extractor/design-log.md)).
+- Boundary checking for bash is out of scope (spec 003 Non-goals; design-log D1-D13 in [design-log.md](../specs/done/003-bash-cache-extractor/design-log.md)).
 
 ## Evidence
 

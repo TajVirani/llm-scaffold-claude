@@ -1,0 +1,23 @@
+status: done
+summary: "verification-setup.md and implementation-orchestrator.md now have the orchestrator create each Phase 1 and integration agent worktree itself (git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug), launch without isolation, merge the wf/ branch the result file names, then remove the worktree and branch. The isolation fallback, baseRef and worktreeBranch text is gone. An agent that keeps working outside its worktree is now a stop. check-merge-artifacts.sh --rev gates the 1.2/1.3, 3.2, 3.16 and light-path merges, each call unpiped. Two section headings were added: 'Merging a finished build' (verification-setup.md) and a Stops table row (implementation-orchestrator.md)."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t5"
+branch: "task/006-result-file-guard/T05-orchestrator-agent-worktrees"
+base_commit: "97b627c8cdcb3107b9a43a57911b2cc79b18a157"
+head_commit: "a48afe95e0500c216ba535db67cb1de94284975f"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/verification-setup.md"
+  - ".agents/skills/feature-workflow/modules/implementation-orchestrator.md"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite lint/agent-worktree-docs; 18 failed, e.g. 'FAIL JRN-008 verification-setup.md tells no launch to use isolation: \"worktree\"', 'FAIL JRN-008 the gate runs before the 3.16 task merge' (passed=9 failed=18)"
+  green: "tests/run-all.sh --suite lint/agent-worktree-docs; passed=27 failed=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/006-result-file-guard --task-id T5 --cwd <worktree>; test pass (scoped, own=1, excluded=3); lint pass; lint/step-list run separately: 36/36 passed"
+  toolchain: ".workflow/specs/done/006-result-file-guard/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "Cleanup for an integration batch whose branch git branch -d refuses after nothing was applied: rare, and the task names no rule for it"
+  - "Rewording the isolation-launch fallback comments in hooks/worktree-write-guard.sh, post-implementation-audit.sh and check-worktree-scope.sh: other modules, outside this task"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

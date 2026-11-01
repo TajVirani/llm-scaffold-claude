@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00010-worktree-guard-followups
+origin_spec: .workflow/specs/done/00010-worktree-guard-followups
 created: 2026-10-30
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-30
 
 **Summary:** When a confined sub-agent's transcript is not valid JSON, the worktree guard's deny reason says so.
 **Mode:** AFK
-**Origin:** [00010-worktree-guard-followups](../specs/00010-worktree-guard-followups/spec.md), 5.9 work-backlog item `00010-worktree-guard-followups-disc-003.md` (found at 3.7), design-log entry 2026-10-30 Sign-off: stakeholder approval (5.5)
+**Origin:** [00010-worktree-guard-followups](../specs/done/00010-worktree-guard-followups/spec.md), 5.9 work-backlog item `00010-worktree-guard-followups-disc-003.md` (found at 3.7), design-log entry 2026-10-30 Sign-off: stakeholder approval (5.5)
 
 ## Goal
 
@@ -29,12 +29,12 @@ Problem, from the work item: When a confined sub-agent's transcript is not valid
 
 ## Decisions already made
 
-- Moved to the shelf at sign-off (design-log 2026-10-30 Sign-off entry in [.workflow/specs/00010-worktree-guard-followups/design-log.md](../specs/00010-worktree-guard-followups/design-log.md)).
+- Moved to the shelf at sign-off (design-log 2026-10-30 Sign-off entry in [.workflow/specs/done/00010-worktree-guard-followups/design-log.md](../specs/done/00010-worktree-guard-followups/design-log.md)).
 
 ## Evidence
 
 - `.agents/hooks/worktree-write-guard.sh:108`, `:110` (jq's stderr discarded, then the empty-prompt cause), at T2 head `bb1b749`.
-- T2 mini-review, `.workflow/specs/00010-worktree-guard-followups/artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed[1]`.
+- T2 mini-review, `.workflow/specs/done/00010-worktree-guard-followups/artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed[1]`.
 - Commit at shelving: `f276ea1`.
 
 ## Acceptance criteria

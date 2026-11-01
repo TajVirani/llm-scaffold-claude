@@ -1,0 +1,70 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "86609a64711682747a07bea99a7ed442cf5a827c"
+head: "a4342de949aefb3ed8521b72c9f4c4a4b6a1249e"
+measurements:
+  - target: "Script lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "exit 0, no findings"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/done/003-bash-cache-extractor/artifacts/review/pass-2/targets/script-lint.txt"
+    reason: ""
+  - target: "Harness lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "exit 0, no findings"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/done/003-bash-cache-extractor/artifacts/review/pass-2/targets/harness-lint.txt"
+    reason: ""
+  - target: "Agent-docs lint clean"
+    kind: errors
+    threshold: "exit 0; each lint suite reports 0 failed"
+    command: "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage"
+    measured: "lint/frontmatter 40 passed 0 failed; lint/symlinks 45 passed 0 failed; lint/upstream-lineage 13 passed 0 failed"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/done/003-bash-cache-extractor/artifacts/review/pass-2/targets/agent-docs-lint.txt"
+    reason: ""
+  - target: "Every script this spec adds or changes has a suite"
+    kind: coverage
+    threshold: "0 printed (no uncovered script)"
+    command: "git diff --name-only --diff-filter=AM \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/003-bash-cache-extractor/spec.md)\"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' '.agents/skills/*/scripts/*/*.sh' | while read -r f; do grep -rqF -- \"$(basename \"$f\")\" tests/ || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/done/003-bash-cache-extractor/artifacts/review/pass-2/targets/script-coverage.txt"
+    reason: ""
+  - target: "Every new .agents/ asset is in the manifest and PROVENANCE.md"
+    kind: coverage
+    threshold: "0 printed (no unlisted asset)"
+    command: "git diff --name-only --diff-filter=A \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/003-bash-cache-extractor/spec.md)\"..HEAD -- .agents | while read -r f; do r=${f#.agents/}; m=0; while IFS= read -r l; do case \"$r\" in \"$l\"|\"${l%/}\"/*) m=1;; esac; done < .agents/install-manifest.txt; [ \"$m\" = 1 ] || echo \"manifest: $f\"; grep -qF -- \"$(basename \"$f\")\" PROVENANCE.md || echo \"provenance: $f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/done/003-bash-cache-extractor/artifacts/review/pass-2/targets/asset-coverage.txt"
+    reason: ""
+  - target: "Bash graph extractor wall time on this repo"
+    kind: performance
+    threshold: "under 30 s"
+    command: "/usr/bin/time -p .agents/skills/regenerate-caches/scripts/extractors/bash.sh --root . --scope .agents --scope tests --scope scripts --scope install.sh >/dev/null"
+    measured: "0.47 s (real)"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/specs/done/003-bash-cache-extractor/artifacts/review/pass-2/targets/extractor-time.txt"
+    reason: ""
+findings: []
+checked:
+  - "Script lint clean"
+  - "Harness lint clean"
+  - "Agent-docs lint clean"
+  - "Every script this spec adds or changes has a suite"
+  - "Every new .agents/ asset is in the manifest and PROVENANCE.md"
+  - "Bash graph extractor wall time on this repo"
+not_checked:
+  - "serve: not started; no profile for work types shell-scripts or agent-docs sets serve or serve_ready, and no target needs a running build"

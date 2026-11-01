@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/004-scoped-test-runs
+spec: .workflow/specs/done/004-scoped-test-runs
 date: 2026-10-22
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/004-scoped-test-runs/spec.md` (capabilities: CAP-001)
-- Report: `.workflow/specs/004-scoped-test-runs/report.md`
+- Spec: `.workflow/specs/done/004-scoped-test-runs/spec.md` (capabilities: CAP-001)
+- Report: `.workflow/specs/done/004-scoped-test-runs/report.md`
 - Tasks: 1 done, 0 split out; 3 items deferred (see `.workflow/deferred/browser-suite.md`, `per-task-scoped-runs.md`, `concurrency-check-timing.md`)
 - Evidence available: `design-log.md` (Origin to Retrospective notes), `artifacts/T1/` (implementation, two mini-review rounds, toolchain), `artifacts/gate-3.9-w1/`, `artifacts/review/pass-1/` (three lenses), `report.md`, git range `f8ea802..9fe4e82` plus the uncommitted 5.3 writes
 - Evidence missing: `verification-plan.md` not produced (light path); no session logs beyond this session

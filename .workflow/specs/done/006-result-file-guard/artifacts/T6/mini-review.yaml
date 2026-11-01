@@ -1,0 +1,64 @@
+verdict: "pass"
+task_id: "T6"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t6@97b627c8cdcb3107b9a43a57911b2cc79b18a157..b78d86886fb55ae139c8936dab7ea8ce0ab6eb26"
+tool_output: ".workflow/specs/done/006-result-file-guard/artifacts/T6/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: "no code in the diff the item applies to: no added line in install.sh or tests/scripts/install-upgrade.sh spells a .workflow/ path (grep of the full diff)"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook file in the diff; only install.sh and tests/scripts/install-upgrade.sh change"
+  - n: 3
+    verdict: "pass"
+    location: "install.sh:108, install.sh:125, install.sh:126 (die, exit 2, for a missing, empty or unknown --matchers value); install.sh:318-328 (each matcher outcome warns, except a change the user answered at the prompt); install.sh:351-354 (malformed and split groups warn)"
+  - n: 4
+    verdict: "pass"
+    location: "install.sh:108, install.sh:125, install.sh:126 use die (exit 2); header install.sh:69-70 documents exit 2 for a --matchers value other than merge, replace or keep"
+  - n: 5
+    verdict: "not-applicable"
+    location: "no sibling path added or changed; SELF_DIR at install.sh:77 is unchanged"
+  - n: 6
+    verdict: "pass"
+    location: "install.sh:2-80 keeps the File, Usage, What it does, Conflicts, Exit and Tests shape, and the Hook matchers block at install.sh:37-61 follows the Conflicts block's form; no decision ID in any added line (grep of the diff); tests/scripts/install-upgrade.sh:2-24 names JRN journey IDs only"
+  - n: 7
+    verdict: "pass"
+    location: "no new file; added install.sh lines (125-131, 318-328, 406-494) use [ ] and case and add no [[, matching the base's [ ] form; tests/scripts/install-upgrade.sh adds no [[, as its base has none; set -euo pipefail unchanged at install.sh:74"
+  - n: 8
+    verdict: "pass"
+    location: "new install.sh functions run_merge (install.sh:406-407), write_if_changed (:413), ask_choice (:461-462) and ask_matchers (:479-480) each have their name ARGS : line; new test helpers warned_once (tests/scripts/install-upgrade.sh:62), pre_tool_use_is_the_templates (:363) and warned_together (:368) each have theirs; new directives carry reasons: install.sh:268 and :449 (SC2016), tests/scripts/install-upgrade.sh:63, :364, :369 (SC2329) and :376 (SC2034); the SC2329 directives at :58 and :60 predate this change and sit under the block comment at :56, which names five readers"
+  - n: "R1"
+    verdict: "pass"
+    location: "install.sh:280 (own_hook_names), :285-287 (alternatives, merged_with), :296-301 (mergeable, why_not_mergeable), :356 (rewritten), :406 (run_merge), :413 (write_if_changed); tests/scripts/install-upgrade.sh:380 (session_start_outcome holds kept or dropped), :62 (warned_once), :363 (pre_tool_use_is_the_templates); short names X, XS, SCM, SCN are terse but not misleading"
+  - n: "R2"
+    verdict: "pass"
+    location: "install.sh:127-128 (why a dry run previews auto), :280 (why a prompt hook counts as the user's own), :317 (why a prompt answer needs no warning), :356-357 (why the rewritten groups are removed after the loop), :441-442 (why warnings wait for the answers), :462 (why end of input counts as Enter); tests/scripts/install-upgrade.sh:349-350 (why the fixture has two template groups), :375 (why a timeout is replaced)"
+  - n: "R3"
+    verdict: "pass"
+    location: "install.sh:127-128, :258-265, :280, :317, :356-357, :441-442, :462, :677; tests/scripts/install-upgrade.sh:349-350, :363, :368, :375; none restates the line or block below it"
+  - n: "R4"
+    verdict: "pass"
+    location: "no added body comment names a decision, ADR, spec, task, doc or workflow path (install.sh:127-128, :258-265, :280, :317, :356-357, :406-407, :413, :421-423, :441-442, :448-449, :461-462, :479-480, :677; tests/scripts/install-upgrade.sh:349-350, :363, :368, :375); the file headers are exempt and name no decision ID"
+  - n: "R5"
+    verdict: "pass"
+    location: "install.sh:127-128, :317, :462, :677 and tests/scripts/install-upgrade.sh:349-350, :375 read as plain English; plain | list is defined at install.sh:41-42; the JRN labels at tests/scripts/install-upgrade.sh:5-18 are the file's existing journey IDs (base header already uses JRN-006), and each label is followed by a plain statement of the behaviour, so the label does not block a newcomer"
+read_outside_diff:
+  - "install.sh at worktree HEAD b78d868 (whole file): header :2-80, argument parsing :97-126, JQ_MERGE :269-404 with the resolution functions :280-361, run_merge to ask_matchers :406-494, the call sites :678-681"
+  - "tests/scripts/install-upgrade.sh at worktree HEAD (whole file): header :2-24, block comment and readers :56-83, the new cases :348-501, the prompt cases :516-566"
+  - "97b627c:install.sh and 97b627c:tests/scripts/install-upgrade.sh: the base JQ merge call at install.sh:276, and the base's [[ count (6 in install.sh, none in the test file), the base's INSTW, match_all_groups, pty_upgrade and pty_matcher helpers (so they are not new), and the base shellcheck directives at lines 52-64"
+  - "tests/lint/install-matcher-docs.sh: exists (named by the header's Tests line)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking table"
+  - ".workflow/profiles/shell-scripts.md: the mini-review checklist and the Language and style rules"
+  - "artifacts/T6/toolchain.json and toolchain.txt: lint pass (shellcheck exit 0); scoped test pass, 122 of 122 in scripts/install-upgrade (not re-run here)"
+  - "artifacts/T6/mini-review-r1.yaml to mini-review-r4.yaml: context only; round 4's item 8 failure (the warned_once directive) is fixed at tests/scripts/install-upgrade.sh:63"
+  - ".workflow/specs/done/006-result-file-guard/spec.md Constraints (line 38-40) and design-log.md D19-D32 and the T6 round 1-4 entries, for the rule the checklist is judged against"
+  - "shell reads beyond the stated Bash scope: cat, grep, sed and ls on the files above, and one run of bash install.sh --help, which prints usage and exits 0 before any write; nothing was written except this result file"
+out_of_scope_noticed:
+  - kind: "bug"
+    summary: "Three tests check that a run writes nothing, but they do not check that the run succeeded, so a third or re-run that refused with exit 1 would still pass."
+    evidence: "tests/scripts/install-upgrade.sh:280-281 (JRN-011 third run), :408-409 (two template groups re-run)"
+    blocker_assessment: "can-wait"
+    reason: "The test is weaker than its name says, and a refused run would still write nothing, so the defect would hide here; the run's exit status is not checked. It does not change the install behaviour this task ships."

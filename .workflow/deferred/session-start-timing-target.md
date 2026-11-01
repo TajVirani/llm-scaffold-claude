@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/001-large-path
+origin_spec: .workflow/specs/done/001-large-path
 created: 2026-10-22
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-22
 
 **Summary:** The session-start hook now reads initiative branch tips with `git show` and checks emitted specs against the main ref, and no wall-time target was set or measured for it.
 **Mode:** AFK
-**Origin:** [001-large-path](../specs/001-large-path/spec.md), 4.8 review finding (gap F13), design-log entry 2026-10-22 Triage, review pass 1
+**Origin:** [001-large-path](../specs/done/001-large-path/spec.md), 4.8 review finding (gap F13), design-log entry 2026-10-22 Triage, review pass 1
 
 ## Goal
 
@@ -27,7 +27,7 @@ At 1.1 the stakeholder chose not to set a performance target, since the stack ha
 
 ## Decisions already made
 
-- No performance target for this spec (1.1, 2026-10-22, [design-log.md](../specs/001-large-path/design-log.md)).
+- No performance target for this spec (1.1, 2026-10-22, [design-log.md](../specs/done/001-large-path/design-log.md)).
 
 ## Evidence
 
@@ -44,4 +44,4 @@ At 1.1 the stakeholder chose not to set a performance target, since the stack ha
 
 ## Later requests
 
-- .workflow/specs/002-review-lessons, 4.8: Targets row "Guard and launch hook wall time" has no target by the same 1.1 decision (2026-10-22); the targets lens reports it not measurable (triage gap F5).
+- .workflow/specs/done/002-review-lessons, 4.8: Targets row "Guard and launch hook wall time" has no target by the same 1.1 decision (2026-10-22); the targets lens reports it not measurable (triage gap F5).

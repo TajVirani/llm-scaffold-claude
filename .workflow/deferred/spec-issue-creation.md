@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/008-pr-description-template
+origin_spec: .workflow/specs/done/008-pr-description-template
 created: 2026-10-29
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-29
 
 **Summary:** Create a tracker issue (GitHub or GitLab) when a spec starts, so its Sign-off PR can link a real issue.
 **Mode:** HITL
-**Origin:** [008-pr-description-template](../specs/008-pr-description-template/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Deeper prompt
+**Origin:** [008-pr-description-template](../specs/done/008-pr-description-template/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Deeper prompt
 
 ## Goal
 
@@ -28,7 +28,7 @@ The PR template requires a "Link to issue" section, but the workflow creates no 
 
 ## Decisions already made
 
-- "Link to issue" is required and stays a marked stub until this exists (design-log Deeper prompt in [.workflow/specs/008-pr-description-template/design-log.md](../specs/008-pr-description-template/design-log.md)).
+- "Link to issue" is required and stays a marked stub until this exists (design-log Deeper prompt in [.workflow/specs/done/008-pr-description-template/design-log.md](../specs/done/008-pr-description-template/design-log.md)).
 
 ## Evidence
 

@@ -1,0 +1,27 @@
+status: done
+summary: The workflow now handles a fourth Phase 4 lens. resolve-launch.sh accepts a review-lessons launch (14 task types), and pre-launch allows or denies it as JRN-005 expects. check-review-findings.sh accepts RL-<n> ids with the category "lesson". steps.tsv has step 4.9 right after 4.3, so it is counted fourth of 9 in Phase 4. Both PLAN docs have the 4.9 node, placed after 4.3 and wired like it. Also edited PLAN/decision-flow-reference.md line 302 (sub-agent launch node count now twelve, standards-discovery the thirteenth task type) and line 104 (review-lessons in the spec_dir header row).
+task_id: T2
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t2
+branch: task/002-review-lessons/T02-launch-row-lens-table-step
+base_commit: 917842de2713814d80ef67f2cce56284279c78a7
+head_commit: 5a8cbfd70d576cb3eaa6035b0ed04f078e7c53d3
+files_changed:
+  - .agents/skills/feature-workflow/scripts/resolve-launch.sh
+  - .agents/skills/feature-workflow/scripts/check-review-findings.sh
+  - .agents/skills/feature-workflow/references/steps.tsv
+  - PLAN/decision-flow-reference.md
+  - PLAN/decision-flow.mermaid
+  - tests/scripts/check-review-findings.sh
+tests_added: []   # the Phase 1 tests already covered every criterion, negative cases included (JRN-003 three bad copies, JRN-005 two denies); one expectation updated at tests/scripts/check-review-findings.sh:189 to the four-lens unknown-lens message
+evidence:
+  red: "bash tests/scripts/resolve-launch.sh; FAIL requirements: all 14 types / review-lessons is listed / review-lessons is a Phase 4 lens row. After the lens-table and steps.tsv changes: bash tests/lint/step-list.sh; FAIL reference node ids == steps.tsv ids / mermaid node ids == steps.tsv ids / reference Phase 4 ids == steps.tsv phase 4 ids. bash tests/scripts/check-review-findings.sh; FAIL lens-unknown: message names the field (expectation updated to the four-lens message)"
+  green: "resolve-launch 95/95, check-review-findings 119/119, step-progress 66/66, lint/step-list 36/36, hooks/pre-launch 20/20, hooks/codex-adapters 99/99, hooks/codex-shim 38/38"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/002-review-lessons --task-id T2 --cwd $PWD; lint pass, test pass (scoped: own 5, excluded 3)"
+  toolchain: .workflow/specs/done/002-review-lessons/artifacts/T2/toolchain.txt (pass)
+considered_not_built:
+  - "a review-lessons row in the reference's sub-agent table (lines 91-93): needs a model tier and inputs the task does not define"
+  - "wiring 4.9 into the mermaid light-path edge (gGreen -> aStd): 4.3 is not wired there either"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

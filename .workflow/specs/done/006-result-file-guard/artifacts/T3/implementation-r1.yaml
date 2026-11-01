@@ -1,0 +1,19 @@
+status: done
+summary: "The implementation and integration briefs now write the result file with a literal <main checkout>/<spec_dir>/artifacts/<id>/ target after cd into the worktree, with no $(...) substitution. Both say the result file is the only write outside the worktree (or shared core), is never committed or staged, and that the Write tool is denied there. The JRN-008 brief-path cases now pass and the JRN-002 to JRN-004 result-file journeys still pass."
+task_id: T3
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t3"
+branch: "task/006-result-file-guard/T03-agent-briefs-main-checkout-result"
+base_commit: "fea2c48a84335657159438e3dde2c65a2958ea1f"
+head_commit: "9b2f45057d32ee7241717af80a69cb82e0ce65be"
+files_changed: [".agents/agents/implementation.md", ".agents/agents/integration.md"]
+tests_added: []
+evidence:
+  red: "bash tests/lint/agent-worktree-docs.sh; FAIL JRN-008 implementation.md writes implementation.yaml to an absolute main-checkout path (target: $main/<spec_dir>/artifacts/<task_id>/implementation.yaml), and the same for integration.md"
+  green: "bash tests/lint/agent-worktree-docs.sh; ok on both brief-path cases (the other JRN-008 cases belong to T5 and stay red). bash tests/hooks/worktree-guard.sh; 18/18 JRN-002 to JRN-004 result-file journey cases ok, as before the change"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/006-result-file-guard --task-id T3 --cwd <worktree>; lint pass, scoped test pass (own 0, excluded 7), TOTAL passed=2957 failed=0"
+  toolchain: ".workflow/specs/done/006-result-file-guard/artifacts/T3/toolchain.txt (pass)"
+considered_not_built: ["Removing $(...) from the 3.5 toolchain commands in both briefs: outside the result-file step this task covers", "Regenerating Codex tomls: the toolchain did not ask for it"]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

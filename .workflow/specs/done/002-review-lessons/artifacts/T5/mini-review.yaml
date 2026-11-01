@@ -1,0 +1,17 @@
+verdict: pass
+task_id: T5
+work_type: agent-docs
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t5@0dc3c177b4351eeb67f23a3f47f90c6907c0aee6..HEAD
+tool_output: .workflow/specs/done/002-review-lessons/artifacts/T5/toolchain.json
+items:
+  - {n: 1, verdict: pass, location: ".agents/skills/retrospective/SKILL.md:3", note: ""}
+  - {n: 2, verdict: not-applicable, location: "", note: ""}
+  - {n: R1, verdict: pass, location: ".agents/skills/retrospective/modules/routing.md:29-78", note: ""}
+  - {n: R2, verdict: not-applicable, location: "", note: "No workaround or trade-off added; the only added comment is a usage hint."}
+  - {n: R3, verdict: pass, location: ".agents/skills/retrospective/modules/routing.md:39", note: ""}
+  - {n: R4, verdict: pass, location: ".agents/skills/retrospective/modules/routing.md:39", note: "Names no decision ID, doc path, spec or task ID."}
+  - {n: R5, verdict: pass, location: ".agents/skills/retrospective/modules/routing.md:39", note: ""}
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md"
+  - "artifacts/T5/toolchain.json and toolchain.txt"
+out_of_scope_noticed: []

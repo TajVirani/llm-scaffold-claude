@@ -1,0 +1,64 @@
+verdict: "pass"
+task_id: "T4"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t4@97b627c8cdcb3107b9a43a57911b2cc79b18a157..d612b9d54289241e60775cea3157ac84418d749c"
+tool_output: ".workflow/specs/done/006-result-file-guard/artifacts/T4/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to; the added lines name no .workflow/ path (grep of the diff's + lines)"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to; no hook file changed, and the new logic sits in the owning skill script at .agents/skills/feature-workflow/scripts/check-worktree-scope.sh:138-225"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:140-176 (sed_print_only returns 1 on any word or option it does not allow), 204-220 (read_only_chain returns 1 on any bad segment), 222-225 (only the read-only success exits here), 233-237 (a non-read falls through to deny_cmd, the guard's deny output)"
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:224 (exit 0, the allow code), documented at line 35; the diff adds no new exit code value. The file labels its codes Outputs/handoff rather than Exit (line 35, predates the diff), so the new allow path sits where exit 0 is already documented"
+  - n: 5
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to; the BASH_SOURCE sibling path at line 43 is unchanged"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:1-38 (File, Purpose, Usage, Outputs/handoff, Called by, Sources and Requires kept); added header lines 23-33 name no decision ID, task ID or doc path"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:40 (set -euo pipefail kept); new code uses [ ] for plain tests (169, 172, 173) and [[ ]] for regex (151, 161, 167, 175), the file's existing split (60-66 and 99); no new file"
+  - n: 8
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:138 (sed_print_only ARGS :), 178 (read_only_segment SEGMENT :), 202 (read_only_chain COMMAND :); no shellcheck disable= directive added; the only source= hint (line 42) predates the diff"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:140-176 (sed_print_only, first_operand, have_operand, re_addr, re_print, re_quiet_flags), 179-200 (read_only_segment, tool, args, re_git_read), 204-220 (read_only_chain, chain, rest, seg); each name says what it holds"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:143-144 (why a slash and a bracket stay out of an address), 156 (why a shell-expanded word is denied), 207 (why a less-than sign stays denied, since a process substitution runs its command), 211 (why the lone ampersand check follows the && rewrite), 213 (why the trailing bar stays)"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:138-139 (states the rule the function returns), 174 (says which operand is the script), 202-203 (states what the chain check rules out); none restates the line below it"
+  - n: "R4"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:138-139, 143-144, 156, 174, 202-203, 207, 211, 213 (no decision ID, doc path, task ID or URL); 139 names the file's own header, the interface doc that R4 leaves alone; the JRN-009 strings in tests/hooks/worktree-guard.sh are test labels, not comments"
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:143-144, 156, 207, 211 (plain sentences; lone ampersand is defined in its parenthesis at 211)"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: the R1-R5 rules and the Checking table"
+  - ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh at d612b9d, whole file: the cd path at 226-243 that every non-read falls through to, and the BASH_SOURCE sibling path at 43"
+  - ".workflow/specs/done/006-result-file-guard/design-log.md: the D31 entry and the T4 mini-review round 2 entry, for the rule check (read by grep)"
+  - "guard probes: check-worktree-scope.sh at d612b9d run in --command mode from the main checkout on about a dozen sed and chain forms (decisions only, nothing run); a sed address with an escaped slash was denied (exit 2), and the single-quoted file operand with a backslash was allowed (exit 0)"
+  - "BSD sed probe in the scratchpad folder d1: sed -n on an address with an escaped slash, run there, created dir/p, so the write vector is real and the guard denial is what stops it; the worktree and main checkout were not changed"
+out_of_scope_noticed:
+  - kind: "decision"
+    summary: "The sed allowlist also accepts -E and -r, alone or combined with -n (for example -nE), and the header documents them. D31 names only sed -n. The extra flags do not change how an address or script parses, so the read-only result holds; whether the spec wants them is a scope call."
+    evidence: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:147, 168 (and header line 25)"
+    blocker_assessment: "can-wait"
+    reason: "D31 wording names sed -n only; I found no write or exec path through the extra flags, so this is a scope question, not a safety gap."
+  - kind: "bug"
+    summary: "The header says every sed word is plain or wholly quoted with no backslash. The code allows a backslash inside a single-quoted word, so a file operand such as a single-quoted name with a backslash passes as a read (sed -n '1p' 'a\\b' f exits 0). Address bodies still exclude the backslash, so no script with a backslash passes."
+    evidence: ".agents/skills/feature-workflow/scripts/check-worktree-scope.sh:27-28 (header), 142 (re_word accepts a single-quoted word with any backslash)"
+    blocker_assessment: "can-wait"
+    reason: "Header overstates the rule for file operands only; a file operand cannot write under sed -n, so no write gets through because of the mismatch."

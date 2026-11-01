@@ -1,0 +1,21 @@
+status: "done"
+summary: "Review rework for T6, plus the mini-review round 1 fix. Sign-off 5.4 now fills every heading of a host template, # to ######, at its own level and in its order, and the exit-2 paragraph says the template is unreadable or has no headings at all. The report.md and task PR/MR links moved into the Special things to note guidance of pr-template.md, which now asks for links to the deferred files without naming a workflow path."
+task_id: "T6"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t6"
+branch: "task/008-pr-description-template/T06-sign-off-host-template-route"
+base_commit: "34150d060676d7cecb0d4193b04888c79e008df5"
+head_commit: "2058ccd7c133e3b8bbd7feed971ddb796ce9032b"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/sign-off.md"
+  - ".agents/skills/feature-workflow/assets/pr-template.md"
+tests_added: []
+evidence:
+  red: "No new test: the rework patches wording only, and the existing JRN-006 cases in tests/scripts/sign-off-pr.sh and the check-pr-body.sh suite already read this text."
+  green: "tests/run-all.sh --suite scripts/check-pr-body; 47/47 passed. tests/run-all.sh --suite scripts/sign-off-pr; 30/30 passed. Earlier in this rework: lint/frontmatter 40/40, lint/step-list 36/36, lint/symlinks 45/45, lint/upstream-lineage 13/13 passed."
+  suite: "bash $main/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/008-pr-description-template --task-id T6 --cwd $PWD; exit 0, status pass (lint pass, scoped test pass)"
+  toolchain: ".workflow/specs/done/008-pr-description-template/artifacts/T6/toolchain.txt (pass)"
+considered_not_built: []
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

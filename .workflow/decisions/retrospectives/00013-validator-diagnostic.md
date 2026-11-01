@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/00013-validator-diagnostic
+spec: .workflow/specs/done/00013-validator-diagnostic
 date: 2026-10-30
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/00013-validator-diagnostic/spec.md` (capabilities: CAP-009)
-- Report: `.workflow/specs/00013-validator-diagnostic/report.md`
+- Spec: `.workflow/specs/done/00013-validator-diagnostic/spec.md` (capabilities: CAP-009)
+- Report: `.workflow/specs/done/00013-validator-diagnostic/report.md`
 - Tasks: 1 done, 0 deferred
 - Evidence available: spec.md, report.md, tasks.md, design-log.md (questioning round 1, triage pass 1, sign-off), proposals.md, `artifacts/T1/`, `artifacts/gate-3.9-w1/`, `artifacts/sign-off-5.4/`, `artifacts/review/pass-1/`, git `7b0cceb..205595d`
 - Evidence missing: verification-plan.md not produced (light path); no session logs beyond the design-log entries.

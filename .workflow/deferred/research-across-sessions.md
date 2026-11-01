@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/001-large-path
+origin_spec: .workflow/specs/done/001-large-path
 created: 2026-10-22
 severity: medium
 ---
@@ -8,7 +8,7 @@ severity: medium
 
 **Summary:** A research question left `researching` when a session ends is settled on resume only if the agent's return is in hand; otherwise the large path resets it to `open` and launches it again.
 **Mode:** HITL
-**Origin:** [001-large-path](../specs/001-large-path/spec.md), 4.8 review finding (F11, unverified), design-log entry 2026-10-22 Triage, review pass 1
+**Origin:** [001-large-path](../specs/done/001-large-path/spec.md), 4.8 review finding (F11, unverified), design-log entry 2026-10-22 Triage, review pass 1
 
 ## Goal
 
@@ -28,7 +28,7 @@ The capability's success line says a session can end with a question `researchin
 
 ## Decisions already made
 
-- A research question may be launched and left pending when a session ends; its answer is written back by the session that resumes it (design-log D9 in [design-log.md](../specs/001-large-path/design-log.md)).
+- A research question may be launched and left pending when a session ends; its answer is written back by the session that resumes it (design-log D9 in [design-log.md](../specs/done/001-large-path/design-log.md)).
 
 ## Evidence
 

@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/008-pr-description-template
+origin_spec: .workflow/specs/done/008-pr-description-template
 created: 2026-10-29
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-29
 
 **Summary:** Keep all project-wide workflow settings (behaviour settings and model choices) in one central place.
 **Mode:** HITL
-**Origin:** [008-pr-description-template](../specs/008-pr-description-template/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Deep dive: where the use-or-ignore answer is saved
+**Origin:** [008-pr-description-template](../specs/done/008-pr-description-template/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Deep dive: where the use-or-ignore answer is saved
 
 ## Goal
 
@@ -29,7 +29,7 @@ Spec 008 needed to save one project-wide choice (whether the Sign-off PR uses th
 
 ## Decisions already made
 
-- 008 keeps `pr_template` in the rules.md Workflow settings block for now (design-log D9 in [.workflow/specs/008-pr-description-template/design-log.md](../specs/008-pr-description-template/design-log.md)).
+- 008 keeps `pr_template` in the rules.md Workflow settings block for now (design-log D9 in [.workflow/specs/done/008-pr-description-template/design-log.md](../specs/done/008-pr-description-template/design-log.md)).
 
 ## Evidence
 

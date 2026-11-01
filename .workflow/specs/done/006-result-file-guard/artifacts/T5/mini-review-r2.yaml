@@ -1,0 +1,43 @@
+verdict: "pass"
+task_id: "T5"
+work_type: "agent-docs"
+mode: "re-check"
+previous: ".workflow/specs/done/006-result-file-guard/artifacts/T5/mini-review-r1.yaml"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t5@97b627c8cdcb3107b9a43a57911b2cc79b18a157..8c68b798c9059dbbbb047a72ba0b1229e7941158"
+tool_output: ".workflow/specs/done/006-result-file-guard/artifacts/T5/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: the two changed files are module markdown under .agents/skills/feature-workflow/modules/, and no SKILL.md frontmatter description is added or changed"
+    carried_from: "r1"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: no agent definition is added or changed (git diff --name-status lists two modified module files only)"
+    carried_from: "r1"
+  - n: R1
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/implementation-orchestrator.md:104 (**The integration worktree.** and <name>), .agents/skills/feature-workflow/modules/verification-setup.md:45 (**The agent worktree.**), .agents/skills/feature-workflow/modules/verification-setup.md:92 (### Merging a finished build); the worktree names follow the Agent worktree term in .workflow/GLOSSARY.md:135-136"
+    carried_from: "r1"
+  - n: R2
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/implementation-orchestrator.md:29 (launch without isolation, reason given: the Agent tool has no working-directory option), .agents/skills/feature-workflow/modules/verification-setup.md:94 (never pipe the gate, reason given: a pipe hides its exit code)"
+    carried_from: "r1"
+  - n: R3
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/implementation-orchestrator.md:108, .agents/skills/feature-workflow/modules/verification-setup.md:49 (each added # e.g. line gives one worked instance with concrete example names, which the template line above does not; judged as an example, not a restatement)"
+    carried_from: "r1"
+  - n: R4
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/implementation-orchestrator.md:107 and :140, .agents/skills/feature-workflow/modules/verification-setup.md:48 (the bash blocks now hold only the git commands; the three added or pre-existing # e.g. comment lines are removed, and no added line in the full diff is a comment)"
+  - n: R5
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/implementation-orchestrator.md:108, .agents/skills/feature-workflow/modules/verification-setup.md:49 (plain English; only the e.g. label and command text)"
+    carried_from: "r1"
+read_outside_diff:
+  - ".workflow/specs/done/006-result-file-guard/artifacts/T5/mini-review-r1.yaml: the previous result, read for the failed item (R4) and the carried items"
+  - ".workflow/specs/done/006-result-file-guard/artifacts/T5/toolchain.json: lint and test keys pass; typecheck, format and boundary have no command"
+  - ".agents/skills/feature-workflow/references/readable-code.md: rules R1-R5 and the Checking at 3.7 lines"
+  - ".workflow/.worktrees/s006_t5/.agents/skills/feature-workflow/modules/implementation-orchestrator.md: current lines 29, 100-108, 134-140 and 302-318, read to confirm no comment remains and the reason text in the isolation row"
+  - ".workflow/.worktrees/s006_t5/.agents/skills/feature-workflow/modules/verification-setup.md: current lines 48, 63 and 91-93, read to confirm no comment remains and the reason text in the denied-outside-worktree bullet"
+  - ".workflow/.worktrees/s006_t5/.agents/skills/feature-workflow/modules/: grep for the e.g. label and bash comment lines in both files, none left"
+out_of_scope_noticed: []

@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00010-worktree-guard-followups
+origin_spec: .workflow/specs/done/00010-worktree-guard-followups
 created: 2026-10-30
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-30
 
 **Summary:** The worktree guard denies, rather than lets through, a call it cannot decide because it failed before reading who is calling.
 **Mode:** AFK
-**Origin:** [00010-worktree-guard-followups](../specs/00010-worktree-guard-followups/spec.md), 5.9 work-backlog item `00010-worktree-guard-followups-disc-002.md` (found at 3.7), design-log entry 2026-10-30 Sign-off: stakeholder approval (5.5)
+**Origin:** [00010-worktree-guard-followups](../specs/done/00010-worktree-guard-followups/spec.md), 5.9 work-backlog item `00010-worktree-guard-followups-disc-002.md` (found at 3.7), design-log entry 2026-10-30 Sign-off: stakeholder approval (5.5)
 
 ## Goal
 
@@ -29,12 +29,12 @@ Problem, from the work item: The worktree guard's exit trap denies on an unexpec
 
 ## Decisions already made
 
-- Moved to the shelf at sign-off (design-log 2026-10-30 Sign-off entry in [.workflow/specs/00010-worktree-guard-followups/design-log.md](../specs/00010-worktree-guard-followups/design-log.md)).
+- Moved to the shelf at sign-off (design-log 2026-10-30 Sign-off entry in [.workflow/specs/done/00010-worktree-guard-followups/design-log.md](../specs/done/00010-worktree-guard-followups/design-log.md)).
 
 ## Evidence
 
 - `.agents/hooks/worktree-write-guard.sh:56`, `:72`, `:74`, `:81` (exit trap gated on `CONFINED`; library source and stdin read before it), at T2 head `bb1b749`.
-- T2 mini-review, `.workflow/specs/00010-worktree-guard-followups/artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed[0]`.
+- T2 mini-review, `.workflow/specs/done/00010-worktree-guard-followups/artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed[0]`.
 - `_guard-common.sh` denies on any failure before a decision (its header, line 11).
 - Commit at shelving: `f276ea1`.
 

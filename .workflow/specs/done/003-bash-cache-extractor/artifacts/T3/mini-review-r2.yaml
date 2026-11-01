@@ -1,0 +1,58 @@
+verdict: pass
+task_id: T3
+work_type: shell-scripts
+mode: re-check
+previous: .workflow/specs/done/003-bash-cache-extractor/artifacts/T3/mini-review-r1.yaml
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s003_t3@e0cf15b..b27b1ac
+tool_output: .workflow/specs/done/003-bash-cache-extractor/artifacts/T3/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: no code in the diff the item applies to; the fix diff adds no .workflow/ path string
+    carried_from: r1
+  - n: 2
+    verdict: not-applicable
+    location: no hook file in the diff; .agents/skills/regenerate-caches/scripts/extractors/bash.sh is a helper script
+    carried_from: r1
+  - n: 3
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:46, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:58, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:65, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:309, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:311
+    carried_from: r1
+  - n: 4
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:19-20 (Exit line now names the git ls-files, awk and jq failures), .agents/skills/regenerate-caches/scripts/extractors/bash.sh:59, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:66, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:311, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:313
+  - n: 5
+    verdict: not-applicable
+    location: no sibling file is sourced or resolved in the diff; $0 is read only by the -h branch
+    carried_from: r1
+  - n: 6
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:1-22; the header keeps File, Purpose, Usage, Output, Exit, Requires and Sources, the fix edits only the Exit lines at 19-20, and no decision ID or ADR appears
+  - n: 7
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:23 (set -euo pipefail), .agents/skills/regenerate-caches/scripts/extractors/bash.sh:34 onward use [[ ]]; the fix adds no test syntax
+    carried_from: r1
+  - n: 8
+    verdict: pass
+    location: "bash.sh:26 (die contract line in the name ARGS : what it does form), bash.sh:27 (die)"
+  - n: R1
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:230-235 (eval_path), :258 (normalize), :272 (add_edge); the fix adds comments and no names
+    carried_from: r1
+  - n: R2
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:147 (comment gives the reason for the double-paren guard), .agents/skills/regenerate-caches/scripts/extractors/bash.sh:148 (guard)
+  - n: R3
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:26 (die contract line, required by checklist item 8, names the message form and exit code callers rely on), .agents/skills/regenerate-caches/scripts/extractors/bash.sh:147 (states the reason, not the code)
+  - n: R4
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:26, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:147 (no decision ID, doc path or task ID; the Sources line at 22 is header and exempt)
+  - n: R5
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/extractors/bash.sh:26, .agents/skills/regenerate-caches/scripts/extractors/bash.sh:147 (plain words; arithmetic shift is standard shell usage)
+read_outside_diff:
+  - .agents/skills/feature-workflow/references/readable-code.md, rules R1 to R5 and the Checking table
+  - .workflow/profiles/shell-scripts.md, lines 23 and 24 for the die and exit-code conventions
+  - .workflow/specs/done/003-bash-cache-extractor/artifacts/T3/toolchain.json, lint and test keys passed
+out_of_scope_noticed: []

@@ -1,0 +1,62 @@
+verdict: "fail"
+task_id: "T6"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t6@97b627c8cdcb3107b9a43a57911b2cc79b18a157..HEAD"
+tool_output: ".workflow/specs/done/006-result-file-guard/artifacts/T6/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no added line in install.sh or tests/scripts/install-upgrade.sh spells a .workflow/ path"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook file in the diff; only install.sh and tests/scripts/install-upgrade.sh change"
+  - n: 3
+    verdict: "fail"
+    location: "install.sh:280"
+    note: "A group whose matcher is not a string is returned unchanged with no line, though the header (install.sh:42-43 and 53-54) says any group not merged is kept with a warning. A user keeps a matcher the installer knows does not cover the template's, under every mode including --matchers=replace, and nothing says so. Fix: add a matcher_warnings entry on this branch, make the test at tests/scripts/install-upgrade.sh:465-466 check for a Warnings line, and decide whether replace should set the template matcher as the header's replace bullet (install.sh:44) says."
+  - n: 4
+    verdict: "pass"
+    location: "install.sh:82 (die exits 2), install.sh:102 and install.sh:119-120 (new --matchers errors go through die), install.sh:63-64 (Exit line names the --matchers value as 2)"
+  - n: 5
+    verdict: "not-applicable"
+    location: "no sibling path added; SELF_DIR at install.sh:71 is unchanged"
+  - n: 6
+    verdict: "pass"
+    location: "install.sh:1-66 keeps the File, Usage, What it does, Conflicts, Exit, Tests shape; the new Hook matchers block at install.sh:37-55 uses the same shape; no decision ID in the added header or body lines; the test header names JRN journey IDs only"
+  - n: 7
+    verdict: "pass"
+    location: "install.sh:101-125 and 653-655 use [ ] and case, and add no [[; tests/scripts/install-upgrade.sh:338-466 adds no [[; no new file"
+  - n: 8
+    verdict: "pass"
+    location: "new bash functions install.sh:383, 389, 438, 456 each have a name ARGS : line at install.sh:381, 388, 436, 454; shellcheck disables at install.sh:260 and 424 carry reasons; test helpers at tests/scripts/install-upgrade.sh:355 and 360 have their lines and reasons at 354 and 359; the jq defs inside JQ_MERGE and JQ_PROMPT are not bash functions and follow the block-comment convention"
+  - n: "R1"
+    verdict: "pass"
+    location: "install.sh:119-125 and 282-306 (names such as matchers_given, outcome, mergeable, replaced); tests/scripts/install-upgrade.sh:367 and 385 (session_start_outcome now says what it holds, fixing round 2); XS at test line 369 and SCM at test line 440 are terse but not misleading"
+  - n: "R2"
+    verdict: "fail"
+    location: "install.sh:333-336"
+    note: "The rewritten groups are removed only after the reduce, and nothing says why. A reader who moves the delete into the loop at install.sh:327-332 shifts the indices, so the group after each rewritten one is never resolved. Fix: add a jq # comment at install.sh:333 saying the removal waits until every index has been visited."
+  - n: "R3"
+    verdict: "pass"
+    location: "install.sh:121-122, 416-417, 436-437, 652 give reasons; tests/scripts/install-upgrade.sh:339-340, 353 and 358 give reasons; none restates the code below it"
+  - n: "R4"
+    verdict: "pass"
+    location: "install.sh body comments at 121-122, 252-257, 381-382, 388, 416-417, 436-437, 454-455 and 652 name no decision, spec, task or doc; the install.sh header (1-66) and the test header are exempt, and JRN is a journey ID, not a decision ID"
+  - n: "R5"
+    verdict: "pass"
+    location: "install.sh:121-122, 436-437 and 652, and tests/scripts/install-upgrade.sh:339-340, 353 and 358, read as plain English; auto and ask are defined at install.sh:121-122"
+read_outside_diff:
+  - "install.sh (whole file, worktree HEAD 1b31fe5): die at :82, argument parsing at :91-120, JQ_MERGE at :261-379, run_merge through ask_matchers at :381-469, the question call site at :652-656, to confirm exit codes, the empty-value path, the question keys and the silent non-string branch"
+  - ".agents/hooks/claude-settings.template.json at HEAD (git show): template hook objects carry timeout, which the rewrite path re-adds"
+  - "tests/scripts/install-upgrade.sh :325-336 (non-plain matcher), :338-415 (split groups, helpers, mixed group), :417-466 (edges, non-string matcher): what each asserts"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking table"
+  - "artifacts/T6/toolchain.json: lint pass; test pass (scoped)"
+  - "artifacts/T6/mini-review-r2.yaml: round 2 failures checked as fixed: empty --matchers now dies at install.sh:119; the two SC2329 disables carry reasons at test 354 and 359; session renamed to session_start_outcome at test 367 and 385"
+out_of_scope_noticed:
+  - kind: "bug"
+    summary: "When a group that runs two template groups' commands is rewritten, the template's hook objects replace the user's, so a user's own per-hook keys (for example a custom timeout) are dropped. The warning names only the matcher change."
+    evidence: "install.sh:311-313 (only_template_hooks accepts any hook whose command matches), install.sh:266-267 (merge_groups re-adds template hook objects), install.sh:319 (warning text); .agents/hooks/claude-settings.template.json PreToolUse Write|Edit|NotebookEdit group (timeout 10)"
+    blocker_assessment: "can-wait"
+    reason: "A user's customised timeout on one of those commands is silently reset to the template's value. The case needs a split group with a per-hook key, so it is rare, but the warning does not say it happened."

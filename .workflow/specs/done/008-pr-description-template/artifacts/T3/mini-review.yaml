@@ -1,0 +1,40 @@
+verdict: pass
+task_id: T3
+work_type: agent-docs
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude-008/.workflow/.worktrees/s008_t3@3115dced23d9f09551b68f4ac99537766806b101..HEAD
+tool_output: .workflow/specs/done/008-pr-description-template/artifacts/T3/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: ".agents/skills/project-setup/SKILL.md:13,43 (hunks start at line 10; frontmatter lines 1-9 unchanged)"
+  - n: 2
+    verdict: not-applicable
+    location: "no new file under .agents/agents/ in the diff (diff name-status lists three modified SKILL/module/asset files only)"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/project-setup/assets/docs/rules.md:72 (pr_template key name matches its value set), .agents/skills/project-setup/modules/files.md:28 (PR template heading names the step)"
+  - n: R2
+    verdict: pass
+    location: ".agents/skills/project-setup/assets/docs/rules.md:72-74"
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/project-setup/assets/docs/rules.md:72-74"
+  - n: R4
+    verdict: pass
+    location: ".agents/skills/project-setup/assets/docs/rules.md:72-74"
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/project-setup/assets/docs/rules.md:72-74"
+read_outside_diff:
+  - ".agents/skills/project-setup/SKILL.md lines 1-12: confirmed the frontmatter description is untouched by the diff"
+  - ".agents/skills/feature-workflow/scripts/rules-setting.sh lines 1-60: confirmed the pr_template key is not yet in setting_spec (only task_review and main_branch), relevant to the readback in files.md step 4"
+  - ".agents/skills/project-setup/assets/docs/rules.md lines 62-80: confirmed the added yaml comments in context"
+  - "tests/README.md and tests/scripts/task-breakdown.sh: grep only, to see that the pr_template key is covered by the JRN-004 suite and is red by design at this commit"
+out_of_scope_noticed:
+  - kind: bug
+    summary: "files.md step 4 tells the implementer to run rules-setting.sh pr_template as a readback, but at this commit rules-setting.sh accepts only task_review and main_branch, so the readback exits 1 with an unknown key error until the JRN-004 implementation lands."
+    evidence: ".agents/skills/feature-workflow/scripts/rules-setting.sh setting_spec; .agents/skills/project-setup/modules/files.md:35"
+    blocker_assessment: can-wait
+    reason: "The pr_template key is implemented by a sibling task and tests/scripts/task-breakdown.sh (JRN-004) is red by design at this commit, so this diff is not the place to fix it, but the readback can only pass once that lands."

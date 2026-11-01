@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/006-result-file-guard
+origin_spec: .workflow/specs/done/006-result-file-guard
 created: 2026-10-29
 ---
 
@@ -7,7 +7,7 @@ created: 2026-10-29
 
 **Summary:** Evidence from the 1.4 known-bad runs lands in the main checkout's spec folder, not in the throwaway worktree the runs use.
 **Mode:** AFK
-**Origin:** [006-result-file-guard](../specs/006-result-file-guard/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Scope decision: known-bad evidence path
+**Origin:** [006-result-file-guard](../specs/done/006-result-file-guard/spec.md), 0.3.17 scope decision, design-log entry 2026-10-29 Scope decision: known-bad evidence path
 
 ## Goal
 

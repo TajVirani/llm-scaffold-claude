@@ -1,0 +1,61 @@
+verdict: pass
+task_id: T2
+work_type: shell-scripts
+mode: re-check
+previous: .workflow/specs/done/005-cache-build-followups/artifacts/T2/mini-review-r1.yaml
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s005_t2@d4899749c45c99f32f8f539fed7a005e2649cc38..03749a0050616b0410e5b8cd50150a0ec39db823
+tool_output: .workflow/specs/done/005-cache-build-followups/artifacts/T2/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:535, .agents/skills/regenerate-caches/scripts/build-architecture.sh:540
+  - n: 2
+    verdict: not-applicable
+    location: none
+    carried_from: r1
+  - n: 3
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:540, .agents/skills/regenerate-caches/scripts/build-architecture.sh:543
+  - n: 4
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:548, .agents/skills/regenerate-caches/scripts/build-architecture.sh:66
+    carried_from: r1
+  - n: 5
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:61, .agents/skills/regenerate-caches/scripts/build-architecture.sh:62
+    carried_from: r1
+  - n: 6
+    verdict: not-applicable
+    location: none
+    carried_from: r1
+  - n: 7
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:536, .agents/skills/regenerate-caches/scripts/build-architecture.sh:539
+  - n: 8
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:532
+    carried_from: r1
+  - n: R1
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:535, .agents/skills/regenerate-caches/scripts/build-architecture.sh:537
+  - n: R2
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:541
+    carried_from: r1
+  - n: R3
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:532, .agents/skills/regenerate-caches/scripts/build-architecture.sh:533
+    carried_from: r1
+  - n: R4
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:532, .agents/skills/regenerate-caches/scripts/build-architecture.sh:541
+    carried_from: r1
+  - n: R5
+    verdict: pass
+    location: .agents/skills/regenerate-caches/scripts/build-architecture.sh:532, .agents/skills/regenerate-caches/scripts/build-architecture.sh:541
+    carried_from: r1
+read_outside_diff:
+  - .agents/lib/workflow-paths.sh — WF_PROFILES is set at line 31 from WF_DIR, so the new path is built from the helper
+  - .agents/lib/test-paths.sh — wf_load_test_patterns returns status 1 with the reason on stdout, which the die at line 543 still relays
+  - .agents/skills/regenerate-caches/scripts/build-architecture.sh lines 547-548 — render_entries calls entry_test_patterns with the exit 2 guard, unchanged by the fix
+out_of_scope_noticed: []

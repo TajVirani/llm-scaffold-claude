@@ -1,0 +1,57 @@
+verdict: fail
+task_id: T2
+work_type: shell-scripts
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t2@fea2c48a84335657159438e3dde2c65a2958ea1f..HEAD"
+tool_output: ".workflow/specs/done/006-result-file-guard/artifacts/T2/toolchain.json"
+items:
+  - n: 1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:25,50-51,59"
+  - n: 2
+    verdict: not-applicable
+    location: "no hook file in the diff; the script is a helper"
+  - n: 3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:47,49-50,53-55,59-60,64"
+  - n: 4
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:15-16,29,64"
+  - n: 5
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:25"
+  - n: 6
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:2-20"
+  - n: 7
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:22,38,47,61; tests/scripts/check-merge-artifacts.sh:81,91"
+  - n: 8
+    verdict: fail
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:29"
+    note: "die() at line 29 is new with no '# die MSG [CODE] : ...' line (unlike die() in check-review-findings.sh:43); without it a maintainer cannot see that the second argument sets the exit code, so the refusal at line 64 'die ... 1' can be read as a stray 1 and dropped, turning a refused merge into exit 2. Add that line above line 29. (rule candidate)"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:32,53-55,59; tests/scripts/check-merge-artifacts.sh:85,89,91"
+  - n: R2
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:57-58; tests/scripts/check-merge-artifacts.sh:88"
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:32,57-58; tests/scripts/check-merge-artifacts.sh:88"
+  - n: R4
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:32,57-58; tests/scripts/check-merge-artifacts.sh:88"
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh:32,57-58; tests/scripts/check-merge-artifacts.sh:88"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh: WF_SPECS, wf_norm_folder and wf_main_root APIs; no artifacts/ path variable exists (items 1, 5)"
+  - ".agents/skills/feature-workflow/scripts/commit-workflow-data.sh: sibling helper header shape, die() form, and spec.md spelled under SPEC_DIR at line 55 (items 1, 6, 8)"
+  - ".agents/skills/feature-workflow/scripts/check-task-result.sh: sibling helper header shape (item 6)"
+  - ".agents/skills/feature-workflow/scripts/check-review-findings.sh: sibling die() with its comment line at 43 (item 8)"
+  - ".agents/skills/feature-workflow/scripts/initiative-transition.sh: sibling die() with its comment line at 68 (item 8)"
+  - "tests/lib/common.sh: check() evals its expression at line 66, so want is read in expect_refused's scope (item 8, R2 directive)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking table"
+out_of_scope_noticed: []

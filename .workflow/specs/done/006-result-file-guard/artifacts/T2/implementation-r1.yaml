@@ -1,0 +1,26 @@
+status: "discovered-work"
+summary: "check-merge-artifacts.sh is implemented and committed, and the PROVENANCE row now says implemented. It passes every exit-0 and exit-2 case, and exits 1 naming each offending path for branches and detached commits. The Phase 1 suite still fails 7 refusal checks because its line-count assertion reads $# inside check()'s eval, where it is always 3; that is a test bug in tests/, outside this module."
+task_id: "T2"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t2"
+branch: "task/006-result-file-guard/T02-artifacts-merge-gate"
+base_commit: "fea2c48a84335657159438e3dde2c65a2958ea1f"
+head_commit: "d1f33c8cae2eb4a40fdf953233a36f48b453f772"
+files_changed: [".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh", "PROVENANCE.md"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/check-merge-artifacts against the stub; 'FAIL scripts/check-merge-artifacts passed=8 failed=15' (e.g. 'FAIL JRN-007 no arguments -> exit 2  rc=0 want=2')"
+  green: "the suite unchanged: passed=16 failed=7, each failure 'rc=1 missing: out=<the expected path>', so only the $# line count fails. A scratchpad copy of the suite that captures want=$# before calling check: 'RESULT passed=22 failed=1'; the 1 is shellcheck on the copy's rewritten source line (SC1091), and shellcheck on the real suite and the gate is clean."
+  suite: "bash <main>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/006-result-file-guard --task-id T2 --cwd <worktree>; lint pass, test fail (scripts/check-merge-artifacts passed=16 failed=7, all from the test bug)"
+  toolchain: ".workflow/specs/done/006-result-file-guard/artifacts/T2/toolchain.txt (fail)"
+considered_not_built:
+  - "reading spec_branch from spec.md front matter (as commit-workflow-data.sh does): the task and the header fix the branch as spec/NNN-slug, and reading it would add a yq dependency; spec 008-nobranch in the suite has no spec.md"
+  - "quoting control: git prints unusual path names C-quoted, which keeps one line per path; no -z output mode was asked for"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: "bug"
+    summary: "In tests/scripts/check-merge-artifacts.sh, expect_refused passes the line-count test '[ \"$(grep -c . <<<\"$OUT\")\" = \"$#\" ]' to check(), which evals it inside check(), where $# is check's own argument count (3), not the number of expected paths. Every refusal check expects 3 output lines, so no correct gate can pass the 1-path or 2-path cases."
+    evidence: "tests/scripts/check-merge-artifacts.sh:89 (the check line in expect_refused) and tests/lib/common.sh:65-66 (check evals $2). Toolchain output: 'FAIL JRN-007 a branch adding a file under artifacts/ is refused, naming it  rc=1 missing: out=.workflow/specs/007-demo/artifacts/T7/implementation.yaml'. Fix verified in a scratch copy: add 'want' to the locals, set 'want=$#' after 'gate \"$rev\"', and compare with \"$want\"; that gives 22/23 passing, the 1 being shellcheck on the copy only."
+    blocker_assessment: "blocks-this-task"
+    reason: "The acceptance criterion 'tests/scripts/check-merge-artifacts.sh passes' cannot be met without a 3-line fix in tests/, which the tests module owns, outside this task's module (feature-workflow)."

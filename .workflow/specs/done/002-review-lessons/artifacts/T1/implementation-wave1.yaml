@@ -1,0 +1,34 @@
+status: done
+summary: .workflow/review-lessons.md is now its own Tier A class in check-write.sh (KIND=review-lessons, REVIEW_LESSONS_STEPS="5.7"). The main session may write it only at 5.7; denied at every other step, when no feature is in flight, and to sub-agents. The tier-a hook header and the SKILL.md guarded-writes table say so. The new template asset holds `lessons: []` and two one-line commands in its header, `validate:` and `next-id:` (awk, then yq v4, then jq; run under /bin/bash 3.2). Its JRN-006 and JRN-008 template assertions in tests/lint/review-lessons.sh pass.
+task_id: T1
+worktree: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t1
+branch: task/002-review-lessons/T01-lessons-template-and-guard
+base_commit: 917842de2713814d80ef67f2cce56284279c78a7
+head_commit: b6648afa09fde5f6d839354a1dd8460bc87ced3c   # after the round-1 wording fix (R4, check-write.sh:78)
+files_changed:
+  - .agents/skills/feature-workflow/assets/review-lessons.md
+  - .agents/skills/feature-workflow/scripts/check-write.sh
+  - .agents/skills/feature-workflow/SKILL.md
+  - .agents/hooks/tier-a-write-guard.sh
+  - tests/scripts/check-write-tier-a.sh
+tests_added:
+  - {file: tests/scripts/check-write-tier-a.sh, test: "review-lessons.md in another case at 5.3 deny", kind: edge}
+  - {file: tests/scripts/check-write-tier-a.sh, test: "review-lessons.md with no feature in flight deny", kind: negative}
+  - {file: tests/scripts/check-write-tier-a.sh, test: "review-lessons.md with no feature in flight: a deny naming 5.7 on stderr", kind: negative}
+evidence:
+  red: "bash tests/scripts/check-write-tier-a.sh -> 'FAIL JRN-004 review-lessons.md at 5.3 deny / rc=0 want=2: allow: ... is not a guarded path' (passed=103 failed=9). bash tests/lint/review-lessons.sh -> 'FAIL JRN-008 the template exists' plus the other template and JRN-006 cases. No-feature-in-flight deny: a copy of check-write.sh with that block removed gave 'rc=0 want=2' (passed=114 failed=2)."
+  green: "check-write-tier-a.sh 116/116; tests/hooks/write-guards.sh 101/101; tests/scripts/check-write-paths.sh 153/153; tests/lint/review-lessons.sh: all 5 JRN-008 template checks and all 13 JRN-006 checks ok; its 14 remaining failures belong to T3 and T6."
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/002-review-lessons --task-id T1 --cwd $PWD -> lint pass, test pass (scoped: own 2, excluded 6)"
+  toolchain: .workflow/specs/done/002-review-lessons/artifacts/T1/toolchain.txt (pass)
+considered_not_built:
+  - "A separate deny text for review-lessons at steps other than 5.7: it uses the shared Tier A deny, which names 5.7 and then points to a 5.2 proposal."
+  - "Full glob-syntax validation of paths beyond non-empty, no leading /, no .. segment."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: requirement
+    summary: "rules.md says that adding anything under .agents/ must update PROVENANCE.md in the same change. The new asset .agents/skills/feature-workflow/assets/review-lessons.md has no PROVENANCE.md line. PROVENANCE.md is outside T1's module and was not granted to T1 (it is granted to T3)."
+    evidence: ".workflow/rules.md:142; PROVENANCE.md has a '- `skills/feature-workflow/assets/<file>`: Sources: ...' line for each sibling asset (lines 133-135)"
+    blocker_assessment: can-wait
+    reason: "No test checks per-asset PROVENANCE lines and T1's behaviour does not depend on it. The line can be added by T3, which already edits PROVENANCE.md."

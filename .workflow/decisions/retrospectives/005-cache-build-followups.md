@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/005-cache-build-followups
+spec: .workflow/specs/done/005-cache-build-followups
 date: 2026-10-28
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/005-cache-build-followups/spec.md` (capabilities: CAP-004, CAP-005)
-- Report: `.workflow/specs/005-cache-build-followups/report.md`
+- Spec: `.workflow/specs/done/005-cache-build-followups/spec.md` (capabilities: CAP-004, CAP-005)
+- Report: `.workflow/specs/done/005-cache-build-followups/report.md`
 - Tasks: 6 done, 0 split out (`tasks.md`); 3 items deferred (`main-checkout-resolver`, `bash-case-fallthrough`, `bash-line-coverage`)
 - Evidence available: `spec.md`, `verification-plan.md`, `report.md`, `tasks.md`, `design-log.md` (triage pass 1, sign-off), `proposals.md`, `artifacts/` (T1-T6, gates 3.9 w1/w2/rework1, review pass 1, JRN-008, sign-off-5.4), the deferred files, `.workflow/review-lessons.md`, retrospective 004. Git range `1f59f20..65ae1c5`: 37 commits, 140 files changed (+5551 / -485; most of it workflow data and new suites).
 - Evidence missing: session logs were not read; process lessons come from `design-log.md`, the gate artifacts and the stakeholder.
@@ -43,7 +43,7 @@ A full regenerate-caches run at `99801e5` built, checked (`check-staged-cache.sh
 | F2 PROVENANCE row for `lib/test-paths.sh` still said placeholder | review-standards RS-1, review-end-state RE-1, `PROVENANCE.md:29` | fixed in rework 1 | - |
 | TGT-007 coverage not measurable | review-targets | defer | `.workflow/deferred/bash-line-coverage.md` |
 | One false unresolved edge from multi-line quoted text | JRN-008 oracle diff | defer (backlog) | `.workflow/specs/work-backlog/005-cache-build-followups-disc-003.md` |
-| Worktree guard blocks a sub-agent's own result file | integration batch 3.2, every later agent | started as next feature | `.workflow/specs/006-result-file-guard` |
+| Worktree guard blocks a sub-agent's own result file | integration batch 3.2, every later agent | started as next feature | `.workflow/specs/done/006-result-file-guard` |
 | TGT-001 threshold inside timing noise | T4 return (disc-002) | accept: threshold raised to 2 s at 5.5 ("Up to 2s and pass") | - |
 
 ## Previous-retrospective follow-through
@@ -60,7 +60,7 @@ Retrospective 004 (`.workflow/decisions/retrospectives/004-scoped-test-runs.md`)
 
 | Lesson | Kind | Recorded in |
 | --- | --- | --- |
-| The worktree write guard denied every coding and review agent's own result file; copying each file out by hand was an extra step on every launch | skill change | `.workflow/specs/006-result-file-guard` (next feature) |
+| The worktree write guard denied every coding and review agent's own result file; copying each file out by hand was an extra step on every launch | skill change | `.workflow/specs/done/006-result-file-guard` (next feature) |
 | A 5.3 rules change regenerated the boundary config right after the JRN-008 cache run, so the architecture cache went stale before 5.8 and had to be rebuilt | skill change | not recorded: stakeholder rejected the action item at 5.7 |
 | A review finding whose symptom is a PROVENANCE row still reading `placeholder` after the stub became real | review lesson | `.workflow/review-lessons.md RL-002` |
 

@@ -1,0 +1,24 @@
+status: done
+summary: "Mini-review fix round, wording only. I deleted three '# e.g.' example lines that named a workflow path and a spec folder (verification-setup.md and two in implementation-orchestrator.md). The no-relaunch rule in the Phase 1 'Denied outside its worktree' bullet and the Stops table row now gives its reason: isolation cannot be configured from this repo, and an isolation launch is refused the result-file write to the main checkout. Nothing else changed. JRN-008 still passes 27/27."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude-006/.workflow/.worktrees/s006_t5"
+branch: "task/006-result-file-guard/T05-orchestrator-agent-worktrees"
+base_commit: "97b627c8cdcb3107b9a43a57911b2cc79b18a157"
+head_commit: "8c68b798c9059dbbbb047a72ba0b1229e7941158"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/verification-setup.md"
+  - ".agents/skills/feature-workflow/modules/implementation-orchestrator.md"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite lint/agent-worktree-docs at base; 18 failed, e.g. 'FAIL JRN-008 the gate runs before the 3.16 task merge' (passed=9 failed=18)"
+  green: "tests/run-all.sh --suite lint/agent-worktree-docs after the fix round; passed=27 failed=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/done/006-result-file-guard --task-id T5 --cwd <worktree>; exit 0, test pass (scoped); lint pass; lint/step-list run separately: 36/36 passed"
+  toolchain: ".workflow/specs/done/006-result-file-guard/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "Adding the same reason to the matching 'never relaunched another way' sentence in the Claude launch bullet at implementation-orchestrator.md:29: the fix round said to change nothing else"
+  - "Cleanup for an integration batch whose branch git branch -d refuses after nothing was applied: rare, and the task names no rule for it"
+  - "Rewording the isolation-launch fallback comments in hooks/worktree-write-guard.sh, post-implementation-audit.sh and check-worktree-scope.sh: other modules, outside this task"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []

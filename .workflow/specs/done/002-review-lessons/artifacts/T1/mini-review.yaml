@@ -1,0 +1,22 @@
+verdict: pass
+task_id: T1
+work_type: shell-scripts
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.worktrees/s002_t1@be7638e87ae5146fcf2d85f2d059d079d85ae628..HEAD (rework 1, round 4; rounds 1-3 in mini-review-rework-r{1,2,3}.yaml)
+tool_output: .workflow/specs/done/002-review-lessons/artifacts/T1/toolchain.json
+items:
+  - {n: 1, verdict: pass, location: "review-lessons.sh:116 (reads only its argument); :80-81 is a regex and message, not a path", note: ""}
+  - {n: 2, verdict: not-applicable, location: "helper, not a hook", note: ""}
+  - {n: 3, verdict: pass, location: "review-lessons.sh:28, :38-42, :50-51, :94, :95, :106, :116", note: ""}
+  - {n: 4, verdict: pass, location: "review-lessons.sh:13-14 against the exits", note: ""}
+  - {n: 5, verdict: pass, location: "no sibling path in the script; the suite uses the sibling suites' dirname form", note: ""}
+  - {n: 6, verdict: pass, location: "review-lessons.sh:1-18", note: ""}
+  - {n: 7, verdict: pass, location: "review-lessons.sh:20, :95, :109, :116; the suite uses [[ ]] throughout and inherits set -uo pipefail like its siblings", note: ""}
+  - {n: 8, verdict: pass, location: "function lines :24, :27, :30, :36, :46, :90, :98; directive reasons :56 and suite :7, :8, :10; suite helpers :20, :27, :30", note: ""}
+  - {n: R1, verdict: pass, location: "script and suite names", note: ""}
+  - {n: R2, verdict: pass, location: "review-lessons.sh:50 (reason for dropping yq's message), :56; suite :7, :8, :10", note: ""}
+  - {n: R3, verdict: pass, location: "function-interface lines; :55 gives the ordering rule", note: ""}
+  - {n: R4, verdict: pass, location: "body comments; the one doc path is in the header Called by line, under the 3.8 ruling", note: ""}
+  - {n: R5, verdict: pass, location: "review-lessons.sh:50, :55, :56; suite :7, :8, :10, :20, :30", note: ""}
+read_outside_diff:
+  - "readable-code.md; artifacts/T1/toolchain.json; check-review-findings.sh and its suite; tests/lib/common.sh:15; .agents/hooks/*.sh and budget-check.sh (cd -P forms)"
+out_of_scope_noticed: []
