@@ -67,7 +67,7 @@ tasks:
     pr: null
   - id: T5
     title: "Discovery split and the 0.2.1 read"
-    status: pending
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T4]
     touches_core: false
@@ -84,7 +84,7 @@ tasks:
     pr: null
   - id: T6
     title: "Shared-core and per-task gates step files"
-    status: pending
+    status: in-progress
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T4]
     touches_core: false

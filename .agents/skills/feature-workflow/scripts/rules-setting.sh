@@ -32,7 +32,7 @@
 # Exit codes: 0 value printed; 1 usage or environment error (unknown key, missing yq, not a git repo, unparsable block, value outside the
 #   allowed set, a pr_template file missing from the checkout).
 # Called by: modules/implementation-orchestrator.md (3.16), modules/large-path.md (main_branch for the main ref; task_review for the
-#   initiative branch push and the 6.11 / 6.13 merge into main), modules/verification-setup.md (1.1), modules/discovery.md (0.3.20),
+#   initiative branch push and the 6.11 / 6.13 merge into main), modules/verification-setup.md (1.1), modules/discovery-impact.md (0.3.20),
 #   modules/sign-off.md (5.8; pr_template at 5.2 and 5.4), scripts/open-task-pr.sh, scripts/budget-check.sh.
 # Notes: Requires mikefarah yq v4. bash 3.2 compatible. Section parse pattern from budget-check.sh (Size budget block).
 # Sources: first-party.

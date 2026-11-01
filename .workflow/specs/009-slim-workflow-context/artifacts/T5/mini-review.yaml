@@ -1,0 +1,42 @@
+verdict: pass
+task_id: T5
+work_type: agent-docs
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t5@498a2726da28e065ee4ec2d6e2a57f15cf60836e..HEAD"
+tool_output: ".workflow/specs/009-slim-workflow-context/artifacts/T5/toolchain.json"
+items:
+  - n: 1
+    verdict: not-applicable
+    location: "no skill description in the diff: .agents/skills/feature-workflow/SKILL.md:68 is the only SKILL.md change (a route-table row), and its frontmatter description on line 3 is unchanged"
+  - n: 2
+    verdict: not-applicable
+    location: "no agent file in the diff: the diff stat lists no path under .agents/agents/"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery-impact.md:1, .agents/skills/feature-workflow/modules/discovery.md:59"
+  - n: R2
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery-impact.md:34, .agents/skills/feature-workflow/modules/discovery.md:59"
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery-impact.md:34"
+  - n: R4
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery-impact.md:34, .agents/skills/feature-workflow/scripts/spec-worktree.sh:29, .agents/skills/feature-workflow/scripts/rules-setting.sh:35, .agents/skills/feature-workflow/assets/task.md:3, .agents/skills/feature-workflow/assets/tasks.md:23, .agents/skills/feature-workflow/assets/data-model.md:3, .agents/skills/feature-workflow/assets/verification-plan.md:3, .agents/skills/feature-workflow/assets/design-log.md:3, .agents/skills/feature-workflow/assets/codebase-map.md:9"
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/feature-workflow/modules/discovery-impact.md:34"
+read_outside_diff:
+  - ".workflow/specs/009-slim-workflow-context/artifacts/T5/implementation.yaml: the implementer's self_review, used as the starting point and confirmed item by item"
+  - ".workflow/specs/009-slim-workflow-context/artifacts/T5/toolchain.json and toolchain.txt: the lint and scoped test runs that passed"
+  - ".agents/skills/feature-workflow/references/readable-code.md: the R1 to R5 lines and the Checking at 3.7 list"
+  - "tests/lint/shared-rule-homes.sh: the marker list at its top"
+  - ".agents/skills/feature-workflow/SKILL.md, references/conventions.md, references/launching.md, modules/*.md at HEAD and at base 498a2726: grep of each of the eleven markers, to count the files that hold it"
+  - ".agents/skills/feature-workflow/modules/discovery.md at base 498a2726: its 0.3.20 block, saved to the scratchpad, to confirm the moved comment lines are verbatim"
+  - ".agents/skills/feature-workflow/scripts/rules-setting.sh and spec-worktree.sh headers, and grep of rules-setting.sh callers: to confirm the re-pointed Called by lines"
+  - "grep of links and step references to moved discovery sections across .agents, tests and PROVENANCE.md: to confirm the re-pointed links resolve to existing headings"
+not_checked:
+  - "readable-code R4 on the moved bash-snippet comments at .agents/skills/feature-workflow/modules/discovery-impact.md:27 to :45 (they name .workflow/ paths): they are verbatim from the 0.3.20 block of discovery.md at base 498a2726, so I did not count them as added, and the rule says never flag a comment for existing. If the orchestrator counts moved text as added, these lines breach R4 as written and would need rewording as instructions without paths."
+  - "lint/shared-rule-homes was not run here: no marker is held by two files at HEAD (grep of SKILL.md, references and modules). Its remaining expectations, that the heading Leave the small path sits in modules/questioning-loop.md and that modules/small-path.md is gone, are not met at HEAD, but they belong to a later task and this diff does not change them."
+out_of_scope_noticed: []

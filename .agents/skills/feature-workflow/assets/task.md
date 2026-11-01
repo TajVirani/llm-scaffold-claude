@@ -1,6 +1,6 @@
 <!--
 File: Template for one task file, .workflow/specs/NNN-slug/tasks/Tnn-<slug>.md: the body of one task. The record (status, edges, branch, size) lives in the tasks.md index frontmatter; this file holds what the implementer reads. One file per task, never one combined file.
-Written by modules/task-breakdown.md at 2.5, or by modules/discovery.md at 0.3.20 on the light path (T01 only), together with the index. Read by the implementation agent from its task worktree (3.3) and by the orchestrator for briefs and 3.2 shared-core requests.
+Written by modules/task-breakdown.md at 2.5, or by modules/discovery-impact.md at 0.3.20 on the light path (T01 only), together with the index. Read by the implementation agent from its task worktree (3.3) and by the orchestrator for briefs and 3.2 shared-core requests.
 Name: `T<nn>-<slug>.md`, `<nn>` the task number zero-padded to two digits (T01, T02, ...), `<slug>` lowercase kebab-case from the title. The index record's `file` key names this path relative to the spec folder; its `branch` key is `task/NNN-slug/T<nn>-<slug>`.
 Writing rules: no section left empty (write "None." instead); predicted files name paths or globs, never code; keep the frontmatter-free form (the index is the only machine-read file). Delete this comment in the finished file.
 -->

@@ -20,7 +20,7 @@ tasks:
 ---
 <!--
 File: Template for .workflow/specs/NNN-slug/tasks.md, the task INDEX: the records, the waves table and the dependency graph. Every feature has one. Each task's body lives in its own task file, tasks/Tnn-<slug>.md, from assets/task.md; this file holds no per-task body text.
-Written by modules/task-breakdown.md at 2.5, or by modules/discovery.md at 0.3.20 on the light path (one task). work_type is filled at 3.1, pr at 3.16.
+Written by modules/task-breakdown.md at 2.5, or by modules/discovery-impact.md at 0.3.20 on the light path (one task). work_type is filled at 3.1, pr at 3.16.
 
 Record schema (the `tasks:` array in the frontmatter is the source; the body is commentary). Read with mikefarah yq v4 `--front-matter=extract` by resolve-launch.sh (work_type by task id), status-transition.sh (writes records, via `--front-matter=process`), run-toolchain.sh (tests), budget-check.sh (size) and task-waves.sh (predicted_files, parallel_with).
   Plan-specified fields (required on every record):
