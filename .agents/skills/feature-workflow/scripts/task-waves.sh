@@ -40,7 +40,8 @@
 #   implied_edges: [{task, depends_on}], warnings: [..]}
 # Exit codes: 0 waves derived; 2 invalid graph (cycle, unknown id in depends_on or parallel_with, duplicate id; reason on stderr);
 #   1 usage or environment error (missing jq/yq, not a git repo, missing or unreadable tasks.md).
-# Called by: modules/task-breakdown.md (2.5: derive waves and implied edges; 2.1 quiz table) and implementation-orchestrator (wave start).
+# Called by: modules/task-breakdown.md (2.5: derive waves and implied edges; 2.1 quiz table); modules/implementation-waves.md
+#   (wave loop) then launches those waves, picking each frontier from tasks.md itself rather than calling this script.
 # Notes: Requires jq and mikefarah yq v4. bash 3.2 compatible.
 # Sources: first-party; wave computation (longest path over depends_on) adapted from open-gsd/gsd-core agents/gsd-planner.md "assign_waves"
 #   (MIT; idea only); overlap-implies-ordering from mattpocock/skills implement-spec@49dd158 (MIT; idea only).
