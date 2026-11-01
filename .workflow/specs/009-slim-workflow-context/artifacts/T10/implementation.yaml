@@ -1,0 +1,38 @@
+status: done
+summary: "Both load points are now within their limits: new-feature start 44721 bytes (limit 45000), implementation resume 54348 bytes (limit 55000). Duplicated text became pointers to its one home, and text only another step uses moved there (slice seeding to large-path 6.9, deleting a promoted older item file to discovery-impact, the Claude agent-worktree confinement to launching.md); no rule was dropped. Outside the predicted files: large-path.md and discovery-impact.md received the moved sections."
+task_id: "T10"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t10"
+branch: "task/009-slim-workflow-context/T10-load-targets"
+base_commit: "1ea60d507672ec17727811a4f052c09e1c7499c4"
+head_commit: "24abd4bf7d304de27289bc5604ff9affbe1fdd59"
+files_changed:
+  - ".agents/skills/feature-workflow/SKILL.md"
+  - ".agents/skills/feature-workflow/references/conventions.md"
+  - ".agents/skills/feature-workflow/references/launching.md"
+  - ".agents/skills/feature-workflow/modules/discovery.md"
+  - ".agents/skills/feature-workflow/modules/discovery-impact.md"
+  - ".agents/skills/feature-workflow/modules/implementation-waves.md"
+  - ".agents/skills/feature-workflow/modules/large-path.md"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite lint/workflow-load-size; FAIL new-feature start is at most 45000 bytes (got=over: new-feature start 48938 bytes > limit 45000); FAIL implementation resume is at most 55000 bytes (got=over: implementation resume 57660 bytes > limit 55000)"
+  green: "tests/run-all.sh --suite lint/workflow-load-size; 14/14 passed (new-feature start: 44721 bytes (limit 45000); implementation resume: 54348 bytes (limit 55000)). Full harness tests/run-all.sh: TOTAL passed=4458 failed=0 (75 suites)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/009-slim-workflow-context --task-id T10 --cwd <worktree>; lint pass, test (scoped to lint/workflow-load-size) pass"
+  toolchain: ".workflow/specs/009-slim-workflow-context/artifacts/T10/toolchain.txt (pass)"
+considered_not_built:
+  - "Moving router section 4 (5.6 re-entry) into sign-off 5.6: a resume that lands on a change request would then also append sign-off's design-log entry, a behaviour change; compressed in place instead."
+  - "Moving discovery 0.2.8's launch and publish detail out of discovery: it differs from regenerate-caches (feature header, scope rule, one resume on a failed check), so pointing there would change behaviour."
+  - "Deduplicating verification-setup's own Claude confinement bullet against the new launching.md section: not a counted file, left as it is to keep the diff to the load targets."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "No skill description in frontmatter was added or changed; SKILL.md frontmatter untouched."}
+  - {item: 2, verdict: not-applicable, note: "No agent definition added or changed."}
+  - {item: R1, verdict: pass, note: "New section headings say what each holds: launching.md 'An agent worktree on Claude Code', large-path.md 'Seeded from a slice', discovery-impact.md 'Delete a promoted item file'."}
+  - {item: R2, verdict: not-applicable, note: "Markdown step text only; no workaround or trade-off in code."}
+  - {item: R3, verdict: not-applicable, note: "No code comments added or changed."}
+  - {item: R4, verdict: not-applicable, note: "No code comments added or changed; the moved step text cites no decision record."}
+  - {item: R5, verdict: not-applicable, note: "No code comments added or changed."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the changed files exited 0 (all markdown, none listed)."}

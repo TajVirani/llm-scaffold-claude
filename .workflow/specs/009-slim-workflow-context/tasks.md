@@ -150,7 +150,7 @@ tasks:
     pr: null
   - id: T10
     title: "Hit the load targets"
-    status: pending
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T2, T9]
     touches_core: false

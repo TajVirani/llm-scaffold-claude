@@ -1,0 +1,38 @@
+verdict: pass
+task_id: T10
+work_type: agent-docs
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t10@1ea60d507672ec17727811a4f052c09e1c7499c4..HEAD
+tool_output: .workflow/specs/009-slim-workflow-context/artifacts/T10/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+  - n: 2
+    verdict: not-applicable
+  - n: R1
+    verdict: pass
+    location: .agents/skills/feature-workflow/modules/discovery-impact.md:110, .agents/skills/feature-workflow/references/launching.md:28, .agents/skills/feature-workflow/modules/large-path.md:208
+  - n: R2
+    verdict: not-applicable
+  - n: R3
+    verdict: not-applicable
+  - n: R4
+    verdict: not-applicable
+  - n: R5
+    verdict: not-applicable
+read_outside_diff:
+  - tests/lint/shared-rule-homes.sh: marker lines and the guarded-writes check the removed passages must keep
+  - .agents/skills/feature-workflow/references/conventions.md: full file, to find the one-writer, exact-prefix, sub-agent and progress rules the trimmed step files now rely on
+  - .agents/skills/feature-workflow/modules/questioning-loop.md:7-30: Entry table and first ask, home of the deeper-prompt agreement and the 5.6 loop-back rows
+  - .agents/skills/deeper-prompt/SKILL.md:76: the Agreement pending line that discovery 0.3.22 now relies on
+  - .agents/skills/feature-workflow/modules/sign-off.md:132: the one sign-off question over the backlog list, home of the removed 5.5 sentence
+  - .agents/skills/feature-workflow/modules/discovered-work.md:3: home of the discovered-work examples removed from implementation-waves.md
+  - .agents/skills/feature-workflow/modules/task-breakdown.md:113-123 and implementation-waves.md:143-150: where budget-check.sh is run and its exits are handled, now that the conventions size-budget bullet is gone
+  - .workflow/rules.md:112-119: the Size budget block and what changed_files counts
+  - .agents/skills/feature-workflow/scripts/budget-check.sh header: the changed_files definition
+  - .agents/skills/feature-workflow/assets/: file list, to check the templates naming rule that replaced the enumerated list
+  - .agents/skills/feature-workflow/modules/implementation-waves.md:25 and large-path.md:194: the inbound links to the two moved sections
+not_checked:
+  - Full tests/run-all.sh was not rerun in this review. The implementer reported 4458 passed at its commit, and lint/shared-rule-homes passes on HEAD (23 of 23, run in a scratch worktree that was then removed). To settle it, run tests/run-all.sh in a scratch worktree of HEAD.
+out_of_scope_noticed: []
