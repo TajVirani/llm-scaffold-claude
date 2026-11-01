@@ -6,7 +6,9 @@ The initiative folder is `.workflow/initiatives/NNN-slug/`: `initiative.md` (sta
 
 ## Conventions
 
-- **One writer.** `IT` below is shorthand for `.agents/skills/feature-workflow/scripts/initiative-transition.sh`, and `ST` for `.agents/skills/feature-workflow/scripts/status-transition.sh`: type the full path every time from the project root, because sandboxed projects allow those exact command lines. Initiative status, the marker `.workflow/initiatives/NNN-slug/.step`, and the state of every slice and question change only through `IT`:
+The rules every step file follows (one writer, the exit codes, set the step then write, the progress line, sub-agent writes) hold for an initiative as for a spec; they are in [../references/conventions.md](../references/conventions.md). These are the initiative's own parts.
+
+- **Initiative writer.** `IT` below is shorthand for `.agents/skills/feature-workflow/scripts/initiative-transition.sh`, and `ST` for `.agents/skills/feature-workflow/scripts/status-transition.sh`: type the full path every time from the project root, because sandboxed projects allow those exact command lines. Initiative status, the marker `.workflow/initiatives/NNN-slug/.step`, and the state of every slice and question change only through `IT`:
 
   ```text
   IT status       .workflow/initiatives/NNN-slug <exploring|planned|done> [--step <6.x>]
@@ -16,8 +18,8 @@ The initiative folder is `.workflow/initiatives/NNN-slug/`: `initiative.md` (sta
   IT set-pr       .workflow/initiatives/NNN-slug <url>|null
   ```
 
-  Exit 0 done; 1 environment or usage error; 2 illegal transition, reason on stderr. On 1 or 2 stop and report; never retry another way to get past it. A new question or slice record is added by hand (questions.md at any step, initiative.md at a writer step below) with its first state; from then on its state changes only through `IT`.
-- **Set the step, then write.** Run `IT step .workflow/initiatives/NNN-slug <6.x>` as you enter each step. The guards allow a Write or Edit of `initiative.md` only at a writer step, and a glossary write only at the term-gate step:
+  A new question or slice record is added by hand (questions.md at any step, initiative.md at a writer step below) with its first state; from then on its state changes only through `IT`.
+- **Writer steps and the term gate.** The guards allow a Write or Edit of `initiative.md` only at a writer step, and a glossary write only at the term-gate step:
 
   | Step | Title | Writes `initiative.md` | Term gate |
   | --- | --- | --- | --- |
@@ -35,8 +37,7 @@ The initiative folder is `.workflow/initiatives/NNN-slug/`: `initiative.md` (sta
   | 6.12 | Reopen exploration | no | no |
   | 6.13 | Close when every spec is done | no | no |
 
-  `questions.md`, `design-log.md` and `codebase-map.md` are unguarded. `.step` is never written by Write or Edit.
-- **Progress line.** Lead each step update to the stakeholder with the line `.agents/skills/feature-workflow/scripts/step-progress.sh <6.x>` prints (`Large path · step n of m — <title> (6.x)`).
+  `questions.md`, `design-log.md` and `codebase-map.md` are unguarded.
 - **Main ref.** `main` is `.agents/skills/feature-workflow/scripts/rules-setting.sh main_branch`. When an `origin` remote exists, fetch first; the **main ref** is then `origin/<main>` if that ref exists, else `<main>`. Every new initiative branch starts from the main ref, and every "done on main" check reads the main ref with `git show`, never the working tree, because a spec is `done` on its own branch before it is merged. A finished spec sits on main at the top level of `.workflow/specs/` or, once sign-off 5.8 has moved it, in the Done folder `.workflow/specs/done/`:
 
   ```bash
@@ -61,7 +62,6 @@ The initiative folder is `.workflow/initiatives/NNN-slug/`: `initiative.md` (sta
   ```
 
 - **Launches** carry `spec_dir: .workflow/initiatives/NNN-slug` in the launch header, and run only while the checkout is on the initiative branch (the launch check needs the folder on disk). On Codex the `task_name` is `i<NNN>_<task type with - as _>`, for example `i004_research`, `i004_fact_lookup`.
-- **Sub-agents never write.** The main session writes every file from their returns.
 
 ## 0.3.23 Convert a spec into an initiative
 
