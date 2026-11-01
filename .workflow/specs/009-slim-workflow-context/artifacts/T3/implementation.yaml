@@ -1,0 +1,48 @@
+status: done
+summary: "The shared step-file rules now live once in .agents/skills/feature-workflow/references/conventions.md, and the router loads that file with the first step file. The router lost its conventions section, the Modules table and the modules/progressive_loading keys. The gate table moved into the questioning-loop Entry table, large-path keeps only its initiative parts, review-triage points to discovered-work for the escalation classes, and every moved link and pin was re-pointed. Paths outside the predicted files: modules/verification-setup.md (it now makes the 0.6 scope-change status call, which used to belong to the router), modules/sign-off.md and modules/deferred-handoff.md (plain-text references to SKILL.md Conventions and Host notes re-pointed), and tests/README.md (rows for the two re-pointed pins)."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t3"
+branch: "task/009-slim-workflow-context/T03-workflow-conventions"
+base_commit: "e05945165e2b3bf75d9aa1d7c200268caa844279"
+head_commit: "d1d1ce4c5b4d5376b6755ec0c3350e83dbbe068f"
+files_changed:
+  - ".agents/skills/feature-workflow/references/conventions.md"
+  - ".agents/skills/feature-workflow/SKILL.md"
+  - ".agents/skills/feature-workflow/modules/questioning-loop.md"
+  - ".agents/skills/feature-workflow/modules/large-path.md"
+  - ".agents/skills/feature-workflow/modules/review-triage.md"
+  - ".agents/skills/feature-workflow/modules/discovery.md"
+  - ".agents/skills/feature-workflow/modules/verification-setup.md"
+  - ".agents/skills/feature-workflow/modules/sign-off.md"
+  - ".agents/skills/feature-workflow/modules/deferred-handoff.md"
+  - "PROVENANCE.md"
+  - "tests/README.md"
+  - "tests/lint/done-folder-docs.sh"
+  - "tests/lint/review-escalation-docs.sh"
+tests_added:
+  - {file: "tests/lint/review-escalation-docs.sh", test: "deferred-handoff's Write names no 4.8 among the steps it is used at", kind: "behaviour"}
+  - {file: "tests/lint/done-folder-docs.sh", test: "the conventions name move-to-done.sh", kind: "behaviour"}
+evidence:
+  red: "Before the change: tests/run-all.sh --suite lint/small-path-docs; 'FAIL the frontmatter has no modules key' and 'FAIL the frontmatter has no progressive_loading key'. For the re-pointed pin: after adding ', 4.8' to the deferred-handoff Write 'Used at' line, tests/run-all.sh --suite lint/review-escalation-docs; 'FAIL deferred-handoff's Write names no 4.8 among the steps it is used at' (the line was then restored)."
+  green: "tests/run-all.sh --suite lint/md-links 6/6 passed; lint/frontmatter 41/41; lint/done-folder-docs 16/16; lint/review-escalation-docs 72/72; lint/small-path-docs: both frontmatter-key checks pass (29 passed, 23 fail, all for the small-path fold owned by another task). In lint/shared-rule-homes every T3 marker and every guarded-writes table row passes (20 passed); the 3 failures that remain (fork_turns, Leave the small path, small-path.md) were there at base and belong to other tasks."
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/009-slim-workflow-context --task-id T3 --cwd <worktree>; test (scoped, 6 unfinished-task suites excluded): TOTAL passed=4254 failed=0 (69 suites)"
+  toolchain: ".workflow/specs/009-slim-workflow-context/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "Launch rules and the Host notes Launch row: left in SKILL.md under '## 5. Launching a sub-agent' with the '### Host notes' heading kept, so the five '../SKILL.md#host-notes' links still resolve. The task notes give this move to T4."
+  - "Resume-offer host row: dropped from the table because router section 1, branches 3 and 4, already says the same thing (hook on Claude, list it yourself on Codex)."
+  - "Question-rounds host row: dropped because questioning-loop 0.3.11 already gives the Claude and Codex round formats."
+  - "Escalation summaries in implementation-orchestrator, verification-setup and task-breakdown: not touched. The task names only the router and review-triage, and the waves step file is another task's."
+  - "Templates paragraph from the old Modules section: kept in the router as '## 6. Templates', because the task drops only the Modules table."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "not-applicable", note: "No skill description added or changed; the SKILL.md frontmatter only lost the modules and progressive_loading keys"}
+  - {item: 2, verdict: "not-applicable", note: "No agent added"}
+  - {item: "R1", verdict: "pass", note: "New test names say what they check: tests/lint/review-escalation-docs.sh:88 handoff_uses, done-folder-docs.sh:115"}
+  - {item: "R2", verdict: "not-applicable", note: "No workaround or trade-off code added"}
+  - {item: "R3", verdict: "pass", note: "No body comment added; the done-folder-docs.sh suite header was only re-pointed and re-wrapped"}
+  - {item: "R4", verdict: "pass", note: "Changed shell comments name no decision, task or .workflow path; the comment lint exits 0"}
+  - {item: "R5", verdict: "pass", note: "Header text in done-folder-docs.sh:2-16 is plain English"}
+  - {item: "comment-lint", verdict: "pass", note: "check-comments.sh over every changed and untracked file exits 0 with no lines listed"}

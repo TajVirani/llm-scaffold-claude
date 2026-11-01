@@ -1,0 +1,43 @@
+status: "done"
+summary: "Round 2 fixes: a GLOSSARY-MAP.md that links no context glossary (a missing or misspelt ## Contexts heading) now exits 2 with a message naming the ## Contexts heading, and a context link whose path is empty after ./ is stripped exits 2 naming the context. I chose exit 2 rather than falling back to the root glossary because GLOSSARY-FORMAT.md describes the map only as a list of contexts and has no empty map. The script's new and changed tests now use [ ], as the file did at base. Header Usage/Exit and the suite's Covers note describe the new errors."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1"
+branch: "task/009-slim-workflow-context/T01-term-list-script"
+base_commit: "e05945165e2b3bf75d9aa1d7c200268caa844279"
+head_commit: "1417df0e8c33030f2d6d9fad5d90cc75f2c017c1"
+files_changed: [".agents/skills/domain-modeling/scripts/term-list.sh", "PROVENANCE.md", "tests/scripts/term-list.sh"]
+tests_added:
+  - {file: "tests/scripts/term-list.sh", test: "a context link with an empty path exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "the empty-path message names the context", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a map whose Contexts heading is misspelt exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "the misspelt-heading message names the Contexts section", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "--define on a map naming no context exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a map with no Contexts section exits 2", kind: "edge"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/term-list; FAIL a context link with an empty path exits 2 (rc=0 want=2), FAIL a map whose Contexts heading is misspelt exits 2 (rc=0 want=2), FAIL --define on a map naming no context exits 2 (rc=1 want=2), FAIL a map with no Contexts section exits 2 (rc=0 want=2), plus both message checks: passed=22 failed=6"
+  green: "tests/run-all.sh --suite scripts/term-list; PASS passed=28 failed=0 (also under TEST_BASH=/bin/bash 3.2.57: 28/28)"
+  suite: "bash run-toolchain.sh --spec-dir .workflow/specs/009-slim-workflow-context --task-id T1 --cwd <worktree>; lint pass, test pass (scoped: own 1 suite, 5 excluded)"
+  toolchain: ".workflow/specs/009-slim-workflow-context/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Falling back to the root glossary on an empty map: GLOSSARY-FORMAT.md describes a map only as a list of contexts and has no empty map, so the script exits 2 rather than reading a root glossary the map replaces."
+  - "Reporting map links that are malformed but not empty (for example `- [x]()`): the link pattern skips them, so a map whose only links are malformed is caught by the no-context error, and a malformed link next to good ones is outside this fix list."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "pass", note: "term-list.sh uses $WF_GLOSSARY_MAP and $WF_GLOSSARY from workflow-paths.sh; the .workflow/ paths in the test fixtures are spelt out, which fixtures may do"}
+  - {item: 2, verdict: "not-applicable", note: "no hook in the diff"}
+  - {item: 3, verdict: "fixed", note: "term-list.sh:118 dies on an empty links string and :120 dies on an empty glossary path where it used to continue silently"}
+  - {item: 4, verdict: "pass", note: "the map_contexts capture at term-list.sh:116 carries its own || die; the loop body's checks each end in || die"}
+  - {item: 5, verdict: "pass", note: "the new errors use exit 2 through die(); # Exit: at term-list.sh:17-18 names the map that links no context glossary"}
+  - {item: 6, verdict: "pass", note: "term-list.sh:30 sources workflow-paths.sh through cd -P from BASH_SOURCE"}
+  - {item: 7, verdict: "pass", note: "helper header File/Purpose/Usage/Exit/Notes/Sources at term-list.sh:2-20, with no decision id"}
+  - {item: 8, verdict: "fixed", note: "the file had [ ] tests at base, so term-list.sh:106, :115, :118, :120-121, :125-126, :131, :133, :145 are now [ ] with the same quoting; only awk character classes keep [[:space:]]"}
+  - {item: 9, verdict: "pass", note: "no new function in the script; the new map_fixture helper in tests/scripts/term-list.sh has its usage line"}
+  - {item: "R1", verdict: "pass", note: "the new names (links, map_fixture, empty_path_err, misspelt_err) say what they hold"}
+  - {item: "R2", verdict: "fixed", note: "the bare `|| continue` guard is gone; term-list.sh:117 says why an empty map must stop"}
+  - {item: "R3", verdict: "pass", note: "the error messages name the map file, the ## Contexts heading or the context, so a user can find what to fix"}
+  - {item: "R4", verdict: "pass", note: "covered by the comment lint (check-comments.sh exit 0 on the changed files); no changed comment points at another document"}
+  - {item: "R5", verdict: "pass", note: "no shorthand in the new comments or messages"}
+  - {item: "comment-lint", verdict: "pass", note: "check-comments.sh over the diff and untracked files exited 0"}

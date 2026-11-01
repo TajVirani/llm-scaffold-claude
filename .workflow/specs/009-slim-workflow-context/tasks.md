@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Term-list script"
-    status: pending
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: []
     touches_core: false
@@ -19,7 +19,7 @@ tasks:
     pr: null
   - id: T2
     title: "Output style reads the term list"
-    status: pending
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: []
     touches_core: false
@@ -35,7 +35,7 @@ tasks:
     pr: null
   - id: T3
     title: "Workflow conventions file"
-    status: pending
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: []
     touches_core: false

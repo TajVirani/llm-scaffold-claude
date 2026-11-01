@@ -1,0 +1,39 @@
+status: "done"
+summary: "term-list.sh now prints one line per glossary entry with its _Avoid_ aliases (43 lines on this repo), from the root glossary or from every glossary a GLOSSARY-MAP.md links with each line labelled [<context>], and --define <term> prints exactly that whole entry, exiting 1 for an unknown term. Glossary and map paths come from the shared workflow-paths.sh helper. PROVENANCE.md has its own row for the script."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1"
+branch: "task/009-slim-workflow-context/T01-term-list-script"
+base_commit: "e05945165e2b3bf75d9aa1d7c200268caa844279"
+head_commit: "5e295665cd4c30300aaef63e65cbe26072b2db8f"
+files_changed: [".agents/skills/domain-modeling/scripts/term-list.sh", "PROVENANCE.md"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/term-list; FAIL one line per entry got=0 want=3 (passed=9 failed=13 on the stub)"
+  green: "tests/run-all.sh --suite scripts/term-list; PASS scripts/term-list passed=22 failed=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/009-slim-workflow-context --task-id T1 --cwd <worktree>; exit 0, test (scoped, own suite) TOTAL passed=22 failed=0"
+  toolchain: ".workflow/specs/009-slim-workflow-context/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Tests added to tests/scripts/term-list.sh: tests/ is a separate module and the Phase 1 suite is not to be edited; the uncovered paths (a map linking a missing glossary exits 2 with the context named; CRLF glossaries; no glossary at all prints nothing and --define exits 1) were checked by hand."
+  - "Case-insensitive --define matching: the task asks for exactly that entry, so the term is matched exactly."
+  - "A context label on --define output: not asked for; with a map, several matches are printed separated by a blank line."
+  - "Special handling of a ## Retired section: an entry is any **<term>**: line, so a retired one-line entry is listed by name and --define prints it, with no extra rule."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "fixed", note: "term-list.sh:28-29 sources .agents/lib/workflow-paths.sh and uses WF_GLOSSARY and WF_GLOSSARY_MAP (term-list.sh:114-125) instead of spelling the paths."}
+  - {item: 2, verdict: "not-applicable", note: "No hook changed."}
+  - {item: 3, verdict: "pass", note: "Usage, a failed helper load, an unreadable map or glossary and awk failure reach die (term-list.sh:29, 105-125, 137, 143); an unknown term prints its reason to stderr and exits 1 (term-list.sh:136)."}
+  - {item: 4, verdict: "pass", note: "The || die callers wrap a single awk call each (list_terms, map_contexts); define_entry's status is captured with || define_status=$? and routed by case."}
+  - {item: 5, verdict: "pass", note: "Exit 0/1/2 documented in # Exit: term-list.sh:17, same codes as the stub."}
+  - {item: 6, verdict: "pass", note: "The helper is resolved from BASH_SOURCE with cd -P (term-list.sh:29); run through the .claude/skills symlink it still loads."}
+  - {item: 7, verdict: "pass", note: "Helper header File/Purpose/Usage/Exit/Notes/Sources at term-list.sh:2-19, no decision id."}
+  - {item: 8, verdict: "pass", note: "Kebab-case name, set -euo pipefail at :21, [[ ]] throughout (the stub's [ ] test converted while rewriting it)."}
+  - {item: 9, verdict: "pass", note: "list_terms, define_entry and map_contexts each have a # name ARGS : line; the only shellcheck directive is a source= path hint."}
+  - {item: "R1", verdict: "pass", note: "Names say their role: list_terms, define_entry, map_contexts, print_entry, define_status, contexts, glossaries."}
+  - {item: "R2", verdict: "pass", note: "No workaround or trade-off a reader would undo remains."}
+  - {item: "R3", verdict: "pass", note: "The only body comment describes the parallel-list pairing the code cannot show (term-list.sh:111)."}
+  - {item: "R4", verdict: "pass", note: "tool-covered by check-comments.sh (lint exit 0); the header's ../assets/GLOSSARY-FORMAT.md is the format the script parses, allowed in a header."}
+  - {item: "R5", verdict: "pass", note: "Comments are plain sentences without project shorthand."}
+  - {item: "comment-lint", verdict: "pass", note: "check-comments.sh over term-list.sh and PROVENANCE.md exited 0."}

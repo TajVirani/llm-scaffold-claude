@@ -1,0 +1,65 @@
+verdict: "fail"
+task_id: "T1"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1@e05945165e2b3bf75d9aa1d7c200268caa844279..HEAD"
+tool_output: ".workflow/specs/009-slim-workflow-context/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:115,125 use $WF_GLOSSARY_MAP and $WF_GLOSSARY from .agents/lib/workflow-paths.sh:47-48; the script's only .workflow/ text is in its header at :9-10; the fixtures at tests/scripts/term-list.sh:146-166 spell paths, which fixtures may do"
+  - n: 2
+    verdict: "not-applicable"
+    location: "none; no hook is in the diff (it changes term-list.sh, its test and PROVENANCE.md)"
+  - n: 3
+    verdict: "fail"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:88, .agents/skills/domain-modeling/scripts/term-list.sh:121, .agents/skills/domain-modeling/scripts/term-list.sh:126"
+    note: "Two silent exits, so a session works from a partial or empty term list. (a) The link pattern at :88 needs one or more characters inside the parentheses, so the line '- [Billing]()' matches nothing and is skipped with no message; with a good link beside it, the map printed only '[Ordering] Order (avoid: Purchase)' and exited 0, though the Usage at :12 says a link with no path is an error. (b) The -r test at :121 and :126 is true for a folder, so the line '- [Ordering](./ordering/)' passes, awk reads the folder with no output, and the list exits 0 empty; --define Order then prints 'no glossary entry for Order' and exits 1, although ordering/GLOSSARY.md defines Order (probe in a scratch copy of HEAD). The Exit line at :17-18 makes an unreadable glossary exit 2. Fix: make the destination optional in the pattern at :88 so the die at :120 names the context, and test -f as well as -r at :121 and :126 so a folder dies with a message."
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:116 (links=$(map_contexts ...) || die), :120-121 (die inside the read loop), :135 (define_entry || define_status=$?, with status 2 handled at :140), :146 (list_terms || die); map_contexts (:84), list_terms (:33) and define_entry (:63) each run one awk call, so no check inside them is silent"
+  - n: 5
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:17-18 documents 0/1/2; exits at :27 (die, 2), :138 (0), :139 (1)"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:29-30 sources workflow-paths.sh through cd -P from BASH_SOURCE"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:2-20 has File, Purpose, Usage, Exit, Notes and Sources, the helper header shape of check-comments.sh; no decision or task id"
+  - n: 8
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:22 (set -euo pipefail); the bash tests stay [ ] as at base (base :23); the only double brackets are inside awk regexes at :54, :57, :77, :87, :90; tests/scripts/term-list.sh adds no [[ ]]"
+  - n: 9
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:32 (list_terms), :62 (define_entry), :83 (map_contexts) carry the name ARGS : line; tests/scripts/term-list.sh:146 (map_fixture) does too; the only shellcheck directive the diff adds is the source= hint at term-list.sh:29, which needs no reason"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:33 (list_terms), :63 (define_entry), :84 (map_contexts), :102 (define_term), :113-114 (contexts, glossaries); tests/scripts/term-list.sh:156-165 (EMPTY_PATH, MISSPELT, NO_HEADING, empty_path_err, misspelt_err)"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:117 gives the reason for the empty-map guard at :118; the guard at :120 needs no reason, because without it the die at :121 still stops the run, only with a worse message"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:112 and :117, and the function headers at :32, :62, :83, say what the code does not show; no comment restates the line below it"
+  - n: "R4"
+    verdict: "tool-covered"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:112, :117 and the function headers (body comments)"
+    note: "Covered by the lint key, .agents/skills/feature-workflow/scripts/check-comments.sh (toolchain.json lint key, exit 0); no body comment points at a document. The pointer to ../assets/GLOSSARY-FORMAT.md at term-list.sh:6 sits in the header, which readable-code.md:10 says R4 does not govern; see not_checked."
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:112, :117, :118, :120-121 and the header at :2-20 use plain words; the new messages name the file, the heading or the context, with no undefined shorthand"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh:47-48: WF_GLOSSARY and WF_GLOSSARY_MAP definitions, and the header's cd -P sourcing convention (items 1, 6)"
+  - ".agents/skills/domain-modeling/assets/GLOSSARY-FORMAT.md:55-81: the map shape, the '- [Context](path): description' bullets and how the skill reads a map (item 3, not_checked)"
+  - "git show e05945165e2b3bf75d9aa1d7c200268caa844279:.agents/skills/domain-modeling/scripts/term-list.sh: the base die and the [ ] test syntax at :23 (item 8)"
+  - "git show e05945165e2b3bf75d9aa1d7c200268caa844279:tests/scripts/term-list.sh:1-60: the base fixture helpers and header (item 9)"
+  - ".agents/skills/feature-workflow/scripts/check-comments.sh:1-80: the helper header shape and the lint's rules (items 7, R4)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: the rules, the Checking table and the header carve-out at :10 (R2 to R5)"
+  - ".workflow/specs/009-slim-workflow-context/artifacts/T1/mini-review-r1.yaml: the previous round, read for context only; the launch carried no re-check lines, so this is a full review and every item was judged fresh"
+  - "scratch copies of HEAD from git archive under mktemp -d: probes for item 3 (folder link, empty-paren link, bash 3.2 with no glossary), removed afterwards"
+not_checked:
+  - "The header pointer ../assets/GLOSSARY-FORMAT.md at term-list.sh:6: R4 is read as governing body comments only (readable-code.md:10); a stricter reading, which lets a header name only the paths the script reads or writes, would fail R4 here. Settled by the owner of readable-code.md."
+  - "A Contexts bullet that is not a link, such as '- Billing: ./ordering/GLOSSARY.md', is skipped with no message (probe: that map beside a good link printed only the Ordering term, exit 0). Whether that is an error depends on whether GLOSSARY-FORMAT.md allows non-link bullets under ## Contexts, which it does not say. Settled by the owner of GLOSSARY-FORMAT.md or a rule on the map shape."
+out_of_scope_noticed: []

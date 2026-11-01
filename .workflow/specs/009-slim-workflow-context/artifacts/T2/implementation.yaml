@@ -1,0 +1,31 @@
+status: "done"
+summary: "The Concise Technical output style no longer loads .workflow/GLOSSARY.md whole. Its vocabulary rule gives a self-contained awk command that prints one line per root-glossary entry with its _Avoid_ aliases (43 lines on this repo), plus a grep to read one entry only when its definition is needed. The add-a-missing-term rule is kept, and the style names no script and no .agents/skills/ path."
+task_id: "T2"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t2"
+branch: "task/009-slim-workflow-context/T02-output-style-term-list"
+base_commit: "e05945165e2b3bf75d9aa1d7c200268caa844279"
+head_commit: "361052c011670d654122e7fd2a9c8435dda7dff4"
+files_changed: [".agents/output-styles/concise-technical.md"]
+tests_added: []
+evidence:
+  red: "bash <scratchpad>/check-style-term-list.sh (extracts the fenced sh command from the style, runs it from the repo root, checks 43 lines, known literal lines 'Tier A (avoid: Docs, wiki)', 'Term list (avoid: Glossary index, term map (clash with the glossary map))', 'Size budget (avoid: Quota, cap)', no .agents/skills/ path, no .sh name, no 'load this into context'); before the edit: 'FAIL: no sh command in .agents/output-styles/concise-technical.md'"
+  green: "same check after the edit: 'PASS: 43 lines'. Edge: an entry with no _Avoid_ line followed by a heading prints the bare term ('NoAlias'), and '_Avoid_' inside a Relationships bullet is not matched."
+  suite: "bash $spec/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/009-slim-workflow-context --task-id T2 --cwd $PWD; lint pass, test pass (scoped: own 0, excluded 6), TOTAL passed=4254 failed=0 (69 suites)"
+  toolchain: ".workflow/specs/009-slim-workflow-context/artifacts/T2/toolchain.txt (pass)"
+considered_not_built:
+  - "A permanent suite under tests/ for the inline command: tests/ belongs to the test-harness work type and the task lists no Phase 1 tests, so the acceptance check ran as a disposable script outside the repo."
+  - "Glossary-map (multi-context) support in the inline command: the spec puts map support only in the domain-modeling term-list script; the style reads only the root glossary."
+  - "Listing ## Retired entries: their one-line form has text after the colon, so the command skips them, which keeps retired terms off the list of terms to use."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "not-applicable", note: "The diff changes no skill description; it edits only the body of an output style."}
+  - {item: 2, verdict: "not-applicable", note: "No agent added."}
+  - {item: "R1", verdict: "pass", note: "concise-technical.md:23 the awk helper is named flush and the variable term, each saying what it holds or does."}
+  - {item: "R2", verdict: "pass", note: "No workaround or trade-off in the diff needs a reason."}
+  - {item: "R3", verdict: "pass", note: "No comments added; the prose at :21 says what the command prints, which the reader of the style needs."}
+  - {item: "R4", verdict: "pass", note: "No comment names a decision, task or spec; .workflow/GLOSSARY.md is the file the command reads, not a cited document."}
+  - {item: "R5", verdict: "pass", note: "concise-technical.md:21-25 use plain words: term, aliases to avoid, entry, definition."}
+  - {item: "comment-lint", verdict: "pass", note: "check-comments.sh over the changed file exited 0 with no lines listed (it skips markdown)."}
