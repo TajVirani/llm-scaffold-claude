@@ -161,6 +161,13 @@ check "from the main checkout: 002 listed as running in its spec worktree" 'grep
 out=$(offer "$WA")
 check "from 001's spec worktree: 001 listed without a move, 002 with its worktree" \
   'grep -q "^- .workflow/specs/001-alpha: status draft" <<<"$out" && grep -q "^- .workflow/specs/002-beta (runs in $WB" <<<"$out"' "$out"
+# Without the hook (Codex), the router's own listing in Find the state must find both specs from a spec worktree too.
+LIST=$(awk '!armed && index($0, "**No hook offered one**") { armed = 1; next }
+  armed && !infence && /^[[:space:]]*```bash[[:space:]]*$/ { infence = 1; match($0, /^[[:space:]]*/); indent = RLENGTH; next }
+  infence && /^[[:space:]]*```[[:space:]]*$/ { exit } infence { print substr($0, indent + 1) }' "$P/.agents/skills/feature-workflow/SKILL.md")
+out=$(cd "$WA" && bash -c "$LIST" 2>/dev/null)
+check "the router's listing from 001's spec worktree names both specs" \
+  'grep -q "specs/001-alpha/spec.md" <<<"$out" && grep -q "specs/002-beta/spec.md" <<<"$out"' "$out"
 
 echo "== sign-off: the local merge from a spec worktree, then remove"
 out=$(SW remove .workflow/specs/002-beta 2>&1); rc=$?

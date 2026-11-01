@@ -27,10 +27,10 @@ Resolve which feature this request is about before doing anything else. Take the
 1. **The request names an initiative**: a `.workflow/initiatives/NNN-slug/` folder, its `initiative.md`, or an initiative the stakeholder clearly means; or the stakeholder picks an initiative from the resume offer. Load [large-path](modules/large-path.md) at 6.1, which switches to its branch and resumes it by status.
 2. **The request names a spec**: a `.workflow/specs/NNN-slug/` folder, its `spec.md`, or a feature the stakeholder clearly means. A finished spec may sit in the Done folder instead, `.workflow/specs/done/NNN-slug/`, once sign-off 5.8 has moved it there. Go to [Route by status](#3-route-by-status).
 3. **A session-start resume offer is in context** (from `hooks/session-start-resume.sh`) and the stakeholder picks a spec from it. Go to [Route by status](#3-route-by-status). If they pick a handoff from the offer instead, load the `handoff` skill and follow its Resume section.
-4. **No hook offered one** (Codex, or a session without the hook): list in-flight specs, and initiatives with their branches, yourself. The list leaves out the Done folder, which holds only finished specs. A spec past 1.1 (0.3.20 on the light path) lives in its spec worktree, so list those too.
+4. **No hook offered one** (Codex, or a session without the hook): list in-flight specs, and initiatives with their branches, yourself. The list leaves out the Done folder, which holds only finished specs. A spec past 1.1 (0.3.20 on the light path) lives in its spec worktree, so list those too. The list is read in the main checkout, where the spec worktrees sit, even from a session opened in a spec worktree.
 
    ```bash
-   for f in .workflow/specs/*/spec.md .workflow/.spec-worktrees/*/.workflow/specs/*/spec.md .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && printf '%s\t%s\n' "$f" "$(yq --front-matter=extract '.status' "$f")"; done
+   ( cd "$(git worktree list --porcelain | sed -n '1s/^worktree //p')" && for f in .workflow/specs/*/spec.md .workflow/.spec-worktrees/*/.workflow/specs/*/spec.md .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && printf '%s\t%s\n' "$f" "$(yq --front-matter=extract '.status' "$f")"; done )
    git for-each-ref --format='%(refname:short)' refs/heads/initiative refs/remotes/origin/initiative   # initiatives in exploration
    ```
 
