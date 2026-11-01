@@ -1,0 +1,169 @@
+== lint: tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage
+== lint/frontmatter
+
+== summary
+PASS lint/frontmatter                       passed=41   failed=0   skipped=0   xfail=0   2s
+TOTAL passed=41 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/step-list
+
+== summary
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   5s
+TOTAL passed=36 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/symlinks
+
+== summary
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   1s
+TOTAL passed=45 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/upstream-lineage
+
+== summary
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
+== lint exit 0
+
+== test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
+== scripts/budget-check
+== scripts/build-architecture
+== scripts/cache-bash-project
+== scripts/cache-boundary-check
+== scripts/cache-js-unchanged
+== scripts/cache-missing-extractor-key
+== scripts/cache-mixed-extractors
+== scripts/cache-repo-architecture
+== scripts/cache-scripts
+== scripts/check-comments
+== scripts/check-merge-artifacts
+== scripts/check-pr-body
+== scripts/check-review-findings
+== scripts/check-task-result
+== scripts/check-write-paths
+== scripts/check-write-tier-a
+== scripts/commit-workflow-data
+== scripts/extractor-bash
+== scripts/generate-boundary-config
+== scripts/generate-codex-agents
+== scripts/graph-extractor-selection
+== scripts/initiative-conversion
+== scripts/initiative-emission
+== scripts/initiative-merge
+== scripts/initiative-transition
+== scripts/install-claude-settings
+== scripts/install-codex-config
+== scripts/install-codex-tui
+== scripts/install-hosts
+== scripts/install-payload
+== scripts/install-upgrade
+== scripts/lib-test-paths
+== scripts/lib-workflow-paths
+== scripts/move-to-done
+== scripts/resolve-launch-initiative
+== scripts/resolve-launch
+== scripts/review-lessons
+== scripts/run-all-selection
+== scripts/run-toolchain
+== scripts/sign-off-pr
+== scripts/spec-worktree
+== scripts/status-transition-specs
+== scripts/status-transition-tasks
+== scripts/step-progress
+== scripts/task-breakdown
+== scripts/term-list
+== scripts/upstream-diff
+== hooks/audit-agent-worktrees
+== hooks/audit-sync-resume
+== hooks/block-destructive-git
+== hooks/codex-adapters
+== hooks/codex-pre-spawn-initiative
+== hooks/codex-shim
+== hooks/evidence-capture
+== hooks/initiative-write-guards
+== hooks/pre-launch
+== hooks/session-start-initiatives
+== hooks/worktree-guard
+== hooks/write-guards
+== lint/agent-worktree-docs
+== lint/comments
+== lint/done-folder-docs
+== lint/frontmatter
+== lint/install-matcher-docs
+== lint/md-links
+== lint/review-escalation-docs
+== lint/review-lessons
+== lint/step-list
+== lint/symlinks
+== lint/upstream-lineage
+
+== summary
+PASS scripts/budget-check                   passed=77   failed=0   skipped=0   xfail=0   23s
+PASS scripts/build-architecture             passed=87   failed=0   skipped=0   xfail=0   23s
+PASS scripts/cache-bash-project             passed=32   failed=0   skipped=0   xfail=0   6s
+PASS scripts/cache-boundary-check           passed=21   failed=0   skipped=0   xfail=0   9s
+PASS scripts/cache-js-unchanged             passed=13   failed=0   skipped=0   xfail=0   4s
+PASS scripts/cache-missing-extractor-key    passed=9    failed=0   skipped=0   xfail=0   3s
+PASS scripts/cache-mixed-extractors         passed=8    failed=0   skipped=0   xfail=0   4s
+PASS scripts/cache-repo-architecture        passed=6    failed=0   skipped=0   xfail=0   6s
+PASS scripts/cache-scripts                  passed=56   failed=0   skipped=0   xfail=0   24s
+PASS scripts/check-comments                 passed=30   failed=0   skipped=0   xfail=0   1s
+PASS scripts/check-merge-artifacts          passed=23   failed=0   skipped=0   xfail=0   8s
+PASS scripts/check-pr-body                  passed=47   failed=0   skipped=0   xfail=0   10s
+PASS scripts/check-review-findings          passed=134  failed=0   skipped=0   xfail=0   9s
+PASS scripts/check-task-result              passed=128  failed=0   skipped=0   xfail=0   17s
+PASS scripts/check-write-paths              passed=208  failed=0   skipped=0   xfail=0   65s
+PASS scripts/check-write-tier-a             passed=116  failed=0   skipped=0   xfail=0   46s
+PASS scripts/commit-workflow-data           passed=34   failed=0   skipped=0   xfail=0   7s
+PASS scripts/extractor-bash                 passed=54   failed=0   skipped=0   xfail=0   5s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   7s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   19s
+PASS scripts/graph-extractor-selection      passed=38   failed=0   skipped=0   xfail=0   11s
+PASS scripts/initiative-conversion          passed=28   failed=0   skipped=0   xfail=0   5s
+PASS scripts/initiative-emission            passed=22   failed=0   skipped=0   xfail=0   5s
+PASS scripts/initiative-merge               passed=63   failed=0   skipped=0   xfail=0   20s
+PASS scripts/initiative-transition          passed=80   failed=0   skipped=0   xfail=0   11s
+PASS scripts/install-claude-settings        passed=71   failed=0   skipped=0   xfail=0   61s
+PASS scripts/install-codex-config           passed=20   failed=0   skipped=0   xfail=0   34s
+PASS scripts/install-codex-tui              passed=8    failed=0   skipped=0   xfail=0   27s
+PASS scripts/install-hosts                  passed=17   failed=0   skipped=0   xfail=0   40s
+PASS scripts/install-payload                passed=56   failed=0   skipped=0   xfail=0   44s
+PASS scripts/install-upgrade                passed=125  failed=0   skipped=0   xfail=0   151s
+PASS scripts/lib-test-paths                 passed=47   failed=0   skipped=0   xfail=0   7s
+PASS scripts/lib-workflow-paths             passed=133  failed=0   skipped=0   xfail=0   4s
+PASS scripts/move-to-done                   passed=122  failed=0   skipped=0   xfail=0   75s
+PASS scripts/resolve-launch-initiative      passed=19   failed=0   skipped=0   xfail=0   4s
+PASS scripts/resolve-launch                 passed=99   failed=0   skipped=0   xfail=0   25s
+PASS scripts/review-lessons                 passed=43   failed=0   skipped=0   xfail=0   6s
+PASS scripts/run-all-selection              passed=66   failed=0   skipped=0   xfail=0   31s
+PASS scripts/run-toolchain                  passed=88   failed=0   skipped=0   xfail=0   38s
+PASS scripts/sign-off-pr                    passed=34   failed=0   skipped=0   xfail=0   5s
+PASS scripts/spec-worktree                  passed=66   failed=0   skipped=0   xfail=0   16s
+PASS scripts/status-transition-specs        passed=244  failed=0   skipped=0   xfail=0   36s
+PASS scripts/status-transition-tasks        passed=153  failed=0   skipped=0   xfail=0   37s
+PASS scripts/step-progress                  passed=76   failed=0   skipped=0   xfail=0   6s
+PASS scripts/task-breakdown                 passed=141  failed=0   skipped=0   xfail=0   26s
+PASS scripts/term-list                      passed=53   failed=0   skipped=0   xfail=0   10s
+PASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   5s
+PASS hooks/audit-agent-worktrees            passed=23   failed=0   skipped=0   xfail=0   5s
+PASS hooks/audit-sync-resume                passed=58   failed=0   skipped=0   xfail=0   66s
+PASS hooks/block-destructive-git            passed=144  failed=0   skipped=0   xfail=0   11s
+PASS hooks/codex-adapters                   passed=99   failed=0   skipped=0   xfail=0   41s
+PASS hooks/codex-pre-spawn-initiative       passed=17   failed=0   skipped=0   xfail=0   6s
+PASS hooks/codex-shim                       passed=38   failed=0   skipped=0   xfail=0   19s
+PASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   18s
+PASS hooks/initiative-write-guards          passed=21   failed=0   skipped=0   xfail=0   14s
+PASS hooks/pre-launch                       passed=20   failed=0   skipped=0   xfail=0   11s
+PASS hooks/session-start-initiatives        passed=30   failed=0   skipped=0   xfail=0   16s
+PASS hooks/worktree-guard                   passed=238  failed=0   skipped=0   xfail=0   96s
+PASS hooks/write-guards                     passed=101  failed=0   skipped=0   xfail=0   46s
+PASS lint/agent-worktree-docs               passed=37   failed=0   skipped=0   xfail=0   0s
+PASS lint/comments                          passed=2    failed=0   skipped=0   xfail=0   0s
+PASS lint/done-folder-docs                  passed=16   failed=0   skipped=0   xfail=0   0s
+PASS lint/frontmatter                       passed=41   failed=0   skipped=0   xfail=0   5s
+PASS lint/install-matcher-docs              passed=20   failed=0   skipped=0   xfail=0   1s
+PASS lint/md-links                          passed=6    failed=0   skipped=0   xfail=0   4s
+PASS lint/review-escalation-docs            passed=72   failed=0   skipped=0   xfail=0   4s
+PASS lint/review-lessons                    passed=33   failed=0   skipped=0   xfail=0   7s
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   13s
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   1s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   3s
+TOTAL passed=4307 failed=0 skipped=0 xfail=0 (70 suites)
+== test exit 0
+

@@ -51,7 +51,7 @@ tasks:
     pr: null
   - id: T4
     title: "Launching reference"
-    status: pending
+    status: done
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T1, T3]
     touches_core: false
