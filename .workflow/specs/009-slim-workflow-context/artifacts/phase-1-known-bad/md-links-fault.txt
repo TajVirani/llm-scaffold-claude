@@ -1,0 +1,29 @@
+fault: appended a link to a missing heading (../SKILL.md#no-such-heading) and one to a missing file (modules/no-such-file.md) to .agents/skills/feature-workflow/modules/sign-off.md in the scratch worktree
+command: tests/run-all.sh -v --suite lint/md-links
+== lint/md-links
+== the fixture: a missing heading and a missing file
+ok   the lint fails on the fixture
+ok   it names the link to the missing heading
+ok   it names the link to the missing file
+ok   it names nothing else (good anchors, external URLs, code spans and fences pass)
+== .agents/
+FAIL every relative link and anchor in the markdown under .agents/ resolves
+       got=1 want=0
+       skills/feature-workflow/modules/sign-off.md:259: ../SKILL.md#no-such-heading: no such heading
+       skills/feature-workflow/modules/sign-off.md:259: modules/no-such-file.md: no such file
+ok   shellcheck: md-links suite
+
+RESULT passed=5 failed=1 skipped=0 xfail=0
+
+== summary
+FAIL lint/md-links                          passed=5    failed=1   skipped=0   xfail=0   2s
+TOTAL passed=5 failed=1 skipped=0 xfail=0 (1 suites)
+FAILED suites: lint/md-links
+
+== failures
+-- lint/md-links
+FAIL every relative link and anchor in the markdown under .agents/ resolves
+       got=1 want=0
+       skills/feature-workflow/modules/sign-off.md:259: ../SKILL.md#no-such-heading: no such heading
+       skills/feature-workflow/modules/sign-off.md:259: modules/no-such-file.md: no such file
+exit 1

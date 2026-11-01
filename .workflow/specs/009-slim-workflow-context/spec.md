@@ -1,7 +1,7 @@
 ---
 status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
-baseline_revision: "" # full SHA of the commit the work starts from; "" until captured, then never overwritten
-spec_branch: "" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
+baseline_revision: "a29eca7c475544a99ccc9d986cde87e02f4f140d" # full SHA of the commit the work starts from; "" until captured, then never overwritten
+spec_branch: "spec/009-slim-workflow-context" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes
 followup_review_recommended: false # true when triage recommends another review pass after this one
@@ -52,7 +52,7 @@ A new feature starts with at most 45 KB of workflow text loaded and an implement
 
 ## Assumptions
 
-- New step-file names: `discovery.md` keeps the before-the-loop half and `discovery-impact.md` takes the after-the-loop half; the orchestrator becomes `implementation-setup.md` (3.1), `implementation-waves.md` (wave loop with 3.9 and 3.13, resume, rework), `implementation-shared-core.md` (3.2), `implementation-gates.md` (3.4–3.8 and result routing) and `implementation-finish.md` (3.10–3.11, 3.14, hand off); the conventions file is `references/conventions.md`.
+- New step-file names: `discovery.md` keeps the before-the-loop half and `discovery-impact.md` takes the after-the-loop half; the orchestrator becomes `implementation-setup.md` (3.1), `implementation-waves.md` (wave loop with 3.9 and 3.13, resume, rework), `implementation-shared-core.md` (3.2), `implementation-gates.md` (3.4–3.8 and result routing) and `implementation-finish.md` (3.10–3.11, 3.14, hand off); the conventions file is `references/conventions.md`. The term-list script is `.agents/skills/domain-modeling/scripts/term-list.sh`; the size-check suite is `tests/lint/workflow-load-size.sh` and prints one `<load point>: <n> bytes (limit <m>)` line per load point.
 - The size check's hook output comes from a fixture with one in-flight spec and no handoffs (D21); a busier repo loads a little more than the check counts.
 - The output style's inline term-list command reads only the root `.workflow/GLOSSARY.md`; map support lives in the script (D1, D12).
 - Rework from 4.7 routes to the waves step file, and an `in-progress` resume with `impl_base_revision` set loads the waves step file instead of setup (D13). So that behaviour stays the same, waves' On resume sends the session to the setup step file first when a task has a null `work_type`, and 3.13 looks up which suites exist itself.
