@@ -98,6 +98,7 @@ Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write to
 
 On the small path: write `report.md` as these five lines instead of the template, under the same evidence rules: run the harness through `run-toolchain.sh` as above and link every result.
 
+<!-- The block is indented so its "# Report" title is not read as a heading that ends this section. -->
   ```markdown
   # Report: <feature title>
 
