@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Suite: .agents/lib/workflow-paths.sh, the shared folder helpers wf_main_root and wf_norm_folder (JRN-006).
-# Covers: wf_main_root from the main checkout, a sub-folder, a worktree and a folder outside git; wf_norm_folder for each
+# Suite: .agents/lib/workflow-paths.sh, the shared folder helpers wf_main_root, wf_project_root and wf_norm_folder (JRN-006).
+# Covers: wf_main_root from the main checkout, a sub-folder, a worktree and a folder outside git; wf_project_root from the
+#   main checkout, a sub-folder, an agent worktree and an isolation worktree (the checkout they sit in), a spec worktree (itself),
+#   an agent worktree inside a spec worktree (the spec worktree), a plain folder or a separate repository whose path only looks
+#   like an agent worktree (their own top level) and a folder outside git (1, with a reason); WF_SPEC_WORKTREES; wf_norm_folder for each
 #   spec and initiative input form (relative, dot-relative with a trailing slash, absolute under the main checkout or a
 #   worktree, bare NNN-slug, absolute path elsewhere), a folder of the other kind, slugs the folder rule refuses, and an
 #   unknown kind; each refusal returns 1 with a reason naming the argument and prints no folder. The helpers run sourced
@@ -53,6 +56,31 @@ eq "JRN-006 wf_main_root from a sub-folder prints the main checkout root" \
 eq "JRN-006 wf_main_root from a worktree prints the main checkout root" "$(stdout_and_status wf_main_root "$FOLDER_WT")" "0|$FOLDER_REPO"
 eq "JRN-006 wf_main_root outside a git repository returns 1 and prints no root" \
   "$(stdout_and_status wf_main_root "$FOLDER_REPO-elsewhere")" "1|"
+
+echo "== wf_project_root"
+SPEC_WT=$FOLDER_REPO/.workflow/.spec-worktrees/002-beta
+git -C "$FOLDER_REPO" worktree add -q "$SPEC_WT" -b spec/002-beta
+git -C "$SPEC_WT" worktree add -q "$SPEC_WT/.workflow/.worktrees/s002_t1" -b task/002-beta/T01-x
+git -C "$FOLDER_REPO" worktree add -q "$FOLDER_REPO/.claude/worktrees/agent-1" -b iso-1
+mkdir -p "$FOLDER_REPO/.workflow/.worktrees/plain" "$WORK/lookalike/.workflow/.worktrees"
+git_init_repo "$WORK/lookalike/.workflow/.worktrees/solo"
+eq "WF_SPEC_WORKTREES is .workflow/.spec-worktrees" "$(bash -c '. "$1"; printf %s "$WF_SPEC_WORKTREES"' _ "$LIB")" ".workflow/.spec-worktrees"
+eq "wf_project_root from the main checkout prints its root" "$(stdout_and_status wf_project_root "$FOLDER_REPO")" "0|$FOLDER_REPO"
+eq "wf_project_root from a sub-folder prints the checkout root" "$(stdout_and_status wf_project_root "$FOLDER_REPO/sub/dir")" "0|$FOLDER_REPO"
+eq "wf_project_root from an agent worktree prints the checkout it sits in" "$(stdout_and_status wf_project_root "$FOLDER_WT")" "0|$FOLDER_REPO"
+eq "wf_project_root from an isolation worktree prints the checkout it sits in" \
+  "$(stdout_and_status wf_project_root "$FOLDER_REPO/.claude/worktrees/agent-1")" "0|$FOLDER_REPO"
+eq "wf_project_root from a spec worktree prints the spec worktree" "$(stdout_and_status wf_project_root "$SPEC_WT/.workflow")" "0|$SPEC_WT"
+eq "wf_project_root from an agent worktree inside a spec worktree prints the spec worktree" \
+  "$(stdout_and_status wf_project_root "$SPEC_WT/.workflow/.worktrees/s002_t1")" "0|$SPEC_WT"
+eq "wf_main_root from an agent worktree inside a spec worktree prints the main checkout" \
+  "$(stdout_and_status wf_main_root "$SPEC_WT/.workflow/.worktrees/s002_t1")" "0|$FOLDER_REPO"
+eq "wf_project_root from a plain folder named like an agent worktree prints the checkout root" \
+  "$(stdout_and_status wf_project_root "$FOLDER_REPO/.workflow/.worktrees/plain")" "0|$FOLDER_REPO"
+eq "wf_project_root from a repository whose path only looks like an agent worktree prints that repository" \
+  "$(stdout_and_status wf_project_root "$WORK/lookalike/.workflow/.worktrees/solo")" "0|$WORK/lookalike/.workflow/.worktrees/solo"
+eq "wf_project_root outside a git repository returns 1 and names the folder" \
+  "$(refusal wf_project_root "$FOLDER_REPO-elsewhere")" "1|not inside a git repository: $FOLDER_REPO-elsewhere"
 
 echo "== wf_norm_folder"
 for kind in spec initiative; do

@@ -3,7 +3,7 @@
 # Covers: command match (default prefix, argv-array command, profile e2e value, env prefix with E2E_INJECT_FAULT=1, --list excluded, run-toolchain.sh --e2e
 #   with --task-id / --spec-dir, run-toolchain.sh without --e2e), selection (failing and journey-tagged tests; passing untagged skipped),
 #   layout (JRN-### / untagged dirs, retry suffix, name clash counter, base64 bodies decoded, report copy, index JSON), profile
-#   e2e_report key, re-run into a task dir replaces earlier output, in-flight spec choice by latest .step, worktree cwd -> main checkout,
+#   e2e_report key, re-run into a task dir replaces earlier output, in-flight spec choice by latest .step, a scratch worktree cwd under .workflow/.worktrees/ -> the checkout it sits in,
 #   failure event (PostToolUseFailure payload: error, no tool_response; hookEventName echoed), silence (non-Bash, unrelated command, no .workflow/specs/), notices (missing / stale report, no in-flight spec), fail-safe exit 0, shellcheck.
 # shellcheck disable=SC2016,SC2329  # check expressions (and the helpers they call) are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -190,14 +190,17 @@ check "re-run replaces this hook's output, keeps toolchain.txt" '[ ! -e "$D/JRN-
 check "unexpanded --cwd ignored: payload cwd used" 'jq -e ".cwd == \"$P\"" "$D/evidence-index.json" >/dev/null'
 clean_art
 
-# --- worktree: report in the worktree, evidence in the main checkout ------------------------------------------------------------
-git -C "$P" worktree add -q --detach "$WORK/wt" HEAD
-write_report "$WORK/wt"
+# --- scratch worktree: report in the worktree, evidence in the checkout it sits in ------------------------------------------------------------
+# A scratch worktree (the 1.4 known-bad build) under the spec checkout's agent worktree folder, kept out of git as the install block does.
+echo '.workflow/.worktrees/' >> "$(git -C "$P" rev-parse --git-common-dir)/info/exclude"
+SCRATCH=$P/.workflow/.worktrees/scratch
+git -C "$P" worktree add -q --detach "$SCRATCH" HEAD
+write_report "$SCRATCH"
 mv "$P/test-results/e2e-results.json" "$WORK/main-report.json"
-hook 'npx playwright test' "$WORK/wt"
+hook 'npx playwright test' "$SCRATCH"
 D=$(art 002-live)
-check "worktree run: evidence in the main checkout" '[ -n "$D" ] && [ -f "$D/JRN-001/trace.zip" ] && [ ! -d "$WORK/wt/specs/002-live/artifacts" ]'
-check "worktree run: report read from the worktree" 'jq -e ".report_source == \"$WORK/wt/test-results/e2e-results.json\"" "$D/evidence-index.json" >/dev/null'
+check "worktree run: evidence in the checkout the scratch worktree sits in" '[ -n "$D" ] && [ -f "$D/JRN-001/trace.zip" ] && [ ! -d "$SCRATCH/.workflow/specs/002-live/artifacts" ]'
+check "worktree run: report read from the worktree" 'jq -e ".report_source == \"$SCRATCH/test-results/e2e-results.json\"" "$D/evidence-index.json" >/dev/null'
 clean_art
 mv "$WORK/main-report.json" "$P/test-results/e2e-results.json"
 

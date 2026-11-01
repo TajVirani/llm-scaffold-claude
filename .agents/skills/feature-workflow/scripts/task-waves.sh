@@ -8,7 +8,7 @@
 #   task-waves.sh --spec-dir .workflow/specs/NNN-slug [--cwd <dir>] [--json]
 #   task-waves.sh --tasks-file <path to tasks.md> [--json]
 #     --spec-dir    `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it); tasks.md is read from the
-#                   MAIN checkout, found with `git rev-parse --git-common-dir` from --cwd (default $PWD).
+#                   spec checkout, found with lib/workflow-paths.sh wf_project_root from --cwd (default $PWD).
 #     --tasks-file  read this file instead (no git needed); for drafts and tests.
 #     --json        print one JSON object instead of the text report (shape below).
 # Overlap rule (patterns compared after dropping a leading "./"; a pattern ending in "/" means "<dir>/**"). Two patterns overlap when some
@@ -76,7 +76,7 @@ yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefar
 
 if [[ -n "$SPEC_ARG" ]]; then
   [[ -d "$OPT_CWD" ]] || die "--cwd is not a directory: $OPT_CWD"
-  ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
+  ROOT=$(wf_project_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
   SPEC_DIR=$(wf_norm_folder spec "$SPEC_ARG" 2>/dev/null) || die "spec dir must be $WF_SPECS/NNN-slug: $SPEC_ARG"
   TASKS_FILE="$ROOT/$SPEC_DIR/tasks.md"
 fi

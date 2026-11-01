@@ -8,9 +8,9 @@
 #     --predicted 2.6: changed_files is the sum of the records' predicted `size.files` (tasks not split-out) instead of a git diff, so the
 #                 budget is checked before any code is written. Every counted record needs an integer size.files (exit 1).
 #     --spec-dir  `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it). spec.md and tasks.md are read
-#                 from the MAIN checkout, found with `git rev-parse --git-common-dir`, where the main session writes them.
-#     --cwd       where the changed files are counted (a task worktree or feature branch). Default: the main checkout's HEAD.
-#                 The main checkout is located from --cwd, or from $PWD when --cwd is absent.
+#                 from the spec checkout (lib/workflow-paths.sh wf_project_root), where the main session writes them.
+#     --cwd       where the changed files are counted (a task worktree or feature branch). Default: the spec checkout's HEAD.
+#                 The spec checkout is located from --cwd, or from $PWD when --cwd is absent.
 # Budget source, first found wins (each source must give both keys as non-negative integers, or the script exits 1):
 #   spec     spec.md frontmatter `budget: {max_tasks, max_changed_files}` (written at 2.5 / 0.3.20, raised at 00.29)
 #   rules    .workflow/rules.md: the first fenced yaml block under `## Size budget`, key `size_budget: {max_tasks, max_changed_files}`
@@ -46,7 +46,7 @@
 #   invalid main_branch).
 # Called by: modules task-breakdown (2.6) and implementation-orchestrator (3.15); discovered-work at 00.29 after an approved overrun.
 # Notes: Requires git, jq and mikefarah yq v4. bash 3.2 compatible. Reads main_branch through rules-setting.sh (same folder).
-# Sources: first-party; formats from project-setup/assets/docs/rules.md "Size budget"; feature-workflow/assets/spec.md `budget`. Main checkout, spec folder and test paths: .agents/lib/workflow-paths.sh and .agents/lib/test-paths.sh.
+# Sources: first-party; formats from project-setup/assets/docs/rules.md "Size budget"; feature-workflow/assets/spec.md `budget`. Spec checkout, spec folder and test paths: .agents/lib/workflow-paths.sh and .agents/lib/test-paths.sh.
 
 set -euo pipefail
 
@@ -127,15 +127,15 @@ command -v jq >/dev/null 2>&1 || die "jq not found on PATH"
 command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4 (the Python yq has different flags)"
 yq --version 2>/dev/null | grep -q 'mikefarah' || die "yq on PATH is not mikefarah yq v4 (the Python yq has different flags)"
 
-ROOT=$(wf_main_root "${OPT_CWD:-$PWD}" 2>/dev/null) || die "not inside a git repository: ${OPT_CWD:-$PWD}"
+ROOT=$(wf_project_root "${OPT_CWD:-$PWD}" 2>/dev/null) || die "not inside a git repository: ${OPT_CWD:-$PWD}"
 SPEC_DIR=$(wf_norm_folder spec "$SPEC_ARG" 2>/dev/null) || die "spec dir must be $WF_SPECS/NNN-slug: $SPEC_ARG"
 SPEC="$ROOT/$SPEC_DIR/spec.md"
 TASKS="$ROOT/$SPEC_DIR/tasks.md"
 RULES="$ROOT/$WF_RULES"
 COUNT_DIR=$ROOT
 [[ $HAVE_CWD -eq 0 ]] || COUNT_DIR=$(git -C "$OPT_CWD" rev-parse --show-toplevel 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
-[[ -f "$SPEC" ]] || die "spec.md not found in the main checkout: $SPEC"
-[[ -f "$TASKS" ]] || die "tasks.md not found in the main checkout: $TASKS"
+[[ -f "$SPEC" ]] || die "spec.md not found in the spec checkout: $SPEC"
+[[ -f "$TASKS" ]] || die "tasks.md not found in the spec checkout: $TASKS"
 
 # ---------------------------------------------------------------- budget
 SOURCE=default MAX_TASKS=$DEFAULT_MAX_TASKS MAX_FILES=$DEFAULT_MAX_CHANGED_FILES

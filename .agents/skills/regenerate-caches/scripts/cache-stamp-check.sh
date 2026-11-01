@@ -10,8 +10,8 @@
 #                      scope intersects an area (one path is the other, or a parent of it) are
 #                      checked for staleness. Without --area, every scope path counts.
 #     --cache-dir DIR  default: <root>/.workflow/cache
-#     --root DIR       repo root override. Default: the MAIN checkout, found through
-#                      `git rev-parse --git-common-dir`, even when run from a worktree. Caches
+#     --root DIR       repo root override. Default: the spec checkout (lib/workflow-paths.sh
+#                      wf_project_root), the one an agent worktree sits in when run from one. Caches
 #                      are read from, and HEAD is taken from, that checkout.
 #
 # Output (stdout, one JSON object):
@@ -33,10 +33,8 @@ set -euo pipefail
 # shellcheck source=../../../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
-resolve_root() { # main checkout: the parent of the common git dir, so worktrees share one root
-  local common
-  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
-  if [[ "$(basename "$common")" == ".git" ]]; then dirname "$common"; else git rev-parse --show-toplevel; fi
+resolve_root() { # the spec checkout: the checkout this runs in, or the one an agent worktree sits in, so agent worktrees share its root
+  wf_project_root "$PWD" 2>/dev/null
 }
 
 die() { echo "cache-stamp-check: $*" >&2; exit 2; }

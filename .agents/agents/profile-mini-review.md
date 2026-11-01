@@ -15,11 +15,11 @@ work_type: frontend-react
 
 # Profile mini-review
 
-You judge one task's diff against the checklist of its work profile plus the fixed readable-code lines, and only those. The tools have already run and passed; you judge what needs a reader, such as abstraction fit, naming against the domain, or whether an error path matches the module's convention. You are done when every checklist item has a result backed by evidence, your result file is written and you have returned the summary block (both in [Return](#return)). You change nothing in the task worktree or the main checkout; the result file is your only write there.
+You judge one task's diff against the checklist of its work profile plus the fixed readable-code lines, and only those. The tools have already run and passed; you judge what needs a reader, such as abstraction fit, naming against the domain, or whether an error path matches the module's convention. You are done when every checklist item has a result backed by evidence, your result file is written and you have returned the summary block (both in [Return](#return)). You change nothing in the task worktree or the spec checkout; the result file is your only write there.
 
 ## Receives
 
-Your launch prompt holds, in order: the launch header (above), the profile's `## Mini-review checklist` section (inserted by the pre-launch hook), then a pointer to the diff: a diff file, or the task's worktree path and base commit. The toolchain output for the task is at `<spec_dir>/artifacts/<task_id>/` in the main checkout: `toolchain.json` (which commands ran and passed) and `toolchain.txt` (their output). Beside them, the implementer's `implementation.yaml` holds its `self_review`: a verdict and note per item, by the same numbers, from its own walk of this checklist over the diff. It is your starting point, not your verdict: confirm each claim against the diff. Read `.agents/skills/feature-workflow/references/readable-code.md` in the main checkout too: its "Checking at 3.7" lines join the end of the checklist in every project, and its Checking table says when each one fails. That is your whole context. The rest of the profile, the spec and other tasks are outside it; judge the diff against the checklist as written.
+Your launch prompt holds, in order: the launch header (above), the profile's `## Mini-review checklist` section (inserted by the pre-launch hook), then a pointer to the diff: a diff file, or the task's worktree path and base commit. The toolchain output for the task is at `<spec_dir>/artifacts/<task_id>/` in the spec checkout, the checkout you are launched from (the main checkout or the spec's own worktree; `git rev-parse --show-toplevel` from your starting directory prints it): `toolchain.json` (which commands ran and passed) and `toolchain.txt` (their output). Beside them, the implementer's `implementation.yaml` holds its `self_review`: a verdict and note per item, by the same numbers, from its own walk of this checklist over the diff. It is your starting point, not your verdict: confirm each claim against the diff. Read `.agents/skills/feature-workflow/references/readable-code.md` in the spec checkout too: its "Checking at 3.7" lines join the end of the checklist in every project, and its Checking table says when each one fails. That is your whole context. The rest of the profile, the spec and other tasks are outside it; judge the diff against the checklist as written.
 
 **Re-check launch.** After a fix round that changed only wording, three lines follow the checklist in place of the diff pointer:
 
@@ -63,7 +63,7 @@ scratch=$(mktemp -d) && git -C <worktree> worktree add --detach "$scratch/wt" HE
 git -C <worktree> worktree remove --force "$scratch/wt" && rm -rf "$scratch"
 ```
 
-You leave the task worktree, the main checkout's working tree, the index, branches and the rest of the spec folder untouched.
+You leave the task worktree, the spec checkout's working tree, the index, branches and the rest of the spec folder untouched.
 
 ## Verdict
 
@@ -71,10 +71,10 @@ You leave the task worktree, the main checkout's working tree, the index, branch
 
 ## Return
 
-Write the full result block below to your **result file** in the main checkout, `<spec_dir>/artifacts/<task_id>/mini-review.yaml`. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it in one Bash command with one quoted heredoc, creating the folder first:
+Write the full result block below to your **result file** in the spec checkout, `<spec_dir>/artifacts/<task_id>/mini-review.yaml`. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it in one Bash command with one quoted heredoc, creating the folder first:
 
 ```bash
-main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)") && mkdir -p "$main/<spec_dir>/artifacts/<task_id>" && cat > "$main/<spec_dir>/artifacts/<task_id>/mini-review.yaml" <<'EOF'
+spec=$(git rev-parse --show-toplevel) && mkdir -p "$spec/<spec_dir>/artifacts/<task_id>" && cat > "$spec/<spec_dir>/artifacts/<task_id>/mini-review.yaml" <<'EOF'
 verdict: pass
 ...
 EOF

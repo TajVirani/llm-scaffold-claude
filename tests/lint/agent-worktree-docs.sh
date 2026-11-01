@@ -5,8 +5,9 @@
 #   fine) and no isolation fallback is left; Phase 1 and integration agent worktrees are created with
 #   `git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug`, their wf/ branch is merged with no
 #   isolation result branch (worktreeBranch) to read, and worktree and branch are removed after the merge; check-merge-artifacts.sh
-#   runs before each merge site (1.2 and 1.3, 3.2 integration, 3.16 task, light-path fast-forward) with --rev and is never piped;
-#   both agent briefs write their result file to an absolute main-checkout path. JRN-009: assetlist.md gives the stop audit's
+#   runs before each merge site (1.2 and 1.3, 3.2 integration, 3.16 task) with --rev and is never piped; the light path makes no
+#   detached task worktree and no fast-forward merge (its task branch merges --no-ff like any other);
+#   both agent briefs write their result file to an absolute spec-checkout path. JRN-009: assetlist.md gives the stop audit's
 #   matcher as implementation|integration, says "agent worktree" in the worktree-write-guard row, says in item 6 of the task-breakdown decision that
 #   Phase 1 builds and integration batches run in agent worktrees the orchestrator creates, with no isolation relaunch
 #   fallback, and carries no "Amended by spec" note on these three. The checks match the design's intent, not exact prose.
@@ -105,25 +106,27 @@ echo "== artifacts gate before each merge (JRN-008)"
 check "JRN-008 the gate runs before the 1.2 and 1.3 merge" 'gate_before_site "$VS" "git merge --no-ff"'
 check "JRN-008 the gate runs before the 3.2 integration merge" 'gate_before_site "$IO" "Merge integration-"'
 check "JRN-008 the gate runs before the 3.16 task merge" 'gate_before_site "$IO" "git merge --no-ff -m \"Merge T"'
-check "JRN-008 the gate runs before the light-path fast-forward" 'gate_before_site "$IO" "git merge --ff-only"'
+check "the light path has no detached task worktree" '[ -z "$(lines "$IO" "git worktree add --detach")" ]' "$(lines "$IO" "git worktree add --detach")"
+check "the light path merges no task by fast-forward" '[ -z "$(lines "$IO" "--ff-only")" ]' "$(lines "$IO" "--ff-only")"
 calls=$(cat "$VS" "$IO" | grep 'check-merge-artifacts\.sh' || true)
 check "JRN-008 every gate call passes --rev" '[ -n "$calls" ] && ! grep -v -- "--rev" <<<"$calls" | grep -q .' "$calls"
 check "JRN-008 no gate call is piped into another command" '[ -n "$calls" ] && ! grep -qE "check-merge-artifacts\.sh[^|]*\|[^|]" <<<"$calls"' "$calls"
 
-echo "== briefs write the result file to an absolute main-checkout path (JRN-008)"
-# main_checkout_path PATH : true when PATH starts at the main checkout as an absolute path or a placeholder naming it.
+echo "== briefs write the result file to an absolute spec-checkout path (JRN-008)"
+# spec_checkout_path PATH : true when PATH starts at the spec checkout (the main checkout or a spec worktree) as an absolute path
+#   or a placeholder naming it.
 # shellcheck disable=SC2329  # called from the eval'd check strings below
-main_checkout_path() {
+spec_checkout_path() {
   case "$1" in
     /*) return 0 ;;
-    \<*main*\>/* | \<*Main*\>/*) return 0 ;;
+    \<*main*\>/* | \<*Main*\>/* | \<*"spec checkout"*\>/* | \<*"Spec checkout"*\>/*) return 0 ;;
     *) return 1 ;;
   esac
 }
 for pair in "$IMPL|implementation.yaml" "$INTEG|integration.yaml"; do
   doc=${pair%|*} file=${pair#*|}
   target=$(brief_result_target "$(brief_result_command "$doc" "$file")")
-  check "JRN-008 ${doc##*/} writes $file to an absolute main-checkout path" 'main_checkout_path "$target"' "target: ${target:-none found}"
+  check "JRN-008 ${doc##*/} writes $file to an absolute spec-checkout path" 'spec_checkout_path "$target"' "target: ${target:-none found}"
 done
 
 echo "== assetlist.md describes the agent worktree guard as built (JRN-009)"

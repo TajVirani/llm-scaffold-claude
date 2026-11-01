@@ -11,11 +11,11 @@
 # CLI: run-toolchain.sh --spec-dir <.workflow/specs/NNN-slug> --task-id <id> [--cwd <dir>] [--work-type <name> | --profile <path>]
 #                       [--e2e] [--skip <key>]... [--exclude-unfinished] [--reuse | --reuse-check] [--tail <N>] [-h]
 #      run-toolchain.sh --tree-hash [--cwd <dir>]
-#   --spec-dir   feature directory; relative paths resolve against the main checkout. Required (not with --tree-hash).
+#   --spec-dir   feature directory; relative paths resolve against the spec checkout (lib/workflow-paths.sh wf_project_root of --cwd). Required (not with --tree-hash).
 #   --task-id    task id (T1, ...); names the evidence directory. Required (not with --tree-hash).
 #   --cwd        directory the commands run in (the task worktree); default: current directory. Must be inside a git repository.
 #   --work-type  profile name. Without it and without --profile, work_type is read from <spec-dir>/tasks.md for the task id.
-#   --profile    explicit profile path (overrides --work-type). Otherwise .workflow/profiles/<work-type>.md is looked up in --cwd, then the main checkout.
+#   --profile    explicit profile path (overrides --work-type). Otherwise .workflow/profiles/<work-type>.md is looked up in --cwd, then the spec checkout.
 #   --e2e        also run the e2e key (last, after the other five). Without it e2e is skipped: 3.5 does not run the browser suite, evidence-capture does (3.10).
 #   --skip       skip one command key (repeatable; valid: lint, typecheck, format, boundary, test, e2e; anything else exits 2). The key appears in
 #                results as status skipped, reason "skipped by caller". Used for Phase 1 stop audits, which skip `test` because new tests are red by design.
@@ -60,7 +60,7 @@
 #   `test` is the harness command that 3.5 runs and the 3.9 gate reuses.
 #   Empty or absent keys are skipped. All commands run even after a failure so one block reply lists every failure. Other keys are ignored,
 #   (test_scoped only replaces test, see Test scoping), including the non-command keys `serve` and `serve_ready` (review-targets uses them at 4.3) and `config` / `rule_set`: never run.
-# Evidence (main checkout, never the worktree, so it survives worktree removal): <spec-dir>/artifacts/<task-id>/toolchain.txt (combined output, one section per key),
+# Evidence (spec checkout, never the agent worktree, so it survives worktree removal): <spec-dir>/artifacts/<task-id>/toolchain.txt (combined output, one section per key),
 #   toolchain.json (the summary below) and toolchain-digest.txt (failure digest; present only on failure).
 # stdout: one JSON object {status: pass|fail, task_id, work_type, profile, cwd, evidence_dir, tree, ran, results:[{key, command, status: pass|fail|skipped|unscoped, exit_code, reason?, scoped?, own?, excluded?}], digest, warnings?, reused_from?}.
 #   digest is "" on pass; on failure it is bounded text suitable as a SubagentStop block reason. The digest is also printed to stderr on failure.
@@ -149,13 +149,12 @@ command -v jq >/dev/null 2>&1 || die "jq not found"
 command -v yq >/dev/null 2>&1 || die "yq not found (mikefarah yq v4 required)"
 yq --version 2>&1 | grep -q 'mikefarah' || die "yq is not mikefarah yq v4"
 
-# Main checkout: gitignored state and evidence live there, not in a worktree.
-common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || die "--cwd is not inside a git repository: $cwd"
-main_root=$(dirname "$common")
+# Spec checkout: gitignored state and evidence live there, not in the agent worktree the commands run in.
+spec_root=$(wf_project_root "$cwd" 2>/dev/null) || die "--cwd is not inside a git repository: $cwd"
 
 case "$spec_dir" in
   /*) spec_abs=$spec_dir ;;
-  *) spec_abs=$main_root/$spec_dir ;;
+  *) spec_abs=$spec_root/$spec_dir ;;
 esac
 
 # Profile resolution.
@@ -168,10 +167,10 @@ if [ -z "$profile" ]; then
       || die "cannot read tasks.md frontmatter: $tasks_file"
     [ -n "$work_type" ] || die "task $task_id has no work_type in $tasks_file (or the task does not exist)"
   fi
-  for d in "$cwd/$WF_PROFILES" "$main_root/$WF_PROFILES"; do
+  for d in "$cwd/$WF_PROFILES" "$spec_root/$WF_PROFILES"; do
     if [ -f "$d/$work_type.md" ]; then profile=$d/$work_type.md; break; fi
   done
-  [ -n "$profile" ] || die "profile not found: $WF_PROFILES/$work_type.md (looked in $cwd and $main_root)"
+  [ -n "$profile" ] || die "profile not found: $WF_PROFILES/$work_type.md (looked in $cwd and $spec_root)"
 fi
 [ -f "$profile" ] || die "profile not found: $profile"
 [ -n "$work_type" ] || work_type=$(basename "$profile" .md)

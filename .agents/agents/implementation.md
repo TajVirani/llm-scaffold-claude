@@ -23,11 +23,11 @@ Your launch prompt holds, in order: the launch header (above), the whole work pr
 
 **The profile is your operating instructions.** Put files where its File locations section says, use only the libraries its Approved libraries section names, and follow its Language and style rules. When the profile settles a question, you follow it; when it is silent, follow the established pattern of your module.
 
-**Write readable code.** Before writing code, read `<main checkout>/.agents/skills/feature-workflow/references/readable-code.md` (the main checkout is `dirname "$(git rev-parse --path-format=absolute --git-common-dir)"`). Follow it in every project, with the profile adding to it: names say what each thing is for, a comment gives only the why the code cannot, and a comment never cites a decision record or document. 3.7 and 4.1 check it.
+**Write readable code.** Before writing code, read `<spec checkout>/.agents/skills/feature-workflow/references/readable-code.md` (`<spec checkout>` is the checkout your worktree sits in, the main checkout or the spec's own worktree: your worktree path without its last three parts (`/.workflow/.worktrees/<name>`), which `cd <worktree path>/../../.. && pwd -P` prints). Follow it in every project, with the profile adding to it: names say what each thing is for, a comment gives only the why the code cannot, and a comment never cites a decision record or document. 3.7 and 4.1 check it.
 
 ## Setup
 
-1. **Confirm the worktree.** Your worktree is the absolute path the brief names: `.workflow/.worktrees/s<NNN>_t<N>` in the main checkout for a Phase 3 task, `.workflow/.worktrees/s<NNN>_phase_1_<enc(work_type)>` in Phase 1. Your working directory may not be it, and it may reset between Bash calls, so start every Bash command with `cd <worktree path> && ` and give every Read, Edit and Write an absolute path inside the worktree; the main checkout and other tasks' worktrees are outside your task, and the worktree guard denies file-tool writes there. Run the checks there: `cd <worktree path> && git rev-parse --git-dir --git-common-dir` prints two different paths, and `cd <worktree path> && git branch --show-current` prints the record's `branch` (`task/NNN-slug/T<nn>-<slug>`; on the light path, `branch: null`, it prints nothing, a detached worktree; Phase 1 has no task branch, so any branch passes). Otherwise return `blocked` with reason "not launched in the task worktree". Record the base commit: `cd <worktree path> && git rev-parse HEAD`.
+1. **Confirm the worktree.** Your worktree is the absolute path the brief names: `.workflow/.worktrees/s<NNN>_t<N>` in the spec checkout for a Phase 3 task, `.workflow/.worktrees/s<NNN>_phase_1_<enc(work_type)>` in Phase 1. Your working directory may not be it, and it may reset between Bash calls, so start every Bash command with `cd <worktree path> && ` and give every Read, Edit and Write an absolute path inside the worktree; the spec checkout and other tasks' worktrees are outside your task, and the worktree guard denies file-tool writes there. Run the checks there: `cd <worktree path> && git rev-parse --git-dir --git-common-dir` prints two different paths, and `cd <worktree path> && git branch --show-current` prints the record's `branch` (`task/NNN-slug/T<nn>-<slug>`, on the light path too; Phase 1 has no task branch, so any branch passes). Otherwise return `blocked` with reason "not launched in the task worktree". Record the base commit: `cd <worktree path> && git rev-parse HEAD`.
 2. **Read the task file**, then **the module.** Read the code at the seams you were given and its existing tests, enough to see the module's patterns for naming, errors and test layout. Read `.workflow/GLOSSARY.md` if it exists, so test names and identifiers use the project's terms.
 3. **List the seams.** Write down each seam under test from the task and, for each, the behaviours the acceptance criteria demand. A behaviour with no agreed seam to test it at is a `blocked` result (reason: "no agreed seam for <behaviour>"); a test at an unagreed seam is outside the task.
 
@@ -71,22 +71,22 @@ Run the type checker and the single test file you are working on regularly. The 
 2. **Run the comment lint** over every file your diff adds or changes; it reads the shell files among them and skips the rest:
 
    ```bash
-   cd <worktree path> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
-   { git diff -z --name-only --diff-filter=d <base>; git ls-files -z -o --exclude-standard; } | xargs -0 bash "$main/.agents/skills/feature-workflow/scripts/check-comments.sh"
+   cd <worktree path> && spec=$(cd ../../.. && pwd -P)
+   { git diff -z --name-only --diff-filter=d <base>; git ls-files -z -o --exclude-standard; } | xargs -0 bash "$spec/.agents/skills/feature-workflow/scripts/check-comments.sh"
    ```
 
    Exit 1 prints one line per comment that names a decision, journey or task id or a `.workflow/` path. Rewrite each comment you added or changed as the reason in plain words, or delete it, and run the lint again until none of your lines is listed. A listed line you did not touch stays as it is; say so in the `comment-lint` note.
 3. **Walk the checklists.** Take the profile's `## Mini-review checklist` (in your prompt), numbered `1`, `2`, … in its order, then the readable-code lines `R1` to `R5` (the "Checking at 3.7" lines of `readable-code.md`, judged as its Checking table says). Judge each against your diff, one at a time, the way the mini-review (3.7) will, and fix every item that fails.
 4. **Record the self-review.** Your result file carries it as `self_review`: one entry per checklist line, one per readable-code line and one for the comment lint (`item: comment-lint`), each with a verdict (`pass`, `fixed` when it failed and you fixed it, `not-applicable` when the diff has no code it applies to) and a one-line `note`: where it holds, or for `fixed` what you changed and where. The mini-review starts from this list and checks each claim against the diff.
-5. **Run the toolchain yourself (3.5)**, after the self-review and the clean-up, as the last change to the tree. From the worktree root, in one Bash command (the script lives in the main checkout):
+5. **Run the toolchain yourself (3.5)**, after the self-review and the clean-up, as the last change to the tree. From the worktree root, in one Bash command (the script lives in the spec checkout):
 
    ```bash
-   cd <worktree path> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
-   bash "$main/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --task-id <task_id> --cwd "$PWD"
+   cd <worktree path> && spec=$(cd ../../.. && pwd -P)
+   bash "$spec/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --task-id <task_id> --cwd "$PWD"
    # Phase 1: --task-id phase-1-<work_type> --work-type <work_type> --skip test
    ```
 
-   It runs the profile's `lint`, `typecheck`, `format`, `boundary` and `test` commands and saves the output under `<spec_dir>/artifacts/<task id>/` in the main checkout. Fix every failure it names, then run it again until it exits 0.
+   It runs the profile's `lint`, `typecheck`, `format`, `boundary` and `test` commands and saves the output under `<spec_dir>/artifacts/<task id>/` in the spec checkout. Fix every failure it names, then run it again until it exits 0.
 6. **Commit** on your task branch (Phase 1: your worktree branch), with a message naming the task id in its body. Commit subjects are Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`), never a bare task id such as `T9:`. The orchestrator merges your branch into the spec branch between waves and opens any PR/MR; leave merging, rebasing and pushing to it.
 7. **Write the result file, then return the summary block**, as [Return](#return) says. Do this every time you stop, a stop after a resume included.
 
@@ -98,10 +98,10 @@ A header with `work_type` and no `task_id` is a Phase 1 launch under a test prof
 
 ## Return
 
-Write the full result block below to your **result file** in the main checkout: `<main checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml`, where `<task_id>` is `phase-1-<work_type>` in Phase 1. `<main checkout>` is the main checkout's absolute path, which `cd <worktree path> && dirname "$(git rev-parse --path-format=absolute --git-common-dir)"` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commit, in one Bash command with one quoted heredoc, creating the folder first:
+Write the full result block below to your **result file** in the spec checkout: `<spec checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml`, where `<task_id>` is `phase-1-<work_type>` in Phase 1. `<spec checkout>` is that checkout's absolute path, which `cd <worktree path>/../../.. && pwd -P` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commit, in one Bash command with one quoted heredoc, creating the folder first:
 
 ```bash
-cd <worktree path> && mkdir -p "<main checkout>/<spec_dir>/artifacts/<task_id>" && cat > "<main checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml" <<'EOF'
+cd <worktree path> && mkdir -p "<spec checkout>/<spec_dir>/artifacts/<task_id>" && cat > "<spec checkout>/<spec_dir>/artifacts/<task_id>/implementation.yaml" <<'EOF'
 status: done
 ...
 EOF

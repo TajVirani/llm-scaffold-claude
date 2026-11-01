@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 # File: Hook (Claude and Codex adapter): offer to resume in-flight work.
 # Goals:
-#   - If .workflow/specs/ exists, scan .workflow/specs/*/spec.md frontmatter for features that are not done (spec.md frontmatter is the only status record)
+#   - Scan .workflow/specs/*/spec.md frontmatter for features that are not done (spec.md frontmatter is the only status record), in every
+#     checkout a spec can run in: the session's own, each worktree on a spec/* branch (the spec worktrees) and the main checkout
 #   - List the initiatives still to resume (large-path subjects that plan several specs), from the working tree or their initiative/* branch
 #   - Offer to resume at the recorded step via feature-workflow
 #   - List session handoffs in .workflow/.handoff/*.md (written by the handoff skill) so a fresh session can pick one up
 # Triggers/inputs: SessionStart JSON on stdin (any `source`: startup, resume, clear, compact; all get the offer, since a cleared or compacted
-#   context has lost it). Paths from the payload `cwd`, normalised to the main checkout (git rev-parse --git-common-dir), where .workflow/specs/
-#   and the gitignored .step markers live.
+#   context has lost it). Paths from the payload `cwd`. Specs and their gitignored .step markers are read in
+#   each checkout above (lib/workflow-paths.sh wf_project_root for the session's own; `git worktree list` for the rest); the backlog,
+#   initiatives and handoffs in the main checkout (wf_main_root).
 # Behaviour:
 #   - No spec.md with a status other than `done`, no initiative to resume, no open backlog item and no session handoff: exit 0, no output.
-#   - Each non-done spec (draft, ready-for-dev, in-progress, in-review, blocked; sorted by folder name) is listed with its status,
+#   - Each non-done spec (draft, ready-for-dev, in-progress, in-review, blocked; sorted by folder name within each checkout, the session's
+#     checkout first, then the spec worktrees, then the main checkout; a folder name already listed from an earlier checkout is skipped)
+#     is listed with its status, "runs in <checkout>" when that is not the session's checkout,
 #     blocked_condition (while blocked), and the current step from .workflow/specs/NNN-slug/.step (step, updated_at, blocked_from), "no .step marker"
 #     when the file is absent, or "step marker unreadable" when it exists and cannot be parsed.
 #     A spec.md whose frontmatter cannot be read is listed as unreadable rather than skipped.
@@ -55,12 +59,30 @@ payload=$(cat)
 cwd=$(jq -r 'if type == "object" then .cwd // "" | strings else "" end' <<<"$payload" 2>/dev/null || true)
 [ -n "$cwd" ] && [ -d "$cwd" ] || cwd=${CLAUDE_PROJECT_DIR:-$PWD}
 root=$(cd "$cwd" && pwd)
-if common=$(git -C "$root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
-  root=$(dirname "$common")
-fi
+here=$root
+if main=$(wf_main_root "$root" 2>/dev/null); then root=$main; fi
+if spec_root=$(wf_project_root "$here" 2>/dev/null); then here=$spec_root; fi
 
 shopt -s nullglob
-specs=("$root/$WF_SPECS"/*/spec.md)
+# Specs run in their own worktrees, so each checkout that can hold one is scanned: this session's, then every worktree on a spec
+#   branch, then the main checkout. A spec folder seen in an earlier checkout is not listed again.
+checkouts=$( {
+  printf '%s\n' "$here"
+  { git -C "$root" worktree list --porcelain 2>/dev/null || true; } |
+    awk '/^worktree /{ wt = substr($0, 10) } /^branch refs\/heads\/spec\//{ print wt }'
+  printf '%s\n' "$root"
+} | awk '!seen[$0]++')
+specs=()
+seen_specs=" "
+while IFS= read -r checkout; do
+  [ -n "$checkout" ] || continue
+  for spec in "$checkout/$WF_SPECS"/*/spec.md; do
+    name=$(basename "$(dirname "$spec")")
+    case "$seen_specs" in *" $name "*) continue ;; esac
+    seen_specs+="$name "
+    specs+=("$spec")
+  done
+done <<<"$checkouts"
 backlog=("$root/$WF_WORK_BACKLOG"/*.md)
 handoffs=("$root/$WF_HANDOFF"/*.md)
 
@@ -213,6 +235,9 @@ for spec in ${specs[@]+"${specs[@]}"}; do
   [ "$(raw_status "$spec")" != "done" ] || continue
   dir=$(dirname "$spec")
   slug=$WF_SPECS/$(basename "$dir")
+  checkout=${dir%/"$slug"}
+  where=""
+  [ "$checkout" = "$here" ] || where=" (runs in $checkout; continue the session there)"
   # Past the character cap or the time budget (the hook timeout is 10 s): count, do not list.
   if [ "${#list}" -ge "$LIMIT" ] || [ "$SECONDS" -ge "$TIME_BUDGET" ]; then
     omitted=$((omitted + 1))
@@ -220,12 +245,12 @@ for spec in ${specs[@]+"${specs[@]}"}; do
   fi
   if ! fm=$(yq --front-matter=extract -o=json -I=0 '[.status, .blocked_condition]' "$spec" 2>/dev/null | lines) \
     || [ -z "$fm" ]; then
-    entry="- $slug: spec.md frontmatter unreadable; open it to check its status."
+    entry="- $slug$where: spec.md frontmatter unreadable; open it to check its status."
   else
     { IFS= read -r status; IFS= read -r bc; } <<<"$fm" || true
     if [ "$status" = "done" ]; then continue; fi
     [ -n "$status" ] || status="(none)"
-    entry="- $slug: status $status; $(step_text "$dir/.step")"
+    entry="- $slug$where: status $status; $(step_text "$dir/.step")"
     case "$bc" in
       "discovered work:"* | "size budget:"*) entry+="; discovered-work prompt pending (the user has not yet answered it)" ;;
     esac
@@ -289,7 +314,7 @@ if [ $((listed + omitted + i_n)) -eq 0 ]; then
   exit 0
 fi
 if [ $((listed + omitted)) -gt 0 ]; then
-  text+="Offer the user to resume one of these. To resume, load the feature-workflow skill for that spec: it reads the spec.md status and loads the module for that phase, continuing from the current step. A blocked spec needs its blocked_condition resolved by a human first; for a discovered work or size budget condition, the pending prompt is answered in the feature-workflow discovered-work module."
+  text+="Offer the user to resume one of these. To resume, load the feature-workflow skill for that spec: it reads the spec.md status and loads the module for that phase, continuing from the current step. A spec that runs in another checkout is resumed there: move the session into that checkout first (on Claude Code, the EnterWorktree tool with its path; elsewhere, reopen the session in it). A blocked spec needs its blocked_condition resolved by a human first; for a discovered work or size budget condition, the pending prompt is answered in the feature-workflow discovered-work module."
   [ "$i_n" -eq 0 ] || text+=" $INITIATIVE_RESUME"
 else
   text+="Offer the user to resume one of these. $INITIATIVE_RESUME"

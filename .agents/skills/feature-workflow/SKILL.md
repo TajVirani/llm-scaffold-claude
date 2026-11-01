@@ -27,10 +27,10 @@ Resolve which feature this request is about before doing anything else. Take the
 1. **The request names an initiative**: a `.workflow/initiatives/NNN-slug/` folder, its `initiative.md`, or an initiative the stakeholder clearly means; or the stakeholder picks an initiative from the resume offer. Load [large-path](modules/large-path.md) at 6.1, which switches to its branch and resumes it by status.
 2. **The request names a spec**: a `.workflow/specs/NNN-slug/` folder, its `spec.md`, or a feature the stakeholder clearly means. A finished spec may sit in the Done folder instead, `.workflow/specs/done/NNN-slug/`, once sign-off 5.8 has moved it there. Go to [Route by status](#3-route-by-status).
 3. **A session-start resume offer is in context** (from `hooks/session-start-resume.sh`) and the stakeholder picks a spec from it. Go to [Route by status](#3-route-by-status). If they pick a handoff from the offer instead, load the `handoff` skill and follow its Resume section.
-4. **No hook offered one** (Codex, or a session without the hook): list in-flight specs, and initiatives with their branches, yourself. The list leaves out the Done folder, which holds only finished specs.
+4. **No hook offered one** (Codex, or a session without the hook): list in-flight specs, and initiatives with their branches, yourself. The list leaves out the Done folder, which holds only finished specs. A spec past 1.1 (0.3.20 on the light path) lives in its spec worktree, so list those too.
 
    ```bash
-   for f in .workflow/specs/*/spec.md .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && printf '%s\t%s\n' "$f" "$(yq --front-matter=extract '.status' "$f")"; done
+   for f in .workflow/specs/*/spec.md .workflow/.spec-worktrees/*/.workflow/specs/*/spec.md .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && printf '%s\t%s\n' "$f" "$(yq --front-matter=extract '.status' "$f")"; done
    git for-each-ref --format='%(refname:short)' refs/heads/initiative refs/remotes/origin/initiative   # initiatives in exploration
    ```
 
@@ -68,9 +68,11 @@ Light versus full path is decided later, at 0.3.20, once the questioning loop ha
 
 Read the spec's frontmatter and step marker, then load the module the table names.
 
+**Work in the spec checkout.** From 1.1 (0.3.20 on the light path) a spec runs in its spec worktree, `.workflow/.spec-worktrees/NNN-slug` inside the main checkout, on its spec branch; its `.step`, `artifacts/` and agent worktrees live there. A spec started before spec worktrees existed runs in the main checkout on its spec branch. When the session is elsewhere, move it in before reading anything: on Claude Code, call the `EnterWorktree` tool with the worktree's absolute path; on other hosts, ask the stakeholder to reopen the session in that folder (write a handoff first if the session holds context worth keeping). Every module's commands then run from there.
+
 ```bash
 yq --front-matter=extract '.status, .light_path, .small_path // false, .blocked_condition // ""' .workflow/specs/NNN-slug/spec.md
-cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_from (gitignored; main checkout only)
+cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_from (gitignored; in the spec checkout only)
 ```
 
 | Status | `.step` / condition | Load | Resume at |

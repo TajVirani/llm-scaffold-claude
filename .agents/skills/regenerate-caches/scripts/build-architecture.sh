@@ -32,7 +32,7 @@
 #                           through project-setup/scripts/generate-boundary-config.sh --print-intermediate. A file maps
 #                           to its longest module root; a file under none maps to <scope>/<first segment>.
 #     --out FILE            write here instead of stdout (refused under .workflow/cache/; use .workflow/.cache-staging/<type>.md)
-#     --root DIR            repo root override. Default: the MAIN checkout (git --git-common-dir), as publish-cache.sh
+#     --root DIR            repo root override. Default: the spec checkout (wf_project_root), as publish-cache.sh
 #     --allow-dirty         skip the clean-tree check (output then is not tied to HEAD; for tests only)
 #     --extractor NAME      run this graph extractor instead of the ones the profiles name; every profile still needs the key
 #     --print-generator     print the names of the extractors that would run, sorted and comma-joined (`none` left out), for
@@ -68,10 +68,8 @@ export LC_ALL=C
 
 die() { echo "build-architecture: $*" >&2; exit 2; }
 
-resolve_root() { # main checkout, same rule as publish-cache.sh
-  local common
-  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
-  if [[ "$(basename "$common")" == ".git" ]]; then dirname "$common"; else git rev-parse --show-toplevel; fi
+resolve_root() { # the spec checkout, same rule as publish-cache.sh
+  wf_project_root "$PWD" 2>/dev/null
 }
 
 HERE="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: hooks/post-implementation-audit.sh (SubagentStop), hooks/rules-boundary-config-sync.sh (PostToolUse) and
 #   hooks/session-start-resume.sh (SessionStart).
-# Covers: audit block / loop counter / give-up / evidence in the main checkout, phase-1 and malformed headers,
+# Covers: audit block / loop counter / give-up / evidence in the checkout an isolation worktree sits in, phase-1 and malformed headers,
 #   a passing self-run reused by the stop audit;
 #   rules.md -> boundary config sync (block on parse error, missing yq, worktree); resume offer listing,
 #   discovered-work and size-budget prompts, work-backlog count (older item files and the open lines of a spec's backlog list), output cap.
@@ -63,8 +63,10 @@ lint: "true"
 S
 cp .agents/skills/project-setup/assets/docs/rules.md .workflow/rules.md
 git add -A >/dev/null && git commit -qm init
-git worktree add -q "$B/wt" -b wt1 2>/dev/null
-WT=$B/wt
+# An isolation worktree (a Claude `isolation: "worktree"` launch) sits inside the checkout, kept out of git as Claude does.
+echo '.claude/worktrees/' >> .git/info/exclude
+git worktree add -q "$P/.claude/worktrees/wt" -b wt1 2>/dev/null
+WT=$P/.claude/worktrees/wt
 
 H=$P/.agents/hooks
 mk_transcript() { # file prompt

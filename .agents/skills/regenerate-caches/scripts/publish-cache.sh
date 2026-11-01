@@ -4,7 +4,7 @@
 # Called by: regenerate-caches skill and feature-workflow modules/discovery.md after a 0.2.8 cache-regeneration launch returns.
 # Sources: first-party.
 #
-# Staging path (fixed here): <main checkout root>/.workflow/.cache-staging/<type>.md, outside .workflow/cache/ and gitignored
+# Staging path (fixed here): <spec checkout root>/.workflow/.cache-staging/<type>.md, outside .workflow/cache/ and gitignored
 # (install.sh adds `.workflow/.cache-staging/` to .gitignore). The agent writes there with Write/Edit.
 #
 # Usage:
@@ -12,8 +12,8 @@
 #     staged-file   must live under <root>/.workflow/.cache-staging/; any frontmatter it has is discarded
 #     scope-path    repo-relative file or directory, no globs, at least one
 #     --generator   default: cache-regeneration
-#     --root        override. Default: the MAIN checkout, found through
-#                   `git rev-parse --git-common-dir`, even when run from a worktree. The stamp is
+#     --root        override. Default: the spec checkout (lib/workflow-paths.sh wf_project_root: the
+#                   checkout this runs in, or the one an agent worktree sits in). The stamp is
 #                   that checkout's HEAD; .workflow/cache/ and .workflow/.cache-staging/ are that checkout's too.
 #                   Pass the staged file as an absolute path when running from a worktree.
 # Stamp written: generated_at_commit = full HEAD SHA, generated_at = quoted UTC ISO 8601,
@@ -34,10 +34,8 @@ set -euo pipefail
 # shellcheck source=../../../lib/workflow-paths.sh
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
-resolve_root() { # main checkout: the parent of the common git dir, so worktrees share one root
-  local common
-  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
-  if [[ "$(basename "$common")" == ".git" ]]; then dirname "$common"; else git rev-parse --show-toplevel; fi
+resolve_root() { # the spec checkout: the checkout this runs in, or the one an agent worktree sits in, so agent worktrees share its root
+  wf_project_root "$PWD" 2>/dev/null
 }
 
 die() { echo "publish-cache: $1" >&2; exit "${2:-2}"; }

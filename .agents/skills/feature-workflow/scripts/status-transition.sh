@@ -24,8 +24,9 @@
 #       spec.md exists (the folder must exist), so 0.1.4 can create spec.md with Write.
 #       While blocked, step mode keeps blocked_from, so the discovered-work protocol can write at 00.26 / 00.29 and still resume at 00.28.
 #   <spec-dir> is `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it).
-# Worktrees: spec.md, tasks.md and .step are always read and written in the MAIN checkout, found with
-#   `git rev-parse --git-common-dir` from --cwd (default: $PWD). Gitignored .step exists only there.
+# Worktrees: spec.md, tasks.md and .step are always read and written in the spec checkout, found with lib/workflow-paths.sh
+#   wf_project_root from --cwd (default: $PWD): the checkout --cwd is in, or the one an agent worktree sits in. Gitignored .step
+#   exists only there.
 #
 # Spec status transitions:
 #   from                                      to             --step (node that sets it)   why
@@ -197,7 +198,7 @@ if [[ "$MODE" != "set-spec" && -n "$OPT_SBRANCH$OPT_IBASE" ]]; then
   die "--spec-branch and --impl-base belong to set-spec mode"
 fi
 
-ROOT=$(wf_main_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
+ROOT=$(wf_project_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
 SPEC_DIR=$(wf_norm_folder spec "${POS[0]}" 2>/dev/null) || die "spec dir must be $WF_SPECS/NNN-slug: ${POS[0]}"
 ABS_DIR="$ROOT/$SPEC_DIR"
 SPEC="$ABS_DIR/spec.md"
@@ -210,7 +211,7 @@ if [[ ! -f "$SPEC" ]]; then
     printf '%s: %s step 0.1.4 (spec.md not created yet)\n' "$PROG" "$SPEC_DIR"
     exit 0
   fi
-  die "spec.md not found in the main checkout: $SPEC"
+  die "spec.md not found in the spec checkout: $SPEC"
 fi
 require_yq
 
@@ -244,7 +245,7 @@ if [[ "$MODE" == "set-task" ]]; then
   [[ -n "$OPT_TSTATUS$OPT_CAP" || $HAVE_WT -eq 1 || $HAVE_PR -eq 1 ]] || die "set-task needs --status, --work-type, --capability and/or --pr"
   [[ "$CUR" != "done" ]] || illegal "$SPEC_DIR is done; its task records cannot change"
   [[ "$TASK_ID" =~ ^T[0-9]+$ ]] || die "task id must look like T<n>: $TASK_ID"
-  [[ -f "$TASKS" ]] || die "tasks.md not found in the main checkout: $TASKS"
+  [[ -f "$TASKS" ]] || die "tasks.md not found in the spec checkout: $TASKS"
   export TID=$TASK_ID
   count=$(yq --front-matter=extract '[.tasks[] | select(.id == strenv(TID))] | length' "$TASKS") \
     || die "cannot read the tasks: array in $TASKS"

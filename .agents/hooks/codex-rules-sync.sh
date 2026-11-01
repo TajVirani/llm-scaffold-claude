@@ -9,7 +9,7 @@
 #     the patch was already allowed by codex-write-guard.sh, which fails closed on the same parse).
 #   - Paths considered: `*** Add File:`, `*** Update File:` and `*** Move to:` (a deleted rules.md has nothing to generate from). The first
 #     one ending in .workflow/rules.md is passed on; rules-boundary-config-sync.sh then acts only when it is the
-#     .workflow/rules.md of the main checkout or of the cwd's worktree.
+#     .workflow/rules.md of the main checkout, the spec checkout or the cwd's worktree.
 #   - Output is rules-boundary-config-sync.sh's: nothing, {"decision":"block","reason":...} (rules.md does not parse; the reason goes back
 #     to the model), or {"systemMessage":...} (environment error). Exit code always 0.
 # Wiring: codex-hooks.template.json: PostToolUse, matcher "apply_patch".

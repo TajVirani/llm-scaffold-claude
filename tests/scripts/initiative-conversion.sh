@@ -44,6 +44,9 @@ NEW_REF=$INI yq --front-matter=process -i '.origin_spec = strenv(NEW_REF)' "$SHE
 NEW_REF=$INI yq --front-matter=process -i '.promoted_to = strenv(NEW_REF)' "$WORK_ITEM"
 rm -rf "${P:?}/$SPEC"
 git -C "$P" add "$INI" && git -C "$P" commit -q -m "initiative 001-billing-suite: converted from spec 001-billing-suite"
+# task_review reads local unless origin is on GitHub or GitLab, so origin names a GitHub URL and pushes still land in the bare repo.
+git -C "$P" remote set-url origin https://github.com/o/r.git
+git -C "$P" config remote.origin.pushurl "$P.origin.git"
 eq "JRN-001 task_review is pr, so the commit point pushes" "$(bash "$P/.agents/skills/feature-workflow/scripts/rules-setting.sh" task_review --cwd "$P" 2>/dev/null)" pr
 git -C "$P" push -q -u origin "$BR" 2>/dev/null
 
