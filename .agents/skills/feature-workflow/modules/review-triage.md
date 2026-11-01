@@ -59,7 +59,7 @@ Each lens writes its full `review-findings` block to `.workflow/specs/NNN-slug/a
    - **`review-targets` only, after exit 0:** the script does not read the spec, so check that `measurements:` has one row per `## Targets` row of `verification-plan.md`, in table order: `yq '.measurements | length' <file>` must equal `awk '/^## /{s=($0=="## Targets")} s && /^\|/' .workflow/specs/NNN-slug/verification-plan.md | tail -n +3 | wc -l`. A mismatch is a shape error: relaunch the lens once with the two counts, as for exit 1.
 3. **Read the status:** `yq '.status, .blocked_reason' <file>`. `status: blocked`: fix the cause it names (usually an empty or unresolvable `baseline_revision`) and relaunch. If you cannot fix it, it is a failed lens.
 
-The four pass files are `review-standards.yaml`, `review-end-state.yaml`, `review-targets.yaml` and `review-lessons.yaml`, with finding ids prefixed `RS`, `RE`, `RT` and `RL`; on the light path the one pass file is `review-combined.yaml`. A `review-lessons` file that fails the check twice, or stays `blocked`, is a failed lens like any other: the pass goes on with the other lenses' findings.
+The four pass files are `review-standards.yaml`, `review-end-state.yaml`, `review-targets.yaml` and `review-lessons.yaml`, with finding ids prefixed `RS`, `RE`, `RT` and `RL`; on the light path the one pass file is `review-combined.yaml`, with ids prefixed `RC`. A `review-lessons` file that fails the check twice, or stays `blocked`, is a failed lens like any other: the pass goes on with the other lenses' findings.
 
 `review-targets` findings use `category: target` (one per failed target: `claim` names the measured value and the threshold, `evidence.basis` the raw output path). Its `measurements:` table is not triaged; 5.4 copies it into "Targets vs measured", and every `not_measurable` row is a gap, never a pass.
 
@@ -152,13 +152,13 @@ Set the outcome line to `loop back (4.6 third pass)` and load `modules/questioni
 
 **Wording patch first.** When every **patch** entry is `low`, is wording only (a comment or a name; fixing it changes no behaviour) and its smallest fix is the new text itself, patch it yourself instead of reopening tasks; the rework count is untouched:
 
-1. Run 4.8 for the deferred entries.
-2. In the checkout that has the spec branch, make each edit exactly as its fix gives it, and nothing else.
+1. Run step 7 (4.8) to record the pass's gaps.
+2. In the spec checkout, on the spec branch, make each edit exactly as its fix gives it, and nothing else.
 3. Run the toolchain of the work type that owns each edited path: `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id wording-p<n> --work-type <work_type> --cwd <that checkout>`. Exit 1: the edit broke a check, so undo your edits by hand and continue with the rework below for those entries.
 4. Commit there with a Conventional Commit subject and the finding ids in the body (`docs: <the wording change>`, body `F<n>, F<m>: wording patch from review pass <n>`).
 5. Set the outcome line to `clean, to sign-off`, add the line `Patched directly: F<n>, F<m> (<short sha>)` under it, and load `modules/sign-off.md`.
 
-**Rework.** If any **patch** entry remains and rework used is below 5: run 4.8 for the deferred entries, then reopen each task that owns a patch location. Find the owner from the history since the baseline (`git log --format='%H %s' <baseline_revision>..HEAD -- <path>`, where each worktree merge names its task id), falling back to the task (never a `split-out` one) whose `module` in `.workflow/specs/NNN-slug/tasks.md` owns the path under `.workflow/rules.md`. For each owning task:
+**Rework.** If any **patch** entry remains and rework used is below 5: run step 7 (4.8) to record the pass's gaps, then reopen each task that owns a patch location. Find the owner from the history since the baseline (`git log --format='%H %s' <baseline_revision>..HEAD -- <path>`, where each worktree merge names its task id), falling back to the task (never a `split-out` one) whose `module` in `.workflow/specs/NNN-slug/tasks.md` owns the path under `.workflow/rules.md`. For each owning task:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T<n> --status in-progress --step 4.7

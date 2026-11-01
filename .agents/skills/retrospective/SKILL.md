@@ -50,7 +50,9 @@ Read [modules/evidence.md](modules/evidence.md) and fill **Summary** and **Measu
 grep '^- Going-in concerns:' .workflow/specs/NNN-slug/design-log.md | tail -1
 ```
 
-Only when there is no such line (standalone, or a log written before sign-off asked), ask them ("anything you want weighed: a task that felt rushed, a review finding that worried you?"). A concern directs the analysis, but it becomes a finding only once you can tie it to a source.
+**Small path.** When `yq --front-matter=extract '.small_path // false' .workflow/specs/NNN-slug/spec.md` prints `true`, 5.5 already asked both questions: read the same entry's `Retrospective lessons approved at 5.5:` line too (`grep '^- Retrospective lessons approved at 5.5:' .workflow/specs/NNN-slug/design-log.md | tail -1`), and ask nothing in this step or in step 5. With no such line, the approvals are `none`.
+
+Otherwise, only when there is no `Going-in concerns:` line (standalone, or a log written before sign-off asked), ask them ("anything you want weighed: a task that felt rushed, a review finding that worried you?"). A concern directs the analysis, but it becomes a finding only once you can tie it to a source.
 
 Done when Summary lists every evidence source as available or missing, every Measurements row holds a number or `not recorded`, and you hold the going-in concerns (or `none`).
 
@@ -62,14 +64,14 @@ Done when every spec item has a row with evidence.
 
 ### 4. Findings and follow-through
 
-- **Findings.** Take the open findings from the triage entries in `design-log.md`, the known gaps in `report.md` and anything step 3 surfaced. Re-check each one against its source; drop any whose source does not hold up. Give each a disposition: `fix now` (it becomes an action item), `defer` (link the `.workflow/deferred/` file), or `accept` (with the reason).
+- **Findings.** Take the open findings from the triage entries in `design-log.md`, the known gaps in `report.md` and anything step 3 surfaced. Re-check each one against its source; drop any whose source does not hold up. Give each a disposition: `fix now` (it becomes an action item), `kept` (link its line on the spec's backlog list, `.workflow/specs/work-backlog/NNN-slug.md`, as the stakeholder ruled at 5.5, or the `.workflow/deferred/` file the stakeholder asked for), or `accept` (with the reason).
 - **Previous retrospective.** Open the highest-numbered other file in `.workflow/decisions/retrospectives/`. For each of its action items, record whether it landed, with the commit, file or check that shows it. An item you cannot point at is "no evidence found", which is not the same as "not done". With no earlier file, write "No earlier retrospective."
 
 Done when every finding has a disposition, and every earlier action item has a line.
 
 ### 5. Agree the lessons with the stakeholder
 
-Read [modules/routing.md](modules/routing.md). Present the candidate process lessons, pitfalls, review lessons (new ones, and recorded ones to retire), feature notes and model observations together, each with its source and proposed destination, in one ask. The stakeholder approves, changes or rejects each one. When the going-in concerns are `none`, the stakeholder has already said there is nothing more to weigh: the ask's first option is "Approve as proposed, nothing more (Recommended)", and you ask nothing further. With no candidates and no concerns there is no ask: record "None." in each lesson section. Write only the approved ones, each to its destination, and record where each went in the document; for a review lesson, "Recorded in" names the file and the id (`.workflow/review-lessons.md RL-003`).
+Read [modules/routing.md](modules/routing.md). Present the candidate process lessons, pitfalls, review lessons (new ones, and recorded ones to retire), feature notes and model observations together, each with its source and proposed destination, in one ask. The stakeholder approves, changes or rejects each one. When the going-in concerns are `none`, the stakeholder has already said there is nothing more to weigh: the ask's first option is "Approve as proposed, nothing more (Recommended)", and you ask nothing further. With no candidates and no concerns there is no ask: record "None." in each lesson section. On the small path there is no ask either: the `Retrospective lessons approved at 5.5:` line from step 2 is the stakeholder's answer, so write each candidate it lists to the destination it names, and record every other candidate as rejected at 5.5. Write only the approved ones, each to its destination, and record where each went in the document; for a review lesson, "Recorded in" names the file and the id (`.workflow/review-lessons.md RL-003`).
 
 Done when every candidate is written (or retired), turned into an action item, or recorded as rejected.
 

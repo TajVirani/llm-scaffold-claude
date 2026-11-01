@@ -251,7 +251,7 @@ All four must be clear, each checkable in a named file:
 
 The spec is `ready-for-dev`, so everything implementation needs is on disk. Load the next module now: the run continues without asking. When this session has looped back to 0.3.8 two or more times, its context is long, so add one line under the progress line of your next update: "This session is long: say *hand off* to continue `NNN-slug` in a fresh session." Then go on; it is an offer, never a question you wait for.
 
-When the stakeholder takes it, load the `handoff` skill and write a handoff for this spec. Then tell them to clear the context (`/clear` in Claude Code) or open a new session and ask to resume `NNN-slug`; the new session routes by the spec's status and `.step` ([Route by status](../SKILL.md#3-route-by-status)). Stop here.
+When the stakeholder takes it, load the `handoff` skill and write a handoff for this spec. Then tell them to clear the context (`/clear` in Claude Code) or open a new session and ask to resume `NNN-slug`. On the light path the spec already has its spec worktree (0.3.20), so name it: a new session opened there starts in the spec checkout, and one opened elsewhere moves in first ([Route by status](../SKILL.md#3-route-by-status), "Work in the spec checkout"). On the full path 1.1 creates it. The new session routes by the spec's status and `.step`. Stop here.
 
 ## Done
 

@@ -20,7 +20,7 @@ How to fill it in:
 
 - Spec: `.workflow/specs/NNN-slug/spec.md` (capabilities: CAP-###)
 - Report: `.workflow/specs/NNN-slug/report.md`
-- Tasks: <count> done, <count> deferred (see `.workflow/deferred/`)
+- Tasks: <count> done, <count> split out
 - Evidence available: <test output, metrics, review findings, design-log.md>
 - Evidence missing: <what could not be gathered, or "None.">
 
@@ -34,7 +34,7 @@ Counted from the spec folder and git as `modules/evidence.md` says; `not recorde
 | Waits | <answers recorded; minutes: not recorded> |
 | Agent launches | <implementation n, mini-review n, integration n, review lenses n; discovery: not recorded> |
 | Harness runs | <n run (n pass, n fail), n reused> |
-| Findings by class | <triage: n high, n medium, n low, n maybe-false, n false; routes: n patch, n defer, n dismissed, n discovered work; mini-review fails n> |
+| Findings by class | <triage: n high, n medium, n low, n false, n unproven; routes: n patch, n decision needed, n discovered work, n proposal, n none; mini-review fails n> |
 
 ## Result against the spec
 
@@ -52,11 +52,11 @@ What was exercised end to end and what was observed. If runtime behavior was not
 
 ## Findings
 
-Each finding keeps its source reference and a disposition: `fix now`, `defer` (link the `.workflow/deferred/` file), or `accept` (with the reason).
+Each finding keeps its source reference and a disposition: `fix now`, `kept` (link its line on the spec's backlog list, or the `.workflow/deferred/` file the stakeholder asked for), or `accept` (with the reason).
 
 | Finding | Source | Disposition | Link |
 | --- | --- | --- | --- |
-| <what was found> | <review lens, task id, file:line> | fix now / defer / accept | <.workflow/deferred/slug.md or "-"> |
+| <what was found> | <review lens, task id, file:line> | fix now / kept / accept | <.workflow/specs/work-backlog/NNN-slug.md B<n>, .workflow/deferred/slug.md or "-"> |
 
 ## Previous-retrospective follow-through
 
