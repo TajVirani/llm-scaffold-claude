@@ -1,6 +1,6 @@
 # Discovery (Phase 0)
 
-Turn a request into a spec folder that says what to build, where it goes, what it touches and how it will be proven. You run in the main session; the corpus (Tier A docs, Tier B caches, the shelf) reaches you only as sub-agent extracts, except `.workflow/GLOSSARY.md`, which you read whole (design rule 3). Conventions for status, step markers, guarded writes and launches are in [../SKILL.md](../SKILL.md#5-conventions-every-module-follows); this module names the exact calls.
+Turn a request into a spec folder that says what to build, where it goes, what it touches and how it will be proven. You run in the main session; the corpus (Tier A docs, Tier B caches, the shelf) reaches you only as sub-agent extracts, except `.workflow/GLOSSARY.md`, which you read whole (design rule 3). Conventions for status, step markers and guarded writes are in [../references/conventions.md](../references/conventions.md), and launches in [../SKILL.md](../SKILL.md#5-launching-a-sub-agent); this module names the exact calls.
 
 Work raised during Phase 0 that sits outside the agreed scope goes through the scope gate 0.3.16–0.3.17 to `.workflow/deferred/`, never to `.workflow/specs/work-backlog/`; the discovered-work protocol (00.21–00.29) covers Phases 1–4 only.
 

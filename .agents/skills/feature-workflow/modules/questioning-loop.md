@@ -8,17 +8,18 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 
 1. `ST step .workflow/specs/NNN-slug 0.3.8` (marks where to resume).
 2. Read the newest **Deeper prompt** entry in `design-log.md` (0.3.22): its Ask, Goals, Downstream, Tools and Gotchas are the loop's input and frame the design tree; its **Not asked for** items stay out of scope. When its `Agreement:` line says pending and no later Questioning round logs the answer, the next ask carries it (the first round, or the 0.3.19 summary when no round is needed): open the message with the block and make its first question "Pass this deeper prompt on as written?", with "Yes (Recommended)" and "Change it". Log the answer as that round's first question. A change: apply it, append the revised block as a new **Deeper prompt** entry (`Agreement: agreed in Questioning round <n>`), and ask again, in the next round, every answer the change touches. Then read `spec.md` (the draft goal), `codebase-map.md` (where recommended answers come from) and `design-log.md` (decisions already made; create it from [../assets/design-log.md](../assets/design-log.md) if missing).
-3. On a loop-back, seed the tree with the reason you came back:
+3. On a loop-back, seed the tree with the reason you came back. Every loop-back sets `draft`: the step file that owns the gate makes the status call below before loading this loop, and `ST` refuses any other route to `draft` (on exit 2 the owner stops and reports the reason).
 
-   | From | Seed question |
-   | --- | --- |
-   | 0.4.7 | The conflict between the impact model and the goal |
-   | 0.6 | Each exit-gate check that was not clear; for a scope change before 1.1, the stakeholder's change, verbatim |
-   | 2.2 / 2.3 | What made the spec unspecifiable, or the interfaces under test not agreed |
-   | 4.5 / 4.6 | The triage finding `F<n>` that needs a decision, or the upstream problem the third pass exposed |
-   | 5.6 | The stakeholder's change request, verbatim |
-   | 00.24 | The discovered problem and its evidence, from the newest **Discovered work** entry in `design-log.md` |
-   | 00.29 (budget re-scope) | The size-budget crossing and the reduction the stakeholder wants, from the newest **Discovered work** entry in `design-log.md` |
+   | From | Owner | Status call before loading the loop | Seed question |
+   | --- | --- | --- | --- |
+   | 0.4.7 goal conflict | discovery | none (already `draft`); `ST step .workflow/specs/NNN-slug 0.3.8` | The conflict between the impact model and the goal |
+   | 0.6 not clear | discovery | none (already `draft`); `ST step .workflow/specs/NNN-slug 0.3.8` | Each exit-gate check that was not clear |
+   | Scope change after 0.6, before 1.1 starts | verification-setup | `ST status .workflow/specs/NNN-slug draft --step 0.6` (refused once 1.1 has started) | The stakeholder's change, verbatim |
+   | 2.2 / 2.3 | task-breakdown | `ST status .workflow/specs/NNN-slug draft --step 2.2` or `--step 2.3` | What made the spec unspecifiable, or the interfaces under test not agreed |
+   | 4.5 / 4.6 | review-triage | `ST status .workflow/specs/NNN-slug draft --step 4.5` or `--step 4.6` | The triage finding `F<n>` that needs a decision, or the upstream problem the third pass exposed |
+   | 5.6 | the router (5.6) | `ST status .workflow/specs/NNN-slug draft --step 5.6` | The stakeholder's change request, verbatim |
+   | 00.24 | discovered-work | `ST status .workflow/specs/NNN-slug draft --step 00.24` (from `blocked` only) | The discovered problem and its evidence, from the newest **Discovered work** entry in `design-log.md` |
+   | 00.29 (budget re-scope) | discovered-work | `ST status .workflow/specs/NNN-slug draft --step 00.29` (from `blocked` only) | The size-budget crossing and the reduction the stakeholder wants, from the newest **Discovered work** entry in `design-log.md` |
 
 ## The round
 

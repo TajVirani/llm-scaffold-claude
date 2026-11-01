@@ -8,7 +8,11 @@ Everything here runs in the main session at spec status `ready-for-dev`. Phase 1
 
 ## 1.1 Measurable targets and the baseline
 
-If the stakeholder changes scope before 1.1 starts, do not start it: loop back to the questioning loop (router [Re-entry and loop-backs](../SKILL.md#4-re-entry-56-and-loop-backs)).
+If the stakeholder changes scope before 1.1 starts, do not start it: set `draft`, then load the [questioning loop](questioning-loop.md#entry) at 0.3.8 with their change, verbatim, as the first frontier question. The call is refused once 1.1 has started; on exit 2 stop and report the reason.
+
+```bash
+.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug draft --step 0.6
+```
 
 1. **Create the spec worktree and capture the baseline.** All work for this spec lands on the **spec branch** `spec/NNN-slug`, in its own **spec worktree** `.workflow/.spec-worktrees/NNN-slug` inside the main checkout, so the main checkout stays on its branch and other specs can run beside this one; the branch reaches the main branch only at sign-off (5.8). Read `spec_branch` and `baseline_revision` from `spec.md`:
 
