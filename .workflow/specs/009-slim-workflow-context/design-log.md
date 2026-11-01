@@ -351,3 +351,11 @@ Changes to the 2026-11-01 Impact classification above; every other row stands.
 ## 2026-11-01 Conflict check 0.4.7 (after round 7)
 
 D22–D25 settle the four conflicts and touch only feature-workflow paths the 0.4.6 audit already read (codebase-map.md, Module audit), so no new audit is needed. No goal or placement conflict remains.
+
+## 2026-11-01 Task breakdown 2.1–2.4
+
+- Phase 1 built the harness without the tests-in-tasks shortcut (the capability is `CAP-NEW-*`); `lint/md-links` passes on the baseline and is assigned to no task, so it runs at every gate.
+- Stakeholder approved 10 tasks as drafted, keeping the orchestrator setup/waves/finish split as one L task (mostly moved text; splitting it would exceed `max_tasks`).
+- Stakeholder approved two `parallel_with` pairs whose only overlap is separate rows in `PROVENANCE.md` and `upstream-lineage.json`: term-list script with the conventions file, and the discovery split with the shared-core and gates step files.
+- 2.2: every slice is specifiable from spec.md, design-log.md and verification-plan.md. 2.3: seams agreed with the breakdown. 2.4: no slice touches shared core (`.agents/lib/**`).
+- Decision: **Budget** `{max_tasks: 10, max_changed_files: 75}`. About 40 distinct non-test files change, because script and asset headers must be re-pointed; the 2.6 predicted check sums each task's own file count (about 73), so shared files count once per task. The 3.15 check still reports the real distinct count.
