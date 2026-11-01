@@ -1,5 +1,5 @@
 ---
-status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: in-review # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "a29eca7c475544a99ccc9d986cde87e02f4f140d" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: "spec/009-slim-workflow-context" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: "43173e221e107411c8bb560e400023ecd9be0ca0" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
