@@ -44,7 +44,7 @@ Done when the document exists and you know which step to start from.
 
 ### 2. Gather the evidence
 
-Read [modules/evidence.md](modules/evidence.md) and fill **Summary**. Then take the stakeholder's going-in concerns from the newest sign-off entry in `.workflow/specs/NNN-slug/design-log.md`, its `Going-in concerns:` line (sign-off asks for them at 5.5; `none` means there are none):
+Read [modules/evidence.md](modules/evidence.md) and fill **Summary** and **Measurements**. Then take the stakeholder's going-in concerns from the newest sign-off entry in `.workflow/specs/NNN-slug/design-log.md`, its `Going-in concerns:` line (sign-off asks for them at 5.5; `none` means there are none):
 
 ```bash
 grep '^- Going-in concerns:' .workflow/specs/NNN-slug/design-log.md | tail -1
@@ -52,7 +52,7 @@ grep '^- Going-in concerns:' .workflow/specs/NNN-slug/design-log.md | tail -1
 
 Only when there is no such line (standalone, or a log written before sign-off asked), ask them ("anything you want weighed: a task that felt rushed, a review finding that worried you?"). A concern directs the analysis, but it becomes a finding only once you can tie it to a source.
 
-Done when Summary lists every evidence source as available or missing, and you hold the going-in concerns (or `none`).
+Done when Summary lists every evidence source as available or missing, every Measurements row holds a number or `not recorded`, and you hold the going-in concerns (or `none`).
 
 ### 3. Judge the result against the spec
 
@@ -69,7 +69,7 @@ Done when every finding has a disposition, and every earlier action item has a l
 
 ### 5. Agree the lessons with the stakeholder
 
-Read [modules/routing.md](modules/routing.md). Present the candidate process lessons, pitfalls, review lessons (new ones, and recorded ones to retire), feature notes and model observations together, each with its source and proposed destination. The stakeholder approves, changes or rejects each one. Write only the approved ones, each to its destination, and record where each went in the document; for a review lesson, "Recorded in" names the file and the id (`.workflow/review-lessons.md RL-003`).
+Read [modules/routing.md](modules/routing.md). Present the candidate process lessons, pitfalls, review lessons (new ones, and recorded ones to retire), feature notes and model observations together, each with its source and proposed destination, in one ask. The stakeholder approves, changes or rejects each one. When the going-in concerns are `none`, the stakeholder has already said there is nothing more to weigh: the ask's first option is "Approve as proposed, nothing more (Recommended)", and you ask nothing further. With no candidates and no concerns there is no ask: record "None." in each lesson section. Write only the approved ones, each to its destination, and record where each went in the document; for a review lesson, "Recorded in" names the file and the id (`.workflow/review-lessons.md RL-003`).
 
 Done when every candidate is written (or retired), turned into an action item, or recorded as rejected.
 
