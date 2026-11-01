@@ -7,7 +7,7 @@
 #   brief's result-file command (its spec checkout taken from the worktree path), commit-workflow-data.sh, check-merge-artifacts.sh
 #   and check-write.sh, each run from a spec worktree or its task worktree, read and write that spec's .step, artifacts and branch
 #   only; session-start-resume.sh lists both specs from the main checkout and from a spec worktree, naming where each runs; the
-#   sign-off local merge run from a spec worktree lands on main in the main checkout; remove refuses an unmerged branch and a nested
+#   sign-off local merge run from a spec worktree lands on main in the main checkout; remove refuses an unmerged branch, a branch the main checkout's HEAD lacks and a nested
 #   agent worktree, then removes the worktree and deletes the merged branch; create refusals (mid-merge, from another spec's
 #   worktree, a checkout on the spec branch, no spec.md, usage) and a repeat create that changes nothing; shellcheck.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -173,6 +173,13 @@ eq "the main checkout's working tree carries the merge" "$(git -C "$P" status --
 out=$(SW remove .workflow/specs/done/002-beta 2>&1); rc=$?
 check "remove refuses while an agent worktree is registered inside, exit 1" '[ $rc -eq 1 ] && grep -q "$TB" <<<"$out"' "rc=$rc $out"
 git -C "$WB" worktree remove "$TB"
+git -C "$P" switch -q -c before-merge "$MAIN_HEAD"
+out=$(SW remove .workflow/specs/done/002-beta 2>&1); rc=$?
+check "remove refuses while the main checkout's HEAD lacks the merge (branch -d would refuse), exit 1" \
+  '[ $rc -eq 1 ] && grep -q "switch the main checkout to main" <<<"$out"' "rc=$rc $out"
+check "that refused remove kept the worktree and the branch" '[ -d "$WB" ] && git -C "$P" show-ref -q --verify refs/heads/spec/002-beta'
+git -C "$P" switch -q main
+git -C "$P" branch -q -d before-merge
 out=$(SW remove .workflow/specs/done/002-beta 2>&1); rc=$?
 check "remove of the merged spec exits 0, naming what it removed" \
   '[ $rc -eq 0 ] && grep -qx "removed worktree $WB" <<<"$out" && grep -qx "deleted branch spec/002-beta" <<<"$out"' "rc=$rc $out"

@@ -22,7 +22,8 @@
 #     stdout: `removed worktree <path>` (when there was one) and `deleted branch spec/NNN-slug` (when there was one).
 # Exit: 0 done (or nothing to do); 1 refused, nothing removed or switched: create while the checkout is mid-merge, cherry-pick or
 #   revert, on the spec branch already, inside another spec's worktree, or cannot switch (git's reason follows), or the spec branch
-#   is checked out in another checkout; remove while the spec branch is not merged into the main branch, the spec worktree has uncommitted or untracked
+#   is checked out in another checkout; remove while the spec branch is not merged into the main branch, or not into what
+#   `git branch -d` judges it by (its upstream, else the main checkout's HEAD), the spec worktree has uncommitted or untracked
 #   changes, or an agent worktree is still registered inside it; 2 usage or environment error (bad arguments, not a git repository,
 #   spec.md missing, a git step failing part-way, with what to do next).
 # Called by: modules/verification-setup.md (1.1), modules/discovery.md (0.3.20), modules/sign-off.md (5.8).
@@ -111,13 +112,18 @@ create() {
 
 # remove : the remove mode in the header.
 remove() {
-  local merged="" ref nested out
+  local merged="" ref nested out judge
   if git -C "$MAIN_ROOT" show-ref --verify -q "refs/heads/$BRANCH"; then
     for ref in "refs/heads/$MAIN_BRANCH" "refs/remotes/origin/$MAIN_BRANCH"; do
       git -C "$MAIN_ROOT" show-ref --verify -q "$ref" || continue
       if git -C "$MAIN_ROOT" merge-base --is-ancestor "refs/heads/$BRANCH" "$ref"; then merged=$ref; break; fi
     done
     [[ -n "$merged" ]] || die "$BRANCH is not merged into $MAIN_BRANCH (local or origin); merge it, or pull the merged PR/MR, first" 1
+    # git branch -d judges the branch against its upstream, or without one against the main checkout's HEAD, so check that here,
+    #   before the worktree goes, or the worktree would be removed and the branch refused.
+    judge=$(git -C "$MAIN_ROOT" rev-parse -q --verify "refs/heads/$BRANCH@{upstream}" 2>/dev/null) || judge=HEAD
+    git -C "$MAIN_ROOT" merge-base --is-ancestor "refs/heads/$BRANCH" "$judge" ||
+      die "$BRANCH is merged into $merged, but not into its upstream or, without one, the main checkout's HEAD, so git branch -d would refuse; push it, or switch the main checkout to $MAIN_BRANCH (pull it first when the merge is on origin), then run again" 1
   fi
   if registered_worktree "$WT"; then
     nested=$(git -C "$MAIN_ROOT" worktree list --porcelain | awk -v p="worktree $WT/" 'index($0, p) == 1 { print substr($0, 10) }')
