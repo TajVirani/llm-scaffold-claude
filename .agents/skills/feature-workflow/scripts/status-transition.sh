@@ -32,6 +32,9 @@
 #   from                                      to             --step (node that sets it)   why
 #   (no status) | draft                       draft          0.1.4 (default)              spec.md created from the template at 0.1.4
 #   ready-for-dev                             draft          2.2 | 2.3 (required)         Phase 2 loops back to 0.3.8
+#   ready-for-dev                             draft          0.6 (required)               scope change after the exit gate, before Phase 1:
+#                                                                                         only while spec_branch and baseline_revision are ""
+#                                                                                         and .step (when present) is 0.6; otherwise exit 2
 #   in-review                                 draft          4.5 | 4.6 | 5.6 (required)   review or sign-off loops back to 0.3.8
 #   draft                                     ready-for-dev  0.6 | 0.3.20 (required)      exit gate, or light-path pass
 #   ready-for-dev | in-progress               in-progress    3.1 (default)                orchestrator starts; re-run of 3.1 on resume
@@ -412,6 +415,19 @@ need_step() {
   in_list "$OPT_STEP" "$allowed" || illegal "$SPEC_DIR: '$NEW' is set only at node(s) $allowed, not at $OPT_STEP"
 }
 
+# ready-for-dev -> draft at 0.6 reopens the questioning loop only while Phase 1 has not started: 1.1 marks .step
+# first, then writes spec_branch and baseline_revision, so any of the three shows it has begun.
+before_phase1() {
+  local key val
+  for key in spec_branch baseline_revision; do
+    val=$(yq --front-matter=extract ".$key // \"\"" "$SPEC") || die "cannot read $key of $SPEC"
+    [[ -z "$val" || "$val" == "null" ]] \
+      || reject "draft at 0.6 is only for a scope change before Phase 1, but $key is set ('$val'), so 1.1 has run"
+  done
+  [[ -z "$MARK_STEP" || "$MARK_STEP" == "0.6" ]] \
+    || reject "draft at 0.6 is only for a scope change before Phase 1, but .step is $MARK_STEP, not 0.6"
+}
+
 NEW_FROM=""
 if [[ "$CUR" == "blocked" ]]; then
   [[ "$NEW" != "blocked" ]] || reject "already blocked"
@@ -435,7 +451,10 @@ if [[ "$CUR" == "blocked" ]]; then
 else
   case "$CUR>$NEW" in
     ">draft"|"draft>draft")                                   need_step "0.1.4" "0.1.4" ;;
-    "ready-for-dev>draft")                                    need_step "2.2 2.3" "" ;;
+    "ready-for-dev>draft")
+      need_step "0.6 2.2 2.3" ""
+      [[ "$OPT_STEP" != "0.6" ]] || before_phase1
+      ;;
     "in-review>draft")                                        need_step "4.5 4.6 5.6" "" ;;
     "draft>ready-for-dev")                                    need_step "0.6 0.3.20" "" ;;
     "ready-for-dev>in-progress"|"in-progress>in-progress")    need_step "3.1" "3.1" ;;
