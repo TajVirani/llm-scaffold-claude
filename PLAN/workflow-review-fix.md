@@ -47,4 +47,4 @@ Merge order onto `fix/workflow-review`: U2, U1, U3, U4, U5. Every unit runs `tes
 
 ## Status
 
-Not built yet. Each unit's outcome is added below as it lands.
+Built on `fix/workflow-review`: U2, U1, U3, U4 and U5 merged in that order, then reconciled. Each decision's "Built:" note in `assetlist.md` (D102–D112) records what landed and where it differs from the text above (D108 keeps `rules.md` and the profiles in the tree hash).
