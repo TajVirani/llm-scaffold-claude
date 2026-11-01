@@ -242,7 +242,8 @@ implementation_result() {
   printf '%s\n' 'status: done' 'summary: "Fixture result."' "task_id: $1" "worktree: $2" 'branch: wf/007-demo/fixture' \
     'base_commit: "1a2b3c4d"' 'head_commit: "9f8e7d6c"' 'files_changed: [tests/x.sh]' 'tests_added:' \
     '  - {file: tests/x.sh, test: a case, kind: behaviour}' 'evidence:' "  toolchain: artifacts/$1/toolchain.txt (pass)" \
-    'considered_not_built: []' 'profile_wrong: null' 'scope_expansion: null' 'blocked: null' 'discovered_work: []'
+    'considered_not_built: []' 'profile_wrong: null' 'scope_expansion: null' 'blocked: null' 'discovered_work: []' \
+    'self_review:' '  - {item: comment-lint, verdict: pass, note: "no comment names an id or a workflow path"}'
 }
 # integration_result WORKTREE : an integration block check-task-result.sh accepts.
 integration_result() {

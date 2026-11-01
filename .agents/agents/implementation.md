@@ -68,8 +68,17 @@ Run the type checker and the single test file you are working on regularly. The 
 ## Before you stop
 
 1. **Self-review your diff.** `git status` and `git diff <base>` over the whole delta, including untracked files. Every acceptance criterion has a test; every changed path belongs to the task; names and comments follow `readable-code.md`; test output is free of stray warnings. Delete disposable files your checks created. An unexplained path left over means `blocked` or `scope-expansion`, not `done`.
-2. **Self-check against the checklists.** Walk the profile's `## Mini-review checklist` (in your prompt) and the "Checking at 3.7" lines of `readable-code.md` against your diff, one item at a time, and fix every item that fails. The mini-review (3.7) judges the same items.
-3. **Run the toolchain yourself (3.5)**, after the self-check and the clean-up, as the last change to the tree. From the worktree root, in one Bash command (the script lives in the main checkout):
+2. **Run the comment lint** over every file your diff adds or changes; it reads the shell files among them and skips the rest:
+
+   ```bash
+   cd <worktree path> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
+   { git diff -z --name-only --diff-filter=d <base>; git ls-files -z -o --exclude-standard; } | xargs -0 bash "$main/.agents/skills/feature-workflow/scripts/check-comments.sh"
+   ```
+
+   Exit 1 prints one line per comment that names a decision, journey or task id or a `.workflow/` path. Rewrite each comment you added or changed as the reason in plain words, or delete it, and run the lint again until none of your lines is listed. A listed line you did not touch stays as it is; say so in the `comment-lint` note.
+3. **Walk the checklists.** Take the profile's `## Mini-review checklist` (in your prompt), numbered `1`, `2`, … in its order, then the readable-code lines `R1` to `R5` (the "Checking at 3.7" lines of `readable-code.md`, judged as its Checking table says). Judge each against your diff, one at a time, the way the mini-review (3.7) will, and fix every item that fails.
+4. **Record the self-review.** Your result file carries it as `self_review`: one entry per checklist line, one per readable-code line and one for the comment lint (`item: comment-lint`), each with a verdict (`pass`, `fixed` when it failed and you fixed it, `not-applicable` when the diff has no code it applies to) and a one-line `note`: where it holds, or for `fixed` what you changed and where. The mini-review starts from this list and checks each claim against the diff.
+5. **Run the toolchain yourself (3.5)**, after the self-review and the clean-up, as the last change to the tree. From the worktree root, in one Bash command (the script lives in the main checkout):
 
    ```bash
    cd <worktree path> && main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
@@ -78,8 +87,8 @@ Run the type checker and the single test file you are working on regularly. The 
    ```
 
    It runs the profile's `lint`, `typecheck`, `format`, `boundary` and `test` commands and saves the output under `<spec_dir>/artifacts/<task id>/` in the main checkout. Fix every failure it names, then run it again until it exits 0.
-4. **Commit** on your task branch (Phase 1: your worktree branch), with a message naming the task id in its body. Commit subjects are Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`), never a bare task id such as `T9:`. The orchestrator merges your branch into the spec branch between waves and opens any PR/MR; leave merging, rebasing and pushing to it.
-5. **Write the result file, then return the summary block**, as [Return](#return) says. Do this every time you stop, a stop after a resume included.
+6. **Commit** on your task branch (Phase 1: your worktree branch), with a message naming the task id in its body. Commit subjects are Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`), never a bare task id such as `T9:`. The orchestrator merges your branch into the spec branch between waves and opens any PR/MR; leave merging, rebasing and pushing to it.
+7. **Write the result file, then return the summary block**, as [Return](#return) says. Do this every time you stop, a stop after a resume included.
 
 **The stop audit.** When you stop, the post-implementation audit runs the same toolchain with `--reuse`. When the checkout's content is unchanged since your last passing run (committing changes nothing; editing, adding or deleting any file does, untracked files included), it reuses that run's record and runs no command, so your own run is normally the only one. If anything fails, your stop is blocked and the tool output comes back to you as the reason: fix what it names in this same context, re-run the toolchain, commit, and stop again. If the failure is something your code cannot fix (a broken tool, a missing config the profile names), return `profile-wrong` or `blocked` rather than stopping repeatedly on the same output.
 
@@ -128,6 +137,8 @@ discovered_work: []   # out-of-scope items noticed; each entry:
 #    evidence: <file:line, or the failing test and its output>
 #    blocker_assessment: blocks-this-task | can-wait
 #    reason: <why it blocks, or why it can wait>
+self_review:          # Before you stop, step 4; required when status is done, optional on a stop status
+  - {item: <checklist number | R1-R5 | comment-lint>, verdict: pass | fixed | not-applicable, note: "<file:line where it holds, or what you fixed>"}
 ```
 
 ### Summary block
