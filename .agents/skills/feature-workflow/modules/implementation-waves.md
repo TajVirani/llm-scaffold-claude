@@ -2,9 +2,7 @@
 
 You run the build: launch one implementation agent per task in dependency **waves**, pass each task through the four gates, and merge between waves. Before the first wave, 3.1 classifies every task in [implementation-setup](implementation-setup.md); after the last wave, [implementation-finish](implementation-finish.md) runs the browser suite and hands off. You never write feature code yourself; agents do, and the gates judge it. You are done when every task record is `done` (or `split-out`), the harness and the browser suite pass on the merged spec branch (or a light-path suite gap is recorded), the spec is `in-review`, and the workflow data you wrote under `.workflow/` is committed on the spec branch. The spec branch is **red by design** until then: Phase 1 committed tests for behaviour no task has built yet, so the full suite goes green only after the last wave (3.9, 3.11). Work outside the agreed scope is never folded into a task: it goes to `modules/discovered-work.md` (00.21-00.29).
 
-Call the scripts from the project root exactly as written below, with the repo-relative `.agents/skills/feature-workflow/scripts/` prefix (sandboxed projects exclude these exact command lines). Status and task records change only through `status-transition.sh`.
-
-**The project root is the spec checkout.** That is the spec worktree `.workflow/.spec-worktrees/NNN-slug` that 1.1 (0.3.20 on the light path) created on the spec branch, or the main checkout for a spec started before spec worktrees existed. The session works there (see [Route by status](../SKILL.md#3-route-by-status) for moving it in): every relative path and command below runs in it, the step marker and `artifacts/` live in it, and agent worktrees nest inside it under `.workflow/.worktrees/`. The scripts resolve it themselves, from an agent worktree too.
+**The project root is the spec checkout** ([Route by status](../SKILL.md#3-route-by-status) says which folder that is and how to move the session in): every relative path and command below runs in it, the step marker and `artifacts/` live in it, and agent worktrees nest inside it under `.workflow/.worktrees/`. The scripts resolve it themselves, from an agent worktree too.
 
 ## Resume and rework
 
@@ -14,7 +12,7 @@ Call the scripts from the project root exactly as written below, with the repo-r
 
 ## Launching agents
 
-Three task types launch here. Each prompt opens with the ```` ```yaml launch-header ```` block on its first line. The required fields come from `.agents/skills/feature-workflow/scripts/resolve-launch.sh --requirements --task-type <type>`:
+Three task types launch here, each with the launch header and the spawn [launching](../references/launching.md) gives for your host. The required fields come from `.agents/skills/feature-workflow/scripts/resolve-launch.sh --requirements --task-type <type>`:
 
 | Task type | Node | Header fields | Agent tool options (Claude) |
 | --- | --- | --- | --- |
@@ -22,20 +20,9 @@ Three task types launch here. Each prompt opens with the ```` ```yaml launch-hea
 | `integration` | 3.2 | `spec_dir`, `work_type` (a batch, no `task_id`) | working directory = the integration worktree you create at [3.2](implementation-shared-core.md#32-integration-batches-one-work-type-each) (see **Claude** below) |
 | `profile-mini-review` | 3.7 | `spec_dir`, `task_id`, `work_type` | none (read-only) |
 
-````text
-```yaml launch-header
-task_type: implementation
-spec_dir: .workflow/specs/NNN-slug
-task_id: T3
-work_type: backend-api
-```
-<the brief>
-````
-
 - **Claude.** Set `subagent_type` to the task type.
   An implementation launch runs in the task worktree you created at [wave start](#wave-start-task-branches-and-worktrees), an integration launch in the integration worktree you create at [3.2](implementation-shared-core.md#32-integration-batches-one-work-type-each).
-  The Agent tool has no working-directory option (a sub-agent starts in the main session's directory), so launch it without `isolation` and confine it by the brief: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside the worktree. `hooks/worktree-write-guard.sh` enforces this for implementation and integration sub-agents: it reads the agent worktree from the launch header (`.workflow/.worktrees/s<NNN>_t<N>` for a task, `s<NNN>_integration_<enc(work_type)>` for an integration batch) and denies a Write, Edit or NotebookEdit inside the main checkout but outside it, and a Bash command without that leading `cd` (accident prevention; a command can still reach out after its `cd`). The stop audit finds the worktree itself and warns when it is missing. A confined agent whose agent worktree is missing is denied every call, reads and temp-dir writes included, so recreate the worktree (as at wave start or 3.2) before you relaunch the agent. An agent that keeps getting denied, or edits the main checkout through Bash, is never relaunched another way: it is a [stop](#stops).
-  Name the worktree's absolute path in the brief as the directory the agent works in. Leave out `model` and the profile: `hooks/pre-launch.sh` resolves both through `resolve-launch.sh` and returns the launch with the model set and the profile inserted after the header. A deny naming 00.14 means no model is assigned for the type (fix `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` with the human); a deny naming 00.18 or 00.19 is handled in 3.1.
+  Name the worktree's absolute path in the brief as the directory the agent works in, and confine the agent to it as [An agent worktree on Claude Code](../references/launching.md#an-agent-worktree-on-claude-code) says. A confined agent whose agent worktree is missing is denied every call, reads and temp-dir writes included, so recreate the worktree (as at wave start or 3.2) before you relaunch the agent. An agent that keeps getting denied, or edits the main checkout through Bash, is never relaunched another way: it is a [stop](#stops). A deny naming 00.18 or 00.19 is handled in 3.1.
 - **Codex.** Build and spawn each launch as [launching](../references/launching.md#codex) says, passing `--task-id` and `--work-type` from the header. Its task-name table gives the name for each launch here, and its agent-worktree rule says where each spawn runs.
 - **Briefs are context pointers.** An implementation brief names the task file (`.workflow/specs/NNN-slug/<file>` from the record, committed on the spec branch so the worktree has it), the worktree path, the `codebase-map.md` extract for its module, and any shared-core interface integration applied for it. Nothing about other tasks; the task file is not pasted.
 - **Resume, don't restart.** Send fix requests to the same agent (on Claude, SendMessage to the agent id from the Agent result); it keeps its worktree and context. A 3.8 fix round that changes behaviour is the exception ([Fix rounds](implementation-gates.md#per-task-gates-34-38)). When an agent cannot be continued, launch a fresh one with the same header and add to the brief: "first merge branch `<branch>` into yours, then fix: <findings>".
@@ -177,7 +164,7 @@ After each wave's 3.13, when the harness exists, run the harness on the merged s
 .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id gate-3.9-w<N> --work-type test-harness --cwd "$PWD" --exclude-unfinished --reuse
 ```
 
-It runs the `test-harness` profile's keys, `test` being the harness command recorded in `## Suites`, with the `tests` of every task not yet `done` excluded through the profile's `test_scoped` key; evidence lands in `artifacts/gate-3.9-w<N>/`. With `--reuse`, a passing record of the same merged tree with the same commands is copied (`reused_from`) and nothing runs again. Short of that, a key whose exact command already passed on this tree is not run again: when the merged tree is the one the task's own run passed (a wave of one task, merged onto an unchanged spec-branch tip, as on the light path), its `test` result is reused even though that run used another profile, and only this profile's `lint` runs. The reused result carries `reused_from`. Without `test_scoped` a failing `test` is reported `unscoped` (a warning, exit 0): read `toolchain.txt` yourself and judge it by the bar below. This is now the rare case, a profile that has no `test_scoped` key. Also run the CI check when it has a local entry point. Report CI green only from a run you saw.
+It runs the `test-harness` profile's keys, `test` being the harness command recorded in `## Suites`, with the `tests` of every task not yet `done` excluded through the profile's `test_scoped` key; evidence lands in `artifacts/gate-3.9-w<N>/`. With `--reuse`, a passing record of the same merged tree with the same commands is copied (`reused_from`) and nothing runs again. Short of that, a key whose exact command already passed on this tree is not run again: when the merged tree is the one the task's own run passed (a wave of one task, merged onto an unchanged spec-branch tip, as on the light path), its `test` result is reused even though that run used another profile, and only this profile's `lint` runs. The reused result carries `reused_from`. Without `test_scoped` a failing `test` is reported `unscoped` (a warning, exit 0): read `toolchain.txt` yourself and judge it by the bar below. Also run the CI check when it has a local entry point. Report CI green only from a run you saw.
 
 The spec branch is red by design until the last wave, so the bar depends on the wave:
 
@@ -195,7 +182,7 @@ The spec branch is red by design until the last wave, so the bar depends on the 
 
 ## Discovered work (00.21)
 
-Discovered work is report-only: an agent found work outside the agreed scope (a new requirement, a bug along the way, a needed refactor, scope spreading into another module, a decision nobody in the session can answer) and did not fix it. It reaches you as any of:
+Discovered work is report-only: an agent found work outside the agreed scope and did not fix it. It reaches you as any of:
 
 - an implementation or integration result with `status: discovered-work`;
 - a non-empty `discovered_work[]` on an implementation or integration result of **any** status, `done` and `partial` included;

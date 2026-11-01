@@ -23,7 +23,11 @@ spec_dir: .workflow/specs/007-csv-export
 
 ## Claude Code
 
-Call the Agent tool with `subagent_type: <task type>` and the prompt = header + task. Leave `model` unset: `hooks/pre-launch.sh` resolves it, prepends any profile, and denies a malformed launch.
+Call the Agent tool with `subagent_type: <task type>` and the prompt = header + task. Leave `model` unset and the profile out: `hooks/pre-launch.sh` resolves both through `resolve-launch.sh`, inserts any profile after the header, and denies a malformed launch.
+
+### An agent worktree on Claude Code
+
+The Agent tool has no working-directory option (a sub-agent starts in the main session's directory), so launch it without `isolation` and confine it by the brief: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside the worktree. `hooks/worktree-write-guard.sh` enforces this for implementation and integration sub-agents: it reads the agent worktree from the launch header (`.workflow/.worktrees/s<NNN>_t<N>` for a task, `s<NNN>_integration_<enc(work_type)>` for an integration batch) and denies a Write, Edit or NotebookEdit inside the main checkout but outside it, and a Bash command without that leading `cd` (accident prevention; a command can still reach out after its `cd`). The stop audit finds the worktree itself and warns when it is missing.
 
 ## Codex
 

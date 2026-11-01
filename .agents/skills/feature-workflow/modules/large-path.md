@@ -191,7 +191,7 @@ Then the commit point (`round <n>`). Route on what the record now says:
 Ask the stakeholder to confirm the slice: its title, the questions it carries and their settled lines. On Yes:
 
 1. **Commit first.** Any initiative change still uncommitted lands now (commit point), so the initiative commit is in place before the new spec's folder exists.
-2. **Seed the spec.** Run discovery 0.1.1–0.1.6 seeded from the slice ([Seeded from a slice](discovery.md#seeded-from-a-slice)). It creates `.workflow/specs/<new NNN-slug>/` at `draft` with `initiative: NNN-slug` in its frontmatter, the Why drafted from the slice and an Origin entry carrying the binding decisions, and hands the folder name back. The folder stays uncommitted in the working tree until its own spec branch exists.
+2. **Seed the spec.** Run discovery 0.1.1–0.1.6 seeded from the slice ([Seeded from a slice](#seeded-from-a-slice)). It creates `.workflow/specs/<new NNN-slug>/` at `draft` with `initiative: NNN-slug` in its frontmatter, the Why drafted from the slice and an Origin entry carrying the binding decisions, and hands the folder name back. The folder stays uncommitted in the working tree until its own spec branch exists.
 3. **Record it.**
 
    ```bash
@@ -204,6 +204,14 @@ Ask the stakeholder to confirm the slice: its title, the questions it carries an
 5. **Stay or step in.** Stay in the initiative and continue at the routing in 6.8, unless an `open` question lists the new spec in `depends_on`: then tell the stakeholder, and the new spec runs through the router like any draft spec; the initiative resumes at 6.1 once that spec is `done` on main.
 
 Done when the slice is `emitted` with its spec, the emission commit lists only initiative files, and the spec folder is untracked in the working tree.
+
+### Seeded from a slice
+
+The session is on `initiative/NNN-slug` with the initiative's commit already made; discovery's 0.1.5 is No. Run [discovery](discovery.md) 0.1.1–0.1.6 with these additions, then hand the new folder name back to 6.9. The spec waits in `draft` and resumes through the router; its folder stays uncommitted until its own spec branch exists (1.1 or 0.3.20).
+
+- **Seed.** The slice's title is the request for 0.1.2. At 0.1.6 the Why opens with `Origin: initiative <initiative NNN-slug>, slice S<n> (<title>).` and states the slice's goal from the initiative's goal and the slice's settled questions.
+- **At 0.1.4**, while writing `spec.md`, add `initiative: <initiative NNN-slug>` to the frontmatter.
+- **Origin entry.** Create `design-log.md` from [../assets/design-log.md](../assets/design-log.md) and make its first entry the template's `Origin: initiative <NNN-slug>, slice S<n>` entry, so the questioning loop never re-asks the slice's binding decisions: the initiative folder, the slice's id and title, and under Binding decisions each of the slice's questions with its settled line, verbatim. The loop treats these as settled decisions: they shorten it, and a later round may only supersede one with the stakeholder's explicit agreement.
 
 ## Planned and merged
 

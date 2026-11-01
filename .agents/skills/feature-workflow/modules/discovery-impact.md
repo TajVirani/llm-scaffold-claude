@@ -48,7 +48,7 @@ The three facts (all must be clean for the light path):
 
   `spec-worktree.sh create` prints `worktree <path>` and `baseline <sha>`; exit 1 names what to fix first, as at [1.1](verification-setup.md#11-measurable-targets-and-the-baseline). T1 gets its task branch and worktree at wave start and merges `--no-ff` at 3.16, as a full-path task does; a `mode: hitl` T1 still gets the 3.3 pause.
 
-  Seeded from a work item: now delete the item (see [Seeded from a work item](discovery.md#seeded-from-a-work-item)).
+  Seeded from a work item: now delete the item (see [Delete a promoted item file](#delete-a-promoted-item-file)).
 
   If `tasks.md` already exists (a loop-back on a light-path spec), keep it: its task records change only through `set-task`. If the revised goal needs work the existing task does not cover, take the full path instead. Then [offer a fresh session](#offer-a-fresh-session) and load [implementation-setup](implementation-setup.md) at 3.1 (it captures `baseline_revision` and `impl_base_revision` there).
 
@@ -105,7 +105,11 @@ All four must be clear, each checkable in a named file:
 | Testable objectives | Every capability in `spec.md` has an end-state objective and at least one journey in `verification-plan.md`. |
 
 - **Not clear** → `ST step .workflow/specs/NNN-slug 0.3.8`, load the questioning loop with each gap as a frontier question.
-- **Clear** → `ST status .workflow/specs/NNN-slug ready-for-dev --step 0.6`; for a spec seeded from a work item, delete the item (see [Seeded from a work item](discovery.md#seeded-from-a-work-item)); then [offer a fresh session](#offer-a-fresh-session) and load verification-setup at 1.1.
+- **Clear** → `ST status .workflow/specs/NNN-slug ready-for-dev --step 0.6`; for a spec seeded from a work item, delete the item (see [Delete a promoted item file](#delete-a-promoted-item-file)); then [offer a fresh session](#offer-a-fresh-session) and load verification-setup at 1.1.
+
+## Delete a promoted item file
+
+For a spec seeded from a work item ([discovery](discovery.md#seeded-from-a-work-item)), older item files only: when this spec passes 0.6 (Clear) or the 0.3.20 light-path test, remove the item so no stale copy remains: `rm .workflow/specs/work-backlog/<item file>`. The `origin` key and the design-log Origin entry keep the history. A promoted line stays on its list as the pointer to this spec.
 
 ## Offer a fresh session
 
