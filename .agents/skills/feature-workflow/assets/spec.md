@@ -3,7 +3,8 @@ status: draft                       # draft | ready-for-dev | in-progress | in-r
 baseline_revision: ""               # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: ""                     # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
 impl_base_revision: ""              # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
-light_path: false                   # true once the 0.3.20 light-path test passes
+light_path: false                   # true once the 0.3.20 light-path test passes; true from 0.1.4 on the small path
+small_path: false                   # true from 0.1.4 when intake (0.0.3) picked the small path; false once it leaves it (0.3.19)
 followup_review_recommended: false  # true when triage recommends another review pass after this one
 deferred: []                        # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
 # origin: NNN-slug.md#B1             # optional; the work-backlog line this spec was seeded from (<list file>#B<n>), or an older item file NNN-slug-disc-001.md
@@ -27,6 +28,7 @@ Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`). stat
   - spec_branch: string, `spec/NNN-slug`. Created off the main branch and written at 1.1 (0.3.20 on the light path); every task branch forks from it and merges back into it, and sign-off 5.8 merges it into main through a PR. "" until created.
   - impl_base_revision: string, the full SHA of the spec-branch tip at 3.1: the Phase 1 commit plus the committed breakdown on the full path, the first commit on the light path. The 3.15 size budget counts only files changed since it (and in the PR/MR against `main_branch`, tests excluded), so Phase 1 harness and suite files count only when Phase 3 changes them again. "" until 3.1, then never overwritten.
   - light_path: boolean.
+  - small_path: boolean, absent on specs written before the small path existed (read as false). Set true at 0.1.4 when intake 0.0.3 picked the small path, together with light_path: true, since a small-path spec is built as a light-path spec; written false at 0.3.19 when the spec left the small path. small_path: true always comes with light_path: true.
   - followup_review_recommended: boolean, default false.
   - deferred: list of strings, repo-relative paths under .workflow/deferred/ (0.3.17, 3.14, 4.8). Empty list when none.
   - origin: optional string, the .workflow/specs/work-backlog/ item this spec was seeded from: `<list file>#B<n>` for a line on a backlog list, or the file name of an older per-item file. Set at 0.1.4 when seeded from a backlog item; the line stays on its list as `promoted`, while an older item file is deleted at 0.6 (0.3.20 on the light path) after its content is carried into this spec. Convention: the spec body opens its Why with a line "Origin: <item>, <one-phrase problem>."
@@ -49,6 +51,8 @@ Validate the frontmatter (prints true, exits non-zero otherwise):
     (((.spec_branch // "") | tag) == "!!str") and
     (((.impl_base_revision // "") | tag) == "!!str") and
     ((.light_path | tag) == "!!bool") and
+    (((.small_path // false) | tag) == "!!bool") and
+    (((.small_path // false) == false) or (.light_path == true)) and
     ((.followup_review_recommended | tag) == "!!bool") and
     ((.deferred | tag) == "!!seq") and
     (((.origin // "") | tag) == "!!str") and
