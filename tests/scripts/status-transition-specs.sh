@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Suite: status-transition.sh (feature-workflow/scripts): spec status transitions.
 # Covers: spec status transitions and the .step marker, blocked/discovered-work paths,
+#   ready-for-dev -> draft at 0.6 only before Phase 1,
 #   blocked -> draft at 00.24 / 00.29 only for the matching blocked_condition, no 3.16 merge while blocked,
 #   a fresh clone with no blocked_from, worktree resolution, a merged task reopened at 3.9 / 3.11. JRN-006: each spec folder
 #   form gives the exit code and message it gave before the shared normaliser.
@@ -135,6 +136,28 @@ eq "worktree spec.md untouched" "$(yq --front-matter=extract .status "$WT/$B/spe
 t "absolute spec dir (worktree path)"       0 ST step "$WT/$B" 0.3.19 --cwd "$WT"
 eq "abs path maps to main" "$(step 002-beta)" 0.3.19
 t "not a git repo"                          1 ST step $B 0.1.6 --cwd /
+
+echo "== status-transition: scope change at 0.6, before Phase 1"
+E=.workflow/specs/007-epsilon
+mkdir -p "$R/$E"; cp "$SRC/assets/spec.md" "$R/$E/spec.md"
+t "epsilon init"                            0 ST status $E draft
+t "epsilon ready at 0.6"                    0 ST status $E ready-for-dev --step 0.6
+t "ready->draft at 0.6 before 1.1"          0 ST status $E draft --step 0.6
+eq "status draft after 0.6 loop-back" "$(status 007-epsilon)" draft
+eq ".step = 0.6 after 0.6 loop-back" "$(step 007-epsilon)" 0.6
+t "epsilon ready again at 0.6"              0 ST status $E ready-for-dev --step 0.6
+unmark 007-epsilon
+t "ready->draft at 0.6, no marker"          0 ST status $E draft --step 0.6
+t "epsilon ready at 0.6 (3)"                0 ST status $E ready-for-dev --step 0.6
+t "1.1 marks .step"                         0 ST step $E 1.1
+t "ready->draft at 0.6 once .step is 1.1"   2 ST status $E draft --step 0.6
+eq "still ready-for-dev after refusal" "$(status 007-epsilon)" ready-for-dev
+t "back to 0.6 marker"                      0 ST step $E 0.6
+yq --front-matter=process -i '.spec_branch = "spec/007-epsilon"' "$R/$E/spec.md"
+t "ready->draft at 0.6 with spec_branch"    2 ST status $E draft --step 0.6
+yq --front-matter=process -i '.spec_branch = "" | .baseline_revision = "abc123"' "$R/$E/spec.md"
+t "ready->draft at 0.6 with baseline"       2 ST status $E draft --step 0.6
+t "ready->draft at 2.2 still allowed"       0 ST status $E draft --step 2.2
 
 echo "== status-transition: discovered work and size budget"
 D=.workflow/specs/006-delta

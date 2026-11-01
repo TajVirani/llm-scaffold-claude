@@ -13,7 +13,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
    | From | Seed question |
    | --- | --- |
    | 0.4.7 | The conflict between the impact model and the goal |
-   | 0.6 | Each exit-gate check that was not clear |
+   | 0.6 | Each exit-gate check that was not clear; for a scope change before 1.1, the stakeholder's change, verbatim |
    | 2.2 / 2.3 | What made the spec unspecifiable, or the interfaces under test not agreed |
    | 4.5 / 4.6 | The triage finding `F<n>` that needs a decision, or the upstream problem the third pass exposed |
    | 5.6 | The stakeholder's change request, verbatim |

@@ -77,7 +77,7 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 
 | Status | `.step` / condition | Load | Resume at |
 | --- | --- | --- | --- |
-| `draft` | step in 0.3.8–0.3.19, or a loop-back step (2.2, 2.3, 4.5, 4.6, 5.6, 00.24, 00.29) | [questioning-loop](modules/questioning-loop.md) | 0.3.8 (recompute the frontier from `design-log.md`) |
+| `draft` | step in 0.3.8–0.3.19, or a loop-back step (0.6, 2.2, 2.3, 4.5, 4.6, 5.6, 00.24, 00.29) | [questioning-loop](modules/questioning-loop.md) | 0.3.8 (recompute the frontier from `design-log.md`) |
 | `draft` | any other step, or no marker | [discovery](modules/discovery.md) | the step in `.step`; 0.1.6 when there is none |
 | `ready-for-dev` | `light_path: true` | implementation-orchestrator | 3.1 |
 | `ready-for-dev` | step in 2.x | task-breakdown | the step in `.step` |
@@ -125,6 +125,7 @@ Every loop back to 0.3.8 sets `draft`. The module that owns the gate makes the c
 | Gate | Owner | Status call before loading the loop |
 | --- | --- | --- |
 | 0.4.7 goal conflict, 0.6 not clear | discovery | none (already `draft`); `step .workflow/specs/NNN-slug 0.3.8` |
+| Stakeholder changes scope after 0.6, before 1.1 starts | this skill | `status .workflow/specs/NNN-slug draft --step 0.6` (refused once 1.1 has started) |
 | 2.2 not specifiable, 2.3 seams not agreed | task-breakdown | `status .workflow/specs/NNN-slug draft --step 2.2` or `--step 2.3` |
 | 4.5 decision needed, 4.6 third pass upstream | review-triage | `status .workflow/specs/NNN-slug draft --step 4.5` or `--step 4.6` |
 | 5.5 change request | this skill (5.6) | `status .workflow/specs/NNN-slug draft --step 5.6` |
@@ -216,7 +217,7 @@ Codex hooks replace the direct script calls only for events a live Codex run has
 | [questioning-loop](modules/questioning-loop.md) | 0.3.8–0.3.19 | discovery; loop-backs from 0.4.7, 0.6, 2.2, 2.3, 4.5, 4.6, 5.6, 00.24, 00.29 | discovery at 0.3.20; large-path at 0.3.23 (several features) |
 | [deferred-handoff](modules/deferred-handoff.md) | 00.8–00.10, 0.3.17, 3.14, 5.9 | questioning-loop, discovery (0.1.5), implementation-orchestrator (3.14), discovered-work (00.25, a shelf file the stakeholder asked for), sign-off (5.9) | back to the caller |
 | [discovered-work](modules/discovered-work.md) | 00.21–00.29 | verification-setup (1.2–1.3), task-breakdown (2.1, 2.6), implementation-orchestrator (3.2, 3.4, 3.7, 3.15), review-triage (4.4); [Route by status](#3-route-by-status) for a `discovered work:` or `size budget:` block | the caller at once for an unproven, current-work or `to ask` item (no block); the caller at its node (00.28); questioning-loop (00.24, 00.29 re-scope); stays `blocked` |
-| [verification-setup](modules/verification-setup.md) | 1.1–1.5 | discovery (0.6) | task-breakdown |
+| [verification-setup](modules/verification-setup.md) | 1.1–1.5 | discovery (0.6) | task-breakdown; questioning-loop (scope change before 1.1) |
 | [task-breakdown](modules/task-breakdown.md) | 2.1–2.6 | verification-setup | implementation-orchestrator; questioning-loop (2.2, 2.3); discovered-work (2.1, 2.6) |
 | [implementation-orchestrator](modules/implementation-orchestrator.md) | 3.1–3.16 | task-breakdown; discovery (light path); review-triage (4.7 rework) | review-triage (`in-review`); discovered-work |
 | [review-triage](modules/review-triage.md) | 4.1–4.10 | implementation-orchestrator | sign-off; questioning-loop (4.5, 4.6); implementation-orchestrator (4.7 rework); discovered-work (4.4) |
