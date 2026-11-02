@@ -66,7 +66,7 @@ tasks:
     pr: null
   - id: T4
     title: "Done folder accepts old_ names"
-    status: pending
+    status: done
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T1]
     touches_core: true
@@ -86,7 +86,7 @@ tasks:
     pr: null
   - id: T5
     title: "Tracker script"
-    status: pending
+    status: done
     capability: CAP-NEW-tracker-issues
     depends_on: [T1, T3]
     touches_core: false

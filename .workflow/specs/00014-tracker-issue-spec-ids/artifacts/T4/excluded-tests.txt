@@ -1,0 +1,6 @@
+tests/scripts/issue-tracking.sh
+tests/scripts/issue-tracking-setup.sh
+tests/scripts/tracker-adoption.sh
+tests/lint/shared-tracker-logic.sh
+tests/lint/issue-tracking-docs.sh
+tests/scripts/sign-off-pr.sh
