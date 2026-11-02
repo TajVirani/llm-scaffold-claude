@@ -229,6 +229,11 @@ check "JRN-001 neither hook keeps its own codex_enc copy" \
   '! grep -q "codex_enc()" "$WORK/scaffold/.agents/hooks/codex-pre-spawn.sh" "$WORK/scaffold/.agents/hooks/post-implementation-audit.sh"' \
   "$(grep -n "codex_enc()" "$WORK/scaffold/.agents/hooks/codex-pre-spawn.sh" "$WORK/scaffold/.agents/hooks/post-implementation-audit.sh")"
 
+echo "== the issue tracker settings file"
+eq "WF_ISSUE_TRACKING is .workflow/issue-tracking.yaml, built from WF_DIR" \
+  "$(bash -c 'set -euo pipefail; . "$1"; [ "$WF_ISSUE_TRACKING" = "$WF_DIR/issue-tracking.yaml" ] && printf %s "$WF_ISSUE_TRACKING"' _ "$LIB" 2>&1)" \
+  .workflow/issue-tracking.yaml
+
 echo "== JRN-012 (spec 00014): the old_ prefix in the Done folder"
 OLD_DONE=.workflow/specs/done/old_012-alpha
 while IFS='|' read -r form arg; do

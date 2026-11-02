@@ -12,6 +12,7 @@
 #   WF_<NAME>              each path below, relative to the project root, no trailing slash
 #   WF_SPECS, WF_INITIATIVES  the roots for feature specs and for initiatives (".workflow/specs", ".workflow/initiatives")
 #   WF_SPECS_DONE          the Done folder finished specs move into (".workflow/specs/done")
+#   WF_ISSUE_TRACKING      the issue tracker settings file (".workflow/issue-tracking.yaml")
 #   wf_path <root> <rel>   prints <root>/<rel> (root's trailing slash dropped); e.g. wf_path "$ROOT" "$WF_SPECS"
 #   WF_SPEC_WORKTREES      the folder of spec worktrees in the main checkout (".workflow/.spec-worktrees"): spec NNN-slug runs
 #                          in <main checkout>/.workflow/.spec-worktrees/NNN-slug, on its spec branch
@@ -47,6 +48,7 @@ WF_DIR=".workflow"
 WF_GLOSSARY="$WF_DIR/GLOSSARY.md"
 WF_GLOSSARY_MAP="$WF_DIR/GLOSSARY-MAP.md"
 WF_AGENT_OVERRIDES="$WF_DIR/agent-overrides.yaml"
+WF_ISSUE_TRACKING="$WF_DIR/issue-tracking.yaml"
 WF_MODEL_MAP="$WF_DIR/model-map"
 WF_PROFILES="$WF_DIR/profiles"
 WF_SPECS="$WF_DIR/specs"
