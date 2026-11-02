@@ -354,7 +354,7 @@ D22–D25 settle the four conflicts and touch only feature-workflow paths the 0.
 
 ## 2026-11-01 Task breakdown 2.1–2.4
 
-- Phase 1 built the harness without the tests-in-tasks shortcut (the capability is `CAP-NEW-*`); `lint/md-links` passes on the baseline and is assigned to no task, so it runs at every gate.
+- Phase 1 built the harness without the tests-in-tasks shortcut (the capability was a new one, now CAP-012); `lint/md-links` passes on the baseline and is assigned to no task, so it runs at every gate.
 - Stakeholder approved 10 tasks as drafted, keeping the orchestrator setup/waves/finish split as one L task (mostly moved text; splitting it would exceed `max_tasks`).
 - Stakeholder approved two `parallel_with` pairs whose only overlap is separate rows in `PROVENANCE.md` and `upstream-lineage.json`: term-list script with the conventions file, and the discovery split with the shared-core and gates step files.
 - 2.2: every slice is specifiable from spec.md, design-log.md and verification-plan.md. 2.3: seams agreed with the breakdown. 2.4: no slice touches shared core (`.agents/lib/**`).

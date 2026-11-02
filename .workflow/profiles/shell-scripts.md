@@ -24,7 +24,7 @@
 - Exit codes: `0` ok, `1` the check found a problem or refused, `2` usage, environment or preflight error, documented in `# Exit:`. Existing scripts keep their codes; changing one updates `# Exit:` and its test in the same change.
 - Guard hooks fail closed: on an unparsable payload or a helper error they print the host's deny JSON and exit 0. Non-guard hooks (the stop audit) allow with a warning.
 - Resolve sibling paths from `BASH_SOURCE` with `cd -P`, so a path reached through the `.claude/` symlinks resolves into `.agents/`.
-- Test syntax: match the file being edited; new files use `[[ ]]`. Never convert a file for style. No line-length limit.
+- Test syntax: match the file being edited; new files use `[[ ]]`. A file is new when it is absent at the spec's `baseline_revision`, even if an earlier task or the Phase 1 harness added it. Never convert a file for style. No line-length limit.
 - A shellcheck directive carries its reason after `#` → `# shellcheck disable=SC2016 # expanded by eval`.
 
 ## Toolchain

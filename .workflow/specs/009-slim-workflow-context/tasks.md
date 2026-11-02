@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Term-list script"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -20,7 +20,7 @@ tasks:
   - id: T2
     title: "Output style reads the term list"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: []
     touches_core: false
     work_type: agent-docs
@@ -36,7 +36,7 @@ tasks:
   - id: T3
     title: "Workflow conventions file"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: []
     touches_core: false
     work_type: agent-docs
@@ -52,7 +52,7 @@ tasks:
   - id: T4
     title: "Launching reference"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: [T1, T3]
     touches_core: false
     work_type: agent-docs
@@ -68,7 +68,7 @@ tasks:
   - id: T5
     title: "Discovery split and the 0.2.1 read"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: [T4]
     touches_core: false
     work_type: agent-docs
@@ -85,7 +85,7 @@ tasks:
   - id: T6
     title: "Shared-core and per-task gates step files"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: [T4]
     touches_core: false
     work_type: agent-docs
@@ -101,7 +101,7 @@ tasks:
   - id: T7
     title: "Fold the small path into its step files"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: [T5, T6]
     touches_core: false
     work_type: agent-docs
@@ -118,7 +118,7 @@ tasks:
   - id: T8
     title: "Setup, waves and finish step files; orchestrator removed"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: [T7]
     touches_core: false
     work_type: agent-docs
@@ -135,7 +135,7 @@ tasks:
   - id: T9
     title: "Script and asset headers re-pointed"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: [T8]
     touches_core: false
     work_type: shell-scripts
@@ -151,7 +151,7 @@ tasks:
   - id: T10
     title: "Hit the load targets"
     status: done
-    capability: CAP-NEW-lean-workflow-load
+    capability: CAP-012
     depends_on: [T2, T9]
     touches_core: false
     work_type: agent-docs

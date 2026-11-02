@@ -20,7 +20,7 @@ Starting the feature workflow uses about 10% of the context window before any wo
 
 ## Capabilities
 
-- **CAP-NEW-lean-workflow-load** Load only the instructions the current step needs
+- **CAP-012** Load only the instructions the current step needs
   - **intent:** A session running the feature workflow loads the **Router**, the **Workflow conventions** and the one **Step file** its step needs, plus the **Term list** instead of the whole glossary, so its context is spent on the work.
   - **success:** Measured with `wc -c`, hook output included, a new-feature start (small path included) loads at most 45 KB and an implementation resume at most 55 KB (D15, D21), and a test suite fails above either (D19); every rule lives in one file; every relative link and anchor under `.agents/` resolves; `tests/run-all.sh` passes.
 
