@@ -92,7 +92,7 @@ ST step .workflow/specs/NNN-slug 0.3.19
 
 On the small path: keep `small_path: true` and `light_path: true` when the three facts are clean. A fact that is not clean, a library the project does not have, or a correction that reopens the frontier means [leave the small path](#leave-the-small-path) first.
 
-Once `spec.md` is written, copy it into the spec's tracker issue, so the issue carries the settled goal; with no tracker the script prints `skipped: no tracker`. On exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed:
+Once `spec.md` is written, copy it into the spec's tracker issue, so the issue carries the settled goal:
 
 ```bash
 .agents/skills/issue-tracking/scripts/issue-tracker.sh fill "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" .workflow/specs/NNN-slug/spec.md

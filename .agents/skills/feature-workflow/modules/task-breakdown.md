@@ -100,7 +100,7 @@ A slice that must change a path matching them gets `touches_core: true`, and its
    - **Exit 0 with implied edges:** 2.1 missed an overlap. Add each implied edge to the record's `depends_on` (or take the pair back to the stakeholder for `parallel_with`), write the files again and re-run this step.
    - **Exit 2:** a cycle, an unknown id or a duplicate id (reason on stderr): fix the edges in 2.1 and write the files again. Exit 1 is an environment error: stop and report it.
 
-8. **File the task issues.** Once the waves are settled, for each task in id order, file its tracker issue under the spec's issue and record the URL it prints, then add the task file's Tracker issue line (`assets/task.md` says where). With no tracker `create-task` prints `skipped: no tracker`: record and add nothing. On exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed; a task that already holds an `issue` is not filed again.
+8. **File the task issues.** Once the waves are settled, for each task in id order, file its tracker issue under the spec's issue and record the URL it prints, then add the task file's Tracker issue line (`assets/task.md` says where). On `skipped: no tracker` record and add nothing; a task that already holds an `issue` is not filed again.
 
    ```bash
    .agents/skills/issue-tracking/scripts/issue-tracker.sh create-task "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" .workflow/specs/NNN-slug/tasks/T<nn>-<slug>.md

@@ -210,7 +210,7 @@ yq --front-matter=extract '.verdict' .workflow/decisions/retrospectives/NNN-slug
 
 Commit what is left on the spec branch (`git status --short`; the spec folder with `pr-body.md`, the approved Tier A writes and the retrospective).
 
-**Copy the final spec into its tracker issue**, while the spec folder is still at its old path (with no tracker the script prints `skipped: no tracker`; on exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed):
+**Copy the final spec into its tracker issue**, while the spec folder is still at its old path:
 
 ```bash
 .agents/skills/issue-tracking/scripts/issue-tracker.sh fill "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" .workflow/specs/NNN-slug/spec.md
@@ -261,19 +261,19 @@ git -C "$main_checkout" switch "$MAIN" && git -C "$main_checkout" merge --no-ff 
 
 The merge message is built in the spec checkout because `pr-body.md` exists only on the spec branch; git refuses the merge while the main checkout has uncommitted changes to files it touches, so check `git -C "$main_checkout" status --short` first and ask the stakeholder about anything it lists; `--no-edit` and `--cleanup=verbatim` keep the message to the body as checked, line for line: an editor session would strip the `##` heading lines as comments, and the default cleanup trims blank lines and trailing spaces. Push only what the stakeholder asked for: after a local merge, push the main branch only on request. Remove leftover agent worktrees (`git worktree list`, then `git worktree remove <path>` for each one under `.workflow/.worktrees/` this feature created).
 
-**Close the spec's tracker issue after a local merge.** A PR/MR closes it through the `Closes #<n>` line of its description when it merges; a local merge has no PR to do that, so move the issue to done (with no tracker the script prints `skipped: no tracker`; on exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed):
+**Move the spec's tracker issue to done, then remove the spec worktree and the spec branch,** once the spec branch is on the main branch: right after a local merge, or once the PR/MR has merged and the main checkout has pulled it. A merged PR/MR closes the issue through its `Closes #<n>` line but leaves the in-progress label, so run the move on both routes; on a closed issue it changes only the label:
 
 ```bash
 .agents/skills/issue-tracking/scripts/issue-tracker.sh move "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/done/NNN-slug/spec.md)" done
 ```
 
-**Remove the spec worktree and the spec branch** once the spec branch is on the main branch: right after a local merge, or once the PR/MR has merged and the main checkout has pulled it. Leave the spec worktree first, since the command deletes it: on Claude Code call `ExitWorktree` with `action: keep` when this session entered it with `EnterWorktree` (that returns the session to the main checkout); a session opened in the spec worktree runs it as its last command. From the main checkout:
+Leave the spec worktree first, since the command deletes it: on Claude Code call `ExitWorktree` with `action: keep` when this session entered it with `EnterWorktree` (that returns the session to the main checkout); a session opened in the spec worktree runs it as its last command. From the main checkout:
 
 ```bash
 .agents/skills/feature-workflow/scripts/spec-worktree.sh remove .workflow/specs/done/NNN-slug
 ```
 
-It removes `.workflow/.spec-worktrees/NNN-slug` and deletes `spec/NNN-slug` with `git branch -d`, the safe delete, so a branch that is not merged is never lost; a spec run in the main checkout has no spec worktree, and only its branch goes. Exit 1 removes nothing and says what still holds them (not merged yet, uncommitted changes, an agent worktree left inside): fix that and run it again. While the PR/MR is still open, leave both and tell the stakeholder to run the command once it merges. Close with a one- or two-sentence summary: what shipped, the merge commit, where the deferred items wait, and which backlog items were promoted (with their new spec folders) or kept open.
+It removes `.workflow/.spec-worktrees/NNN-slug` and deletes `spec/NNN-slug` with `git branch -d`, the safe delete, so a branch that is not merged is never lost; a spec run in the main checkout has no spec worktree, and only its branch goes. Exit 1 removes nothing and says what still holds them (not merged yet, uncommitted changes, an agent worktree left inside): fix that and run it again. While the PR/MR is still open, leave the issue, the worktree and the branch, and tell the stakeholder to run both commands once it merges. Close with a one- or two-sentence summary: what shipped, the merge commit, where the deferred items wait, and which backlog items were promoted (with their new spec folders) or kept open.
 
 **Harness after a local merge.** Run the harness on the main branch again only when the merge changed what was tested. Check first; it runs nothing and writes nothing:
 
@@ -285,4 +285,4 @@ Exit 0: the merge result is a tree the harness already passed on (it prints the 
 
 **Close the initiative.** For a spec that carries `initiative:`, once the merge has landed on main, load [large-path](large-path.md#613-close-when-every-spec-is-done) at 6.13 for that initiative. 6.13 first reads the initiative's status on main, then at the tip of `initiative/NNN-slug` when that branch exists locally or on `origin`: while the initiative is still exploring (absent from main, `exploring` there, or `exploring` at the branch tip after a reopen), it tells the stakeholder so and writes nothing. A branch whose tip reads `planned`, left on `origin` by a merged PR, does not stop the close. When it is `planned` and every emitted spec is `done` on main (at the top level or in the Done folder), it re-points the initiative's links to the specs now in the Done folder and moves the initiative to `done` through `initiative-transition.sh` on a re-created `initiative/NNN-slug` and merges that change into main the way `planned` was merged; otherwise it tells the stakeholder which specs are still open. While the PR/MR is still open, skip this: the initiative's next resume runs the same check.
 
-Done when the PR is open (or the local merge has landed) with the stakeholder told where, the spec worktree and spec branch are removed once merged (or the stakeholder has the command for when the PR/MR merges), the spec sits in `.workflow/specs/done/NNN-slug` reading `status: done`, and a spec carrying `initiative:` has been through the 6.13 check or waits for its PR/MR.
+Done when the PR is open (or the local merge has landed) with the stakeholder told where, the spec's tracker issue is moved to done and the spec worktree and spec branch are removed once merged (or the stakeholder has the commands for when the PR/MR merges), the spec sits in `.workflow/specs/done/NNN-slug` reading `status: done`, and a spec carrying `initiative:` has been through the 6.13 check or waits for its PR/MR.
