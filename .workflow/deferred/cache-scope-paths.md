@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/009-slim-workflow-context
+origin_spec: .workflow/specs/done/009-slim-workflow-context
 created: 2026-11-01
 ---
 
@@ -7,7 +7,7 @@ created: 2026-11-01
 
 **Summary:** Publishing a Tier B cache refuses a scope path that does not exist, and the stamp check reports a cache whose scope names a missing path as invalid instead of fresh.
 **Mode:** AFK
-**Origin:** [009-slim-workflow-context](../specs/009-slim-workflow-context/spec.md), 0.3.17 scope decision, design-log entry 2026-11-01 Scope decision: cache scope paths
+**Origin:** [009-slim-workflow-context](../specs/done/009-slim-workflow-context/spec.md), 0.3.17 scope decision, design-log entry 2026-11-01 Scope decision: cache scope paths
 
 ## Goal
 

@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/009-slim-workflow-context
+spec: .workflow/specs/done/009-slim-workflow-context
 date: 2026-11-02
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/009-slim-workflow-context/spec.md` (capabilities: CAP-012)
-- Report: `.workflow/specs/009-slim-workflow-context/report.md`
+- Spec: `.workflow/specs/done/009-slim-workflow-context/spec.md` (capabilities: CAP-012)
+- Report: `.workflow/specs/done/009-slim-workflow-context/report.md`
 - Tasks: 10 done, 0 split out (`tasks.md`)
 - Evidence available: `spec.md`, `verification-plan.md`, `report.md`, `tasks.md`, `design-log.md` (triage pass 1, rework 1 result, sign-off entry), `proposals.md` (P1–P4 approved), `artifacts/` (toolchain per task, gates 3.9 w1–w7 and rework1, sign-off-5.4, review pass 1), `.workflow/specs/work-backlog/009-slim-workflow-context.md` (B1, B2), shelf files `cache-scope-paths.md` and `in-review-hand-off.md`, git `a29eca7..8930c34`, `.workflow/review-lessons.md`, previous retrospective `00013-validator-diagnostic.md`
 - Evidence missing: session logs (process lessons come from `design-log.md` and the stakeholder only); waiting minutes

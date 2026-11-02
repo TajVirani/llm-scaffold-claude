@@ -1,0 +1,69 @@
+verdict: "fail"
+task_id: "T1"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1@e05945165e2b3bf75d9aa1d7c200268caa844279..HEAD"
+tool_output: ".workflow/specs/done/009-slim-workflow-context/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:114-125 uses WF_GLOSSARY_MAP and WF_GLOSSARY, defined at .agents/lib/workflow-paths.sh:47-48; no spelled-out .workflow/ path in code"
+  - n: 2
+    verdict: "not-applicable"
+    location: "none; the diff touches no hook (only term-list.sh and PROVENANCE.md)"
+  - n: 3
+    verdict: "fail"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:117"
+    note: "The guard '[[ -n \"$glossary\" ]] || continue' drops a map link whose path is empty after ./ is stripped, with no message: a map line '- [billing](./)' leaves billing out of the term list and exits 0 (probe: only the core entries printed, exit=0), so a session works from a partial term list. Die naming the context instead, and test for an empty links string before the loop."
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:115 (links=$(map_contexts ...) || die), :118 (die inside the read loop), :132 (define_entry || define_status=$?), :143 (list_terms || die); map_contexts (:83) and list_terms (:32) each run a single awk call, so no earlier command in them can fail silently"
+  - n: 5
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:17 documents 0/1/2; exits at :26 (die, 2), :135 (0), :136 (1)"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:29 resolves the helper from BASH_SOURCE with cd -P; ../../../lib from scripts/ reaches .agents/lib"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:2-19 has File, Purpose, Usage, Exit, Notes and Sources, the helper shape of check-comments.sh:2-20; no decision or task id"
+  - n: 8
+    verdict: "fail"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:105, :114, :117, :118, :122, :123, :128, :130, :142"
+    note: "The file existed at base with [ ] tests (base term-list.sh:23, the case line), and an edited file keeps its existing test syntax, yet these shell tests now use [[ ]]; write them as [ ] with the same quoting."
+  - n: 9
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:31 (list_terms), :61 (define_entry), :82 (map_contexts) each carry the name ARGS : line; the only directive is the source= path hint at :28, which needs no reason"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:32 list_terms, :62 define_entry, :83 map_contexts, :112-113 contexts and glossaries, :129 define_status name what they hold"
+  - n: "R2"
+    verdict: "fail"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:117"
+    note: "The guard exists because read on an empty links string yields one empty record, but no comment says so; removing it makes a map with no links die (probe: 'cannot read , the  glossary .workflow/GLOSSARY-MAP.md links', exit=2), so a reader may drop it. Add the reason as a sentence, or replace the guard as item 3 asks."
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:111 is the only body comment outside the function headers; it gives the index pairing of the two parallel arrays, which the code does not show"
+  - n: "R4"
+    verdict: "tool-covered"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:111"
+    note: "Covered by the lint key, check-comments.sh (toolchain.json lint exit 0); no body comment points at a document, and the header pointer at :6 is outside R4 (readable-code.md:10 says R4 governs body comments)."
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:4-6 define the entry and its _Avoid_ line in plain words, :9-12 define context and map; no undefined shorthand"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh: the WF_GLOSSARY and WF_GLOSSARY_MAP definitions and the cd -P sourcing convention (items 1, 6)"
+  - ".agents/skills/feature-workflow/scripts/check-comments.sh: sibling helper header shape (item 7)"
+  - "git show e05945165e2b3bf75d9aa1d7c200268caa844279:.agents/skills/domain-modeling/scripts/term-list.sh: the base stub's test syntax at line 23 (item 8)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R2 to R5 and the header exemption at :10 (R4 governs body comments)"
+  - ".agents/skills/domain-modeling/assets/GLOSSARY-FORMAT.md and SKILL.md: the map is a root GLOSSARY-MAP.md with a Contexts section (out-of-scope entry)"
+  - "scratch copies of term-list.sh and workflow-paths.sh from HEAD under mktemp -d: probes for items 3 and R2 only, removed afterwards"
+not_checked:
+  - "The header pointer ../assets/GLOSSARY-FORMAT.md at term-list.sh:6: kept out of R4 because readable-code.md:10 limits R4 to body comments; a stricter reading of the header exemption would fail it, settled only by the owner of readable-code.md."
+out_of_scope_noticed:
+  - kind: "bug"
+    summary: "A map whose Contexts heading is misspelt or absent makes the term list silently empty: the root glossary is ignored and the script exits 0 with no message."
+    evidence: "Probe in a scratch copy: .workflow/GLOSSARY-MAP.md with the heading '## Context' and one link to a real glossary; term-list.sh printed nothing and exited 0. The heading match is at term-list.sh:86 (/^## Contexts[[:space:]]*$/), which is in this diff."
+    blocker_assessment: "blocks-this-task"
+    reason: "The matching lines are changed by this diff, so the fix belongs in this task; no checklist item requires an unparseable map to error, so it is an entry, not a fail. Whether an empty map is legitimate depends on the map rules in GLOSSARY-FORMAT.md, which I did not read in full."

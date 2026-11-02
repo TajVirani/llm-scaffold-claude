@@ -1,0 +1,50 @@
+status: done
+summary: "Harness command: tests/run-all.sh. CI check: none. Six new suites (lint/workflow-load-size, lint/step-routing, lint/md-links, lint/shared-rule-homes, lint/affected-area, scripts/term-list), a term-list.sh interface stub in domain-modeling, and lint/small-path-docs rewritten for the split; every red check fails on a ko assertion and each suite reaches finish. Check column: JRN-001 lint/workflow-load-size 'new-feature start: every counted file exists' + 'new-feature start is at most 45000 bytes'; JRN-002 lint/workflow-load-size 'implementation resume: every counted file exists' + 'implementation resume is at most 55000 bytes'; JRN-003 lint/step-routing 'every <phase> id is held by exactly one step file' + 'every <phase> id's step file is reached from the router or a load line' (0.x, 1.x-6.x, 00.x) + 'the router holds 0.0.3' + '4.10 ... held by exactly one step file'; JRN-004 lint/md-links 'every relative link and anchor in the markdown under .agents/ resolves' + 'the lint fails on the fixture' / 'it names the link to the missing heading' / 'it names the link to the missing file'; JRN-005 scripts/term-list (all assertions); JRN-006 lint/shared-rule-homes '<rule>: in exactly one file' / 'escalation classes: only in modules/discovered-work.md' / 'leave the small path: only in modules/questioning-loop.md' / 'modules/small-path.md no longer exists' + guarded-writes table rows; JRN-007 lint/small-path-docs (all) + lint/frontmatter; JRN-008 lint/workflow-load-size 'a counted file padded past the limit fails the load point' + 'the failure names the load point, its total and its limit'; JRN-009 lint/affected-area 'discovery 0.2.1 holds a fenced bash command' + 'one line per module' + 'each line is one module with exactly its owns paths'; JRN-010 tests/run-all.sh."
+task_id: "phase-1-test-harness"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_phase_1_test_harness"
+branch: "wf/009-slim-workflow-context/s009_phase_1_test_harness"
+base_commit: "a29eca7c475544a99ccc9d986cde87e02f4f140d"
+head_commit: "0f64226f8dca452419b3b4f8632e8938d0d51ad0"
+files_changed: ["tests/lint/workflow-load-size.sh", "tests/lint/step-routing.sh", "tests/lint/md-links.sh", "tests/lint/shared-rule-homes.sh", "tests/lint/affected-area.sh", "tests/scripts/term-list.sh", "tests/lint/small-path-docs.sh", "tests/README.md", ".agents/skills/domain-modeling/scripts/term-list.sh"]
+tests_added:
+  - {file: "tests/lint/workflow-load-size.sh", test: "new-feature start is at most 45000 bytes / every counted file exists", kind: behaviour}
+  - {file: "tests/lint/workflow-load-size.sh", test: "implementation resume is at most 55000 bytes / every counted file exists", kind: behaviour}
+  - {file: "tests/lint/workflow-load-size.sh", test: "a counted file padded past the limit fails the load point; the failure names the load point, its total and its limit", kind: negative}
+  - {file: "tests/lint/workflow-load-size.sh", test: "a missing counted file fails the load point and still prints the total of what exists", kind: edge}
+  - {file: "tests/lint/step-routing.sh", test: "every <phase> id is held by exactly one step file; its step file is reached", kind: behaviour}
+  - {file: "tests/lint/step-routing.sh", test: "the router holds 0.0.1-0.0.3 and no step file does", kind: behaviour}
+  - {file: "tests/lint/step-routing.sh", test: "an unlabelled id is held by at most one step file", kind: edge}
+  - {file: "tests/lint/md-links.sh", test: "every relative link and anchor in the markdown under .agents/ resolves", kind: behaviour}
+  - {file: "tests/lint/md-links.sh", test: "the lint fails on the fixture naming the missing heading and the missing file, and nothing else", kind: negative}
+  - {file: "tests/lint/shared-rule-homes.sh", test: "<rule>: in exactly one file; escalation classes only in discovered-work.md; leave heading only in questioning-loop.md; small-path.md gone", kind: behaviour}
+  - {file: "tests/lint/shared-rule-homes.sh", test: "guarded-writes table steps match check-write.sh constants", kind: behaviour}
+  - {file: "tests/lint/affected-area.sh", test: "the 0.2.1 command prints one line per Ownership module with exactly its owns paths", kind: behaviour}
+  - {file: "tests/scripts/term-list.sh", test: "one line per entry with aliases, in order, no definitions", kind: behaviour}
+  - {file: "tests/scripts/term-list.sh", test: "a glossary map: both contexts labelled, root glossary not read", kind: behaviour}
+  - {file: "tests/scripts/term-list.sh", test: "--define prints exactly one entry; an entry without _Avoid_ stops at the next section", kind: edge}
+  - {file: "tests/scripts/term-list.sh", test: "--define of an unknown term exits non-zero; usage errors exit 2", kind: negative}
+  - {file: "tests/lint/small-path-docs.sh", test: "frontmatter keys gone, small-path.md gone, On the small path notes, Leave section in questioning-loop, short report and folded retrospective in sign-off", kind: behaviour}
+evidence:
+  red: "tests/run-all.sh (75 suites): FAIL scripts/term-list 9/13 (e.g. 'FAIL one line per entry', 'FAIL --define of an unknown term exits non-zero'); FAIL lint/affected-area ('FAIL discovery 0.2.1 holds a fenced bash command'); FAIL lint/shared-rule-homes ('FAIL host launch rows: fork_turns: in exactly one file' files: SKILL.md modules/implementation-orchestrator.md; 'FAIL leave the small path: only in modules/questioning-loop.md' got=modules/small-path.md; 'FAIL modules/small-path.md no longer exists'); FAIL lint/small-path-docs 25 (frontmatter modules and progressive_loading keys, 0.0.3 Yes loads discovery alone, router names no small-path.md, router links questioning-loop.md#leave-the-small-path, small-path.md gone, four 'On the small path:' notes, 0.1.4 note, no library-evaluation, discovery links leave section, four Leave-section checks, five short-report lines and the count, 5.5 lessons, 5.7 ask nothing); FAIL lint/step-routing ('every 0.x id is held by exactly one step file' 0.1.4/0.2.4/0.2.5/0.3.3/0.3.22/0.3.8-0.3.19/0.3.20 held by small-path too; 'every 5.x id ...' 5.4/5.5/5.7; '0.3.20 ... got=2'); FAIL lint/workflow-load-size ('the term list prints the glossary's terms' stub prints nothing; 'new-feature start: every counted file exists' conventions.md missing; 'new-feature start is at most 45000 bytes' 59713; 'implementation resume: every counted file exists' conventions.md and implementation-waves.md missing). Today's printed totals: new-feature start: 59713 bytes (limit 45000); implementation resume: 31915 bytes (limit 55000), both counting only the files that exist."
+  green: "tests/scripts/term-list.sh against a throwaway reference implementation (not committed): 22/22 passed; tests/lint/affected-area.sh with a plausible yq command inserted under 0.2.1 (reverted): 6/6 passed; tests/lint/step-routing.sh with small-path.md moved aside (restored): only duplicate-holder failures gone; lint/md-links 6/6 (renamed from tests/lint/links.sh to match the spec) and lint/frontmatter 41/41 pass on today's tree."
+  suite: "bash run-toolchain.sh --spec-dir .workflow/specs/done/009-slim-workflow-context --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>: exit 0 (test skipped as Phase 1). tests/run-all.sh: 69 of 75 suites pass; the 6 failing are exactly the new or rewritten red-by-design suites, 49 failed assertions, TOTAL passed=4347."
+  toolchain: ".workflow/specs/done/009-slim-workflow-context/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+considered_not_built:
+  - "Requiring a step label for every 00.x and artifact id: 0.0, 0.2.3, 0.4.3, 0.5.4, 0.3.21, 3.12, 00.1-00.17, 00.19, 00.20 have no step text today and the spec keeps behaviour unchanged, so step-routing lists them with reasons and checks only that each is held by at most one step file."
+  - "Checking links inside assets/ templates: their relative links point at where the copy lands (spec folders), so the link lint skips assets/ folders."
+  - "Pinning the term-list line format: the suite checks content (term, aliases, context label, line count, order) so any one-line layout passes."
+  - "Tying the 'deeper prompt first question' and 'summary last question' small-path checks to the note text: they are checked file-wide in questioning-loop.md, which already holds such lines today."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "No network: the hook fixture uses a local bare origin (large_path_repo); every other suite reads files or runs local scripts."}
+  - {item: 2, verdict: pass, note: "tests/scripts/term-list.sh ends with shellcheck_files over domain-modeling/scripts/term-list.sh; every new lint suite ends with shellcheck_files over itself."}
+  - {item: 3, verdict: pass, note: "All fixtures (synthetic load roots, hook repo, glossary repos, link fixture, rules.md copy) are under new_workdir; scripts run from copy_agents copies; no committed fixture or home path."}
+  - {item: "R1", verdict: pass, note: "Function names say what they return: held_ids, load_size, lint_links, files_holding, step_command, ownership_oracle."}
+  - {item: "R2", verdict: fixed, note: "Added reasons for the redirection-not-pipe in workflow-load-size measure(), set -f in affected-area, the per-file reach cache in step-routing, and the unlabelled-id list."}
+  - {item: "R3", verdict: pass, note: "Comments give reasons or interface docs only."}
+  - {item: "R4", verdict: not-applicable, note: "tool-covered by the lint key's check-comments.sh (exit 0); no comment points at a docs path or internal URL."}
+  - {item: "R5", verdict: pass, note: "Plain wording; step ids appear only as data the suites check."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over every changed and untracked file: exit 0."}

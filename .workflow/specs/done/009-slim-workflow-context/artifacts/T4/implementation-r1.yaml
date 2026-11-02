@@ -1,0 +1,43 @@
+status: done
+summary: "references/launching.md now holds the launch header, the LAUNCH ERROR rule, resolve-launch.sh --requirements, the 00.14/00.19 denies, the Claude and Codex launch rules, the Codex agent-worktree rule and a table of every s<NNN>_ and i<NNN>_ task-name form. The router lost its launching section, and the Codex copies in discovery, questioning-loop, review-triage, implementation-orchestrator, verification-setup and large-path are now pointers. The small-path-docs pin on s<NNN>_review_combined reads the review-combined row of launching.md's Codex section. Resume-offer and question-rounds rows had already been handled by T3 (router branch 3/4, questioning-loop round format), so nothing was left to move for them; sign-off.md and deferred-handoff.md already pointed at conventions.md's Host notes and needed no change."
+task_id: "T4"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t4"
+branch: "task/009-slim-workflow-context/T04-launching-reference"
+base_commit: "a3c924be65c50326d5cb30ad4a7568ee71bca7d0"
+head_commit: "a1eaad82cb52846d8f0f0fc73daf764b48afe43c"
+files_changed:
+  - ".agents/skills/feature-workflow/SKILL.md"
+  - ".agents/skills/feature-workflow/references/launching.md"
+  - ".agents/skills/feature-workflow/references/conventions.md"
+  - ".agents/skills/feature-workflow/modules/discovery.md"
+  - ".agents/skills/feature-workflow/modules/questioning-loop.md"
+  - ".agents/skills/feature-workflow/modules/review-triage.md"
+  - ".agents/skills/feature-workflow/modules/implementation-orchestrator.md"
+  - ".agents/skills/feature-workflow/modules/verification-setup.md"
+  - ".agents/skills/feature-workflow/modules/large-path.md"
+  - "PROVENANCE.md"
+  - "tests/lint/small-path-docs.sh"
+tests_added:
+  - {file: "tests/lint/small-path-docs.sh", test: "launching.md gives the combined review its Codex name", kind: behaviour}
+evidence:
+  red: "tests/run-all.sh --suite lint/shared-rule-homes at base: 'FAIL host launch rows: fork_turns: in exactly one file' (marker in SKILL.md and implementation-orchestrator.md). Re-pointed pin red by mutation: with the launching.md row changed to s<NNN>_review_x, tests/run-all.sh --suite lint/small-path-docs printed 'FAIL launching.md gives the combined review its Codex name'."
+  green: "tests/run-all.sh --suite lint/shared-rule-homes: passed=21 failed=2 (the two remaining failures are the small-path markers owned by a later task; all three launch markers pass). lint/md-links 6/6, lint/step-list 36/36, lint/review-escalation-docs 72/72, lint/agent-worktree-docs 37/37, lint/done-folder-docs 16/16; lint/small-path-docs passed=29 failed=23, same counts as base, with the re-pointed pin passing."
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/009-slim-workflow-context --task-id T4 --cwd <worktree>; lint pass, test pass (scoped, 5 other-task suites excluded): TOTAL passed=4307 failed=0 (70 suites)"
+  toolchain: ".workflow/specs/done/009-slim-workflow-context/artifacts/T4/toolchain.txt (pass)"
+considered_not_built:
+  - "Claude launch details in implementation-orchestrator.md and verification-setup.md (worktree confinement, the 00.14/00.18/00.19 deny handling): left in place, they are step-specific and not Codex copies; the orchestrator split is a later task."
+  - "The one-line Codex stop-audit notes in implementation-orchestrator.md and verification-setup.md (warning on a malformed task_name): left, they route a returned result at that step rather than describe a launch."
+  - "regenerate-caches/SKILL.md repeats the fork_turns reason for its bulk run: another skill, outside this module and outside the scanned rule files."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "No skill description added or changed; SKILL.md frontmatter untouched."}
+  - {item: 2, verdict: not-applicable, note: "No agent definition added or changed."}
+  - {item: R1, verdict: pass, note: "tests/lint/small-path-docs.sh: new variable LAUNCHING and check name say what they hold and assert."}
+  - {item: R2, verdict: not-applicable, note: "No workaround or trade-off added in code."}
+  - {item: R3, verdict: pass, note: "tests/lint/small-path-docs.sh:15-16 header lines describe coverage, not restating code."}
+  - {item: R4, verdict: pass, note: "No comment names a decision, task id or workflow path; check-comments.sh exit 0."}
+  - {item: R5, verdict: pass, note: "Header comment uses plain terms (Codex section, task_name)."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over every changed and untracked file: exit 0, nothing listed."}

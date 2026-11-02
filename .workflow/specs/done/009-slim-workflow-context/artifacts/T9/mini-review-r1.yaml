@@ -1,0 +1,67 @@
+verdict: "pass"
+task_id: "T9"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t9@6a93bbfe2b3859c933f9d3414e64fed8c2309e02..HEAD"
+tool_output: ".workflow/specs/done/009-slim-workflow-context/artifacts/T9/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code line in the diff"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook file in the diff"
+  - n: 3
+    verdict: "not-applicable"
+    location: "no code line in the diff"
+  - n: 4
+    verdict: "not-applicable"
+    location: "no code line in the diff"
+  - n: 5
+    verdict: "not-applicable"
+    location: "no code line in the diff; the # Exit: lines are unchanged"
+  - n: 6
+    verdict: "not-applicable"
+    location: "no code line in the diff"
+  - n: 7
+    verdict: "pass"
+    location: "budget-check.sh:47, check-merge-artifacts.sh:18-19, check-task-result.sh:64-65, commit-workflow-data.sh:22, open-task-pr.sh:37, rules-setting.sh:16 and 34, status-transition.sh:84, task-waves.sh:43-44 (all changed lines sit above each file's first code line; continuation lines keep the header indent; no decision id in any header)"
+  - n: 8
+    verdict: "not-applicable"
+    location: "no new file and no test syntax in the diff"
+  - n: 9
+    verdict: "not-applicable"
+    location: "no function or shellcheck directive added in the diff"
+  - n: "R1"
+    verdict: "not-applicable"
+    location: "no name added or changed in code; the diff touches comments only"
+  - n: "R2"
+    verdict: "pass"
+    location: "task-waves.sh:43-44 (the changed comment holds no workaround or trade-off a reader would undo)"
+  - n: "R3"
+    verdict: "pass"
+    location: "budget-check.sh:47, check-merge-artifacts.sh:18-19, check-task-result.sh:64-65, commit-workflow-data.sh:22, open-task-pr.sh:37, rules-setting.sh:16 and 34, status-transition.sh:84, task-waves.sh:43-44 (each changed line names a caller or a step, none restates code)"
+  - n: "R4"
+    verdict: "tool-covered"
+    location: "budget-check.sh:47, check-merge-artifacts.sh:18-19, check-task-result.sh:64-65, commit-workflow-data.sh:22, open-task-pr.sh:37, rules-setting.sh:16 and 34, status-transition.sh:84, task-waves.sh:43-44"
+    note: "Covered by the lint key's comment lint (.agents/skills/feature-workflow/scripts/check-comments.sh), exit 0 in toolchain.json. The changed lines are header-block Called-by lines that name callers, which R4 allows."
+  - n: "R5"
+    verdict: "pass"
+    location: "budget-check.sh:47, check-merge-artifacts.sh:18-19, check-task-result.sh:64-65, commit-workflow-data.sh:22, open-task-pr.sh:37, rules-setting.sh:16 and 34, status-transition.sh:84, task-waves.sh:43-44 (plain wording; step numbers are the ones the step files head with)"
+read_outside_diff:
+  - "references/readable-code.md: the R1-R5 rules, the R4 carve-out for header blocks, and the Checking table"
+  - ".agents/skills/feature-workflow/modules/implementation-waves.md: step headings 3.2-3.16 (### 3.3, 3.15 at line 150, 3.16 at line 109); callers of budget-check.sh (line 156, 3.15), check-merge-artifacts.sh (line 129, 3.16), open-task-pr.sh (line 121, 3.16), rules-setting.sh task_review (line 116, 3.16), commit-workflow-data.sh (lines 85 wave start, 141 wave merged), status-transition.sh (lines 100, 131, 155), check-task-result.sh (line 50, the implementation check); it never calls task-waves.sh, and picks each frontier with yq (line 70)"
+  - ".agents/skills/feature-workflow/modules/implementation-gates.md: check-task-result.sh on each returned implementation (line 5) and on the mini-review.yaml (line 19, step 3.7)"
+  - ".agents/skills/feature-workflow/modules/implementation-shared-core.md: heading 3.2 (line 1); check-merge-artifacts.sh for the integration merge (line 28); check-task-result.sh for an integration agent return (line 18)"
+  - ".agents/skills/feature-workflow/modules/implementation-finish.md: Hand off section (line 28) names commit-workflow-data.sh; status-transition.sh at lines 9, 10, 22, 26"
+  - ".agents/skills/feature-workflow/modules/implementation-setup.md: status-transition.sh at lines 8 and 13 (step 3.1)"
+  - ".agents/skills/feature-workflow/modules/verification-setup.md: check-merge-artifacts.sh at line 105 under the Phase 1 build merge (1.2 and 1.3); rules-setting.sh main_branch at line 30 (1.1)"
+  - ".agents/skills/feature-workflow/modules/task-breakdown.md: budget-check.sh (2.6), task-waves.sh (2.5) and status-transition.sh (2.5, 2.6), to confirm the non-re-pointed callers still match"
+  - ".workflow/GLOSSARY.md:113: the Frontier entry, used to judge the R5 word 'frontier' in task-waves.sh:44"
+  - "grep -rn 'implementation-orchestrator' over .agents and .claude: no match; the only hits were small-path words, not stale references"
+not_checked:
+  - "task-waves.sh:43-44: the 'Called by:' field names modules/implementation-waves.md, but the same line says that module does not call the script; a scanning reader may take it as a caller. Settle by: a wording choice (move the note out of the 'Called by' field). Not a checklist breach, so not a fail."
+  - "task-waves.sh:44: 'frontier' is a glossary term (.workflow/GLOSSARY.md:113) and the header does not define it. The sentence still reads without it, so R5 passes. Settle by: a stakeholder call if the header should be self-contained."
+  - "toolchain.json records tree 7cad1dad67c1461456d81d7451587b64035696e7, which differs from the HEAD tree f7cc9c980210769ddc2f337f8aa23c9c173b8443 at bab76d5. The diff is comments only, and check-comments.sh over every skill script at bab76d5 exits 0 (run by this review). Settle by: re-running run-toolchain.sh at bab76d5 if an exact tie to the toolchain record is wanted."
+out_of_scope_noticed: []

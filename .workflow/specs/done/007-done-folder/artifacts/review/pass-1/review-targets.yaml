@@ -91,7 +91,7 @@ checked:
   - "Literal Done folder paths in scripts outside the path library (TGT-004): 0"
   - "Scripts added or changed since the baseline that no suite names (TGT-005): 0"
   - "Files added under .agents/ since the baseline missing from the manifest or PROVENANCE.md (TGT-006): 0"
-  - "Measured in the working tree: tracked files match HEAD (git status shows only the untracked .workflow/specs/009-slim-workflow-context/)"
+  - "Measured in the working tree: tracked files match HEAD (git status shows only the untracked .workflow/specs/done/009-slim-workflow-context/)"
 not_checked:
   - "Wall time of `move-to-done.sh --sweep` on a scratch clone at the baseline (TGT-007): not measurable: the sweep refuses to run in the scratch clone (detached HEAD, exit 1); see RT-1"
   - "Line coverage of changed shell code (TGT-008): not measurable: no bash coverage tool is installed and the scaffold bans new dependencies"

@@ -17,7 +17,7 @@ Entry shape (newest first):
 ## Leave no copy of a rule in the step file it moved out of
 - What happened: the Claude launch rule and the agent-worktree confinement rule moved to `references/launching.md`, but verification-setup 1.2/1.3 kept its own copy beside the new pointer, so the rule had two homes (F3, medium, fixed in rework 1)
 - Where: `.agents/skills/feature-workflow/modules/verification-setup.md`
-- Spec: .workflow/specs/009-slim-workflow-context
+- Spec: .workflow/specs/done/009-slim-workflow-context
 - Prevented by: none yet; `lint/shared-rule-homes` checks only the marker lines it lists
 
 ## Quote every YAML string that contains `: ` in a result file

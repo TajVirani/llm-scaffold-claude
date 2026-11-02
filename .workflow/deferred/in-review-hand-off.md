@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/009-slim-workflow-context
+origin_spec: .workflow/specs/done/009-slim-workflow-context
 created: 2026-11-01
 ---
 
@@ -7,7 +7,7 @@ created: 2026-11-01
 
 **Summary:** Every route by which implementation sets `in-review` runs the hand-off: agent worktree cleanup and the last workflow-data commit before review starts.
 **Mode:** AFK
-**Origin:** [009-slim-workflow-context](../specs/009-slim-workflow-context/spec.md), 0.3.17 scope decision, design-log entry 2026-11-01 Scope decision: hand-off on every route to review
+**Origin:** [009-slim-workflow-context](../specs/done/009-slim-workflow-context/spec.md), 0.3.17 scope decision, design-log entry 2026-11-01 Scope decision: hand-off on every route to review
 
 ## Goal
 

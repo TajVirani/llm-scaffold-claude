@@ -1,0 +1,46 @@
+status: done
+summary: "3.2 now lives only in modules/implementation-shared-core.md and the per-task gates 3.4-3.8 (result routing and fix rounds included) only in modules/implementation-gates.md. The orchestrator keeps a pointer section for each that says when to load it, and its links into them are re-pointed. The pins that named the moved text now read the new files, and PROVENANCE.md and upstream-lineage.json name both files. Outside the predicted files: the tests/README.md row for lint/agent-worktree-docs now names the two new files."
+task_id: "T6"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t6"
+branch: "task/009-slim-workflow-context/T06-shared-core-and-gates"
+base_commit: "498a2726da28e065ee4ec2d6e2a57f15cf60836e"
+head_commit: "52f5f8516f0db2491dbeb28dd8ea85b34df86d82"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/implementation-orchestrator.md"
+  - ".agents/skills/feature-workflow/modules/implementation-shared-core.md"
+  - ".agents/skills/feature-workflow/modules/implementation-gates.md"
+  - "PROVENANCE.md"
+  - "upstream-lineage.json"
+  - "tests/lint/agent-worktree-docs.sh"
+  - "tests/lint/review-escalation-docs.sh"
+  - "tests/scripts/run-toolchain.sh"
+  - "tests/README.md"
+tests_added:
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "JRN-008 implementation-shared-core.md creates the integration agent worktree on a wf/ branch off the spec branch (re-pointed)", kind: behaviour}
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "JRN-008 the gate runs before the 3.2 integration merge (re-pointed to implementation-shared-core.md)", kind: behaviour}
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "no isolation launch, no baseRef, no isolation fallback, no worktreeBranch in implementation-shared-core.md and implementation-gates.md", kind: negative}
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "no detached task worktree, no --ff-only and no fast-forward in the orchestrator, shared-core and gates files", kind: negative}
+  - {file: "tests/lint/review-escalation-docs.sh", test: "nothing is filed without a ruling (now also over the gates and shared-core files)", kind: negative}
+  - {file: "tests/scripts/run-toolchain.sh", test: "docs-gates-tree-counts-rules-and-profiles (re-pointed from the orchestrator)", kind: behaviour}
+evidence:
+  red: "bash tests/lint/zz-old-awd.sh (the base-commit agent-worktree-docs.sh run against the moved text): FAIL JRN-008 implementation-orchestrator.md creates the integration agent worktree on a wf/ branch off the spec branch; FAIL JRN-008 the gate runs before the 3.2 integration merge (passed=33 failed=4). Base run-toolchain.sh suite: FAIL docs-orchestrator-tree-counts-rules-and-profiles (passed=87 failed=1)."
+  green: "tests/run-all.sh --suite lint/agent-worktree-docs: 51/51 passed; lint/review-escalation-docs 72/72; scripts/run-toolchain 88/88; lint/md-links 6/6; lint/step-list 36/36; lint/upstream-lineage 13/13. lint/step-routing every 3.x check passes (its 3 failures are the 0.x/5.x/0.3.20 Phase 1 tests, failing at base too)."
+  suite: "bash $spec/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/009-slim-workflow-context --task-id T6 --cwd $PWD; test pass (scoped, own 0, excluded 5): 4321 passed, 0 failed, 70 suites"
+  toolchain: ".workflow/specs/done/009-slim-workflow-context/artifacts/T6/toolchain.txt (pass)"
+considered_not_built:
+  - "Turning Fix rounds into its own heading in implementation-gates.md for a sharper link target: the launching link keeps pointing at #per-task-gates-34-38, the section the bold label sits in, to keep the moved text word for word."
+  - "Re-pointing the script header 'Called by' lines (check-merge-artifacts.sh, check-task-result.sh and others) to the new files: header re-points belong to a later task."
+  - "Keeping implementation-orchestrator.md in the integration-worktree removal check of agent-worktree-docs: the removal it matched there is the task worktree at 3.16, not the integration worktree the check is about; the check now reads implementation-shared-core.md."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "No skill description added or changed; the diff touches step files, tests and records only."}
+  - {item: 2, verdict: not-applicable, note: "No new agent definition."}
+  - {item: R1, verdict: pass, note: "New test variables SHARED_CORE and GATES in agent-worktree-docs.sh and review-escalation-docs.sh name the step file each holds; check id docs-gates-tree-counts-rules-and-profiles names the file it reads."}
+  - {item: R2, verdict: not-applicable, note: "No workaround or trade-off added."}
+  - {item: R3, verdict: pass, note: "Changed comments are suite header lines (agent-worktree-docs.sh:2-4, review-escalation-docs.sh:3-5) naming what the suite reads; none restates a line."}
+  - {item: R4, verdict: pass, note: "Changed comment lines are '# Suite:' header blocks, which may name the paths a suite reads; no decision id, task id or workflow path in a body comment."}
+  - {item: R5, verdict: pass, note: "Header lines use plain words (the step files it loads, the per-task gates)."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over every changed and new file exited 0 with no lines listed."}
