@@ -1,0 +1,13 @@
+== scripts/check-write-paths
+== scripts/lib-workflow-paths
+== scripts/review-lessons
+== scripts/sign-off-pr
+== scripts/status-transition-tasks
+
+== summary
+PASS scripts/check-write-paths              passed=208  failed=0   skipped=0   xfail=0   28s
+PASS scripts/lib-workflow-paths             passed=133  failed=0   skipped=0   xfail=0   2s
+PASS scripts/review-lessons                 passed=43   failed=0   skipped=0   xfail=0   3s
+PASS scripts/sign-off-pr                    passed=34   failed=0   skipped=0   xfail=0   3s
+PASS scripts/status-transition-tasks        passed=153  failed=0   skipped=0   xfail=0   19s
+TOTAL passed=571 failed=0 skipped=0 xfail=0 (5 suites)

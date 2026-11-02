@@ -1,0 +1,174 @@
+status: done
+summary: "Phase 1 harness for spec 00014. Harness command: tests/run-all.sh (one suite: tests/run-all.sh --suite <name>). CI check name: none, because this repo has no CI. Six new suites: scripts/next-spec-number (JRN-001), scripts/issue-tracking (JRN-001 skip, JRN-002 to JRN-008), scripts/issue-tracking-setup (JRN-010), scripts/tracker-adoption (JRN-011, JRN-012 backlog lookup), lint/issue-tracking-docs (JRN-001 0.1.1 call, JRN-005, JRN-006 breakdown calls, JRN-007, JRN-014) and lint/shared-tracker-logic (JRN-013). New tests in five existing suites: status-transition-tasks (JRN-006 set-task --issue), lib-workflow-paths, review-lessons and check-write-paths (JRN-012 old_ names), and sign-off-pr (JRN-009). Fixtures: tests/fixtures/fake-trackers.sh, tests/fixtures/tracker-adoption.sh, and an extended tests/fixtures/pr-template.sh. Interface stubs: next-spec-number.sh, issue-tracker.sh, tracker-setup.sh and tracker-adoption.sh. Suites failing at the base commit: none (75 suites, 4458 passed, 0 failed). After this work: 81 suites, 4470 passed, 161 failed. The 11 failing suites are exactly the 6 new ones and the 5 extended ones, and only the new tests in them fail, each on an assertion; every pre-existing pass count is unchanged. JRN-015 and JRN-016 are left to their existing checks. Not added as separate tests because they already pass at the base: a no-tracker stub body passing check-pr-body.sh (covered by scripts/check-pr-body), the usage exit 2 for an unknown option or no command, and --issue being refused in status mode. Choices the orchestrator should know about. (1) set-task --issue with a non-URL is pinned to exit 2, as the JRN-006 journey row says. The stub contract says 'like --pr', and --pr exits 1 for a non-URL. (2) tracker-setup.sh check is pinned only to the host as its first line. The missing-label lines are not pinned, because check receives no label names in the contract. (3) Adoption is pinned to write tracker_issue on each adopted spec, because later move calls need the issue URL. (4) lint/shared-tracker-logic expects the shared lib functions to have host and rewrite in their names. (5) The docs lint also requires the next-spec-number.sh call at 0.1.1 and create-task plus set-task --issue at 2.5 and 0.3.20, beyond the brief's list. (6) Phase 3 must move tests/scripts/move-to-done.sh:343-372, tests/scripts/spec-worktree.sh:85-90 and tests/fixtures/initiative.sh next_spec_number off the 0.1.1 fenced scan block once 0.1.1 becomes one call. (7) One exploratory git ls-remote I ran in my scratch folder, not in the harness, reached gitlab.com once and failed on auth. The harness blocks this with GIT_ALLOW_PROTOCOL=file in fake_run and in the fixture pushes."
+task_id: "phase-1-test-harness"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_phase_1_test_harness"
+branch: "wf/00014-tracker-issue-spec-ids/s00014_phase_1_test_harness"
+base_commit: "e8162a94fb923cdae2496f4db5c8d9231abcabfc"
+head_commit: "9982d482c002e7f4a1ecb96f54f30ca778f787c0"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/next-spec-number.sh"
+  - ".agents/skills/issue-tracking/scripts/issue-tracker.sh"
+  - ".agents/skills/issue-tracking/scripts/tracker-setup.sh"
+  - ".agents/skills/issue-tracking/scripts/tracker-adoption.sh"
+  - "tests/README.md"
+  - "tests/fixtures/fake-trackers.sh"
+  - "tests/fixtures/tracker-adoption.sh"
+  - "tests/fixtures/pr-template.sh"
+  - "tests/scripts/next-spec-number.sh"
+  - "tests/scripts/issue-tracking.sh"
+  - "tests/scripts/issue-tracking-setup.sh"
+  - "tests/scripts/tracker-adoption.sh"
+  - "tests/lint/issue-tracking-docs.sh"
+  - "tests/lint/shared-tracker-logic.sh"
+  - "tests/scripts/status-transition-tasks.sh"
+  - "tests/scripts/lib-workflow-paths.sh"
+  - "tests/scripts/review-lessons.sh"
+  - "tests/scripts/check-write-paths.sh"
+  - "tests/scripts/sign-off-pr.sh"
+tests_added:
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 with no spec anywhere the next number is 00001 and no tracker is called", kind: "edge"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 top-level specs of any digit count give 00006 and no tracker call", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 the Done folder counts: 00011 and no tracker call", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 a spec worktree counts: 00012 and no tracker call", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 an initiative's origin and emitted slices count: 00014 and no tracker call", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 an initiative on its own branch counts: 00016 and no tracker call", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 run from inside the spec worktree the next number is the same 00016, with no tracker call", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 with issue_tracker: none the next number is still 00016 and no tracker is called", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 a settings file naming an unknown tracker exits 2 with nothing on stdout and no call", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "JRN-001 a tracker without its issue flow exits 2 with nothing on stdout and no call", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-002 next-spec-number.sh prints 00042 and the GitLab issue URL", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-002 the tracker holds exactly the one new issue, 42", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-002 the new issue has a placeholder title and an empty body", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-002 the new spec issue starts in the backlog stage", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-002 the GitLab origin drives glab and never gh", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-002 create-spec prints the new issue's URL", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-002 an issue number longer than five digits is printed whole", kind: "edge"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-002 settings naming GitHub on a GitLab origin exit 2 with no tracker call", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-003 next-spec-number.sh prints 00007 and the GitHub issue URL", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-003 the tracker holds the one new issue, with a placeholder title and an empty body", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-003 the GitHub origin drives gh and never glab", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-004 the two clones get two different tracker numbers, 00042 and 00043, not the local 00051", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-004 the tracker holds one issue per start", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-005 GitLab fill sets the title from the first heading", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-005 GitLab fill sets the body to the whole file, unchanged", kind: "edge"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-005 GitHub fill takes the title from the first heading after the frontmatter", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-005 GitHub fill sets the body to the whole file, unchanged", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 GitLab create-task prints the URL of the one new issue", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 the GitLab task issue is a child of the spec's issue", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 the GitLab task issue's body is the task file", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 the GitLab task issue is titled from the task file and starts in the backlog stage", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 with the child call refused, create-task prints the URL of the one new issue", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 with the child call refused, the task issue is linked relates_to the spec's issue and has no parent", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 the linked task issue's body is the task file", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 GitHub create-task prints the URL of the one new issue", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 the GitHub task issue is a sub-issue of the spec's issue", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-006 the GitHub task issue's body is the task file", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-007 <glab|gh>: backlog to in_progress swaps the flow label and keeps the issue open", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-007 <glab|gh>: in_progress to done swaps the flow label and closes the issue", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-007 <glab|gh>: a done issue moved back to in_progress is reopened with only the in-progress flow label", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-007 <glab|gh>: in_progress back to backlog swaps the flow label", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-007 <glab|gh>: an unknown stage exits 2 and leaves the labels", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-007 <glab|gh>: move without a stage exits 2 and leaves the labels", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-008 a GitLab network failure exits 1 naming the cause, with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-008 the network failure exits 1 leaving no new spec folder and no issue", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-008 a GitHub auth failure exits 1 naming the cause, with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-008 create-spec on a network failure exits 1 naming the cause, with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-008 move on an auth failure exits 1 naming the cause", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking.sh", test: "JRN-001 with <no settings file|issue_tracker: none>, issue-tracker.sh <create-spec|fill|create-task|move> prints skipped: no tracker and calls no tracker", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 check on a <gitlab|github> origin without <glab|gh> exits 1 naming it as missing, writing nothing", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 check with <glab|gh> not logged in exits 1 naming the login, writing nothing", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 check on a <GitLab project|GitHub repository> with issues turned off exits 1 naming issues, writing nothing", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 check with a <glab|gh> older than the minimum exits 1 naming the version, writing nothing", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 check on an origin on neither GitHub nor GitLab exits 1 naming the origin, writing nothing", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 check on a usable <GitLab|GitHub> tracker exits 0 and prints the host first", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 save with two flow labels missing exits 1 naming both, writing nothing", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 save without --create-labels creates no label", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 save --create-labels creates exactly the two missing labels", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 save --create-labels writes the GitLab host and the three flow labels", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 save on GitHub with every flow label present writes the settings without --create-labels", kind: "behaviour"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 save on a gitlab origin without glab exits 1 naming glab, writing nothing", kind: "negative"}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "JRN-010 save --none writes issue_tracker: none with no CLI installed and no tracker call", kind: "edge"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 adoption exits 1 and names 016-epsilon, refused for its live task worktree", kind: "negative"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the refused spec keeps its folder, branch and both worktrees as they were", kind: "negative"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the tracker gets one issue per adopted active spec and none for the refused or Done specs", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the draft and the spec past 1.1 are renamed to the two issue numbers, five digits wide", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the draft's old folder is gone and its renamed folder keeps its step marker", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the draft's tracker_issue is its issue URL", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the draft's backlog list is renamed with it", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the draft's shelf file names the renamed folder", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the spec branch is renamed locally", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the spec worktree moved to the new name and holds the renamed folder, checked out on the renamed branch", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 spec_branch names the renamed branch", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the task records' branch fields name the renamed spec", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the spec's tracker_issue is its issue URL", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the spec keeps its step marker and its design log names the new folder", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the renamed branch is committed with the renamed folder and pushed", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the old remote branch is left in place and reported", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the Done specs are renamed with the old_ prefix", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 their backlog lists are renamed with the old_ prefix", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the retrospective keeps its file name and points at the renamed folder", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the review lesson's origin_spec names the renamed folder and the lessons still validate", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 capabilities.md links the renamed folders", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 move-to-done.sh --check accepts the renamed Done spec", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 no .workflow/ file in the main checkout still names a spec or backlog list by its old name", kind: "edge"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the renamed spec's files no longer name 013-beta", kind: "edge"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 after the renames every relative link in the main checkout's specs, shelf and decisions resolves", kind: "edge"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-012 move-to-done.sh --check passes an old_ Done spec whose backlog list is well formed", kind: "behaviour"}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-012 move-to-done.sh --check reads the old_ backlog list and names its malformed line", kind: "negative"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-001 discovery 0.1.1 calls next-spec-number.sh", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-005 <0.3.19|0.6|0.3.20> calls issue-tracker.sh fill", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-005 a sign-off step (5.1-5.9) calls issue-tracker.sh fill", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-006 <2.5|0.3.20> files each task issue with issue-tracker.sh create-task", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-006 <2.5|0.3.20> records each task issue with set-task --issue", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-007 <3.1|3.3> moves the issue to in_progress", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-007 <3.16|5.8> moves the issue to done", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-007 <3.9|3.11|4.7> moves a reopened task's issue back to in_progress", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-014 project-setup runs tracker-setup.sh <check|save>", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-014 the issue-tracking skill has a SKILL.md named issue-tracking", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-014 the install manifest lists skills/issue-tracking", kind: "behaviour"}
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-014 PROVENANCE.md names skills/issue-tracking", kind: "behaviour"}
+  - {file: "tests/lint/shared-tracker-logic.sh", test: "JRN-013 no script outside .agents/lib/ picks gh or glab by matching the origin URL itself", kind: "behaviour"}
+  - {file: "tests/lint/shared-tracker-logic.sh", test: "JRN-013 .agents/lib/ defines the host choice and every script that needs it calls it", kind: "behaviour"}
+  - {file: "tests/lint/shared-tracker-logic.sh", test: "JRN-013 no script outside .agents/lib/ keeps its own path rewrite with rollback", kind: "behaviour"}
+  - {file: "tests/lint/shared-tracker-logic.sh", test: "JRN-013 .agents/lib/ defines the path rewrite and move-to-done.sh and tracker-adoption.sh call it", kind: "behaviour"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "JRN-006 (spec 00014) set-task --issue with an https URL exits 0", kind: "behaviour"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "JRN-006 (spec 00014) set-task --issue records the URL as the task's issue", kind: "behaviour"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "JRN-006 (spec 00014) set-task --issue with a non-URL exits 2 and keeps the recorded issue", kind: "negative"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "JRN-006 (spec 00014) set-task --issue null exits 0 and clears the issue", kind: "edge"}
+  - {file: "tests/scripts/status-transition-tasks.sh", test: "JRN-006 (spec 00014) the tasks.md validator rejects an issue that is not a URL", kind: "negative"}
+  - {file: "tests/scripts/lib-workflow-paths.sh", test: "JRN-012 (spec 00014) wf_norm_folder spec maps the <relative|absolute-main|five-digit> form of an old_ Done folder spec to its folder", kind: "behaviour"}
+  - {file: "tests/scripts/lib-workflow-paths.sh", test: "JRN-012 (spec 00014) wf_norm_folder spec refuses <seven malformed or top-level old_ names> while it accepts .workflow/specs/done/old_012-alpha", kind: "negative"}
+  - {file: "tests/scripts/review-lessons.sh", test: "JRN-012 (spec 00014) validate accepts origin_spec .workflow/specs/done/old_001-fixture", kind: "behaviour"}
+  - {file: "tests/scripts/review-lessons.sh", test: "JRN-012 (spec 00014) validate refuses origin_spec <four malformed or top-level old_ names> naming lessons[0].origin_spec while it accepts .workflow/specs/done/old_001-fixture", kind: "negative"}
+  - {file: "tests/scripts/check-write-paths.sh", test: "JRN-012 (spec 00014) an old_NNN-slug.md backlog list passes the list-name rule a misnamed list fails", kind: "behaviour"}
+  - {file: "tests/scripts/check-write-paths.sh", test: "JRN-012 (spec 00014) the backlog list name <old_.md|old_x01-short.md|old-012-alpha.md|old_old_012-alpha.md> still fails the list-name rule while old_012-alpha.md passes it", kind: "negative"}
+  - {file: "tests/scripts/sign-off-pr.sh", test: "JRN-009 (spec 00014) the pr-template.md Link to issue guidance gives the tracker_issue URL and Closes #<n>, and keeps the no-tracker stub", kind: "behaviour"}
+  - {file: "tests/scripts/sign-off-pr.sh", test: "JRN-009 (spec 00014) a workflow body in the template's tracker form passes check-pr-body.sh", kind: "behaviour"}
+  - {file: "tests/scripts/sign-off-pr.sh", test: "JRN-009 (spec 00014) sign-off 5.4 ends a project-template body with the issue URL and Closes #<n>", kind: "behaviour"}
+  - {file: "tests/scripts/sign-off-pr.sh", test: "JRN-009 (spec 00014) a project-template body ending with the issue URL and Closes #<n> passes check-pr-body.sh --project-template", kind: "behaviour"}
+evidence:
+  red: "bash tests/scripts/issue-tracking.sh: FAIL JRN-002 next-spec-number.sh prints 00042 and the GitLab issue URL (got=0|00000 want=0|00042 and the URL). bash tests/scripts/tracker-adoption.sh: FAIL JRN-011 adoption exits 1 and names 016-epsilon (rc=0: placeholder). bash tests/lint/shared-tracker-logic.sh: FAIL JRN-013 no script outside .agents/lib/ picks gh or glab by matching the origin URL itself (open-task-pr.sh:162-163, rules-setting.sh:110). Every new test failed on an assertion like these."
+  green: "Phase 1 tests are expected to fail until Phase 3 builds the scripts. To prove they can pass, I ran them in a scratch copy against throwaway prototypes and the base 0.1.1 block; none of this is committed. next-spec-number: 10/12 with the base 0.1.1 block (both bad-settings tests fail because the old block has no settings), and 12/12 with a prototype. issue-tracking: 52/53 (only the prototype's own shellcheck failed). issue-tracking-setup: 19/19. tracker-adoption: 31/31. lib-workflow-paths: 143/143 and review-lessons: 48/48 with prototype old_ allowances. check-write-paths: 213/213 with a prototype list-name rule."
+  suite: "bash .agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00014-tracker-issue-spec-ids --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>: lint pass, test skipped by caller. Full harness tests/run-all.sh: base 75 suites, 4458 passed, 0 failed; after this work 81 suites, 4470 passed, 161 failed, with only the new tests failing, all in the 11 new or extended suites."
+  toolchain: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+considered_not_built:
+  - "issue-tracking SKILL.md, the install manifest line and PROVENANCE rows: the brief forbids the SKILL.md, and no existing lint failed without registering the stubs. The spec's asset-coverage target will count the four stub scripts until Phase 3 adds their PROVENANCE rows."
+  - "Changes to .agents/lib/: it is shared core; the old_ allowance and the shared host and rewrite functions get their code in Phase 3. Their tests are pinned here."
+  - "A browser suite: no journey drives a browser, and the project has no e2e-browser profile."
+  - "Tests for JRN-015 and JRN-016: they already have checks (lint/workflow-load-size, tests/run-all.sh)."
+  - "A missing-label line check for tracker-setup.sh check: the contract gives check no label names to compare against."
+  - "Updating the existing scan-block tests (move-to-done.sh, spec-worktree.sh, fixtures/initiative.sh): they pass today and change only when 0.1.1 becomes one call in Phase 3."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "pass", note: "Every tracker call goes to fake gh and glab: tests/fixtures/fake-trackers.sh fake_tracker_main keeps local state. fake_path gh|glab|none gives a PATH of tool links only, so /opt/homebrew/bin/glab is out of reach. fake_run and the adoption fixture pushes set GIT_ALLOW_PROTOCOL=file, so no git transport leaves the machine."}
+  - {item: 2, verdict: "fixed", note: "All six new suites end with shellcheck_files. I added it to lint/issue-tracking-docs.sh and lint/shared-tracker-logic.sh during the self-review; the script suites already had it."}
+  - {item: 3, verdict: "pass", note: "Every fixture is built under WORK from new_workdir (tracker state, projects, bare origin, clones). The lints only read the repo. No absolute or home path is committed: the tool links are made at run time with type -P."}
+  - {item: "R1", verdict: "pass", note: "Helper names say what they do (fresh_tracker, only_issue_besides, labels_are, refused_naming, step_text, code_matches, adoption_old_refs)."}
+  - {item: "R2", verdict: "pass", note: "Non-obvious choices carry the reason, for example check-write-paths.sh: no step can write a finished spec's list, so the list-name rule is judged by its deny reason; tracker-adoption.sh: the renamed folder is found through the renamed spec worktree."}
+  - {item: "R3", verdict: "fixed", note: "Deleted a restating comment above SAVE_LABELS in tests/scripts/issue-tracking-setup.sh."}
+  - {item: "R4", verdict: "fixed", note: "tool-covered by check-comments.sh. It flagged two .workflow/ paths in body comments (issue-tracking.sh spec_folder_count, next-spec-number.sh spec_folder); I reworded both and the lint now exits 0."}
+  - {item: "R5", verdict: "pass", note: "Comments are plain English. The workflow terms they use (Done folder, spec worktree, issue flow) are glossary terms."}
+  - {item: "comment-lint", verdict: "fixed", note: "check-comments.sh over the diff and the untracked files exited 1 on two comments; after the rewrite it exits 0."}
