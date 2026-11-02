@@ -1,0 +1,35 @@
+status: done
+summary: "Rework 1: the Called by header lines of status-transition.sh and budget-check.sh now say step files instead of the glossary-avoided phase modules / modules. Comment-only change, no behaviour change; toolchain passes."
+task_id: "T9"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t9"
+branch: "task/009-slim-workflow-context/T09-header-repoints"
+base_commit: "039075ea9c0c413056a53536f2b536e64fc0d95d"
+head_commit: "e26928ef29047a719c9d0286ab8faab54a4a1cb2"
+files_changed: [".agents/skills/feature-workflow/scripts/status-transition.sh", ".agents/skills/feature-workflow/scripts/budget-check.sh"]
+tests_added: []
+evidence:
+  red: "not applicable: header comment wording only, no behaviour to test"
+  green: "not applicable: no behaviour change"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/009-slim-workflow-context --task-id T9 --cwd <worktree>; test (scoped) pass, exit 0"
+  toolchain: ".workflow/specs/009-slim-workflow-context/artifacts/T9/toolchain.txt (pass)"
+considered_not_built: []
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "no .workflow/ path added; header text only"}
+  - {item: 2, verdict: not-applicable, note: "no hook touched"}
+  - {item: 3, verdict: not-applicable, note: "no error path changed"}
+  - {item: 4, verdict: not-applicable, note: "no code changed"}
+  - {item: 5, verdict: not-applicable, note: "exit codes unchanged"}
+  - {item: 6, verdict: not-applicable, note: "no path resolution changed"}
+  - {item: 7, verdict: pass, note: "header blocks keep their shape; only the Called by wording changed at status-transition.sh:84 and budget-check.sh:47"}
+  - {item: 8, verdict: not-applicable, note: "no new files; test syntax untouched"}
+  - {item: 9, verdict: not-applicable, note: "no new functions or directives"}
+  - {item: "R1", verdict: pass, note: "Called by lines now use the glossary term step files"}
+  - {item: "R2", verdict: not-applicable, note: "no code changed"}
+  - {item: "R3", verdict: pass, note: "lines still say who calls the script and when"}
+  - {item: "R4", verdict: pass, note: "tool-covered by check-comments.sh; no other document pointer added"}
+  - {item: "R5", verdict: pass, note: "no new shorthand; avoided alias removed"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over both changed files exits 0"}

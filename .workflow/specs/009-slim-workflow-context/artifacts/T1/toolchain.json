@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/specs/009-slim-workflow-context/artifacts/T1",
-  "tree": "59ffc9aa6ad66aa5aaa0e53a7c719ab1a6668ae3",
+  "tree": "afa4cdb2d5dbe846fa26af6b4bdd0a73929adad6",
   "ran": 2,
   "results": [
     {
@@ -42,9 +42,8 @@
       "exit_code": 0,
       "scoped": true,
       "own": 1,
-      "excluded": 5
+      "excluded": 1
     }
   ],
-  "digest": "",
-  "reused_from": "T1"
+  "digest": ""
 }

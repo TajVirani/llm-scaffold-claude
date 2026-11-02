@@ -1,0 +1,36 @@
+status: done
+summary: "Rework 1 (review finding F1): every single-bracket shell test in term-list.sh, lines 117-166, is now a double-bracket test, one per original test so the and/or short-circuit order is unchanged. The awk programs and regexes are untouched and behaviour is the same; scripts/term-list passes 53/53."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1"
+branch: "task/009-slim-workflow-context/T01-term-list-script"
+base_commit: "039075ea9c0c413056a53536f2b536e64fc0d95d"
+head_commit: "442001604761cd0877cfdda60e833f694b93652f"
+files_changed: [".agents/skills/domain-modeling/scripts/term-list.sh"]
+tests_added: []
+evidence:
+  red: "not applicable: a syntax-only refactor with no behaviour change, so no new test; the existing suite is the regression guard"
+  green: "tests/run-all.sh --suite scripts/term-list; TOTAL passed=53 failed=0 skipped=0 xfail=0 (1 suites)"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/009-slim-workflow-context --task-id T1 --cwd (task worktree); lint exit 0, test (scoped) exit 0, 53/53 passed"
+  toolchain: ".workflow/specs/009-slim-workflow-context/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Merging chained tests into one double-bracket expression: kept one test per original so the short-circuit order stays exactly the same, and the second argument is never expanded under nounset when fewer than two arguments are given"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "no new workflow path; paths still come from WF_* in workflow-paths.sh (term-list.sh:31)"}
+  - {item: 2, verdict: not-applicable, note: "no hook touched"}
+  - {item: 3, verdict: pass, note: "every converted test still ends in its die call as before (term-list.sh:121-147)"}
+  - {item: 4, verdict: pass, note: "no new loop or substitution writes; loop checks at 140-142 keep their own die"}
+  - {item: 5, verdict: not-applicable, note: "no exit code changed"}
+  - {item: 6, verdict: pass, note: "BASH_SOURCE with cd -P unchanged at term-list.sh:31"}
+  - {item: 7, verdict: pass, note: "header block unchanged, helper shape with Purpose/Usage/Exit/Sources"}
+  - {item: 8, verdict: fixed, note: "new file now uses double-bracket tests throughout, term-list.sh:117-166; set -euo pipefail at :23"}
+  - {item: 9, verdict: not-applicable, note: "no new function or shellcheck directive"}
+  - {item: "R1", verdict: not-applicable, note: "no names changed"}
+  - {item: "R2", verdict: not-applicable, note: "no structure changed"}
+  - {item: "R3", verdict: not-applicable, note: "no comments added or changed"}
+  - {item: "R4", verdict: pass, note: "tool-covered by check-comments.sh in the lint key; exit 0"}
+  - {item: "R5", verdict: not-applicable, note: "no comments or names changed"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh on term-list.sh exits 0 with no lines listed"}

@@ -1,0 +1,72 @@
+verdict: pass
+task_id: T1
+work_type: shell-scripts
+mode: re-check
+previous: .workflow/specs/009-slim-workflow-context/artifacts/T1/mini-review-r5.yaml
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1@039075ea9c0c413056a53536f2b536e64fc0d95d..442001604761cd0877cfdda60e833f694b93652f
+tool_output: .workflow/specs/009-slim-workflow-context/artifacts/T1/toolchain.json
+# Carried items keep the locations of the previous file. The fix added one line at term-list.sh:28, so later lines now sit one lower.
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh lines 31, 126, 133, 146 (WF_DIR, WF_GLOSSARY and WF_GLOSSARY_MAP come from workflow-paths.sh; the body builds no .workflow/ path, and the mentions at lines 9-10 sit in the header)
+    carried_from: r5
+  - n: 2
+    verdict: not-applicable
+    location: .agents/skills/domain-modeling/scripts/term-list.sh line 2 (header says helper, not a hook)
+    carried_from: r5
+  - n: 3
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh lines 121, 127, 134-135, 137, 140-142, 147, 156, 160-161, 167 (every error path reaches die or an exit with a message)
+    carried_from: r5
+  - n: 4
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh lines 140, 141, 142, 167 (each check in a loop carries its own die; path_present at line 117 is only called from if tests)
+    carried_from: r5
+  - n: 5
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh lines 18-19 (Exit doc lists 0, 1, 2) match the exits at lines 28, 159, 160
+    carried_from: r5
+  - n: 6
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh line 31 (cd -P from BASH_SOURCE)
+    carried_from: r5
+  - n: 7
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh lines 2-21 (File, Purpose, Usage, Exit, Notes and Sources; same helper shape as .agents/skills/feature-workflow/scripts/task-waves.sh lines 1-12)
+    carried_from: r5
+  - n: 8
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh line 23 (set -euo pipefail), lines 117-166 (every test is double-bracket; no single-bracket test remains); the file name is kebab-case
+    carried_from: r5
+  - n: 9
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh:28
+  - n: R1
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh lines 36, 67, 90, 117, 135 (list_terms, define_entry, map_contexts, path_present and links name what each holds or does)
+    carried_from: r5
+  - n: R2
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh lines 33, 125, 136 (the awk environment workaround, the unreadable-folder guard and the empty-map guard each give their reason)
+    carried_from: r5
+  - n: R3
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh:28 (the die line is the name and ARGS contract that checklist item 9 requires, and readable-code.md says a comment a written standard requires is not a finding)
+  - n: R4
+    verdict: tool-covered
+    location: .agents/skills/domain-modeling/scripts/term-list.sh:28
+    note: lint key via check-comments.sh (comment lint) covers decision, task id and .workflow path in body comments; the changed comment at line 28 has none, so there is nothing for R4 to fail
+  - n: R5
+    verdict: pass
+    location: .agents/skills/domain-modeling/scripts/term-list.sh:28 (die MSG and <prog> are plain terms; PROG is defined on line 26)
+read_outside_diff:
+  - .agents/skills/feature-workflow/references/readable-code.md, the R1 to R5 rules and the standard-required comment clause, checked identical in the spec checkout and the task worktree
+  - .agents/skills/feature-workflow/scripts/review-lessons.sh line 32, sibling die comment in the same name and ARGS shape
+  - git show 039075e and a29eca7 for term-list.sh, the file exists at the launch base 039075e (blob ac1b6d1) and not at a29eca7, so the r5 scope note that the whole file is new does not hold against the launch base; item 9 passes either way because every function now carries its line
+  - git log and git diff 8cc6dd5..442001604 and 039075e..442001604, the fix diff is one comment line at term-list.sh:28
+  - .workflow/specs/009-slim-workflow-context/artifacts/T1/toolchain.json, read for the tool keys and the tree it records
+  - .workflow/specs/009-slim-workflow-context/artifacts/T1/implementation.yaml, read as a starting point only
+not_checked:
+  - toolchain.json records tree afa4cdb2d5dbe846fa26af6b4bdd0a73929adad6, which matches neither the rework commit 8cc6dd5 (tree 839c81e9fef307b71a1bddf81bef3d85f718280d) nor the head 4420016 (tree 56a8d7d44659c6ba6e74b93983d2006f3f8a3e78), so its lint result may predate the new comment at line 28; a lint run on 442001604 would settle it, and I expect a pass because the comment has no id or path
+out_of_scope_noticed: []

@@ -7,7 +7,7 @@ TOTAL passed=41 failed=0 skipped=0 xfail=0 (1 suites)
 == lint/step-list
 
 == summary
-PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   5s
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   17s
 TOTAL passed=36 failed=0 skipped=0 xfail=0 (1 suites)
 == lint/symlinks
 
@@ -17,7 +17,7 @@ TOTAL passed=45 failed=0 skipped=0 xfail=0 (1 suites)
 == lint/upstream-lineage
 
 == summary
-PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   2s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   4s
 TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
 == lint exit 0
 
@@ -25,7 +25,7 @@ TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
 == lint/workflow-load-size
 
 == summary
-PASS lint/workflow-load-size                passed=14   failed=0   skipped=0   xfail=0   1s
+PASS lint/workflow-load-size                passed=14   failed=0   skipped=0   xfail=0   4s
 TOTAL passed=14 failed=0 skipped=0 xfail=0 (1 suites)
 == test exit 0
 
