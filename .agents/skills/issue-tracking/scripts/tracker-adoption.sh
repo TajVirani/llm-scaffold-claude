@@ -2,7 +2,9 @@
 # File: Helper script (not a hook): Tracker adoption, moving a project already under way onto tracker numbering.
 # Purpose: Files a tracker issue for each active spec (issue-tracker.sh create-spec, then fill) and renames the spec after
 #   the issue number, padded to five digits: its folder, its backlog list, its spec branch, its spec worktree, spec_branch,
-#   the task records' branch fields and every .workflow/ reference; it writes tracker_issue and keeps the step marker. A
+#   the task records' branch fields and every .workflow/ reference; it writes tracker_issue and keeps the step marker. Each
+#   task record with no issue that is not split-out gets an issue under the spec's (issue-tracker.sh create-task), recorded
+#   as its issue through status-transition.sh set-task before the rename, so the rename carries it. A
 #   spec with a live task worktree is refused and left as it was while the others still run. A renamed branch whose old one
 #   was pushed is pushed under the new name; the old remote branch and the task PRs are reported, and nothing on the remote
 #   is deleted. Each Done spec and its backlog list get the `old_` prefix, so their numbers are never read as issue numbers.
@@ -15,14 +17,17 @@
 #     --cwd    any directory in the project's main checkout or one of its worktrees. Default: $PWD.
 #   Active specs are the spec folders at the top level of the specs folder in the main checkout and those in the spec
 #   worktrees under .workflow/.spec-worktrees/<name>. A spec whose tracker_issue is set keeps that issue, so a second run
-#   files nothing twice; one already named after its issue is reported as already adopted.
-# stdout: `adopted <old folder> -> <new folder>: <issue url>` per active spec; for a spec worktree also `committed <sha> on
-#   <branch>`, `renamed branch <old> -> <new>`, `moved spec worktree <old> -> <new>`, and when the old branch was pushed
+#   files nothing twice; one already named after its issue is reported as already adopted. A task record holding an issue
+#   keeps it, so a second run files no second task issue and files only those a failed run left out.
+# stdout: `filed <url> for task T<n> of <folder>` per task issue filed; `adopted <old folder> -> <new folder>: <issue url>`
+#   per active spec; for a spec worktree also `committed <sha> on <branch>`, `renamed branch <old> -> <new>`,
+#   `moved spec worktree <old> -> <new>`, and when the old branch was pushed
 #   `pushed <new branch> to <remote>`, `left on <remote>: <old branch> (nothing on the remote is deleted)` and
 #   `task PR on the old branch: <url>` per task PR; `renamed <old> -> <new>` per Done spec; `already adopted: <folder>`;
 #   `not committed: ...` when the main checkout holds renames.
 # Exit: 0 every spec adopted (or already adopted) and every Done spec renamed; 1 one or more specs refused, or a step after
-#   an issue was filed (filling it, pushing the renamed branch) left to do by hand, each named on stderr with the reason,
+#   an issue was filed (filling it, filing or recording a task's issue, pushing the renamed branch) left to do by hand,
+#   each named on stderr with the reason and the command that finishes it,
 #   while the others still ran; 2 usage or environment error (bad arguments, not a git repository, git or yq missing, no
 #   tracker set up or the origin remote on another host, the main branch unreadable, the tracker script refusing its
 #   settings, a git or file step failing). An error during a rename rolls back that checkout's run; renames already
@@ -40,6 +45,7 @@ SCRIPT_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PROG="tracker-adoption.sh"
 ISSUE_TRACKER=$SCRIPT_DIR/issue-tracker.sh
 RULES_SETTING=$SCRIPT_DIR/../../feature-workflow/scripts/rules-setting.sh
+STATUS_TRANSITION=$SCRIPT_DIR/../../feature-workflow/scripts/status-transition.sh
 SPEC_NAME_PATTERN='^[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$'
 ISSUE_URL_PATTERN='^https://[^[:space:]]+/([0-9]+)$'
 # A branch name match must not run on into a longer name, so it stops at any character a spec name can hold.
@@ -297,6 +303,38 @@ adopt_in_spec_worktree() {
   report_old_remote_branch "$new_worktree" "$new" "$remote" "$old_branch"
 }
 
+# file_task_issues ROOT NAME URL NEW_ROOT NEW : file an issue under the spec issue URL for each task record of the spec
+#   NAME, whose folder is in the checkout ROOT, that holds no issue and is not split-out, and record it in the task record.
+#   A task left unfiled is reported with the commands that finish it by hand once the spec is NEW in the checkout NEW_ROOT.
+file_task_issues() {
+  local root=$1 name=$2 url=$3 new_root=$4 new=$5 tasks id file by_hand task_url tracker_status
+  tasks=$(wf_path "$root" "$WF_SPECS/$name/tasks.md")
+  [[ -f $tasks ]] || return 0
+  front_matter "$tasks" \
+    '(.tasks // [])[] | select((.issue // "") == "" and .status != "split-out") | .id + " " + (.file // "")' \
+    >"$SCRATCH/unfiled-tasks" || exit 2
+  # The task list is read on its own descriptor, so the scripts run in the loop cannot consume it from stdin.
+  while read -r -u 3 id file; do
+    by_hand="issue-tracker.sh create-task $url $WF_SPECS/$new/${file:-<its task file>}, then status-transition.sh set-task $WF_SPECS/$new $id --issue <its url> --cwd $new_root"
+    if [[ -z $file ]]; then
+      warn "cannot file the issue of task $id of $WF_SPECS/$name: its record names no task file; file it by hand with $by_hand"
+      continue
+    fi
+    tracker_status=0
+    task_url=$(bash "$ISSUE_TRACKER" --cwd "$MAIN" create-task "$url" "$(wf_path "$root" "$WF_SPECS/$name/$file")") ||
+      tracker_status=$?
+    if [[ $tracker_status -ne 0 ]]; then
+      warn "cannot file the issue of task $id of $WF_SPECS/$name (issue-tracker.sh create-task exit $tracker_status); file it by hand with $by_hand"
+      continue
+    fi
+    if bash "$STATUS_TRANSITION" set-task "$WF_SPECS/$name" "$id" --issue "$task_url" --cwd "$root" >/dev/null; then
+      echo "filed $task_url for task $id of $WF_SPECS/$name"
+    else
+      warn "filed $task_url for task $id of $WF_SPECS/$name, but cannot record it; run status-transition.sh set-task $WF_SPECS/$new $id --issue $task_url --cwd $new_root"
+    fi
+  done 3<"$SCRATCH/unfiled-tasks"
+}
+
 # The active specs: ACTIVE_NAME, ACTIVE_ROOT (the checkout holding the folder) and ACTIVE_IN_WORKTREE (1 for a spec
 #   worktree) are parallel. ACTIVE_NEW and ACTIVE_URL are filled for each spec that will be renamed, empty otherwise.
 ACTIVE_NAME=() ACTIVE_ROOT=() ACTIVE_IN_WORKTREE=() ACTIVE_NEW=() ACTIVE_URL=()
@@ -367,6 +405,7 @@ while [[ $i -lt ${#ACTIVE_NAME[@]} ]]; do
   fi
   if [[ $new == "$name" ]]; then
     echo "already adopted: $WF_SPECS/$name"
+    file_task_issues "$root" "$name" "$url" "$root" "$name"
     continue
   fi
   taken=$(name_taken "$root" "$new" "$in_worktree") || exit 2
@@ -374,6 +413,11 @@ while [[ $i -lt ${#ACTIVE_NAME[@]} ]]; do
     warn "refused $WF_SPECS/$name: its new name $new is taken: $taken; its issue is $url"
     continue
   fi
+  # The task issues are recorded before the rename, so the rename carries them, and a rollback keeps them as it keeps
+  #   tracker_issue.
+  new_root=$root
+  [[ $in_worktree -eq 0 ]] || new_root=$(wf_path "$MAIN" "$WF_SPEC_WORKTREES/$new")
+  file_task_issues "$root" "$name" "$url" "$new_root" "$new"
   ACTIVE_NEW[i - 1]=$new
   ACTIVE_URL[i - 1]=$url
 done

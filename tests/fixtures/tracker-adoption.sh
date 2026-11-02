@@ -11,10 +11,13 @@
 #                                 - 015-delta, a draft in the main checkout, untracked as discovery leaves it, with its own
 #                                   backlog list and shelf file, step 0.1.6;
 #                                 - 013-beta, past 1.1: its folder only on spec/013-beta, pushed to BARE, checked out in the
-#                                   spec worktree .workflow/.spec-worktrees/013-beta at step 3.16, task records naming
-#                                   task/013-beta/ branches;
+#                                   spec worktree .workflow/.spec-worktrees/013-beta at step 3.16, with task files and
+#                                   task records naming task/013-beta/ branches and no issue: T1 done, T2 pending, T3
+#                                   split-out;
 #                                 - 016-epsilon, mid-wave: its folder on spec/016-epsilon in its spec worktree, step 3.4,
 #                                   with a live task worktree .workflow/.worktrees/s016_t1 inside it.
+#                               The task records carry the fields the tasks.md validator requires, so set-task can write
+#                               them.
 #   ADOPTION_BETA_WT, ADOPTION_EPSILON_WT, ADOPTION_EPSILON_TASK_WT   those worktrees (set by adoption_project)
 #   adoption_old_refs ROOT      prints each line under ROOT/.workflow, outside cache/, initiatives/ and the worktree
 #                               folders, that still names a spec or backlog list by its path before adoption: 012-alpha or
@@ -152,14 +155,39 @@ tasks:
   - id: T1
     title: "Build"
     status: done
+    capability: CAP-NEW-beta
+    depends_on: []
+    touches_core: false
+    work_type: null
+    file: tasks/T01-build.md
     branch: task/013-beta/T01-build
   - id: T2
     title: "Wire"
     status: pending
+    capability: CAP-NEW-beta
+    depends_on: [T1]
+    touches_core: false
+    work_type: null
+    file: tasks/T02-wire.md
     branch: task/013-beta/T02-wire
+  - id: T3
+    title: "Export"
+    status: split-out
+    capability: CAP-NEW-beta
+    depends_on: []
+    touches_core: false
+    work_type: null
+    file: tasks/T03-export.md
+    branch: task/013-beta/T03-export
 ---
 
 # Tasks
+=== .workflow/specs/013-beta/tasks/T01-build.md
+# T01: Build
+=== .workflow/specs/013-beta/tasks/T02-wire.md
+# T02: Wire
+=== .workflow/specs/013-beta/tasks/T03-export.md
+# T03: Export
 === .workflow/specs/013-beta/design-log.md
 # Design log: Beta feature
 
@@ -182,10 +210,17 @@ tasks:
   - id: T1
     title: "Wave"
     status: in-progress
+    capability: CAP-NEW-epsilon
+    depends_on: []
+    touches_core: false
+    work_type: null
+    file: tasks/T01-wave.md
     branch: task/016-epsilon/T01-wave
 ---
 
 # Tasks
+=== .workflow/specs/016-epsilon/tasks/T01-wave.md
+# T01: Wave
 EOF
 }
 
