@@ -25,6 +25,7 @@ set -euo pipefail
 PROG="term-list.sh"
 USAGE="usage: term-list.sh [--define <term>]"
 
+# die MSG : print "<prog>: MSG" to stderr and exit 2.
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 2; }
 
 # shellcheck source=../../../lib/workflow-paths.sh
