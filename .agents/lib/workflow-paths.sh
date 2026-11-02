@@ -26,9 +26,9 @@
 #                          (<checkout>/.claude/worktrees/<name>) prints the checkout it sits in; status 1 and the reason on
 #                          stderr when <dir> is not inside a git repository
 #   wf_norm_folder spec|initiative <arg>
-#                          prints <arg> as the repo-relative folder `$WF_SPECS/NNN-slug`, `$WF_SPECS_DONE/NNN-slug` (spec only)
-#                          or `$WF_INITIATIVES/NNN-slug` (relative, or absolute with that parent); status 1 and the reason on
-#                          stderr when <arg> is not one
+#                          prints <arg> as the repo-relative folder `$WF_SPECS/NNN-slug`, `$WF_SPECS_DONE/NNN-slug` or
+#                          `$WF_SPECS_DONE/old_NNN-slug` (spec only) or `$WF_INITIATIVES/NNN-slug` (relative, or absolute
+#                          with that parent); status 1 and the reason on stderr when <arg> is not one
 #   wf_enc <string>        prints <string> lowercased with every byte outside [a-z0-9] turned into `_`, no trailing newline;
 #                          the same bytes in every locale (run under LC_ALL=C), so Claude and Codex agree on worktree names;
 #                          status 1 and the reason on stderr when not given exactly one argument
@@ -150,9 +150,9 @@ wf_project_root() {
 }
 
 # wf_norm_folder spec|initiative ARG : print ARG as the repo-relative folder `$WF_SPECS/NNN-slug`,
-#   `$WF_SPECS_DONE/NNN-slug` or `$WF_INITIATIVES/NNN-slug`; status 1 when ARG is not one.
+#   `$WF_SPECS_DONE/NNN-slug`, `$WF_SPECS_DONE/old_NNN-slug` or `$WF_INITIATIVES/NNN-slug`; status 1 when ARG is not one.
 wf_norm_folder() {
-  local kind=$1 arg=$2 root label folder
+  local kind=$1 arg=$2 root label folder name_pattern
   case "$kind" in
     spec) root=$WF_SPECS label="spec dir" ;;
     initiative) root=$WF_INITIATIVES label="initiative dir" ;;
@@ -163,10 +163,13 @@ wf_norm_folder() {
   esac
   folder=${arg%/}
   folder=${folder#./}
+  name_pattern='^[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$'
   # Finished specs move into the Done folder and scripts still run on them there, so its direct children are spec dirs too.
+  #   Adopting an issue tracker renames each Done spec old_NNN-slug, so its number is not read as an issue number.
   if [[ "$kind" == spec ]] && { [[ "$folder" == "$WF_SPECS_DONE"/* ]] ||
     [[ "$folder" == /* && "$(dirname "$folder")" == */"$WF_SPECS_DONE" ]]; }; then
     root=$WF_SPECS_DONE
+    name_pattern='^(old_)?[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$'
   fi
   # An absolute path may point into the main checkout or any worktree, so only its last two parts name the folder.
   if [[ "$folder" == /* ]]; then
@@ -176,7 +179,7 @@ wf_norm_folder() {
     fi
     folder="$root/$(basename "$folder")"
   fi
-  if ! [[ "$folder" == "$root"/* && "${folder#"$root"/}" =~ ^[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+  if ! [[ "$folder" == "$root"/* && "${folder#"$root"/}" =~ $name_pattern ]]; then
     printf '%s must be %s/NNN-slug: %s\n' "$label" "$root" "$arg" >&2
     return 1
   fi
