@@ -1,8 +1,8 @@
 ---
-status: ready-for-dev # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
+status: in-progress # draft | ready-for-dev | in-progress | in-review | done | blocked. Changed only by scripts/status-transition.sh.
 baseline_revision: "e8162a94fb923cdae2496f4db5c8d9231abcabfc" # full SHA of the commit the work starts from; "" until captured, then never overwritten
 spec_branch: "spec/00014-tracker-issue-spec-ids" # spec/NNN-slug, created off main at 1.1 (0.3.20 on the light path); "" until then
-impl_base_revision: "" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
+impl_base_revision: "d79ab0b0887def80859bb343d8b5c9106c90d070" # full SHA of the spec-branch tip when Phase 3 starts (3.1); "" until then, never overwritten
 light_path: false # true once the 0.3.20 light-path test passes; true from 0.1.4 on the small path
 small_path: false # true from 0.1.4 when intake (0.0.3) picked the small path; false once it leaves it (0.3.19)
 followup_review_recommended: false # true when triage recommends another review pass after this one

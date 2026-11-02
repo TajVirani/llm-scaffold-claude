@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-issue-tracking-setup
     depends_on: []
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "the existing CLIs of move-to-done.sh, open-task-pr.sh and rules-setting.sh, driven by their existing suites"
     file: tasks/T01-shared-host-choice-and-path-rewrite.md
@@ -27,7 +27,7 @@ tasks:
     capability: CAP-NEW-tracker-issues
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "the status-transition.sh set-task CLI and the yq validators in assets/spec.md and assets/tasks.md"
     file: tasks/T02-tracker-link-keys.md
@@ -48,7 +48,7 @@ tasks:
     capability: CAP-NEW-tracker-issues
     depends_on: []
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "the next-spec-number.sh CLI on fixture repos with fake gh and glab logging calls"
     file: tasks/T03-next-spec-number.md
@@ -70,7 +70,7 @@ tasks:
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T1]
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "wf_norm_folder, review-lessons.sh validate, the check-write.sh CLI and move-to-done.sh --check"
     file: tasks/T04-done-folder-old-names.md
@@ -90,7 +90,7 @@ tasks:
     capability: CAP-NEW-tracker-issues
     depends_on: [T1, T3]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "issue-tracking"
     seam: "the issue-tracker.sh and next-spec-number.sh CLIs against the fake glab and gh call log"
     file: tasks/T05-tracker-script.md
@@ -109,7 +109,7 @@ tasks:
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T5]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "issue-tracking"
     seam: "the tracker-setup.sh CLI against the fake CLIs, and the settings file it writes"
     file: tasks/T06-tracker-setup.md
@@ -128,7 +128,7 @@ tasks:
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T6]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "project-setup"
     seam: "the project-setup step text, checked by the JRN-014 docs lint (owned by T10)"
     file: tasks/T07-project-setup-tracker-step.md
@@ -146,7 +146,7 @@ tasks:
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T1, T2, T4, T5, T6]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "issue-tracking"
     seam: "the tracker-adoption.sh CLI on the adoption fixture project with a local bare origin, plus the JRN-013 lint"
     file: tasks/T08-tracker-adoption.md
@@ -165,7 +165,7 @@ tasks:
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T5, T6, T8]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "installer"
     seam: "the install suites and the JRN-014 manifest and PROVENANCE checks (owned by T10)"
     file: tasks/T09-package-the-skill.md
@@ -183,7 +183,7 @@ tasks:
     capability: CAP-NEW-tracker-issues
     depends_on: [T1, T2, T3, T7, T9]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "the step-file docs lint and the sign-off-pr suite with check-pr-body.sh"
     file: tasks/T10-step-file-tracker-calls.md
