@@ -1,0 +1,60 @@
+verdict: pass
+task_id: T2
+work_type: shell-scripts
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t2@f896f20dd74f13749fa1e977f1425f674a3209cb..HEAD
+tool_output: .workflow/specs/00014-tracker-issue-spec-ids/artifacts/T2/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: no new .workflow/ path in the script diff - status-transition.sh:325 reads $TASKS, built from $ABS_DIR at status-transition.sh:212
+  - n: 2
+    verdict: not-applicable
+    location: the diff touches no hook under .agents/hooks
+  - n: 3
+    verdict: pass
+    location: status-transition.sh:330 (refusal reaches die with exit 2), status-transition.sh:325 (ICUR read is unguarded, as PCUR at :311 is; under set -e line 90 a yq failure exits with yq's own stderr, and the count read at :257 already reads the same file under || die)
+  - n: 4
+    verdict: pass
+    location: no caller wraps the new block in || die or || exit; the only || on new lines are at status-transition.sh:330-332, each with its own die or printf
+  - n: 5
+    verdict: pass
+    location: status-transition.sh:330 exits 2, documented in the Exit codes header at status-transition.sh:83-85
+  - n: 6
+    verdict: not-applicable
+    location: no sibling path added; the BASH_SOURCE cd -P at status-transition.sh:93 predates the diff
+  - n: 7
+    verdict: pass
+    location: status-transition.sh:4-14 (Usage) and :83-85 (Exit codes) extended in place; helper header shape unchanged; no decision id added
+  - n: 8
+    verdict: pass
+    location: no new files in the diff (name-status is all M); new lines at status-transition.sh:330-332 use [[ ]]
+  - n: 9
+    verdict: pass
+    location: tests/scripts/status-transition-tasks.sh:325 (spec_valid_with has its name-ARGS-what-it-does header line); no shellcheck disable directive added in the diff; no new function in status-transition.sh
+  - n: R1
+    verdict: pass
+    location: status-transition.sh:311-334 (ICUR, ISSUEV, OPT_ISSUE mirror PCUR, PRV, OPT_PR); tests/scripts/status-transition-tasks.sh:326 (spec_valid_with names what it does)
+  - n: R2
+    verdict: pass
+    location: no added comment is a workaround or trade-off that a reader would undo; the https-only rule is stated at status-transition.sh:11-12 and :85
+  - n: R3
+    verdict: pass
+    location: status-transition.sh:11-12, :83-85 and tests/scripts/status-transition-tasks.sh:325 add usage, exit and function-signature text; none restates the code below
+  - n: R4
+    verdict: tool-covered
+    location: status-transition.sh:11-12, :83-85
+    note: tool-covered by the lint key (check-comments.sh over status-transition.sh, exit 0 in toolchain.json); no changed comment points at a docs path or internal URL
+  - n: R5
+    verdict: pass
+    location: status-transition.sh:11-12, :83-85 and the asset comments in assets/tasks.md, assets/task.md, assets/spec.md; step numbers such as 0.1.4 and 0.3.20 are defined in the step list at status-transition.sh:22-23
+read_outside_diff:
+  - .agents/skills/feature-workflow/scripts/status-transition.sh - full script read for die, set -e, the PCUR pattern and the header
+  - .agents/skills/feature-workflow/references/readable-code.md - the R1 to R5 rules and the 3.7 checking table
+  - .agents/skills/feature-workflow/assets/tasks.md - the issue validator line compared with the script copy (identical)
+  - tests/scripts/status-transition-tasks.sh - the new test block and the spec_valid_with helper
+  - .workflow/specs/00014-tracker-issue-spec-ids/artifacts/T2/implementation.yaml - the implementer self-review, used as a starting point only
+not_checked:
+  - exit 2 for a bad --issue value (status-transition.sh:330) where the sibling --pr exits 1 (status-transition.sh:316) - intent is set by the JRN-006 journey in the spec, which is outside this review
+out_of_scope_noticed: []

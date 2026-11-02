@@ -313,3 +313,9 @@ Draft: 10 tasks in 6 waves, all afk, each with its seam and Phase 1 suites (sess
 - Recommended: 10 tasks and 34 changed files, because about 29 distinct non-test files are predicted but the predicted sum counts `SKILL.md`, `move-to-done.sh` and `sign-off.md` once per task (33).
 - Answer: "10 tasks / 34 files (Recommended)"
 - Decision: **D27** Budget for this spec: `max_tasks: 10`, `max_changed_files: 34`.
+
+## 2026-11-02 Discovered work, wave 1
+
+- 3.4 T3: the first result file wrote `self_review[].item` as quoted strings, which `check-task-result.sh` rejects; resumed once and fixed. Duplicate discovered work: quoted self-review items match `work-backlog/009-slim-workflow-context.md` B2; not appended, item of 009-slim-workflow-context.
+- 3.4 T3 (`artifacts/T3/implementation.yaml`): `next-spec-number.sh` (feature-workflow) calls `issue-tracking/scripts/issue-tracker.sh`, a dependency the `.workflow/rules.md` Ownership block does not yet allow; already proposal P1 for 5.3 (`proposals.md`), nothing new filed. T3 also changed `PROVENANCE.md` (row for the new script) and `tests/README.md`, outside its predicted files.
+- 3.16 wave 1: `task_review` reads `pr`, but `open-task-pr.sh` printed `skipped: gh not installed` for T1, T2 and T3, before any push; they merged locally with `pr: null`.

@@ -1,0 +1,61 @@
+status: done
+summary: "next-spec-number.sh now does discovery 0.1.1 in one call. With no tracker it runs the local scan in the main checkout and prints the next five-digit number. With a valid tracker settings file it calls issue-tracker.sh create-spec and prints the padded issue number and the URL. Bad settings or usage exit 2, and a tracker failure or an answer with no number exits 1; neither prints anything on stdout. discovery.md 0.1.1 is now the call, which brings the new-feature start to 43,677 bytes. move-to-done, spec-worktree and the initiative fixture call the script, and the initiative suites keep their 002/003 pins. PROVENANCE row 11 lists the script."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t3"
+branch: "task/00014-tracker-issue-spec-ids/T03-next-spec-number"
+base_commit: "f896f20dd74f13749fa1e977f1425f674a3209cb"
+head_commit: "0eff05649b8e78f132790d0dc10e823535ffe4ca"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/next-spec-number.sh"
+  - ".agents/skills/feature-workflow/modules/discovery.md"
+  - "PROVENANCE.md"
+  - "tests/scripts/next-spec-number.sh"
+  - "tests/scripts/move-to-done.sh"
+  - "tests/scripts/spec-worktree.sh"
+  - "tests/fixtures/initiative.sh"
+  - "tests/README.md"
+tests_added:
+  - {file: "tests/scripts/next-spec-number.sh", test: "with a tracker the script prints the issue number padded to five digits, then the URL", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "with a tracker the script asks issue-tracker.sh create-spec once, from the given directory", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "an issue number longer than five digits is printed whole", kind: "edge"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a tracker failure exits 1 with its cause on stderr and nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "settings the tracker script refuses exit 2 with its reason on stderr and nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a URL without an issue number exits 1 naming the URL, with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a skipped tracker call exits 1 with nothing on stdout, never falling back to the local scan", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a tracker whose flow names one label for two stages exits 2 with nothing on stdout and no call", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a settings file that is not YAML exits 2 with nothing on stdout and no call", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "an unknown argument exits 2 with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "--cwd without a directory exits 2 with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a --cwd outside any git repository exits 2 with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "an initiative.md whose frontmatter cannot be read exits 2 naming it, with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-007 fixture: before the sweep next-spec-number.sh gives 00011 (and the two other numbering checks, rewritten to call the script)", kind: "behaviour"}
+  - {file: "tests/scripts/spec-worktree.sh", test: "next-spec-number.sh from the main checkout / from spec 001's worktree gives 00003 (rewritten to call the script)", kind: "behaviour"}
+evidence:
+  red: "bash tests/scripts/next-spec-number.sh against the placeholder: FAIL JRN-001 with no spec anywhere the next number is 00001 (rc=0 out=00000 want=00001), and 9 more; RESULT passed=2 failed=10. After the scan slice, the added tracker tests: FAIL with a tracker the script prints the issue number padded to five digits, then the URL (got=0|00051 want=0|00042 ...); RESULT passed=13 failed=12"
+  green: "bash tests/scripts/next-spec-number.sh: RESULT passed=25 failed=0; move-to-done.sh passed=120 failed=0; spec-worktree.sh passed=66 failed=0; initiative-emission.sh passed=22 failed=0; initiative-conversion.sh passed=28 failed=0; lint/workflow-load-size passed=14 (new-feature start 43677 of 45000 bytes); lint/upstream-lineage passed=13; lint/issue-tracking-docs JRN-001 0.1.1 check ok"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00014-tracker-issue-spec-ids --task-id T3 --cwd <worktree>: lint pass, test (scoped, own 1 suite, 10 excluded) pass, exit 0"
+  toolchain: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "Checking that the tracker settings match the origin host: issue-tracker.sh owns that check (exit 2), and next-spec-number.sh passes its exit 2 through."
+  - "A test of the tracker branch against the current issue-tracker.sh placeholder: that file prints a fixed non-numeric URL until the tracker task replaces it, so the suite uses a stand-in issue-tracker.sh in the fixture project. With the real placeholder, the script exits 1, naming https://example.invalid/placeholder."
+  - "Falling back to the local scan when the tracker answers 'skipped: no tracker': the settings already said a tracker is set up, so a mismatch exits 1 instead of silently picking a number that is only unique locally."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "pass", note: "next-spec-number.sh builds every workflow path from WF_SPECS, WF_SPECS_DONE, WF_SPEC_WORKTREES, WF_INITIATIVES and WF_ISSUE_TRACKING with wf_path; only the test fixtures spell paths out."}
+  - {item: 2, verdict: "not-applicable", note: "no hook changed"}
+  - {item: 3, verdict: "fixed", note: "the initiative branch listing was a for-loop command substitution, so a git failure would have been ignored. It is now assigned with || die (next-spec-number.sh taken_spec_names). The only hidden stderr is cat-file -e, whose comment explains why."}
+  - {item: 4, verdict: "pass", note: "spec_references, configured_tracker and the branch git show each carry their own || die; the callers' command substitutions end in || exit 2, and die has already printed the cause."}
+  - {item: 5, verdict: "pass", note: "0, 1 for a tracker failure or an answer with no number, and 2 for usage, environment or settings are all documented in # Exit:"}
+  - {item: 6, verdict: "pass", note: "SCRIPT_DIR comes from BASH_SOURCE with cd -P; the lib and issue-tracker.sh paths are built from it."}
+  - {item: 7, verdict: "pass", note: "helper header: File / Purpose / Usage / stdout / Exit / Called by / Notes / Sources, with no decision ids"}
+  - {item: 8, verdict: "pass", note: "next-spec-number.sh is kebab-case, runs under set -euo pipefail and uses [[ ]]. The edited test files add no test expressions in another style."}
+  - {item: 9, verdict: "pass", note: "die, usage, spec_references, taken_spec_names, next_scanned_number, configured_tracker and next_issue_number each have a usage line; the script has no shellcheck disable."}
+  - {item: "R1", verdict: "pass", note: "the names say what each thing is for: taken_spec_names, next_scanned_number, configured_tracker, next_issue_number, tracked_number and next_number."}
+  - {item: "R2", verdict: "pass", note: "the three-digit printf in tests/fixtures/initiative.sh says why it narrows the five-digit number, and the cat-file -e skip says why a branch may lack the file."}
+  - {item: "R3", verdict: "pass", note: "no added comment restates its line"}
+  - {item: "R4", verdict: "pass", note: "tool-covered by check-comments.sh (exit 0 over the diff). No changed body comment points at a document."}
+  - {item: "R5", verdict: "pass", note: "the comments are plain English with no undefined shorthand"}
+  - {item: "comment-lint", verdict: "pass", note: "check-comments.sh over every changed file exits 0"}

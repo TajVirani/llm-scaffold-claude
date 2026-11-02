@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Shared host choice and path rewrite"
-    status: pending
+    status: done
     capability: CAP-NEW-issue-tracking-setup
     depends_on: []
     touches_core: true
@@ -23,7 +23,7 @@ tasks:
     pr: null
   - id: T2
     title: "Tracker link keys"
-    status: pending
+    status: done
     capability: CAP-NEW-tracker-issues
     depends_on: []
     touches_core: false
@@ -44,7 +44,7 @@ tasks:
     pr: null
   - id: T3
     title: "next-spec-number.sh"
-    status: pending
+    status: done
     capability: CAP-NEW-tracker-issues
     depends_on: []
     touches_core: true

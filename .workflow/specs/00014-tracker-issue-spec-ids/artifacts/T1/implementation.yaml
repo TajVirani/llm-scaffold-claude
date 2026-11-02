@@ -1,0 +1,41 @@
+status: done
+summary: "move-to-done.sh now moves, sets the step marker aside, rewrites spec paths, rolls back and commits through the shared wf_rewrite_* functions; its own roll_back, replace_file, SAVED_* arrays, commit_moves and rewrite helpers are gone. open-task-pr.sh and rules-setting.sh pick the host with wf_origin_host and keep their own no-origin and other-host messages, and sign-off 5.8 names the shared host choice with a command that prints it. Every existing suite of the three scripts passes unchanged."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t1"
+branch: "task/00014-tracker-issue-spec-ids/T01-shared-host-choice-and-path-rewrite"
+base_commit: "f896f20dd74f13749fa1e977f1425f674a3209cb"
+head_commit: "4826e54a2f88e8660589aba053eb6a36bc7d881a"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/move-to-done.sh"
+  - ".agents/skills/feature-workflow/scripts/open-task-pr.sh"
+  - ".agents/skills/feature-workflow/scripts/rules-setting.sh"
+  - ".agents/skills/feature-workflow/modules/sign-off.md"
+tests_added: []
+evidence:
+  red: "No new tests: the task is a behaviour-preserving refactor driven by the existing suites at the agreed seam. tests/run-all.sh --suite lint/shared-tracker-logic before the change listed move-to-done.sh, open-task-pr.sh and rules-setting.sh among the scripts keeping their own host choice or rewrite; one mid-change run of tests/run-all.sh --suite scripts/move-to-done gave 'FAIL move-to-done.sh is executable' (exec bit lost on rewrite, restored)."
+  green: "tests/run-all.sh --suite scripts/move-to-done: 122 checks, 121 passed before the exec-bit fix, then passing in the toolchain run; scripts/task-breakdown 141/141; scripts/initiative-merge 63/63; lint/done-folder-docs 16/16; scripts/sign-off-pr 34 passed, 4 failed (only the JRN-009 Phase 1 tests of another task); lint/shared-tracker-logic 3 passed, 2 failed, each naming only issue-tracker.sh, tracker-setup.sh or tracker-adoption.sh (later tasks)."
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00014-tracker-issue-spec-ids --task-id T1 --cwd \"$PWD\"; test (scoped, 11 other-task suites excluded): TOTAL passed=3887 failed=0 (70 suites)"
+  toolchain: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Capturing the lib's stderr reason to prefix it with move-to-done.sh: the lib prints its reason on its own line and the caller then dies with a short prog-prefixed context line; the checked substrings and exit codes are unchanged, and redirecting into a file would add plumbing for no behaviour gain."
+  - "Keeping move-to-done.sh's own refusal wording for the detached HEAD and main-branch cases: the shared wf_rewrite_checkout_refusal wording is printed instead; exit code 1 and nothing changed are as before, and no suite checks the old wording."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "No new .workflow/ path is spelled in code; move-to-done.sh builds target from WF_SPECS_DONE and paths through wf_path (move-to-done.sh move_spec)."}
+  - {item: 2, verdict: not-applicable, note: "No hook changed."}
+  - {item: 3, verdict: pass, note: "Every wf_rewrite_* call carries || die (move-to-done.sh move_spec, commit_done_folder, refuse_unsafe_checkout, both wf_rewrite_begin lines); on_exit reports rolled back or rollback incomplete with WF_REWRITE_LEFT."}
+  - {item: 4, verdict: pass, note: "wf_rewrite_move, wf_rewrite_set_aside and wf_rewrite_spec_path each carry their own || die inside move_spec; wf_rewrite_commit and rev-parse inside commit_done_folder each carry || die."}
+  - {item: 5, verdict: pass, note: "Exit codes unchanged: refusal die ... 1, errors die default 2, rollback forces 2 in on_exit; # Exit: text still accurate."}
+  - {item: 6, verdict: pass, note: "No new sibling path; SCRIPT_DIR and the lib source still resolve with cd -P."}
+  - {item: 7, verdict: pass, note: "Headers keep the helper shape; move-to-done.sh Notes, open-task-pr.sh Host choice and rules-setting.sh Settings name lib/workflow-paths.sh wf_rewrite_* / wf_origin_host, no ids."}
+  - {item: 8, verdict: pass, note: "No new files; edited files keep [[ ]] and their existing set flags; move-to-done.sh mode 755 restored and unchanged in the diff."}
+  - {item: 9, verdict: pass, note: "New functions commit_done_folder and on_exit/refuse_unsafe_checkout/move_spec each have a '# name ARGS : ...' line; no new shellcheck directive."}
+  - {item: R1, verdict: pass, note: "commit_done_folder, MAIN_BRANCH, CURRENT_BRANCH, MOVED say what they hold; open-task-pr.sh and rules-setting.sh keep their names."}
+  - {item: R2, verdict: pass, note: "The kept step-marker comment says why it is set aside rather than deleted (move-to-done.sh move_spec)."}
+  - {item: R3, verdict: pass, note: "The one new body comment ('The names of the specs this run moved, for the commit body.') gives the purpose of MOVED, not a restatement."}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh (exit 0 on the diff); no changed comment points at another document."}
+  - {item: R5, verdict: pass, note: "Comments and the sign-off sentence use plain terms; 'shared host choice' and 'shared path rewrite' name the lib functions beside them."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the four changed files exits 0."}

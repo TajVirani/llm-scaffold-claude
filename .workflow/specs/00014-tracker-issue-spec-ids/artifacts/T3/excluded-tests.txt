@@ -1,0 +1,10 @@
+tests/scripts/status-transition-tasks.sh
+tests/scripts/lib-workflow-paths.sh
+tests/scripts/review-lessons.sh
+tests/scripts/check-write-paths.sh
+tests/scripts/issue-tracking.sh
+tests/scripts/issue-tracking-setup.sh
+tests/scripts/tracker-adoption.sh
+tests/lint/shared-tracker-logic.sh
+tests/lint/issue-tracking-docs.sh
+tests/scripts/sign-off-pr.sh

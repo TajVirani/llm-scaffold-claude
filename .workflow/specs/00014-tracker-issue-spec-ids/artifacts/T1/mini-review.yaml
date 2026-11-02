@@ -1,0 +1,67 @@
+verdict: pass
+task_id: T1
+work_type: shell-scripts
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t1@f896f20dd74f13749fa1e977f1425f674a3209cb..HEAD
+tool_output: .workflow/specs/00014-tracker-issue-spec-ids/artifacts/T1/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:170,173,176
+    note: target and the step marker path are built from WF_SPECS_DONE and wf_path; the added lines hold no .workflow literal
+  - n: 2
+    verdict: not-applicable
+    location: none
+    note: no hook file is in the diff
+  - n: 3
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:129-137,149,151,171,174,176,185,186,199,206,.agents/skills/feature-workflow/scripts/rules-setting.sh:108-116,.agents/skills/feature-workflow/scripts/open-task-pr.sh:161-163
+  - n: 4
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:149,151,171,174,176,185,186,199,206
+  - n: 5
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:50,136,150,25-33
+  - n: 6
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:44,46,.agents/skills/feature-workflow/scripts/rules-setting.sh:44,.agents/skills/feature-workflow/scripts/open-task-pr.sh:46,49
+  - n: 7
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:1-39,.agents/skills/feature-workflow/scripts/open-task-pr.sh:27-28,.agents/skills/feature-workflow/scripts/rules-setting.sh:22
+    note: headers keep the script shape and name lib functions and no ids
+  - n: 8
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:41,102-106,129,.agents/skills/feature-workflow/scripts/open-task-pr.sh:43
+    note: no new files; edited files keep set flags and double bracket tests
+  - n: 9
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:181-182,143-144
+    note: commit_done_folder has its name ARGS line; no shellcheck disable directive is added
+  - n: R1
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:122,143-144,146,181
+  - n: R2
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:172
+  - n: R3
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:122
+  - n: R4
+    verdict: tool-covered
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:38,.agents/skills/feature-workflow/scripts/open-task-pr.sh:27,.agents/skills/feature-workflow/scripts/rules-setting.sh:22
+    note: covered by the lint key, check-comments.sh over the changed scripts; judged anyway, no changed comment points at a docs path or URL, the named lib/workflow-paths.sh is code
+  - n: R5
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/move-to-done.sh:38,166-167,.agents/skills/feature-workflow/scripts/open-task-pr.sh:27,.agents/skills/feature-workflow/scripts/rules-setting.sh:22
+    note: shared path rewrite and shared host choice are defined in .agents/lib/workflow-paths.sh (lines 252 and 238)
+read_outside_diff:
+  - .agents/lib/workflow-paths.sh lines 238-333 and 338-378 and 570-675 and 680-711: the lib functions the diff calls, read for their status codes and the refusal paths
+  - .agents/skills/feature-workflow/scripts/move-to-done.sh full file at HEAD: the surrounding flow and the sweep loop
+  - .agents/skills/feature-workflow/scripts/rules-setting.sh lines 41-44, 76-79, 105-122: sourcing, ROOT setup and the emit function
+  - .agents/skills/feature-workflow/scripts/open-task-pr.sh lines 43-51, 113, 158-168: sourcing, ROOT setup and the host case
+  - .agents/install-manifest.txt line 38: the lib ships to target projects
+  - .agents/skills/feature-workflow/references/readable-code.md: the rules and the 3.7 checks
+not_checked:
+  - Detached HEAD and main branch refusal wording changed (move-to-done.sh:150 through lib workflow-paths.sh:319-326); exit 1 is kept and the wording is not a checklist item, so no probe was run
+out_of_scope_noticed: []
