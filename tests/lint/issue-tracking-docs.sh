@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Suite: lint over the step files that call the issue-tracking scripts, and the packaging of the issue-tracking skill.
-# Covers (spec 00014): each call is matched by its script name and command, in the text of the step that holds it, never by
-#   prose wording. JRN-001: discovery 0.1.1 calls next-spec-number.sh. JRN-005: an `issue-tracker.sh fill` call at 0.3.19,
-#   at 0.6 (ready-for-dev on the full path), at 0.3.20 (ready-for-dev on the light path) and in a sign-off step (5.1-5.9).
+# Covers: spec 00014. Each call is matched by its script name and command, in the text of the step that holds it, never by
+#   prose wording. JRN-001: discovery 0.1.1 calls next-spec-number.sh and 0.1.4 names `tracker_issue`. JRN-005: an
+#   `issue-tracker.sh fill` call at 0.3.19, at 0.6 (ready-for-dev on the full path), at 0.3.20 (ready-for-dev on the light
+#   path) and in a sign-off step (5.1-5.9).
 #   JRN-006: 2.5 and 0.3.20 each file the task issues with `issue-tracker.sh create-task` and record them with
 #   `set-task ... --issue`. JRN-007: `issue-tracker.sh move ... in_progress` at 3.1 (the spec's issue) and 3.3 (a task's),
 #   `move ... done` at 3.16 (a merged task) and 5.8 (the spec, on a local merge), and the reopen `move ... in_progress` at
@@ -100,6 +101,7 @@ check "fixture: step 3.11 is read from the 3.10-3.11 range heading and its label
 
 echo "== JRN-001: discovery numbers a spec with one script call"
 expect_call "JRN-001 discovery 0.1.1 calls next-spec-number.sh" 0.1.1 'next-spec-number\.sh'
+expect_call "JRN-001 discovery 0.1.4 writes the issue URL into tracker_issue" 0.1.4 'tracker_issue'
 
 echo "== JRN-005: the spec is copied into its issue at each sync point"
 expect_call "JRN-005 0.3.19 calls issue-tracker.sh fill" 0.3.19 "$FILL"
