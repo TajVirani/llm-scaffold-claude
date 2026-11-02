@@ -22,8 +22,8 @@
 #   step markers, leaves the tree the swept oracle describes, commits on the checked-out branch, and a second sweep changes
 #   nothing.
 #   JRN-007 and JRN-004 (numbering): with 00010-wide and 009-narrow done, --check passes on the five-digit spec, --sweep
-#   moves both and rewrites their links, and the 0.1.1 scan read from modules/discovery.md counts the Done folder, so the
-#   next number is 00011.
+#   moves both and rewrites their links, and next-spec-number.sh, the 0.1.1 call, counts the Done folder,
+#   so the next number is 00011.
 #   JRN-004 (done on main): the spec_done_on_main helper read from modules/large-path.md is true for a done spec on main at
 #   the top level and in done/, and false for one that is not done.
 #   Edge cases: a path ending a sentence and two paths one space apart are all rewritten; a link back into the spec through
@@ -114,15 +114,8 @@ word_changes() {
   done < <(git -C "$repo" ls-tree -r --name-only "$to" -- .workflow docs)
 }
 
-# fenced_block_after FILE PATTERN : print the first fenced bash block after the first line matching PATTERN, unindented.
-fenced_block_after() {
-  awk -v pat="$2" '
-    !armed && index($0, pat) { armed = 1; next }
-    armed && !infence && /^[[:space:]]*```bash[[:space:]]*$/ { infence = 1; match($0, /^[[:space:]]*/); indent = RLENGTH; next }
-    infence && /^[[:space:]]*```[[:space:]]*$/ { exit }
-    infence { print substr($0, indent + 1) }
-  ' "$1"
-}
+# next_number DIR : the number next-spec-number.sh, the discovery 0.1.1 call, gives a new spec in the fixture repo DIR.
+next_number() { bash "$1/.agents/skills/feature-workflow/scripts/next-spec-number.sh" --cwd "$1"; }
 
 # fenced_block_with FILE PATTERN : print the first fenced bash block holding a line that contains PATTERN, unindented.
 fenced_block_with() {
@@ -335,14 +328,12 @@ BEFORE=$(tree_digest "$P")
 mtd "$P" --sweep
 check "JRN-003 a second sweep exits 0 and changes nothing" '[[ $RC == 0 && $(tree_digest "$P") == "$BEFORE" ]]' "rc=$RC: $OUT"
 
-echo "== JRN-007 and JRN-004: any-digit spec numbers and the 0.1.1 scan"
+echo "== JRN-007 and JRN-004: any-digit spec numbers and next-spec-number.sh"
 P=$WORK/digits
 done_digits_repo "$P"
 EXPECTED=$WORK/expected-digits
 done_digits_expected "$EXPECTED"
-SCAN=$(fenced_block_after "$FW_SKILL/modules/discovery.md" "**0.1.1 Scan.**")
-check "fixture: modules/discovery.md holds the 0.1.1 scan block" '[[ -n $SCAN ]]'
-eq "JRN-007 fixture: before the sweep the 0.1.1 scan's highest number is 00010" "$(cd "$P" && bash -c "$SCAN" 2>/dev/null)" 00010
+eq "JRN-007 fixture: before the sweep next-spec-number.sh gives 00011" "$(next_number "$P")" 00011
 mtd "$P" --check .workflow/specs/00010-wide
 eq "JRN-007 --check passes on the five-digit spec" "$RC" 0
 mtd "$P" --sweep
@@ -352,9 +343,9 @@ check "JRN-007 the five-digit and three-digit specs both sit in done/" \
 check "JRN-007 the in-progress spec stays at the top level" '[[ -f "$P/.workflow/specs/005-current/spec.md" ]]'
 check "JRN-007 the tree is what the any-digit oracle describes" '[[ -z $(tree_differences "$EXPECTED" "$P") ]]' \
   "$(tree_differences "$EXPECTED" "$P" 2>/dev/null | head -8)"
-HIGHEST=$(cd "$P" && bash -c "$SCAN" 2>/dev/null)
-check "JRN-007 after the sweep the 0.1.1 scan still finds 00010, now in done/" \
-  '[[ -f "$P/$DONE/00010-wide/spec.md" && $HIGHEST == 00010 ]]' "highest=$HIGHEST"
+NEXT=$(next_number "$P")
+check "JRN-007 after the sweep next-spec-number.sh still gives 00011, with 00010 now in done/" \
+  '[[ -f "$P/$DONE/00010-wide/spec.md" && $NEXT == 00011 ]]' "next=$NEXT"
 
 echo "== JRN-004: readers of the Done folder"
 # Only specs in done/ carry the high numbers, and no spec branch exists, so a reader that skips done/ gives a different answer.
@@ -367,9 +358,7 @@ printf -- '---\nstatus: done\n---\n# Narrow\n' >"$P/$DONE/009-narrow/spec.md"
 printf -- '---\nstatus: done\n---\n# Top\n' >"$P/.workflow/specs/005-top/spec.md"
 printf -- '---\nstatus: in-progress\n---\n# Open\n' >"$P/.workflow/specs/006-open/spec.md"
 git_commit_all "$P" "fixture: specs done on main, two of them in the Done folder"
-HIGHEST=$(cd "$P" && bash -c "$SCAN" 2>/dev/null)
-eq "JRN-004 the 0.1.1 scan counts the children of done/: highest is 00010" "$HIGHEST" 00010
-eq "JRN-007 the next spec number is 00011" "$(printf '%05d' $((10#${HIGHEST:-0} + 1)))" 00011
+eq "JRN-004 and JRN-007 next-spec-number.sh counts the children of done/: the next number is 00011" "$(next_number "$P")" 00011
 
 DONE_ON_MAIN=$(fenced_block_with "$FW_SKILL/modules/large-path.md" "spec_done_on_main()")
 check "fixture: modules/large-path.md defines spec_done_on_main in a bash block" '[[ -n $DONE_ON_MAIN ]]'
