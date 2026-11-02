@@ -15,7 +15,8 @@
 #   up, a stand-in issue-tracker.sh in the fixture project answers, so the suite proves what the script makes of the
 #   answer (the real issue creation is the issue-tracking suite's): the number padded to five digits then the URL, from
 #   one `--cwd DIR create-spec` call; a number longer than five digits printed whole; a tracker failure exits 1 and a
-#   refusal 2, its cause on stderr; an answer without an issue number exits 1. Each failure prints nothing on stdout.
+#   refusal 2, its cause on stderr; an answer without an issue number, and one that is not https, exits 1. Each failure
+#   prints nothing on stdout. A `skipped: no tracker` answer gives the local scan's number.
 #   The script is shellcheck-clean.
 # Oracle: each expected number is a literal: the highest number the old 0.1.1 block (modules/discovery.md at the spec's
 #   baseline revision) finds in that fixture, plus one, zero-padded to five digits.
@@ -180,9 +181,11 @@ check "settings the tracker script refuses exit 2 with its reason on stderr and 
 TRACKER_OUT=https://example.invalid/placeholder tracked_number
 check "a URL without an issue number exits 1 naming the URL, with nothing on stdout" \
   '[[ $RC == 1 && -z $OUT && $ERR == *example.invalid/placeholder* ]]' "rc=$RC out=$OUT: $ERR"
+TRACKER_OUT=http://gitlab.com/acme/widget/-/issues/42 tracked_number
+check "an issue URL that is not https exits 1 naming the URL, with nothing on stdout" \
+  '[[ $RC == 1 && -z $OUT && $ERR == *http://gitlab.com/acme/widget/-/issues/42* ]]' "rc=$RC out=$OUT: $ERR"
 TRACKER_OUT="skipped: no tracker" tracked_number
-check "a skipped tracker call exits 1 with nothing on stdout, never falling back to the local scan" \
-  '[[ $RC == 1 && -z $OUT ]]' "rc=$RC out=$OUT: $ERR"
+eq "when the tracker script skips, finding no tracker, the local scan gives the number: 00051" "$RC|$OUT" "0|00051"
 
 shellcheck_files "shellcheck: next-spec-number.sh" "$P/$NSN_REL"
 finish

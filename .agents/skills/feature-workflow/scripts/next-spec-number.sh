@@ -2,23 +2,25 @@
 # File: Helper script (not a hook): print the number a new spec folder takes at discovery 0.1.1.
 # Purpose: One call for 0.1.1 numbering. With no tracker set up (no .workflow/issue-tracking.yaml, or `issue_tracker: none`)
 #   the number is the next one after the highest any spec has taken (the local scan); with a tracker set up it is the number
-#   of a new tracker issue. The scan runs in the main checkout, where the spec worktrees sit, even when --cwd is a spec
-#   worktree. A number stays taken after its folder leaves the top level of .workflow/specs/: it counts the spec folders at
-#   the top level and in the Done folder .workflow/specs/done/, the spec worktrees .workflow/.spec-worktrees/NNN-slug, and
-#   every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch (local or on
-#   origin). A folder without a numeric prefix never counts. Spec branches are not counted: every spec a merged and deleted
-#   spec branch held is in one of these places.
+#   of a new tracker issue. issue-tracking's issue-tracker.sh create-spec reads the settings and decides which: its
+#   `skipped: no tracker` answer sends the number to the local scan. The scan runs in the main checkout, where the spec
+#   worktrees sit, even when --cwd is a spec worktree. A number stays taken after its folder leaves the top level of
+#   .workflow/specs/: it counts the spec folders at the top level and in the Done folder .workflow/specs/done/, the spec
+#   worktrees .workflow/.spec-worktrees/NNN-slug, and every initiative's `origin` and `slices[].spec`, in the working tree
+#   and on each `initiative/*` branch (local or on origin). A folder without a numeric prefix never counts. Spec branches
+#   are not counted: every spec a merged and deleted spec branch held is in one of these places.
 # Usage:
 #   next-spec-number.sh [--cwd <dir>]
 #     --cwd    any directory in the project or one of its worktrees. Default: $PWD.
 # stdout: no tracker: the number, zero-padded to five digits, one line. A tracker: the issue number padded to five digits,
-#   then the issue URL on a second line.
-# Exit: 0 number printed; 1 the tracker failed (cause on stderr, nothing on stdout); 2 usage error, not a git repository, an
-#   unreadable initiative.md, or a bad settings file (an unknown `issue_tracker`, or a tracker without its three distinct,
-#   non-empty `issue_flow` labels).
+#   then the issue's https URL on a second line.
+# Exit: 0 number printed; 1 the tracker failed, or answered with no https issue URL ending in its number (cause on stderr,
+#   nothing on stdout); 2 usage error, not a git repository, an unreadable initiative.md, or settings issue-tracker.sh
+#   refuses (an unknown `issue_tracker`, a tracker without its three distinct, non-empty `issue_flow` labels, an origin
+#   remote on another host, or the tracker's CLI not installed).
 # Called by: modules/discovery.md (0.1.1), tests/fixtures/initiative.sh.
-# Notes: Requires git and mikefarah yq v4; with a tracker, calls issue-tracking/scripts/issue-tracker.sh create-spec.
-#   bash 3.2 compatible.
+# Notes: Requires git and mikefarah yq v4. Always calls issue-tracking/scripts/issue-tracker.sh create-spec first, which
+#   calls no gh or glab when no tracker is set up. bash 3.2 compatible.
 # Sources: first-party.
 
 set -euo pipefail
@@ -29,6 +31,7 @@ SCRIPT_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 PROG=next-spec-number.sh
 ISSUE_TRACKER=$SCRIPT_DIR/../../issue-tracking/scripts/issue-tracker.sh
+NO_TRACKER_ANSWER="skipped: no tracker"
 
 # die MSG [CODE] : print "<prog>: MSG" to stderr and exit CODE (default 2; 1 for a tracker failure).
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit "${2:-2}"; }
@@ -74,42 +77,24 @@ next_scanned_number() {
   printf '%05d\n' $((10#${highest:-0} + 1))
 }
 
-# configured_tracker SETTINGS : print the tracker the settings file SETTINGS names (gitlab, github or none), none when the
-#   file is absent; exit 2 when it cannot be read, names another tracker, or gives a tracker no complete issue flow.
-configured_tracker() {
-  local settings=$1 tracker flow_labels
-  if [[ ! -f $settings ]]; then
-    echo none
-    return 0
-  fi
-  tracker=$(yq '.issue_tracker // ""' "$settings") || die "cannot read $settings"
-  case $tracker in
-    none)
-      echo none
-      return 0
-      ;;
-    gitlab | github) ;;
-    *) die "$settings: issue_tracker must be gitlab, github or none, not '$tracker'" ;;
-  esac
-  flow_labels=$(yq '[.issue_flow.backlog, .issue_flow.in_progress, .issue_flow.done]
-    | map(select(tag == "!!str" and . != "")) | unique | length' "$settings") || die "cannot read issue_flow in $settings"
-  [[ $flow_labels == 3 ]] ||
-    die "$settings: issue_flow needs three different, non-empty labels: backlog, in_progress and done"
-  echo "$tracker"
-}
-
-# next_issue_number DIR : create the spec's tracker issue from DIR and print its number, zero-padded to five digits, then
-#   its URL; print nothing and exit 2 when issue-tracker.sh exits 2 (usage or settings), 1 on any other failure.
-next_issue_number() {
-  local url tracker_status=0 number
-  url=$(bash "$ISSUE_TRACKER" --cwd "$1" create-spec) || tracker_status=$?
+# tracker_answer DIR : print what issue-tracker.sh create-spec answers from DIR: a new issue's URL, or NO_TRACKER_ANSWER
+#   when no tracker is set up; print nothing and exit 2 when it exits 2 (usage, project or settings), 1 on any other failure.
+tracker_answer() {
+  local answer tracker_status=0
+  answer=$(bash "$ISSUE_TRACKER" --cwd "$1" create-spec) || tracker_status=$?
   if [[ $tracker_status -ne 0 ]]; then
     [[ $tracker_status -eq 2 ]] || die "issue-tracker.sh create-spec failed (exit $tracker_status)" 1
-    die "issue-tracker.sh create-spec refused its arguments or the settings"
+    die "issue-tracker.sh create-spec refused its arguments, the project or the settings"
   fi
-  number=${url##*/}
-  [[ $url == *://*/* && $number =~ ^[0-9]+$ ]] ||
-    die "issue-tracker.sh create-spec printed no issue URL ending in its number: $url" 1
+  printf '%s\n' "$answer"
+}
+
+# print_issue_number URL : print the issue number in the last path segment of URL, zero-padded to five digits, then URL;
+#   exit 1 when URL is not an https URL ending in its number.
+print_issue_number() {
+  local url=$1 number=${1##*/}
+  [[ $url == https://*/* && $number =~ ^[0-9]+$ ]] ||
+    die "issue-tracker.sh create-spec printed no https issue URL ending in its number: $url" 1
   printf '%05d\n%s\n' $((10#$number)) "$url"
 }
 
@@ -127,11 +112,10 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -d $cwd ]] || die "--cwd is not a directory: $cwd"
 
-project_root=$(wf_project_root "$cwd") || exit 2
-tracker=$(configured_tracker "$(wf_path "$project_root" "$WF_ISSUE_TRACKING")") || exit 2
-if [[ $tracker == none ]]; then
+answer=$(tracker_answer "$cwd") || exit $?
+if [[ $answer == "$NO_TRACKER_ANSWER" ]]; then
   main_root=$(wf_main_root "$cwd") || exit 2
   next_scanned_number "$main_root"
 else
-  next_issue_number "$cwd"
+  print_issue_number "$answer"
 fi

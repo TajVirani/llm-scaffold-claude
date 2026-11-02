@@ -21,9 +21,11 @@ Out-of-scope work raised in Phase 0 goes through the scope gate 0.3.16–0.3.17 
 
    ```bash
    ST step .workflow/specs/NNN-slug 0.1.4
-   # Write .workflow/specs/NNN-slug/spec.md from ../assets/spec.md: frontmatter unchanged (status: draft), title filled, template comment removed
+   # Write .workflow/specs/NNN-slug/spec.md from ../assets/spec.md: status: draft, tracker_issue set, title filled, template comment removed
    ST status .workflow/specs/NNN-slug draft --step 0.1.4
    ```
+
+   Set `tracker_issue` to the second line 0.1.1 printed, or keep `""` when it printed one line (no tracker). With a URL, the first Links line is `Tracker issue: [#<n>](<url>)`, `<n>` the number without its padding; with `""`, delete that line.
 
    On the small path: also set `small_path: true` and `light_path: true` in the frontmatter. A small-path spec is a light-path spec, so the progress line counts the light path from the start.
 
