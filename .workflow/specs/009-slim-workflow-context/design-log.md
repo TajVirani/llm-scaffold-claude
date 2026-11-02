@@ -410,3 +410,16 @@ Outcome: rework 1 of 5
 - T1, T9 and T10 wrote `self_review[].item` quoted again (the waiting `to ask` item from wave 1); each was resumed once and fixed it. A T1 reviewer file missed one `location`; resumed once.
 - 3.15: 10 tasks, 39 of 75 files. 3.9: `TOTAL passed=4458 failed=0 skipped=0 xfail=0 (75 suites)` (`artifacts/gate-3.9-rework1/`). Load totals after the rework: new-feature start 44733 of 45000, implementation resume 54360 of 55000. In-review again at 3.11.
 - No patch was verified high, so no pass 2 runs (review-triage step 1); on to sign-off.
+
+## 2026-11-02 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes
+- PR description: approved. Changes asked before approval: none
+- Ruling: feature-workflow-retrospective-edge: kept for later (B1)
+- Ruling: quoted-self-review-item: kept for later (B2)
+- Going-in concerns: none
+
+## 2026-11-02 Retrospective notes
+
+- A session that starts in the main checkout and then moves into the spec worktree loads feature-workflow from the main checkout (the old router); the host offers worktree-scoped copies of the skills only after the move, so this Phase 4 session ran the new review-triage and sign-off step files but not the new router, see .workflow/decisions/retrospectives/009-slim-workflow-context.md
+- The new-feature start load is 44,733 of 45,000 bytes at sign-off; each glossary term adds a line to the counted term list, so a few new terms can fail `lint/workflow-load-size` (ADR-0004: trim, not raise), see .workflow/decisions/retrospectives/009-slim-workflow-context.md
