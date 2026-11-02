@@ -12,7 +12,7 @@
 #   fm FILE EXPR           one frontmatter value (yq --front-matter=extract)
 #   marker_step FILE       the step named by a .step marker
 #   frontier DIR           ids of the questions on the frontier of the initiative folder DIR
-#   next_spec_number DIR   the number discovery 0.1.1 gives the next spec
+#   next_spec_number DIR   the number next-spec-number.sh (discovery 0.1.1) gives the next spec, in three digits
 #   resume_offer DIR       the session-start hook's additionalContext for a session opened in DIR
 #   offer_lines CTX REL    lines of the offer that list the folder REL
 #   offer_research_text N  how the offer states the pending research count
@@ -29,6 +29,7 @@ LARGE_TERM_GATE_STEP="6.6"         # the 6.x term-gate step, where glossary writ
 
 IT_REL=.agents/skills/feature-workflow/scripts/initiative-transition.sh
 ST_REL=.agents/skills/feature-workflow/scripts/status-transition.sh
+NSN_REL=.agents/skills/feature-workflow/scripts/next-spec-number.sh
 FW_ASSETS_REL=.agents/skills/feature-workflow/assets
 
 large_path_repo() {
@@ -125,26 +126,12 @@ frontier() {
     "$1/questions.md" 2>/dev/null | tr '\n' ' ' | sed 's/ $//'
 }
 
-# A converted spec leaves no folder and no branch behind; its number survives only as an initiative's origin, so origins count
-# beside spec folders, spec branches and emitted slices.
+# The large-path suites name their specs with three-digit numbers, so the script's five-digit number is printed in that
+# width; only its value matters.
 next_spec_number() {
-  local p=$1 d ref name highest
-  highest=$(
-    {
-      for d in "$p"/.workflow/specs/[0-9][0-9][0-9]-*/; do [ -d "$d" ] && basename "$d"; done
-      git -C "$p" for-each-ref --format='%(refname:lstrip=3)' refs/heads/spec
-      git -C "$p" for-each-ref --format='%(refname:lstrip=4)' refs/remotes/origin/spec
-      for d in "$p"/.workflow/initiatives/*/initiative.md; do
-        [ -f "$d" ] && fm "$d" '.origin, (.slices // [] | .[].spec)'
-      done
-      for ref in $(git -C "$p" for-each-ref --format='%(refname)' refs/heads/initiative); do
-        name=${ref#refs/heads/initiative/}
-        git -C "$p" show "$ref:.workflow/initiatives/$name/initiative.md" 2>/dev/null \
-          | yq --front-matter=extract '.origin, (.slices // [] | .[].spec)' 2>/dev/null
-      done
-    } | grep -oE '^[0-9]{3}' | sort -n | tail -1
-  )
-  printf '%03d\n' $((10#${highest:-0} + 1))
+  local next
+  next=$(bash "$1/$NSN_REL" --cwd "$1") || return 1
+  printf '%03d\n' $((10#$next))
 }
 
 resume_offer() {

@@ -3,7 +3,7 @@
 #   with a task worktree nested inside it.
 # Covers: create carries the draft spec folder and discovery's other workflow data (a glossary edit) onto the spec branch's first
 #   commit, leaves the main checkout on main with nothing of that spec behind, moves .step into the worktree and prints the worktree
-#   and the baseline; a second spec created while the first runs; discovery's 0.1.1 scan counts both from a spec worktree; status-transition.sh, run-toolchain.sh, the implementation
+#   and the baseline; a second spec created while the first runs; next-spec-number.sh, the 0.1.1 call, counts both from a spec worktree; status-transition.sh, run-toolchain.sh, the implementation
 #   brief's result-file command (its spec checkout taken from the worktree path), commit-workflow-data.sh, check-merge-artifacts.sh
 #   and check-write.sh, each run from a spec worktree or its task worktree, read and write that spec's .step, artifacts and branch
 #   only; session-start-resume.sh lists both specs from the main checkout and from a spec worktree, naming where each runs, and so does the router's
@@ -81,13 +81,9 @@ eq "the second create exits 0" "$rc" 0
 eq "spec/002-beta forks from main, not from the other spec" "$(git -C "$P" rev-parse spec/002-beta^)" "$MAIN_HEAD"
 eq "the main checkout is clean once both specs moved out" "$(git -C "$P" status --porcelain)" ""
 check "spec 002-beta's worktree holds no copy of spec 001-alpha" '[ ! -e "$WB/.workflow/specs/001-alpha" ]'
-# Sign-off 5.9 seeds the next spec from inside a spec worktree, so discovery's 0.1.1 scan must count every spec from there too.
-SCAN=$(awk '!armed && index($0, "**0.1.1 Scan.**") { armed = 1; next }
-  armed && !infence && /^[[:space:]]*```bash[[:space:]]*$/ { infence = 1; match($0, /^[[:space:]]*/); indent = RLENGTH; next }
-  infence && /^[[:space:]]*```[[:space:]]*$/ { exit } infence { print substr($0, indent + 1) }' \
-  "$P/.agents/skills/feature-workflow/modules/discovery.md")
-eq "the 0.1.1 scan from the main checkout finds 002" "$(cd "$P" && bash -c "$SCAN" 2>/dev/null)" 002
-eq "the 0.1.1 scan from spec 001's worktree also finds 002" "$(cd "$WA" && bash -c "$SCAN" 2>/dev/null)" 002
+# Sign-off 5.9 seeds the next spec from inside a spec worktree, so the 0.1.1 numbering must count every spec from there too.
+eq "next-spec-number.sh from the main checkout gives 00003" "$(script next-spec-number.sh --cwd "$P" 2>&1)" 00003
+eq "next-spec-number.sh from spec 001's worktree also gives 00003" "$(script next-spec-number.sh --cwd "$WA" 2>&1)" 00003
 
 echo "== each spec's task worktree nests in its spec worktree"
 TA=$WA/.workflow/.worktrees/s001_t1

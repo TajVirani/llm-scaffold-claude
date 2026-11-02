@@ -9,7 +9,13 @@
 #   run from inside the spec worktree it gives the same number, as tests/scripts/spec-worktree.sh pins for the old block.
 #   The origin remote is on GitLab throughout, so a script that wrongly asks the tracker has a host to ask. A settings
 #   file naming an unknown tracker, or a tracker without its issue flow, exits 2 with nothing on stdout and no call.
-#   The script is shellcheck-clean.
+#   Negative cases: a flow naming one label for two stages and a settings file that is not YAML exit 2 the same way; an
+#   unknown argument, --cwd without a directory, a directory outside git and an unreadable initiative.md exit 2 with
+#   nothing on stdout. With a tracker set up, a stand-in issue-tracker.sh in the fixture project answers, so the suite
+#   proves what the script makes of the answer (the real issue creation is the issue-tracking suite's): the number padded
+#   to five digits then the URL, from one `--cwd DIR create-spec` call; a number longer than five digits printed whole;
+#   a tracker failure exits 1 and a refusal 2, its cause on stderr; an answer without an issue number exits 1. Each
+#   failure prints nothing on stdout. The script is shellcheck-clean.
 # Oracle: each expected number is a literal: the highest number the old 0.1.1 block (modules/discovery.md at the spec's
 #   baseline revision) finds in that fixture, plus one, zero-padded to five digits.
 # shellcheck disable=SC2016,SC2329,SC1010,SC2034  # check expressions are single-quoted and eval'd on purpose and read variables and call helpers shellcheck cannot see; "done" is a stage and a status word
@@ -97,6 +103,72 @@ fake_trackers_reset
 next_number_from "$P"
 check "JRN-001 a tracker without its issue flow exits 2 with nothing on stdout and no call" \
   '[[ $RC == 2 && -z $OUT && $(fake_call_count) == 0 ]]' "rc=$RC out=$OUT: $ERR"
+
+printf 'issue_tracker: gitlab\nissue_flow:\n  backlog: Backlog\n  in_progress: Backlog\n  done: Done\n' \
+  >"$P/.workflow/issue-tracking.yaml"
+fake_trackers_reset
+next_number_from "$P"
+check "a tracker whose flow names one label for two stages exits 2 with nothing on stdout and no call" \
+  '[[ $RC == 2 && -z $OUT && $(fake_call_count) == 0 ]]' "rc=$RC out=$OUT: $ERR"
+printf 'issue_tracker: [gitlab\n' >"$P/.workflow/issue-tracking.yaml"
+fake_trackers_reset
+next_number_from "$P"
+check "a settings file that is not YAML exits 2 with nothing on stdout and no call" \
+  '[[ $RC == 2 && -z $OUT && $(fake_call_count) == 0 ]]' "rc=$RC out=$OUT: $ERR"
+rm "$P/.workflow/issue-tracking.yaml"
+
+echo "== usage and environment errors"
+fake_run "$(fake_path both)" bash "$P/$NSN_REL" --cwd "$P" --sideways
+check "an unknown argument exits 2 with nothing on stdout" '[[ $RC == 2 && -z $OUT ]]' "rc=$RC out=$OUT: $ERR"
+fake_run "$(fake_path both)" bash "$P/$NSN_REL" --cwd
+check "--cwd without a directory exits 2 with nothing on stdout" '[[ $RC == 2 && -z $OUT ]]' "rc=$RC out=$OUT: $ERR"
+mkdir -p "$WORK/not-a-repo"
+next_number_from "$WORK/not-a-repo"
+check "a --cwd outside any git repository exits 2 with nothing on stdout" '[[ $RC == 2 && -z $OUT ]]' "rc=$RC out=$OUT: $ERR"
+printf -- '---\norigin: [00020-broken\n---\n' >"$P/.workflow/initiatives/001-ini/initiative.md"
+next_number_from "$P"
+check "an initiative.md whose frontmatter cannot be read exits 2 naming it, with nothing on stdout" \
+  '[[ $RC == 2 && -z $OUT && $ERR == *001-ini/initiative.md* ]]' "rc=$RC out=$OUT: $ERR"
+git -C "$P" checkout -q -- .workflow/initiatives/001-ini/initiative.md
+
+echo "== a tracker set up: the issue number from issue-tracker.sh create-spec"
+# The tracker script stands in for the hosts here, so this suite proves only what next-spec-number.sh makes of its answer.
+TP=$WORK/tracked
+tracker_project "$TP" gitlab
+tracker_settings "$TP" gitlab
+spec_folder "$TP" 00050-local done
+TRACKER_LOG=$WORK/issue-tracker-calls.log
+cat >"$TP/.agents/skills/issue-tracking/scripts/issue-tracker.sh" <<'FAKE'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >>"$TRACKER_LOG"
+if [[ -n ${TRACKER_ERR:-} ]]; then printf '%s\n' "$TRACKER_ERR" >&2; fi
+printf '%s' "${TRACKER_OUT:-}"
+exit "${TRACKER_RC:-0}"
+FAKE
+export TRACKER_LOG
+# tracked_number : run the script in the tracked project; sets OUT, ERR and RC, with the tracker script's calls in TRACKER_LOG.
+tracked_number() { : >"$TRACKER_LOG"; fake_run "$(fake_path both)" bash "$TP/$NSN_REL" --cwd "$TP"; }
+
+TRACKER_OUT=$'https://gitlab.com/acme/widget/-/issues/42\n' tracked_number
+eq "with a tracker the script prints the issue number padded to five digits, then the URL" "$RC|$OUT" \
+  "0|00042
+https://gitlab.com/acme/widget/-/issues/42"
+eq "with a tracker the script asks issue-tracker.sh create-spec once, from the given directory" \
+  "$(cat "$TRACKER_LOG")" "--cwd $TP create-spec"
+TRACKER_OUT=https://github.com/acme/widget/issues/1234567 tracked_number
+eq "an issue number longer than five digits is printed whole" "$RC|${OUT%%$'\n'*}" "0|1234567"
+TRACKER_OUT=https://gitlab.com/acme/widget/-/issues/4 TRACKER_ERR="glab: network unreachable" TRACKER_RC=1 tracked_number
+check "a tracker failure exits 1 with its cause on stderr and nothing on stdout" \
+  '[[ $RC == 1 && -z $OUT && $ERR == *"network unreachable"* ]]' "rc=$RC out=$OUT: $ERR"
+TRACKER_ERR="issue-tracker.sh: settings name github but origin is on gitlab" TRACKER_RC=2 tracked_number
+check "settings the tracker script refuses exit 2 with its reason on stderr and nothing on stdout" \
+  '[[ $RC == 2 && -z $OUT && $ERR == *"origin is on gitlab"* ]]' "rc=$RC out=$OUT: $ERR"
+TRACKER_OUT=https://example.invalid/placeholder tracked_number
+check "a URL without an issue number exits 1 naming the URL, with nothing on stdout" \
+  '[[ $RC == 1 && -z $OUT && $ERR == *example.invalid/placeholder* ]]' "rc=$RC out=$OUT: $ERR"
+TRACKER_OUT="skipped: no tracker" tracked_number
+check "a skipped tracker call exits 1 with nothing on stdout, never falling back to the local scan" \
+  '[[ $RC == 1 && -z $OUT ]]' "rc=$RC out=$OUT: $ERR"
 
 shellcheck_files "shellcheck: next-spec-number.sh" "$P/$NSN_REL"
 finish
