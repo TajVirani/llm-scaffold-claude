@@ -16,6 +16,9 @@
 #   spec in the Done folder (relative, dot-relative, absolute under the main checkout or a worktree) to
 #   .workflow/specs/done/NNN-slug, takes any digit count and the usual slug class there, and refuses the Done folder itself,
 #   a nested or non-spec child of it, a backlog child and an absolute path elsewhere; wf_norm_folder initiative takes no done/.
+#   JRN-012 (spec 00014): wf_norm_folder spec accepts a Done folder spec renamed with the old_ prefix (relative and absolute
+#   forms, any digit count) and still refuses old_ outside the Done folder and malformed old_ names (no number, a non-digit
+#   number, old- or OLD_, the prefix twice, no slug).
 # shellcheck disable=SC2016  # the bash -c programs are single-quoted on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -225,6 +228,24 @@ eq "JRN-001 wf_agent_worktree_name leaves BASH_REMATCH as the caller set it" \
 check "JRN-001 neither hook keeps its own codex_enc copy" \
   '! grep -q "codex_enc()" "$WORK/scaffold/.agents/hooks/codex-pre-spawn.sh" "$WORK/scaffold/.agents/hooks/post-implementation-audit.sh"' \
   "$(grep -n "codex_enc()" "$WORK/scaffold/.agents/hooks/codex-pre-spawn.sh" "$WORK/scaffold/.agents/hooks/post-implementation-audit.sh")"
+
+echo "== JRN-012 (spec 00014): the old_ prefix in the Done folder"
+OLD_DONE=.workflow/specs/done/old_012-alpha
+while IFS='|' read -r form arg; do
+  eq "JRN-012 (spec 00014) wf_norm_folder spec maps the $form form of an old_ Done folder spec to its folder" \
+    "$(stdout_and_status wf_norm_folder spec "$arg")" "0|${arg#"$FOLDER_REPO/"}"
+done <<EOF
+relative|$OLD_DONE
+absolute-main|$FOLDER_REPO/$OLD_DONE
+five-digit|.workflow/specs/done/old_00010-wide
+EOF
+for arg in .workflow/specs/old_012-alpha .workflow/specs/done/old_ .workflow/specs/done/old_x01-short \
+  .workflow/specs/done/old-012-alpha .workflow/specs/done/OLD_012-alpha .workflow/specs/done/old_old_012-alpha \
+  .workflow/specs/done/old_012-; do
+  check "JRN-012 (spec 00014) wf_norm_folder spec refuses $arg while it accepts $OLD_DONE" \
+    '[[ $(stdout_and_status wf_norm_folder spec "$OLD_DONE") == "0|$OLD_DONE" && $(stdout_and_status wf_norm_folder spec "$arg") == "1|" ]]' \
+    "$(refusal wf_norm_folder spec "$OLD_DONE"); $(refusal wf_norm_folder spec "$arg")"
+done
 
 shellcheck_files "shellcheck: lib/workflow-paths.sh" "$LIB"
 finish

@@ -4,6 +4,8 @@
 #   a validator yq cannot run (exit 1 with yq's diagnostic, nothing written),
 #   split-out tasks and backlog seeding at 0.1.4, task bodies under tasks/, record fields, set-task --pr, set-spec
 #   (spec_branch, impl_base_revision) and budget-check.sh --predicted over the task records.
+#   JRN-006 (spec 00014): set-task --issue records an https URL as the task's issue, refuses a non-URL with exit 2 keeping the
+#   recorded value, clears it with null, and the tasks.md validator refuses an issue field that is not a URL.
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures
 # shellcheck source=../lib/common.sh
@@ -293,6 +295,22 @@ yq --front-matter=process -i '.tasks[1].status = "split-out"' "$R/$M/tasks.md"
 out=$(jb --spec-dir $M --predicted); eq "predicted skips split-out" "$(jq -r .changed_files <<<"$out")" 4
 yq --front-matter=process -i '.tasks[1].status = "pending" | del(.tasks[1].size)' "$R/$M/tasks.md"
 t "predicted: record without size -> 1"     1 BC --spec-dir $M --predicted
+
+echo "== JRN-006 (spec 00014): set-task --issue records the task's tracker issue"
+cp "$F/mu-tasks.md" "$R/$M/tasks.md"
+ISSUE_URL=https://gitlab.com/acme/widget/-/issues/43
+t "JRN-006 (spec 00014) set-task --issue with an https URL exits 0" 0 ST set-task $M T1 --issue "$ISSUE_URL"
+eq "JRN-006 (spec 00014) set-task --issue records the URL as the task's issue" "$(fm '.tasks[0].issue')" "$ISSUE_URL"
+ST set-task $M T1 --issue not-a-url >/dev/null 2>&1; rc=$?
+check "JRN-006 (spec 00014) set-task --issue with a non-URL exits 2 and keeps the recorded issue" \
+  '[[ $rc == 2 && $(fm ".tasks[0].issue") == "$ISSUE_URL" ]]' "rc=$rc issue=$(fm '.tasks[0].issue')"
+ST set-task $M T1 --issue null >/dev/null 2>&1; rc=$?
+check "JRN-006 (spec 00014) set-task --issue null exits 0 and clears the issue" '[[ $rc == 0 && $(fm ".tasks[0].issue") == null ]]' \
+  "rc=$rc issue=$(fm '.tasks[0].issue')"
+cp "$F/mu-tasks.md" "$R/$M/tasks.md"
+yq --front-matter=process -i '.tasks[0].issue = "x"' "$R/$M/tasks.md"
+t "JRN-006 (spec 00014) the tasks.md validator rejects an issue that is not a URL" 1 ST set-task $M T2 --pr https://x.y/1
+cp "$F/mu-tasks.md" "$R/$M/tasks.md"
 
 shellcheck_files "shellcheck: scripts under test" "$SRC/scripts/status-transition.sh" "$SRC/scripts/check-write.sh" "$SRC/scripts/budget-check.sh"
 finish

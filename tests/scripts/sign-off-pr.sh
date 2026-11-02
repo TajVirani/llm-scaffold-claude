@@ -14,6 +14,11 @@
 #   JRN-006 (spec 007): the 5.8 SPEC_DIR setting names .workflow/specs/done/NNN-slug; with that value and the spec folder
 #   only in done/ (the state right after the move), gh gets --body-file on the moved pr-body.md and the local merge's message
 #   holds the moved body.
+#   JRN-009 (spec 00014): the shipped pr-template.md Link to issue guidance gives the tracker form (the spec's tracker_issue
+#   URL and `Closes #<n>`) and keeps the no-tracker stub; a workflow body in that form passes check-pr-body.sh; sign-off 5.4
+#   says a body filled from a project template ends with the issue URL and `Closes #<n>` as its last lines, and a project
+#   body ending that way passes check-pr-body.sh --project-template. The no-tracker stub body already passes the
+#   check-pr-body suite, so it is not repeated here.
 # Contract read from sign-off.md: the publish block uses the variables SPEC_DIR, SPEC_BRANCH, MAIN and SUBJECT, puts each
 #   command on one line, and runs from the project root with the spec branch checked out.
 # shellcheck disable=SC2016,SC2034,SC2329  # check expressions are single-quoted and eval'd on purpose, read variables and call helpers shellcheck cannot see
@@ -233,5 +238,33 @@ run_publish_lines "$(grep -v -e "gh pr create" -e "glab mr create" <<<"$BLOCK")"
 check "JRN-006 the local merge from the Done folder lands on main" \
   '[[ $(git -C "$REPO" rev-parse -q --verify "main^2" 2>/dev/null) == "$SPEC_TIP" ]]' "$(cat "$WORK/publish.out")"
 eq "JRN-006 the merge message holds the moved pr-body.md" "$(git -C "$REPO" log -1 --format=%b main)" "$(cat "$APPROVED_BODY")"
+
+echo "== JRN-009 (spec 00014): the Sign-off PR links and closes the spec's tracker issue"
+CHECK_PR_BODY="$FW/scripts/check-pr-body.sh"
+LINK_GUIDANCE=$(step_section "$FW/assets/pr-template.md" "Link to issue")
+SIGN_OFF_5_4=$(step_section "$SIGN_OFF" 5.4)
+# template_gives_tracker_form : the Link to issue guidance names the spec's tracker_issue and the Closes line.
+template_gives_tracker_form() { grep -q "tracker_issue" <<<"$LINK_GUIDANCE" && grep -q "Closes #" <<<"$LINK_GUIDANCE"; }
+# sign_off_appends_to_project_body : a 5.4 paragraph says a project-template body ends with the issue URL and Closes line.
+sign_off_appends_to_project_body() {
+  awk 'BEGIN { RS = "" } /Closes #/ && /[Ll]ast/ && /project template|host template|a path/ { found = 1 } END { exit !found }' \
+    <<<"$SIGN_OFF_5_4"
+}
+check "JRN-009 (spec 00014) the pr-template.md Link to issue guidance gives the tracker_issue URL and Closes #<n>, and keeps the no-tracker stub" \
+  'template_gives_tracker_form && grep -q "No tracker issue" <<<"$LINK_GUIDANCE"' "$LINK_GUIDANCE"
+PR_TRACKER_ISSUE=https://gitlab.com/acme/widget/-/issues/42
+printf '%s\n' "$PR_TEMPLATE_SECTIONS" | pr_body_from_headings >"$WORK/tracker-body.md"
+check_out=$(bash "$CHECK_PR_BODY" "$WORK/tracker-body.md" 2>&1); check_rc=$?
+check "JRN-009 (spec 00014) a workflow body in the template's tracker form passes check-pr-body.sh" \
+  'template_gives_tracker_form && [[ $check_rc == 0 && -z $check_out ]]' "rc=$check_rc: $check_out"
+check "JRN-009 (spec 00014) sign-off 5.4 ends a project-template body with the issue URL and Closes #<n>" \
+  'sign_off_appends_to_project_body' "no 5.4 paragraph names Closes #, the last lines and a project template"
+printf '%s\n' "$PR_PROJECT_TEMPLATE" >"$WORK/project-template.md"
+pr_project_body >"$WORK/project-body.md"
+check_out=$(bash "$CHECK_PR_BODY" "$WORK/project-body.md" --project-template "$WORK/project-template.md" 2>&1); check_rc=$?
+check "JRN-009 (spec 00014) a project-template body ending with the issue URL and Closes #<n> passes check-pr-body.sh --project-template" \
+  'sign_off_appends_to_project_body && [[ $check_rc == 0 && -z $check_out && $(tail -1 "$WORK/project-body.md") == "Closes #42" ]]' \
+  "rc=$check_rc: $check_out"
+unset PR_TRACKER_ISSUE
 
 finish
