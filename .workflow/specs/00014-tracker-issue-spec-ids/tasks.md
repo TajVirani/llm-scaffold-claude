@@ -161,7 +161,7 @@ tasks:
     pr: null
   - id: T9
     title: "Package the issue-tracking skill"
-    status: pending
+    status: done
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T5, T6, T8]
     touches_core: false

@@ -1,0 +1,36 @@
+verdict: "pass"
+task_id: "T9"
+work_type: "agent-docs"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t9@e8c3b8d4bb7a8bd367eb480a51f11ef683fa287f..HEAD"
+tool_output: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T9/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: the diff adds or changes no SKILL.md description; the three changed files are .agents/install-manifest.txt, PROVENANCE.md and tests/scripts/install-payload.sh"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: no agents/*.md file is added or changed"
+  - n: "R1"
+    verdict: "pass"
+    location: "PROVENANCE.md:12, PROVENANCE.md:21, tests/scripts/install-payload.sh:88"
+  - n: "R2"
+    verdict: "not-applicable"
+    location: "no code logic or comment added: one manifest line, PROVENANCE.md rows and one word in a test's expected string"
+  - n: "R3"
+    verdict: "not-applicable"
+    location: "no comment added or changed in the diff"
+  - n: "R4"
+    verdict: "not-applicable"
+    location: "no comment added or changed in the diff; the PROVENANCE.md rows are markdown table rows, not comments"
+  - n: "R5"
+    verdict: "not-applicable"
+    location: "no comment added or changed in the diff"
+read_outside_diff:
+  - ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T9/toolchain.json: which toolchain keys ran (lint and test passed; typecheck, format and boundary had no command)"
+  - ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T9/toolchain.txt: tail confirms lint suites and harness passed, TOTAL failed=0"
+  - ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T9/implementation.yaml: implementer self_review, confirmed against the diff"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 rules and Checking at 3.7"
+not_checked: []
+out_of_scope_noticed: []

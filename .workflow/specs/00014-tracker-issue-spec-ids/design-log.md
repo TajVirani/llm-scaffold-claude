@@ -326,3 +326,6 @@ Draft: 10 tasks in 6 waves, all afk, each with its seam and Phase 1 suites (sess
 - 3.7 T7 out_of_scope_noticed (issue-tracking `SKILL.md` has no Tracker adoption section): already in scope as T8 (wave 4, running); no discovered-work entry.
 - 3.7 T8 out_of_scope_noticed (`artifacts/T8/mini-review-r1.yaml`), kind bug: the `edit_branch_names` doc line (`tracker-adoption.sh:122-123`) says it renames branches, but it only rewrites branch names in workflow files. Route: **current work** (wording, on lines T8 adds); 3.8 wording-only round.
 - 3.16 wave 4: T7 and T8 merged locally (`skipped: gh not installed`). T8 took a 3.4 resume (negative and edge tests) and one wording-only round.
+- 3.4 T9 scope-expansion (`artifacts/T9/implementation-r1.yaml`): `tests/scripts/install-payload.sh:88` hard-codes the installed skill set, so shipping `skills/issue-tracking` needs `issue-tracking` added there. Route: **current work** (inside CAP-NEW-issue-tracking-setup, one word, unambiguous); T9 makes it.
+- Duplicate discovered work: T9's "no Ownership module owns `.agents/skills/issue-tracking/**`" matches proposal P1 (`proposals.md`); existing line stands.
+- 3.16 wave 5: T9 merged locally (`skipped: gh not installed`).
