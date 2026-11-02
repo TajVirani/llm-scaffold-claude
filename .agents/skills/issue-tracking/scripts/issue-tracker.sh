@@ -15,11 +15,13 @@
 #                                              remove the other flow labels and add this one; done also closes the
 #                                              issue, in_progress reopens a closed one.
 #     --cwd    any directory in the project or one of its worktrees. Default: $PWD.
-#   An issue URL names its issue by the number in its last path segment, in the project the `origin` remote points at.
+#   An issue URL is an https URL naming its issue by the number in its last path segment, in the project the `origin`
+#   remote points at.
 # stdout: a URL (create-spec, create-task), or `skipped: no tracker` when no tracker is set up (no settings file, or
 #   `issue_tracker: none`); nothing for fill and move.
-# Exit: 0 done or skipped; 1 the tracker failed (the CLI's message and what was being done, on stderr); 2 usage error,
-#   not a git repository, bad settings (an unknown `issue_tracker`, a tracker without its three distinct, non-empty
+# Exit: 0 done or skipped; 1 the tracker failed (the CLI's message and what was being done, on stderr) or answered with
+#   an issue URL that is not https or does not end in its number; 2 usage error, an argument that is not an https issue
+#   URL, not a git repository, bad settings (an unknown `issue_tracker`, a tracker without its three distinct, non-empty
 #   `issue_flow` labels, or a host the `origin` remote is not on), an unreadable file or a file with no # heading, or the
 #   CLI not installed.
 # Called by: modules/discovery.md, modules/questioning-loop.md, modules/discovery-impact.md, modules/task-breakdown.md,
@@ -106,11 +108,21 @@ json_field() {
   printf '%s\n' "$value"
 }
 
-# issue_number URL : print the issue number in the last path segment of URL; exit 2 when it holds none.
+# is_issue_url URL : succeed when URL is an https URL whose last path segment is an issue number.
+is_issue_url() { [[ $1 == https://*/* && ${1##*/} =~ ^[0-9]+$ ]]; }
+
+# issue_number URL : print the issue number in the last path segment of URL; exit 2 when URL is not an https issue URL.
 issue_number() {
-  local number=${1##*/}
-  [[ $1 == *://*/* && $number =~ ^[0-9]+$ ]] || die "not an issue URL ending in its number: $1"
-  printf '%s\n' "$number"
+  is_issue_url "$1" || die "not an https issue URL ending in its number: $1"
+  printf '%s\n' "${1##*/}"
+}
+
+# returned_issue_url URL : print URL, an issue URL the tracker answered with; exit 1 naming it when it is not https (the
+#   spec and task records store only https issue URLs) or does not end in its number.
+returned_issue_url() {
+  [[ $1 == https://* ]] || die "$cli answered with the issue URL $1, which is not https; only https trackers are supported" 1
+  is_issue_url "$1" || die "$cli answered with $1, which is not an issue URL ending in its number" 1
+  printf '%s\n' "$1"
 }
 
 # first_heading FILE : print the text of FILE's first `# ` heading after any frontmatter; exit 2 when FILE cannot be read
@@ -130,16 +142,17 @@ first_heading() {
 # create_spec_issue : create the spec's issue, titled PLACEHOLDER_TITLE with an empty body and the backlog label; print
 #   its URL.
 create_spec_issue() {
-  local answer
+  local answer url
   if [[ $cli == gh ]]; then
     answer=$(tracker_call "create the spec's issue" api 'repos/{owner}/{repo}/issues' -f "title=$PLACEHOLDER_TITLE" \
       -f "labels[]=$backlog_label") || exit 1
-    json_field "the new issue's URL" .html_url "$answer"
+    url=$(json_field "the new issue's URL" .html_url "$answer") || exit 1
   else
     answer=$(tracker_call "create the spec's issue" api projects/:fullpath/issues -X POST -f "title=$PLACEHOLDER_TITLE" \
       -f "labels=$backlog_label") || exit 1
-    json_field "the new issue's URL" .web_url "$answer"
+    url=$(json_field "the new issue's URL" .web_url "$answer") || exit 1
   fi
+  returned_issue_url "$url"
 }
 
 # fill_issue URL FILE : set the title of the issue at URL to FILE's first heading and its body to the whole of FILE.
@@ -208,7 +221,8 @@ move_issue() {
   fi
 }
 
-# first_url : print the first URL in stdin, or nothing when it holds none.
+# first_url : print the first http or https URL in stdin, or nothing when it holds none. An http URL is printed too, so
+#   the caller can refuse it by name.
 # grep exits 1 when it finds no URL, and under `set -e` that would end the script with no message; the caller reports
 # the missing URL instead.
 first_url() { grep -Eo 'https?://[^[:space:]]+' | head -n 1 || true; }
@@ -221,7 +235,7 @@ create_github_task() {
     --label "$backlog_label" --parent "$1") || exit 1
   url=$(first_url <<<"$answer")
   [[ -n $url ]] || die "gh created a sub-issue of issue #$1 but printed no URL: $answer" 1
-  printf '%s\n' "$url"
+  returned_issue_url "$url"
 }
 
 # child_graphql WHAT ARGS... : run `glab api graphql ARGS` in the project and print GitLab's answer, adding glab's message
@@ -267,7 +281,7 @@ create_child_task() {
     printf '%s\n' "$answer" >>"$CHILD_REFUSAL" || die "cannot write $CHILD_REFUSAL"
     return 0
   fi
-  printf '%s\n' "$url"
+  returned_issue_url "$url"
 }
 
 # create_linked_issue PROJECT_ID SPEC_NUMBER TITLE FILE : create a GitLab issue titled TITLE, its description FILE, in the
@@ -279,6 +293,7 @@ create_linked_issue() {
   answer=$(tracker_call "create the task's issue" api projects/:fullpath/issues -X POST \
     -H 'Content-Type: application/json' --input "$request") || exit 1
   url=$(json_field "the new issue's URL" .web_url "$answer") || exit 1
+  url=$(returned_issue_url "$url") || exit 1
   number=$(json_field "the new issue's number" .iid "$answer") || exit 1
   tracker_call "link the new issue $url to issue #$2" api "projects/:fullpath/issues/$number/links" -X POST \
     -f "target_project_id=$1" -f "target_issue_iid=$2" -f link_type=relates_to >/dev/null || exit 1

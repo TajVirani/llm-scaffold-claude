@@ -21,8 +21,8 @@ A **Tracker issue** is the issue a spec or a task is filed as on the project's G
 Output and exits:
 
 - With no tracker set up (no settings file, or `issue_tracker: none`), every command prints `skipped: no tracker`, calls neither CLI and exits 0. Steps call it the same way either way.
-- Exit 1: the tracker failed, for example the network or the login. Stderr gives the CLI's message and what the script was doing. Nothing is printed on stdout.
-- Exit 2: a usage error; bad settings (an unknown `issue_tracker`, flow labels missing or not distinct, or a host the `origin` remote is not on); a file that cannot be read or has no `# ` heading; or the host's CLI not installed.
+- Exit 1: the tracker failed, for example the network or the login, or it answered with an issue URL that is not `https://`; only https trackers are supported. Stderr gives the CLI's message and what the script was doing, or the URL. Nothing is printed on stdout.
+- Exit 2: a usage error, including an issue URL argument that is not `https://`; bad settings (an unknown `issue_tracker`, flow labels missing or not distinct, or a host the `origin` remote is not on); a file that cannot be read or has no `# ` heading; or the host's CLI not installed.
 
 ## Tracker setup
 
