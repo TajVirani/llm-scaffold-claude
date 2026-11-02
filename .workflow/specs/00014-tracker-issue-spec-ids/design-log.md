@@ -365,3 +365,4 @@ Gaps: the GitLab child-task GraphQL call, the `relates_to` fallback and the `gla
 Outcome: rework 1 of 5
 - Rework 1, 3.7 T4 out_of_scope_noticed (`artifacts/T4/mini-review-r2.yaml`): the hook header and test comment say adoption gives `-disc-` item files an `old_` prefix; it does not. Route: **current work** (wording on lines T4 changed); wording-only round. 3.7 T5 out_of_scope_noticed (comment lint never reads `tests/scripts/issue-tracking.sh`): dismissed, the test-harness profile lint (`tests/*.sh` with `check-comments.sh`) covers it at 3.9.
 - 3.16 rework 1: T3, T4, T5 and T10 merged locally (`skipped: gh not installed`); T4 took one wording-only round.
+- 3.9 after rework 1: full harness `TOTAL passed=4759 failed=0 skipped=0 xfail=0 (81 suites)` (`artifacts/gate-3.9-rework1/`); budget 10 tasks, 32 of 34 changed files; loads 44,286 / 45,000 and 54,967 / 55,000. No browser suite; in-review at 3.11. F1 was verified high, so review pass 2 follows.
