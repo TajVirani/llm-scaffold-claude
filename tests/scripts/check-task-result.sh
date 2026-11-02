@@ -4,7 +4,8 @@
 #   line, the kind taken from the file name and from --kind, one malformed file per shape rule (exit 1, the message names
 #   the field), task_id against the artifacts folder for implementation and mini-review files, the stop-status fields for
 #   implementation and integration, the implementation self_review list (required when status is done, optional and still
-#   shape-checked on a stop status), a mini-review verdict that disagrees with its items, carried_from outside re-check mode, a multi-document file, and the exit-2 cases: no argument, missing file, YAML that does not parse,
+#   shape-checked on a stop status), a mini-review verdict that disagrees with its items, an older round's mode, previous
+#   and carried_from keys ignored, a multi-document file, and the exit-2 cases: no argument, missing file, YAML that does not parse,
 #   a name that implies no kind, an unknown --kind.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -191,7 +192,7 @@ $(row 3 conflict "request 1 renames the same function")"
 eq "the integration discovered-work row" "$(line 5)" \
   "$(row refactor can-wait .agents/lib/workflow-paths.sh:40 "two helpers build the same path")"
 
-# --- mini-review: a valid re-check that fails one item
+# --- mini-review: a valid review that fails one item
 MINI="$ART/T1/mini-review.yaml"
 cat >"$MINI" <<'Y'
 verdict: fail
@@ -199,11 +200,9 @@ task_id: T1
 work_type: shell-scripts
 diff: /work/wt-T1@1a2b3c4..9f8e7d6
 tool_output: .workflow/specs/005-x/artifacts/T1/toolchain.json
-mode: re-check
-previous: .workflow/specs/005-x/artifacts/T1/mini-review-r1.yaml
 items:
-  - {n: 1, verdict: not-applicable, location: "", carried_from: r1}
-  - {n: 2, verdict: pass, location: "check-task-result.sh:60", carried_from: r1}
+  - {n: 1, verdict: not-applicable, location: ""}
+  - {n: 2, verdict: pass, location: "check-task-result.sh:60"}
   - {n: 3, verdict: tool-covered, location: "check-task-result.sh:12", note: "lint: shellcheck SC2086"}
   - {n: R3, verdict: fail, location: "check-task-result.sh:88, check-task-result.sh:91", note: "the comment restates the case below it; delete it"}
   - {n: R4, verdict: pass, location: "check-task-result.sh:1"}
@@ -219,7 +218,7 @@ Y
 run_ctr "$MINI"
 eq "a valid mini-review file exits 0" "$RC" 0
 eq "the mini-review header line" "$(line 1)" \
-  "verdict: fail  task: T1  mode: re-check  items: 5 (pass 2, fail 1, tool-covered 1, not-applicable 1, carried 2)  out_of_scope: 1"
+  "verdict: fail  task: T1  items: 5 (pass 2, fail 1, tool-covered 1, not-applicable 1)  out_of_scope: 1"
 eq "the mini-review rows list only tool-covered and fail items, in file order" "$(sed -n '2,3p' <<<"$OUT")" \
   "$(row 3 tool-covered check-task-result.sh:12 "lint: shellcheck SC2086")
 $(row R3 fail "check-task-result.sh:88, check-task-result.sh:91" "the comment restates the case below it; delete it")"
@@ -227,12 +226,16 @@ eq "the mini-review out-of-scope row" "$(line 4)" \
   "$(row decision can-wait check-task-result.sh:70 "the 120-character cut may hide a long reason")"
 
 FULL="$ART/T1/mini-review-full.yaml"
-variant "$MINI" "$FULL" '.mode = "full" | .previous = null | .verdict = "pass" | del(.items[].carried_from)
-  | .items[3].verdict = "pass" | del(.items[3].note)'
+variant "$MINI" "$FULL" '.verdict = "pass" | .items[3].verdict = "pass" | del(.items[3].note)'
 run_ctr "$FULL"
-eq "a passing full mini-review exits 0" "$RC" 0
-eq "a passing full mini-review header counts no carried items" "$(line 1)" \
-  "verdict: pass  task: T1  mode: full  items: 5 (pass 3, fail 0, tool-covered 1, not-applicable 1, carried 0)  out_of_scope: 1"
+eq "a passing mini-review exits 0" "$RC" 0
+eq "a passing mini-review header" "$(line 1)" \
+  "verdict: pass  task: T1  items: 5 (pass 3, fail 0, tool-covered 1, not-applicable 1)  out_of_scope: 1"
+OLD="$ART/T1/mini-review-r1.yaml"
+variant "$FULL" "$OLD" '.mode = "re-check" | .previous = "mini-review-r0.yaml" | .items[0].carried_from = "r0"'
+run_ctr "$OLD"
+eq "an older round's mode, previous and carried_from keys are ignored" "$RC:$(line 1)" \
+  "0:verdict: pass  task: T1  items: 5 (pass 3, fail 0, tool-covered 1, not-applicable 1)  out_of_scope: 1"
 
 # --- the kind: from the name, or from --kind
 cp "$INTEG" "$WORK/integration-r1.yaml"
@@ -352,9 +355,6 @@ check "mini-review: a task_id other than the artifacts folder is refused" \
 expect_error "mini-review: missing work_type" "$MINI" 'del(.work_type)' "work_type: "
 expect_error "mini-review: empty diff" "$MINI" '.diff = ""' "diff: "
 expect_error "mini-review: missing tool_output" "$MINI" 'del(.tool_output)' "tool_output: "
-expect_error "mini-review: unknown mode" "$MINI" '.mode = "partial"' "mode: 'partial' is not one of"
-expect_error "mini-review: re-check without previous" "$MINI" '.previous = null' "previous: missing or empty, required when mode is re-check"
-expect_error "mini-review: full mode with a previous file" "$FULL" '.previous = "mini-review-r1.yaml"' "previous: must be null"
 expect_error "mini-review: empty items" "$MINI" '.items = []' "items: not a non-empty list"
 expect_error "mini-review: item n out of range" "$MINI" '.items[4].n = "R6"' "items\\[4\\].n: 'R6'"
 expect_ok "mini-review: item n as a quoted number" "$MINI" '.items[4].n = "1"'
@@ -366,8 +366,6 @@ expect_error "mini-review: item verdict unknown" "$MINI" '.items[0].verdict = "s
 expect_error "mini-review: item without location" "$MINI" 'del(.items[1].location)' "items\\[1\\].location: "
 expect_error "mini-review: fail item without note" "$MINI" 'del(.items[3].note)' "items\\[3\\].note: missing or empty, required when the verdict is fail"
 expect_error "mini-review: tool-covered item without note" "$MINI" '.items[2].note = ""' "items\\[2\\].note: missing or empty, required when the verdict is tool-covered"
-expect_error "mini-review: carried_from not r<k>" "$MINI" '.items[0].carried_from = "round1"' "items\\[0\\].carried_from: 'round1' is not r<k>"
-expect_error "mini-review: carried_from in full mode" "$FULL" '.items[0].carried_from = "r1"' "items\\[0\\].carried_from: allowed only when mode is re-check"
 expect_error "mini-review: verdict fail with no failed item" "$FULL" '.verdict = "fail"' "verdict: fail but no item is fail"
 expect_error "mini-review: verdict pass with a failed item" "$MINI" '.verdict = "pass"' "verdict: pass but an item is fail"
 expect_error "mini-review: read_outside_diff not a list" "$MINI" '.read_outside_diff = "none"' "read_outside_diff: not a list"
