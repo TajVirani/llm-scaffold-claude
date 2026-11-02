@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: issue-tracker.sh (issue-tracking/scripts) and next-spec-number.sh (feature-workflow/scripts) with a tracker set up.
-# Covers, against fake glab and gh that keep their own tracker state (tests/fixtures/fake-trackers.sh), never a network:
-#   JRN-002 (spec 00014): with a gitlab origin and GitLab settings and the fake handing out iid 42, next-spec-number.sh
+# Covers: spec 00014, against fake glab and gh that keep their own tracker state (tests/fixtures/fake-trackers.sh), never a network.
+#   JRN-002: with a gitlab origin and GitLab settings and the fake handing out iid 42, next-spec-number.sh
 #   prints 00042 and the issue URL; the tracker then holds exactly that issue, with a non-empty placeholder title, an
 #   empty body and the backlog label; glab was asked, gh never. create-spec prints the new issue's URL. An issue number
 #   longer than five digits is printed whole.
@@ -21,9 +21,11 @@
 #   Without a tracker set up (no settings file, or issue_tracker: none), every issue-tracker.sh command prints
 #   `skipped: no tracker`, exits 0 and calls neither CLI. Settings naming a host the origin is not on exit 2 with no call.
 #   Refused before any call, with exit 2: settings naming an unknown tracker or putting two flow stages on one label, fill
-#   with a file that has no `# ` heading or does not exist, an argument that is not an issue URL, and a GitLab project
-#   without glab installed. A network failure during create-task and an auth failure during fill exit 1 naming the cause
-#   and change nothing on the tracker. The scripts are shellcheck-clean.
+#   with a file that has no `# ` heading or does not exist, an argument that is not an issue URL or is an http one, and a
+#   GitLab project without glab installed. A network failure during create-task and an auth failure during fill exit 1
+#   naming the cause and change nothing on the tracker. A tracker answering with http issue URLs makes create-spec and
+#   create-task on each host exit 1 naming the URL and saying only https trackers are supported, with nothing on stdout.
+#   The scripts are shellcheck-clean.
 # shellcheck disable=SC2016,SC2329,SC1010,SC2034  # check expressions are single-quoted and eval'd on purpose and read variables and call helpers shellcheck cannot see; "done" is a stage and a status word
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -287,6 +289,11 @@ check "fill with a missing file exits 2 with no tracker call" '[[ $RC == 2 && $(
 tracker "$GL" move not-an-issue-url done
 check "move with an argument that is not an issue URL exits 2 with no tracker call" \
   '[[ $RC == 2 && $(fake_call_count) == 0 ]]' "rc=$RC calls=$(fake_calls)"
+HTTP_SPEC_URL=$(fake_url glab 42)
+HTTP_SPEC_URL=http://${HTTP_SPEC_URL#https://}
+tracker "$GL" create-task "$HTTP_SPEC_URL" "$TASK_FILE"
+check "create-task with an http spec issue URL exits 2 with no tracker call" \
+  '[[ $RC == 2 && -z $OUT && $(fake_call_count) == 0 ]]' "rc=$RC out=$OUT err=$ERR calls=$(fake_calls)"
 fake_run "$(fake_path gh)" bash "$GL/$IT_REL" --cwd "$GL" create-spec
 check "a GitLab project without glab installed exits 2 naming glab, with no tracker call" \
   '[[ $RC == 2 && -z $OUT && $ERR == *glab* && $(fake_call_count) == 0 ]]' "rc=$RC out=$OUT err=$ERR calls=$(fake_calls)"
@@ -315,6 +322,38 @@ fake_issue_seed 7 "Spec" open "$TRACKER_IN_PROGRESS"
 FAKE_FAIL=auth tracker "$GH" fill "$(fake_url gh 7)" "$GH_SPEC"
 check "fill on a GitHub auth failure exits 1 naming the cause and leaves the issue untouched" \
   '[[ $RC == 1 && $(fake_issue 7 title) == Spec ]] && names_auth_cause' "rc=$RC title=$(fake_issue 7 title) err=$ERR"
+
+echo "== a tracker that answers with http issue URLs"
+# Each wrapper passes the call to the fake and turns every https in its answer into http, as a tracker served over http
+# would answer.
+HTTP_BIN=$WORK/bin-http-urls
+mkdir -p "$HTTP_BIN"
+for cli in gh glab; do
+  printf '#!/usr/bin/env bash\nanswer=$(%q "$@") || exit\nprintf "%%s\\n" "$answer" | sed "s#https://#http://#g"\n' \
+    "$FAKE_BIN/$cli" >"$HTTP_BIN/$cli"
+  chmod +x "$HTTP_BIN/$cli"
+done
+# refuses_http_url HOST : the last run exited 1 with nothing on stdout, naming an http URL of HOST and saying only https
+#   trackers are supported.
+refuses_http_url() {
+  local http_url
+  http_url=$(fake_url "$1" "")
+  http_url=http://${http_url#https://}
+  [[ $RC == 1 && -z $OUT && $ERR == *"$http_url"* && $ERR == *"only https trackers are supported"* ]]
+}
+for host in glab gh; do
+  if [[ $host == glab ]]; then project=$GL n=42; else project=$GH n=7; fi
+  fresh_tracker
+  fake_run "$HTTP_BIN:$(fake_path both)" bash "$project/$IT_REL" --cwd "$project" create-spec
+  check "$host: create-spec given an http issue URL by the tracker exits 1 naming it and saying only https is supported" \
+    'refuses_http_url "$host"' "rc=$RC out=$OUT err=$ERR"
+  fresh_tracker
+  fake_issue_seed "$n" "Spec" open "$TRACKER_IN_PROGRESS"
+  fake_run "$HTTP_BIN:$(fake_path both)" bash "$project/$IT_REL" --cwd "$project" create-task "$(fake_url "$host" "$n")" \
+    "$TASK_FILE"
+  check "$host: create-task given an http issue URL by the tracker exits 1 naming it and saying only https is supported" \
+    'refuses_http_url "$host"' "rc=$RC out=$OUT err=$ERR"
+done
 
 shellcheck_files "shellcheck: issue-tracker.sh and next-spec-number.sh" "$GL/$IT_REL" "$GL/$NSN_REL"
 finish
