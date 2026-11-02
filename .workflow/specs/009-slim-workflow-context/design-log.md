@@ -402,3 +402,11 @@ Outcome: rework 1 of 5
 - Found at: step 4.1 by review-standards (RS-3, F5). Kind: decision
 - Problem and evidence: `.agents/skills/feature-workflow/modules/sign-off.md:134` links `../../retrospective/modules/routing.md` and `:194` names `.agents/skills/retrospective/modules/routing.md`; `.workflow/rules.md:6` counts a `skills/<name>/` path as a dependency and `:39-41` leaves retrospective out of feature-workflow's may_depend_on, while `:54-56` declares the reverse edge. Present at baseline (a29eca7 small-path.md:56, sign-off.md:179).
 - Assessment and ruling: to ask (out of scope), recommended keep for later because it predates this spec and the fix is a rules decision (declare the edge at a 5.3, or have sign-off name the retrospective skill without pointing into its files), not part of the context split.
+
+## 2026-11-02 Rework 1 result
+
+- F4 fixed in the main session: both load Targets commands in `verification-plan.md` now start `bash tests/lint/workflow-load-size.sh`; the new-start command prints 44721 at 039075e.
+- F1 (T1), F3 (T4), F2 (T9 headers, T10 router and discovery-impact) relaunched as one wave off 039075e and merged locally in id order. T1's full mini-review failed item 9 (no `# die MSG :` line above `die()` at `term-list.sh:28`, present since T1's first round); patched as a wording fix from the note's reference text (4420016), re-check passed. T4, T9, T10 passed their first mini-review.
+- T1, T9 and T10 wrote `self_review[].item` quoted again (the waiting `to ask` item from wave 1); each was resumed once and fixed it. A T1 reviewer file missed one `location`; resumed once.
+- 3.15: 10 tasks, 39 of 75 files. 3.9: `TOTAL passed=4458 failed=0 skipped=0 xfail=0 (75 suites)` (`artifacts/gate-3.9-rework1/`). Load totals after the rework: new-feature start 44733 of 45000, implementation resume 54360 of 55000. In-review again at 3.11.
+- No patch was verified high, so no pass 2 runs (review-triage step 1); on to sign-off.
