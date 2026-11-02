@@ -1,5 +1,3 @@
-tests/scripts/status-transition-tasks.sh
-tests/scripts/next-spec-number.sh
 tests/scripts/lib-workflow-paths.sh
 tests/scripts/review-lessons.sh
 tests/scripts/check-write-paths.sh
