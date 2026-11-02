@@ -32,8 +32,9 @@
 #   - A blocked spec whose blocked_condition starts with `discovered work:` or `size budget:` is flagged "discovered-work prompt pending".
 #   - .workflow/specs/work-backlog/ is not a spec folder and is skipped by the scan. Its open items are summarised as a count plus up to 5 names,
 #     and alone are enough to produce output: each `- [open] B<n> ...` line of a spec's backlog list <NNN-slug>.md (named <NNN-slug>.md#B<n>),
-#     and each older item file <NNN-slug>-disc-<###>.md with `status: open` (named by its file name). Either name may carry the `old_`
-#     prefix that adopting an issue tracker gives a Done spec's files. Other files there are ignored.
+#     and each older item file <NNN-slug>-disc-<###>.md with `status: open` (named by its file name). A list may be named
+#     old_<NNN-slug>.md, the name adopting an issue tracker gives a Done spec's list; an item file may carry the same `old_` prefix, matching
+#     the names the write guard accepts in work-backlog/. Other files there are ignored.
 #   - Session handoffs (.workflow/.handoff/*.md at the main checkout, newest first by mtime): up to 3 listed with frontmatter created, spec and goal
 #     (or "frontmatter unreadable"), the rest counted; alone they are enough to produce output, and the text names the handoff skill's Resume.
 #   - The text is capped below the 10,000-character additionalContext limit: specs past the cap are counted, not listed.
