@@ -1,6 +1,6 @@
 ---
 name: project-setup
-description: "Set up a project for the feature workflow, outside the flow: creates the .workflow/ tree (GLOSSARY.md, rules.md, capabilities.md, decisions/, deferred/, model-map/, profiles/, agent-overrides.yaml) from templates, agrees the work types, runs the project-standards interview, fills each profile's Toolchain from the agreed tools and installs it (anti-slop for TS/JS), then has project-standards write lint config, and generates the import-boundary config from .workflow/rules.md. Use when adopting the workflow in a project after install.sh, or when adding a new work type."
+description: "Set up a project for the feature workflow, outside the flow: creates the .workflow/ tree (GLOSSARY.md, rules.md, capabilities.md, decisions/, deferred/, model-map/, profiles/, agent-overrides.yaml) from templates, agrees the work types, runs the project-standards interview, fills each profile's Toolchain from the agreed tools and installs it (anti-slop for TS/JS), then has project-standards write lint config, generates the import-boundary config from .workflow/rules.md, and saves the tracker settings (.workflow/issue-tracking.yaml). Use when adopting the workflow in a project after install.sh, or when adding a new work type."
 disable-model-invocation: true
 ---
 
@@ -96,9 +96,15 @@ The config is derived from `.workflow/rules.md` and never hand-edited; the `rule
 
 Done when the script exits 0.
 
-### 11. Report
+### 11. Set up the tracker
 
-List each path as created, kept or skipped, with the reason; the toolchain commands that ran and their results; the anti-slop pin; the `project-standards` ledger summary, including its evidence counts; and every open item:
+Follow "Tracker" in [modules/files.md](modules/files.md): run `tracker-setup.sh check`, ask the human in one question whether to use the tracker and which three labels make the issue flow, then run `tracker-setup.sh save` with those labels or `save --none`. An existing `.workflow/issue-tracking.yaml` is kept. A project that already has specs is pointed at the `issue-tracking` skill's Tracker adoption instead.
+
+Done when `.workflow/issue-tracking.yaml` is kept or saved, or the step was skipped for a project already under way and the human was told to run Tracker adoption.
+
+### 12. Report
+
+List each path as created, kept or skipped, with the reason; the toolchain commands that ran and their results; the anti-slop pin; the tracker settings (host and issue flow labels, `none`, kept, or skipped for Tracker adoption); the `project-standards` ledger summary, including its evidence counts; and every open item:
 
 - Codex models in `.workflow/model-map/` that `codex debug models` did not list, or that were left unchecked because Codex is not installed here.
 - Toolchains for non-TS/JS work types that were not installed.
@@ -111,4 +117,5 @@ Then point the human at `feature-workflow` as the way to start the first feature
 - Every work type has a profile written by `project-standards`, a Toolchain block traced to approved rows, and its toolchain installed or reported as not installed.
 - `project-standards` ran both phases and its lint proof found no config error.
 - `generate-boundary-config.sh` exited 0.
+- `.workflow/issue-tracking.yaml` exists, or the report points a project already under way at Tracker adoption.
 - The report lists created, kept and open items.

@@ -37,3 +37,29 @@ Only when `.workflow/rules.md` was created now. A kept rules.md is never touched
 This is the one write to `.workflow/rules.md` that bypasses the `project-standards` ledger. The file is a fresh, unfilled copy, the human picks the value directly from the offered choices, and the key is a workflow setting rather than a project standard, so a ledger row would only repeat the same question.
 
 Done when every file in the table exists, either created now or kept, and a created rules.md holds the `pr_template` answer when a host template was found.
+
+## Tracker
+
+Step 11 of the skill. It writes `.workflow/issue-tracking.yaml`, the settings that say whether specs and tasks are filed as tracker issues and which three labels make the issue flow. The `issue-tracking` skill's "Tracker setup" section explains each exit of the script.
+
+1. **Kept.** When `.workflow/issue-tracking.yaml` exists, ask nothing and run nothing: report it as kept. `save` replaces the file, so never run it over an existing one.
+2. **Already under way.** When step 2 found any spec under `.workflow/specs/` (in progress or in `done/`), run nothing here and report the step as skipped. Tell the human to run the `issue-tracking` skill's Tracker adoption, which also gives the existing specs tracker numbers. A plain `save` would leave those specs on numbers the tracker never handed out.
+3. **Check.** Run:
+
+   ```bash
+   .agents/skills/issue-tracking/scripts/tracker-setup.sh check
+   ```
+
+   Exit 0 prints the host (`github` or `gitlab`) on its first line. Exit 1 gives the reason on stderr (no tracker host on `origin`, the CLI missing, too old or not logged in, or issues turned off): tell the human, and offer to check again once they fix it, or to go without a tracker.
+4. **Ask once.** In one question, ask whether to use the tracker and which three labels make the issue flow. Lead with your recommendation: use the tracker, with `backlog`, `in-progress` and `done`, or the project's own labels when the human already has names for those three states. When `check` failed and the human does not fix it, the question is only whether to go without a tracker.
+5. **Save.** With a yes, run:
+
+   ```bash
+   .agents/skills/issue-tracking/scripts/tracker-setup.sh save --backlog <label> --in-progress <label> --done <label>
+   ```
+
+   When it exits 1 naming labels the tracker lacks, it has written nothing. Ask whether to create those labels; only with the human's yes, run the same `save` again with `--create-labels`. With a no, ask for existing label names and save again, or go without a tracker.
+
+   Without a tracker, run `.agents/skills/issue-tracking/scripts/tracker-setup.sh save --none`, which writes `issue_tracker: none`. The workflow then numbers specs from the local checkout, as it does with no settings file.
+
+Done when `.workflow/issue-tracking.yaml` was kept, or `save` printed `saved <file>`, or the step was skipped for a project already under way and the human was pointed at Tracker adoption.
