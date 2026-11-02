@@ -52,7 +52,7 @@ The three facts (all must be clean for the light path):
   .agents/skills/issue-tracking/scripts/issue-tracker.sh fill "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" .workflow/specs/NNN-slug/spec.md
   ```
 
-  With no tracker, both `issue-tracker.sh` calls print `skipped: no tracker`. On exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed; a task that already holds an `issue` is not filed again.
+  A task that already holds an `issue` is not filed again.
 
   `spec-worktree.sh create` prints `worktree <path>` and `baseline <sha>`; exit 1 names what to fix first, as at [1.1](verification-setup.md#11-measurable-targets-and-the-baseline). T1 gets its task branch and worktree at wave start and merges `--no-ff` at 3.16, as a full-path task does; a `mode: hitl` T1 still gets the 3.3 pause.
 
@@ -113,7 +113,7 @@ All four must be clear, each checkable in a named file:
 | Testable objectives | Every capability in `spec.md` has an end-state objective and at least one journey in `verification-plan.md`. |
 
 - **Not clear** → `ST step .workflow/specs/NNN-slug 0.3.8`, load the questioning loop with each gap as a frontier question.
-- **Clear** → `ST status .workflow/specs/NNN-slug ready-for-dev --step 0.6`, then copy the ready spec into its tracker issue (with no tracker the script prints `skipped: no tracker`; on exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed):
+- **Clear** → `ST status .workflow/specs/NNN-slug ready-for-dev --step 0.6`, then copy the ready spec into its tracker issue:
 
   ```bash
   .agents/skills/issue-tracking/scripts/issue-tracker.sh fill "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" .workflow/specs/NNN-slug/spec.md

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: tracker-adoption.sh (issue-tracking/scripts): Tracker adoption on a project already under way, and the readers of a
 #   Done spec renamed with the old_ prefix.
-# Covers, against fake glab and gh (tests/fixtures/fake-trackers.sh) and the project tests/fixtures/tracker-adoption.sh
+# Covers: against fake glab and gh (tests/fixtures/fake-trackers.sh) and the project tests/fixtures/tracker-adoption.sh
 #   builds (a draft spec, a spec past 1.1 with a pushed spec branch and a spec worktree, a spec with a live task worktree,
 #   two Done specs with backlog lists, review lessons and links), the fake handing out issue numbers from 101:
 #   JRN-011 (spec 00014): adoption exits 1, naming 016-epsilon and its live task worktree, and leaves that spec, its branch
