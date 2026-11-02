@@ -1,0 +1,21 @@
+== lint/frontmatter
+
+== summary
+PASS lint/frontmatter                       passed=42   failed=0   skipped=0   xfail=0   2s
+TOTAL passed=42 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/step-list
+
+== summary
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   5s
+TOTAL passed=36 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/symlinks
+
+== summary
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   0s
+TOTAL passed=45 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/upstream-lineage
+
+== summary
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
+exit: 0

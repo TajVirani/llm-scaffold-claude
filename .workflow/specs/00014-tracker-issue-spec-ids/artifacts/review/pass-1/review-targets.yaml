@@ -1,0 +1,90 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "e8162a94fb923cdae2496f4db5c8d9231abcabfc"
+head: "ef72c2cca6f5db49f49b67d877fc7583256bd17c"
+measurements:
+  - target: "New-feature start load"
+    kind: performance
+    threshold: "<= 45000 bytes"
+    command: "bash tests/lint/workflow-load-size.sh | sed -n 's/^new-feature start: \\([0-9]*\\) bytes.*/\\1/p'"
+    measured: "44046 bytes"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/specs/00014-tracker-issue-spec-ids/artifacts/review/pass-1/targets/new-feature-start-load.txt"
+    reason: ""
+  - target: "Implementation resume load"
+    kind: performance
+    threshold: "<= 55000 bytes"
+    command: "bash tests/lint/workflow-load-size.sh | sed -n 's/^implementation resume: \\([0-9]*\\) bytes.*/\\1/p'"
+    measured: "54967 bytes"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/specs/00014-tracker-issue-spec-ids/artifacts/review/pass-1/targets/implementation-resume-load.txt"
+    reason: ""
+  - target: "Script lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "exit 0; 0 shellcheck findings across 53 files"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/specs/00014-tracker-issue-spec-ids/artifacts/review/pass-1/targets/script-lint-clean.txt"
+    reason: ""
+  - target: "Harness lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR"
+    measured: "exit 0; 0 shellcheck findings across 94 files"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/specs/00014-tracker-issue-spec-ids/artifacts/review/pass-1/targets/harness-lint-clean.txt"
+    reason: ""
+  - target: "Agent-docs lint clean"
+    kind: errors
+    threshold: "exit 0; each lint suite reports 0 failed"
+    command: "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage"
+    measured: "exit 0; lint/frontmatter 42 passed, lint/step-list 36 passed, lint/symlinks 45 passed, lint/upstream-lineage 13 passed; 0 failed in each"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/specs/00014-tracker-issue-spec-ids/artifacts/review/pass-1/targets/agent-docs-lint-clean.txt"
+    reason: ""
+  - target: "Every script this spec adds or changes has a suite"
+    kind: coverage
+    threshold: "0 printed"
+    command: "git diff --name-only --diff-filter=AM \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/00014-tracker-issue-spec-ids/spec.md)\"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- \"$(basename \"$f\")\" tests/ || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/specs/00014-tracker-issue-spec-ids/artifacts/review/pass-1/targets/every-script-this-spec-adds-or-changes-has-a-suite.txt"
+    reason: ""
+  - target: "Every new `.agents/` file is in `PROVENANCE.md`"
+    kind: coverage
+    threshold: "0 printed"
+    command: "git diff --name-only --diff-filter=A \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/00014-tracker-issue-spec-ids/spec.md)\"..HEAD -- .agents | while read -r f; do grep -qF -- \"${f#.agents/}\" PROVENANCE.md || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/specs/00014-tracker-issue-spec-ids/artifacts/review/pass-1/targets/every-new-agents-file-is-in-provenance-md.txt"
+    reason: ""
+  - target: "Line coverage of changed shell code"
+    kind: coverage
+    threshold: "not measured"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "no command in the plan: no bash coverage tool is installed; the script-coverage target and the test-harness checklist at 3.7 stand in"
+findings: []
+checked:
+  - "New-feature start load"
+  - "Implementation resume load"
+  - "Script lint clean"
+  - "Harness lint clean"
+  - "Agent-docs lint clean"
+  - "Every script this spec adds or changes has a suite"
+  - "Every new `.agents/` file is in `PROVENANCE.md`"
+not_checked:
+  - "Line coverage of changed shell code: not measurable: no bash coverage tool is installed; the script-coverage target and the test-harness checklist at 3.7 stand in"
+  - "serve and serve_ready: both empty in .workflow/profiles/shell-scripts.md and .workflow/profiles/agent-docs.md (the work types in tasks.md); nothing started, no build-dependent target"

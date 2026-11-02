@@ -1,0 +1,88 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "e8162a94fb923cdae2496f4db5c8d9231abcabfc"
+head: "ef72c2cca6f5db49f49b67d877fc7583256bd17c"
+findings:
+  - id: RS-1
+    category: profile
+    severity: medium
+    confidence: 90
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:77-99"
+    claim: "configured_tracker, the tracker-settings check, is copied byte for byte from issue-tracking's issue-tracker.sh:61-83 into feature-workflow's next-spec-number.sh. A third, looser copy is require_tracker in tracker-adoption.sh:76-90."
+    consequence: "Any change to the settings format (a new tracker value, a renamed key, a fourth flow stage) has to be made in two skills, plus tracker-adoption. If one copy is missed, next-spec-number.sh can read the settings as 'no tracker' and number the spec by local scan while issue-tracker.sh files issues for the same project. That brings back the colliding spec numbers this feature exists to prevent. The stakeholder asked for exactly this sharing (design-log D20: 'Logic that is duplicated should be shared as common library items')."
+    evidence:
+      basis: ".workflow/profiles/shell-scripts.md File locations: \"Code a second skill needs moves to `.agents/lib/`.\" Also ADR-0005 (.workflow/decisions/adr/0005-issue-tracking-placement.md): \"`feature-workflow` and `project-setup` call its scripts and carry only the step that calls them.\" `diff <(sed -n 61,83p issue-tracker.sh) <(sed -n 77,99p next-spec-number.sh)` prints nothing (IDENTICAL)."
+      diff: "+configured_tracker() {\n+  local settings=$1 tracker flow_labels\n+  tracker=$(yq '.issue_tracker // \"\"' \"$settings\") || die \"cannot read $settings\""
+    suggested_fix: "Delete the copy from next-spec-number.sh. Have it call issue-tracker.sh create-spec and treat `skipped: no tracker` as the cue to scan, since that script already checks the settings. Or move the check into .agents/lib/ as a function that returns 1 with a reason, and call it from all three scripts."
+  - id: RS-2
+    category: smell
+    severity: medium
+    confidence: 85
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:44,360"
+    claim: "Possible Primitive Obsession / Duplicated Code: the issue URL is a bare string, and each script parses and checks it with its own rule. issue-tracker.sh:112 and next-spec-number.sh:111 accept any `*://*/<digits>`. tracker-adoption.sh:44, status-transition.sh:330 and the spec.md and tasks.md validators accept only `https://`."
+    consequence: "On a GitLab that serves http:// URLs, create-spec succeeds and next-spec-number.sh hands out the number, but the URL cannot then be stored: set-task --issue refuses it with exit 2, and the spec.md validator rejects it as tracker_issue. tracker-adoption.sh files an issue, then dies before writing tracker_issue, with the misleading message 'does not end in its number'. Each re-run files one more orphan issue, which breaks the promise that 'a second run files nothing twice'."
+    evidence:
+      basis: "Duplicated Code / Primitive Obsession (smell baseline)"
+      diff: "+ISSUE_URL_PATTERN='^https://[^[:space:]]+/([0-9]+)$'\n+  [[ $url =~ $ISSUE_URL_PATTERN ]] || die \"the issue URL of $WF_SPECS/$name does not end in its number: $url\""
+      reproduction: "Run in a scratch worktree of HEAD, against a fixture repo with a gitlab origin, GitLab settings and a stub glab that answers {\"web_url\":\"http://gitlab.example.com/g/p/-/issues/42\",\"iid\":42}. `next-spec-number.sh --cwd $P` printed `00042` and `http://gitlab.example.com/g/p/-/issues/42`, exit=0. `status-transition.sh set-task ... T1 --issue http://gitlab.example.com/g/p/-/issues/43` printed `--issue must be an https URL ...`, exit=2. `tracker-adoption.sh --cwd $P` run twice printed `the issue URL of .workflow/specs/015-delta does not end in its number: http://gitlab.example.com/g/p/-/issues/42` and exit=2 each time. The stub log then showed 2 issue-create calls, and spec.md still had `tracker_issue: \"\"`."
+    suggested_fix: "Put one issue-URL check, and one way to read the number from it, in .agents/lib/ (or one issue-tracker.sh subcommand), and use it everywhere: either accept http and https in every place, or have issue-tracker.sh refuse a non-https URL at create time. In tracker-adoption, write tracker_issue before checking the URL's shape."
+  - id: RS-3
+    category: rule
+    severity: medium
+    confidence: 85
+    location: "tests/scripts/issue-tracking.sh, tests/scripts/issue-tracking-setup.sh, tests/scripts/tracker-adoption.sh, tests/lint/issue-tracking-docs.sh, tests/lint/shared-tracker-logic.sh"
+    claim: "Five new suites depend on the new issue-tracking module through `skills/issue-tracking/` paths and script calls. Neither the tests module's may_depend_on nor proposal P1 (which adds issue-tracking only to feature-workflow and project-setup) allows that."
+    consequence: "Once P1 is approved as written at 5.3, rules.md will still forbid tests from depending on issue-tracking. Placement (0.3.3) and review 4.1 will then flag every later change to these suites as a forbidden dependency. Either that becomes standing noise, or reviewers learn to ignore the Ownership rule."
+    evidence:
+      basis: ".workflow/rules.md Ownership: \"Each module owns paths and may depend only on the modules it lists. Anything not listed is forbidden. ... a `source` line, a script call or a `skills/<name>/` path reference counts as a dependency.\" tests.may_depend_on (rules.md:93) lists no issue-tracking. proposals.md P1: \"add `issue-tracking` to `may_depend_on` of `feature-workflow` and `project-setup`\"."
+      diff: "+ISSUE_TRACKING_DIR=$AGENTS_SRC/skills/issue-tracking\n+check \"JRN-014 the install manifest lists skills/issue-tracking\" \\"
+    suggested_fix: "Extend P1 so the tests module's may_depend_on also gains issue-tracking, and approve it with the rest at 5.3."
+  - id: RS-4
+    category: standard
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/feature-workflow/modules/questioning-loop.md:95"
+    claim: "The tracker-call handling ('with no tracker the script prints `skipped: no tracker`; on exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed') is written out again at 7 call sites: questioning-loop.md:95, discovery-impact.md:55 and 116, implementation-setup.md:13, task-breakdown.md:103, and sign-off.md:213 and 264. The same change put that rule's single home in conventions.md:33 ('Tracker calls'), which is loaded with every step file."
+    consequence: "A later change to how tracker failures are handled will be made in conventions.md, and the 7 step-file copies will keep the old text. The agent reads the step file at the call site, so it will follow the stale copy. The copies also add about 1.2 KB of load to step files that already sit close to their byte budgets."
+    evidence:
+      basis: ".agents/skills/writing-for-agents/SKILL.md:77 (the approved style guide for agent docs per .workflow/profiles/agent-docs.md): \"Single source of truth: each meaning lives in one place. Duplication costs maintenance and tokens and inflates a meaning's rank.\" Also its Finish list: \"No sentence restates the environment, repeats another document, or is a no-op.\""
+      diff: "+Once `spec.md` is written, copy it into the spec's tracker issue, so the issue carries the settled goal; with no tracker the script prints `skipped: no tracker`. On exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed:"
+    suggested_fix: "Keep the rule only in conventions.md 'Tracker calls'. At each call site, keep the command and the step-specific part (for example, 'a task that already holds an issue is not filed again'), and drop the repeated sentence or replace it with a link to the convention."
+  - id: RS-5
+    category: profile
+    severity: low
+    confidence: 80
+    location: "tests/scripts/issue-tracking.sh:3, tests/scripts/tracker-adoption.sh:4, tests/lint/issue-tracking-docs.sh:3"
+    claim: "Three new suites open with `# Covers (spec 00014):` or `# Covers, against ...:` instead of `# Covers:`. They are the only suites in tests/ that do."
+    consequence: "Anyone, or any script, that maps suites to journeys by their `# Covers:` line misses the journeys these three suites cover (JRN-002/003, JRN-005 to 007, JRN-011 and others). The journey-id allowance in rules.md is also tied to the `# Covers:` line."
+    evidence:
+      basis: ".workflow/profiles/test-harness.md: \"A suite opens with `# Suite:` and `# Covers:`, sources `lib/common.sh`, calls `preflight`, and ends with `finish`.\" `git grep -c '^# Covers[^:]' -- tests` matches only these three files."
+      diff: "+# Covers, against fake glab and gh that keep their own tracker state (tests/fixtures/fake-trackers.sh), never a network:"
+    suggested_fix: "Start each line with `# Covers:` and move the qualifier after the colon."
+  - id: RS-6
+    category: discovered-work
+    kind: bug
+    summary: "Several feature-workflow step files tell the orchestrator to commit with subjects that are not Conventional Commits: 'Workflow data for NNN-slug: wave <N> start', 'Tasks for NNN-slug', 'Phase 1 for NNN-slug: suites red by design'. The project's commit rule requires Conventional Commits. This change's own history has 17 commits like that, and main already had 139."
+    evidence: ".workflow/rules.md:145 \"Commit subjects are Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`).\" Compare .agents/skills/feature-workflow/modules/implementation-waves.md:72 and :130 (\"-m \\\"Workflow data for NNN-slug: wave <N> start\\\"\"), implementation-finish.md:30, task-breakdown.md:126 (\"git commit -m \\\"Tasks for NNN-slug\\\"\") and verification-setup.md:172. `git log --oneline e8162a9 | grep -c 'Workflow data for'` printed 139."
+    blocker_assessment: can-wait
+    reason: "This change did not touch those lines, and the commits work. The breach is in history and in how the rule is applied, not in behaviour this feature adds."
+checked:
+  - "AGENTS.md (root; CLAUDE.md imports it)"
+  - "CODING_STANDARDS.md, CONTRIBUTING.md: not present (tried at repo root)"
+  - ".workflow/rules.md (Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1-T6, T8)"
+  - ".workflow/profiles/agent-docs.md (T7, T9, T10)"
+  - ".workflow/profiles/test-harness.md (tests/ in the diff)"
+  - ".workflow/decisions/adr/0005-issue-tracking-placement.md and the Placement entry of design-log.md; proposals.md P1"
+  - ".workflow/GLOSSARY.md (no GLOSSARY-MAP.md exists in the repo)"
+  - ".agents/skills/feature-workflow/references/readable-code.md"
+  - ".agents/skills/writing-for-agents/SKILL.md (the agent-docs approved style guide)"
+  - "toolchain.json and toolchain.txt for T1, T2, T3, T4, T5, T6, T7, T8, T9, T10: lint and test pass in every task"
+  - "Smell baseline against the whole diff (51 files, e8162a9...HEAD, spec folder excluded)"
+not_checked:
+  - "typecheck, format and boundary are `skipped` (no command) in every task's toolchain.json; no tool covers them in this repo."
+  - "tracker-adoption.sh keeps its own rewrite with undo for branch names (rewrite_branch_names / undo_branch_names, undo done by a reverse sed) outside the shared wf_rewrite_*. I could not build a case where the reverse rewrite fails to restore the file exactly. A probe with a spec file that already names spec/<new name> before the run would settle it."
+  - "tracker-setup.sh sets GLAB_MINIMUM=1.115.0 because of `--description-file` on issue commands, but no script uses that flag (issue-tracker.sh reaches GitLab only through `glab api`). That makes the version floor stricter than needed. It is a spec-level fact (spec.md:61), so it is left to the end-state lens."
+  - "Possible Repeated Switches: `if [[ $cli == gh ]] ... else` appears in about 7 functions across issue-tracker.sh and tracker-setup.sh. With only two hosts planned I could name no harm (below 80)."
+  - "next-spec-number.sh's `# Exit:` line does not list 'origin on another host' or 'CLI not installed' among the exit-2 causes it passes on from issue-tracker.sh. issue-tracker.sh's own stderr names the cause, so this is below 80."

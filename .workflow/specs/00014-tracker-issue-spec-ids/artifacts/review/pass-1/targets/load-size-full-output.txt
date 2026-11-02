@@ -1,0 +1,22 @@
+== the measuring function on scratch roots of known size
+ok   six files of 1000 bytes are within the limit
+ok   and print the total line only
+ok   a counted file padded past the limit fails the load point
+ok   the failure names the load point, its total and its limit
+ok   the same padding leaves the larger resume limit met
+ok   a missing counted file fails the load point
+ok   the failure names the missing file and still prints the total of what exists
+== generated output: the session-start hook and the term list
+ok   the hook offers the one in-flight draft spec
+ok   the term list prints the glossary's terms
+== this repo's load points
+new-feature start: 44046 bytes (limit 45000)
+ok   new-feature start: every counted file exists
+ok   new-feature start is at most 45000 bytes
+implementation resume: 54967 bytes (limit 55000)
+ok   implementation resume: every counted file exists
+ok   implementation resume is at most 55000 bytes
+ok   shellcheck: workflow-load-size suite
+
+RESULT passed=14 failed=0 skipped=0 xfail=0
+exit: 0

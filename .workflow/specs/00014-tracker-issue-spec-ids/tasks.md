@@ -44,7 +44,7 @@ tasks:
     pr: null
   - id: T3
     title: "next-spec-number.sh"
-    status: done
+    status: in-progress
     capability: CAP-NEW-tracker-issues
     depends_on: []
     touches_core: true
@@ -66,7 +66,7 @@ tasks:
     pr: null
   - id: T4
     title: "Done folder accepts old_ names"
-    status: done
+    status: in-progress
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T1]
     touches_core: true
@@ -86,7 +86,7 @@ tasks:
     pr: null
   - id: T5
     title: "Tracker script"
-    status: done
+    status: in-progress
     capability: CAP-NEW-tracker-issues
     depends_on: [T1, T3]
     touches_core: false
@@ -179,7 +179,7 @@ tasks:
     pr: null
   - id: T10
     title: "Step-file tracker calls and Sign-off PR link"
-    status: done
+    status: in-progress
     capability: CAP-NEW-tracker-issues
     depends_on: [T1, T2, T3, T7, T9]
     touches_core: false
