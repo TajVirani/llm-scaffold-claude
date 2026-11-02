@@ -4,11 +4,12 @@
 # Usage:
 #   status-transition.sh status <spec-dir> <new-status> [--step <node-id>] [--blocked <condition>] [--cwd <dir>]
 #       Spec status. Validates the transition against the table below, writes the frontmatter, then writes .step.
-#   status-transition.sh set-task <spec-dir> <task-id> [--status <status>] [--work-type <wt>] [--capability <id>] [--pr <url>|null] [--step <node-id>] [--cwd <dir>]
+#   status-transition.sh set-task <spec-dir> <task-id> [--status <status>] [--work-type <wt>] [--capability <id>] [--pr <url>|null] [--issue <url>|null] [--step <node-id>] [--cwd <dir>]
 #       The single writer for task records in tasks.md frontmatter, so a resumed session never reclassifies a task: task status (validated against the task table below),
 #       work_type (set once at 3.1; changing an existing value is refused) and capability (only with --step 5.3, rewriting a
 #       provisional CAP-NEW-<slug> to the assigned CAP-###) and pr (the task PR/MR url the orchestrator opened at 3.16,
-#       or null to clear it; any step). The other record fields (file, branch, predicted_files, size, mode, parallel_with,
+#       or null to clear it; any step) and issue (the task's tracker issue, an https URL or null to clear it; any step; a value
+#       that is neither exits 2 and writes nothing). The other record fields (file, branch, predicted_files, size, mode, parallel_with,
 #       tests) are fixed at 2.5 / 0.3.20 and have no flag. The result must pass the tasks.md schema
 #       validator from feature-workflow/assets/tasks.md, or nothing is written. Writes .step only when --step is given.
 #   status-transition.sh set-spec <spec-dir> [--spec-branch <spec/NNN-slug>] [--impl-base <sha>] [--step <node-id>] [--cwd <dir>]
@@ -80,7 +81,8 @@
 #   blocked_from: "<status>"      # present only while spec status is blocked
 #
 # Exit codes: 0 done; 1 usage or environment error (missing yq, not a git repo, missing file, schema failure, or a tasks.md
-#   schema validator yq cannot run, reported with yq's own error text); 2 illegal transition (deny), matching check-write.sh and resolve-launch.sh.
+#   schema validator yq cannot run, reported with yq's own error text); 2 illegal transition (deny), matching check-write.sh and resolve-launch.sh,
+#   or a set-task --issue value that is neither an https URL nor null.
 # Called by: the step files (discovery, verification-setup, task-breakdown, implementation-setup, implementation-waves, implementation-finish, review-triage, sign-off), domain-modeling and retrospective before guarded writes.
 # Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; spec-single-writer-guard rejects status edits made by Write/Edit. The deny rule Edit(.workflow/specs/*/.step) stops file tools forging the marker. The marker is accident prevention, not security. install.sh / project-setup add `.workflow/specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place).
 # Sources: first-party; tasks.md validator from feature-workflow/assets/tasks.md. Pattern: skills/data-structure-audit/scripts/audit_scope.sh (sub-commands, git anchoring).
@@ -101,7 +103,7 @@ usage() {
   cat >&2 <<'EOF'
 usage:
   status-transition.sh status <spec-dir> <new-status> [--step <node-id>] [--blocked <condition>] [--cwd <dir>]
-  status-transition.sh set-task <spec-dir> <task-id> [--status <status>] [--work-type <wt>] [--capability <id>] [--pr <url>|null] [--step <node-id>] [--cwd <dir>]
+  status-transition.sh set-task <spec-dir> <task-id> [--status <status>] [--work-type <wt>] [--capability <id>] [--pr <url>|null] [--issue <url>|null] [--step <node-id>] [--cwd <dir>]
   status-transition.sh set-spec <spec-dir> [--spec-branch <spec/NNN-slug>] [--impl-base <sha>] --step <node-id> [--cwd <dir>]
   status-transition.sh step   <spec-dir> <node-id> [--cwd <dir>]
 EOF
@@ -145,7 +147,7 @@ write_marker() {
 }
 
 # Validator copied verbatim from feature-workflow/assets/tasks.md ("Read and validate with yq"); keep the two identical. Applied to the result of every set-task write.
-# The task-breakdown record fields (file, branch, predicted_files, size, mode, parallel_with, tests, pr) are optional for older task lists, but validated when present.
+# The task-breakdown record fields (file, branch, predicted_files, size, mode, parallel_with, tests, pr, issue) are optional for older task lists, but validated when present.
 # yq note: `as $n | ...` binds tighter than `and`, so the whole per-record body is parenthesised after the binding.
 # shellcheck disable=SC2016 # yq variables ($n), not shell expansions
 TASKS_VALIDATOR='
@@ -165,7 +167,8 @@ TASKS_VALIDATOR='
       ([.mode == null, ((.mode | tag) == "!!str" and ((.mode // "") | tostring | test("^(afk|hitl)$")))] | any) and
       ([.parallel_with == null, ([(.parallel_with | tag) == "!!seq", ([.parallel_with[] | select(tag == "!!str") | select(test("^T[0-9]+$"))] | length) == (.parallel_with | length)] | all)] | any) and
       ([.tests == null, ([(.tests | tag) == "!!seq", ([.tests[] | select(tag == "!!str" and . != "")] | length) == (.tests | length)] | all)] | any) and
-      ([.pr == null, ((.pr | tag) == "!!str" and ((.pr // "") | tostring | test("^https?://[^[:space:]]+$")))] | any)
+      ([.pr == null, ((.pr | tag) == "!!str" and ((.pr // "") | tostring | test("^https?://[^[:space:]]+$")))] | any) and
+      ([.issue == null, ((.issue | tag) == "!!str" and ((.issue // "") | tostring | test("^https://[^[:space:]]+$")))] | any)
     ))] | length) == (.tasks | length)
 '
 
@@ -176,7 +179,7 @@ case "$MODE" in status|step|set-task|set-spec) ;; -h|--help) usage ;; *) die "un
 
 POS=()
 OPT_STEP="" OPT_BLOCKED="" HAVE_BLOCKED=0 OPT_CWD=$PWD
-OPT_TSTATUS="" HAVE_WT=0 OPT_WT="" OPT_CAP="" HAVE_PR=0 OPT_PR="" OPT_SBRANCH="" OPT_IBASE=""
+OPT_TSTATUS="" HAVE_WT=0 OPT_WT="" OPT_CAP="" HAVE_PR=0 OPT_PR="" HAVE_ISSUE=0 OPT_ISSUE="" OPT_SBRANCH="" OPT_IBASE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --step)      [[ $# -ge 2 ]] || usage; OPT_STEP=$2; shift 2 ;;
@@ -186,6 +189,7 @@ while [[ $# -gt 0 ]]; do
     --work-type) [[ $# -ge 2 ]] || usage; OPT_WT=$2; HAVE_WT=1; shift 2 ;;
     --capability) [[ $# -ge 2 ]] || usage; OPT_CAP=$2; shift 2 ;;
     --pr)        [[ $# -ge 2 ]] || usage; OPT_PR=$2; HAVE_PR=1; shift 2 ;;
+    --issue)     [[ $# -ge 2 ]] || usage; OPT_ISSUE=$2; HAVE_ISSUE=1; shift 2 ;;
     --spec-branch) [[ $# -ge 2 ]] || usage; OPT_SBRANCH=$2; shift 2 ;;
     --impl-base) [[ $# -ge 2 ]] || usage; OPT_IBASE=$2; shift 2 ;;
     --*)         die "unknown option: $1" ;;
@@ -194,8 +198,8 @@ while [[ $# -gt 0 ]]; do
 done
 if [[ "$MODE" == "set-spec" ]]; then [[ ${#POS[@]} -eq 1 ]] || usage; else [[ ${#POS[@]} -eq 2 ]] || usage; fi
 [[ -d "$OPT_CWD" ]] || die "--cwd is not a directory: $OPT_CWD"
-if [[ "$MODE" != "set-task" && ( -n "$OPT_TSTATUS$OPT_CAP" || $HAVE_WT -eq 1 || $HAVE_PR -eq 1 ) ]]; then
-  die "--status, --work-type, --capability and --pr belong to set-task mode"
+if [[ "$MODE" != "set-task" && ( -n "$OPT_TSTATUS$OPT_CAP" || $HAVE_WT -eq 1 || $HAVE_PR -eq 1 || $HAVE_ISSUE -eq 1 ) ]]; then
+  die "--status, --work-type, --capability, --pr and --issue belong to set-task mode"
 fi
 if [[ "$MODE" != "set-spec" && -n "$OPT_SBRANCH$OPT_IBASE" ]]; then
   die "--spec-branch and --impl-base belong to set-spec mode"
@@ -245,7 +249,7 @@ fi
 if [[ "$MODE" == "set-task" ]]; then
   TASK_ID=${POS[1]}
   [[ $HAVE_BLOCKED -eq 0 ]] || die "--blocked applies to spec status only; task records have no blocked_condition"
-  [[ -n "$OPT_TSTATUS$OPT_CAP" || $HAVE_WT -eq 1 || $HAVE_PR -eq 1 ]] || die "set-task needs --status, --work-type, --capability and/or --pr"
+  [[ -n "$OPT_TSTATUS$OPT_CAP" || $HAVE_WT -eq 1 || $HAVE_PR -eq 1 || $HAVE_ISSUE -eq 1 ]] || die "set-task needs --status, --work-type, --capability, --pr and/or --issue"
   [[ "$CUR" != "done" ]] || illegal "$SPEC_DIR is done; its task records cannot change"
   [[ "$TASK_ID" =~ ^T[0-9]+$ ]] || die "task id must look like T<n>: $TASK_ID"
   [[ -f "$TASKS" ]] || die "tasks.md not found in the spec checkout: $TASKS"
@@ -315,6 +319,20 @@ if [[ "$MODE" == "set-task" ]]; then
       export PRV=$OPT_PR
       EXPR="$EXPR | (.tasks[] | select(.id == strenv(TID)) | .pr) = strenv(PRV)"
       MSG="${MSG:+$MSG, }pr ${PCUR:-null} -> $OPT_PR"
+    fi
+  fi
+  if [[ $HAVE_ISSUE -eq 1 ]]; then
+    ICUR=$(yq --front-matter=extract '.tasks[] | select(.id == strenv(TID)) | .issue // ""' "$TASKS")
+    if [[ "$OPT_ISSUE" == "null" || -z "$OPT_ISSUE" ]]; then
+      EXPR="$EXPR | (.tasks[] | select(.id == strenv(TID)) | .issue) = null"
+      MSG="${MSG:+$MSG, }issue ${ICUR:-null} -> null"
+    else
+      [[ "$OPT_ISSUE" =~ ^https://[^[:space:]]+$ ]] || die "--issue must be an https URL of the task's tracker issue, or null: '$OPT_ISSUE'" 2
+      [[ -z "$ICUR" || "$ICUR" == "$OPT_ISSUE" ]] \
+        || printf '%s: warning: task %s issue %s replaced by %s\n' "$PROG" "$TASK_ID" "$ICUR" "$OPT_ISSUE" >&2
+      export ISSUEV=$OPT_ISSUE
+      EXPR="$EXPR | (.tasks[] | select(.id == strenv(TID)) | .issue) = strenv(ISSUEV)"
+      MSG="${MSG:+$MSG, }issue ${ICUR:-null} -> $OPT_ISSUE"
     fi
   fi
   TMP=$(mktemp "${TASKS}.XXXXXX")
