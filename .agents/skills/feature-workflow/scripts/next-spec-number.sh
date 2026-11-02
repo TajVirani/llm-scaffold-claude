@@ -45,7 +45,7 @@ spec_references() {
 # taken_spec_names ROOT : print, one per line, every spec folder name and initiative spec reference in the checkout ROOT
 #   and on its initiative branches; lines without a numeric prefix are left for the caller to drop.
 taken_spec_names() {
-  local root=$1 dir file refs ref branch_file
+  local root=$1 dir file refs ref branch_path listed
   for dir in "$root/$WF_SPECS"/[0-9]*-*/ "$root/$WF_SPECS_DONE"/[0-9]*-*/ "$root/$WF_SPEC_WORKTREES"/[0-9]*-*/; do
     if [[ -d $dir ]]; then basename "$dir"; fi
   done
@@ -55,10 +55,13 @@ taken_spec_names() {
   refs=$(git -C "$root" for-each-ref --format='%(refname)' refs/heads/initiative refs/remotes/origin/initiative) ||
     die "cannot list the initiative branches in $root"
   for ref in $refs; do
-    branch_file="$ref:$WF_INITIATIVES/${ref##*/}/initiative.md"
+    branch_path=$WF_INITIATIVES/${ref##*/}/initiative.md
+    # Listing the path reads only the branch's trees, so a blob missing from the object store still reaches the read
+    # below and fails there, rather than passing for a branch without the file.
+    listed=$(git -C "$root" ls-tree "$ref" -- "$branch_path") || die "cannot list $branch_path on $ref"
     # A branch can lack its initiative.md (cut before the file was written); it then takes no number.
-    if git -C "$root" cat-file -e "$branch_file" 2>/dev/null; then
-      git -C "$root" show "$branch_file" | spec_references "$branch_file" || die "cannot read $branch_file"
+    if [[ -n $listed ]]; then
+      git -C "$root" show "$ref:$branch_path" | spec_references "$ref:$branch_path" || die "cannot read $ref:$branch_path"
     fi
   done
 }

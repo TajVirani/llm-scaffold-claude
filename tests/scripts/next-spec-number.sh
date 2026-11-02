@@ -10,12 +10,13 @@
 #   The origin remote is on GitLab throughout, so a script that wrongly asks the tracker has a host to ask. A settings
 #   file naming an unknown tracker, or a tracker without its issue flow, exits 2 with nothing on stdout and no call.
 #   Negative cases: a flow naming one label for two stages and a settings file that is not YAML exit 2 the same way; an
-#   unknown argument, --cwd without a directory, a directory outside git and an unreadable initiative.md exit 2 with
-#   nothing on stdout. With a tracker set up, a stand-in issue-tracker.sh in the fixture project answers, so the suite
-#   proves what the script makes of the answer (the real issue creation is the issue-tracking suite's): the number padded
-#   to five digits then the URL, from one `--cwd DIR create-spec` call; a number longer than five digits printed whole;
-#   a tracker failure exits 1 and a refusal 2, its cause on stderr; an answer without an issue number exits 1. Each
-#   failure prints nothing on stdout. The script is shellcheck-clean.
+#   unknown argument, --cwd without a directory, a directory outside git, an unreadable initiative.md and an initiative
+#   branch whose initiative.md blob is missing from the object store exit 2 with nothing on stdout. With a tracker set
+#   up, a stand-in issue-tracker.sh in the fixture project answers, so the suite proves what the script makes of the
+#   answer (the real issue creation is the issue-tracking suite's): the number padded to five digits then the URL, from
+#   one `--cwd DIR create-spec` call; a number longer than five digits printed whole; a tracker failure exits 1 and a
+#   refusal 2, its cause on stderr; an answer without an issue number exits 1. Each failure prints nothing on stdout.
+#   The script is shellcheck-clean.
 # Oracle: each expected number is a literal: the highest number the old 0.1.1 block (modules/discovery.md at the spec's
 #   baseline revision) finds in that fixture, plus one, zero-padded to five digits.
 # shellcheck disable=SC2016,SC2329,SC1010,SC2034  # check expressions are single-quoted and eval'd on purpose and read variables and call helpers shellcheck cannot see; "done" is a stage and a status word
@@ -130,6 +131,19 @@ next_number_from "$P"
 check "an initiative.md whose frontmatter cannot be read exits 2 naming it, with nothing on stdout" \
   '[[ $RC == 2 && -z $OUT && $ERR == *001-ini/initiative.md* ]]' "rc=$RC out=$OUT: $ERR"
 git -C "$P" checkout -q -- .workflow/initiatives/001-ini/initiative.md
+
+# An offline partial clone or a damaged object store lists a branch's initiative.md but cannot read it; the blob is moved
+# out of the object store for one run and then put back.
+BRANCH_BLOB=$(git -C "$P" rev-parse initiative/002-branchy:.workflow/initiatives/002-branchy/initiative.md)
+BRANCH_BLOB_FILE=$(git -C "$P" rev-parse --git-path "objects/${BRANCH_BLOB:0:2}/${BRANCH_BLOB:2}")
+case $BRANCH_BLOB_FILE in /*) ;; *) BRANCH_BLOB_FILE=$P/$BRANCH_BLOB_FILE ;; esac
+check "fixture: the branch's initiative.md is a loose object" '[[ -f $BRANCH_BLOB_FILE ]]'
+mv "$BRANCH_BLOB_FILE" "$WORK/branch-initiative-blob"
+next_number_from "$P"
+check "an initiative branch whose initiative.md blob is missing exits 2 naming it, with nothing on stdout" \
+  '[[ $RC == 2 && -z $OUT && $ERR == *002-branchy/initiative.md* ]]' "rc=$RC out=$OUT: $ERR"
+mv "$WORK/branch-initiative-blob" "$BRANCH_BLOB_FILE"
+expect_next "with the blob back the branch-only initiative counts again: 00016" 00016
 
 echo "== a tracker set up: the issue number from issue-tracker.sh create-spec"
 # The tracker script stands in for the hosts here, so this suite proves only what next-spec-number.sh makes of its answer.
