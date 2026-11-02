@@ -20,7 +20,10 @@
 #   stderr, with nothing on stdout, no new spec folder and no issue; create-spec and move fail the same way.
 #   Without a tracker set up (no settings file, or issue_tracker: none), every issue-tracker.sh command prints
 #   `skipped: no tracker`, exits 0 and calls neither CLI. Settings naming a host the origin is not on exit 2 with no call.
-#   The scripts are shellcheck-clean.
+#   Refused before any call, with exit 2: settings naming an unknown tracker or putting two flow stages on one label, fill
+#   with a file that has no `# ` heading or does not exist, an argument that is not an issue URL, and a GitLab project
+#   without glab installed. A network failure during create-task and an auth failure during fill exit 1 naming the cause
+#   and change nothing on the tracker. The scripts are shellcheck-clean.
 # shellcheck disable=SC2016,SC2329,SC1010,SC2034  # check expressions are single-quoted and eval'd on purpose and read variables and call helpers shellcheck cannot see; "done" is a stage and a status word
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -256,6 +259,62 @@ fresh_tracker
 tracker "$MISMATCH" create-spec
 check "JRN-002 settings naming GitHub on a GitLab origin exit 2 with no tracker call" \
   '[[ $RC == 2 && $(fake_call_count) == 0 ]]' "rc=$RC out=$OUT calls=$(fake_calls)"
+
+echo "== bad settings, bad arguments and a missing CLI are refused before any tracker call"
+BAD=$WORK/bad-settings
+tracker_project "$BAD" gitlab
+mkdir -p "$BAD/.workflow"
+printf 'issue_tracker: jira\n' >"$BAD/.workflow/issue-tracking.yaml"
+fresh_tracker
+tracker "$BAD" create-spec
+check "settings naming an unknown tracker exit 2 naming the setting, with no tracker call" \
+  '[[ $RC == 2 && $ERR == *issue_tracker* && $(fake_call_count) == 0 ]]' "rc=$RC err=$ERR calls=$(fake_calls)"
+printf 'issue_tracker: gitlab\nissue_flow:\n  backlog: Todo\n  in_progress: Todo\n  done: Done\n' \
+  >"$BAD/.workflow/issue-tracking.yaml"
+tracker "$BAD" move "$(fake_url glab 42)" done
+check "settings with two flow stages on one label exit 2 naming issue_flow, with no tracker call" \
+  '[[ $RC == 2 && $ERR == *issue_flow* && $(fake_call_count) == 0 ]]' "rc=$RC err=$ERR calls=$(fake_calls)"
+HEADLESS=$WORK/headless.md
+printf -- '---\nstatus: draft\n---\n\nNo heading here.\n## Only a second-level one\n' >"$HEADLESS"
+fake_issue_seed 42 "Spec placeholder" open "$TRACKER_BACKLOG"
+tracker "$GL" fill "$(fake_url glab 42)" "$HEADLESS"
+check "fill with a file that has no '# ' heading exits 2 and leaves the issue untouched" \
+  '[[ $RC == 2 && $(fake_issue 42 title) == "Spec placeholder" && $(fake_call_count) == 0 ]]' \
+  "rc=$RC title=$(fake_issue 42 title) calls=$(fake_calls)"
+tracker "$GL" fill "$(fake_url glab 42)" "$WORK/no-such-spec.md"
+check "fill with a missing file exits 2 with no tracker call" '[[ $RC == 2 && $(fake_call_count) == 0 ]]' \
+  "rc=$RC calls=$(fake_calls)"
+tracker "$GL" move not-an-issue-url done
+check "move with an argument that is not an issue URL exits 2 with no tracker call" \
+  '[[ $RC == 2 && $(fake_call_count) == 0 ]]' "rc=$RC calls=$(fake_calls)"
+fake_run "$(fake_path gh)" bash "$GL/$IT_REL" --cwd "$GL" create-spec
+check "a GitLab project without glab installed exits 2 naming glab, with no tracker call" \
+  '[[ $RC == 2 && -z $OUT && $ERR == *glab* && $(fake_call_count) == 0 ]]' "rc=$RC out=$OUT err=$ERR calls=$(fake_calls)"
+
+echo "== a tracker failure while filing a task"
+fresh_tracker
+fake_issue_seed 42 "Spec" open "$TRACKER_IN_PROGRESS"
+FAKE_FAIL=network tracker "$GL" create-task "$(fake_url glab 42)" "$TASK_FILE"
+check "create-task on a GitLab network failure exits 1 naming the cause, with nothing on stdout and no new issue" \
+  '[[ $RC == 1 && -z $OUT && $(fake_issue_numbers) == 42 ]] && names_network_cause' \
+  "rc=$RC out=$OUT issues=$(fake_issue_numbers | tr '\n' ' ') err=$ERR"
+# Only the GraphQL calls time out, so the REST calls the linked-issue fallback would make still succeed.
+GRAPHQL_TIMEOUT_BIN=$WORK/bin-graphql-timeout
+mkdir -p "$GRAPHQL_TIMEOUT_BIN"
+printf '#!/usr/bin/env bash\nif [[ $1 == api && $2 == graphql ]]; then\n  echo "dial tcp: i/o timeout" >&2\n  exit 1\nfi\nexec %q "$@"\n' \
+  "$FAKE_BIN/glab" >"$GRAPHQL_TIMEOUT_BIN/glab"
+chmod +x "$GRAPHQL_TIMEOUT_BIN/glab"
+fresh_tracker
+fake_issue_seed 42 "Spec" open "$TRACKER_IN_PROGRESS"
+fake_run "$GRAPHQL_TIMEOUT_BIN:$(fake_path both)" bash "$GL/$IT_REL" --cwd "$GL" create-task "$(fake_url glab 42)" "$TASK_FILE"
+check "create-task with the GitLab child call timing out exits 1 naming the timeout, with no linked issue in its place" \
+  '[[ $RC == 1 && -z $OUT && $(fake_issue_numbers) == 42 && $ERR == *"i/o timeout"* && $ERR != *refused* ]]' \
+  "rc=$RC out=$OUT issues=$(fake_issue_numbers | tr '\n' ' ') err=$ERR"
+fresh_tracker
+fake_issue_seed 7 "Spec" open "$TRACKER_IN_PROGRESS"
+FAKE_FAIL=auth tracker "$GH" fill "$(fake_url gh 7)" "$GH_SPEC"
+check "fill on a GitHub auth failure exits 1 naming the cause and leaves the issue untouched" \
+  '[[ $RC == 1 && $(fake_issue 7 title) == Spec ]] && names_auth_cause' "rc=$RC title=$(fake_issue 7 title) err=$ERR"
 
 shellcheck_files "shellcheck: issue-tracker.sh and next-spec-number.sh" "$GL/$IT_REL" "$GL/$NSN_REL"
 finish
