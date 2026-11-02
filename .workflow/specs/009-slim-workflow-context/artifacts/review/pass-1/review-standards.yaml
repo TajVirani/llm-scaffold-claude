@@ -1,0 +1,56 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "a29eca7c475544a99ccc9d986cde87e02f4f140d"
+head: "3367020ca0ce5e1ec212361e53bd2ec0bdbab664"
+findings:
+  - id: RS-1
+    category: profile
+    severity: low
+    confidence: 85
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:117-166"
+    claim: "term-list.sh is a new file in this change (absent at baseline_revision) but every shell test in it uses [ ] rather than [[ ]]."
+    consequence: "The shell-scripts profile's test-syntax rule erodes: 3.7 mini-review compared against the Phase 1 stub instead of the baseline, treated the file as an edit and in round 1 asked for [[ ]] to be turned back into [ ]. The next new script copied from this one inherits the wrong style, and reviewers have a precedent for reading 'new file' as 'new to the task branch'."
+    evidence:
+      basis: ".workflow/profiles/shell-scripts.md:27: \"Test syntax: match the file being edited; new files use `[[ ]]`.\" and checklist :64: \"New files are kebab-case, run under `set -euo pipefail` and use `[[ ]]`\". `git show a29eca7:.agents/skills/domain-modeling/scripts/term-list.sh` -> \"fatal: path ... exists on disk, but not in 'a29eca7...'\"; the file was first added by Phase 1 commit 1b49a2f as a 26-line stub."
+      diff: "+  [ \"$#\" -eq 2 ] && [ \"$1\" = --define ] && [ -n \"$2\" ] || die \"$USAGE\"\n+  [ -d \"$WF_DIR\" ] && [ -x \"$WF_DIR\" ] || die \"$WF_DIR is not a folder this script can search\"\n+  [ -f \"$WF_GLOSSARY_MAP\" ] && [ -r \"$WF_GLOSSARY_MAP\" ] || die \"$WF_GLOSSARY_MAP is not a readable file\""
+    suggested_fix: "Convert the shell tests in term-list.sh to [[ ]] (the Phase 1 stub is part of this change, so the file is new); keep the awk regexes as they are."
+  - id: RS-2
+    category: naming
+    severity: low
+    confidence: 85
+    location: ".agents/skills/feature-workflow/SKILL.md:87, .agents/skills/feature-workflow/SKILL.md:114, .agents/skills/feature-workflow/modules/discovery-impact.md:3, .agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47"
+    claim: "Lines this change wrote or rewrote call a step file a 'module' or 'phase module', the glossary's avoided aliases for Step file."
+    consequence: "The router is loaded at every session start, and it now says 'step file' in its opening paragraph but 'module' in its resume and done lines. 'Module' is also the Ownership unit that discovery 0.2.1 prints and placement 0.3.3 picks, so an agent or maintainer reading 'the module its status names' has two meanings to choose from. The glossary already settled this ambiguity, and this spec's placement decision says docs call these files step files."
+    evidence:
+      basis: ".workflow/GLOSSARY.md:73-75 Step file, \"_Avoid_: Module, phase module, stage file\"; Flagged ambiguities :208: \"resolved, bare \\\"module\\\" means the code module; a file of workflow steps is a **Step file**.\" design-log.md Placement D1: \"Folder: keep `feature-workflow/modules/`; docs call its files step files.\""
+      diff: "+Tell the stakeholder where you are resuming, led by the [progress line](references/conventions.md#progress-line). A resumed module re-reads its inputs from disk ...\n+- A trivial edit was made directly, or a spec folder exists and the module its status names is loaded with `references/conventions.md`.\n+# Called by: the phase modules (discovery, verification-setup, task-breakdown, implementation-setup, implementation-waves, implementation-finish, review-triage, sign-off), ..."
+    suggested_fix: "Say 'step file' on these lines ('A resumed step file re-reads its inputs', 'the step file its status names is loaded', 'Called by: the step files (...)', 'Called by: step files task-breakdown (2.6) ...'). Keep 'modules/' only where it is the folder path."
+  - id: RS-3
+    category: discovered-work
+    kind: decision
+    summary: "feature-workflow links into the retrospective skill's files (`.agents/skills/retrospective/modules/routing.md`), but retrospective is not in feature-workflow's may_depend_on list in .workflow/rules.md Ownership. The reverse edge (retrospective -> feature-workflow) is the declared one, so this is an undeclared dependency and a cycle. It was already there at baseline in sign-off.md and small-path.md; this change moved the small-path copy into sign-off.md and kept it."
+    evidence: ".workflow/rules.md:6: \"a `source` line, a script call or a `skills/<name>/` path reference counts as a dependency\"; .workflow/rules.md:39-41: \"feature-workflow: ... may_depend_on: [lib, regenerate-caches, domain-modeling, project-setup]\"; .workflow/rules.md:54-56: \"retrospective: ... may_depend_on: [feature-workflow]\". At HEAD: .agents/skills/feature-workflow/modules/sign-off.md:134 \"[routing module](../../retrospective/modules/routing.md)\" and :194 \"`.agents/skills/retrospective/modules/routing.md`, \\\"Review lessons\\\", has the procedure\". At baseline a29eca7: small-path.md:56 and sign-off.md:179 hold the same references."
+    blocker_assessment: can-wait
+    reason: "Behaviour is unchanged: the moved link stays inside feature-workflow and adds no new module edge. The fix is a rules decision (declare the edge in rules.md at 5.3, or have sign-off name the retrospective skill without pointing into its files), so it does not belong to this refactor."
+checked:
+  - "AGENTS.md (root; CLAUDE.md is a one-line @AGENTS.md import). No CODING_STANDARDS.md or CONTRIBUTING.md in the repo; no other AGENTS.md or CLAUDE.md governs the changed files"
+  - ".workflow/rules.md (Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, External systems, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1, T9)"
+  - ".workflow/profiles/agent-docs.md (T2-T8, T10)"
+  - ".workflow/profiles/test-harness.md (tests/ changes from the Phase 1 harness and later tasks)"
+  - ".workflow/specs/009-slim-workflow-context/design-log.md Placement entry (D1; no placement ADR, which the entry states)"
+  - ".workflow/GLOSSARY.md (no GLOSSARY-MAP.md in the repo)"
+  - ".agents/skills/feature-workflow/references/readable-code.md"
+  - ".agents/skills/writing-for-agents/SKILL.md and references/skill-mechanics.md (the agent-docs profile's approved style guide)"
+  - ".agents/skills/domain-modeling/assets/GLOSSARY-FORMAT.md (to test the output style's inlined awk against the glossary format)"
+  - ".agents/install-manifest.txt, PROVENANCE.md, upstream-lineage.json (new and removed .agents files covered: manifest ships skills/feature-workflow and skills/domain-modeling whole; PROVENANCE rows and lineage paths re-pointed)"
+  - "tests/README.md rows for the six new suites; each new suite's # Suite/# Covers header, preflight, finish and shellcheck_files"
+  - "Tool output read: artifacts/T1..T10/toolchain.json (all status pass), artifacts/phase-1-test-harness/toolchain.json present"
+  - "Commit subjects and messages in a29eca7..HEAD (no Co-Authored-By or assistant mention)"
+not_checked:
+  - "typecheck, format and boundary keys are skipped ('no command') for every task T1-T10: the profiles set them to \"\", so no boundary tool output exists; placement was checked by hand against rules.md Ownership."
+  - "The test-harness lint (shellcheck plus check-comments.sh over tests/*.sh) never ran in any task's 3.5 toolchain for the later edits to tests/lint/*.sh (T5-T10 ran the agent-docs lint). By hand, every journey id in a changed tests/ comment sits in a # Suite/# Covers header block. Running the test-harness lint command at HEAD would settle it."
+  - "Possible Duplicated Code: the output style's inlined awk repeats term-list.sh's parsing. Suppressed because placement D1 chose to inline it in the output style. The two parsers differ: the style requires the `**term**:` line to end after the colon, and it reads only .workflow/GLOSSARY.md, never a GLOSSARY-MAP.md. Both match GLOSSARY-FORMAT.md as written today."
+  - "Stale prose references to the deleted implementation-orchestrator.md in assetlist.md (:16, :368, :740) and .workflow/deferred/in-review-hand-off.md:30 (line numbers into the deleted file). No written rule requires these files to change with .agents/, so this is not reported as a finding; the end-state lens or a 5.3 proposal would settle whether they should."
+  - "Possible Duplicated Code in tests: tests/lint/agent-worktree-docs.sh and tests/lint/review-escalation-docs.sh each define the same five Phase 3 step-file variables. The only harm is that a future split edits both suites; not raised."

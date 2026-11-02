@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Term-list script"
-    status: done
+    status: in-progress
     capability: CAP-NEW-lean-workflow-load
     depends_on: []
     touches_core: false
@@ -51,7 +51,7 @@ tasks:
     pr: null
   - id: T4
     title: "Launching reference"
-    status: done
+    status: in-progress
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T1, T3]
     touches_core: false
@@ -134,7 +134,7 @@ tasks:
     pr: null
   - id: T9
     title: "Script and asset headers re-pointed"
-    status: done
+    status: in-progress
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T8]
     touches_core: false
@@ -150,7 +150,7 @@ tasks:
     pr: null
   - id: T10
     title: "Hit the load targets"
-    status: done
+    status: in-progress
     capability: CAP-NEW-lean-workflow-load
     depends_on: [T2, T9]
     touches_core: false

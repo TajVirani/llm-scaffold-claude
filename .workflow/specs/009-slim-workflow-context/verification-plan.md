@@ -63,9 +63,9 @@ Commands referenced above; each runs from the project root:
 
 ```bash
 # load-new-start: prints the byte total; the threshold is 45000
-tests/lint/workflow-load-size.sh | sed -n 's/^new-feature start: \([0-9]*\) bytes.*/\1/p'
+bash tests/lint/workflow-load-size.sh | sed -n 's/^new-feature start: \([0-9]*\) bytes.*/\1/p'
 # load-impl-resume: prints the byte total; the threshold is 55000
-tests/lint/workflow-load-size.sh | sed -n 's/^implementation resume: \([0-9]*\) bytes.*/\1/p'
+bash tests/lint/workflow-load-size.sh | sed -n 's/^implementation resume: \([0-9]*\) bytes.*/\1/p'
 # script-lint
 git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
 # harness-lint
