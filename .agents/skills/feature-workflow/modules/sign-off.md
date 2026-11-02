@@ -114,7 +114,7 @@ On the small path: write `report.md` as these five lines instead of the template
 1. **Read the template setting:** `.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template`. Exit 1 (a bad value, or a path whose file is gone): stop and show the stakeholder its message. They choose the workflow template for this PR, or a fixed path through a `pr_template` row (back to 5.2 and 5.3). Never fall back to a template on your own.
 2. **Fill the body.**
    - `workflow`: copy `assets/pr-template.md` to `pr-body.md`. Replace each section's guidance comment with its text, drawn from the evidence the comment names (`report.md` as just written, `design-log.md`, `codebase-map.md`, `spec.md`, the `files` list of `budget-check.sh`), and delete the template's header comment. When the change cannot be undone, How to undo this PR says why and Risk is High.
-   - A path: fill every heading of that host template, `#` to `######`, at its own level and in its order, from the same evidence; the ten workflow sections are not added.
+   - A path: fill every heading of that host template, `#` to `######`, at its own level and in its order, from the same evidence; the ten workflow sections are not added. When `tracker_issue` in spec.md is set, end a body filled from a project template with two last lines after a blank line: the issue URL, then `Closes #<n>`, `<n>` being the number the URL ends in, so merging the PR closes the issue. With no tracker, add nothing.
 3. **Check it:**
 
    ```bash
@@ -210,6 +210,12 @@ yq --front-matter=extract '.verdict' .workflow/decisions/retrospectives/NNN-slug
 
 Commit what is left on the spec branch (`git status --short`; the spec folder with `pr-body.md`, the approved Tier A writes and the retrospective).
 
+**Copy the final spec into its tracker issue**, while the spec folder is still at its old path (with no tracker the script prints `skipped: no tracker`; on exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed):
+
+```bash
+.agents/skills/issue-tracking/scripts/issue-tracker.sh fill "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" .workflow/specs/NNN-slug/spec.md
+```
+
 **Check the body again.** Run `check-pr-body.sh` on `pr-body.md` exactly as at 5.4; go on to the move when it exits 0. On a fault, fix each line it names, show the stakeholder the full text, ask the 5.5 PR description question again, and log the answer in the Sign-off entry, then commit the fixed body and the log. This is the last point where the body or the design log can change: after the move nothing writes into the spec folder.
 
 **Sweep older finished specs, once.** Specs that were `done` before the Done folder existed still sit at the top level of `.workflow/specs/`. In a repo that has any, the first sign-off after the Done folder arrives may move them first, with the stakeholder's agreement: run `.agents/skills/feature-workflow/scripts/move-to-done.sh --sweep`, keep its moves in one commit of their own before this spec's move (commit anything `git status --short` still lists), then run the full test suite; a failure stops sign-off before this spec moves. A spec the sweep reports as failing the check stays where it is; show the stakeholder the list. Later sign-offs skip this: each spec moves itself.
@@ -254,6 +260,12 @@ git -C "$main_checkout" switch "$MAIN" && git -C "$main_checkout" merge --no-ff 
 ```
 
 The merge message is built in the spec checkout because `pr-body.md` exists only on the spec branch; git refuses the merge while the main checkout has uncommitted changes to files it touches, so check `git -C "$main_checkout" status --short` first and ask the stakeholder about anything it lists; `--no-edit` and `--cleanup=verbatim` keep the message to the body as checked, line for line: an editor session would strip the `##` heading lines as comments, and the default cleanup trims blank lines and trailing spaces. Push only what the stakeholder asked for: after a local merge, push the main branch only on request. Remove leftover agent worktrees (`git worktree list`, then `git worktree remove <path>` for each one under `.workflow/.worktrees/` this feature created).
+
+**Close the spec's tracker issue after a local merge.** A PR/MR closes it through the `Closes #<n>` line of its description when it merges; a local merge has no PR to do that, so move the issue to done (with no tracker the script prints `skipped: no tracker`; on exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed):
+
+```bash
+.agents/skills/issue-tracking/scripts/issue-tracker.sh move "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/done/NNN-slug/spec.md)" done
+```
 
 **Remove the spec worktree and the spec branch** once the spec branch is on the main branch: right after a local merge, or once the PR/MR has merged and the main checkout has pulled it. Leave the spec worktree first, since the command deletes it: on Claude Code call `ExitWorktree` with `action: keep` when this session entered it with `EnterWorktree` (that returns the session to the main checkout); a session opened in the spec worktree runs it as its last command. From the main checkout:
 
