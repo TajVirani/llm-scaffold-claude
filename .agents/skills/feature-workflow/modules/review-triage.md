@@ -157,6 +157,7 @@ Set the outcome line to `loop back (4.6 third pass)` and load `modules/questioni
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T<n> --status in-progress --step 4.7
+.agents/skills/issue-tracking/scripts/issue-tracker.sh move <issue> in_progress   # <issue>: the task record's issue, "" when null
 ```
 
 `set-task` allows `done` to `in-progress` only with `--step 4.7`. Set the outcome line to `rework <used + 1> of 5` and load `modules/implementation-waves.md` for those tasks (its Rework entry), handing it each patch as one line: `<file:line> - <what is wrong> - <what the smallest fix must do>`. The wave loop relaunches `implementation`, re-runs the gates, sets `in-review` again at 3.11 (or 3.14), and returns here. When a patch entry is verified `high`, that return starts pass `n + 1`; when none is, Phase 4 ends after the rework (step 1, "After a rework with no verified high patch").

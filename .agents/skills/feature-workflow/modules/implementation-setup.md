@@ -10,7 +10,11 @@ Phase 3 starts here, once per spec: the router loads this step file at `ready-fo
 
    **00.18 No.** A task that fits no profile is a finding: either the task is badly cut or a work type is missing. For a missing work type, create the profile with the human from `.workflow/profiles/TEMPLATE.md` (`.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 00.19`, then Write `.workflow/profiles/<work-type>.md`). With no human available: `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug blocked --step 00.19 --blocked "task T3 has no profile; define .workflow/profiles/<work-type>.md"`.
 
-2. **Start.** `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug in-progress --step 3.1` (from `ready-for-dev`, or again on resume).
+2. **Start.** `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug in-progress --step 3.1` (from `ready-for-dev`, or again on resume). Then move the spec's tracker issue to in progress; with no tracker the script prints `skipped: no tracker`. On exit 1 or 2, stop and show the stakeholder its message, and run it again once it is fixed:
+
+   ```bash
+   .agents/skills/issue-tracking/scripts/issue-tracker.sh move "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" in_progress
+   ```
 
 3. **Record the implementation base.** Check you are in the spec checkout on the spec branch (`git branch --show-current` prints the `spec_branch` from `spec.md`). If `impl_base_revision` is `""`, Edit it to `git rev-parse HEAD` now (the step is 3.1): the spec-branch tip, which holds the Phase 1 commit and the committed breakdown. On the light path, also set `baseline_revision` to the same sha if it is `""` (the spec branch's first commit, from 0.3.20). Both are never overwritten on resume or rework. The 3.15 size budget counts only files changed since `impl_base_revision`, so the Phase 1 harness and suite count only when a task changes them again.
 
