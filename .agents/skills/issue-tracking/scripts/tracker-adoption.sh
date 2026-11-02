@@ -119,8 +119,9 @@ rewrite_branch_names() {
   return 0
 }
 
-# edit_branch_names ROOT NAME NEW : in the checkout ROOT, rename the branches the spec NAME's folder and backlog list name
-#   (spec/NAME, task/NAME/...) to NEW, and list each changed file so an error can undo it.
+# edit_branch_names ROOT NAME NEW : in the checkout ROOT, rewrite the branch names spec/NAME and task/NAME/... written in
+#   the spec NAME's folder and backlog list to name NEW, and list each changed file so an error can undo it. The git
+#   branches themselves are not renamed here.
 edit_branch_names() {
   local root=$1 name=$2 new=$3 paths=() path file search_status=0 rewrite_status
   for path in "$(wf_path "$root" "$WF_SPECS/$name")" "$(wf_path "$root" "$WF_WORK_BACKLOG/$name.md")"; do
