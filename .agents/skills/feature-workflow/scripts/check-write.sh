@@ -21,7 +21,8 @@
 #                                                   (add a line) or 5.9 (the sign-off rulings), or when the newest .step of
 #                                                   any spec names 0.1.4 (a new spec seeded from the item marks it promoted). The origin
 #                                                   spec comes from the file name: the spec's backlog list <NNN-slug>.md, or an older
-#                                                   item file <NNN-slug>-disc-<###>.md; any other name is denied.
+#                                                   item file <NNN-slug>-disc-<###>.md; any other name is denied. A name
+#                                                   old_<NNN-slug> names the Done folder spec renamed so at tracker adoption.
 #                                                   Deleting a promoted item (Bash rm at the new spec's 0.6 / 0.3.20) is not a file-tool
 #                                                   write and is not checked here.
 #                                                   .workflow/specs/work-backlog/ is not a spec folder: the spec.md/tasks.md/.step rules and the
@@ -258,15 +259,19 @@ ROOT=$(cd -P "$ROOT" && pwd)
 # ---------------------------------------------------------------- work-backlog items
 if [[ "$KIND" == "backlog" ]]; then
   ITEM=${REL:${#WF_WORK_BACKLOG}+1}
+  # A Done spec renamed old_NNN-slug keeps its backlog files under that name, and only the Done folder holds such a spec.
+  ORIGIN_NAME='(old_)?[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*'
   # The item-file pattern is tried first: its name would also match the list pattern with the wrong origin.
-  if [[ "$ITEM" =~ ^([0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*)-disc-[0-9]{3,}\.md$ ]] || [[ "$ITEM" =~ ^([0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*)\.md$ ]]; then
+  if [[ "$ITEM" =~ ^($ORIGIN_NAME)-disc-[0-9]{3,}\.md$ ]] || [[ "$ITEM" =~ ^($ORIGIN_NAME)\.md$ ]]; then
     ORIGIN=${BASH_REMATCH[1]}
+    ORIGIN_DIR=$WF_SPECS/$ORIGIN
+    [[ "$ORIGIN" != old_* ]] || ORIGIN_DIR=$WF_SPECS_DONE/$ORIGIN
   else
     deny "$REL: the backlog holds one list per spec, $WF_WORK_BACKLOG/<origin NNN-slug>.md, and older item files $WF_WORK_BACKLOG/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9."
   fi
-  STEP=$(marker_get "$ROOT/$WF_SPECS/$ORIGIN/.step" step)
+  STEP=$(marker_get "$ROOT/$ORIGIN_DIR/.step" step)
   if [[ -n "$STEP" ]] && in_list "$STEP" "$BACKLOG_STEPS"; then
-    allow "$REL: work-backlog item, main session at step $STEP ($WF_SPECS/$ORIGIN)"
+    allow "$REL: work-backlog item, main session at step $STEP ($ORIGIN_DIR)"
   fi
   NEW_AT="" NEW_STEP="" NEW_SPEC=""
   for mk in "$ROOT/$WF_SPECS"/*/.step; do
@@ -280,7 +285,7 @@ if [[ "$KIND" == "backlog" ]]; then
   if [[ "$NEW_STEP" == "$BACKLOG_SEED_STEP" ]]; then
     allow "$REL: work-backlog item, main session seeding $NEW_SPEC at step 0.1.4"
   fi
-  deny "$REL: origin spec $WF_SPECS/$ORIGIN is at step ${STEP:-<none>}; work-backlog lists and items are written only at 00.26 (a kept item's line) or 5.9 (the sign-off rulings) of the origin spec, or at 0.1.4 of a new spec seeded from the item. Set the step with status-transition.sh step $WF_SPECS/$ORIGIN 00.26 | 5.9."
+  deny "$REL: origin spec $ORIGIN_DIR is at step ${STEP:-<none>}; work-backlog lists and items are written only at 00.26 (a kept item's line) or 5.9 (the sign-off rulings) of the origin spec, or at 0.1.4 of a new spec seeded from the item. Set the step with status-transition.sh step $ORIGIN_DIR 00.26 | 5.9."
 fi
 
 # ---------------------------------------------------------------- tasks.md
