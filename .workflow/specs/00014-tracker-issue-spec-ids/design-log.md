@@ -286,3 +286,30 @@ Adds to the 2026-11-02 Impact classification; rows there still stand except wher
   - `.agents/skills/issue-tracking/scripts/tracker-adoption.sh [--cwd DIR]`: files and renames each active spec, refuses one with a live task worktree (the others still run), pushes a renamed branch whose old one was pushed and reports the old one, prefixes Done specs and their backlog lists `old_`. Exit 0 all adopted; 1 any spec refused; 2 usage or environment.
   - `status-transition.sh set-task --issue <url>|null`, like `--pr`; `tracker_issue` is a spec frontmatter key written by Edit at 0.1.4.
 - Pinned by the 1.2 harness, on top of the contract above: `set-task --issue` with a non-URL exits 2 (the JRN-006 row), not 1 as `--pr` does; `tracker-adoption.sh` writes `tracker_issue` on each spec it adopts; the shared lib functions carry `host` and `rewrite` in their names (the JRN-013 lint finds them by that); the four stub scripts get their `PROVENANCE.md` rows and the `issue-tracking` SKILL.md and manifest line in Phase 3.
+
+## 2026-11-02 Discovered work, Phase 1 duration
+
+- Found at: step 1.2 by the orchestrator (Phase 1 timing). Kind: refactor
+- Problem and evidence: one serial harness build covered JRN-001 to JRN-014, repeated full `tests/run-all.sh` runs (75 suites before, 81 after) and wrote throwaway prototypes in a scratch copy; the agent ran 2,734,186 ms (148 tool uses, 477,743 tokens) of the 18:16:52Z-19:13:27Z Phase 1, and the main session ran the full harness again on the merged checkout (`artifacts/phase-1-test-harness/implementation.yaml`; `.agents/skills/feature-workflow/modules/verification-setup.md`, "Launching a Phase 1 build").
+- Assessment and ruling: not a blocker; kept for later (stakeholder: "Throw it in the backlog"). Candidate levers: one build per journey group in parallel; scoped `--suite` runs inside a build, keeping one full run for the merge; drop or narrow the prototype pass.
+- Backlog line: [work-backlog/00014-tracker-issue-spec-ids.md](../work-backlog/00014-tracker-issue-spec-ids.md) B1
+
+## 2026-11-02 Task breakdown (2.1-2.3)
+
+Draft: 10 tasks in 6 waves, all afk, each with its seam and Phase 1 suites (session notes `00014-breakdown-draft.md`, now `tasks.md` and `tasks/`).
+
+**Q1. Approve the 10 tasks, their order and what each is tested through, as drafted?**
+
+- Answer: "Approve (Recommended)"
+- Decision: **D25** The breakdown, its edges and its seams are approved as drafted.
+
+**Q2. T8 (Tracker adoption) is close to L; keep it as one task?**
+
+- Answer: "Keep as one (Recommended)"
+- Decision: **D26** T8 stays one task.
+
+**Q3. Size budget for this spec?**
+
+- Recommended: 10 tasks and 34 changed files, because about 29 distinct non-test files are predicted but the predicted sum counts `SKILL.md`, `move-to-done.sh` and `sign-off.md` once per task (33).
+- Answer: "10 tasks / 34 files (Recommended)"
+- Decision: **D27** Budget for this spec: `max_tasks: 10`, `max_changed_files: 34`.

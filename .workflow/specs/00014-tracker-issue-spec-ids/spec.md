@@ -7,6 +7,7 @@ light_path: false # true once the 0.3.20 light-path test passes; true from 0.1.4
 small_path: false # true from 0.1.4 when intake (0.0.3) picked the small path; false once it leaves it (0.3.19)
 followup_review_recommended: false # true when triage recommends another review pass after this one
 deferred: [.workflow/deferred/done-spec-branch-fallback.md, .workflow/deferred/initiative-tracker-issues.md] # repo-relative paths of the .workflow/deferred/ files this spec wrote, e.g. .workflow/deferred/csv-export.md
+budget: {max_tasks: 10, max_changed_files: 34}
 ---
 
 # Tracker issues as spec IDs
