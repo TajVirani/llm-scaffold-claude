@@ -20,7 +20,8 @@
 #   `issue_tracker: none`); nothing for fill and move.
 # Exit: 0 done or skipped; 1 the tracker failed (the CLI's message and what was being done, on stderr); 2 usage error,
 #   not a git repository, bad settings (an unknown `issue_tracker`, a tracker without its three distinct, non-empty
-#   `issue_flow` labels, or a host the `origin` remote is not on), an unreadable or headless file, or the CLI not installed.
+#   `issue_flow` labels, or a host the `origin` remote is not on), an unreadable file or a file with no # heading, or the
+#   CLI not installed.
 # Called by: modules/discovery.md, modules/questioning-loop.md, modules/discovery-impact.md, modules/task-breakdown.md,
 #   modules/implementation-setup.md, modules/implementation-waves.md, modules/implementation-finish.md,
 #   modules/review-triage.md, modules/sign-off.md, feature-workflow/scripts/next-spec-number.sh.
