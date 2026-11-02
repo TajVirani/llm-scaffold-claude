@@ -26,7 +26,7 @@
 #   `git branch -d` judges it by (its upstream, else the main checkout's HEAD), the spec worktree has uncommitted or untracked
 #   changes, or an agent worktree is still registered inside it; 2 usage or environment error (bad arguments, not a git repository,
 #   spec.md missing, a git step failing part-way, with what to do next).
-# Called by: modules/verification-setup.md (1.1), modules/discovery.md (0.3.20), modules/sign-off.md (5.8).
+# Called by: modules/verification-setup.md (1.1), modules/discovery-impact.md (0.3.20), modules/sign-off.md (5.8).
 # Notes: Requires git and mikefarah yq v4 (through commit-workflow-data.sh and rules-setting.sh). Never pushes, never force-deletes.
 #   bash 3.2 compatible.
 # Sources: first-party. Pattern: commit-workflow-data.sh (spec-checkout resolution, spec-dir normalising).

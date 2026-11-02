@@ -1,0 +1,34 @@
+verdict: "pass"
+task_id: "T2"
+work_type: "agent-docs"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t2@e05945165e2b3bf75d9aa1d7c200268caa844279..HEAD"
+tool_output: ".workflow/specs/done/009-slim-workflow-context/artifacts/T2/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "git diff --name-only lists only .agents/output-styles/concise-technical.md; no skill file and no skill description changed"
+  - n: 2
+    verdict: "not-applicable"
+    location: "the diff adds no file under .agents/agents/"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/output-styles/concise-technical.md:23 (flush and term name what the helper does and holds)"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/output-styles/concise-technical.md:21-25 (no code comment in the diff; the command has no workaround or trade-off a reader would undo)"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/output-styles/concise-technical.md:21-25 (no code comment added; the prose at :21 is instruction text for the model, not a comment on code)"
+  - n: "R4"
+    verdict: "pass"
+    location: ".agents/output-styles/concise-technical.md:21,23,25 (the .workflow/GLOSSARY.md path is the file the command reads, not a comment pointing at a decision or document; the style already named it before this diff)"
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/output-styles/concise-technical.md:21-25 (plain words; no project shorthand beyond the glossary term names the reader is asked to use)"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1-R5 and the Checking table in the spec checkout"
+  - ".workflow/GLOSSARY.md at HEAD: ran the style's awk command on it from a mktemp directory, removed afterwards; it printed 43 lines, matching the implementer's count"
+not_checked: []
+out_of_scope_noticed: []

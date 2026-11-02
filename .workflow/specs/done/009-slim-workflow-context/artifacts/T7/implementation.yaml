@@ -1,0 +1,38 @@
+status: done
+summary: "modules/small-path.md is deleted; each step it changed carries an \"On the small path:\" note in its owning step file (discovery, discovery-impact, questioning-loop, sign-off), \"## Leave the small path\" lives in questioning-loop.md, and the router's 0.0.3 Yes loads discovery alone and says when a note applies. The report template and PROVENANCE no longer name small-path.md; the 5.4 short-report block in sign-off.md is indented so its title line does not end the 5.4 section for heading-scanning suites (done-folder-docs)."
+task_id: "T7"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t7"
+branch: "task/009-slim-workflow-context/T07-fold-small-path"
+base_commit: "5c5ee3db1ee255cfa9b5cdd261e2ed02722d3a09"
+head_commit: "2dff2f7a01f3bb621cb08ee307fbfdcc7ce0107b"
+files_changed:
+  - ".agents/skills/feature-workflow/SKILL.md"
+  - ".agents/skills/feature-workflow/assets/report.md"
+  - ".agents/skills/feature-workflow/modules/discovery-impact.md"
+  - ".agents/skills/feature-workflow/modules/discovery.md"
+  - ".agents/skills/feature-workflow/modules/questioning-loop.md"
+  - ".agents/skills/feature-workflow/modules/sign-off.md"
+  - ".agents/skills/feature-workflow/modules/small-path.md"
+  - "PROVENANCE.md"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite lint/small-path-docs; FAIL lint/small-path-docs passed=29 failed=23 (e.g. FAIL modules/small-path.md is gone, FAIL questioning-loop.md has the Leave the small path heading). tests/run-all.sh --suite lint/shared-rule-homes; FAIL leave the small path: only in modules/questioning-loop.md got=modules/small-path.md, passed=21 failed=2"
+  green: "tests/run-all.sh --suite lint/small-path-docs: passed=52 failed=0; --suite lint/shared-rule-homes: passed=23 failed=0; --suite lint/md-links: passed=6 failed=0; --suite lint/done-folder-docs: passed=16 failed=0; --suite lint/step-routing: passed=28 failed=0"
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/009-slim-workflow-context --task-id T7 --cwd <worktree>; lint pass, test (scoped, own 2 suites) pass 75/75. Full tests/run-all.sh: 4440 passed, only lint/workflow-load-size fails (T10's Phase 1 suite; it failed at the base commit too, new-feature start 47982 then 48701 bytes, plus the missing implementation-waves.md)"
+  toolchain: ".workflow/specs/done/009-slim-workflow-context/artifacts/T7/toolchain.txt (pass)"
+considered_not_built:
+  - "assetlist.md D110 still says modules/small-path.md runs beside the phase modules: scaffold-only decision history outside .agents/ and outside the task's files, left as written"
+  - "Keeping a Small path line in the Route by status section: the task drops it; the router's 0.0.3 paragraph now says when an \"On the small path:\" note applies, and the route still reads small_path because the suite pins that read"
+discovered_work: []
+profile_wrong: null
+scope_expansion: null
+blocked: null
+self_review:
+  - {item: 1, verdict: not-applicable, note: "No skill description is added or changed; the SKILL.md frontmatter is untouched"}
+  - {item: 2, verdict: not-applicable, note: "No agent is added"}
+  - {item: R1, verdict: pass, note: "Headings and labels say what each part is for: questioning-loop.md '## Leave the small path', triggers labelled Placement (0.3.3), The round, The goal (0.3.19)"}
+  - {item: R2, verdict: pass, note: "No workaround a reader would undo: the indented report block in sign-off.md 5.4 is ordinary markdown nesting"}
+  - {item: R3, verdict: not-applicable, note: "No code comments in the diff; markdown only"}
+  - {item: R4, verdict: pass, note: "No added text cites a decision id or task id; PROVENANCE keeps its source references (D110, spec 009) as that file's own provenance format"}
+  - {item: R5, verdict: pass, note: "Notes use plain sentences and the glossary's Small path term, e.g. discovery-impact.md:55"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the changed files exits 0; no shell files changed"}

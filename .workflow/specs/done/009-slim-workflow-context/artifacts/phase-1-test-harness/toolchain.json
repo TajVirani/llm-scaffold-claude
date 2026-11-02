@@ -1,0 +1,48 @@
+{
+  "status": "pass",
+  "task_id": "phase-1-test-harness",
+  "work_type": "test-harness",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_phase_1_test_harness/.workflow/profiles/test-harness.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_phase_1_test_harness",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/specs/done/009-slim-workflow-context/artifacts/phase-1-test-harness",
+  "tree": "bb45afb5708204125d172074454d7347394fe55a",
+  "ran": 1,
+  "results": [
+    {
+      "key": "lint",
+      "command": "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "skipped by caller"
+    }
+  ],
+  "digest": "",
+  "reused_from": "phase-1-test-harness"
+}

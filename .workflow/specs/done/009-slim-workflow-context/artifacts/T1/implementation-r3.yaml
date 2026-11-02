@@ -1,0 +1,41 @@
+status: "done"
+summary: "Round 3 fixes: the map link pattern now accepts empty parentheses, so `- [Billing]()` reaches the die that names the context instead of being skipped (and reported as a map with no contexts). A context link or root glossary that is a folder now fails a -f test as well as -r and exits 2 with a message naming it, instead of exiting 0 with an empty list."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1"
+branch: "task/009-slim-workflow-context/T01-term-list-script"
+base_commit: "e05945165e2b3bf75d9aa1d7c200268caa844279"
+head_commit: "d6c4c5923689afb8461cb631ef443ef7b35d8238"
+files_changed: [".agents/skills/domain-modeling/scripts/term-list.sh", "PROVENANCE.md", "tests/scripts/term-list.sh"]
+tests_added:
+  - {file: "tests/scripts/term-list.sh", test: "a context link with nothing between its parentheses exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "the no-path message names the context", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a context link to a folder exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "the folder-link message names the context", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a root glossary that is a folder exits 2", kind: "negative"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/term-list; FAIL the no-path message names the context (got: links no context glossary under its ## Contexts heading), FAIL a context link to a folder exits 2 (rc=0 want=2), FAIL the folder-link message names the context, FAIL a root glossary that is a folder exits 2 (rc=0 want=2): passed=29 failed=4"
+  green: "tests/run-all.sh --suite scripts/term-list; PASS passed=33 failed=0 (also under TEST_BASH=/bin/bash 3.2.57: 33/33); on this repo's glossary the list prints 43 lines"
+  suite: "bash run-toolchain.sh --spec-dir .workflow/specs/done/009-slim-workflow-context --task-id T1 --cwd <worktree>; lint pass, test pass (scoped: own 1 suite, 5 excluded; 33/33)"
+  toolchain: ".workflow/specs/done/009-slim-workflow-context/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Naming folders separately in the header's Exit line: a folder is a glossary that cannot be read as a file, which the existing Exit wording (a glossary or map that cannot be read) already covers."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "pass", note: "the changed checks at term-list.sh:121 and :126 use $WF_GLOSSARY_MAP and $WF_GLOSSARY from workflow-paths.sh; the new fixtures spell .workflow/ paths, which fixtures may do"}
+  - {item: 2, verdict: "not-applicable", note: "no hook in the diff"}
+  - {item: 3, verdict: "fixed", note: "term-list.sh:88 now matches `\\([^)]*\\)`, so an empty link reaches the die at :120; :121 and :126 test -f and -r, so a folder dies instead of passing"}
+  - {item: 4, verdict: "pass", note: "the loop checks at term-list.sh:120-121 each end in their own || die"}
+  - {item: 5, verdict: "pass", note: "the new failures exit 2 through die(), as # Exit: at term-list.sh:17-18 documents for a glossary that cannot be read"}
+  - {item: 6, verdict: "pass", note: "term-list.sh:30 still resolves workflow-paths.sh through cd -P from BASH_SOURCE"}
+  - {item: 7, verdict: "pass", note: "helper header at term-list.sh:2-20 unchanged and still in shape"}
+  - {item: 8, verdict: "pass", note: "the edited lines keep the file's [ ] test syntax"}
+  - {item: 9, verdict: "not-applicable", note: "no new function and no shellcheck directive in the diff"}
+  - {item: "R1", verdict: "pass", note: "new fixture names (NO_PATH, FOLDER_LINK, ROOT_FOLDER, no_path_err, folder_link_err) say what each holds"}
+  - {item: "R2", verdict: "pass", note: "no new comment in the script; the suite's Covers note at tests/scripts/term-list.sh:7-9 lists the new cases"}
+  - {item: "R3", verdict: "pass", note: "the messages at term-list.sh:121 and :126 name the context, the map and the path that is not a readable file"}
+  - {item: "R4", verdict: "pass", note: "tool-covered by check-comments.sh in the lint key, which passed; no changed comment points at another document"}
+  - {item: "R5", verdict: "pass", note: "no shorthand in the changed messages or the Covers note"}
+  - {item: "comment-lint", verdict: "pass", note: "check-comments.sh over both changed files exits 0"}

@@ -1,0 +1,69 @@
+verdict: "pass"
+task_id: "T1"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1@e05945165e2b3bf75d9aa1d7c200268caa844279..HEAD"
+tool_output: ".workflow/specs/done/009-slim-workflow-context/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/skills/domain-modeling/scripts/term-list.sh:126-127,133-135,146-147 build every path from WF_DIR, WF_GLOSSARY_MAP and WF_GLOSSARY (.agents/lib/workflow-paths.sh:45-48, not changed by the diff); the literal .workflow text in term-list.sh is in the header at :9-10 and :18 only"
+  - n: 2
+    verdict: "not-applicable"
+    location: "none; the diff adds no hook (it changes term-list.sh, its test and PROVENANCE.md)"
+  - n: 3
+    verdict: "pass"
+    location: "term-list.sh:121,127,134,137,140-142,147,161,167 each send an error to die (exit 2); the --define not-found message at :160 exits 1, as the header documents"
+  - n: 4
+    verdict: "pass"
+    location: "term-list.sh:135 (links=$(map_contexts ...) || die), :140-142 (checks inside the read loop carry their own die), :156 (|| define_status=$?), :167 (list_terms || die); list_terms (:36), define_entry (:67) and map_contexts (:90) each end in one awk call, so nothing before it fails unseen"
+  - n: 5
+    verdict: "pass"
+    location: "term-list.sh:18-19 documents 0, 1 and 2; the codes are set at :28 (die, 2), :159 (0) and :160 (1)"
+  - n: 6
+    verdict: "pass"
+    location: "term-list.sh:31 sources workflow-paths.sh through cd -P from BASH_SOURCE, the form in workflow-paths.sh:7-8"
+  - n: 7
+    verdict: "pass"
+    location: "term-list.sh:2-21 has File, Purpose, Usage, Exit, Notes and Sources, the helper shape the header rules of check-comments.sh:2-6 describe; no decision or task id in it"
+  - n: 8
+    verdict: "pass"
+    location: "term-list.sh:23 (set -euo pipefail); no [[ in the code, only [[:space:]] classes inside awk regexes at :58, :61, :82, :93, :107; the file keeps the [ ] tests of base :23; the diff adds no file"
+  - n: 9
+    verdict: "pass"
+    location: "term-list.sh:35 list_terms, :66 define_entry, :88 map_contexts, :115 path_present each carry a '# name ARGS :' line; tests/scripts/term-list.sh:150 map_fixture and the linked_map_fixture line carry theirs; the only directive the diff adds is the source= hint at term-list.sh:30, which needs no reason"
+  - n: "R1"
+    verdict: "pass"
+    location: "term-list.sh:36 list_terms, :67 define_entry, :90 map_contexts, :117 path_present, :131 contexts, :132 glossaries, :153 define_status name what they hold; tests/scripts/term-list.sh:160-164 fixture names (EMPTY_PATH, NO_PATH) say which case each builds"
+  - n: "R2"
+    verdict: "pass"
+    location: "term-list.sh:33 (the awk context and term arrive by environment, because awk -v turns a backslash into an escape), :115-116 (why a broken link counts as present), :125 (why a folder is checked), :136 (why an empty map is an error)"
+  - n: "R3"
+    verdict: "pass"
+    location: "term-list.sh:130 (what the parallel lists hold), :139 (why an item's text sits in the context field); no comment restates the line under it"
+  - n: "R4"
+    verdict: "tool-covered"
+    location: "term-list.sh:33, :125, :130, :136, :139 (body comments)"
+    note: "Covered by the lint key's check-comments.sh (toolchain.json lint, exit 0); the header pointer at term-list.sh:6 is outside R4 (readable-code.md:10), and rules.md forbids only decision ids in headers."
+  - n: "R5"
+    verdict: "pass"
+    location: "term-list.sh:2-21 (header), :33, :125, :136, :139 use plain words; 'context' is defined by the Usage at :9-13 through the ## Contexts link shape"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh:3-9 and :45-48: the WF_* variables term-list.sh uses and the cd -P sourcing convention (items 1, 6)"
+  - ".agents/skills/feature-workflow/scripts/check-comments.sh:2-6: the header rules, which allow .workflow/ paths in a header and forbid only decision and task ids (R4, item 7)"
+  - ".agents/skills/feature-workflow/scripts/check-pr-body.sh:2-6: a sibling header that names an assets/ document, the precedent for a doc pointer in a header (R4)"
+  - ".agents/skills/domain-modeling/assets/GLOSSARY-FORMAT.md:55-81: the map shape, with top-level '- [Context](path)' bullets and nothing about nesting (out_of_scope_noticed entry)"
+  - ".agents/install-manifest.txt:14: lists skills/domain-modeling as a directory, so the script ships; no manifest gap"
+  - ".workflow/rules.md Cross-cutting policy: the header and body comment rules (R4, item 7)"
+  - ".agents/skills/feature-workflow/references/readable-code.md:10 and :30-42: the header carve-out and the Checking table (R2 to R5)"
+  - "git show e05945165e2b3bf75d9aa1d7c200268caa844279:.agents/skills/domain-modeling/scripts/term-list.sh: base test syntax at :23 (item 8)"
+  - "scratch copy of HEAD via git archive under mktemp -d, removed afterwards: probe for the indented context link and the empty-name link, and /bin/bash 3.2 with no glossary (out_of_scope_noticed entry and item 3)"
+  - ".workflow/specs/done/009-slim-workflow-context/artifacts/T1/implementation.yaml (round 4 considered_not_built) and mini-review-r1..r3.yaml: context only; the launch carried no re-check lines, so every item was judged fresh"
+not_checked: []
+out_of_scope_noticed:
+  - kind: decision
+    summary: "An indented context link under a Contexts bullet is skipped with no message, so its context leaves the term list and the script still exits 0. The header limits errors to top-level items and term-list.sh:88-89 calls indented lines notes, so this is a documented choice, not a failed checklist item; the owner should confirm it."
+    evidence: "Probe on HEAD (scratch copy): GLOSSARY-MAP.md with '- [Ordering](./src/ordering/GLOSSARY.md): receives orders' and then '  - [Billing](./src/billing/GLOSSARY.md): nested under Ordering'. term-list.sh printed '[Ordering] Order' and exit=0. term-list.sh --define Invoice (Invoice is in the Billing glossary) printed 'term-list.sh: no glossary entry for Invoice' and exit=1. The indented-item rule is at term-list.sh:88-89 and :107."
+    blocker_assessment: blocks-this-task
+    reason: "The rule that decides which Contexts lines count is added by this diff at term-list.sh:95-111, so any change to it belongs in this task; whether to change it is the owner's call."

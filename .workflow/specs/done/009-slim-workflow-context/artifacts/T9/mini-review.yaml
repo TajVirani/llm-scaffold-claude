@@ -1,0 +1,61 @@
+verdict: pass
+task_id: "T9"
+work_type: "shell-scripts"
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t9@039075ea9c0c413056a53536f2b536e64fc0d95d..HEAD (commit e26928e, two header lines changed)"
+tool_output: ".workflow/specs/done/009-slim-workflow-context/artifacts/T9/toolchain.json"
+items:
+  - n: 1
+    verdict: not-applicable
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47 (only changed lines; no .workflow/ path added)"
+  - n: 2
+    verdict: not-applicable
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47 (helper scripts, no hook touched)"
+  - n: 3
+    verdict: not-applicable
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47 (no code changed, no error path changed)"
+  - n: 4
+    verdict: not-applicable
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47 (no loop, function or command substitution changed)"
+  - n: 5
+    verdict: not-applicable
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:81-83, .agents/skills/feature-workflow/scripts/budget-check.sh:44-46 (Exit codes lines are unchanged context in the hunks)"
+  - n: 6
+    verdict: not-applicable
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47 (no path resolution changed)"
+  - n: 7
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47"
+  - n: 8
+    verdict: not-applicable
+    location: "no new files and no test changes in e26928e (diff touches two existing scripts)"
+  - n: 9
+    verdict: not-applicable
+    location: "no new function and no shellcheck disable= directive in the diff"
+  - n: "R1"
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47"
+  - n: "R2"
+    verdict: not-applicable
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47 (the changed Called-by lines state no workaround or trade-off)"
+  - n: "R3"
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47"
+  - n: "R4"
+    verdict: tool-covered
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47"
+    note: "Covered by the lint key's comment lint, .agents/skills/feature-workflow/scripts/check-comments.sh (toolchain.json key lint, exit 0). No changed comment points at a docs/ path or an internal URL."
+  - n: "R5"
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/status-transition.sh:84, .agents/skills/feature-workflow/scripts/budget-check.sh:47"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: rules R1-R5 and the Checking table"
+  - ".workflow/GLOSSARY.md:73-75 and :208: the Step file term and its avoided words (Module, phase module, stage file)"
+  - ".agents/skills/feature-workflow/modules/: the step-file names listed at status-transition.sh:84 (discovery, verification-setup, task-breakdown, implementation-setup, implementation-waves, implementation-finish, review-triage, sign-off) all exist"
+  - ".workflow/specs/done/009-slim-workflow-context/artifacts/T9/toolchain.json and toolchain.txt: lint pass exit 0, test pass exit 0, lint/comments passed=2"
+  - ".workflow/specs/done/009-slim-workflow-context/artifacts/T9/implementation.yaml: self_review used as the starting point only"
+  - "grep of status-transition.sh and budget-check.sh for module: no remaining wording of the avoided term in either file"
+not_checked:
+  - "The step numbers in the changed Called-by lines ((2.6), (3.15), 00.29) are project shorthand a newcomer may not know. They predate this rework and only the word before them changed, so R5 was not failed on them. Settling it needs a decision on whether step numbers count as shorthand in script headers."
+out_of_scope_noticed: []

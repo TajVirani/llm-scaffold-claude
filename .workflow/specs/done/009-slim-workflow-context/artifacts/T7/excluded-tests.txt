@@ -1,0 +1,2 @@
+tests/lint/step-routing.sh
+tests/lint/workflow-load-size.sh

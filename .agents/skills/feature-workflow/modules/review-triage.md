@@ -1,8 +1,8 @@
 # Review and triage (Phase 4)
 
-Four lenses review the whole change independently (one combined review on the light path); you then verify, grade and route every finding yourself in the main session. Every finding is proven before it goes anywhere: an unproven one is one line and nothing more, a proven one on the current work goes back to the worker, and only convoluted, scope-expanding or out-of-scope findings reach the stakeholder, in one batched question. You are done with Phase 4 when one exit in step 6 has run: rework, loop back, or hand-off to sign-off.
+Four lenses review the whole change independently (one combined review on the light path); you then verify, grade and route every finding yourself in the main session. Every finding is proven first and escalated by the rule in [discovered-work](discovered-work.md#assess-each-report-first). You are done with Phase 4 when one exit in step 6 has run: rework, loop back, or hand-off to sign-off.
 
-`.workflow/specs/NNN-slug` is this feature's folder. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix (SKILL.md, "Conventions every module follows"). Every status, task-record and step change goes through `status-transition.sh`, with the exact `--step` shown. Exit 0 is done; exit 2 is a refused transition with the reason on stderr: stop and report it rather than working around it. On Codex, run `check-write.sh` before the spec.md write at 4.6 as SKILL.md "Host notes" says.
+`.workflow/specs/NNN-slug` is this feature's folder. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix ([conventions](../references/conventions.md)). Every status, task-record and step change goes through `status-transition.sh`, with the exact `--step` shown. Exit 0 is done; exit 2 is a refused transition with the reason on stderr: stop and report it rather than working around it. On Codex, run `check-write.sh` before the spec.md write at 4.6 as the conventions' [Host notes](../references/conventions.md#host-notes) say.
 
 ## 1. Fix the pass number
 
@@ -14,11 +14,11 @@ Phase 4 runs once per **pass**. Read `.workflow/specs/NNN-slug/design-log.md` be
 
 **After a rework with no verified high patch.** When the spec is back at `in-review` and the newest triage entry's outcome is `rework <k> of 5` with no patch row verified `high`, the rework's own gates were its check: start no new pass. Run step 7 if that pass has no `Gaps:` line yet, then load `modules/sign-off.md`.
 
-**Resuming.** If any task record in `tasks.md` is `in-progress`, a rework is under way whatever `.step` says (the orchestrator's gates move it off 4.7): load `modules/implementation-orchestrator.md` for those tasks instead, as the router does. Otherwise, if the newest triage entry has an `Outcome:` line and `.step` names 4.5 to 4.8, that pass is already decided: finish its exit instead of starting a new pass; for a pass with no `Gaps:` line, run step 7. If `.step` names a node from 00.21 to 00.28, a discovered-work entry was being handled: finish it through `modules/discovered-work.md`, then continue at 6.0 with the next one.
+**Resuming.** If any task record in `tasks.md` is `in-progress`, a rework is under way whatever `.step` says (Phase 3's gates move it off 4.7): load `modules/implementation-waves.md` for those tasks instead, at its Rework entry, as the router does. Otherwise, if the newest triage entry has an `Outcome:` line and `.step` names 4.5 to 4.8, that pass is already decided: finish its exit instead of starting a new pass; for a pass with no `Gaps:` line, run step 7. If `.step` names a node from 00.21 to 00.28, a discovered-work entry was being handled: finish it through `modules/discovered-work.md`, then continue at 6.0 with the next one.
 
 ## 2. Launch the four lenses (4.1-4.3, 4.9), or the combined review (4.10)
 
-**Light path: one combined review (4.10).** When `light_path` is `true` in `.workflow/specs/NNN-slug/spec.md` (the small path included), launch one `review-combined` in place of the lenses, with the same minimal prompt below and `task_type: review-combined`; on Codex, `agent_type` `review_combined` and `task_name` `s<NNN>_review_combined`. It covers the end state, the standards and the review lessons, and writes one pass file in the lens shape, `review-combined.yaml`, checked in step 3 like any lens's. There is no `verification-plan.md` and so no targets: write `no targets (light path)` in the triage entry where the targets lens would be named. The rest of this step is the full path.
+**Light path: one combined review (4.10).** When `light_path` is `true` in `.workflow/specs/NNN-slug/spec.md` (the small path included), launch one `review-combined` in place of the lenses, with the same minimal prompt below and `task_type: review-combined`. It covers the end state, the standards and the review lessons, and writes one pass file in the lens shape, `review-combined.yaml`, checked in step 3 like any lens's. There is no `verification-plan.md` and so no targets: write `no targets (light path)` in the triage entry where the targets lens would be named. The rest of this step is the full path.
 
 Launch `review-standards`, `review-end-state`, `review-targets` and `review-lessons` together in one message, in the foreground, and wait for every one before reading any result. Give each the same minimal prompt: the header, then one line of task. Pass nothing else: no diff, no other lens's output, no summary of the feature. Each lens reads its own inputs.
 
@@ -31,12 +31,7 @@ spec_dir: .workflow/specs/NNN-slug
 Review pass <n> of .workflow/specs/NNN-slug. Write the review-findings block to your pass file and return the summary block.
 ````
 
-Repeat with `task_type: review-end-state`, `task_type: review-targets` and `task_type: review-lessons`; `subagent_type` matches `task_type`. On Claude the `pre-launch` hook resolves the model through `resolve-launch.sh` and denies a malformed header. On Codex, build each prompt yourself and launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `review_standards`, `review_end_state`, `review_targets`, `review_lessons`, `task_name` `s<NNN>_<lens>` (`s007_review_standards`, `s007_review_end_state`, `s007_review_targets`, `s007_review_lessons`), `fork_turns: "none"`:
-
-```bash
-echo "Review pass <n> of .workflow/specs/NNN-slug. Write the review-findings block to your pass file and return the summary block." |
-  .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type review-standards --spec-dir .workflow/specs/NNN-slug
-```
+Repeat with `task_type: review-end-state`, `task_type: review-targets` and `task_type: review-lessons`. Launch each on your host as [launching](../references/launching.md) says; on Codex the task body is the one line above.
 
 **`review-targets` runs the build itself.** It starts the build with the profile's `serve`, waits for `serve_ready`, measures and stops it, so start nothing for it. Its pass file is checked as in step 3, including its `measurements:` table.
 
@@ -93,8 +88,8 @@ Done when every finding has a verdict and evidence; none is dropped, merged sile
 Route each entry into exactly one bucket. An entry with a verified `high`, `medium` or `low` member routes by that verdict, never to `none` just because another member is `unproven`.
 
 - **patch**: proven and caused by this change, on lines or files the spec changes or inside its capabilities; the smallest fix is unambiguous, adds no public surface and guards no state you did not demonstrate. It goes back to the worker in the rework (step 6.3); the stakeholder is not asked. Name the task that owns the location.
-- **decision needed**: a blocker by the 00.22 rule of `modules/discovered-work.md` (a capability's success line or a journey cannot be met, or shipping would build on something known to be wrong) whose correct fix depends on intent the spec does not settle: two plausible readings, a fix that changes what a capability, constraint or non-goal says, or a fix that adds public surface. Record each plausible option in one line, the one you recommend, and why. These become questions at 0.3.8.
-- **discovered work**: the entries from 4.4 item 6, and every proven entry this change caused whose fix is not simple (convoluted: a lot of rework, a fix that may not behave as the stakeholder expects, or one hard to follow) and is no blocker. Record the evidence (the proof, the lens id and its claim) and your assessment with a recommendation; `modules/discovered-work.md` routes them in step 6.0: a blocker stops the spec, everything else waits for the stakeholder's batched question.
+- **decision needed**: a blocker by the **Blocker?** test of [discovered-work](discovered-work.md#assess-each-report-first) whose correct fix depends on intent the spec does not settle: two plausible readings, a fix that changes what a capability, constraint or non-goal says, or a fix that adds public surface. Record each plausible option in one line, the one you recommend, and why. These become questions at 0.3.8.
+- **discovered work**: the entries from 4.4 item 6, and every proven entry this change caused that is no blocker and whose fix is not simple (the convoluted class in [discovered-work](discovered-work.md#assess-each-report-first)). Record the evidence (the proof, the lens id and its claim) and your assessment with a recommendation; `modules/discovered-work.md` routes them in step 6.0: a blocker stops the spec, everything else waits for the stakeholder's batched question.
 - **proposal**: an entry whose only fix edits Tier A (`.workflow/rules.md`, an ADR, a glossary, a profile) or agent instructions. Tier A changes only at 5.3, so add a row to `.workflow/specs/NNN-slug/proposals.md` (template `assets/proposals.md`; Origin `F<n>`, Status `proposed`) and route it `proposal P<n>`; the 5.3 approval round is its question.
 - **none**: every `false`, every `unproven` entry and the noise from 4.4 item 5, each with its reason.
 
@@ -164,7 +159,7 @@ Set the outcome line to `loop back (4.6 third pass)` and load `modules/questioni
 .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T<n> --status in-progress --step 4.7
 ```
 
-`set-task` allows `done` to `in-progress` only with `--step 4.7`. Set the outcome line to `rework <used + 1> of 5` and load `modules/implementation-orchestrator.md` for those tasks, handing it each patch as one line: `<file:line> - <what is wrong> - <what the smallest fix must do>`. The orchestrator relaunches `implementation`, re-runs the gates, sets `in-review` again at 3.11 (or 3.14), and returns here. When a patch entry is verified `high`, that return starts pass `n + 1`; when none is, Phase 4 ends after the rework (step 1, "After a rework with no verified high patch").
+`set-task` allows `done` to `in-progress` only with `--step 4.7`. Set the outcome line to `rework <used + 1> of 5` and load `modules/implementation-waves.md` for those tasks (its Rework entry), handing it each patch as one line: `<file:line> - <what is wrong> - <what the smallest fix must do>`. The wave loop relaunches `implementation`, re-runs the gates, sets `in-review` again at 3.11 (or 3.14), and returns here. When a patch entry is verified `high`, that return starts pass `n + 1`; when none is, Phase 4 ends after the rework (step 1, "After a rework with no verified high patch").
 
 ### 6.4 Rework ceiling reached (4.7 No)
 

@@ -6,7 +6,7 @@ cache_stamps:            # generated_at_commit of each .workflow/cache/ file the
 ---
 <!--
 File: Template for .workflow/specs/NNN-slug/codebase-map.md: per-feature extracts of the existing system. Not a cache and not Tier A: it holds what this feature needs, each item pointing back to its source.
-Created by modules/discovery.md at 0.2.6. Filled at 0.2.4 (`retrieval`), 0.2.5 (`library-evaluation`), 0.2.8 (stamps after `cache-regeneration` and publish-cache.sh) and 0.4.6 (`module-audit`). Source of recommended answers at 0.3.11; implementation launches receive the relevant extract.
+Created by modules/discovery.md at 0.2.6. Filled at 0.2.4 (`retrieval`), 0.2.5 (`library-evaluation`), 0.2.8 (stamps after `cache-regeneration` and publish-cache.sh) and 0.4.6 (`module-audit`, modules/discovery-impact.md). Source of recommended answers at 0.3.11; implementation launches receive the relevant extract.
 
 Frontmatter contract (mikefarah yq v4, `--front-matter=extract`):
   - cache_stamps: a map with exactly the keys modules, flows, architecture (the Tier B cache types). Each value is the 40-hex `generated_at_commit` copied from that cache's frontmatter at the time it was read, or null when the cache was not read.

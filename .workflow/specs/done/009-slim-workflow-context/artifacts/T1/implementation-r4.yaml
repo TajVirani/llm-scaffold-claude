@@ -1,0 +1,58 @@
+status: "done"
+summary: "Round 4: a map or root glossary that is a broken link now exits 2 naming the file (the listed fix), and a sweep closed the other inputs that ended in exit 0 with a wrong, partial or empty list: a .workflow that is a file, a broken link or unsearchable; a top-level Contexts list item that is not a well-formed context link; a backslash in a context name or --define term (awk -v turned it into an escape, so --define 'C\\D' printed the CD entry); and an empty first argument, which listed terms. A map that is a folder now gets the 'not a readable file' message instead of 'links no context glossary'."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t1"
+branch: "task/009-slim-workflow-context/T01-term-list-script"
+base_commit: "e05945165e2b3bf75d9aa1d7c200268caa844279"
+head_commit: "c8dc5c69223cf7b18df0701eee883e7dda48f99a"
+files_changed: [".agents/skills/domain-modeling/scripts/term-list.sh", "PROVENANCE.md", "tests/scripts/term-list.sh"]
+tests_added:
+  - {file: "tests/scripts/term-list.sh", test: "a map that is a broken link exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "the broken-map message names the map", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "--define under a map that is a broken link exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a root glossary that is a broken link exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "the broken-glossary message names the glossary", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a map that is a folder is named as not a readable file", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a .workflow that is a file exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a .workflow that is a broken link exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a .workflow the script cannot search exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a Contexts item with no link beside a good one exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "the message quotes the item", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a Contexts link with no closing parenthesis exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a Contexts link with no context name exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a numbered Contexts item exits 2", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a prose line and a nested item under a context link are not context items", kind: "edge"}
+  - {file: "tests/scripts/term-list.sh", test: "a context label keeps its backslash", kind: "edge"}
+  - {file: "tests/scripts/term-list.sh", test: "--define of a term with a backslash does not match the term without it", kind: "edge"}
+  - {file: "tests/scripts/term-list.sh", test: "an empty first argument is a usage error", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a stray argument is a usage error", kind: "negative"}
+  - {file: "tests/scripts/term-list.sh", test: "a third argument after --define <term> is a usage error", kind: "negative"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/term-list; FAIL scripts/term-list passed=36 failed=17, e.g. FAIL a map that is a broken link exits 2 (rc=0 want=2: Leftover), FAIL a root glossary that is a broken link exits 2 (rc=0 want=2), FAIL a .workflow that is a file exits 2 (rc=0 want=2), FAIL a Contexts item with no link beside a good one exits 2 (rc=0 want=2: [Ordering] Order), FAIL a context label keeps its backslash (got=[SalesOps] CD), FAIL --define of a term with a backslash does not match the term without it (rc=0 want=1: **CD**:), FAIL an empty first argument is a usage error (rc=0 want=2)"
+  green: "tests/run-all.sh --suite scripts/term-list; PASS passed=53 failed=0 (also under TEST_BASH=/bin/bash 3.2: 53/53); on this repo's glossary the list prints 43 lines"
+  suite: "bash run-toolchain.sh --spec-dir .workflow/specs/done/009-slim-workflow-context --task-id T1 --cwd <worktree>; lint pass, test pass (scoped: own 1 suite, 5 excluded; 53/53)"
+  toolchain: ".workflow/specs/done/009-slim-workflow-context/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Accepting `+`, numbered or indented context links: the glossary format shows only `- [<context>](<path>)` bullets, so other top-level list items now exit 2 with a message quoting them, and indented lines stay notes under a link."
+  - "Failing on a readable glossary with no entries, or on lines that look like entries but break the `**<term>**:` form: an empty glossary is a valid start, and checking entry syntax is the glossary format's job, not a read failure."
+  - "A Contexts link whose title or path holds a parenthesis: the path is cut at the first `)` and then fails the readable-file check with exit 2, so it is not silent."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "pass", note: "the new checks use $WF_DIR, $WF_GLOSSARY_MAP and $WF_GLOSSARY from workflow-paths.sh (term-list.sh:126-146); only the header and the test fixtures spell .workflow"}
+  - {item: 2, verdict: "not-applicable", note: "no hook in the diff"}
+  - {item: 3, verdict: "fixed", note: "term-list.sh:117 path_present accepts a broken link, so :133 and :146 reach the dies at :134 and :147; swept and fixed: .workflow not a searchable folder (:126-127), a non-link Contexts item (:107-110, die at :140), backslash-mangled context and term (ENVIRON at :38, :71), an empty or stray argument (:120-121)"}
+  - {item: 4, verdict: "pass", note: "the new die at term-list.sh:140 sits inside the read loop with its own || die, like :141-142"}
+  - {item: 5, verdict: "pass", note: "every new failure exits 2 through die(); # Exit: at term-list.sh:17-18 now names the .workflow folder, broken links and a Contexts item that is not a link"}
+  - {item: 6, verdict: "pass", note: "term-list.sh:31 still resolves workflow-paths.sh through cd -P from BASH_SOURCE"}
+  - {item: 7, verdict: "pass", note: "helper header at term-list.sh:2-21 keeps File, Purpose, Usage, Exit, Notes, Sources; Usage and Exit updated for the new errors"}
+  - {item: 8, verdict: "pass", note: "the edited file keeps its [ ] test syntax; new test lines use t/eq/check with [ ] as the suite does"}
+  - {item: 9, verdict: "pass", note: "new function path_present has its usage line at term-list.sh:115-116; linked_map_fixture in tests/scripts/term-list.sh has one; no new shellcheck directive"}
+  - {item: "R1", verdict: "pass", note: "path_present, kind, GLOSSARY_CONTEXT, WANTED_TERM and the fixture names (DANGLING_MAP, WF_LOCKED, PLAIN_ITEM, UNCLOSED, NO_NAME, NUMBERED, NOTES, BACKSLASH) say what each holds"}
+  - {item: "R2", verdict: "pass", note: "term-list.sh:33 says why awk gets values through the environment (a reader would revert to -v); :125 says why the folder is checked; :139 explains the reused context field"}
+  - {item: "R3", verdict: "pass", note: "no new comment restates its line"}
+  - {item: "R4", verdict: "pass", note: "tool-covered by check-comments.sh in the lint key, which passed; no changed comment points at another document"}
+  - {item: "R5", verdict: "pass", note: "messages and comments use plain words: broken link, folder this script can search, item under ## Contexts"}
+  - {item: "comment-lint", verdict: "pass", note: "check-comments.sh over the changed files exits 0"}

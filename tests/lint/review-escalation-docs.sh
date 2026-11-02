@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Suite: lint over the review and escalation text: the Phase 4 lens definitions, the new review-combined lens and where it is
 #   listed, profile-mini-review, and the feature-workflow modules that route findings (discovered-work, review-triage,
-#   deferred-handoff, sign-off 5.5 and 5.9, the orchestrator's discovered-work section) and the backlog list template.
+#   deferred-handoff, sign-off 5.5 and 5.9, the Phase 3 step files: setup, the wave loop with its discovered-work section,
+#   shared core, gates and finish) and the backlog list template.
 # Covers: proof before escalation: the end-state, standards, lessons and combined lenses may run probes only in a scratch
 #   worktree made with `git worktree add --detach` under `mktemp -d`, keep no read-only-only rule, keep no plain 80 drop rule,
 #   and carry `reproduction` in their finding evidence; mini-review has the same scratch rule and a `not_checked` list;
@@ -26,7 +27,11 @@ DW=$MODULES/discovered-work.md
 TRIAGE=$MODULES/review-triage.md
 HANDOFF=$MODULES/deferred-handoff.md
 SIGN_OFF=$MODULES/sign-off.md
-ORCH=$MODULES/implementation-orchestrator.md
+SETUP=$MODULES/implementation-setup.md
+WAVES=$MODULES/implementation-waves.md
+FINISH=$MODULES/implementation-finish.md
+GATES=$MODULES/implementation-gates.md
+SHARED_CORE=$MODULES/implementation-shared-core.md
 LIST_TEMPLATE=$FW_SKILL/assets/work-backlog.md
 COMBINED=$AGENTS/review-combined.md
 MANIFEST=$AGENTS_SRC/install-manifest.txt
@@ -70,13 +75,14 @@ check "the stakeholder classes are convoluted, scope-expanding and out of scope"
 check "a waiting item is asked at the next ask or at 5.5 at the latest" 'grep -q "at 5.5 at the latest" "$DW"'
 check "discovered-work has one batched ask with fold in, keep for later and drop" \
   'section "$DW" "00.25 Batched ask" | grep -q "fold in" && section "$DW" "00.25 Batched ask" | grep -qi "keep for later" && section "$DW" "00.25 Batched ask" | grep -q "Drop"'
-check "nothing is filed without a ruling" '! grep -qi "filed without a ruling" "$DW" "$ORCH" "$TRIAGE" "$SIGN_OFF"'
+check "nothing is filed without a ruling" \
+  '! grep -qi "filed without a ruling" "$DW" "$SETUP" "$WAVES" "$GATES" "$SHARED_CORE" "$FINISH" "$TRIAGE" "$SIGN_OFF"'
 check "00.26 appends one line to the spec's backlog list" \
   'section "$DW" "00.26 Add the backlog line" | grep -q "\.workflow/specs/work-backlog/NNN-slug\.md"'
 check "00.26 writes no per-item file" '! section "$DW" "00.26 Add the backlog line" | grep -q "disc-<###>"'
 check "a shelf match is appended without asking" 'grep -q "without asking" "$HANDOFF" && ! grep -q "Same item?" "$HANDOFF"'
-check "the orchestrator routes current work back to the task" \
-  'section "$ORCH" "Discovered work (00.21)" | grep -q "\*\*Current work\.\*\*"'
+check "the wave loop routes current work back to the task" \
+  'section "$WAVES" "Discovered work (00.21)" | grep -q "\*\*Current work\.\*\*"'
 
 echo "== triage: no defer route, no maybe-false, 4.8 writes no shelf file"
 check "triage routes have no defer bucket" '! grep -qE "^- \*\*defer" "$TRIAGE"'
@@ -84,8 +90,9 @@ check "triage verdicts have no maybe-false" '! grep -q "maybe-false" "$TRIAGE"'
 check "triage verdicts include unproven" 'grep -q "\`unproven\`: no reproduction" "$TRIAGE"'
 check "triage step 7 loads no deferred-handoff" '! section "$TRIAGE" "7. " | grep -q "deferred-handoff"'
 check "triage step 7 writes the Gaps line" 'section "$TRIAGE" "7. " | grep -q "Gaps:"'
-handoff_row=$(grep -F '| [deferred-handoff](modules/deferred-handoff.md) |' "$FW_SKILL/SKILL.md")
-check "SKILL.md's module table enters deferred-handoff from no 4.8" '[ -n "$handoff_row" ] && ! grep -q "4\.8" <<<"$handoff_row"' "$handoff_row"
+handoff_uses=$(section "$HANDOFF" "Write" | grep '^Used at ')
+check "deferred-handoff's Write names no 4.8 among the steps it is used at" \
+  '[ -n "$handoff_uses" ] && ! grep -q "4\.8" <<<"$handoff_uses"' "$handoff_uses"
 
 echo "== sign-off: one question over the list"
 S55=$(section "$SIGN_OFF" "5.5 ")

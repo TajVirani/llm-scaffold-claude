@@ -1,0 +1,40 @@
+verdict: "pass"
+task_id: "T3"
+work_type: "agent-docs"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t3@e05945165e2b3bf75d9aa1d7c200268caa844279..HEAD"
+tool_output: ".workflow/specs/done/009-slim-workflow-context/artifacts/T3/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: ".agents/skills/feature-workflow/SKILL.md:3 description line is identical to base; no skill added or its description changed"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no agent file in the diff; the only added file is .agents/skills/feature-workflow/references/conventions.md"
+  - n: R1
+    verdict: "pass"
+    location: "tests/lint/review-escalation-docs.sh:87 (handoff_uses), tests/lint/done-folder-docs.sh:115 (check name) say what they check"
+  - n: R2
+    verdict: "pass"
+    location: "tests/lint/review-escalation-docs.sh:87-89 and tests/lint/done-folder-docs.sh:115 add no workaround or trade-off; no code in the diff the item applies to"
+  - n: R3
+    verdict: "pass"
+    location: "tests/lint/done-folder-docs.sh:2-15 is the Suite header only; no body comment added in any .sh file"
+  - n: R4
+    verdict: "pass"
+    location: "tests/lint/done-folder-docs.sh:2-15 names references/conventions.md in the header block, which R4 allows; no body comment added in any .sh file"
+  - n: R5
+    verdict: "pass"
+    location: "tests/lint/done-folder-docs.sh:2-15 header text is plain English; no new body comment"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/SKILL.md: frontmatter description compared with base (item 1)"
+  - ".agents/skills/feature-workflow/references/conventions.md: each shared-rule marker located across SKILL.md, references/ and modules/ at HEAD and at base"
+  - "tests/lint/shared-rule-homes.sh: marker list and one-file-per-marker rule"
+  - "scratch worktree of HEAD (removed): lint/shared-rule-homes 20 passed, 3 failed (fork_turns in two files, Leave the small path, small-path.md still exists); all three already fail at base and belong to later tasks. lint/review-escalation-docs 72/72, lint/done-folder-docs 16/16, lint/md-links 6/6"
+  - ".agents/skills/feature-workflow/modules/deferred-handoff.md: Write section's Used at line, the text the changed test now reads"
+  - ".agents/skills/feature-workflow/modules/discovered-work.md, questioning-loop.md, large-path.md: headings the new links point at (Assess each report first, Entry, Conventions) all exist"
+  - ".agents/skills/feature-workflow/scripts/status-transition.sh:97 and initiative-transition.sh:71-85: exit codes behind the conventions.md claim that usage and environment errors exit 1; confirmed"
+  - ".agents/skills/feature-workflow/modules/implementation-orchestrator.md: fork_turns marker is there at base as well, so the duplicate is not introduced by this diff"
+not_checked: []
+out_of_scope_noticed: []

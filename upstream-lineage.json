@@ -1062,71 +1062,130 @@
       "reviewed_at": "2026-10-19"
     },
     {
-      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "path": ".agents/skills/feature-workflow/modules/implementation-waves.md",
       "kind": "derived",
       "upstream_repo": "mattpocock/skills",
       "upstream_path": "skills/engineering/implement-spec/SKILL.md",
       "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
       "commit_basis": "blob-match",
       "changes": [
-        "took frontier-driven waves, one worktree and branch per implementer, background launches, context pointers, a dedicated integration owner, worktree clean-up",
-        "added the four gates (3.5-3.11), integration batching per work type, the light-path suite gap and Codex advisory calls",
-        "took integration branch per spec (spec/NNN-slug), worktree+branch per ticket created by the orchestrator on both hosts, merge back in id order, PR for review (task PR/MR non-blocking by default; spec PR at sign-off) (D85)"
+        "took frontier-driven waves, one worktree and branch per implementer, background launches, context pointers, worktree clean-up after each merge",
+        "added the gates (3.5-3.9), the light-path suite lookup (3.13) and Codex advisory calls",
+        "took integration branch per spec (spec/NNN-slug), worktree+branch per ticket created by the orchestrator on both hosts, merge back in id order, PR for review (task PR/MR non-blocking by default; spec PR at sign-off) (D85)",
+        "moved here from implementation-orchestrator.md with the wave loop"
       ],
       "why": "Execution skeleton kept; gates are ours (plan).",
-      "reviewed_at": "2026-10-19"
+      "reviewed_at": "2026-11-01"
     },
     {
-      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "path": ".agents/skills/feature-workflow/modules/implementation-finish.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/implement-spec/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took worktree clean-up at the end",
+        "added the browser-suite gate (3.10-3.11) and the light-path suite gap (3.14)",
+        "moved here from implementation-orchestrator.md with the hand off"
+      ],
+      "why": "Hand-off clean-up kept; the closing gates are ours (plan).",
+      "reviewed_at": "2026-11-01"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/implementation-setup.md",
       "kind": "derived",
       "upstream_repo": "obra/superpowers",
       "upstream_path": "skills/subagent-driven-development/SKILL.md",
       "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
       "commit_basis": "survey-date",
       "changes": [
-        "took: record the base commit before dispatch, resume the same implementer with findings, cap a fix loop at five rounds, never fix in the controller, a ledger that survives compaction (pattern only, no text copied)"
+        "took: record the base commit before dispatch (pattern only, no text copied); moved here from implementation-orchestrator.md with 3.1"
       ],
-      "why": "Review-loop discipline.",
-      "reviewed_at": "2026-10-19"
+      "why": "The implementation base the size budget and the review diff count from.",
+      "reviewed_at": "2026-11-01"
     },
     {
-      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "path": ".agents/skills/feature-workflow/modules/implementation-waves.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/subagent-driven-development/SKILL.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: resume the same implementer with findings, never fix in the controller, a ledger that survives compaction (pattern only, no text copied); moved here from implementation-orchestrator.md with the wave loop"
+      ],
+      "why": "Review-loop discipline.",
+      "reviewed_at": "2026-11-01"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/implementation-gates.md",
+      "kind": "derived",
+      "upstream_repo": "obra/superpowers",
+      "upstream_path": "skills/subagent-driven-development/SKILL.md",
+      "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "commit_basis": "survey-date",
+      "changes": [
+        "took: resume the same implementer with a gate's findings, cap a fix loop at five rounds (pattern only, no text copied); moved here from implementation-orchestrator.md with the per-task gates"
+      ],
+      "why": "Review-loop discipline for the per-task gates.",
+      "reviewed_at": "2026-11-01"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/implementation-shared-core.md",
+      "kind": "derived",
+      "upstream_repo": "mattpocock/skills",
+      "upstream_path": "skills/engineering/implement-spec/SKILL.md",
+      "upstream_commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit_basis": "blob-match",
+      "changes": [
+        "took a dedicated integration owner; moved here from implementation-orchestrator.md with 3.2",
+        "added integration batching per work type"
+      ],
+      "why": "Shared work merged by one owner before a wave.",
+      "reviewed_at": "2026-11-01"
+    },
+    {
+      "path": ".agents/skills/feature-workflow/modules/implementation-waves.md",
       "kind": "derived",
       "upstream_repo": "obra/superpowers",
       "upstream_path": "skills/using-git-worktrees/SKILL.md",
       "upstream_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
       "commit_basis": "survey-date",
       "changes": [
-        "took: native worktree tool first, `git worktree add` as fallback"
+        "took: native worktree tool first, `git worktree add` as fallback",
+        "moved here from implementation-orchestrator.md with the wave loop"
       ],
       "why": "Host-neutral worktree creation.",
-      "reviewed_at": "2026-10-19"
+      "reviewed_at": "2026-11-01"
     },
     {
-      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "path": ".agents/skills/feature-workflow/modules/implementation-waves.md",
       "kind": "derived",
       "upstream_repo": "open-gsd/gsd-core",
       "upstream_path": "agents/gsd-planner.md",
       "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
       "commit_basis": "survey-date",
       "changes": [
-        "took waves computed from depends_on"
+        "took waves computed from depends_on",
+        "moved here from implementation-orchestrator.md with the wave loop"
       ],
       "why": "Parallelism from the tasks.md dependency graph.",
-      "reviewed_at": "2026-10-19"
+      "reviewed_at": "2026-11-01"
     },
     {
-      "path": ".agents/skills/feature-workflow/modules/implementation-orchestrator.md",
+      "path": ".agents/skills/feature-workflow/modules/implementation-waves.md",
       "kind": "derived",
       "upstream_repo": "athola/claude-night-market",
       "upstream_path": "plugins/spec-kit/agents/implementation-executor.md",
       "upstream_commit": "54fcc859d173bdf473937011f6a911bfc9c6a582",
       "commit_basis": "release-tag",
       "changes": [
-        "prior art for execution tracking only"
+        "prior art for execution tracking only",
+        "moved here from implementation-orchestrator.md with the wave loop"
       ],
       "why": "No text used; listed for traceability.",
-      "reviewed_at": "2026-10-19"
+      "reviewed_at": "2026-11-01"
     },
     {
       "path": ".agents/skills/feature-workflow/modules/discovery.md",
@@ -1156,7 +1215,7 @@
       "reviewed_at": "2026-10-19"
     },
     {
-      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "path": ".agents/skills/feature-workflow/modules/discovery-impact.md",
       "kind": "derived",
       "upstream_repo": "bmad-code-org/BMAD-METHOD",
       "upstream_path": "docs/build/build-a-change.md",
@@ -1169,7 +1228,7 @@
       "reviewed_at": "2026-10-19"
     },
     {
-      "path": ".agents/skills/feature-workflow/modules/discovery.md",
+      "path": ".agents/skills/feature-workflow/modules/discovery-impact.md",
       "kind": "derived",
       "upstream_repo": "bmad-code-org/BMAD-METHOD",
       "upstream_path": "skills/bmad-build/customize.toml",

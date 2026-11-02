@@ -15,8 +15,8 @@
 # stdout: nothing on exit 0; on exit 1 one line per offending path, naming it.
 # Exit: 0 no change under artifacts/; 1 refused; 2 usage or environment error (bad arguments, not a git repository, unknown
 #   revision, a spec dir that is not NNN-slug, no spec branch, no history shared with the spec branch).
-# Called by: modules/verification-setup.md (1.2, 1.3 merges), modules/implementation-orchestrator.md (3.2 integration merge,
-#   3.16 task merge, on both paths). Never pipe it into another command inside an && chain: the pipe hides its exit code.
+# Called by: modules/verification-setup.md (1.2, 1.3 merges), modules/implementation-shared-core.md (3.2 integration merge),
+#   modules/implementation-waves.md (3.16 task merge, on both paths). Never pipe it into another command inside an && chain: the pipe hides its exit code.
 # Notes: Requires git. Read-only. bash 3.2 compatible.
 # Sources: first-party. Pattern: commit-workflow-data.sh (spec-checkout resolution, spec-dir normalising).
 

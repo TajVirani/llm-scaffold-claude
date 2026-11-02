@@ -8,17 +8,18 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 
 1. `ST step .workflow/specs/NNN-slug 0.3.8` (marks where to resume).
 2. Read the newest **Deeper prompt** entry in `design-log.md` (0.3.22): its Ask, Goals, Downstream, Tools and Gotchas are the loop's input and frame the design tree; its **Not asked for** items stay out of scope. When its `Agreement:` line says pending and no later Questioning round logs the answer, the next ask carries it (the first round, or the 0.3.19 summary when no round is needed): open the message with the block and make its first question "Pass this deeper prompt on as written?", with "Yes (Recommended)" and "Change it". Log the answer as that round's first question. A change: apply it, append the revised block as a new **Deeper prompt** entry (`Agreement: agreed in Questioning round <n>`), and ask again, in the next round, every answer the change touches. Then read `spec.md` (the draft goal), `codebase-map.md` (where recommended answers come from) and `design-log.md` (decisions already made; create it from [../assets/design-log.md](../assets/design-log.md) if missing).
-3. On a loop-back, seed the tree with the reason you came back:
+3. On a loop-back, seed the tree with the reason you came back. Every loop-back sets `draft`: the step file that owns the gate makes the status call below before loading this loop, and `ST` refuses any other route to `draft` (on exit 2 the owner stops and reports the reason).
 
-   | From | Seed question |
-   | --- | --- |
-   | 0.4.7 | The conflict between the impact model and the goal |
-   | 0.6 | Each exit-gate check that was not clear; for a scope change before 1.1, the stakeholder's change, verbatim |
-   | 2.2 / 2.3 | What made the spec unspecifiable, or the interfaces under test not agreed |
-   | 4.5 / 4.6 | The triage finding `F<n>` that needs a decision, or the upstream problem the third pass exposed |
-   | 5.6 | The stakeholder's change request, verbatim |
-   | 00.24 | The discovered problem and its evidence, from the newest **Discovered work** entry in `design-log.md` |
-   | 00.29 (budget re-scope) | The size-budget crossing and the reduction the stakeholder wants, from the newest **Discovered work** entry in `design-log.md` |
+   | From | Owner | Status call before loading the loop | Seed question |
+   | --- | --- | --- | --- |
+   | 0.4.7 goal conflict | discovery-impact | none (already `draft`); `ST step .workflow/specs/NNN-slug 0.3.8` | The conflict between the impact model and the goal |
+   | 0.6 not clear | discovery-impact | none (already `draft`); `ST step .workflow/specs/NNN-slug 0.3.8` | Each exit-gate check that was not clear |
+   | Scope change after 0.6, before 1.1 starts | verification-setup | `ST status .workflow/specs/NNN-slug draft --step 0.6` (refused once 1.1 has started) | The stakeholder's change, verbatim |
+   | 2.2 / 2.3 | task-breakdown | `ST status .workflow/specs/NNN-slug draft --step 2.2` or `--step 2.3` | What made the spec unspecifiable, or the interfaces under test not agreed |
+   | 4.5 / 4.6 | review-triage | `ST status .workflow/specs/NNN-slug draft --step 4.5` or `--step 4.6` | The triage finding `F<n>` that needs a decision, or the upstream problem the third pass exposed |
+   | 5.6 | the router (5.6) | `ST status .workflow/specs/NNN-slug draft --step 5.6` | The stakeholder's change request, verbatim |
+   | 00.24 | discovered-work | `ST status .workflow/specs/NNN-slug draft --step 00.24` (from `blocked` only) | The discovered problem and its evidence, from the newest **Discovered work** entry in `design-log.md` |
+   | 00.29 (budget re-scope) | discovered-work | `ST status .workflow/specs/NNN-slug draft --step 00.29` (from `blocked` only) | The size-budget crossing and the reduction the stakeholder wants, from the newest **Discovered work** entry in `design-log.md` |
 
 ## The round
 
@@ -41,7 +42,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
    Q2: <question>
    ````
 
-   On Codex, launch as the [SKILL.md "Host notes"](../SKILL.md#host-notes) Launch row says: `agent_type` `fact_lookup`, `task_name` `s<NNN>_fact_lookup` (for example `s007_fact_lookup`), `fork_turns: "none"`.
+   Launch it on your host as [launching](../references/launching.md) says.
 
    Ask the rest of the frontier now; only questions downstream of a pending lookup wait for it. Its return, per question (format fixed in `.agents/agents/fact-lookup.md`):
    - **Answer + Source:** the fact is settled; use it in the recommendation, never ask it.
@@ -66,6 +67,8 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 8. **0.3.16–0.3.17 Scope gate.** For each answer that puts work outside the agreed scope, run [deferred-handoff](deferred-handoff.md#write) **Write** at step `0.3.17`. It writes `.workflow/deferred/<slug>.md`, adds it to `spec.md` `deferred` and Non-goals, and logs the **Scope decision**.
 9. **0.3.18 Questions remaining?** Answers reshape the tree: settled decisions push the frontier outward and surface new questions. Any open or newly surfaced → `ST step .workflow/specs/NNN-slug 0.3.8` and run the next round. None → 0.3.19.
 
+On the small path: entered from discovery, the loop runs one round. The deeper prompt's agreement is its first question (Entry step 2), and the settled-design summary is always its last question ([Last round](#settle-the-goal)). An answer that defers a question to a deep dive, leaves one open, or surfaces a new one (0.3.18 is Yes) means [leave the small path](#leave-the-small-path). A loop-back to 0.3.8 (from 4.5, 4.6, 5.6, 00.24 or 00.29) runs the loop as written, with no limit of one round; the spec stays on the small path unless 0.3.19 finds a fact that is not clean.
+
 ## Settle the goal
 
 **0.3.19 Confirm or revise the goal.** The frontier is empty when every branch is visited and nothing is silently assumed. Summarise the settled design in a few lines and have the stakeholder confirm shared understanding; a correction reopens the frontier. The confirmation rides on an ask that happens anyway:
@@ -75,7 +78,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 
 **One feature?** Before writing `spec.md`, check that the settled design is one feature: one capability set with one success signal, buildable as one spec. No → convert at [0.3.23](large-path.md#0323-convert-a-spec-into-an-initiative) and write nothing here; the large path takes the design log with it. Yes → continue.
 
-Once confirmed, evaluate the **0.3.20 light-path facts** (table in [discovery.md](discovery.md#0320-light-path-test)) so the same write records them, then write `spec.md`:
+Once confirmed, evaluate the **0.3.20 light-path facts** (table in [discovery-impact.md](discovery-impact.md#0320-light-path-test)) so the same write records them, then write `spec.md`:
 
 ```bash
 ST step .workflow/specs/NNN-slug 0.3.19
@@ -87,7 +90,21 @@ ST step .workflow/specs/NNN-slug 0.3.19
 - **Open Questions:** empty; anything still open means the loop is not done.
 - Frontmatter `light_path`: `true` only when all three facts are clean. Leave `status` and every other key as they are.
 
-Return to [discovery](discovery.md#0320-light-path-test) at 0.3.20. The size `budget` is not written here: discovery writes it at 0.3.20 on the light path, task-breakdown at 2.5 on the full path.
+On the small path: keep `small_path: true` and `light_path: true` when the three facts are clean. A fact that is not clean, a library the project does not have, or a correction that reopens the frontier means [leave the small path](#leave-the-small-path) first.
+
+Load [discovery-impact](discovery-impact.md#0320-light-path-test) at 0.3.20. The size `budget` is not written here: discovery-impact writes it at 0.3.20 on the light path, task-breakdown at 2.5 on the full path.
+
+## Leave the small path
+
+The small path holds only while the request stays as small as it looked at 0.0.3. Leave it the moment any of these is true:
+
+- **Placement (0.3.3):** the owning module is not clear, so placement needs its own question.
+- **The round:** an answer defers a question to a deep dive, leaves one open, or surfaces a new one (0.3.18 is Yes), so a second round is needed.
+- **The goal (0.3.19):** a light-path fact (table in [discovery-impact](discovery-impact.md#0320-light-path-test)) is not clean, or the request needs a library the project does not have.
+
+To leave: append a dated `Left the small path: <reason>` line to `design-log.md` and tell the stakeholder in one line, leading with the progress line. Then carry on in the step file you are in, as written: placement at 0.3.4, a second round at 0.3.8, the full path after 0.3.20. The small path skipped library evaluation, so launch `library-evaluation` now as [discovery](discovery.md#02-retrieve-existing-system-context) 0.2.5 says and paste its report into **Library options** in `codebase-map.md`. From then on no "On the small path:" note applies, but one write remains: at 0.3.19, write `small_path: false` with the rest of `spec.md`, and `light_path` from the three facts.
+
+Done when the line is logged, the stakeholder has been told and `library-evaluation` is launched.
 
 ## Done
 

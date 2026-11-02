@@ -1,0 +1,47 @@
+status: done
+summary: "Discovery is split at the questioning loop: modules/discovery.md keeps 0.1-0.3.7 and 0.3.22, and the new modules/discovery-impact.md holds 0.3.20, 0.4-0.6 and the fresh-session offer. 0.2.1 runs one fenced command that prints only the module names and owns paths from rules.md, and reads terms through domain-modeling's term-list.sh. The full Ownership block is read at 0.3.3 and Shared core at 0.3.20. The Route table has a discovery-impact row for draft at 0.3.20, 0.4.x and 0.5.x, and the links, asset headers, PROVENANCE and lineage now point to it. Outside the predicted files: small-path.md (its 0.3.20 link had to move for lint/md-links), and the header comments of scripts/spec-worktree.sh and scripts/rules-setting.sh plus assets/task.md and assets/tasks.md, which named discovery.md for 0.3.20."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t5"
+branch: "task/009-slim-workflow-context/T05-discovery-split"
+base_commit: "498a2726da28e065ee4ec2d6e2a57f15cf60836e"
+head_commit: "396d3939f5971c0a24cea2cfe5dd0451d7358d70"
+files_changed:
+  - ".agents/skills/feature-workflow/SKILL.md"
+  - ".agents/skills/feature-workflow/modules/discovery.md"
+  - ".agents/skills/feature-workflow/modules/discovery-impact.md"
+  - ".agents/skills/feature-workflow/modules/questioning-loop.md"
+  - ".agents/skills/feature-workflow/modules/small-path.md"
+  - ".agents/skills/feature-workflow/assets/codebase-map.md"
+  - ".agents/skills/feature-workflow/assets/data-model.md"
+  - ".agents/skills/feature-workflow/assets/design-log.md"
+  - ".agents/skills/feature-workflow/assets/verification-plan.md"
+  - ".agents/skills/feature-workflow/assets/task.md"
+  - ".agents/skills/feature-workflow/assets/tasks.md"
+  - ".agents/skills/feature-workflow/scripts/spec-worktree.sh"
+  - ".agents/skills/feature-workflow/scripts/rules-setting.sh"
+  - "PROVENANCE.md"
+  - "upstream-lineage.json"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite lint/affected-area; FAIL discovery 0.2.1 holds a fenced bash command (no bash block under the 0.2.1 label before the next step)"
+  green: "tests/run-all.sh --suite lint/affected-area; PASS lint/affected-area passed=6 failed=0. Also tested by hand: a rules.md whose Ownership block holds only comments makes the command print nothing and exit 0"
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/009-slim-workflow-context --task-id T5 --cwd <worktree>; lint pass, test (scoped: lint/affected-area) pass. Full tests/run-all.sh: passed=4400 failed=30 (base: 4396/31). The only failing suites are lint/shared-rule-homes, lint/small-path-docs, lint/step-routing and lint/workflow-load-size, the Phase 1 tests of T7, T8 and T10, and they fail on the same checks as at base. Their remaining failures are about small-path.md or the missing implementation-waves.md."
+  toolchain: ".workflow/specs/done/009-slim-workflow-context/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "Small-path notes in discovery.md and discovery-impact.md: these belong to T7. The existing small-path.md text was kept as it was, with only its 0.3.20 link and pointer re-pointed."
+  - "The PROVENANCE feature-workflow summary row (line 11, which lists modules): left alone because T6 edits the same row. discovery-impact.md gets its own Sources line next to discovery.md."
+  - "The route for a draft spec at step 0.3.23 and the questioning-loop route for a draft spec at 0.6: unchanged, so routing behaves as it does today."
+  - "The implementation-orchestrator mentions in the script and asset headers: they belong to T9. Only the discovery.md (0.3.20) pointers were moved."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "The diff adds or changes no skill description; the SKILL.md frontmatter is untouched."}
+  - {item: 2, verdict: not-applicable, note: "No agent definition is added or changed."}
+  - {item: R1, verdict: pass, note: "The new file name discovery-impact.md says what it holds; the anchors keep their names (#0320-light-path-test, #seeded-from-a-work-item)."}
+  - {item: R2, verdict: pass, note: "discovery.md 0.2.1 says why the globs are stripped (the cache scripts take plain paths) and why the command reads nothing more (the blocks are read at 0.3.3 and 0.3.20)."}
+  - {item: R3, verdict: pass, note: "The only new code comment, in the discovery-impact.md 0.3.20 block, says what the Shared core read is for (the task record's touches_core) and does not repeat the command."}
+  - {item: R4, verdict: pass, note: "The new comments name no decision ids or workflow docs. The script header lines that changed are interface headers that name their callers, which is allowed."}
+  - {item: R5, verdict: pass, note: "Plain sentences; the terms are glossary terms (term list, affected area, Shared core)."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over every changed and untracked file exited 0."}

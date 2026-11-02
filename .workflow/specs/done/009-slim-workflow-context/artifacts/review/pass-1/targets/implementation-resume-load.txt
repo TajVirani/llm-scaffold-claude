@@ -1,0 +1,2 @@
+bash: tests/lint/workflow-load-size.sh: Permission denied
+exit: 0

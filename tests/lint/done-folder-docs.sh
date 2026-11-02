@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Suite: lint over the feature-workflow text that wires the Done folder into sign-off: modules/sign-off.md 5.4, 5.7 and 5.8,
-#   modules/large-path.md 6.13, SKILL.md, the check-pr-body.sh header, the PR template and review-lessons template headers.
+#   modules/large-path.md 6.13, references/conventions.md, the check-pr-body.sh header, the PR template and review-lessons
+#   template headers.
 # Covers: JRN-001: 5.7 runs `move-to-done.sh --check .workflow/specs/NNN-slug` before the `status ... done --step 5.7` call and
 #   says to stop, listing what is open, when it fails. JRN-006: 5.8 runs, in this order, the commit of what is left, the
 #   check-pr-body.sh run on the top-level pr-body.md, the move (`move-to-done.sh .workflow/specs/NNN-slug`), check-pr-body.sh on
@@ -9,8 +10,9 @@
 #   between the post-move check and the marker no line tells the main session to fix, Edit or log anything; the marker stays
 #   directly above the fenced publish block. 5.4 says 5.8 publishes the body unchanged apart from the spec path, and no line in
 #   sign-off.md, the check-pr-body.sh header or the PR template still says the body is published unchanged without naming the
-#   spec path. SKILL.md names move-to-done.sh; large-path 6.13 names the Done folder; the review-lessons template's origin_spec
-#   rule names the Done folder. The checks match the design's intent, not exact prose. Reads the repo; writes nothing.
+#   spec path. The conventions name move-to-done.sh; large-path 6.13 names the Done folder; the review-lessons template's
+#   origin_spec rule names the Done folder. The checks match the design's intent, not exact prose. Reads the repo; writes
+#   nothing.
 # shellcheck disable=SC2016,SC2034,SC2329  # check expressions are single-quoted and eval'd on purpose, and read variables and call helpers shellcheck cannot see
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -110,7 +112,7 @@ STALE=$(stale_unchanged_lines "$SIGN_OFF" "$FW_SKILL/scripts/check-pr-body.sh" "
 check "JRN-006 no line says the body is published unchanged without naming the spec path" '[[ -z $STALE ]]' "$STALE"
 
 echo "== the rest of the workflow names the Done folder"
-check "SKILL.md names move-to-done.sh" 'grep -q "move-to-done\.sh" "$FW_SKILL/SKILL.md"'
+check "the conventions name move-to-done.sh" 'grep -q "move-to-done\.sh" "$FW_SKILL/references/conventions.md"'
 check "large-path 6.13 names the Done folder" 'step_section "$LARGE_PATH" 6.13 | grep -q "specs/done"'
 check "JRN-004 the review-lessons template's origin_spec rule names the Done folder" \
   'grep -E "^[[:space:]]*- origin_spec:" "$FW_SKILL/assets/review-lessons.md" | grep -q "specs/done"'

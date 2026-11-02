@@ -239,8 +239,8 @@ eq scope-none-no-flags "$(jq -c '.results[] | select(.key=="test") | has("scoped
 # The modules that read `tree` describe it as the script builds it: rules.md and the profiles count, so a 5.3 edit to them re-runs.
 # shellcheck disable=SC2034  # read inside the eval'd check strings below
 FW="$AGENTS_SRC/skills/feature-workflow/modules"
-check docs-orchestrator-tree-counts-rules-and-profiles \
-  'grep -F "toolchain.json\` records \`tree\`" "$FW/implementation-orchestrator.md" | grep -qF "\`rules.md\` and the profiles stay in"'
+check docs-gates-tree-counts-rules-and-profiles \
+  'grep -F "toolchain.json\` records \`tree\`" "$FW/implementation-gates.md" | grep -qF "\`rules.md\` and the profiles stay in"'
 check docs-sign-off-tree-counts-rules-and-profiles 'grep -F -B 3 -- "--task-id sign-off-5.4" "$FW/sign-off.md" | grep -qF "a 5.3 edit to \`rules.md\` or a profile does"'
 
 shellcheck_files "shellcheck: run-toolchain.sh" "$RT"

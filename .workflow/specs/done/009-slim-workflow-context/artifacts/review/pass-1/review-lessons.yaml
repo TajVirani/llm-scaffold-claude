@@ -1,0 +1,23 @@
+lens: review-lessons
+status: done
+blocked_reason: ""
+baseline_revision: "a29eca7c475544a99ccc9d986cde87e02f4f140d"
+head: "3367020ca0ce5e1ec212361e53bd2ec0bdbab664"
+findings: []
+checked:
+  - ".workflow/review-lessons.md: header and fenced yaml block read; parsed with yq '.lessons' (7 entries, RL-001 to RL-007, none retired)"
+  - ".workflow/decisions/pitfalls.md: all 18 pitfalls read (titles, What happened, Where, Spec, Prevented by)"
+  - ".workflow/decisions/retrospectives/00010-worktree-guard-followups.md, 00011-interrupted-run-cleanup.md, 00012-extractor-multiline-quotes.md, 00013-validator-diagnostic.md, 002-review-lessons.md, 003-bash-cache-extractor.md, 004-scoped-test-runs.md, 005-cache-build-followups.md, 006-result-file-guard.md, 007-done-folder.md, 008-pr-description-template.md: Process lessons tables read (11 files)"
+  - ".workflow/specs/done/009-slim-workflow-context/spec.md: baseline_revision, Assumptions and Non-goals read; the spec has no Known gaps section, so no accepted gap applies to any candidate"
+  - "diff a29eca7c475544a99ccc9d986cde87e02f4f140d...3367020 excluding the spec folder: 52 files, 2064 insertions, 851 deletions; added lines of modules, references, SKILL.md, assets, PROVENANCE, tests/README.md and the changed scripts read or searched; added tests read for placeholder fills and command extraction"
+  - "RL-001: no agent definition, install-manifest or project-setup file in the diff; PROVENANCE.md adds no count; no task type added; no hit"
+  - "RL-002: no PROVENANCE row says placeholder or to be sourced; no .agents/lib file changed or newly sourced as a stub; no hit"
+  - "RL-003: scripts changed only in '# Called by' and similar header comments (budget-check, check-merge-artifacts, check-task-result, commit-workflow-data, open-task-pr, rules-setting, spec-worktree, status-transition, task-waves); no script behaviour changed, so no prose describes a changed call; no hit"
+  - "RL-004: added lines in modules and assets name no specific .workflow/deferred/, .workflow/specs/ or .workflow/decisions/ file (only generic folders, globs, the NNN-slug placeholder, and the example spec_dir in references/launching.md, which is outside RL-004 paths); no hit"
+  - "RL-005: no change under .agents/hooks/ or check-worktree-scope.sh; no hit"
+  - "RL-006: no added test fills worktree, checkout or launched placeholders with one expected path; the changed guard test only renames the module it reads; no hit"
+  - "RL-007: no change under the bash graph extractors; no hit"
+  - "Pitfalls and retrospective rows checked across the diff, no repeat found: gate checkers are never piped or chained with && (the artifacts gate and check-task-result run line by line); no isolation launch remains and Phase 1 and integration worktrees are created off spec/NNN-slug; no unquoted heredoc in the added docs; no frontmatter edit by yq -i (the one yq -i edits implementation.yaml, a plain yaml file); every new shellcheck disable carries its reason; no set -m, no capability id assignment, no pass-counter change, no stale reference to implementation-orchestrator.md or small-path.md outside the spec folder and PROVENANCE history"
+  - "Pitfall 'Write a mini-review re-check to the plain mini-review.yaml': the re-check brief is moved text from the baseline orchestrator and names no plain file, but profile-mini-review.md's Return writes the plain mini-review.yaml on every launch, so the guard holds; no hit"
+not_checked:
+  - "Single-bracket tests in the new domain-modeling/scripts/term-list.sh and the new tests/lint and tests/scripts files, against shell-scripts.md lines 27 and 64 ('new files use [[ ]]') and retrospective 002's grep-able churn item. T1 mini-review rounds 1 to 3 raised this; the final round kept [ ], so no churn repeats in this diff. A standards question for the standards lens, not a lesson repeat."

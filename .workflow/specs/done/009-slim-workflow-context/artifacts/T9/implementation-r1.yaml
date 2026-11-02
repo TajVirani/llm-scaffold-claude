@@ -1,0 +1,46 @@
+status: done
+summary: "The header comments of the eight feature-workflow scripts that still named implementation-orchestrator now name the step file that holds the step they mention (implementation-waves, implementation-gates, implementation-shared-core, implementation-setup, implementation-finish). spec-worktree.sh, assets/task.md and assets/tasks.md had no stale reference left, so they are unchanged. `grep -rn 'implementation-orchestrator\\|small-path\\.md' .agents` prints nothing."
+task_id: "T9"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/009-slim-workflow-context/.workflow/.worktrees/s009_t9"
+branch: "task/009-slim-workflow-context/T09-header-repoints"
+base_commit: "6a93bbfe2b3859c933f9d3414e64fed8c2309e02"
+head_commit: "bab76d55e8f17b6e1bf92b9b65c49989bf8d7a6e"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/budget-check.sh"
+  - ".agents/skills/feature-workflow/scripts/check-merge-artifacts.sh"
+  - ".agents/skills/feature-workflow/scripts/check-task-result.sh"
+  - ".agents/skills/feature-workflow/scripts/commit-workflow-data.sh"
+  - ".agents/skills/feature-workflow/scripts/open-task-pr.sh"
+  - ".agents/skills/feature-workflow/scripts/rules-setting.sh"
+  - ".agents/skills/feature-workflow/scripts/status-transition.sh"
+  - ".agents/skills/feature-workflow/scripts/task-waves.sh"
+tests_added: []
+evidence:
+  red: "grep -rn 'implementation-orchestrator\\|small-path\\.md' .agents; before the change it listed 9 lines in check-task-result.sh:64, commit-workflow-data.sh:22, open-task-pr.sh:37, budget-check.sh:47, rules-setting.sh:16 and :34, check-merge-artifacts.sh:18, status-transition.sh:84, task-waves.sh:43"
+  green: "grep -rn 'implementation-orchestrator\\|small-path\\.md' .agents; no output, exit 1. check-comments.sh over the changed files: exit 0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/009-slim-workflow-context --task-id T9 --cwd <worktree>; lint pass, test pass (scoped: 0 own suites, 1 excluded), TOTAL passed=4444 failed=0 (74 suites)"
+  toolchain: ".workflow/specs/done/009-slim-workflow-context/artifacts/T9/toolchain.txt (pass)"
+considered_not_built:
+  - "New tests: the task is comment-only, and its seam is the grep plus the existing lint and suites, so no behaviour needed a new test."
+  - "Editing spec-worktree.sh, assets/task.md and assets/tasks.md: none names a removed step file now (an earlier task re-pointed them); their mentions of 'the orchestrator' name the role, not a file."
+  - "task-waves.sh wording: implementation-waves.md never calls task-waves.sh (it picks each frontier from tasks.md with yq), so the header says that instead of keeping a 'Called by' claim that was already untrue."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "No code path added; header comments only."}
+  - {item: 2, verdict: not-applicable, note: "No hook changed."}
+  - {item: 3, verdict: not-applicable, note: "No error path changed."}
+  - {item: 4, verdict: not-applicable, note: "No write or check added."}
+  - {item: 5, verdict: not-applicable, note: "No exit code changed."}
+  - {item: 6, verdict: not-applicable, note: "No path resolution changed."}
+  - {item: 7, verdict: pass, note: "Only the 'Called by' lines and the rules-setting.sh 'used by' column changed; header shapes are intact."}
+  - {item: 8, verdict: not-applicable, note: "No new file; no test syntax touched."}
+  - {item: 9, verdict: not-applicable, note: "No function or shellcheck directive added."}
+  - {item: R1, verdict: not-applicable, note: "No names changed."}
+  - {item: R2, verdict: not-applicable, note: "No workaround or trade-off added."}
+  - {item: R3, verdict: pass, note: "The changed header lines say who calls each script, which the code cannot say."}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh (exit 0); the changed lines name module files in the header block, which R4 allows."}
+  - {item: R5, verdict: pass, note: "Step numbers (3.2, 3.15, 3.16) were already used in these headers; the wording is plain."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the 8 changed files: exit 0, no lines listed."}
