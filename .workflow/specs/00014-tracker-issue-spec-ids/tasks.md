@@ -105,7 +105,7 @@ tasks:
     pr: null
   - id: T6
     title: "Tracker setup"
-    status: pending
+    status: done
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T5]
     touches_core: false

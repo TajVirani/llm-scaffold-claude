@@ -1,0 +1,75 @@
+verdict: fail
+task_id: "T6"
+work_type: "shell-scripts"
+mode: re-check
+previous: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T6/mini-review-r1.yaml"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t6@3f432d3b9ef501679177a917ffbad3d53df36ee8..178c3ccbef6c2a62090dfd1178988db357ee9fc4"
+tool_output: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T6/toolchain.json"
+items:
+  - n: 1
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:243 (settings=$(wf_path \"$project_root\" \"$WF_ISSUE_TRACKING\")); WF_ISSUE_TRACKING is defined at .agents/lib/workflow-paths.sh:84; the only literal .workflow/ path is in header lines and in the test fixture"
+    carried_from: "r1"
+  - n: 2
+    verdict: not-applicable
+    location: "no hook file in the diff (the diff touches tracker-setup.sh, issue-tracking SKILL.md and tests/scripts/issue-tracking-setup.sh)"
+    carried_from: "r1"
+  - n: 3
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:39, 56, 75, 77, 82-89, 119-120, 131-134, 141, 143, 151, 153, 176, 242"
+    carried_from: "r1"
+  - n: 4
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:56, 75, 77, 95, 97, 100, 120, 131, 133, 141, 143, 151, 153, 159, 176; each caller's || exit or || die meets a function whose own failing path already dies; version_at_least (60-70) has only a here-string read, which cannot fail"
+    carried_from: "r1"
+  - n: 5
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:16-19 (# Exit block), 39 (die defaults to 2, 1 for refusals), 48 (usage exit 2), 242 (exit 2); no exit code other than 0, 1 or 2"
+    carried_from: "r1"
+  - n: 6
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:27 (cd -P of BASH_SOURCE), 29 (source of ../../../lib/workflow-paths.sh, which resolves to .agents/lib)"
+    carried_from: "r1"
+  - n: 7
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:2-23 (File, Purpose, Usage, Exit, Called by, Notes, Sources, the helper shape as issue-tracker.sh); no decision id"
+    carried_from: "r1"
+  - n: 8
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:1, 25 (set -euo pipefail), 77, 227 ([[ ]] throughout, no single-bracket test); tests/scripts/issue-tracking-setup.sh:42, 49, 131, 152 (the file's existing [[ ]] style kept)"
+    carried_from: "r1"
+  - n: 9
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:38, 41, 51, 59, 71, 81, 90, 109, 127, 138, 147, 168, 190 (each of the 13 functions has its # name ARGS : line directly above); no shellcheck disable= directive in the file"
+    carried_from: "r1"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:33, 36, 53, 60, 73, 82, 91, 111, 128, 139, 149, 170, 191 (names say their role; have, want, draft, missing and enabled match their use)"
+    carried_from: "r1"
+  - n: R2
+    verdict: fail
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:185"
+    note: "Line 185 loops over the bare ${missing[@]}; bash 3.2 (this script's stated target, and macOS /bin/bash) reads an empty array as unbound under set -u, so save exits 1 whenever all three labels already exist, and a reader would likely drop the guard as noise. Add a reason line above line 185 saying bash 3.2 reads an empty array as unbound under set -u. The r1 fail locations 65, 66 and 159 now carry reasons at lines 64 and 158 and pass."
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:64, 98, 152, 158, 162 (each body comment gives a reason; none restates the line below it)"
+  - n: R4
+    verdict: tool-covered
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh (whole file)"
+    note: "Covered by the lint key's comment lint, check-comments.sh over tracker-setup.sh, which passed in toolchain.json. No added comment points at a docs/ path or an internal URL."
+    carried_from: "r1"
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:21, 64, 98, 152, 158, 162 (plain words); line 4 names wf_origin_host, a code name defined in .agents/lib/workflow-paths.sh:243 and explained in the header; mikefarah yq v4 at line 21 is the precise tool name"
+read_outside_diff:
+  - ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T6/mini-review-r1.yaml: the previous items, R2 failure and locations 65, 66, 159"
+  - ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T6/toolchain.json and toolchain.txt: lint and scoped test results, and the tree 2dac552 they ran on"
+  - ".agents/skills/feature-workflow/references/readable-code.md: the rules and the Checking at 3.7 lines"
+  - "git diff 909d9db..178c3cc (fix diff, two comment lines added at tracker-setup.sh:64 and :158) and git diff 3f432d3..178c3cc (full diff: tracker-setup.sh, SKILL.md, tests/scripts/issue-tracking-setup.sh)"
+  - ".agents/skills/issue-tracking/scripts/tracker-setup.sh, whole file read with line numbers"
+  - "probe (scratch dir from mktemp, removed; no worktree touched) with /bin/bash 3.2.57: `set -euo pipefail; missing=(); for label in \"${missing[@]}\"; do ...; done` prints `missing[@]: unbound variable` and exits 1; the guarded form `${missing[@]+\"${missing[@]}\"}` prints `plain loop ok` and exits 0; `[[ ${#missing[@]} -gt 0 ]]` under set -u runs without error, so line 182 is fine"
+  - "git rev-parse 178c3cc^{tree} = 1d1a0ea, not the 2dac552 tree that toolchain.json recorded"
+not_checked:
+  - "tracker-setup.sh:132 `gh label list --limit 1000` carries no reason, and a reader could lower it to gh's default cap of 30 labels, so a project with more labels would look like it lacks some and save would fail on an existing label; not a fail here because a reader is unlikely to lower a large cap on purpose; settle by checking `gh label list --help` on a machine with gh (gh is not installed here)"
+  - "toolchain.json ran on tree 2dac552, but head 178c3cc has tree 1d1a0ea, so the lint key did not run on the two comments added at lines 64 and 158; rerun the lint key on the head to settle R4 by tool (the hand read of those two comments finds no id, path or URL)"
+out_of_scope_noticed: []

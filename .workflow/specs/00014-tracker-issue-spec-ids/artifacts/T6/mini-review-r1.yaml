@@ -1,0 +1,62 @@
+verdict: fail
+task_id: "T6"
+work_type: "shell-scripts"
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t6@3f432d3b9ef501679177a917ffbad3d53df36ee8..HEAD"
+tool_output: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T6/toolchain.json"
+items:
+  - n: 1
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:243 (settings=$(wf_path \"$project_root\" \"$WF_ISSUE_TRACKING\")); WF_ISSUE_TRACKING is defined at .agents/lib/workflow-paths.sh:84; the only literal .workflow/ path is in header lines and in the test fixture"
+  - n: 2
+    verdict: not-applicable
+    location: "no hook file in the diff (the diff touches tracker-setup.sh, issue-tracking SKILL.md and tests/scripts/issue-tracking-setup.sh)"
+  - n: 3
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:39, 56, 75, 77, 82-89, 119-120, 131-134, 141, 143, 151, 153, 176, 242"
+  - n: 4
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:56, 75, 77, 95, 97, 100, 120, 131, 133, 141, 143, 151, 153, 159, 176; each caller's || exit or || die meets a function whose own failing path already dies; version_at_least (60-70) has only a here-string read, which cannot fail"
+  - n: 5
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:16-19 (# Exit block), 39 (die defaults to 2, 1 for refusals), 48 (usage exit 2), 242 (exit 2); no exit code other than 0, 1 or 2"
+  - n: 6
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:27 (cd -P of BASH_SOURCE), 29 (source of ../../../lib/workflow-paths.sh, which resolves to .agents/lib)"
+  - n: 7
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:2-23 (File, Purpose, Usage, Exit, Called by, Notes, Sources, the helper shape as issue-tracker.sh); no decision id"
+  - n: 8
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:1, 25 (set -euo pipefail), 77, 227 ([[ ]] throughout, no single-bracket test); tests/scripts/issue-tracking-setup.sh:42, 49, 131, 152 (the file's existing [[ ]] style kept)"
+  - n: 9
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:38, 41, 51, 59, 71, 81, 90, 109, 127, 138, 147, 168, 190 (each of the 13 functions has its # name ARGS : line directly above); no shellcheck disable= directive in the file"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:33, 36, 53, 60, 73, 82, 91, 111, 128, 139, 149, 170, 191 (names say their role; have, want, draft, missing and enabled match their use)"
+  - n: R2
+    verdict: fail
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:65, 66, 159"
+    note: "The bare 10# at lines 65 and 66 and the double-style option at line 159 carry no reason. Removing 10# makes a version part with a leading zero, such as 09, fail as octal, so 2.09.0 passes the 2.94.0 minimum (probe in read_outside_diff). Removing the double style makes the saved labels bare yes and single-quoted, which a YAML 1.1 reader takes as a boolean. Fix: add a one-line reason above line 65 (10# keeps a part such as 09 decimal) and above line 159 (labels stay strings such as yes and 123 for YAML 1.1 readers)."
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:98, 152, 162 (each body comment gives a reason; none restates the line below it)"
+  - n: R4
+    verdict: tool-covered
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh (whole file)"
+    note: "Covered by the lint key's comment lint, check-comments.sh over tracker-setup.sh, which passed in toolchain.json. No added comment points at a docs/ path or an internal URL."
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/issue-tracking/scripts/tracker-setup.sh:21, 98, 152, 162 (plain words); line 4 names wf_origin_host, a code name defined in .agents/lib/workflow-paths.sh:243 and explained in the header; mikefarah yq v4 at line 21 is the precise tool name"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh: WF_ISSUE_TRACKING (line 84), wf_project_root (133-151) and wf_origin_host (243-255) contracts, to judge the error paths and the path build"
+  - ".agents/skills/issue-tracking/scripts/issue-tracker.sh lines 1-22: sibling helper header shape for item 7"
+  - ".agents/skills/feature-workflow/scripts/next-spec-number.sh:74 and :113: the bare 10# idiom used in a sibling without a comment; checked before failing R2 at lines 65 and 66"
+  - ".agents/skills/feature-workflow/references/readable-code.md: the rules and the Checking at 3.7 lines"
+  - "tests/scripts/issue-tracking-setup.sh: new and existing [[ ]] lines and the header"
+  - "probe (scratch dir from mktemp, removed; no worktree touched): the version compare with and without 10# gives 2.09.0 accepted as at least 2.94.0 without it, with the octal error printed twice; yq -n output with and without style=double gives in_progress: yes bare and backlog: 'Stage: to do' single-quoted without it; read -r -a on an empty here-string returns 0"
+not_checked:
+  - ".agents/skills/issue-tracking/scripts/tracker-setup.sh:131 gh label list --limit 1000 carries no reason, and a reader could lower it to gh's default label cap; not a fail because a reader is unlikely to undo a large cap; settle by checking gh label list --help on a machine with gh (gh is not installed here)"
+out_of_scope_noticed: []

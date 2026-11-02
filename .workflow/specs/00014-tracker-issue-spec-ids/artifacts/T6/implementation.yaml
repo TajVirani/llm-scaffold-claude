@@ -1,0 +1,50 @@
+status: done
+summary: "tracker-setup.sh check now refuses with exit 1 and a named reason (origin on neither host, CLI missing, older than gh 2.94.0 / glab 1.115.0, not logged in, issues turned off) and otherwise prints the host first; save runs the same check, creates missing flow labels only with --create-labels and writes .workflow/issue-tracking.yaml, and save --none writes issue_tracker: none with no CLI call. SKILL.md gains the Tracker setup section. The header's old claim that check prints missing-label lines was dropped to match the task file, since check takes no labels and save already names missing ones; the suite also gained edge cases, outside the predicted files."
+task_id: "T6"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t6"
+branch: "task/00014-tracker-issue-spec-ids/T06-tracker-setup"
+base_commit: "3f432d3b9ef501679177a917ffbad3d53df36ee8"
+head_commit: "a1384324ca835f043bc9ce3dde6fb86cf5d1cb55"
+files_changed:
+  - ".agents/skills/issue-tracking/scripts/tracker-setup.sh"
+  - ".agents/skills/issue-tracking/SKILL.md"
+  - "tests/scripts/issue-tracking-setup.sh"
+tests_added:
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "check accepts a glab at exactly the minimum version 1.115.0", kind: edge}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "check accepts a gh at exactly the minimum version 2.94.0", kind: edge}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "check refuses a gh one patch below the minimum, naming the minimum 2.94.0", kind: edge}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "save with two flow labels the same exits 2 naming the clash, with no tracker call and nothing written", kind: negative}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "save when the tracker cannot be reached exits 1 with the CLI's message, writing nothing", kind: negative}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "save writes flow labels that look like YAML values back as the same strings", kind: edge}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "save replaces a settings file that says none", kind: edge}
+  - {file: "tests/scripts/issue-tracking-setup.sh", test: "save --none outside a git repository exits 2, writing nothing", kind: negative}
+evidence:
+  red: "tests/run-all.sh --suite scripts/issue-tracking-setup against the stub; FAIL JRN-010 check on a usable GitLab tracker exits 0 and prints gitlab first (got=0|placeholder want=0|gitlab); passed=1 failed=18. After the check slice: passed=11 failed=8 (save cases and shellcheck SC2100 on PROG). The new edge test 'check refuses a gh one patch below the minimum' failed first on a leftover GitHub settings file from an earlier save (a test fixture issue, fixed by removing it first)."
+  green: "tests/run-all.sh --suite scripts/issue-tracking-setup; PASS passed=27 failed=0"
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00014-tracker-issue-spec-ids --task-id T6 --cwd <worktree>; lint pass, test pass (scoped, own 1 suite, 4 excluded; scripts/issue-tracking-setup 27/27)"
+  toolchain: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T6/toolchain.txt (pass)"
+considered_not_built:
+  - "check printing missing-label lines: the task file says check prints the host first and takes no labels; save without --create-labels already names the missing ones, so the header line was dropped"
+  - "auth status scoped to the origin's hostname (--hostname): gh and glab check every configured host and could refuse over an unrelated host; the fakes do not model it and the task does not ask"
+  - "case-insensitive label matching on GitHub: an existing 'Done' with an agreed 'done' makes gh label create fail, which exits 1 with gh's message rather than harming data"
+  - "refusing labels that hold a comma: issue-tracker.sh passes GitLab labels comma-joined, but no contract asks setup to guard it"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "tracker-setup.sh builds the settings path with wf_path and WF_ISSUE_TRACKING (main block); only the test fixture spells .workflow/issue-tracking.yaml"}
+  - {item: 2, verdict: not-applicable, note: "no hook in the diff"}
+  - {item: 3, verdict: pass, note: "every failure in tracker-setup.sh ends in die (tracker_call, installed_version, require_login, require_issues_enabled, write_settings); require_login prints the CLI's own message before dying"}
+  - {item: 4, verdict: pass, note: "tracker_labels, installed_version and require_issues_enabled carry their own || die / || exit 1 inside command substitutions; create_label and write_settings run outside any || so set -e holds"}
+  - {item: 5, verdict: pass, note: "exit 1 refusals and exit 2 usage/environment match the # Exit: block, which now lists each refusal"}
+  - {item: 6, verdict: pass, note: "SCRIPT_DIR resolved with cd -P from BASH_SOURCE before sourcing workflow-paths.sh"}
+  - {item: 7, verdict: pass, note: "helper header File/Purpose/Usage/Exit/Called by/Notes/Sources; no decision ids"}
+  - {item: 8, verdict: pass, note: "kebab-case name, set -euo pipefail, [[ ]] throughout (file absent at baseline, so new)"}
+  - {item: 9, verdict: pass, note: "each of the 13 functions has its # name ARGS : line; only a source= hint, no disable= directive"}
+  - {item: R1, verdict: pass, note: "names say their role: check_tracker, require_login, tracker_labels, write_settings, quoted_list, GH_MINIMUM_REASON"}
+  - {item: R2, verdict: pass, note: "why-comments on GitLab private issues counting as on, the draft beside the settings file, and the chmod after mktemp"}
+  - {item: R3, verdict: pass, note: "no comment restates its line"}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh (clean); no changed comment points at a doc or URL"}
+  - {item: R5, verdict: pass, note: "comments and messages use plain words; no project shorthand"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the three changed files exited 0 with no lines listed"}
