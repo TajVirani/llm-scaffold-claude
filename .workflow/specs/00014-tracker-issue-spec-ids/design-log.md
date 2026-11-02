@@ -366,3 +366,17 @@ Outcome: rework 1 of 5
 - Rework 1, 3.7 T4 out_of_scope_noticed (`artifacts/T4/mini-review-r2.yaml`): the hook header and test comment say adoption gives `-disc-` item files an `old_` prefix; it does not. Route: **current work** (wording on lines T4 changed); wording-only round. 3.7 T5 out_of_scope_noticed (comment lint never reads `tests/scripts/issue-tracking.sh`): dismissed, the test-harness profile lint (`tests/*.sh` with `check-comments.sh`) covers it at 3.9.
 - 3.16 rework 1: T3, T4, T5 and T10 merged locally (`skipped: gh not installed`); T4 took one wording-only round.
 - 3.9 after rework 1: full harness `TOTAL passed=4759 failed=0 skipped=0 xfail=0 (81 suites)` (`artifacts/gate-3.9-rework1/`); budget 10 tasks, 32 of 34 changed files; loads 44,286 / 45,000 and 54,967 / 55,000. No browser suite; in-review at 3.11. F1 was verified high, so review pass 2 follows.
+
+## 2026-11-02 Triage, review pass 2
+
+Lens files: `artifacts/review/pass-2/` (all four `status: done`, shape check exit 0; targets measurements 8 of 8 rows, all pass but line coverage `not_measurable`). Head 2512391.
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F11 | review-standards (RS-1) | On an http GitLab the https rule is checked only after the issue is created, so each 0.1.1 or adoption run files an issue nothing records; `tracker-setup.sh check` never tests the scheme | `issue-tracker.sh` `returned_issue_url`; `tracker-setup.sh` check | low | lens reproduction: two `next-spec-number.sh` runs, 2 issue-create calls, exit 1 each; adoption reports "could not file its issue" | none (dismissed: a GitLab served over plain http is unlikely in everyday use and the fix adds a guard; listed as a known gap) |
+| F12 | review-end-state (RE-1) | Tracker adoption files no task issues, so an adopted spec past 2.5 passes `""` to `issue-tracker.sh move` at 3.3 (and 3.16, 3.9, 3.11, 4.7), which exits 2 with no step to clear it | `scripts/tracker-adoption.sh:349` | medium | only issue-creating call is `create-spec` (:349); no `create-task` or `--issue` in adoption or its suite; lens reproduction `issue-tracker.sh move "" in_progress` exits 2; fixture 013-beta has task T2 pending with no issue; CAP-NEW-tracker-issues success "each task gets ... recorded as `issue` in its task record" | patch (T8) |
+
+Failed lenses: none
+
+Gaps: the GitLab child-task GraphQL call, the `relates_to` fallback and the `glab api :fullpath` calls are proven against the fake glab only (review-end-state; one run against a real GitLab project); a real `gh issue close` / GitLab `state_event=close` on an issue `Closes #<n>` already closed is expected to be a no-op but is unverified (review-end-state; one live call); the gh 2.94.0 and glab 1.115.0 minimums are unverified (review-end-state; release notes); two simultaneous starts on a real tracker (review-end-state; a live two-clone run); an http GitLab files an unrecorded issue before refusing (F11, dismissed); line coverage not measurable (review-targets).
+Outcome: rework 2 of 5

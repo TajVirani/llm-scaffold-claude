@@ -1,0 +1,12 @@
+.agents/hooks/session-start-resume.sh
+.agents/lib/workflow-paths.sh
+.agents/skills/feature-workflow/scripts/check-write.sh
+.agents/skills/feature-workflow/scripts/move-to-done.sh
+.agents/skills/feature-workflow/scripts/next-spec-number.sh
+.agents/skills/feature-workflow/scripts/open-task-pr.sh
+.agents/skills/feature-workflow/scripts/review-lessons.sh
+.agents/skills/feature-workflow/scripts/rules-setting.sh
+.agents/skills/feature-workflow/scripts/status-transition.sh
+.agents/skills/issue-tracking/scripts/issue-tracker.sh
+.agents/skills/issue-tracking/scripts/tracker-adoption.sh
+.agents/skills/issue-tracking/scripts/tracker-setup.sh

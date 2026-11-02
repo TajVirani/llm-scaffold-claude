@@ -1,0 +1,5 @@
+.agents/skills/feature-workflow/scripts/next-spec-number.sh
+.agents/skills/issue-tracking/SKILL.md
+.agents/skills/issue-tracking/scripts/issue-tracker.sh
+.agents/skills/issue-tracking/scripts/tracker-adoption.sh
+.agents/skills/issue-tracking/scripts/tracker-setup.sh

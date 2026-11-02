@@ -1,0 +1,38 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "e8162a94fb923cdae2496f4db5c8d9231abcabfc"
+head: "25123912d498c10b6a2ba4ce8b454bc673807f85"
+findings:
+  - id: RS-1
+    category: smell
+    severity: medium
+    confidence: 85
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:120-126,155; .agents/skills/issue-tracking/scripts/tracker-adoption.sh:333-356"
+    claim: "Possible Primitive Obsession, still there after the rework 1 fix for pass-1 RS-2: the https-only rule for an issue URL is now checked by returned_issue_url only after the tracker has already created the issue. tracker-setup.sh check never tests the scheme, so setup accepts an http GitLab and then every create files an issue that is thrown away."
+    consequence: "On a GitLab served over http, tracker-setup.sh check reports nothing wrong. After that, each 0.1.1 run of next-spec-number.sh files a real issue and exits 1, and each run of tracker-adoption.sh files one more issue for every active spec. Adoption then reports the spec as 'the tracker could not file its issue', which is false: the issue exists. The comment at tracker-adoption.sh:334 promises 'a second run files nothing twice', and that no longer holds. create-task does the same on both hosts (issue-tracker.sh:238, 284, 296). The stakeholder is left with issues on the tracker that no spec or task records."
+    evidence:
+      basis: "Primitive Obsession (smell baseline). The comment this breaks: tracker-adoption.sh:333-334 \"Its URL goes into tracker_issue at once, so a run that fails later still knows the issue and a second run files nothing twice.\""
+      diff: "+    url=$(json_field \"the new issue's URL\" .web_url \"$answer\") || exit 1\n+  fi\n+  returned_issue_url \"$url\""
+      reproduction: "Run in a scratch worktree of HEAD. The fixture repo has origin http://gitlab.example.com/g/p.git, GitLab settings, a draft spec 015-delta with tracker_issue \"\", and a stub glab on PATH that answers issue creates with {\"web_url\":\"http://gitlab.example.com/g/p/-/issues/<n>\",\"iid\":<n>} and logs each call. Running `next-spec-number.sh --cwd $P` twice printed `issue-tracker.sh: glab answered with the issue URL http://gitlab.example.com/g/p/-/issues/42, which is not https; only https trackers are supported` and then the same for issue 43, with exit=1 both times and `issue-create calls: 2`. Running `tracker-adoption.sh --cwd $P` twice printed `tracker-adoption.sh: refused .workflow/specs/015-delta: the tracker could not file its issue (issue-tracker.sh exit 1)` with exit=1 both times, and also `issue-create calls: 2`; spec.md still read `tracker_issue: \"\"`."
+    suggested_fix: "Refuse an http tracker before creating anything: check the project's web URL scheme in tracker-setup.sh check (and in issue-tracker.sh before create-spec and create-task), so no issue is created that will then be refused. Failing that, record the returned URL before refusing it. Also make adoption's message say that an issue was filed."
+checked:
+  - "AGENTS.md (root; CLAUDE.md is a one-line @AGENTS.md import). No other AGENTS.md or CLAUDE.md governs the changed files."
+  - "CODING_STANDARDS.md, CONTRIBUTING.md: not present (tried at repo root)"
+  - ".workflow/rules.md, all sections (Ownership, Shared core, Size budget, Workflow settings, Cross-cutting policy, External systems, Required versions)"
+  - ".workflow/profiles/shell-scripts.md (T1-T6, T8)"
+  - ".workflow/profiles/agent-docs.md (T7, T9, T10)"
+  - ".workflow/profiles/test-harness.md (tests/ in the diff)"
+  - ".workflow/decisions/adr/0005-issue-tracking-placement.md, linked from the Placement entry of design-log.md; proposals.md P1 and P2"
+  - ".workflow/GLOSSARY.md (no GLOSSARY-MAP.md exists in the repo; .agents/skills/project-setup/assets/GLOSSARY.md is a template)"
+  - ".agents/skills/feature-workflow/references/readable-code.md (every body comment the change adds was read)"
+  - "toolchain.json and toolchain.txt for T1, T2, T3, T4, T5, T6, T7, T8, T9, T10: lint and test pass in every task"
+  - "design-log.md Triage, review pass 1 (F5-F10) against the rework 1 diff ef72c2c..HEAD: the configured_tracker copy is gone from next-spec-number.sh, the repeated tracker-call failure text is gone from the step files (conventions.md 'Tracker calls' is its only home), the three suite headers now open with '# Covers:', and the tests dependency is proposal P2"
+  - "Smell baseline against the whole diff (53 files, e8162a9...HEAD, spec folder excluded)"
+not_checked:
+  - "typecheck, format and boundary are `skipped` (no command) in every task's toolchain.json. No tool covers them in this repo."
+  - "Possible Duplicated Code: the https issue-URL rule still has five copies with slightly different shapes (issue-tracker.sh is_issue_url and returned_issue_url, next-spec-number.sh print_issue_number, tracker-adoption.sh ISSUE_URL_PATTERN, and status-transition.sh :171 and :330, which do not require a trailing number). They now agree on https, and every task issue is written from create-task output, which is already checked. I could name no caller that diverges, so this is below 80. A probe that writes a set-task --issue URL with no trailing number and then runs issue-tracker.sh move on it would settle whether the looser check matters."
+  - "Possible Divergent Change: .agents/lib/workflow-paths.sh, described in AGENTS.md as 'the one home for paths under .workflow/', gains the origin-host choice and the git rewrite, commit and rollback machinery. I found no written rule that keeps these out of it, and no measured cost to the hooks that source it. A timing of sourcing it in a guard hook at baseline and at HEAD would settle the cost."
+  - "status-transition.sh set-task --issue exits 2 on a bad value, while --pr exits 1 for the same kind of error (in that script, 2 means deny). T02's acceptance criterion asks for exit 2, so the spec endorses it, and it is not reported."
+  - "Comments that say 'adopting an issue tracker' (session-start-resume.sh:35, workflow-paths.sh) use 'issue tracker' for the tracker itself. The glossary lists 'issue tracker' under _Avoid_ only as a name for a Tracker issue or the Work backlog, so this is not a naming breach."
+  - "Pass-1 not_checked items left as they were: tracker-adoption.sh's own branch-name rewrite and undo, the glab 1.115.0 floor, and Repeated Switches on $cli across issue-tracker.sh and tracker-setup.sh (no harm I could name)."
