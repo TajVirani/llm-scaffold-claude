@@ -323,3 +323,6 @@ Draft: 10 tasks in 6 waves, all afk, each with its seam and Phase 1 suites (sess
 - 3.16 wave 2: `open-task-pr.sh` printed `skipped: gh not installed` for T4 and T5; merged locally with `pr: null`. T5 took one behaviour fix round and one wording patch (applied by the orchestrator, re-check pass).
 - 3.4 T6: the glab minimum 1.115.0 (first release with `issue update --description-file`) was looked up by the T6 agent from GitLab's release list, not from the repo; the spec had left it unknown (codebase-map Library options, U19). Settled here as a fact; tests use the fake CLI only.
 - 3.16 wave 3: T6 merged locally (`skipped: gh not installed`); it took two orchestrator wording patches (R2 reasons), re-check pass.
+- 3.7 T7 out_of_scope_noticed (issue-tracking `SKILL.md` has no Tracker adoption section): already in scope as T8 (wave 4, running); no discovered-work entry.
+- 3.7 T8 out_of_scope_noticed (`artifacts/T8/mini-review-r1.yaml`), kind bug: the `edit_branch_names` doc line (`tracker-adoption.sh:122-123`) says it renames branches, but it only rewrites branch names in workflow files. Route: **current work** (wording, on lines T8 adds); 3.8 wording-only round.
+- 3.16 wave 4: T7 and T8 merged locally (`skipped: gh not installed`). T8 took a 3.4 resume (negative and edge tests) and one wording-only round.
