@@ -114,44 +114,44 @@ map_contexts() {
 
 # path_present PATH : status 0 when PATH exists or is a link, a broken one included, so a broken link is reported rather
 #   than taken for a missing file.
-path_present() { [ -e "$1" ] || [ -L "$1" ]; }
+path_present() { [[ -e "$1" ]] || [[ -L "$1" ]]; }
 
 define_term=
-if [ "$#" -gt 0 ]; then
-  [ "$#" -eq 2 ] && [ "$1" = --define ] && [ -n "$2" ] || die "$USAGE"
+if [[ "$#" -gt 0 ]]; then
+  [[ "$#" -eq 2 ]] && [[ "$1" = --define ]] && [[ -n "$2" ]] || die "$USAGE"
   define_term=$2
 fi
 
 # A folder that cannot be searched hides both files below, which would read as a project with no glossary yet.
 if path_present "$WF_DIR"; then
-  [ -d "$WF_DIR" ] && [ -x "$WF_DIR" ] || die "$WF_DIR is not a folder this script can search"
+  [[ -d "$WF_DIR" ]] && [[ -x "$WF_DIR" ]] || die "$WF_DIR is not a folder this script can search"
 fi
 
 # Parallel lists: the glossaries to read and the context each belongs to ("" for the root glossary).
 contexts=()
 glossaries=()
 if path_present "$WF_GLOSSARY_MAP"; then
-  [ -f "$WF_GLOSSARY_MAP" ] && [ -r "$WF_GLOSSARY_MAP" ] || die "$WF_GLOSSARY_MAP is not a readable file"
+  [[ -f "$WF_GLOSSARY_MAP" ]] && [[ -r "$WF_GLOSSARY_MAP" ]] || die "$WF_GLOSSARY_MAP is not a readable file"
   links=$(map_contexts "$WF_GLOSSARY_MAP") || die "cannot read $WF_GLOSSARY_MAP"
   # A map replaces the root glossary, so a map that names nothing would leave every term off the list unnoticed.
-  [ -n "$links" ] || die "$WF_GLOSSARY_MAP links no context glossary under its ## Contexts heading"
+  [[ -n "$links" ]] || die "$WF_GLOSSARY_MAP links no context glossary under its ## Contexts heading"
   while IFS=$'\t' read -r kind context glossary; do
     # For an item that is not a link, the context field holds the item's text.
-    [ "$kind" = link ] || die "the item \"$context\" under ## Contexts in $WF_GLOSSARY_MAP is not a link of the form - [<context>](<path>)"
-    [ -n "$glossary" ] || die "the $context context in $WF_GLOSSARY_MAP links no glossary path"
-    [ -f "$glossary" ] && [ -r "$glossary" ] || die "the $context context in $WF_GLOSSARY_MAP links $glossary, which is not a readable file"
+    [[ "$kind" = link ]] || die "the item \"$context\" under ## Contexts in $WF_GLOSSARY_MAP is not a link of the form - [<context>](<path>)"
+    [[ -n "$glossary" ]] || die "the $context context in $WF_GLOSSARY_MAP links no glossary path"
+    [[ -f "$glossary" ]] && [[ -r "$glossary" ]] || die "the $context context in $WF_GLOSSARY_MAP links $glossary, which is not a readable file"
     contexts+=("$context")
     glossaries+=("$glossary")
   done <<<"$links"
 elif path_present "$WF_GLOSSARY"; then
-  [ -f "$WF_GLOSSARY" ] && [ -r "$WF_GLOSSARY" ] || die "$WF_GLOSSARY is not a readable file"
+  [[ -f "$WF_GLOSSARY" ]] && [[ -r "$WF_GLOSSARY" ]] || die "$WF_GLOSSARY is not a readable file"
   contexts=("")
   glossaries=("$WF_GLOSSARY")
 fi
 
-if [ -n "$define_term" ]; then
+if [[ -n "$define_term" ]]; then
   define_status=1
-  if [ "${#glossaries[@]}" -gt 0 ]; then
+  if [[ "${#glossaries[@]}" -gt 0 ]]; then
     define_status=0
     define_entry "$define_term" "${glossaries[@]}" || define_status=$?
   fi
@@ -163,7 +163,7 @@ if [ -n "$define_term" ]; then
 fi
 
 i=0
-while [ "$i" -lt "${#glossaries[@]}" ]; do
+while [[ "$i" -lt "${#glossaries[@]}" ]]; do
   list_terms "${contexts[$i]}" "${glossaries[$i]}" || die "cannot read ${glossaries[$i]}"
   i=$((i + 1))
 done
