@@ -8,7 +8,10 @@
 #   with exit 1 naming both, writes nothing and creates no label; with --create-labels it creates exactly the two and
 #   writes .workflow/issue-tracking.yaml with the host and the three labels; on GitHub with every label present it saves
 #   without creating any; with the CLI missing it refuses and writes nothing; `save --none` writes `issue_tracker: none`
-#   with no CLI installed and no tracker call. The script is shellcheck-clean.
+#   with no CLI installed and no tracker call. Edges: a CLI at exactly its minimum version passes and one patch below is
+#   refused naming the minimum; two equal flow labels exit 2 with no tracker call; an unreachable tracker refuses with the
+#   CLI's message; labels that look like YAML values are saved as strings; save replaces an `issue_tracker: none` file;
+#   outside a git repository save exits 2. The script is shellcheck-clean.
 # shellcheck disable=SC2016,SC2329,SC2034  # check expressions are single-quoted and eval'd on purpose and read variables and call helpers shellcheck cannot see
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -112,6 +115,41 @@ fake_trackers_reset
 setup_run "$OTHER" none save --none
 eq "JRN-010 save --none writes issue_tracker: none with no CLI installed and no tracker call" \
   "$RC|$(setting "$OTHER" .issue_tracker)|$(fake_call_count)" "0|none|0"
+
+echo "== tracker-setup.sh: edges and refusals"
+FAKE_GLAB_VERSION=1.115.0 setup_run "$GL" both check
+eq "check accepts a glab at exactly the minimum version 1.115.0" "$RC|${OUT%%$'\n'*}" "0|gitlab"
+FAKE_GH_VERSION=2.94.0 setup_run "$GH" both check
+eq "check accepts a gh at exactly the minimum version 2.94.0" "$RC|${OUT%%$'\n'*}" "0|github"
+rm -f "$GH/$SETTINGS_REL"
+FAKE_GH_VERSION=2.93.9 setup_run "$GH" both check
+check "check refuses a gh one patch below the minimum, naming the minimum 2.94.0" \
+  'refused_naming "$GH" "2\.94\.0"' "rc=$RC err=$ERR"
+fake_trackers_reset
+setup_run "$GL" both save --backlog Backlog --in-progress Backlog --done Done
+check "save with two flow labels the same exits 2 naming the clash, with no tracker call and nothing written" \
+  '[[ $RC == 2 ]] && grep -qi "different" <<<"$ERR" && [[ $(fake_call_count) == 0 ]] && no_settings "$GL"' \
+  "rc=$RC err=$ERR calls=$(fake_calls)"
+FAKE_FAIL=network setup_run "$GL" both save "${SAVE_LABELS[@]}" --create-labels
+check "save when the tracker cannot be reached exits 1 with the CLI's message, writing nothing" \
+  'refused_naming "$GL" "no such host"' "rc=$RC err=$ERR"
+fake_trackers_reset
+fake_label_seed "Stage: to do" "yes" "123"
+setup_run "$GH" both save --backlog "Stage: to do" --in-progress yes --done 123
+eq "save writes flow labels that look like YAML values back as the same strings" \
+  "$RC|$(setting "$GH" '[.issue_flow.backlog, .issue_flow.in_progress, .issue_flow.done] | map(tag + "=" + .) | join("|")')" \
+  "0|!!str=Stage: to do|!!str=yes|!!str=123"
+tracker_settings "$GL" none
+fake_trackers_reset
+fake_label_seed "$TRACKER_BACKLOG" "$TRACKER_IN_PROGRESS" "$TRACKER_DONE"
+setup_run "$GL" both save "${SAVE_LABELS[@]}"
+eq "save replaces a settings file that says none" \
+  "$RC|$(setting "$GL" '[.issue_tracker, .issue_flow.done] | join("|")')" "0|gitlab|Done"
+NOT_REPO=$WORK/not-a-repo
+mkdir -p "$NOT_REPO"
+fake_run "$(fake_path none)" bash "$GL/$TS_REL" --cwd "$NOT_REPO" save --none
+check "save --none outside a git repository exits 2, writing nothing" \
+  '[[ $RC == 2 ]] && no_settings "$NOT_REPO"' "rc=$RC err=$ERR"
 
 shellcheck_files "shellcheck: tracker-setup.sh" "$GL/$TS_REL"
 finish
