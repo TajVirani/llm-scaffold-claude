@@ -4,8 +4,8 @@
 #   header of the template, assets/review-lessons.md, and only there; this script is their executable form, so a change to
 #   the rules changes both.
 #   validate: the block parses and every rule in the template header holds. origin_spec is a spec folder directly in the
-#   specs folder or directly in its Done folder: a number, a dash and a slug that starts with a letter or digit and holds
-#   only letters, digits, `.`, `_` and `-`.
+#   specs folder or directly in its Done folder: a number (in the Done folder optionally after `old_`), a dash and a slug that
+#   starts with a letter or digit and holds only letters, digits, `.`, `_` and `-`.
 #   next-id: the highest RL- number in the list plus one, retired entries included, so an id is never reused; RL-001 when the
 #   list is empty. Numbers below 100 are padded to three digits.
 # Usage:
@@ -86,8 +86,8 @@ else
       (if ($e.symptom | non_empty_string) then empty else "\($at).symptom: must not be empty" end),
       ($e.paths | path_errors("\($at).paths")),
       (if ($e.origin_spec | type == "string"
-           and test("^(\($specs_pattern)|\($specs_done_pattern))/[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$")) then empty
-       else "\($at).origin_spec: must be \($specs)/ or \($specs_done)/ then a number, a dash and a slug" end),
+           and test("^(\($specs_pattern)/|\($specs_done_pattern)/(old_)?)[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$")) then empty
+       else "\($at).origin_spec: must be \($specs)/ or \($specs_done)/ (there optionally old_) then a number, a dash and a slug" end),
       (if ($e.date | iso_date) then empty else "\($at).date: must be a YYYY-MM-DD date" end),
       (if ($e | has("retired")) then
          (if ($e.retired | iso_date) then empty else "\($at).retired: must be a YYYY-MM-DD date" end),

@@ -8,7 +8,8 @@
 #   done/.step at a spec writer step, and a glossary file inside a moved spec at a glossary step; one of the three hook classes
 #   denies it; the reason names the Done folder; look-alike folders (done-x/, 012-done/, a done/ inside a spec) stay unguarded.
 #   JRN-012 (spec 00014): a backlog list named old_NNN-slug.md, the list of a Done spec renamed with the old_ prefix, passes
-#   the list-name rule a misnamed list fails, and malformed old_ list names still fail it.
+#   the list-name rule a misnamed list fails, and malformed old_ list names still fail it; such a list is written at 00.26
+#   or 5.9 of the step marker in its Done folder spec, and denied at another step or without one.
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016,SC2034  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures; variables read inside check expressions
 # shellcheck source=../lib/common.sh
@@ -194,6 +195,18 @@ for bad in old_.md old_x01-short.md old-012-alpha.md old_old_012-alpha.md; do
   check "JRN-012 (spec 00014) the backlog list name $bad still fails the list-name rule while old_012-alpha.md passes it" \
     '! grep -qF "$LIST_NAME_RULE" <<<"$out_old" && grep -qF "$LIST_NAME_RULE" <<<"$out_bad"' "$out_bad"
 done
+# The origin of an old_ list is the Done folder spec of that name, so its step marker is read there.
+OLD_DONE=.workflow/specs/done/old_012-alpha
+mkdir -p "$R/$OLD_DONE"
+for s in 00.26 5.9; do
+  printf 'step: "%s"\nupdated_at: "2026-11-02T10:00:00Z"\n' "$s" >"$R/$OLD_DONE/.step"
+  t "JRN-012 (spec 00014) backlog list old_012-alpha.md at its Done spec's $s allow" 0 CW --cwd "$R" --path .workflow/specs/work-backlog/old_012-alpha.md
+done
+printf 'step: "3.7"\nupdated_at: "2026-11-02T10:00:00Z"\n' >"$R/$OLD_DONE/.step"
+t "JRN-012 (spec 00014) backlog list old_012-alpha.md at its Done spec's 3.7 deny" 2 CW --cwd "$R" --path .workflow/specs/work-backlog/old_012-alpha.md
+t "JRN-012 (spec 00014) the old_ list deny names its Done spec" 0 bash -c "CW --cwd '$R' --path .workflow/specs/work-backlog/old_012-alpha.md 2>&1 | grep -qF 'origin spec $OLD_DONE is at step 3.7'"
+rm -rf "${R:?}/$OLD_DONE"
+t "JRN-012 (spec 00014) backlog list old_012-alpha.md without a Done spec marker deny" 2 CW --cwd "$R" --path .workflow/specs/work-backlog/old_012-alpha.md
 mkdir -p "$R/.workflow/specs/work-backlog"; printf -- '---\nstatus: draft\n---\n' > "$R/.workflow/specs/work-backlog/spec.md"
 yq --front-matter=process -i '.status="done"' "$R/$D/spec.md"
 t "in-flight scan ignores work-backlog"     0 bash -c "CW --cwd '$R' --path .workflow/rules.md | grep -q 'no feature in flight'"
