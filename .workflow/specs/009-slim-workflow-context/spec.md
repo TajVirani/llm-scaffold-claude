@@ -57,7 +57,7 @@ A new feature starts with at most 45 KB of workflow text loaded and an implement
 - The output style's inline term-list command reads only the root `.workflow/GLOSSARY.md`; map support lives in the script (D1, D12).
 - Rework from 4.7 routes to the waves step file, and an `in-progress` resume with `impl_base_revision` set loads the waves step file instead of setup (D13). So that behaviour stays the same, waves' On resume sends the session to the setup step file first when a task has a null `work_type`, and 3.13 looks up which suites exist itself.
 - KB in the targets means 1,000 bytes, the unit of the 81 KB and 85 KB baselines.
-- The audit's unassigned rules get these homes: Size budget, Never grow the spec mid-build and the Codex write-guard row go to the conventions file; the resume-offer row to the router; the question-rounds row to the questioning loop; the other-skills row to the conventions file.
+- The audit's unassigned rules get these homes: Never grow the spec mid-build and the Codex write-guard row go to the conventions file; Size budget is stated where it runs, at 2.6 (task-breakdown) and 3.15 (implementation-waves), after T10 dropped the conventions copy to meet the load target; the resume-offer row to the router; the question-rounds row to the questioning loop; the other-skills row to the conventions file.
 - The merged sub-agent write rule keeps both scopes: inside a spec a sub-agent writes only its own result file; inside an initiative it writes nothing. The progress-line rule keeps both call forms (`--spec-dir` and the bare `<6.x>`).
 - Script and asset headers that name a moved step file are re-pointed as part of this change.
 
