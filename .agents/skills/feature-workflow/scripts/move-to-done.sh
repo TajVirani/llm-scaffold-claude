@@ -34,7 +34,8 @@
 # Called by: modules/sign-off.md (5.7 --check, 5.8 the move and the one-off --sweep).
 # Notes: Requires git and mikefarah yq v4. Never pushes. bash 3.2 compatible. At sign-off the spec being signed off is
 #   already `done` when the sweep runs, so the sweep skips it: the sweep commit holds only the older specs, and the spec's
-#   own `move-to-done.sh <spec-dir>` after it still finds the folder at the top level.
+#   own `move-to-done.sh <spec-dir>` after it still finds the folder at the top level. The move, the path rewrite, the
+#   rollback and the commit of exactly the touched paths are the shared path rewrite in lib/workflow-paths.sh (wf_rewrite_*).
 # Sources: first-party. Pattern: commit-workflow-data.sh (spec-checkout resolution, explicit staging, path-limited commit).
 
 set -euo pipefail
@@ -118,97 +119,36 @@ if [[ "$MODE" == check ]]; then
   exit 0
 fi
 
-SLUG_CHARS='A-Za-z0-9._-'
-SPECS_LEAF=${WF_SPECS##*/}
-DONE_LEAF=${WF_SPECS_DONE#"$WF_SPECS"/}
-PATHSPECS=()
+# The names of the specs this run moved, for the commit body.
 MOVED=()
-SCRATCH_DIR=$(mktemp -d) || die "cannot create a temporary folder"
-TMP_FILE=$SCRATCH_DIR/rewrite
-LIST_FILE=$SCRATCH_DIR/list
-CANDIDATE_FILE=$SCRATCH_DIR/candidates
-MATCH_FILE=$SCRATCH_DIR/matches
-SEARCH_ERRORS=$SCRATCH_DIR/search-errors
-ROOT_PREFIX=$(wf_path "$ROOT" "")
-
-# What this run changed and has not committed yet, kept so a failure can put it back. MOVED_FROM, MOVED_TO and STEP_COPY
-#   are parallel: a spec folder's old and new path and where its step marker was set aside ("" when it had none).
-#   SAVED_FILE and SAVED_COPY are parallel: a file's path when it was rewritten and a copy of its content before that.
-UNCOMMITTED=0
-MOVED_FROM=() MOVED_TO=() STEP_COPY=() SAVED_FILE=() SAVED_COPY=()
-CREATED_DONE_FOLDER="" INDEX_FILE="" INDEX_COPY=""
-
-# roll_back : put the index, the rewritten files, the moved spec folders and their step marker back as they were, newest
-#   change first; print what was undone, or each change that could not be undone and how to undo it by hand.
-roll_back() {
-  local i left=()
-  if [[ -n "$INDEX_FILE" ]]; then
-    if [[ -n "$INDEX_COPY" ]]; then
-      cp "$INDEX_COPY" "$INDEX_FILE" || left+=("the index has the move staged: run git reset -q in $ROOT")
-    else
-      rm -f "$INDEX_FILE" || left+=("the index has the move staged: run git reset -q in $ROOT")
-    fi
-  fi
-  i=${#SAVED_FILE[@]}
-  while [[ $i -gt 0 ]]; do
-    i=$((i - 1))
-    # A file whose write failed before it was truncated still matches its copy and needs no restore.
-    cmp -s "${SAVED_COPY[i]}" "${SAVED_FILE[i]}" && continue
-    cat "${SAVED_COPY[i]}" >"${SAVED_FILE[i]}" ||
-      left+=("${SAVED_FILE[i]} is rewritten: copy ${SAVED_COPY[i]} over it")
-  done
-  i=${#MOVED_TO[@]}
-  while [[ $i -gt 0 ]]; do
-    i=$((i - 1))
-    if ! mv "${MOVED_TO[i]}" "${MOVED_FROM[i]}"; then
-      left+=("${MOVED_TO[i]} is still moved: mv it back to ${MOVED_FROM[i]}")
-      [[ -z "${STEP_COPY[i]}" ]] || left+=("its step marker is at ${STEP_COPY[i]}: mv it back to ${MOVED_FROM[i]}/.step")
-      continue
-    fi
-    [[ -z "${STEP_COPY[i]}" ]] || mv "${STEP_COPY[i]}" "${MOVED_FROM[i]}/.step" ||
-      left+=("${MOVED_FROM[i]}/.step is missing: mv ${STEP_COPY[i]} back to it")
-  done
-  [[ -z "$CREATED_DONE_FOLDER" ]] || rmdir "$CREATED_DONE_FOLDER" ||
-    left+=("$CREATED_DONE_FOLDER was created by this run: remove it once it is empty")
-  if [[ ${#left[@]} -eq 0 ]]; then
-    printf '%s: rolled back; nothing was moved, rewritten or committed\n' "$PROG" >&2
-    return 0
-  fi
-  printf '%s: rollback incomplete, nothing was committed; still changed:\n' "$PROG" >&2
-  printf '  %s\n' "${left[@]}" >&2
-  # The copies named above live in the temporary folder, so it must outlive this run.
-  SCRATCH_DIR=""
-  return 1
-}
 
 # on_exit : roll back the uncommitted changes when the script fails after its first move, then remove the temporary folder.
 on_exit() {
   local exit_code=$?
   set +e
-  if [[ $UNCOMMITTED -eq 1 && $exit_code -ne 0 ]]; then
-    roll_back
+  if [[ $exit_code -ne 0 ]] && wf_rewrite_pending; then
+    if wf_rewrite_roll_back; then
+      printf '%s: rolled back; nothing was moved, rewritten or committed\n' "$PROG" >&2
+    else
+      printf '%s: rollback incomplete, nothing was committed; still changed:\n' "$PROG" >&2
+      printf '  %s\n' "${WF_REWRITE_LEFT[@]}" >&2
+    fi
     exit_code=2
   fi
-  [[ -z "$SCRATCH_DIR" ]] || rm -rf "$SCRATCH_DIR"
+  wf_rewrite_end
   exit "$exit_code"
 }
 trap on_exit EXIT
 
 # refuse_unsafe_checkout : exit 1 when the checked-out branch must not take the move commit or git is mid-operation;
-#   otherwise set CURRENT_BRANCH to it.
+#   otherwise set MAIN_BRANCH to the main branch and CURRENT_BRANCH to the checked-out one.
 refuse_unsafe_checkout() {
-  local current main h
-  current=$(git -C "$ROOT" branch --show-current) || die "cannot read the checked-out branch in $ROOT"
-  [[ -n "$current" ]] || die "the spec checkout has a detached HEAD; check out the spec branch first" 1
-  main=$(bash "$SCRIPT_DIR/rules-setting.sh" main_branch --cwd "$ROOT" 2>/dev/null) ||
+  local refusal
+  MAIN_BRANCH=$(bash "$SCRIPT_DIR/rules-setting.sh" main_branch --cwd "$ROOT" 2>/dev/null) ||
     die "cannot read the main branch name (rules-setting.sh main_branch)"
-  CURRENT_BRANCH=$current
-  [[ "$current" != "$main" ]] || die "the spec checkout is on the main branch $main; the move commits on the spec branch" 1
-  for h in MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD; do
-    if git -C "$ROOT" rev-parse -q --verify "$h" >/dev/null; then
-      die "a merge, cherry-pick or revert is in progress in $ROOT; finish or abort it first" 1
-    fi
-  done
+  refusal=$(wf_rewrite_checkout_refusal "$ROOT" "$MAIN_BRANCH") || die "cannot check whether $ROOT may take the move commit"
+  [[ -z "$refusal" ]] || die "$refusal" 1
+  CURRENT_BRANCH=$(git -C "$ROOT" branch --show-current) || die "cannot read the checked-out branch in $ROOT"
 }
 
 # move_refusal SPEC_DIR : print why SPEC_DIR cannot move (its open sub-items, a status other than done, a taken Done
@@ -223,184 +163,26 @@ move_refusal() {
     die "cannot write why $spec_dir cannot move"
 }
 
-# replace_file FILE : copy TMP_FILE over FILE when they differ, keeping FILE's mode and a copy of its old content for a
-#   rollback; true when FILE changed.
-replace_file() {
-  local copy
-  cmp -s "$TMP_FILE" "$1" && return 1
-  copy=$SCRATCH_DIR/saved.${#SAVED_FILE[@]}
-  cp "$1" "$copy" || die "cannot keep a copy of $1"
-  SAVED_FILE+=("$1")
-  SAVED_COPY+=("$copy")
-  cat "$TMP_FILE" >"$1" || die "cannot write $1"
-}
-
-# add_up_level_to_outbound_links FILE DEPTH : give every relative Markdown link in FILE that climbs out of the spec folder
-#   one more `../`; DEPTH is how many folders below the spec folder FILE sits.
-add_up_level_to_outbound_links() {
-  awk -v depth="$2" '
-    # climbs_out TARGET : 1 when the path part of TARGET, read from DEPTH folders inside the spec, leaves the spec folder.
-    function climbs_out(target,   path, n, segs, i, level) {
-      if (target == "" || target ~ /^[A-Za-z][A-Za-z0-9+.-]*:/ || target ~ /^[\/#<]/) return 0
-      path = target
-      sub(/[#?].*$/, "", path)
-      n = split(path, segs, "/")
-      level = depth
-      for (i = 1; i <= n; i++) {
-        if (segs[i] == "..") { if (--level < 0) return 1 }
-        else if (segs[i] != "." && segs[i] != "") level++
-      }
-      return 0
-    }
-    # adjusted TARGET : TARGET with one more `../` in front when it climbs out of the spec folder, else TARGET as it is.
-    function adjusted(target) { return climbs_out(target) ? "../" target : target }
-    {
-      rest = $0
-      out = ""
-      if (match(rest, /^ *\[[^]]+\]:[ \t]+/)) {
-        out = substr(rest, 1, RLENGTH)
-        rest = substr(rest, RLENGTH + 1)
-        match(rest, /^[^ \t]*/)
-        out = out adjusted(substr(rest, 1, RLENGTH))
-        rest = substr(rest, RLENGTH + 1)
-      }
-      while ((i = index(rest, "](")) > 0) {
-        out = out substr(rest, 1, i + 1)
-        rest = substr(rest, i + 2)
-        match(rest, /^[^ )]*/)
-        out = out adjusted(substr(rest, 1, RLENGTH))
-        rest = substr(rest, RLENGTH + 1)
-      }
-      print out rest
-    }
-  ' "$1" >"$TMP_FILE" || die "cannot read the links in $1"
-  replace_file "$1" || true
-}
-
-# point_at_done_folder FILE NAME : rewrite each path to spec NAME at the top of the specs folder in FILE into its Done
-#   folder path, in the `specs/NAME` forms and, for a file under the specs folder, the `../NAME` form that climbs to it;
-#   true when FILE changed.
-point_at_done_folder() {
-  local file=$1 name=$2 name_re rel_dir slashes depth climb="" climb_re="" end
-  name_re=${name//./\\.}
-  # A path that ends a sentence keeps its full stop, but `NAME.md` is another file and stays as it is.
-  end="(\\.?[^$SLUG_CHARS]|\\.?\$)"
-  local exprs
-  exprs=(-e ':again' -e "s#(^|[^$SLUG_CHARS])$SPECS_LEAF/$name_re$end#\\1$SPECS_LEAF/$DONE_LEAF/$name\\2#g")
-  rel_dir=${file#"$ROOT"/}
-  rel_dir=${rel_dir%/*}
-  if [[ "$rel_dir" == "$WF_SPECS"/* ]]; then
-    rel_dir=${rel_dir#"$WF_SPECS"/}
-    slashes=${rel_dir//[!\/]/}
-    depth=$((${#slashes} + 1))
-    while [[ $depth -gt 0 ]]; do
-      climb="$climb../" climb_re="$climb_re\\.\\./"
-      depth=$((depth - 1))
-    done
-    exprs+=(-e "s#(^|[^/$SLUG_CHARS])$climb_re$name_re$end#\\1$climb$DONE_LEAF/$name\\2#g")
-  fi
-  # Repeat until nothing changes: two paths one character apart share that character, and one pass rewrites only the first.
-  exprs+=(-e 't again')
-  sed -E "${exprs[@]}" "$file" >"$TMP_FILE" || die "cannot rewrite the spec path in $file"
-  replace_file "$file"
-}
-
-# list_files_naming NAME : write to MATCH_FILE, NUL-separated, the absolute path of each regular file in the LIST_FILE
-#   list (repo-relative paths) whose text contains NAME; exit 2 naming the file that cannot be searched.
-list_files_naming() {
-  local name=$1 rel file status=0
-  while IFS= read -r -d '' rel; do
-    file=$ROOT_PREFIX$rel
-    if [[ -f "$file" && ! -L "$file" ]]; then
-      printf '%s\0' "$file" || die "cannot write the list of workflow files to search"
-    fi
-  done <"$LIST_FILE" >"$CANDIDATE_FILE" || die "cannot write the list of workflow files to search"
-  # The search below reads a failed redirect as "no file names the spec", so both files are opened here first.
-  : >"$MATCH_FILE" || die "cannot write the list of workflow files that name the spec"
-  : >"$SEARCH_ERRORS" || die "cannot write the search error log"
-  # One grep over all the files, not one per file: a sweep searches every workflow file once per spec, and starting a
-  #   process per file made it slow. /dev/null keeps grep off stdin when the list is empty.
-  xargs -0 grep -lIF --null -- "$name" /dev/null <"$CANDIDATE_FILE" >"$MATCH_FILE" 2>"$SEARCH_ERRORS" || status=$?
-  # xargs reports a batch with no match (grep status 1) as 1 or 123, the same as a grep error, so a grep error is told
-  #   apart by what it wrote to stderr.
-  case $status in
-    0 | 1 | 123) [[ -s "$SEARCH_ERRORS" ]] || return 0 ;;
-  esac
-  while IFS= read -r -d '' file; do
-    status=0
-    grep -qIF -- "$name" "$file" || status=$?
-    [[ $status -le 1 ]] || die "cannot search ${file#"$ROOT_PREFIX"} for the spec path"
-  done <"$CANDIDATE_FILE"
-  die "cannot search the workflow files for the spec path: $(head -n 1 "$SEARCH_ERRORS")"
-}
-
-# move_spec SPEC_DIR : move SPEC_DIR into the Done folder, drop its step marker, fix its outbound links, rewrite its path in
-#   the workflow files, and queue the changed paths in PATHSPECS for the commit. Generated caches, initiative records and
-#   local working state are skipped: caches are rebuilt from the tree, an initiative re-points its own spec paths when it
-#   closes, and local state such as other checkouts is not this branch's to change.
+# move_spec SPEC_DIR : move SPEC_DIR into the Done folder, set its step marker aside, and rewrite its path and its outbound
+#   links in the workflow files; the shared path rewrite queues each changed path for the commit.
 move_spec() {
-  local spec_dir=$1 name target old_abs new_abs done_abs move_index step_copy file rel slashes tracked
-  name=${spec_dir##*/}
-  target=$WF_SPECS_DONE/$name
-  old_abs=$(wf_path "$ROOT" "$spec_dir")
-  new_abs=$(wf_path "$ROOT" "$target")
-  done_abs=$(wf_path "$ROOT" "$WF_SPECS_DONE")
-  if [[ ! -d "$done_abs" ]]; then
-    mkdir -p "$done_abs" || die "cannot create $WF_SPECS_DONE"
-    CREATED_DONE_FOLDER=$done_abs
-  fi
-  UNCOMMITTED=1
-  # Plain mv, not git mv: git mv refuses an untracked spec folder.
-  mv "$old_abs" "$new_abs" || die "cannot move $spec_dir to $target"
-  move_index=${#MOVED_TO[@]}
-  MOVED_FROM+=("$old_abs")
-  MOVED_TO+=("$new_abs")
-  STEP_COPY+=("")
+  local spec_dir=$1 target
+  target=$WF_SPECS_DONE/${spec_dir##*/}
+  wf_rewrite_move "$spec_dir" "$target" || die "cannot move $spec_dir to $target"
   # The step marker is set aside rather than deleted, so a rollback can put it back.
-  if [[ -e "$new_abs/.step" ]]; then
-    step_copy=$SCRATCH_DIR/step.$move_index
-    mv "$new_abs/.step" "$step_copy" || die "cannot set aside $target/.step"
-    STEP_COPY[move_index]=$step_copy
+  if [[ -e "$(wf_path "$ROOT" "$target/.step")" ]]; then
+    wf_rewrite_set_aside "$target/.step" || die "cannot set aside $target/.step"
   fi
-  find "$new_abs" -type f -name '*.md' -print0 >"$LIST_FILE" || die "cannot list the Markdown files in $target"
-  while IFS= read -r -d '' file; do
-    rel=${file#"$new_abs"/}
-    slashes=${rel//[!\/]/}
-    add_up_level_to_outbound_links "$file" "${#slashes}"
-  done <"$LIST_FILE"
-  git -C "$ROOT" ls-files -c -o --exclude-standard -z -- "$WF_DIR" ":(exclude)$WF_CACHE" \
-    ":(exclude)$WF_INITIATIVES" ":(exclude)$WF_WORKTREES" ":(exclude)$WF_HANDOFF" ":(exclude)$WF_CACHE_STAGING" \
-    ":(exclude)$WF_STANDARDS_STAGING" >"$LIST_FILE" || die "cannot list the workflow files to rewrite"
-  list_files_naming "$name"
-  while IFS= read -r -d '' file; do
-    if point_at_done_folder "$file" "$name"; then PATHSPECS+=("${file#"$ROOT_PREFIX"}"); fi
-  done <"$MATCH_FILE"
-  # An untracked spec leaves nothing at its old path for git, and git add fails on a path that matches nothing.
-  tracked=$(git -C "$ROOT" ls-files -c -- "$spec_dir") || die "cannot list the tracked files of $spec_dir"
-  if [[ -n "$tracked" ]]; then PATHSPECS+=("$spec_dir"); fi
-  PATHSPECS+=("$target")
-  MOVED+=("$name")
+  wf_rewrite_spec_path "$spec_dir" "$target" || die "cannot rewrite the path of $spec_dir in the workflow files"
+  MOVED+=("${spec_dir##*/}")
   echo "moved $spec_dir -> $target"
 }
 
-# commit_moves SUBJECT : stage the queued paths and commit only them on the checked-out branch.
-commit_moves() {
-  local file git_dir head staged=()
-  git_dir=$(git -C "$ROOT" rev-parse --absolute-git-dir) || die "cannot find the git folder of $ROOT"
-  if [[ -f "$git_dir/index" ]]; then
-    cp "$git_dir/index" "$SCRATCH_DIR/index" || die "cannot keep a copy of the index"
-    INDEX_COPY=$SCRATCH_DIR/index
-  fi
-  INDEX_FILE=$git_dir/index
-  git -C "$ROOT" --literal-pathspecs add -A -- "${PATHSPECS[@]}" || die "git add failed for the moved spec"
-  # With rename detection the list names only the new path, so the commit would leave the old path's deletion staged.
-  git -C "$ROOT" --literal-pathspecs diff --cached --name-only -z --no-renames -- "${PATHSPECS[@]}" >"$LIST_FILE" ||
-    die "cannot list the staged changes"
-  while IFS= read -r -d '' file; do staged+=("$file"); done <"$LIST_FILE"
-  [[ ${#staged[@]} -gt 0 ]] || die "nothing staged after the move"
-  git -C "$ROOT" --literal-pathspecs commit -q -m "$1" -m "Moved into the Done folder: ${MOVED[*]}" -- "${staged[@]}" ||
-    die "git commit failed"
-  UNCOMMITTED=0
+# commit_done_folder SUBJECT : commit only the paths the run moved or rewrote, on the checked-out branch, and print the
+#   new commit id.
+commit_done_folder() {
+  local head
+  wf_rewrite_commit "$MAIN_BRANCH" "$1" "Moved into the Done folder: ${MOVED[*]}" || die "cannot commit the move"
   head=$(git -C "$ROOT" rev-parse HEAD) || die "committed, but cannot read the new commit id"
   echo "committed $head"
 }
@@ -414,12 +196,14 @@ if [[ "$MODE" == move ]]; then
     die "$SPEC_DIR cannot move; nothing changed" 1
   fi
   refuse_unsafe_checkout
+  wf_rewrite_begin "$ROOT" || die "cannot start the move"
   move_spec "$SPEC_DIR"
-  commit_moves "chore(workflow): move ${SPEC_DIR##*/} into the Done folder"
+  commit_done_folder "chore(workflow): move ${SPEC_DIR##*/} into the Done folder"
   exit 0
 fi
 
 refuse_unsafe_checkout
+wf_rewrite_begin "$ROOT" || die "cannot start the sweep"
 LEFT=0
 for spec_md in "$(wf_path "$ROOT" "$WF_SPECS")"/*/spec.md; do
   [[ -f "$spec_md" ]] || continue
@@ -448,5 +232,5 @@ if [[ ${#MOVED[@]} -eq 0 ]]; then
   echo "nothing to sweep"
   exit 0
 fi
-commit_moves "chore(workflow): sweep finished specs into the Done folder"
+commit_done_folder "chore(workflow): sweep finished specs into the Done folder"
 [[ $LEFT -eq 0 ]] || die "some done specs failed the check and stayed in place; the others moved" 1
