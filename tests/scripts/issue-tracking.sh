@@ -298,6 +298,18 @@ FAKE_FAIL=network tracker "$GL" create-task "$(fake_url glab 42)" "$TASK_FILE"
 check "create-task on a GitLab network failure exits 1 naming the cause, with nothing on stdout and no new issue" \
   '[[ $RC == 1 && -z $OUT && $(fake_issue_numbers) == 42 ]] && names_network_cause' \
   "rc=$RC out=$OUT issues=$(fake_issue_numbers | tr '\n' ' ') err=$ERR"
+# Only the GraphQL calls time out, so the REST calls the linked-issue fallback would make still succeed.
+GRAPHQL_TIMEOUT_BIN=$WORK/bin-graphql-timeout
+mkdir -p "$GRAPHQL_TIMEOUT_BIN"
+printf '#!/usr/bin/env bash\nif [[ $1 == api && $2 == graphql ]]; then\n  echo "dial tcp: i/o timeout" >&2\n  exit 1\nfi\nexec %q "$@"\n' \
+  "$FAKE_BIN/glab" >"$GRAPHQL_TIMEOUT_BIN/glab"
+chmod +x "$GRAPHQL_TIMEOUT_BIN/glab"
+fresh_tracker
+fake_issue_seed 42 "Spec" open "$TRACKER_IN_PROGRESS"
+fake_run "$GRAPHQL_TIMEOUT_BIN:$(fake_path both)" bash "$GL/$IT_REL" --cwd "$GL" create-task "$(fake_url glab 42)" "$TASK_FILE"
+check "create-task with the GitLab child call timing out exits 1 naming the timeout, with no linked issue in its place" \
+  '[[ $RC == 1 && -z $OUT && $(fake_issue_numbers) == 42 && $ERR == *"i/o timeout"* && $ERR != *refused* ]]' \
+  "rc=$RC out=$OUT issues=$(fake_issue_numbers | tr '\n' ' ') err=$ERR"
 fresh_tracker
 fake_issue_seed 7 "Spec" open "$TRACKER_IN_PROGRESS"
 FAKE_FAIL=auth tracker "$GH" fill "$(fake_url gh 7)" "$GH_SPEC"

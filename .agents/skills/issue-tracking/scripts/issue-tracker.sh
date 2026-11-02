@@ -198,7 +198,9 @@ move_issue() {
     elif [[ $state == closed ]]; then
       state_event=(-f state_event=reopen)
     fi
-    # The labels and the state change in one request, so a failure never leaves the issue half moved.
+    # The labels and the state change in one request, so a failure never leaves the issue half moved. The array is
+    # expanded through `+` because bash 3.2 calls an empty array unbound under `set -u`, which a move to backlog or
+    # in_progress on an open issue would otherwise hit.
     tracker_call "move issue #$number to $stage" api "projects/:fullpath/issues/$number" -X PUT \
       -f "remove_labels=${stale_labels[0]},${stale_labels[1]}" -f "add_labels=$label" ${state_event[@]+"${state_event[@]}"} \
       >/dev/null || exit 1
@@ -206,6 +208,8 @@ move_issue() {
 }
 
 # first_url : print the first URL in stdin, or nothing when it holds none.
+# grep exits 1 when it finds no URL, and under `set -e` that would end the script with no message; the caller reports
+# the missing URL instead.
 first_url() { grep -Eo 'https?://[^[:space:]]+' | head -n 1 || true; }
 
 # create_github_task SPEC_NUMBER TITLE FILE : create a sub-issue of issue SPEC_NUMBER titled TITLE, its body FILE, in the
@@ -219,30 +223,48 @@ create_github_task() {
   printf '%s\n' "$url"
 }
 
+# child_graphql WHAT ARGS... : run `glab api graphql ARGS` in the project and print GitLab's answer, adding glab's message
+#   to CHILD_REFUSAL. glab exits non-zero when GitLab refuses with GraphQL `errors` yet still prints that answer, so such
+#   an answer is printed like any other. Exit 1 naming WHAT, below glab's message, when no GitLab answer comes back, as on
+#   a timeout or a lost login.
+child_graphql() {
+  local what=$1 answer status=0 glab_message=$scratch/graphql-stderr
+  shift
+  answer=$(cd "$project_root" && glab api graphql "$@" 2>"$glab_message") || status=$?
+  if [[ $status != 0 ]] && ! jq -e 'type == "object" and has("errors")' <<<"$answer" >/dev/null 2>&1; then
+    cat "$glab_message" >&2
+    die "glab could not $what" 1
+  fi
+  cat "$glab_message" >>"$CHILD_REFUSAL" || die "cannot write $CHILD_REFUSAL"
+  printf '%s\n' "$answer"
+}
+
 # create_child_task PROJECT_PATH PARENT_ID TITLE FILE : create a GitLab task titled TITLE, its description FILE, as a child
-#   of the work item with global id PARENT_ID in project PROJECT_PATH; print its URL. Status 1, with the tracker's answer
-#   in CHILD_REFUSAL, when the project has no task type or GitLab refuses the task.
+#   of the work item with global id PARENT_ID in project PROJECT_PATH; print its URL. Print nothing, with GitLab's answer
+#   in CHILD_REFUSAL, when the project has no task type or GitLab refuses the task; exit 1 when the call itself fails.
 create_child_task() {
   local types type_id request answer url
-  types=$(cd "$project_root" && glab api graphql -f "query=$TASK_TYPE_QUERY" -f "path=$1" 2>>"$CHILD_REFUSAL") || return 1
+  types=$(child_graphql "read the project's work item types" -f "query=$TASK_TYPE_QUERY" -f "path=$1") || exit 1
   type_id=$(jq -r '[.data.project.workItemTypes.nodes[]? | select(.name == "Task") | .id][0] // empty' <<<"$types") ||
-    return 1
+    die "glab answered the work item types query with no JSON: $types" 1
   if [[ -z $type_id ]]; then
-    printf 'the project has no Task work item type: %s\n' "$types" >>"$CHILD_REFUSAL"
-    return 1
+    printf 'the project has no Task work item type: %s\n' "$types" >>"$CHILD_REFUSAL" || die "cannot write $CHILD_REFUSAL"
+    return 0
   fi
   request=$scratch/child-task.json
   jq -n --arg query "$CREATE_TASK_MUTATION" --arg path "$1" --arg parent "gid://gitlab/WorkItem/$2" --arg title "$3" \
     --rawfile description "$4" --arg type "$type_id" \
     '{query: $query, variables: {input: {namespacePath: $path, title: $title, workItemTypeId: $type,
-      descriptionWidget: {description: $description}, hierarchyWidget: {parentId: $parent}}}}' >"$request" || return 1
-  answer=$(cd "$project_root" && glab api graphql -H 'Content-Type: application/json' --input "$request" \
-    2>>"$CHILD_REFUSAL") || return 1
+      descriptionWidget: {description: $description}, hierarchyWidget: {parentId: $parent}}}}' >"$request" ||
+    die "cannot read $4"
+  answer=$(child_graphql "create a child task under work item $2" -H 'Content-Type: application/json' --input "$request") ||
+    exit 1
   url=$(jq -r 'if (.errors // []) == [] and (.data.workItemCreate.errors // []) == []
-    then .data.workItemCreate.workItem.webUrl // empty else empty end' <<<"$answer" 2>/dev/null) || url=""
+    then .data.workItemCreate.workItem.webUrl // empty else empty end' <<<"$answer") ||
+    die "glab answered the child task request with no JSON: $answer" 1
   if [[ -z $url ]]; then
-    printf '%s\n' "$answer" >>"$CHILD_REFUSAL"
-    return 1
+    printf '%s\n' "$answer" >>"$CHILD_REFUSAL" || die "cannot write $CHILD_REFUSAL"
+    return 0
   fi
   printf '%s\n' "$url"
 }
@@ -272,7 +294,8 @@ create_gitlab_task() {
   spec_issue=$(tracker_call "read issue #$1" api "projects/:fullpath/issues/$1") || exit 1
   spec_id=$(json_field "the id of issue #$1" .id "$spec_issue") || exit 1
   CHILD_REFUSAL=$scratch/child-refusal
-  if url=$(create_child_task "$project_path" "$spec_id" "$2" "$3"); then
+  url=$(create_child_task "$project_path" "$spec_id" "$2" "$3") || exit 1
+  if [[ -n $url ]]; then
     number=$(issue_number "$url") || exit 1
     tracker_call "add the backlog label to the new task $url" api "projects/:fullpath/issues/$number" -X PUT \
       -f "add_labels=$backlog_label" >/dev/null || exit 1
