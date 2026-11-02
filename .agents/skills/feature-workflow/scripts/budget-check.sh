@@ -44,7 +44,7 @@
 # Exit codes: 0 within budget; 2 over budget (the caller runs 00.21 with blocked_condition "size budget: <what>", then 00.29);
 #   1 usage or environment error (missing yq/jq, not a git repo, missing file, malformed budget or test_patterns, unknown baseline commit,
 #   invalid main_branch).
-# Called by: modules task-breakdown (2.6) and implementation-waves (3.15); discovered-work at 00.29 after an approved overrun.
+# Called by: step files task-breakdown (2.6) and implementation-waves (3.15); discovered-work at 00.29 after an approved overrun.
 # Notes: Requires git, jq and mikefarah yq v4. bash 3.2 compatible. Reads main_branch through rules-setting.sh (same folder).
 # Sources: first-party; formats from project-setup/assets/docs/rules.md "Size budget"; feature-workflow/assets/spec.md `budget`. Spec checkout, spec folder and test paths: .agents/lib/workflow-paths.sh and .agents/lib/test-paths.sh.
 
