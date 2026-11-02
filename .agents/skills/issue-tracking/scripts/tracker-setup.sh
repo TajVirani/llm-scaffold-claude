@@ -182,6 +182,7 @@ save_tracker() {
   if [[ ${#missing[@]} -gt 0 && $create_labels -eq 0 ]]; then
     die "the $tracker tracker has no label $(quoted_list "${missing[@]}"); agree to create them, then run save again with --create-labels" 1
   fi
+  # Bash 3.2 reads an empty array as unbound under set -u, so the guard keeps save working when every label exists.
   for label in ${missing[@]+"${missing[@]}"}; do
     create_label "$label"
     printf 'created label: %s\n' "$label"
