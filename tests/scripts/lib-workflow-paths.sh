@@ -234,6 +234,32 @@ eq "WF_ISSUE_TRACKING is .workflow/issue-tracking.yaml, built from WF_DIR" \
   "$(bash -c 'set -euo pipefail; . "$1"; [ "$WF_ISSUE_TRACKING" = "$WF_DIR/issue-tracking.yaml" ] && printf %s "$WF_ISSUE_TRACKING"' _ "$LIB" 2>&1)" \
   .workflow/issue-tracking.yaml
 
+echo "== wf_origin_host"
+HOST_REPO=$WORK/host-repo
+git_init_repo "$HOST_REPO"
+while IFS='|' read -r label url host; do
+  git -C "$HOST_REPO" remote remove origin 2>/dev/null
+  git -C "$HOST_REPO" remote add origin "$url"
+  eq "wf_origin_host prints '$host' for an origin on $label" "$(stdout_and_status wf_origin_host "$HOST_REPO")" "0|$host"
+done <<EOF
+GitHub over ssh|git@github.com:acme/app.git|github
+GitHub over https|https://github.com/acme/app.git|github
+GitLab over ssh|git@gitlab.com:acme/app.git|gitlab
+a self-hosted GitLab|https://gitlab.acme.test/team/app.git|gitlab
+another host|https://bitbucket.org/acme/app.git|
+a local path|$WORK/elsewhere.git|
+EOF
+mkdir -p "$HOST_REPO/sub"
+git -C "$HOST_REPO" remote set-url origin git@github.com:acme/app.git
+eq "wf_origin_host from a sub-folder reads the checkout's origin remote" \
+  "$(stdout_and_status wf_origin_host "$HOST_REPO/sub")" "0|github"
+eq "wf_origin_host prints nothing and returns 0 for an empty folder argument, even run inside a checkout with an origin" \
+  "$(cd "$HOST_REPO" && refusal wf_origin_host "")" "0|"
+git -C "$HOST_REPO" remote remove origin
+eq "wf_origin_host prints nothing and returns 0 with no origin remote" "$(refusal wf_origin_host "$HOST_REPO")" "0|"
+eq "wf_origin_host prints nothing and returns 0 outside a git repository" "$(refusal wf_origin_host "$WORK/not-a-repo")" "0|"
+eq "wf_origin_host prints nothing and returns 0 with no argument under set -u" "$(refusal wf_origin_host)" "0|"
+
 echo "== JRN-012 (spec 00014): the old_ prefix in the Done folder"
 OLD_DONE=.workflow/specs/done/old_012-alpha
 while IFS='|' read -r form arg; do

@@ -38,6 +38,9 @@
 #                          <NNN> taken from the spec folder name NNN-slug (relative, dot-relative, trailing-slash or absolute
 #                          spec dir), no trailing newline; status 1 and the reason on stderr for a spec folder that is not
 #                          NNN-slug, an unknown kind, a task value that is not T<digits> or an empty work type
+#   wf_origin_host <dir>   prints `github` when the `origin` remote URL of the checkout at <dir> contains "github", else
+#                          `gitlab` when it contains "gitlab", else nothing (another host, no origin remote, <dir> empty or
+#                          not in a git repository); status 0 in every case. Callers still check the CLI is installed.
 #   No function exits: each caller turns status 1 into its own error message and exit code.
 # Paths are repo-relative; the write guards compare them case-insensitively.
 # Sources: first-party.
@@ -200,4 +203,18 @@ wf_agent_worktree_name() {
       return 1
       ;;
   esac
+}
+
+# wf_origin_host DIR : print github or gitlab when the origin remote URL of the checkout at DIR contains that name, nothing
+#   for any other host, no origin remote, an empty DIR or a DIR outside git; status 0 in every case.
+wf_origin_host() {
+  local url
+  # git -C "" would read the current folder's remote instead of none.
+  [[ -n "${1:-}" ]] || return 0
+  url=$(git -C "$1" remote get-url origin 2>/dev/null) || return 0
+  case "$url" in
+    *github*) printf 'github\n' ;;
+    *gitlab*) printf 'gitlab\n' ;;
+  esac
+  return 0
 }
