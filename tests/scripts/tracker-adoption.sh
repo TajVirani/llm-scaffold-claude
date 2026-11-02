@@ -15,6 +15,11 @@
 #   review-lessons.sh validate and move-to-done.sh --check accept the renamed Done spec.
 #   JRN-012: move-to-done.sh --check on a Done spec named old_NNN-slug reads its backlog list old_NNN-slug.md: it passes on
 #   well-formed lines and names a malformed line by file and line number.
+#   Errors and reruns: a second run files no second issue and reports the renamed specs as already adopted; an unknown
+#   flag, --cwd without a value or naming no directory, no tracker settings and issue_tracker none exit 2 before anything
+#   is filed or renamed; a commit refused in a spec worktree exits 2 and rolls back the folder move and the branch-name
+#   edits, keeps tracker_issue and leaves the main checkout as it was; a push the local bare origin refuses exits 1 naming
+#   the command to push by hand, leaves the old remote branch unchanged and still adopts the other specs.
 #   The script is shellcheck-clean.
 # shellcheck disable=SC2016,SC2329,SC1010,SC2034  # check expressions are single-quoted and eval'd on purpose and read variables and call helpers shellcheck cannot see; "done" is a status word
 # shellcheck source=../lib/common.sh
@@ -157,6 +162,88 @@ printf -- '- [maybe] B2 bug (3.4): A line out of shape. Evidence: tests/fetch.sh
 fake_run "$(fake_path both)" bash "$Q/$MTD_REL" --check "$SPECS/done/old_020-zeta" --cwd "$Q"
 check "JRN-012 move-to-done.sh --check reads the old_ backlog list and names its malformed line" \
   '[[ $RC == 1 && $OUT == *"work-backlog/old_020-zeta.md:2"* ]]' "rc=$RC out=$OUT err=$ERR"
+
+echo "== a second run on the adopted project"
+fake_run "$(fake_path both)" bash "$P/$TA_REL" --cwd "$P"
+check "a second run files no second issue and reports both renamed specs as already adopted" \
+  '[[ $(fake_issue_numbers | tr "\n" " ") == "101 102 " && $OUT == *"already adopted: $SPECS/${DELTA:-none}"* &&
+     $OUT == *"already adopted: $SPECS/${BETA:-none}"* ]]' "rc=$RC out=$OUT issues=$(fake_issue_numbers | tr '\n' ' ')"
+check "a second run still refuses 016-epsilon and exits 1" '[[ $RC == 1 ]] && grep -q "016-epsilon" <<<"$ERR"' "rc=$RC err=$ERR"
+
+echo "== usage and environment errors"
+fake_run "$(fake_path both)" bash "$P/$TA_REL" --bogus
+check "an unknown flag exits 2 with the usage line" '[[ $RC == 2 && $ERR == *"usage: tracker-adoption.sh"* ]]' "rc=$RC err=$ERR"
+fake_run "$(fake_path both)" bash "$P/$TA_REL" --cwd
+check "--cwd without a value exits 2 with the usage line" '[[ $RC == 2 && $ERR == *"usage: tracker-adoption.sh"* ]]' \
+  "rc=$RC err=$ERR"
+fake_run "$(fake_path both)" bash "$P/$TA_REL" --cwd "$WORK/missing"
+check "--cwd naming no directory exits 2" '[[ $RC == 2 && $ERR == *"not a directory"* ]]' "rc=$RC err=$ERR"
+N=$WORK/no-tracker
+tracker_project "$N" gitlab
+mkdir -p "$N/$SPECS/015-delta"
+printf -- '---\nstatus: draft\nspec_branch: ""\n---\n\n# Delta feature\n' >"$N/$SPECS/015-delta/spec.md"
+fake_trackers_reset
+fake_run "$(fake_path both)" bash "$N/$TA_REL" --cwd "$N"
+check "with no tracker settings adoption exits 2 before it files or renames anything" \
+  '[[ $RC == 2 && $ERR == *"no tracker is set up"* && $(fake_call_count) == 0 && -f $N/$SPECS/015-delta/spec.md ]]' \
+  "rc=$RC err=$ERR calls=$(fake_call_count)"
+tracker_settings "$N" none
+fake_run "$(fake_path both)" bash "$N/$TA_REL" --cwd "$N"
+check "with issue_tracker none adoption exits 2 before it files or renames anything" \
+  '[[ $RC == 2 && $ERR == *"not gitlab or github"* && $(fake_call_count) == 0 && -f $N/$SPECS/015-delta/spec.md ]]' \
+  "rc=$RC err=$ERR calls=$(fake_call_count)"
+
+echo "== a commit failing in a spec worktree"
+R=$WORK/commit-fails
+adoption_project "$R" "$WORK/commit-fails.git"
+R_BETA_WT=$ADOPTION_BETA_WT
+R_BETA_TIP=$(git -C "$R" rev-parse spec/013-beta)
+# The main checkout's draft gets its tracker_issue before any rename, so its folder is left out of the comparison.
+R_MAIN_DIGEST=$(cd "$R/.workflow" && find . -path ./.spec-worktrees -prune -o -path ./specs/015-delta -prune -o -type f \
+  -exec cksum {} + | LC_ALL=C sort)
+printf '#!/bin/sh\necho "pre-commit: refused by the test" >&2\nexit 1\n' >"$R/.git/hooks/pre-commit"
+chmod +x "$R/.git/hooks/pre-commit"
+fake_trackers_reset
+FAKE_ISSUE_NUMBER=201 fake_run "$(fake_path both)" bash "$R/$TA_REL" --cwd "$R"
+check "a failed commit in the spec worktree exits 2 and says the renames were rolled back" \
+  '[[ $RC == 2 && $ERR == *"cannot commit the rename"* && $ERR == *"rolled back"* ]]' "rc=$RC err=$ERR"
+check "the spec folder is back under its old name in its spec worktree, on its old branch at its old commit" \
+  '[[ -f $R_BETA_WT/$SPECS/013-beta/spec.md && -z $(renamed "$R_BETA_WT/$SPECS" beta) &&
+     $(git -C "$R_BETA_WT" branch --show-current) == spec/013-beta && $(git -C "$R" rev-parse spec/013-beta) == "$R_BETA_TIP" ]]' \
+  "$(ls "$R_BETA_WT/$SPECS" 2>&1)"
+eq "the rollback gives spec_branch its old branch name back" "$(fm "$R_BETA_WT/$SPECS/013-beta/spec.md" .spec_branch)" \
+  "spec/013-beta"
+eq "the rollback gives the task records' branch fields their old names back" \
+  "$(fm "$R_BETA_WT/$SPECS/013-beta/tasks.md" '[.tasks[].branch] | join(" ")')" "task/013-beta/T01-build task/013-beta/T02-wire"
+check "the rolled-back spec keeps the issue it was given in tracker_issue" \
+  '[[ $(fm "$R_BETA_WT/$SPECS/013-beta/spec.md" .tracker_issue) == "$(fake_url glab 201)" ||
+     $(fm "$R_BETA_WT/$SPECS/013-beta/spec.md" .tracker_issue) == "$(fake_url glab 202)" ]]' \
+  "tracker_issue=$(fm "$R_BETA_WT/$SPECS/013-beta/spec.md" .tracker_issue)"
+check "the main checkout is left as it was: no Done spec, draft or reference renamed" \
+  '[[ -d $R/$SPECS/done/012-alpha && -d $R/$SPECS/015-delta && ! -e $R/$SPECS/done/old_012-alpha &&
+     $(cd "$R/.workflow" && find . -path ./.spec-worktrees -prune -o -path ./specs/015-delta -prune -o -type f -exec cksum {} + |
+       LC_ALL=C sort) == "$R_MAIN_DIGEST" ]]' "$(git -C "$R" status --porcelain)"
+
+echo "== a push the remote refuses"
+U=$WORK/push-fails
+U_BARE=$WORK/push-fails.git
+adoption_project "$U" "$U_BARE"
+git -C "$ADOPTION_EPSILON_WT" worktree remove --force "$ADOPTION_EPSILON_TASK_WT"
+U_OLD_TIP=$(git -C "$U_BARE" rev-parse refs/heads/spec/013-beta)
+printf '#!/bin/sh\necho "pre-receive: refused by the test" >&2\nexit 1\n' >"$U_BARE/hooks/pre-receive"
+chmod +x "$U_BARE/hooks/pre-receive"
+fake_trackers_reset
+FAKE_ISSUE_NUMBER=301 fake_run "$(fake_path both)" bash "$U/$TA_REL" --cwd "$U"
+U_BETA=$(renamed "$U/.workflow/.spec-worktrees" beta)
+check "a refused push exits 1 and names the command that pushes the renamed branch by hand" \
+  '[[ $RC == 1 && -n $U_BETA && $ERR == *"git push -u origin spec/$U_BETA"* ]]' "rc=$RC beta=$U_BETA err=$ERR"
+check "the renamed branch stays committed locally and the remote keeps only the old branch, unchanged" \
+  'git -C "$U" rev-parse -q --verify "spec/$U_BETA" >/dev/null &&
+   ! git -C "$U_BARE" rev-parse -q --verify "refs/heads/spec/$U_BETA" >/dev/null &&
+   [[ $(git -C "$U_BARE" rev-parse refs/heads/spec/013-beta) == "$U_OLD_TIP" ]]' "$(git -C "$U_BARE" branch)"
+check "the other specs are still adopted when the push is refused" \
+  '[[ -n $(renamed "$U/$SPECS" delta) && -n $(renamed "$U/.workflow/.spec-worktrees" epsilon) && -d $U/$SPECS/done/old_012-alpha ]]' \
+  "$OUT"
 
 shellcheck_files "shellcheck: tracker-adoption.sh" "$P/$TA_REL"
 finish

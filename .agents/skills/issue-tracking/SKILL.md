@@ -1,6 +1,6 @@
 ---
 name: issue-tracking
-description: File and move a spec's and its tasks' tracker issues on the project's GitLab or GitHub tracker. Use when a feature-workflow step calls issue-tracker.sh, or when a tracker issue's title, body, parent or issue flow label needs fixing by hand.
+description: File and move a spec's and its tasks' tracker issues on the project's GitLab or GitHub tracker. Use when a feature-workflow step calls issue-tracker.sh, when a tracker issue's title, body, parent or issue flow label needs fixing by hand, or when a project already under way adopts the tracker.
 ---
 
 # Issue tracking
@@ -34,3 +34,16 @@ Output and exits:
 4. Ask the stakeholder whether to create the missing labels. Only with their yes, run the same `save` with `--create-labels`. It prints `created label: <name>` for each label it makes, then writes the file.
 
 `save` runs the same checks as `check` first, so it refuses in the same cases. It replaces any settings file already there. Exit 2 is a usage error: a missing flag, two labels with the same name, or a folder outside a git repository.
+
+## Tracker adoption
+
+`scripts/tracker-adoption.sh [--cwd <dir>]` moves a project already under way onto tracker numbering in one run. Run it once **Tracker setup** has saved the settings. With no tracker set up, or an `origin` remote on another host, it exits 2 before it files anything.
+
+- **Active specs.** These are the spec folders at the top level of `.workflow/specs/` in the main checkout and the specs in the spec worktrees. For each one, the script files a **Tracker issue** (`create-spec`, then `fill`) and writes its URL to `tracker_issue`. It then renames the spec after the issue number, padded to five digits: `015-delta` becomes `00101-delta`. The rename covers the folder, the backlog list, the spec branch, the spec worktree, `spec_branch`, the task records' `branch` fields and every `.workflow/` reference. The step marker moves with the folder.
+- **Done specs** get no issue. Each folder becomes `done/old_NNN-slug` and its backlog list `old_NNN-slug.md`, with every reference rewritten. Retrospective and ADR file names stay as they are.
+- **Refused specs.** A spec with a live task worktree (`.workflow/.worktrees/s<NNN>_*`) is refused and left exactly as it was, and the others still run. So is a spec whose spec worktree is not on its spec branch, or whose new name is already taken.
+- **The remote.** A spec branch that was pushed is pushed again under its new name. The old remote branch and its task PRs are reported and left in place: adoption deletes nothing on the remote. Tell the stakeholder about them, so they can close or delete them by hand.
+- **Commits.** A spec worktree's rename is committed on its spec branch before the branch is renamed. The main checkout's renames are left uncommitted, because the main branch takes no direct commits. The script says so; commit them on a branch and merge it.
+- **Running it again.** A spec keeps the issue in its `tracker_issue`, so a second run files nothing twice and reports a renamed spec as `already adopted`. After a refusal, fix what stderr names and run the script again.
+
+Exit 0: every spec adopted. Exit 1: some spec refused, or a step after its issue was filed failed (filling the issue, pushing the branch), named on stderr with the command to finish it by hand. Exit 2: a usage or environment error. An error during a rename rolls back that checkout's renames; renames already committed in another spec worktree stay.
