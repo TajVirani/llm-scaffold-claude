@@ -1,0 +1,42 @@
+status: done
+summary: "Every tracker call is now in its step: fill at 0.3.19, 0.6, 0.3.20 and 5.8; create-task plus set-task --issue at 2.5 and 0.3.20; move in_progress at 3.1, 3.3, 3.9, 3.11 and 4.7; move done at 3.16 and after the 5.8 local merge. The PR template's Link to issue gives the tracker_issue URL and Closes #<n> and keeps the no-tracker stub, 5.4 ends a project-template body with those two lines, and conventions names Tracker adoption as the second path-only rewriter plus one shared Tracker calls rule. The 4.7 call sits in review-triage.md next to the 4.7 reopen, because the lint reads 4.7 from there and that file is outside the resume load. Both loads fit: start 44046/45000, resume 54967/55000."
+task_id: "T10"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t10"
+branch: "task/00014-tracker-issue-spec-ids/T10-step-file-tracker-calls"
+base_commit: "a05c84a9069905539e0f0384cc407fce1711898e"
+head_commit: "f8bdbda44f3e77b7f88914045cb59c613f498287"
+files_changed:
+  - ".agents/skills/feature-workflow/assets/pr-template.md"
+  - ".agents/skills/feature-workflow/modules/discovery-impact.md"
+  - ".agents/skills/feature-workflow/modules/implementation-finish.md"
+  - ".agents/skills/feature-workflow/modules/implementation-setup.md"
+  - ".agents/skills/feature-workflow/modules/implementation-waves.md"
+  - ".agents/skills/feature-workflow/modules/questioning-loop.md"
+  - ".agents/skills/feature-workflow/modules/review-triage.md"
+  - ".agents/skills/feature-workflow/modules/sign-off.md"
+  - ".agents/skills/feature-workflow/modules/task-breakdown.md"
+  - ".agents/skills/feature-workflow/references/conventions.md"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite lint/issue-tracking-docs: passed=11 failed=15 (e.g. FAIL JRN-005 0.3.19 calls issue-tracker.sh fill: step 0.3.19 has no line matching ...); tests/run-all.sh --suite scripts/sign-off-pr: passed=34 failed=4 (FAIL JRN-009 (spec 00014) sign-off 5.4 ends a project-template body with the issue URL and Closes #<n>)"
+  green: "tests/run-all.sh --suite lint/issue-tracking-docs: 26/26 passed; tests/run-all.sh --suite scripts/sign-off-pr: 38/38 passed; bash tests/lint/workflow-load-size.sh: 14/14 passed (new-feature start 44046 of 45000, implementation resume 54967 of 55000); tests/run-all.sh (whole harness): TOTAL passed=4751 failed=0 skipped=0 xfail=0 (81 suites)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00014-tracker-issue-spec-ids --task-id T10 --cwd <worktree>: lint pass, test pass (scoped, own=2, TOTAL passed=64 failed=0 (2 suites))"
+  toolchain: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T10/toolchain.txt (pass)"
+considered_not_built:
+  - "move done for the spec issue after a PR/MR merge: the task and the issue-tracking skill name 5.8 done for the local merge only; the PR's Closes #<n> line closes the issue on merge, and 5.8 says so"
+  - "a 4.7 call in the implementation-waves.md Rework entry: the lint reads step 4.7 from review-triage.md, where the reopen command already sits, and the resume load had only 33 bytes left after 3.3, 3.16 and 3.9"
+  - "rewording the no-tracker stub line: the spec says the PR stub behaves exactly as before with no tracker, so the line is kept word for word"
+  - "a per-step exit-handling sentence in implementation-waves.md: no room in the resume load, so one Tracker calls rule in conventions.md (loaded at both points) gives the exit 1 or 2 handling and the empty-issue rule"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "the diff adds or changes no skill description; only module, reference and asset bodies change"}
+  - {item: 2, verdict: not-applicable, note: "no agent is added or changed"}
+  - {item: R1, verdict: pass, note: "placeholders say what they hold: <issue> (task record's issue), <the printed URL>; defined in conventions.md Tracker calls and review-triage.md 4.7 block"}
+  - {item: R2, verdict: pass, note: "sign-off.md 5.8 says why only a local merge moves the spec issue to done (a PR closes it through Closes #<n>); the fill runs before the move while the old path exists"}
+  - {item: R3, verdict: pass, note: "the bash comments added in discovery-impact.md 0.3.20 give what to record and when to skip, which the command line does not show"}
+  - {item: R4, verdict: pass, note: "no added comment names a decision id, task id or .workflow/ doc path; check-comments.sh exits 0"}
+  - {item: R5, verdict: pass, note: "plain sentences; Tracker issue, Issue flow and Tracker adoption are glossary terms"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the changed files exited 0 with no lines listed"}

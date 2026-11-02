@@ -1,0 +1,38 @@
+verdict: "pass"
+task_id: "T10"
+work_type: "agent-docs"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t10@a05c84a9069905539e0f0384cc407fce1711898e..HEAD"
+tool_output: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/specs/00014-tracker-issue-spec-ids/artifacts/T10/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: the 10 changed files are assets, modules and references (git diff --name-status a05c84a..HEAD), and no added line is a frontmatter description"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: no agent file is added or changed; no path under agents/ in the name-status list"
+  - n: R1
+    verdict: "pass"
+    location: "references/conventions.md:33 defines the placeholder <issue>; modules/review-triage.md:160 defines it again beside the command; assets/pr-template.md:17-20 names the URL and n. The diff adds no function, variable, type or test name, so the placeholders are the only names to judge."
+  - n: R2
+    verdict: "pass"
+    location: "assets/pr-template.md:17-18 gives the reason for the Closes line (so merging the PR closes the issue) and for the stub (no tracker). No added comment gives a workaround or trade-off a reader would undo without a reason."
+  - n: R3
+    verdict: "pass"
+    location: "modules/discovery-impact.md:46-47 says what to record and when to skip, which the command on line 48 does not show; the comment does not restate it"
+  - n: R4
+    verdict: "pass"
+    location: "modules/discovery-impact.md:46 names T1 (judged not a breach, see not_checked); assets/pr-template.md:17-18 names spec.md, a guidance comment that sign-off.md step 5.4 replaces with its text when the body is filled, so no published or code reader meets it"
+  - n: R5
+    verdict: "pass"
+    location: "modules/discovery-impact.md:46-47 uses Tracker issue line, defined in assets/task.md:5; assets/pr-template.md:17-20 is plain English"
+read_outside_diff:
+  - "references/readable-code.md: read in full, the R1-R5 rules and the Checking table"
+  - "assets/task.md:5: confirms that Tracker issue line is defined in the task template (R5)"
+  - "modules/discovery-impact.md:30-57 in the task worktree: confirms T1 is the light path's fixed task id at lines 37 and 57 (R4)"
+  - "assets/pr-template.md:1-13 in the task worktree: the template's guidance-comment convention (R4)"
+  - "scripts/check-comments.sh header: the house definition of a task-id breach is T<digits> followed by a colon (R4)"
+not_checked:
+  - "modules/discovery-impact.md:46 names T1 in a body comment, which a literal read of the R4 Checking row (a task ID) would match. Judged pass, not a breach: T1 is the light path's fixed task id (lines 37 and 57 use it the same way), so the reference cannot go stale, and check-comments.sh defines the task-id breach as T<digits> with a colon, which this line lacks. The implementer's self_review says no added comment names a task ID, which is literally wrong here; the verdict does not change. The orchestrator settles it if it reads the R4 row literally."
+out_of_scope_noticed: []

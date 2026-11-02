@@ -179,7 +179,7 @@ tasks:
     pr: null
   - id: T10
     title: "Step-file tracker calls and Sign-off PR link"
-    status: pending
+    status: done
     capability: CAP-NEW-tracker-issues
     depends_on: [T1, T2, T3, T7, T9]
     touches_core: false
