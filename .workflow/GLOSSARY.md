@@ -168,6 +168,18 @@ _Avoid_: Feature PR, merge PR, final PR
 The fixed sections a **Sign-off PR** description must fill: link to issue, what changed, why the change, why this approach, things to note, step-by-step test instructions, **Blast radius**, risk and reversibility scores, the areas and seams that changed, and how to undo the PR. Each section is filled from evidence in the spec folder, not claims.
 _Avoid_: PR description template, PR body format, MR template
 
+**Tracker issue**:
+The issue on the project's GitLab or GitHub tracker that a spec or a task is filed as. A spec's tracker issue gives the spec its number; a task's is a sub-issue (GitHub) or child task (GitLab) of its spec's.
+_Avoid_: Ticket, child issue, issue tracker (the **Work backlog** is not on the tracker)
+
+**Issue flow**:
+The project's agreed mapping of the three stages a **Tracker issue** moves through (backlog, in progress, done) onto tracker labels or board columns. Its backlog stage is not the **Work backlog**.
+_Avoid_: Ticket flow, board flow
+
+**Tracker adoption**:
+The one-time move of a project that already has specs onto its tracker: active specs are filed as **Tracker issues** and renamed to their issue numbers, and finished specs in the **Done folder** take the `old_` prefix so their numbers cannot collide.
+_Avoid_: Migration (names data-model migrations), retrofit, backfill
+
 ### Scope control
 
 **Blast radius**:
@@ -200,6 +212,7 @@ _Avoid_: Quota, cap
 - An **Initiative** holds many **Initiative questions** and many **Slices**; each **Slice** becomes exactly one spec, and an **Initiative question** may depend on an emitted spec.
 - A **Review lesson** is written by the retrospective of exactly one spec and checked by the review-lessons **Task type** on every later spec's review.
 - Each spec has one **Sign-off PR**, and its description follows the **PR template**, which reports the change's **Blast radius**.
+- Each spec has one **Tracker issue**, and each of its tasks has one under it; every **Tracker issue** moves through the project's **Issue flow**.
 
 ## Flagged ambiguities
 
