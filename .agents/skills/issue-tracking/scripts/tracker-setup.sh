@@ -61,6 +61,7 @@ version_at_least() {
   local IFS=. have=() want=() i
   read -r -a have <<<"$1"
   read -r -a want <<<"$2"
+  # 10# keeps a part such as 09 decimal; bash would read it as octal.
   for i in 0 1 2; do
     if ((10#${have[i]:-0} > 10#${want[i]:-0})); then return 0; fi
     if ((10#${have[i]:-0} < 10#${want[i]:-0})); then return 1; fi
@@ -154,6 +155,7 @@ write_settings() {
   if [[ $1 == none ]]; then
     TRACKER=$1 yq -n '.issue_tracker = strenv(TRACKER)' >"$draft" || { rm -f "$draft"; die "cannot write $settings"; }
   else
+    # Double-quoted labels stay strings, such as yes and 123, for YAML 1.1 readers.
     TRACKER=$1 BACKLOG=$2 IN_PROGRESS=$3 DONE=$4 yq -n '.issue_tracker = strenv(TRACKER)
       | .issue_flow.backlog = strenv(BACKLOG) | .issue_flow.in_progress = strenv(IN_PROGRESS)
       | .issue_flow.done = strenv(DONE) | .issue_flow[] style="double"' >"$draft" ||
