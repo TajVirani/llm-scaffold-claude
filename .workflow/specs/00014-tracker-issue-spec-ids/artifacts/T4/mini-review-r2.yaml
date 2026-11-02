@@ -1,0 +1,67 @@
+verdict: pass
+task_id: "T4"
+work_type: "shell-scripts"
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t4@3c3e3cd2385fc2b8a3ff6453bde163e7a8c622b9..HEAD"
+tool_output: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T4/toolchain.json"
+items:
+  - n: 1
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:296-298 (fixture paths, which this item allows); .agents/hooks/session-start-resume.sh:281-283 adds no .workflow/ path"
+  - n: 2
+    verdict: pass
+    location: ".agents/hooks/session-start-resume.sh:281-283 (only two case patterns widened; no new logic)"
+  - n: 3
+    verdict: pass
+    location: ".agents/hooks/session-start-resume.sh:280-285 (the case arm adds no error path; a malformed old name matches no arm, which the header at line 37 documents as 'Other files there are ignored')"
+  - n: 4
+    verdict: not-applicable
+    location: "no code in the diff the item applies to (no write or check inside a loop with a caller's || die)"
+  - n: 5
+    verdict: not-applicable
+    location: "no code in the diff the item applies to (exit paths unchanged)"
+  - n: 6
+    verdict: not-applicable
+    location: "no code in the diff the item applies to (sibling source line unchanged)"
+  - n: 7
+    verdict: pass
+    location: ".agents/hooks/session-start-resume.sh:1-40 (hook header keeps its sections; edited lines 35-36 add a sentence, no new section, no decision ID)"
+  - n: 8
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:272,295-302 (edited file keeps its [ ] test syntax; no new file)"
+  - n: 9
+    verdict: not-applicable
+    location: "no code in the diff the item applies to (no new function or shellcheck directive)"
+  - n: R1
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:301-302 (test name says what the case checks)"
+  - n: R2
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:295 (gives the reason old_ names exist); .agents/hooks/session-start-resume.sh:35-36"
+  - n: R3
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:295; .agents/hooks/session-start-resume.sh:35-36 (state intent and behaviour, not the next line)"
+  - n: R4
+    verdict: tool-covered
+    location: "tests/hooks/audit-sync-resume.sh:295; .agents/hooks/session-start-resume.sh:35-36"
+    note: "covered by the lint key's comment lint (check-comments.sh over both changed files, exit 0 in toolchain.txt); residual docs/ or URL check found none"
+  - n: R5
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:295; .agents/hooks/session-start-resume.sh:35-36 ('Tracker adoption' is defined in .agents/skills/issue-tracking/scripts/tracker-adoption.sh:2-8)"
+read_outside_diff:
+  - ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:237-245, 400-405: rename scope; only the Done folder and its backlog list get the old_ prefix"
+  - ".agents/skills/issue-tracking/SKILL.md:43: documents the old_ rename as the folder and the list only"
+  - ".agents/lib/workflow-paths.sh:168-172: the old_ name pattern for Done specs"
+  - "tests/scripts/tracker-adoption.sh:126-130: adoption test checks the old_ lists, not item files"
+  - "tests/hooks/audit-sync-resume.sh:272: sibling backlog check, for the file's test syntax"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1-R5 and the Checking table"
+  - "ran (probe, scratch worktree of HEAD 5e83ca1, removed after): tests/run-all.sh --suite hooks/audit-sync-resume gave passed=59 failed=0; this suite is not in toolchain.json's test key"
+not_checked:
+  - "session-start-resume.sh:284 keeps 2>/dev/null on the sed; an unreadable old_ list now reaches it and is dropped with no note, as an unprefixed list already is. Would be settled by chmod 000 on an old_ list and a hook run, plus a statement in the header of whether unreadable lists are reported; not proven, and the silent path predates this diff"
+out_of_scope_noticed:
+  - kind: bug
+    summary: "The changed hook header (session-start-resume.sh:35-36) and test comment (tests/hooks/audit-sync-resume.sh:295) say adoption gives a Done spec's item files the old_ prefix. It does not. Adoption renames only the Done folder and its backlog list, so the old_NNN-slug-disc-###.md arm at session-start-resume.sh:281 is never produced by adoption, and the test at lines 296-302 checks a name adoption never writes."
+    evidence: "tracker-adoption.sh:237-245 rename_spec moves only the spec folder and $WF_WORK_BACKLOG/<name>.md; tracker-adoption.sh:400-405 adds old_ only to the Done folder and old_<name>.md; 'rg -n disc' over tracker-adoption.sh and workflow-paths.sh gives no match; issue-tracking/SKILL.md:43 says 'Each folder becomes done/old_NNN-slug and its backlog list old_NNN-slug.md'; tests/scripts/tracker-adoption.sh:128-130 checks only the two lists."
+    blocker_assessment: blocks-this-task
+    reason: "The false sentence sits on lines this diff changes. Under adoption the disc arm adds nothing, because the hook already counted an unprefixed NNN-slug-disc-###.md file before this change. Fix: name the list only in the header and test comment, and either drop the old_ disc alternative or give it a real producer."

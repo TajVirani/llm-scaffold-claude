@@ -5,7 +5,7 @@
 == scripts/issue-tracking
 
 == summary
-PASS scripts/issue-tracking                 passed=62   failed=0   skipped=0   xfail=0   15s
-TOTAL passed=62 failed=0 skipped=0 xfail=0 (1 suites)
+PASS scripts/issue-tracking                 passed=67   failed=0   skipped=0   xfail=0   31s
+TOTAL passed=67 failed=0 skipped=0 xfail=0 (1 suites)
 == test exit 0
 

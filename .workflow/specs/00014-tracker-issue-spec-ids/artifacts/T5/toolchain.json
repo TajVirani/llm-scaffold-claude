@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t5/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t5",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/specs/00014-tracker-issue-spec-ids/artifacts/T5",
-  "tree": "1a2977863f5e9ab1eec9537ea03236ae4ba0739e",
+  "tree": "6752de1149ed93da8323744f7c8c116ebf98f4b7",
   "ran": 2,
   "results": [
     {
@@ -42,8 +42,9 @@
       "exit_code": 0,
       "scoped": true,
       "own": 1,
-      "excluded": 8
+      "excluded": 6
     }
   ],
-  "digest": ""
+  "digest": "",
+  "reused_from": "T5"
 }

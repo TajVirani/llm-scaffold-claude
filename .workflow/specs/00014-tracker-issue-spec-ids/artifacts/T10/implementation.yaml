@@ -1,0 +1,36 @@
+status: done
+summary: "Rework 1 patches applied. 5.8 now moves the spec's tracker issue to done on both routes once the spec branch is on the main branch (right after a local merge, or once the PR/MR has merged), in the same paragraph as the spec worktree removal, because a merged PR's Closes line closes the issue but leaves the in-progress label. The repeated tracker-call handling sentence is gone from questioning-loop.md, discovery-impact.md (two sites), implementation-setup.md, task-breakdown.md and sign-off.md (two sites), with only the step-specific parts kept, and the tracker-adoption.sh header now opens with '# Covers:'."
+task_id: "T10"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t10"
+branch: "task/00014-tracker-issue-spec-ids/T10-step-file-tracker-calls"
+base_commit: "3c3e3cd2385fc2b8a3ff6453bde163e7a8c622b9"
+head_commit: "060bbe6079845d4e11bb58f11091a31f858a582f"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/discovery-impact.md"
+  - ".agents/skills/feature-workflow/modules/implementation-setup.md"
+  - ".agents/skills/feature-workflow/modules/questioning-loop.md"
+  - ".agents/skills/feature-workflow/modules/sign-off.md"
+  - ".agents/skills/feature-workflow/modules/task-breakdown.md"
+  - "tests/scripts/tracker-adoption.sh"
+tests_added: []
+evidence:
+  red: "Docs-only rework with no new behaviour at a test seam; the existing lint/issue-tracking-docs 5.8 MOVE_DONE check covers the moved call and was kept green throughout."
+  green: "tests/run-all.sh --suite lint/issue-tracking-docs; passed=26 failed=0. tests/run-all.sh --suite scripts/tracker-adoption; passed=47 failed=0. bash tests/lint/workflow-load-size.sh; passed=14 failed=0 (start 44046/45000, resume 54967/55000)."
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00014-tracker-issue-spec-ids --task-id T10 --cwd \"$PWD\"; test (scoped, own 2, excluded 5) pass"
+  toolchain: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T10/toolchain.txt (pass)"
+considered_not_built:
+  - "A separate PR/MR-only paragraph for the done move: one paragraph with the worktree removal says it once, since both share the 'once the spec branch is on the main branch' trigger."
+  - "Edits to tests/lint/issue-tracking-docs.sh and discovery.md: another rework task owns them."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "The diff changes no skill description frontmatter."}
+  - {item: 2, verdict: not-applicable, note: "The diff adds no agent."}
+  - {item: R1, verdict: pass, note: "The sign-off.md 5.8 heading names both actions in order: 'Move the spec's tracker issue to done, then remove the spec worktree and the spec branch'."}
+  - {item: R2, verdict: pass, note: "sign-off.md 5.8 gives the reason for moving on both routes in one clause (Closes leaves the in-progress label) and cites no decision or document."}
+  - {item: R3, verdict: pass, note: "The tracker-call handling now lives only in references/conventions.md:33; the call sites keep only step-specific parts (task-breakdown.md:103, discovery-impact.md:55)."}
+  - {item: R4, verdict: pass, note: "No dead text left behind: the 'leave both' and 'Done when' lines in sign-off.md now name the issue move as well."}
+  - {item: R5, verdict: pass, note: "tests/scripts/tracker-adoption.sh:4 header follows the '# Covers:' form the other suites use."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the six changed files exited 0."}

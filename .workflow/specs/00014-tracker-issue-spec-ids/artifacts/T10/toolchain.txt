@@ -27,7 +27,7 @@ TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
 
 == summary
 PASS scripts/sign-off-pr                    passed=38   failed=0   skipped=0   xfail=0   3s
-PASS lint/issue-tracking-docs               passed=26   failed=0   skipped=0   xfail=0   4s
+PASS lint/issue-tracking-docs               passed=26   failed=0   skipped=0   xfail=0   3s
 TOTAL passed=64 failed=0 skipped=0 xfail=0 (2 suites)
 == test exit 0
 

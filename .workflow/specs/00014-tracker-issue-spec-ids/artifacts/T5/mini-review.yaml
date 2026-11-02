@@ -1,0 +1,65 @@
+verdict: "pass"
+task_id: "T5"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t5@3c3e3cd2385fc2b8a3ff6453bde163e7a8c622b9..HEAD"
+tool_output: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T5/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: "no code in the diff the item applies to: no .workflow/ path is added (0 added lines contain one); the settings path at .agents/skills/issue-tracking/scripts/issue-tracker.sh:374 comes from wf_path and is unchanged"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook in the diff: the changed files are .agents/skills/issue-tracking/scripts/issue-tracker.sh, .agents/skills/issue-tracking/SKILL.md and tests/scripts/issue-tracking.sh"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:116, :123, :124 (new refusals reach die); :149, :153 (json_field then || exit 1); :296 (returned_issue_url then || exit 1)"
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:123, :124 (returned_issue_url carries its own die); :284 (inside create_child_task, whose caller at :313 adds || exit 1; the die exits the subshell); :296 (call site has || exit 1); :155, :238 (plain statements under set -e, die exits)"
+  - n: 5
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:22-23 (# Exit: documents exit 1 for a non-https tracker answer and exit 2 for a non-https argument); :123, :124 (exit 1); :116 (exit 2 from the die default)"
+  - n: 6
+    verdict: "not-applicable"
+    location: "no sibling path is added; the workflow-paths.sh sourcing at .agents/skills/issue-tracking/scripts/issue-tracker.sh:35-37 is unchanged"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:1-31 (helper header keeps the File, Purpose, Usage, stdout, Exit, Called by, Notes and Sources shape; only the Usage lines :18-19 and Exit lines :22-26 change)"
+  - n: 8
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:33 (set -euo pipefail kept), :112, :123, :124 ([[ ]]); tests/scripts/issue-tracking.sh:342 ([[ ]]); no new file"
+  - n: 9
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:111 (is_issue_url), :120-121 (returned_issue_url), :224 (first_url); tests/scripts/issue-tracking.sh:336-337 (refuses_http_url); no shellcheck disable directive is added"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:111, :122 (is_issue_url, returned_issue_url say what they check and return); tests/scripts/issue-tracking.sh:329 (HTTP_BIN), :336-338 (refuses_http_url); no name misstates its job"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:120-121 (gives the reason: the records store only https URLs), :224-225 (gives the reason an http URL is printed: so the caller can refuse it by name); tests/scripts/issue-tracking.sh:327-328 (gives the reason: as a tracker served over http would answer)"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:111, :120-121, :224-225; tests/scripts/issue-tracking.sh:327-328, :336-337; no changed comment restates the line below it"
+  - n: "R4"
+    verdict: "tool-covered"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh and tests/scripts/issue-tracking.sh (comments, covered by the lint key check-comments.sh)"
+    note: "covered by the lint key's check-comments.sh (exit 0 over the script); the lint glob does not reach tests/scripts/issue-tracking.sh, so I also ran check-comments.sh on HEAD copies of it in a scratch folder: exit 0; no changed comment points at a doc"
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:120-121, :224-225; tests/scripts/issue-tracking.sh:327-328, :336-337 (plain words; spec and task ids left to the lint, per the profile)"
+read_outside_diff:
+  - ".agents/skills/issue-tracking/scripts/issue-tracker.sh: whole file, for die, json_field, the callers of each new check and the # Exit: header"
+  - ".agents/skills/feature-workflow/references/readable-code.md: the rules and the 3.7 checks"
+  - ".agents/skills/feature-workflow/scripts/check-comments.sh: header read; run on HEAD copies of the script and the test file in a scratch folder, exit 0 for both"
+  - ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T5/implementation.yaml: self_review, used as the starting point only"
+  - ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T5/toolchain.json: keys that ran (lint, test) and the lint glob, which does not match tests/scripts/"
+not_checked:
+  - "a create-task retry after an http refusal may file a second task issue: the GitLab child task or GitHub sub-issue exists, but its URL is never printed; settle by reading the create-task caller's retry path in modules/task-breakdown.md (the implementer lists this under considered_not_built)"
+out_of_scope_noticed:
+  - kind: refactor
+    summary: "The shell-scripts lint command's file globs do not reach tests/scripts/issue-tracking.sh, so the comment lint never reads this task's changed test comments."
+    evidence: "git ls-files -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | grep -c 'tests/scripts/issue-tracking.sh' printed 0"
+    blocker_assessment: can-wait
+    reason: "the test file's changed comments read clean when linted by hand (check-comments.sh exit 0 on a HEAD copy), so no defect in this diff; the gap is in the profile's lint glob"

@@ -1,0 +1,60 @@
+verdict: pass
+task_id: T3
+work_type: shell-scripts
+mode: full
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t3@3c3e3cd2385fc2b8a3ff6453bde163e7a8c622b9..HEAD"
+tool_output: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T3/toolchain.json"
+items:
+  - n: 1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:30,52,117"
+  - n: 2
+    verdict: not-applicable
+    location: "none: the diff touches no hook (files: discovery.md, next-spec-number.sh, tests/README.md, two test suites, tests/scripts/next-spec-number.sh)"
+  - n: 3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:86,87,97,115"
+  - n: 4
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:84,86,89,115"
+  - n: 5
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:17-20,86,87,97"
+  - n: 6
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:28,33"
+  - n: 7
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:2-24"
+  - n: 8
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:26,85,96,116"
+  - n: 9
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:80,92"
+  - n: R1
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:34,82,94,95"
+  - n: R2
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:5,6,22,23"
+  - n: R3
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:80,81,92,93"
+  - n: R4
+    verdict: tool-covered
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:2-24,80,92"
+    note: "lint key, check-comments.sh (decision, journey or task id, or .workflow/ path in a body comment); it does not reach tests/*.sh or the markdown file, see not_checked"
+  - n: R5
+    verdict: pass
+    location: ".agents/skills/feature-workflow/scripts/next-spec-number.sh:3,4,6,34"
+read_outside_diff:
+  - ".agents/skills/issue-tracking/scripts/issue-tracker.sh: the create-spec no-tracker branch prints the literal skipped: no tracker (line 362) and exits 0 before any gh or glab call; create_spec_issue prints only a URL through json_field"
+  - ".agents/skills/feature-workflow/assets/spec.md: lines 10, 35 and 102 hold the tracker_issue field and the Tracker issue Links line that discovery.md 0.1.4 names"
+  - ".agents/skills/feature-workflow/references/readable-code.md: the R1 to R5 rules and the Checking table"
+not_checked:
+  - "discovery.md:24, a comment inside a bash block, names .workflow/specs/NNN-slug/spec.md and ../assets/spec.md. The lint key does not reach markdown. I read it as the step's instruction rather than a code comment, so R4 passes it; a 4.1 reviewer could read R4 as covering it. Settled by deciding whether R4 reaches step-instruction comments."
+  - "tests/lint/issue-tracking-docs.sh:2-6 and tests/scripts/next-spec-number.sh:15-19 headers name spec 00014 and JRN IDs in Covers lines. The lint key does not reach tests/*.sh. I judged them as the suite's Covers convention, not as R4 breaches (headers are exempt and the test-harness profile is not in my context)."
+  - "print_issue_number accepts a multi-line answer that starts with https:// and ends in digits, which would print extra lines. issue-tracker.sh prints one URL, so this is not reached; settled only by a stand-in that prints two URLs."
+out_of_scope_noticed: []

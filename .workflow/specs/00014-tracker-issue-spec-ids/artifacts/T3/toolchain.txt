@@ -5,7 +5,7 @@
 == scripts/next-spec-number
 
 == summary
-PASS scripts/next-spec-number               passed=28   failed=0   skipped=0   xfail=0   5s
-TOTAL passed=28 failed=0 skipped=0 xfail=0 (1 suites)
+PASS scripts/next-spec-number               passed=29   failed=0   skipped=0   xfail=0   4s
+TOTAL passed=29 failed=0 skipped=0 xfail=0 (1 suites)
 == test exit 0
 
