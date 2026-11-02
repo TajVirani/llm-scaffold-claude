@@ -138,7 +138,7 @@ discovered_work: []   # out-of-scope items noticed; each entry:
 #    blocker_assessment: blocks-this-task | can-wait
 #    reason: <why it blocks, or why it can wait>
 self_review:          # Before you stop, step 4; required when status is done, optional on a stop status
-  - {item: <checklist number | R1-R5 | comment-lint>, verdict: pass | fixed | not-applicable, note: "<file:line where it holds, or what you fixed>"}
+  - {item: 3, verdict: pass | fixed | not-applicable, note: "<file:line where it holds, or what you fixed>"}   # item: the checklist number, written unquoted, or R1-R5, or comment-lint
 ```
 
 ### Summary block

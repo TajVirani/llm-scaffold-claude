@@ -51,6 +51,17 @@ expect_error() {
   if [[ $RC == 1 ]] && grep -q "^$prefix" <<<"$OUT"; then ok "$name"; else ko "$name" "rc=$RC want=1 and a line starting '$prefix': $OUT"; fi
 }
 
+# expect_ok NAME FILE YQ_EXPR [--kind K] : a copy of FILE with YQ_EXPR applied passes with exit 0 and no failure line.
+expect_ok() {
+  local name=$1 src=$2 expr=$3 dest
+  shift 3
+  N=$((N + 1))
+  dest="$WORK/good/$N/$(basename "$src")"
+  variant "$src" "$dest" "$expr"
+  run_ctr "$dest" "$@"
+  if [[ $RC == 0 ]]; then ok "$name"; else ko "$name" "rc=$RC want=0: $OUT"; fi
+}
+
 # --- implementation: a valid file in artifacts/T1/
 IMPL="$ART/T1/implementation.yaml"
 mkdir -p "$ART/T1"
@@ -289,6 +300,11 @@ expect_error "implementation: self_review entry not a mapping" "$IMPL" '.self_re
 expect_error "implementation: self_review item out of range" "$IMPL" '.self_review[3].item = "R6"' \
   "self_review\\[3\\].item: 'R6' is not a checklist number, R1 to R5 or comment-lint"
 expect_error "implementation: self_review item zero" "$IMPL" '.self_review[1].item = 0' "self_review\\[1\\].item: '0'"
+expect_ok "implementation: self_review item as a quoted number" "$IMPL" '.self_review[1].item = "1"'
+expect_ok "implementation: self_review item as a quoted two-digit number" "$IMPL" '.self_review[1].item = "12"'
+expect_error "implementation: self_review item quoted zero" "$IMPL" '.self_review[1].item = "0"' "self_review\\[1\\].item: '0'"
+expect_error "implementation: self_review item quoted with a leading zero" "$IMPL" '.self_review[1].item = "01"' "self_review\\[1\\].item: '01'"
+expect_error "implementation: self_review item quoted non-number" "$IMPL" '.self_review[1].item = "x"' "self_review\\[1\\].item: 'x'"
 expect_error "implementation: self_review verdict unknown" "$IMPL" '.self_review[0].verdict = "fail"' \
   "self_review\\[0\\].verdict: 'fail' is not pass, fixed or not-applicable"
 expect_error "implementation: self_review fixed without a note" "$IMPL" 'del(.self_review[2].note)' \
@@ -341,6 +357,11 @@ expect_error "mini-review: re-check without previous" "$MINI" '.previous = null'
 expect_error "mini-review: full mode with a previous file" "$FULL" '.previous = "mini-review-r1.yaml"' "previous: must be null"
 expect_error "mini-review: empty items" "$MINI" '.items = []' "items: not a non-empty list"
 expect_error "mini-review: item n out of range" "$MINI" '.items[4].n = "R6"' "items\\[4\\].n: 'R6'"
+expect_ok "mini-review: item n as a quoted number" "$MINI" '.items[4].n = "1"'
+expect_ok "mini-review: item n as a quoted two-digit number" "$MINI" '.items[4].n = "12"'
+expect_error "mini-review: item n quoted zero" "$MINI" '.items[4].n = "0"' "items\\[4\\].n: '0'"
+expect_error "mini-review: item n quoted with a leading zero" "$MINI" '.items[4].n = "01"' "items\\[4\\].n: '01'"
+expect_error "mini-review: item n quoted non-number" "$MINI" '.items[4].n = "x"' "items\\[4\\].n: 'x'"
 expect_error "mini-review: item verdict unknown" "$MINI" '.items[0].verdict = "skip"' "items\\[0\\].verdict: 'skip'"
 expect_error "mini-review: item without location" "$MINI" 'del(.items[1].location)' "items\\[1\\].location: "
 expect_error "mini-review: fail item without note" "$MINI" 'del(.items[3].note)' "items\\[3\\].note: missing or empty, required when the verdict is fail"

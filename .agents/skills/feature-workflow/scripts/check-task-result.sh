@@ -27,7 +27,7 @@
 #   - profile-wrong needs profile_wrong.line; scope-expansion needs a non-empty scope_expansion.requested_paths list;
 #     blocked needs blocked.reason; discovered-work needs a non-empty discovered_work.
 #   - self_review, the agent's walk of the checklist over its own diff, is a list of {item, verdict, note}: item an integer
-#     of 1 or more (a profile checklist line), R1 to R5 (a readable-code line) or comment-lint; verdict pass, fixed or
+#     of 1 or more, or a string of one (a profile checklist line), R1 to R5 (a readable-code line) or comment-lint; verdict pass, fixed or
 #     not-applicable; note a string, non-empty on fixed. It is required and non-empty when status is done. A stop status
 #     may leave it out, since the agent can stop before it reviews; when present it is checked the same way.
 #   integration:
@@ -43,7 +43,7 @@
 #   - verdict is pass or fail, and is fail exactly when an item is fail; task_id, work_type, diff and tool_output are
 #     non-empty strings; mode is full or re-check; previous is a non-empty string in re-check mode, else null.
 #   - task_id equals the folder name when the file sits in artifacts/<folder>/.
-#   - items is a non-empty list of {n, verdict, location}: n an integer or R1 to R5; verdict pass, fail, tool-covered or
+#   - items is a non-empty list of {n, verdict, location}: n an integer, a string of one, or R1 to R5; verdict pass, fail, tool-covered or
 #     not-applicable; location a string; a non-empty note on fail and tool-covered; carried_from, when present, is r<k>
 #     and is allowed only in re-check mode.
 #   - read_outside_diff is a list; out_of_scope_noticed is a list of discovered-work entries.
@@ -175,7 +175,7 @@ def check_stop_fields:
 def check_self_review_entry($at):
   if type != "object" then "\($at): not a mapping"
   else
-    (if (.item | is_int and . >= 1) or ((.item | type) == "string" and (.item | test("^(R[1-5]|comment-lint)$"))) then empty
+    (if (.item | is_int and . >= 1) or ((.item | type) == "string" and (.item | test("^([1-9][0-9]*|R[1-5]|comment-lint)$"))) then empty
      else "\($at).item: '\(.item | text)' is not a checklist number, R1 to R5 or comment-lint" end),
     (if (.verdict | one_of(["pass", "fixed", "not-applicable"])) then empty
      else "\($at).verdict: '\(.verdict | text)' is not pass, fixed or not-applicable" end),
@@ -247,7 +247,7 @@ def check_item($recheck; $i):
   "items[\($i)]" as $at
   | if type != "object" then "\($at): not a mapping"
     else
-      (if (.n | is_int) or ((.n | type) == "string" and (.n | test("^R[1-5]$"))) then empty
+      (if (.n | is_int) or ((.n | type) == "string" and (.n | test("^([1-9][0-9]*|R[1-5])$"))) then empty
        else "\($at).n: '\(.n | text)' is not an integer or R1 to R5" end),
       (if (.verdict | one_of(["pass", "fail", "tool-covered", "not-applicable"])) then empty
        else "\($at).verdict: '\(.verdict | text)' is not pass, fail, tool-covered or not-applicable" end),
