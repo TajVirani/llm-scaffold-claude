@@ -55,9 +55,9 @@ Light versus full path is decided at 0.3.20, once the questioning loop has settl
 
 ## 3. Route by status
 
-Read the spec's frontmatter and step marker, then load the module the table names.
+Read the spec's frontmatter and step marker, then load the step file the table names.
 
-**Work in the spec checkout.** From 1.1 (0.3.20 on the light path) a spec runs in its spec worktree, `.workflow/.spec-worktrees/NNN-slug` inside the main checkout, on its spec branch; its `.step`, `artifacts/` and agent worktrees live there. A spec started before spec worktrees existed runs in the main checkout on its spec branch. When the session is elsewhere, move it in before reading anything: on Claude Code, call the `EnterWorktree` tool with the worktree's absolute path; on other hosts, ask the stakeholder to reopen the session in that folder (write a handoff first if the session holds context worth keeping). Every module's commands then run from there.
+**Work in the spec checkout.** From 1.1 (0.3.20 on the light path) a spec runs in its spec worktree, `.workflow/.spec-worktrees/NNN-slug` inside the main checkout, on its spec branch; its `.step`, `artifacts/` and agent worktrees live there. A spec started before spec worktrees existed runs in the main checkout on its spec branch. When the session is elsewhere, move it in before reading anything: on Claude Code, call the `EnterWorktree` tool with the worktree's absolute path; on other hosts, ask the stakeholder to reopen the session in that folder (write a handoff first if the session holds context worth keeping). Every step file's commands then run from there.
 
 ```bash
 yq --front-matter=extract '.status, .light_path, .small_path // false, .blocked_condition // "", .impl_base_revision' .workflow/specs/NNN-slug/spec.md
@@ -84,7 +84,7 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 
 The rework row checks the task records, not `.step`, which Phase 3's `set-task --step` calls and 3.15 move off 4.7 as a reopened task passes its gates. It applies when `yq --front-matter=extract '[.tasks[] | select(.status == "in-progress")] | length' .workflow/specs/NNN-slug/tasks.md` is above 0; with none `in-progress`, the 5.x and review-triage rows apply.
 
-Tell the stakeholder where you are resuming, led by the [progress line](references/conventions.md#progress-line). A resumed module re-reads its inputs from disk (spec folder, `design-log.md`, `tasks.md`); never rebuild state from memory.
+Tell the stakeholder where you are resuming, led by the [progress line](references/conventions.md#progress-line). A resumed step file re-reads its inputs from disk (spec folder, `design-log.md`, `tasks.md`); never rebuild state from memory.
 
 ### Blocked
 
@@ -111,5 +111,5 @@ Templates for every per-feature file are in [assets/](assets/), named after the 
 
 ## Done
 
-- A trivial edit was made directly, or a spec folder exists and the module its status names is loaded with `references/conventions.md`.
+- A trivial edit was made directly, or a spec folder exists and the step file its status names is loaded with `references/conventions.md`.
 - Every status and step change went through `status-transition.sh`, and every guarded write happened at its step.
