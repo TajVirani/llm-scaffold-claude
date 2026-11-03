@@ -5,19 +5,23 @@
 #   builds (a draft spec, a spec past 1.1 with a pushed spec branch and a spec worktree, a spec with a live task worktree,
 #   two Done specs with backlog lists, review lessons and links), the fake handing out issue numbers from 101:
 #   JRN-011 (spec 00014): adoption exits 1, naming 016-epsilon and its live task worktree, and leaves that spec, its branch
-#   and both its worktrees as they were; the tracker gets exactly one issue per other active spec. The draft's folder,
+#   and both its worktrees as they were; the tracker gets exactly one spec issue per other active spec. The draft's folder,
 #   step marker, backlog list and every .workflow/ reference move to the five-digit issue number, and its tracker_issue is
 #   the issue URL. The spec past 1.1 gets a renamed local branch, spec worktree and folder, with spec_branch, the task
-#   records' branch fields, its tracker_issue and its own references rewritten and its step marker kept; the renamed branch
-#   is committed and pushed, the old remote branch is still there and the output reports it. The Done specs and their
+#   records' branch fields, its tracker_issue and its own references rewritten and its step marker kept; its tasks T1
+#   (done) and T2 (pending) get an issue under the spec's, recorded in their task records and committed with the rename,
+#   and its split-out T3 gets none; the renamed branch is committed and pushed, the old remote branch is still there and the output reports it. The Done specs and their
 #   backlog lists become done/old_NNN-slug and old_NNN-slug.md, with the retrospective's file name kept, the review lesson,
 #   capabilities rows, shelf and links pointing at the new names; no old name is left and every relative link resolves.
 #   review-lessons.sh validate and move-to-done.sh --check accept the renamed Done spec.
 #   JRN-012: move-to-done.sh --check on a Done spec named old_NNN-slug reads its backlog list old_NNN-slug.md: it passes on
 #   well-formed lines and names a malformed line by file and line number.
-#   Errors and reruns: a second run files no second issue and reports the renamed specs as already adopted; an unknown
+#   Errors and reruns: a second run files no second spec or task issue and reports the renamed specs as already adopted; a
+#   task issue the tracker cannot file exits 1 naming the commands that file and record it by hand, and the printed
+#   create-task command, run from the main checkout, files it; a task record set-task refuses exits 1 naming the renamed
+#   tasks.md and the validator's refusal, and neither that run nor a second one files its issue; an unknown
 #   flag, --cwd without a value or naming no directory, no tracker settings and issue_tracker none exit 2 before anything
-#   is filed or renamed; a commit refused in a spec worktree exits 2 and rolls back the folder move and the branch-name
+#   is filed or renamed, and so does a run without glab installed, even when every spec is already adopted; a commit refused in a spec worktree exits 2 and rolls back the folder move and the branch-name
 #   edits, keeps tracker_issue and leaves the main checkout as it was; a push the local bare origin refuses exits 1 naming
 #   the command to push by hand, leaves the old remote branch unchanged and still adopts the other specs.
 #   The script is shellcheck-clean.
@@ -37,6 +41,7 @@ preflight
 new_workdir
 fake_trackers_install "$WORK/tracker"
 TA_REL=.agents/skills/issue-tracking/scripts/tracker-adoption.sh
+IT_REL=.agents/skills/issue-tracking/scripts/issue-tracker.sh
 MTD_REL=.agents/skills/feature-workflow/scripts/move-to-done.sh
 RLS_REL=.agents/skills/feature-workflow/scripts/review-lessons.sh
 P=$WORK/project
@@ -59,6 +64,16 @@ renamed() {
 issue_of() { printf '%s' "$((10#${1%%-*}))"; }
 # remote_branch NAME : the commit BARE holds for branch NAME; empty when it has none.
 remote_branch() { git -C "$BARE" rev-parse -q --verify "refs/heads/$1" 2>/dev/null; }
+# task_issue TASKS_MD ID : the issue the task record ID holds; empty when it has none.
+task_issue() { fm "$1" ".tasks[] | select(.id == \"$2\") | .issue // \"\""; }
+# issues_under N : the numbers of the fake tracker's issues whose parent is issue N, space-separated, ascending; with N
+#   empty, those with no parent.
+issues_under() {
+  local number
+  for number in $(fake_issue_numbers); do
+    [[ $(fake_issue "$number" parent) != "$1" ]] || printf '%s ' "$number"
+  done
+}
 
 echo "== fixture: the project before adoption"
 check "fixture: every relative link in the main checkout's specs, shelf and decisions resolves" \
@@ -81,8 +96,8 @@ check "JRN-011 adoption exits 1 and names 016-epsilon, refused for its live task
 check "JRN-011 the refused spec keeps its folder, branch and both worktrees as they were" \
   '[[ $RC == 1 && $(git -C "$P" rev-parse -q --verify spec/016-epsilon) == "$EPSILON_TIP" && -d $ADOPTION_EPSILON_TASK_WT &&
      $(cd "$ADOPTION_EPSILON_WT/$SPECS/016-epsilon" 2>/dev/null && find . -type f -exec cksum {} + | LC_ALL=C sort) == "$EPSILON_DIGEST" ]]'
-eq "JRN-011 the tracker gets one issue per adopted active spec and none for the refused or Done specs" \
-  "$(fake_issue_numbers | tr '\n' ' ')" "101 102 "
+eq "JRN-011 the tracker gets one spec issue per adopted active spec and none for the refused or Done specs" \
+  "$(issues_under "")" "101 102 "
 
 DELTA=$(renamed "$P/$SPECS" delta)
 # The spec worktree takes the renamed spec's name, so the renamed folder is found through it.
@@ -111,7 +126,7 @@ check "JRN-011 the spec worktree moved to the new name and holds the renamed fol
 eq "JRN-011 spec_branch names the renamed branch" "$(fm "$BETA_WT/$SPECS/${BETA:-none}/spec.md" .spec_branch)" "spec/${BETA:-none}"
 eq "JRN-011 the task records' branch fields name the renamed spec" \
   "$(fm "$BETA_WT/$SPECS/${BETA:-none}/tasks.md" '[.tasks[].branch] | join(" ")')" \
-  "task/${BETA:-none}/T01-build task/${BETA:-none}/T02-wire"
+  "task/${BETA:-none}/T01-build task/${BETA:-none}/T02-wire task/${BETA:-none}/T03-export"
 eq "JRN-011 the spec's tracker_issue is its issue URL" "$(fm "$BETA_WT/$SPECS/${BETA:-none}/spec.md" .tracker_issue)" \
   "$(fake_url glab "$(issue_of "${BETA:-0-none}")")"
 check "JRN-011 the spec keeps its step marker and its design log names the new folder" \
@@ -121,6 +136,19 @@ check "JRN-011 the renamed branch is committed with the renamed folder and pushe
    git -C "$BARE" cat-file -e "spec/$BETA:$SPECS/$BETA/spec.md" 2>/dev/null' "remote branches: $(git -C "$BARE" branch | tr '\n' ' ')"
 check "JRN-011 the old remote branch is left in place and reported" \
   '[[ $(remote_branch spec/013-beta) == "$BETA_OLD_TIP" ]] && grep -q "spec/013-beta" <<<"$REPORT"' "$REPORT"
+
+echo "== JRN-011: the task issues of the spec past 1.1"
+BETA_TASKS=$BETA_WT/$SPECS/${BETA:-none}/tasks.md
+BETA_T2_ISSUE=$(task_issue "$BETA_TASKS" T2)
+check "JRN-011 the pending task T2 gets an issue under the spec's issue, recorded as issue in its task record" \
+  '[[ -n $BETA && $BETA_T2_ISSUE =~ /([0-9]+)$ && $(fake_issue "${BASH_REMATCH[1]}" parent) == "$(issue_of "$BETA")" ]]' \
+  "T2 issue=$BETA_T2_ISSUE; $(fake_calls | tail -5)"
+check "JRN-011 the split-out task T3 gets no issue and the tracker holds one task issue each for T1 and T2" \
+  '[[ -n $BETA && -z $(task_issue "$BETA_TASKS" T3) && $(issues_under "$(issue_of "$BETA")" | wc -w | tr -d " ") == 2 ]]' \
+  "T3 issue=$(task_issue "$BETA_TASKS" T3); under the spec issue: $(issues_under "$(issue_of "${BETA:-0-none}")")"
+check "JRN-011 the task issues are committed on the renamed branch with the rename" \
+  '[[ -n $BETA_T2_ISSUE ]] && git -C "$P" show "spec/$BETA:$SPECS/$BETA/tasks.md" | grep -qF "issue: $BETA_T2_ISSUE"' \
+  "$(git -C "$P" status --porcelain 2>&1 | head -3)"
 
 echo "== JRN-011: the Done specs"
 check "JRN-011 the Done specs are renamed with the old_ prefix" \
@@ -164,11 +192,21 @@ check "JRN-012 move-to-done.sh --check reads the old_ backlog list and names its
   '[[ $RC == 1 && $OUT == *"work-backlog/old_020-zeta.md:2"* ]]' "rc=$RC out=$OUT err=$ERR"
 
 echo "== a second run on the adopted project"
+ISSUES_BEFORE_RERUN=$(fake_issue_numbers | tr '\n' ' ')
 fake_run "$(fake_path both)" bash "$P/$TA_REL" --cwd "$P"
 check "a second run files no second issue and reports both renamed specs as already adopted" \
-  '[[ $(fake_issue_numbers | tr "\n" " ") == "101 102 " && $OUT == *"already adopted: $SPECS/${DELTA:-none}"* &&
+  '[[ $(issues_under "") == "101 102 " && $OUT == *"already adopted: $SPECS/${DELTA:-none}"* &&
      $OUT == *"already adopted: $SPECS/${BETA:-none}"* ]]' "rc=$RC out=$OUT issues=$(fake_issue_numbers | tr '\n' ' ')"
+check "a second run files no second task issue and leaves T2 its first one" \
+  '[[ -n $BETA_T2_ISSUE && $(fake_issue_numbers | tr "\n" " ") == "$ISSUES_BEFORE_RERUN" &&
+     $(task_issue "$BETA_TASKS" T2) == "$BETA_T2_ISSUE" ]]' \
+  "before=$ISSUES_BEFORE_RERUN after=$(fake_issue_numbers | tr '\n' ' ') T2=$(task_issue "$BETA_TASKS" T2)"
 check "a second run still refuses 016-epsilon and exits 1" '[[ $RC == 1 ]] && grep -q "016-epsilon" <<<"$ERR"' "rc=$RC err=$ERR"
+fake_trackers_reset
+fake_run "$(fake_path gh)" bash "$P/$TA_REL" --cwd "$P"
+check "a run without glab installed exits 2 naming it before any tracker call, even when every spec is already adopted" \
+  '[[ $RC == 2 && $ERR == *"glab is not installed"* && $(fake_call_count) == 0 ]]' \
+  "rc=$RC err=$ERR calls=$(fake_call_count)"
 
 echo "== usage and environment errors"
 fake_run "$(fake_path both)" bash "$P/$TA_REL" --bogus
@@ -214,7 +252,7 @@ check "the spec folder is back under its old name in its spec worktree, on its o
 eq "the rollback gives spec_branch its old branch name back" "$(fm "$R_BETA_WT/$SPECS/013-beta/spec.md" .spec_branch)" \
   "spec/013-beta"
 eq "the rollback gives the task records' branch fields their old names back" \
-  "$(fm "$R_BETA_WT/$SPECS/013-beta/tasks.md" '[.tasks[].branch] | join(" ")')" "task/013-beta/T01-build task/013-beta/T02-wire"
+  "$(fm "$R_BETA_WT/$SPECS/013-beta/tasks.md" '[.tasks[].branch] | join(" ")')" "task/013-beta/T01-build task/013-beta/T02-wire task/013-beta/T03-export"
 check "the rolled-back spec keeps the issue it was given in tracker_issue" \
   '[[ $(fm "$R_BETA_WT/$SPECS/013-beta/spec.md" .tracker_issue) == "$(fake_url glab 201)" ||
      $(fm "$R_BETA_WT/$SPECS/013-beta/spec.md" .tracker_issue) == "$(fake_url glab 202)" ]]' \
@@ -244,6 +282,52 @@ check "the renamed branch stays committed locally and the remote keeps only the 
 check "the other specs are still adopted when the push is refused" \
   '[[ -n $(renamed "$U/$SPECS" delta) && -n $(renamed "$U/.workflow/.spec-worktrees" epsilon) && -d $U/$SPECS/done/old_012-alpha ]]' \
   "$OUT"
+
+echo "== a task issue the tracker fails to file"
+V=$WORK/task-issue-fails
+adoption_project "$V" "$WORK/task-issue-fails.git"
+# The spec already holds its issue, so the failing tracker is reached only for its task issues.
+V_SPEC_ISSUE=$(fake_url glab 401)
+URL=$V_SPEC_ISSUE yq --front-matter=process -i '.tracker_issue = strenv(URL)' "$ADOPTION_BETA_WT/$SPECS/013-beta/spec.md"
+fake_trackers_reset
+FAKE_FAIL=network fake_run "$(fake_path both)" bash "$V/$TA_REL" --cwd "$V"
+V_BETA_TASKS=$V/.workflow/.spec-worktrees/00401-beta/$SPECS/00401-beta/tasks.md
+check "a task issue the tracker cannot file exits 1 and names the commands that file and record it by hand" \
+  '[[ $RC == 1 && $ERR == *"issue-tracker.sh --cwd $V create-task $V_SPEC_ISSUE "*"T02-wire.md"* &&
+     $ERR == *"status-transition.sh set-task $SPECS/00401-beta T2 --issue"* ]]' "rc=$RC err=$ERR"
+check "the spec is still renamed and the task left unfiled holds no issue" \
+  '[[ -f $V_BETA_TASKS && -z $(task_issue "$V_BETA_TASKS" T2) ]]' "$(ls "$V/.workflow/.spec-worktrees" 2>&1)"
+# The printed arguments are run as written, from the main checkout, once the tracker answers again.
+V_BY_HAND=$(sed -n 's/.*T2 of .*by hand with issue-tracker\.sh \(.*\), then status-transition\.sh.*/\1/p' <<<"$ERR")
+fake_issue_seed 401 "Beta feature" open
+read -r -a V_BY_HAND_ARGS <<<"$V_BY_HAND"
+fake_run "$(fake_path both)" bash -c 'cd "$1" && shift && bash "$@"' _ "$V" "$V/$IT_REL" ${V_BY_HAND_ARGS[@]+"${V_BY_HAND_ARGS[@]}"}
+check "the printed create-task command, run from the main checkout, files the task's issue under the spec's issue" \
+  '[[ $RC == 0 && $OUT =~ /([0-9]+)$ && $(fake_issue "${BASH_REMATCH[1]}" parent) == 401 ]]' \
+  "command=issue-tracker.sh $V_BY_HAND rc=$RC out=$OUT err=$ERR"
+
+echo "== a task record that cannot take an issue"
+W=$WORK/task-record-refused
+adoption_project "$W" "$WORK/task-record-refused.git"
+git -C "$ADOPTION_EPSILON_WT" worktree remove --force "$ADOPTION_EPSILON_TASK_WT"
+# A mode the tasks.md validator does not know makes every set-task write on the list refused.
+yq --front-matter=process -i '(.tasks[] | select(.id == "T1") | .mode) = "lunch"' "$ADOPTION_BETA_WT/$SPECS/013-beta/tasks.md"
+git_commit_all "$ADOPTION_BETA_WT" "fixture: a task record the validator refuses"
+fake_trackers_reset
+FAKE_ISSUE_NUMBER=501 fake_run "$(fake_path both)" bash "$W/$TA_REL" --cwd "$W"
+W_BETA=$(renamed "$W/.workflow/.spec-worktrees" beta)
+check "a task record that cannot take an issue exits 1, naming the task, its renamed tasks.md and the validator's refusal" \
+  '[[ $RC == 1 && -n $W_BETA &&
+     $ERR == *"task T2 of $SPECS/013-beta"*"$W/.workflow/.spec-worktrees/$W_BETA/$SPECS/$W_BETA/tasks.md"*"schema validator"* ]]' \
+  "rc=$RC beta=$W_BETA err=$ERR"
+check "no task issue is filed for a record that cannot take one, and the spec is still renamed" \
+  '[[ -n $W_BETA && -z $(issues_under "$(issue_of "$W_BETA")") ]]' \
+  "beta=$W_BETA; under the spec issue: $(issues_under "$(issue_of "${W_BETA:-0-none}")")"
+W_ISSUES_BEFORE_RERUN=$(fake_issue_numbers | tr '\n' ' ')
+fake_run "$(fake_path both)" bash "$W/$TA_REL" --cwd "$W"
+check "a second run files no task issue for the record either and reports it again" \
+  '[[ $RC == 1 && $(fake_issue_numbers | tr "\n" " ") == "$W_ISSUES_BEFORE_RERUN" && $ERR == *"task T2 of $SPECS/${W_BETA:-none}"* ]]' \
+  "rc=$RC before=$W_ISSUES_BEFORE_RERUN after=$(fake_issue_numbers | tr '\n' ' ') err=$ERR"
 
 shellcheck_files "shellcheck: tracker-adoption.sh" "$P/$TA_REL"
 finish
