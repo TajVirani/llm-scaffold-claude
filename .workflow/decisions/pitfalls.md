@@ -17,13 +17,13 @@ Entry shape (newest first):
 ## Give every new spec or task key a writer step
 - What happened: the spec template gained `tracker_issue` and six steps read it, but no step wrote it; 0.1.4 still said "frontmatter unchanged", so on a tracker project every later tracker call would have exited 2 (F1, high, fixed in rework 1)
 - Where: `.agents/skills/feature-workflow/modules/discovery.md` (0.1.4)
-- Spec: .workflow/specs/00014-tracker-issue-spec-ids
+- Spec: .workflow/specs/done/00014-tracker-issue-spec-ids
 - Prevented by: `lint/issue-tracking-docs` checks that 0.1.4 names `tracker_issue`; for other keys, none yet
 
 ## Make a migration fill every record the later steps read
 - What happened: Tracker adoption filed each active spec's issue but no task issues, so an adopted spec past 2.5 would stop at 3.3 on `issue-tracker.sh move ""` with no step to clear it (F12, medium, fixed in rework 2)
 - Where: `.agents/skills/issue-tracking/scripts/tracker-adoption.sh`
-- Spec: .workflow/specs/00014-tracker-issue-spec-ids
+- Spec: .workflow/specs/done/00014-tracker-issue-spec-ids
 - Prevented by: `tests/scripts/tracker-adoption.sh` JRN-011 checks that a pending task gets its issue; for other migrations, none yet
 
 ## Leave no copy of a rule in the step file it moved out of

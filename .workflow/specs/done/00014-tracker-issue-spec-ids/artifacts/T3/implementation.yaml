@@ -1,0 +1,45 @@
+status: done
+summary: "Review rework 1, all four patches. Discovery 0.1.4 now sets tracker_issue from 0.1.1's second line and adds or deletes the Tracker issue Links line, with a lint check for it (new-feature start load 44,286 bytes). next-spec-number.sh drops its copy of configured_tracker, always calls issue-tracker.sh create-spec and runs the local scan on its `skipped: no tracker` answer; it accepts only https issue URLs (non-https exits 1 naming the URL). The issue-tracking-docs header now opens `# Covers:`. Also updated the two matching suite rows in tests/README.md."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t3"
+branch: "task/00014-tracker-issue-spec-ids/T03-next-spec-number"
+base_commit: "3c3e3cd2385fc2b8a3ff6453bde163e7a8c622b9"
+head_commit: "4bc1c224971ca1dfa8361cced8f71fe954e827ba"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/discovery.md"
+  - ".agents/skills/feature-workflow/scripts/next-spec-number.sh"
+  - "tests/lint/issue-tracking-docs.sh"
+  - "tests/scripts/next-spec-number.sh"
+  - "tests/README.md"
+tests_added:
+  - {file: "tests/lint/issue-tracking-docs.sh", test: "JRN-001 discovery 0.1.4 writes the issue URL into tracker_issue", kind: behaviour}
+  - {file: "tests/scripts/next-spec-number.sh", test: "an issue URL that is not https exits 1 naming the URL, with nothing on stdout", kind: negative}
+  - {file: "tests/scripts/next-spec-number.sh", test: "when the tracker script skips, finding no tracker, the local scan gives the number: 00051", kind: behaviour}
+evidence:
+  red: "tests/run-all.sh --suite lint/issue-tracking-docs; FAIL JRN-001 discovery 0.1.4 writes the issue URL into tracker_issue (step 0.1.4 has no line matching tracker_issue). tests/run-all.sh --suite scripts/next-spec-number; FAIL an issue URL that is not https exits 1 ... (rc=0 out=00042); FAIL when the tracker script skips ... (got=1| want=0|00051)"
+  green: "tests/run-all.sh --suite lint/issue-tracking-docs; 27/27 passed. tests/run-all.sh --suite scripts/next-spec-number; 29/29 passed. bash tests/lint/workflow-load-size.sh; new-feature start: 44286 bytes (limit 45000), 14/14 passed. tests/run-all.sh (full); TOTAL passed=4753 failed=0 (81 suites)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00014-tracker-issue-spec-ids --task-id T3 --cwd <worktree>; lint pass, test (scoped) pass 29/29"
+  toolchain: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "Rejecting a multi-line or whitespace-holding answer from issue-tracker.sh: not asked for; the https and trailing-number check already refuses such an answer unless its last segment is digits only."
+  - "Checking project_root before calling issue-tracker.sh: dropped, since issue-tracker.sh already exits 2 outside a git repository and the existing test still passes."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "no new .workflow/ path in code; next-spec-number.sh still builds paths from WF_* in taken_spec_names"}
+  - {item: 2, verdict: not-applicable, note: "no hook changed"}
+  - {item: 3, verdict: pass, note: "next-spec-number.sh tracker_answer and print_issue_number reach die on every failure; main line exits with the substitution status"}
+  - {item: 4, verdict: pass, note: "tracker_answer, called in a substitution with || exit, dies on its own failures; its tracker call is caught with || tracker_status=$?"}
+  - {item: 5, verdict: pass, note: "non-https URL is exit 1, documented in the # Exit: line of next-spec-number.sh with the widened exit 2 causes"}
+  - {item: 6, verdict: pass, note: "SCRIPT_DIR and ISSUE_TRACKER still resolve from BASH_SOURCE with cd -P"}
+  - {item: 7, verdict: pass, note: "helper header keeps File/Purpose/Usage/stdout/Exit/Called by/Notes/Sources; no decision id"}
+  - {item: 8, verdict: pass, note: "edited files keep [[ ]] and set -euo pipefail; no new files"}
+  - {item: 9, verdict: pass, note: "tracker_answer and print_issue_number each have their # name ARGS : line; no new shellcheck directive"}
+  - {item: R1, verdict: pass, note: "names tracker_answer, print_issue_number, NO_TRACKER_ANSWER say what each is for"}
+  - {item: R2, verdict: pass, note: "no new workaround; the scan fallback is explained in the Purpose header"}
+  - {item: R3, verdict: pass, note: "function usage lines describe contracts, not the next line"}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh in the lint key; no changed comment points at another document"}
+  - {item: R5, verdict: pass, note: "plain wording; `skipped: no tracker` is quoted as the literal answer"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the five changed files exited 0"}

@@ -1,6 +1,6 @@
 ---
-superseded_by: .workflow/specs/00014-tracker-issue-spec-ids
-origin_spec: .workflow/specs/00014-tracker-issue-spec-ids
+superseded_by: .workflow/specs/done/00014-tracker-issue-spec-ids
+origin_spec: .workflow/specs/done/00014-tracker-issue-spec-ids
 created: 2026-11-02
 ---
 
@@ -8,7 +8,7 @@ created: 2026-11-02
 
 **Summary:** Pick the tracker host (GitHub through gh, GitLab through glab) in one shared place instead of one copy per script.
 **Mode:** AFK
-**Origin:** [00014-tracker-issue-spec-ids](../specs/00014-tracker-issue-spec-ids/spec.md), 0.3.17 scope decision, design-log entry 2026-11-02 Scope decision: tracker-host-detection
+**Origin:** [00014-tracker-issue-spec-ids](../specs/done/00014-tracker-issue-spec-ids/spec.md), 0.3.17 scope decision, design-log entry 2026-11-02 Scope decision: tracker-host-detection
 
 ## Goal
 

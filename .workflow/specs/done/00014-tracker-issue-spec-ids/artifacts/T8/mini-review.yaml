@@ -1,0 +1,61 @@
+verdict: "pass"
+task_id: "T8"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t8@a499e376ccfe193e5170eb36fee9f7fb90a7d8f9..HEAD"
+tool_output: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T8/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:324, 327, 333, 342, 350, 361 (every new .workflow/ path is built with wf_path from WF_SPECS or WF_WORK_BACKLOG; the literal folder appears only in header comments and in messages built from WF_SPECS)"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: changed files are the issue-tracking skill script, its SKILL.md, tests/README.md, tests/scripts/tracker-adoption.sh and tests/fixtures/tracker-adoption.sh; no hook changed"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:200-201 (git init and cd -P each || die), 204 (front_matter dies), 325-328 (rm, mkdir, cp each || die), 333 (printf || die), 346 and 355 (|| exit 2), 362-364 and 367-370 (tracker and record failures reach warn, counted at 66, and exit 1 at 512-515), 330 and 367 (set-task stderr kept; only its stdout is discarded)"
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:325-333 (writes in record_refusal carry their own || die, and the caller at 355 adds || exit 2), 346 and 355 (own || exit 2), 361-362 (own || tracker_status=$?), 330 and 367 (inside if), 445 and 457 (file_task_issues called without ||, so set -e stays on inside it)"
+  - n: 5
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:30-37 (# Exit: names exit 1 for a task record or task issue that cannot be filed or recorded, and exit 2 for a missing tracker CLI), 103 (exit 2 via die), 512-515 (exit 1)"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:44 (SCRIPT_DIR from cd -P of BASH_SOURCE), 51 (STATUS_TRANSITION under SCRIPT_DIR; the target exists at .agents/skills/feature-workflow/scripts/status-transition.sh), 201 (cd -P of the scratch checkout)"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:2-40 (File, Purpose, Usage, stdout, Exit, Called by, Notes and Sources kept in the helper shape; the new Purpose, stdout and Exit text describes the task-issue steps)"
+  - n: 8
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:42 (set -euo pipefail), 97, 103, 330, 351, 356, 390 (all tests use [[ ]]); no new file; tests/scripts/tracker-adoption.sh added checks use [[ ]]"
+  - n: 9
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:318 (record_refusal header), 336 (file_task_issues header); tests/scripts/tracker-adoption.sh task_issue and issues_under headers; no shellcheck disable directive added in the diff"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:322 (record_refusal), 341 (file_task_issues locals), 350 (by_hand, the command text it holds), 456 (new_root, the folder the spec will have after its rename); tests/scripts/tracker-adoption.sh task_issue and issues_under"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:329 (why the spec URL stands in for the task URL), 347 (why the task list has its own descriptor), 349 (why the task file is given whole), 453-454 (why the task issues are recorded before the rename)"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:199 (says what the scratch checkout is for, not what git init does), 318-321 and 336-339 (function headers); no added body comment restates the line below it"
+  - n: "R4"
+    verdict: "tool-covered"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:329, 347, 349, 453-454 (changed body comments); tests/scripts/tracker-adoption.sh and tests/fixtures/tracker-adoption.sh (changed header comments)"
+    note: "lint key, check-comments.sh (decision, journey or task id or .workflow/ path in a body comment; decision or task id in a header block): exit 0 over the changed scripts. The lint key's glob does not reach tests/, so the two changed test files were run by hand as scratch copies of HEAD and exit 0. No added comment points at a docs/ path or a URL (grep of the added lines)."
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:345 (split-out is defined in the code by its literal in the same jq expression), 6-7 and 24-37 (plain wording); ids in comments are left to the lint"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh:110-113: wf_path joins the root and the relative path, for items 1 and 6"
+  - ".agents/skills/feature-workflow/scripts/status-transition.sh:338-361: every set-task refusal and write failure dies with a message on stderr, for items 3 and 4 and the R4 and R3 reading of the record check"
+  - ".agents/skills/feature-workflow/scripts/check-comments.sh: run by hand on scratch copies of HEAD's tests/scripts/tracker-adoption.sh and tests/fixtures/tracker-adoption.sh, exit 0, for R4"
+  - ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T8/implementation.yaml: the implementer's self_review, used as the starting point and confirmed against the diff"
+  - ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T8/mini-review-r3.yaml: read for its earlier findings only, not carried over; this is a full review. Its three findings are fixed in HEAD: the printed create-task command is absolute and runs from the main checkout (tracker-adoption.sh:350), a record set-task refuses is never filed (322-333, 355-359), and a missing gh or glab exits 2 before any call (103)"
+not_checked:
+  - "Item 3 literal reading: the checklist says errors reach die(). Four new per-task error sites (tracker-adoption.sh:352, 357, 364, 370) use warn(), which prints and counts, and the run exits 1 at 512-515, the same way the script's per-spec refusals work (416, 429, 450). Read as not silent, so pass. Settled by the owner's reading of reaches die() for a counted, non-fatal reporter."
+  - "A real set-task write that fails after the pre-check at line 330 passed (for example at line 367 when the spec folder is unwritable) would leave a filed task issue unrecorded, and a rerun would file a second one. Not reproduced: it needs a write failure injected between lines 330 and 367. Settled by a probe that forces that failure in a scratch worktree."
+out_of_scope_noticed: []

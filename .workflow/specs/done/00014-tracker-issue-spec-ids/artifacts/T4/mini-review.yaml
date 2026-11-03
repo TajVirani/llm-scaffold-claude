@@ -1,0 +1,70 @@
+verdict: pass
+task_id: "T4"
+work_type: "shell-scripts"
+mode: re-check
+previous: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T4/mini-review-r2.yaml"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t4@3c3e3cd2385fc2b8a3ff6453bde163e7a8c622b9..fa4c8ec88e250aaca9987b49965f8511a7344cae"
+tool_output: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T4/toolchain.json"
+items:
+  - n: 1
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:296-298 (fixture paths, which this item allows); .agents/hooks/session-start-resume.sh:281-283 adds no .workflow/ path"
+    carried_from: r2
+  - n: 2
+    verdict: pass
+    location: ".agents/hooks/session-start-resume.sh:281-283 (only two case patterns widened; no new logic)"
+    carried_from: r2
+  - n: 3
+    verdict: pass
+    location: ".agents/hooks/session-start-resume.sh:280-285 (the case arm adds no error path; a malformed old name matches no arm, which the header at line 37 documents as 'Other files there are ignored')"
+    carried_from: r2
+  - n: 4
+    verdict: not-applicable
+    location: "no code in the diff the item applies to (no write or check inside a loop with a caller's || die)"
+    carried_from: r2
+  - n: 5
+    verdict: not-applicable
+    location: "no code in the diff the item applies to (exit paths unchanged)"
+    carried_from: r2
+  - n: 6
+    verdict: not-applicable
+    location: "no code in the diff the item applies to (sibling source line unchanged)"
+    carried_from: r2
+  - n: 7
+    verdict: pass
+    location: ".agents/hooks/session-start-resume.sh:35-37 (the three edited lines extend the existing Triggers/inputs bullet with prose; no new section, no decision ID, header shape unchanged)"
+  - n: 8
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:272,295-302 (the fix adds only comment lines; the file keeps its [ ] test syntax)"
+    carried_from: r2
+  - n: 9
+    verdict: not-applicable
+    location: "no code in the diff the item applies to (no new function or shellcheck directive)"
+    carried_from: r2
+  - n: R1
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:301-302 (test name says what the case checks; the fix changes no name)"
+    carried_from: r2
+  - n: R2
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:295-296 (gives the reason: adoption renames the list and the write guard accepts item files); .agents/hooks/session-start-resume.sh:35-37 (says which names exist and why the arm is there)"
+  - n: R3
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:295-296 (states the intent of the cases below, not what each line does); .agents/hooks/session-start-resume.sh:35-37 (describes accepted names, not the case syntax)"
+  - n: R4
+    verdict: tool-covered
+    location: "tests/hooks/audit-sync-resume.sh:295-296; .agents/hooks/session-start-resume.sh:35-37"
+    note: "covered by the lint key's comment lint (.agents/skills/feature-workflow/scripts/check-comments.sh over both changed files, exit 0 at fa4c8ec, re-run by me; toolchain.json was recorded at another tree); no changed comment names a docs/ path or URL"
+  - n: R5
+    verdict: pass
+    location: "tests/hooks/audit-sync-resume.sh:295-296 ('Tracker adoption' is defined in .agents/skills/issue-tracking/scripts/tracker-adoption.sh:2-8; 'the write guard' is the backlog rule at .agents/skills/feature-workflow/scripts/check-write.sh:262-265); .agents/hooks/session-start-resume.sh:35-37 (spells out 'adopting an issue tracker')"
+read_outside_diff:
+  - ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:402-404: adoption gives the Done folder and old_<name>.md only; no old_ item file is written, so the list sentence is true and the item-file sentence states what the write guard accepts, not adoption output"
+  - ".agents/skills/feature-workflow/scripts/check-write.sh:262-265: the backlog pattern accepts an (old_)? origin for both the list and the item file, which confirms both comments' 'accepts' claims"
+  - ".agents/hooks/session-start-resume.sh:279-285 and tests/hooks/audit-sync-resume.sh:292-303 at fa4c8ec: the case arms and the new cases the fix comments describe"
+  - "scratch worktree of fa4c8ec (removed after): shellcheck -x -P SCRIPTDIR on both changed files exit 0; check-comments.sh on both exit 0; tests/run-all.sh --suite hooks/audit-sync-resume passed=59 failed=0"
+  - "carried locations are r2's, taken at 5e83ca1; fa4c8ec adds one comment line at tests/hooks/audit-sync-resume.sh:295, so test lines after 295 now sit one line higher than the carried text says"
+not_checked:
+  - "session-start-resume.sh:285 keeps 2>/dev/null on the sed, unchanged by this diff: an unreadable old_ list is dropped with no note, as an unprefixed list already is; settled by chmod 000 on an old_ list and a hook run, plus whether the header says unreadable lists are reported"
+  - "the old_ item-file arm (session-start-resume.sh:282) has no producer in tracker adoption; it matches the write guard's accepted names (check-write.sh:263-265), so it reads as deliberate; settled only by a decision to drop it or to add a writer, not a finding here"
+out_of_scope_noticed: []

@@ -1,0 +1,61 @@
+status: done
+summary: "tracker-adoption.sh now files a tracker issue for each active spec and renames it after the five-digit issue number (folder, backlog list, spec branch, spec worktree, spec_branch, task branch fields, every .workflow/ reference). It refuses a spec with a live task worktree and leaves it unchanged, pushes a renamed branch whose old one was pushed and reports the old one, and renames Done specs and their lists old_, all through the shared wf_rewrite_* functions. The adoption suite now also covers reruns, usage and tracker errors, a rolled-back commit and a refused push; the main checkout's renames stay uncommitted because main takes no direct commits."
+task_id: "T8"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t8"
+branch: "task/00014-tracker-issue-spec-ids/T08-tracker-adoption"
+base_commit: "cca257c3be4945da0d6b7bde87ffaa0ca43b1bb3"
+head_commit: "425ff8070df146c0b1ae5888e5a5731802276ae7"
+files_changed:
+  - ".agents/skills/issue-tracking/scripts/tracker-adoption.sh"
+  - ".agents/skills/issue-tracking/SKILL.md"
+  - "tests/scripts/tracker-adoption.sh"
+tests_added:
+  - {file: "tests/scripts/tracker-adoption.sh", test: "a second run files no second issue and reports both renamed specs as already adopted", kind: edge}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "a second run still refuses 016-epsilon and exits 1", kind: edge}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "an unknown flag exits 2 with the usage line", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "--cwd without a value exits 2 with the usage line", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "--cwd naming no directory exits 2", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "with no tracker settings adoption exits 2 before it files or renames anything", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "with issue_tracker none adoption exits 2 before it files or renames anything", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "a failed commit in the spec worktree exits 2 and says the renames were rolled back", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "the spec folder is back under its old name in its spec worktree, on its old branch at its old commit", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "the rollback gives spec_branch its old branch name back", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "the rollback gives the task records' branch fields their old names back", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "the rolled-back spec keeps the issue it was given in tracker_issue", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "the main checkout is left as it was: no Done spec, draft or reference renamed", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "a refused push exits 1 and names the command that pushes the renamed branch by hand", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "the renamed branch stays committed locally and the remote keeps only the old branch, unchanged", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "the other specs are still adopted when the push is refused", kind: edge}
+evidence:
+  red: "tests/run-all.sh --suite scripts/tracker-adoption on the stub script: FAIL JRN-011 adoption exits 1 and names 016-epsilon, refused for its live task worktree (rc=0: placeholder), passed=6 failed=25; lint/shared-tracker-logic: FAIL JRN-013 .agents/lib/ defines the path rewrite and move-to-done.sh and tracker-adoption.sh call it. With the new tests, the stub run (real script copied aside, then put back unchanged) gives passed=13 failed=34, including FAIL a second run files no second issue..., FAIL with no tracker settings adoption exits 2..., FAIL a failed commit in the spec worktree exits 2..., FAIL a refused push exits 1 and names the command.... The usage-error and left-as-it-was checks pass on the stub too, since it already parses its arguments and changes nothing."
+  green: "tests/run-all.sh --suite scripts/tracker-adoption; passed=47 failed=0. tests/run-all.sh --suite lint/shared-tracker-logic; passed=5 failed=0."
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00014-tracker-issue-spec-ids --task-id T8 --cwd <worktree>; lint exit 0, test pass (scoped: 2 own suites, TOTAL passed=52 failed=0). Full tests/run-all.sh, run earlier: failures only in the excluded other-task Phase 1 suites scripts/sign-off-pr and lint/issue-tracking-docs."
+  toolchain: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T8/toolchain.txt (pass)"
+considered_not_built:
+  - "Committing the main checkout's renames: wf_rewrite_commit refuses the main branch and the workflow never commits to main directly, so the Done renames, the draft renames and the reference rewrites are left in the main checkout's working tree and the script prints a not-committed line asking for a branch and merge."
+  - "Renaming Done folders or rewriting Done references inside spec worktrees: each spec branch picks up the old_ renames when it merges main; rewriting them on the branch would point its links at folders it does not have yet."
+  - "Renaming existing local task branches (task/OLD/...): only the task records' branch fields are renamed, as the task asks; old task branches and their PRs stay as they are, like the old remote spec branch."
+  - "Renaming older work-backlog items NAME-disc-*.md of a Done spec: the shared rewrite does not rewrite references to them, so renaming would break their links; they are closed items of finished specs."
+  - "Adding the Tracker issue Links line to spec.md: that line is an authoring convention for the spec writer; the script writes only the tracker_issue key."
+  - "Refusing a done spec still at the top level of the specs folder: it is treated as active like the others; nothing in the task or the fixture covers it."
+  - "A test for a failing fill: the fakes can only fail every call at once, which stops create-spec first, so the fill-failure branch is covered by reading, not by a test."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "tracker-adoption.sh builds every .workflow/ path from WF_* with wf_path; the suite spells only the fixture paths it builds."}
+  - {item: 2, verdict: not-applicable, note: "No hook changed; the logic is in the issue-tracking skill's own script."}
+  - {item: 3, verdict: pass, note: "Every failing step reaches die() (exit 2) or warn() (counted, exit 1 at the end); rewrite_branch_names returns 2 with a message that its callers turn into die or a hand-fix line in the rollback report."}
+  - {item: 4, verdict: pass, note: "Functions run inside $(...) (spec_refusal, name_taken, spec_branch_of, front_matter) carry || die on each step and the caller adds || exit 2; rewrite_branch_names, called on the left of ||, handles each step's status itself."}
+  - {item: 5, verdict: pass, note: "Exit 0/1/2 as in the stub; # Exit: also names a fill or push left to do by hand as exit 1, and the rollback cases; the suite now tests exit 2 for usage, tracker and commit errors and exit 1 for the refused push."}
+  - {item: 6, verdict: pass, note: "SCRIPT_DIR from BASH_SOURCE with cd -P; issue-tracker.sh and rules-setting.sh are called as commands from it, never sourced."}
+  - {item: 7, verdict: pass, note: "Helper header: File / Purpose / Usage / stdout / Exit / Called by / Notes / Sources, no decision ids; the suite's # Suite / # Covers header now lists the error and rerun checks."}
+  - {item: 8, verdict: pass, note: "The script is new since the baseline: kebab-case, set -euo pipefail, [[ ]] throughout; the suite keeps its [[ ]] syntax."}
+  - {item: 9, verdict: pass, note: "Every function has its '# name ARGS : what it does' line; no new shellcheck disable directive in either file."}
+  - {item: R1, verdict: pass, note: "Names say their purpose: spec_refusal, name_taken, rename_spec, edit_branch_names, undo_branch_names, adopt_in_spec_worktree; test fixtures R (commit-fails) and U (push-fails) are named by their folders."}
+  - {item: R2, verdict: pass, note: "Trade-offs carry their reason: tracker calls use --cwd MAIN, tracker_issue written before any rename, the full refspec on push, the main run left uncommitted and last, the bash 3.2 empty-array guard; in the suite, why the draft folder is left out of the digest."}
+  - {item: R3, verdict: pass, note: "Body comments give reasons; none restates the line below."}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh in the lint key (exit 0); no changed comment points at a doc path or URL."}
+  - {item: R5, verdict: pass, note: "Plain sentences; workflow terms used are glossary terms (spec worktree, Tracker issue, Done folder)."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over tracker-adoption.sh, SKILL.md and tests/scripts/tracker-adoption.sh printed nothing, exit 0."}

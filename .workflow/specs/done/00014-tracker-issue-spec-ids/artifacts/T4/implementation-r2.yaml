@@ -1,0 +1,36 @@
+status: done
+summary: "Review rework 1: the session-start backlog scan now accepts an optional old_ prefix on both a spec's backlog list name and an older item-file name, so open items of a Done spec renamed by Tracker adoption stay in the reminder. The collecting glob (work-backlog/*.md) already picks up old_ files, so only the two case patterns and the header note changed. A new check in hooks/audit-sync-resume covers an old_ list's open line, an old_ open item file, and two malformed old names that stay skipped."
+task_id: "T4"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t4"
+branch: "task/00014-tracker-issue-spec-ids/T04-done-folder-old-names"
+base_commit: "3c3e3cd2385fc2b8a3ff6453bde163e7a8c622b9"
+head_commit: "5e83ca17bc250f18ef05c09a77a3a4b456072db3"
+files_changed: [".agents/hooks/session-start-resume.sh", "tests/hooks/audit-sync-resume.sh"]
+tests_added:
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "backlog: old_ list's open line and old_ open item file counted; malformed old names skipped", kind: edge}
+evidence:
+  red: "tests/run-all.sh --suite hooks/audit-sync-resume; FAIL backlog: old_ list's open line and old_ open item file counted; malformed old names skipped (passed=58 failed=1)"
+  green: "tests/run-all.sh --suite hooks/audit-sync-resume; passed=59 failed=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00014-tracker-issue-spec-ids --task-id T4 --cwd <worktree>; lint pass, test (scoped to the task's own suites scripts/check-write-paths, scripts/lib-workflow-paths, scripts/review-lessons) 462/462 passed. The hook suite is outside that scope and was run on its own: 59/59 passed."
+  toolchain: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T4/toolchain.txt (pass)"
+considered_not_built: ["Changing the backlog glob: work-backlog/*.md already collects old_ files, so it needs no change.", "check-write.sh:265 backlog name check: already accepts old_ through ORIGIN_NAME from the earlier T4 work."]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "No new .workflow/ path; the scan still uses WF_WORK_BACKLOG."}
+  - {item: 2, verdict: pass, note: "session-start-resume.sh:280,282 only widens two case patterns; no new logic added to the hook."}
+  - {item: 3, verdict: pass, note: "No new error path; a malformed name falls through the case unmatched, as the header documents."}
+  - {item: 4, verdict: not-applicable, note: "No new write or check inside a loop with || die."}
+  - {item: 5, verdict: not-applicable, note: "No exit code changed."}
+  - {item: 6, verdict: not-applicable, note: "No sibling path resolution touched."}
+  - {item: 7, verdict: pass, note: "session-start-resume.sh:35-36 header Triggers/inputs note now names the old_ prefix; hook header shape unchanged."}
+  - {item: 8, verdict: pass, note: "Edited files keep their existing test syntax; no new file."}
+  - {item: 9, verdict: not-applicable, note: "No new function or shellcheck directive."}
+  - {item: R1, verdict: pass, note: "No new identifiers; the test name says what it checks."}
+  - {item: R2, verdict: pass, note: "Patterns sit beside their unprefixed forms in the same case arm, so they read as one rule."}
+  - {item: R3, verdict: pass, note: "tests/hooks/audit-sync-resume.sh:296 comment gives the reason old_ files exist, not what the code does."}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh (exit 0 over the diff); no changed comment points at another document."}
+  - {item: R5, verdict: pass, note: "No shorthand; 'adopting an issue tracker' is spelled out in the header and test comment."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over both changed files exits 0."}

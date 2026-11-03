@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/00014-tracker-issue-spec-ids
+spec: .workflow/specs/done/00014-tracker-issue-spec-ids
 date: 2026-11-03
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/00014-tracker-issue-spec-ids/spec.md` (capabilities: CAP-013, CAP-014)
-- Report: `.workflow/specs/00014-tracker-issue-spec-ids/report.md`
+- Spec: `.workflow/specs/done/00014-tracker-issue-spec-ids/spec.md` (capabilities: CAP-013, CAP-014)
+- Report: `.workflow/specs/done/00014-tracker-issue-spec-ids/report.md`
 - Tasks: 10 done, 0 split out
 - Evidence available:
   - `spec.md`, `verification-plan.md`, `report.md`, `tasks.md`, `design-log.md` (two triage entries, the sign-off entry) and `proposals.md` (P1-P7 approved);

@@ -63,6 +63,6 @@ lessons:
   - id: RL-009
     symptom: "A change adds a spec or task frontmatter key that step files read, but no step writes it (the writing step still says 'frontmatter unchanged'), so every reader gets an empty value."
     paths: [".agents/skills/feature-workflow/modules/**", ".agents/skills/feature-workflow/assets/spec.md", ".agents/skills/feature-workflow/assets/tasks.md"]
-    origin_spec: .workflow/specs/00014-tracker-issue-spec-ids
+    origin_spec: .workflow/specs/done/00014-tracker-issue-spec-ids
     date: 2026-11-03
 ```

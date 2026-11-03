@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00014-tracker-issue-spec-ids
+origin_spec: .workflow/specs/done/00014-tracker-issue-spec-ids
 created: 2026-11-02
 ---
 
@@ -7,7 +7,7 @@ created: 2026-11-02
 
 **Summary:** File initiatives and their slices as tracker issues, and number initiatives and converted specs from the tracker.
 **Mode:** HITL
-**Origin:** [00014-tracker-issue-spec-ids](../specs/00014-tracker-issue-spec-ids/spec.md), 0.3.17 scope decision, design-log entry 2026-11-02 Scope decision: initiative-tracker-issues
+**Origin:** [00014-tracker-issue-spec-ids](../specs/done/00014-tracker-issue-spec-ids/spec.md), 0.3.17 scope decision, design-log entry 2026-11-02 Scope decision: initiative-tracker-issues
 
 ## Goal
 
@@ -23,7 +23,7 @@ Spec 00014 makes the tracker the source of spec numbers and files specs and task
 
 ## Decisions already made
 
-- Spec issues sit under no parent in 00014; the design leaves room for one (design-log D3 in [.workflow/specs/00014-tracker-issue-spec-ids/design-log.md](../specs/00014-tracker-issue-spec-ids/design-log.md)).
+- Spec issues sit under no parent in 00014; the design leaves room for one (design-log D3 in [.workflow/specs/done/00014-tracker-issue-spec-ids/design-log.md](../specs/done/00014-tracker-issue-spec-ids/design-log.md)).
 
 ## Evidence
 
@@ -41,4 +41,4 @@ Spec 00014 makes the tracker the source of spec numbers and files specs and task
 
 ## Later requests
 
-- .workflow/specs/00014-tracker-issue-spec-ids, 5.9: Tracker adoption renames specs an initiative names (`slices[].spec`, `origin`) but skips `.workflow/initiatives/`, so the large path's 6.13 done check looks up the old names (review F4); adoption should refuse such a spec or re-point the initiative through `initiative-transition.sh`.
+- .workflow/specs/done/00014-tracker-issue-spec-ids, 5.9: Tracker adoption renames specs an initiative names (`slices[].spec`, `origin`) but skips `.workflow/initiatives/`, so the large path's 6.13 done check looks up the old names (review F4); adoption should refuse such a spec or re-point the initiative through `initiative-transition.sh`.

@@ -1,5 +1,5 @@
 ---
-superseded_by: .workflow/specs/00014-tracker-issue-spec-ids
+superseded_by: .workflow/specs/done/00014-tracker-issue-spec-ids
 origin_spec: .workflow/specs/done/008-pr-description-template
 created: 2026-10-29
 ---

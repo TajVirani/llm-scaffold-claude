@@ -1,0 +1,67 @@
+verdict: "pass"
+task_id: "T8"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t8@cca257c3be4945da0d6b7bde87ffaa0ca43b1bb3..HEAD"
+tool_output: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T8/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: "tracker-adoption.sh:199 (wf_path with WF_WORKTREES), 313-326 (WF_SPECS, WF_SPEC_WORKTREES, WF_SPECS_DONE, WF_WORK_BACKLOG); no .workflow/ literal in code, only in header lines 5 and 17"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook in the diff; the diff files are tracker-adoption.sh, SKILL.md and tests/scripts/tracker-adoption.sh"
+  - n: 3
+    verdict: "pass"
+    location: "tracker-adoption.sh:49 (die), 55 (warn), 78-91 (require_tracker), 93-94 (main branch), 166-181 (on_exit), 196-216 (spec_refusal), 348 (create-spec status), 364-365 (fill, counted by warn)"
+  - n: 4
+    verdict: "pass"
+    location: "tracker-adoption.sh:106-120 (rewrite_branch_names: sed and cat each || return 2), 124-146 (edit_branch_names: grep status checked, rewrite status case), 185-186 (front_matter || die), 196-216 (spec_refusal: each command || die or || exit 2), 218-234 (name_taken), 249-260 (report_old_remote_branch || exit 2), 262-303 (adopt_in_spec_worktree, each step || die), 400-412 (Done loop, empty-array guard)"
+  - n: 5
+    verdict: "pass"
+    location: "tracker-adoption.sh:24-29 (# Exit: header), 52 (usage, exit 2), 176-180 (on_exit exit 2 after a rollback), 430-433 (exit 1 when PROBLEMS is set); only exits 0, 1 and 2"
+  - n: 6
+    verdict: "pass"
+    location: "tracker-adoption.sh:36 (SCRIPT_DIR with cd -P from BASH_SOURCE), 38 (lib source), 41-42 (ISSUE_TRACKER and RULES_SETTING from SCRIPT_DIR), run as commands at 93 and 348, not sourced"
+  - n: 7
+    verdict: "pass"
+    location: "tracker-adoption.sh:1-32 (File, Purpose, Usage, stdout, Exit, Called by, Notes, Sources: the same sections as the helper header of issue-tracker.sh:1-22); no decision or task id in it"
+  - n: 8
+    verdict: "pass"
+    location: "tracker-adoption.sh:34 (set -euo pipefail, and the file was already in the base, so it is not new); [[ used throughout, no single-bracket test in the diff; the test file keeps its [[ syntax"
+  - n: 9
+    verdict: "pass"
+    location: "every new function has its doc line: tracker-adoption.sh:54 (warn), 76-77, 104-105, 122-123, 147, 164-165, 184, 187, 194-195, 216-217, 234-235, 247-248, 260-261, 304; the only directive added is a source= hint at 37, which needs no reason"
+  - n: R1
+    verdict: "pass"
+    location: "tracker-adoption.sh:196 (spec_refusal), 218 (name_taken), 236 (rename_spec), 249 (report_old_remote_branch), 262 (adopt_in_spec_worktree): each name says what the thing does; tests/scripts/tracker-adoption.sh: the short fixture variables (R_*, U_*, N) each follow a line naming their folder, and none misleads"
+  - n: R2
+    verdict: "pass"
+    location: "tracker-adoption.sh:98-100 (RUN_OPEN and why the branch edits are listed), 107-108 (sed repeat and why), 290 (push refspec and -u), 332-333 (tracker_issue written at once, and why), 380-381 (worktrees before the main run, and why it is last), 399 (bash 3.2 empty-array guard)"
+  - n: R3
+    verdict: "pass"
+    location: "tracker-adoption.sh:98-100, 107-108, 290, 317, 332-333, 380-381, 390-391 (the main-checkout block comment gives the order and why worktree specs' references are rewritten here, which the loop alone does not show); no comment restates the line under it"
+  - n: R4
+    verdict: "tool-covered"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh and tests/scripts/tracker-adoption.sh (no body comment points at a docs/ path or URL)"
+    note: "lint key: check-comments.sh over tracker-adoption.sh, exit 0. The lint key does not read tests/, so I ran check-comments.sh on a scratch copy of tests/scripts/tracker-adoption.sh (exit 0) and read its one new body comment by hand: it names no docs/ path or URL."
+  - n: R5
+    verdict: "pass"
+    location: "tracker-adoption.sh:98-100, 122-123, 290, 332-333, 380-381 (plain sentences; the terms used are the spec worktree, tracker_issue and the step marker, all defined in the lib or the header); tests/scripts/tracker-adoption.sh new body comment (the draft comment) is plain"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh: the WF_* variables, wf_path, wf_origin_host, wf_rewrite_end and wf_rewrite_checkout_refusal (stateless, so safe inside $(...)), and the rewrite-run contract in its header"
+  - ".agents/skills/issue-tracking/scripts/issue-tracker.sh:1-22: the helper header shape for item 7"
+  - ".agents/skills/feature-workflow/scripts/check-comments.sh:1-30: the lint's scope (the lint key covers the script, not tests/)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the 3.7 checks"
+  - ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T8/toolchain.json and implementation.yaml: which keys ran, and the implementer's self-review, which I confirmed item by item against the diff"
+  - "git show HEAD:tests/scripts/tracker-adoption.sh: the base header of the test file, to tell its new lines from old ones"
+not_checked:
+  - "tracker-adoption.sh:316: a spec folder whose name fails SPEC_NAME_PATTERN is skipped with no message, yet exit 0 means every spec was adopted; settle with a fixture .workflow/specs/015_delta/spec.md and a run that checks the output"
+  - "tracker-adoption.sh:359: a create-spec URL that does not end in a number exits 2 after the tracker has filed an issue, before tracker_issue is written, so a rerun would file a second issue; settle with a fake tracker that prints such a URL"
+out_of_scope_noticed:
+  - kind: bug
+    summary: "The doc line of edit_branch_names says it renames the branches; it only rewrites branch names inside the workflow files. The git branch is renamed only in adopt_in_spec_worktree."
+    evidence: "tracker-adoption.sh:122-123 reads 'in the checkout ROOT, rename the branches the spec NAME's folder and backlog list name (spec/NAME, task/NAME/...) to NEW'; the body at 124-146 calls grep and rewrite_branch_names only, with no git command; the only git branch rename is tracker-adoption.sh:283 (git -C $MAIN branch -m)."
+    blocker_assessment: blocks-this-task
+    reason: "The misleading doc line sits on lines this diff adds, and no checklist item covers the accuracy of a doc line."

@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00014-tracker-issue-spec-ids
+origin_spec: .workflow/specs/done/00014-tracker-issue-spec-ids
 created: 2026-11-02
 ---
 
@@ -7,7 +7,7 @@ created: 2026-11-02
 
 **Summary:** The fallback spec-branch name built from a spec folder includes `done/` when the folder is in the Done folder.
 **Mode:** AFK
-**Origin:** [00014-tracker-issue-spec-ids](../specs/00014-tracker-issue-spec-ids/spec.md), 0.3.17 scope decision, design-log entry 2026-11-02 Scope decision: done-spec-branch-fallback
+**Origin:** [00014-tracker-issue-spec-ids](../specs/done/00014-tracker-issue-spec-ids/spec.md), 0.3.17 scope decision, design-log entry 2026-11-02 Scope decision: done-spec-branch-fallback
 
 ## Goal
 

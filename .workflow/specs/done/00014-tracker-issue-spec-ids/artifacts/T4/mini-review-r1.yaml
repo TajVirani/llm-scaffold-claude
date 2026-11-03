@@ -1,0 +1,61 @@
+verdict: pass
+task_id: T4
+work_type: shell-scripts
+mode: full
+previous: null
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t4@8680e8519362070994b12697a5d545d6706bc6a3..HEAD
+tool_output: .workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T4/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/feature-workflow/scripts/check-write.sh:267,268,272 build the origin path from WF_SPECS and WF_SPECS_DONE (sourced at check-write.sh:67, defined at .agents/lib/workflow-paths.sh:87-88); review-lessons.sh:89 takes its Done pattern from the lib at review-lessons.sh:105; the test fixture at tests/scripts/check-write-paths.sh:199 spells its own path, which item 1 allows
+  - n: 2
+    verdict: not-applicable
+    location: no hook file in the diff; the diff touches check-write.sh, review-lessons.sh, review-lessons.md and the test suite only
+  - n: 3
+    verdict: pass
+    location: check-write.sh:270 keeps the deny for a name that matches neither list nor item pattern, check-write.sh:288 keeps the final deny for a missing or wrong step, review-lessons.sh validate keeps its refuse path with only the message text at review-lessons.sh:90 changed
+  - n: 4
+    verdict: not-applicable
+    location: the only command substitution the diff touches, STEP=$(marker_get ...) at check-write.sh:272, has no || caller, and only its path argument changed
+  - n: 5
+    verdict: not-applicable
+    location: no exit code added or changed; the allow and deny paths of check-write.sh are unchanged
+  - n: 6
+    verdict: not-applicable
+    location: no sibling path resolution in the diff; the lib source at check-write.sh:66-67 is unchanged
+  - n: 7
+    verdict: pass
+    location: check-write.sh:25 and review-lessons.sh:7-8 keep their header shape and name no decision or task id; tests/scripts/check-write-paths.sh:10-11 is a Suite header, whose journey id is allowed, and its added lines name none
+  - n: 8
+    verdict: pass
+    location: no new file; check-write.sh:268 uses [[ ]] as the file already does; the test lines at tests/scripts/check-write-paths.sh:198-209 use the file's own t and check helpers
+  - n: 9
+    verdict: not-applicable
+    location: no new function and no new shellcheck directive in the diff
+  - n: R1
+    verdict: pass
+    location: check-write.sh:263 ORIGIN_NAME, check-write.sh:267 ORIGIN_DIR and tests/scripts/check-write-paths.sh:199 OLD_DONE hold what their names say; OLD_DONE is the old_ spec folder inside the Done folder, a loose name that does not mislead
+  - n: R2
+    verdict: pass
+    location: check-write.sh:262 gives the reason old_ origins are read from the Done folder; tests/scripts/check-write-paths.sh:198 gives the reason the step marker is read there
+  - n: R3
+    verdict: pass
+    location: check-write.sh:25 and 262, review-lessons.sh:7, tests/scripts/check-write-paths.sh:10-11 and 198 each give a reason; none restates the line below it
+  - n: R4
+    verdict: tool-covered
+    location: check-write.sh:262, review-lessons.sh:7, tests/scripts/check-write-paths.sh:198 hold no doc pointer
+    note: lint key, check-comments.sh (shell-scripts lint key) covers the two scripts and passed; its file list omits tests/, so the changed test comment at tests/scripts/check-write-paths.sh:198 was read by hand and names no document
+  - n: R5
+    verdict: pass
+    location: check-write.sh:25 uses tracker adoption, defined in code at .agents/skills/issue-tracking/scripts/tracker-adoption.sh:2 and in .workflow/GLOSSARY.md:179; the other added comments use plain words
+read_outside_diff:
+  - .agents/lib/workflow-paths.sh:87-90 and 168-172, the WF_SPECS_DONE definition and the old_ name rule the new code relies on
+  - .agents/skills/feature-workflow/scripts/check-write.sh:66-67, the lib source line
+  - .agents/skills/feature-workflow/scripts/review-lessons.sh:104-105, the regex_literal arguments for the Done pattern
+  - .agents/hooks/tier-a-write-guard.sh:7-11, tier-b-write-guard.sh:6-10 and spec-single-writer-guard.sh:8, headers only, to confirm the hooks are thin adapters over check-write.sh
+  - .agents/skills/issue-tracking/scripts/tracker-adoption.sh:2 and .workflow/GLOSSARY.md:179, to confirm tracker adoption is defined
+  - tests/scripts/check-write-paths.sh:1-12, the Suite header that allows the journey id JRN-012
+not_checked:
+  - check-comments.sh was not run on tests/scripts/check-write-paths.sh because the shell-scripts lint key does not list tests/; the test-harness profile lint covers that file at its own gate
+out_of_scope_noticed: []

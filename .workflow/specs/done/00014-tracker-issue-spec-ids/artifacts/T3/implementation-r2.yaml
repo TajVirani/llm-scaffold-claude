@@ -1,0 +1,64 @@
+status: done
+summary: "Fix round after the 3.7 mini-review. next-spec-number.sh no longer treats an initiative branch's unreadable initiative.md as an absent one: it lists the path with git ls-tree (which reads only trees) and reads the file with git show || die only when it is listed, so a blob missing from the object store exits 2 naming the file instead of silently printing a number an existing spec may hold. The first round's behaviour (local scan, tracker call, 0.1.1 as one call, callers rewired) is unchanged."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t3"
+branch: "task/00014-tracker-issue-spec-ids/T03-next-spec-number"
+base_commit: "f896f20dd74f13749fa1e977f1425f674a3209cb"
+head_commit: "ca33a85cedeb1e52d6ed171da39909bc0bbcb3c5"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/next-spec-number.sh"
+  - ".agents/skills/feature-workflow/modules/discovery.md"
+  - "PROVENANCE.md"
+  - "tests/scripts/next-spec-number.sh"
+  - "tests/scripts/move-to-done.sh"
+  - "tests/scripts/spec-worktree.sh"
+  - "tests/fixtures/initiative.sh"
+  - "tests/README.md"
+tests_added:
+  - {file: "tests/scripts/next-spec-number.sh", test: "an initiative branch whose initiative.md blob is missing exits 2 naming it, with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "with the blob back the branch-only initiative counts again: 00016", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "with a tracker the script prints the issue number padded to five digits, then the URL", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "with a tracker the script asks issue-tracker.sh create-spec once, from the given directory", kind: "behaviour"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "an issue number longer than five digits is printed whole", kind: "edge"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a tracker failure exits 1 with its cause on stderr and nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "settings the tracker script refuses exit 2 with its reason on stderr and nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a URL without an issue number exits 1 naming the URL, with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a skipped tracker call exits 1 with nothing on stdout, never falling back to the local scan", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a tracker whose flow names one label for two stages exits 2 with nothing on stdout and no call", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a settings file that is not YAML exits 2 with nothing on stdout and no call", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "an unknown argument exits 2 with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "--cwd without a directory exits 2 with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "a --cwd outside any git repository exits 2 with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/next-spec-number.sh", test: "an initiative.md whose frontmatter cannot be read exits 2 naming it, with nothing on stdout", kind: "negative"}
+  - {file: "tests/scripts/move-to-done.sh", test: "JRN-007 fixture: before the sweep next-spec-number.sh gives 00011 (and the two other numbering checks, rewritten to call the script)", kind: "behaviour"}
+  - {file: "tests/scripts/spec-worktree.sh", test: "next-spec-number.sh from the main checkout / from spec 001's worktree gives 00003 (rewritten to call the script)", kind: "behaviour"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/next-spec-number with the new test and the old cat-file -e check: FAIL an initiative branch whose initiative.md blob is missing exits 2 naming it, with nothing on stdout (rc=0 out=00014); passed=27 failed=1"
+  green: "tests/run-all.sh --suite scripts/next-spec-number after the ls-tree change: passed=28 failed=0. Scratch repo check: healthy prints 00021; with the blob moved out, stderr 'fatal: bad object refs/heads/initiative/002-b:...' and 'next-spec-number.sh: cannot read refs/heads/initiative/002-b:.workflow/initiatives/002-b/initiative.md', rc=2"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00014-tracker-issue-spec-ids --task-id T3 --cwd <worktree>: lint pass, test (scoped, own 1 suite, 10 excluded) pass, scripts/next-spec-number passed=28 failed=0, exit 0"
+  toolchain: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "Checking that the tracker settings match the origin host: issue-tracker.sh owns that check (exit 2), and next-spec-number.sh passes its exit 2 through."
+  - "A test of the tracker branch against the current issue-tracker.sh placeholder: that file prints a fixed non-numeric URL until the tracker task replaces it, so the suite uses a stand-in issue-tracker.sh in the fixture project."
+  - "Falling back to the local scan when the tracker answers 'skipped: no tracker': the settings already said a tracker is set up, so a mismatch exits 1 instead of silently picking a number that is only unique locally."
+  - "A missing-blob case for a working-tree initiative.md: a working-tree file is read from disk, not the object store, so it cannot hit this failure; its unreadable-frontmatter case is already covered."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "pass", note: "next-spec-number.sh builds every workflow path from WF_* variables (the new branch_path from WF_INITIATIVES); only test fixtures spell paths out."}
+  - {item: 2, verdict: "not-applicable", note: "no hook changed"}
+  - {item: 3, verdict: "fixed", note: "the mini-review finding: cat-file -e 2>/dev/null sent a missing blob to the no-file branch silently. taken_spec_names now lists with git ls-tree || die and reads with git show ... || die, so the missing blob reaches die (next-spec-number.sh:58-65)."}
+  - {item: 4, verdict: "pass", note: "inside the for-loop in taken_spec_names (whose caller adds || exit 2) the new ls-tree substitution and the git show pipeline each carry their own || die."}
+  - {item: 5, verdict: "pass", note: "the missing blob exits 2, already documented in # Exit: as an unreadable initiative.md; no code changed."}
+  - {item: 6, verdict: "pass", note: "SCRIPT_DIR still comes from BASH_SOURCE with cd -P."}
+  - {item: 7, verdict: "pass", note: "helper header shape unchanged: File / Purpose / Usage / stdout / Exit / Called by / Notes / Sources, no decision ids."}
+  - {item: 8, verdict: "pass", note: "next-spec-number.sh is kebab-case, set -euo pipefail, and the new check uses [[ -n $listed ]]."}
+  - {item: 9, verdict: "pass", note: "no new function; the script has no shellcheck disable."}
+  - {item: "R1", verdict: "pass", note: "branch_path and listed say what they hold; the old branch_file (which held ref:path) is gone."}
+  - {item: "R2", verdict: "pass", note: "the new comment above ls-tree gives the why: it reads only trees, so a missing blob still reaches the read and fails there."}
+  - {item: "R3", verdict: "pass", note: "no added comment restates its line; the test's comment explains why the blob is moved and put back."}
+  - {item: "R4", verdict: "pass", note: "tool-covered by check-comments.sh (exit 0 over the diff); no changed comment points at a document."}
+  - {item: "R5", verdict: "pass", note: "comments are plain English with no undefined shorthand."}
+  - {item: "comment-lint", verdict: "pass", note: "check-comments.sh over every file the diff adds or changes exits 0."}
