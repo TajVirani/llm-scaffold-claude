@@ -58,7 +58,8 @@ On a project with a tracker set up, two people start specs at the same moment an
 ## Assumptions
 
 - The GitLab child-task GraphQL call works on gitlab.com as documented; it is proven only against a fake glab in this spec (D17), and the `relates_to` fallback covers a refusal.
-- gh 2.94 or later (`gh issue create --parent`) and a glab release with `issue update --description-file` are installed where the tracker is used; setup checks the version and names the minimum when it is older.
+- gh 2.94.0 or later (`gh issue create --parent`) and glab 1.115.0 or later (`issue update --description-file`) are installed where the tracker is used; `tracker-setup.sh check` refuses an older CLI and names the minimum. The two minimums are taken from the CLIs' release lists and are not checked against a real install.
+- The tracker serves issue URLs over https; `issue-tracker.sh` refuses any other URL, after the tracker has already created the issue it names.
 - Migrating active specs runs when no task worktree is live; a spec mid-wave is refused until its wave ends.
 
 ## Links
