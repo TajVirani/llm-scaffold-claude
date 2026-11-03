@@ -1,0 +1,67 @@
+verdict: "fail"
+task_id: "T5"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t5@8680e8519362070994b12697a5d545d6706bc6a3..HEAD"
+tool_output: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T5/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:335 (settings built with wf_path and WF_ISSUE_TRACKING, .agents/lib/workflow-paths.sh:84); the only other .workflow text in the script is the header at line 4"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook in the diff; the diff touches issue-tracking/scripts/issue-tracker.sh, issue-tracking/SKILL.md and tests/scripts/issue-tracking.sh only"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:75, 80 (configured_tracker), 97 (tracker_call), 104 (json_field), 218 (create_github_task), 282 (create_gitlab_task), 344 (origin host), 350 (CLI missing); wf_origin_host always returns 0 (.agents/lib/workflow-paths.sh:243-253), so the unguarded call at 342 cannot end the script silently"
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:147-151, 158, 175-194, 204, 215-218, 257-261, 269-282 (each command substitution or write carries || exit or die); create_child_task 227, 238, 240, 242 return 1 at each step and runs inside the if at 275, where set -e is suspended"
+  - n: 5
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:21-23 (Exit header: 0, 1, 2); exits are 0, 1 or 2 only (die defaults to 2; tracker failures use die ... 1 at 97 and 104 and exit 1 elsewhere)"
+  - n: 6
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:32-34 (cd -P from BASH_SOURCE[0], then ../../../lib/workflow-paths.sh)"
+  - n: 7
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:2-28 (File, Purpose, Usage, stdout, Exit, Called by, Notes, Sources); same block shape as .agents/skills/feature-workflow/scripts/next-spec-number.sh:2-22; no decision id in the block (comment lint passed)"
+  - n: 8
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:30 (set -euo pipefail); no single-bracket test in the file; the script is an edited file, and SKILL.md is markdown, so the script rules do not reach it"
+  - n: 9
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:47-288: each of the 18 functions has its '# name ARGS : ...' line in the doc block above it (checked by awk); the disable directives at 40 and 42 give a reason; the source hint at 33 needs none"
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:174 (stale_labels), 209 (first_url), 252 (create_linked_issue), 274 (CHILD_REFUSAL, named as in the create_child_task doc block); tests/scripts/issue-tracking.sh added names (BAD, HEADLESS, test titles) say what they hold"
+  - n: "R2"
+    verdict: "fail"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:203, .agents/skills/issue-tracking/scripts/issue-tracker.sh:209"
+    note: "Two workarounds with no reason. Line 203 ${state_event[@]+...} guard: a reader who makes it the bare form breaks GitLab move to backlog or in_progress on an open issue on bash 3.2 (probe: bare form exits 1 with 'state_event[@]: unbound variable'). Line 209 '|| true': a reader who drops it as noise ends the script silently at line 217 with exit 1 and no message (probe: exit 1, no output; with it, the die at 218 prints and exit is 2). Fix: add a reason sentence above line 201 for 203 and above line 209 for 209."
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:37, 39, 153, 201 (body comments give reasons; the other comment lines are function doc lines)"
+  - n: "R4"
+    verdict: "tool-covered"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:4 (header, exempt from R4)"
+    note: "Covered by the lint key's comment lint (check-comments.sh over the three changed files, exit 0). No changed body comment points at a docs/ path or URL (grep found none)."
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/issue-tracking/scripts/issue-tracker.sh:37, 39, 153, 201; the terms 'flow label', 'backlog stage' and 'sub-issue' are defined in the header (lines 2-28) and in SKILL.md's Issue flow section; tests/scripts/issue-tracking.sh:23-27 (added header lines) is plain"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh: WF_ISSUE_TRACKING at line 84, wf_path 110-113, wf_project_root 133-150, wf_origin_host 243-253 (items 1 and 3)"
+  - ".agents/skills/feature-workflow/scripts/next-spec-number.sh lines 1-22: sibling helper header for the block shape (item 7)"
+  - ".agents/skills/issue-tracking/SKILL.md line 24: the Exit contract (out_of_scope evidence)"
+  - "grep of .agents for issue-tracker.sh: callers are next-spec-number.sh and SKILL.md only (item 7, Called by)"
+  - "tests/scripts/issue-tracking.sh diff: read for R1, R4 and R5 on the added names and comments"
+  - "scratch probes under mktemp -d, removed before return: R2 guards run on /bin/bash 3.2.57; GitLab create-task run with a fake glab whose graphql calls fail"
+not_checked:
+  - "Called by (issue-tracker.sh:24-26) names nine modules; no module in this tree calls the script yet (only next-spec-number.sh and SKILL.md do). Item 7 judges block shape only; this settles when those modules are wired."
+out_of_scope_noticed:
+  - kind: "bug"
+    summary: "On GitLab, a failed child-task GraphQL call that is not a refusal (for example a timeout) is reported as a refusal, and the task is filed as a linked issue with exit 0. SKILL.md says a tracker failure exits 1."
+    evidence: "Probe: a fake glab that fails every graphql call with 'dial tcp: i/o timeout' and answers the REST calls. Command: issue-tracker.sh create-task https://gitlab.com/grp/proj/-/issues/42 task.md. Output: stderr 'issue-tracker.sh: GitLab refused a child task under issue #42, so the task gets an issue linked to it instead: dial tcp: i/o timeout'; stdout 'https://gitlab.com/grp/proj/-/issues/9'; exit=0. Rule: .agents/skills/issue-tracking/SKILL.md:24 'Exit 1: the tracker failed, for example the network or the login.'"
+    blocker_assessment: "blocks-this-task"
+    reason: "The fallback at .agents/skills/issue-tracking/scripts/issue-tracker.sh:275-283 and create_child_task (225-250) are added by this diff. The fallback should run only on GitLab's own refusal in the response; a transport failure should exit 1 with glab's message."

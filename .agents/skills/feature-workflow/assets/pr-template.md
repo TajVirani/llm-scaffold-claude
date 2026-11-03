@@ -14,7 +14,9 @@ Rules:
 
 ## Link to issue
 
-<!-- The tracker issue this spec delivers, as a URL. Until the workflow creates issues, use this fixed stub line:
+<!-- The tracker issue this spec delivers: the `tracker_issue` URL from spec.md on one line, then `Closes #<n>` on the
+next, <n> being the number the URL ends in, so merging the PR closes the issue. When `tracker_issue` is "" or absent
+(the project has no tracker), use this fixed stub line:
 No tracker issue yet: the workflow does not create one when a spec starts. -->
 
 ## What changed

@@ -114,7 +114,7 @@ On the small path: write `report.md` as these five lines instead of the template
 1. **Read the template setting:** `.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template`. Exit 1 (a bad value, or a path whose file is gone): stop and show the stakeholder its message. They choose the workflow template for this PR, or a fixed path through a `pr_template` row (back to 5.2 and 5.3). Never fall back to a template on your own.
 2. **Fill the body.**
    - `workflow`: copy `assets/pr-template.md` to `pr-body.md`. Replace each section's guidance comment with its text, drawn from the evidence the comment names (`report.md` as just written, `design-log.md`, `codebase-map.md`, `spec.md`, the `files` list of `budget-check.sh`), and delete the template's header comment. When the change cannot be undone, How to undo this PR says why and Risk is High.
-   - A path: fill every heading of that host template, `#` to `######`, at its own level and in its order, from the same evidence; the ten workflow sections are not added.
+   - A path: fill every heading of that host template, `#` to `######`, at its own level and in its order, from the same evidence; the ten workflow sections are not added. When `tracker_issue` in spec.md is set, end a body filled from a project template with two last lines after a blank line: the issue URL, then `Closes #<n>`, `<n>` being the number the URL ends in, so merging the PR closes the issue. With no tracker, add nothing.
 3. **Check it:**
 
    ```bash
@@ -210,6 +210,12 @@ yq --front-matter=extract '.verdict' .workflow/decisions/retrospectives/NNN-slug
 
 Commit what is left on the spec branch (`git status --short`; the spec folder with `pr-body.md`, the approved Tier A writes and the retrospective).
 
+**Copy the final spec into its tracker issue**, while the spec folder is still at its old path:
+
+```bash
+.agents/skills/issue-tracking/scripts/issue-tracker.sh fill "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" .workflow/specs/NNN-slug/spec.md
+```
+
 **Check the body again.** Run `check-pr-body.sh` on `pr-body.md` exactly as at 5.4; go on to the move when it exits 0. On a fault, fix each line it names, show the stakeholder the full text, ask the 5.5 PR description question again, and log the answer in the Sign-off entry, then commit the fixed body and the log. This is the last point where the body or the design log can change: after the move nothing writes into the spec folder.
 
 **Sweep older finished specs, once.** Specs that were `done` before the Done folder existed still sit at the top level of `.workflow/specs/`. In a repo that has any, the first sign-off after the Done folder arrives may move them first, with the stakeholder's agreement: run `.agents/skills/feature-workflow/scripts/move-to-done.sh --sweep`, keep its moves in one commit of their own before this spec's move (commit anything `git status --short` still lists), then run the full test suite; a failure stops sign-off before this spec moves. A spec the sweep reports as failing the check stays where it is; show the stakeholder the list. Later sign-offs skip this: each spec moves itself.
@@ -236,7 +242,7 @@ The body passed the same check before the move, the move changed only the spec p
 git diff HEAD~1:.workflow/specs/NNN-slug/pr-body.md HEAD:.workflow/specs/done/NNN-slug/pr-body.md
 ```
 
-**Publish** with the stakeholder's go-ahead: merge the spec branch into the main branch through a PR/MR carrying `pr-body.md` as its description, or by a local merge whose message holds it. The route follows the remote, as task merges do: a PR/MR needs a host. Pick the line from the host of `git remote get-url origin`: one containing `github` runs the `gh` line, one containing `gitlab` the `glab` line. Without a remote or the CLI, on any other host, or when the stakeholder asks for one, run the last three lines, the local merge, which lands in the main checkout (the first worktree `git worktree list` names), where the main branch is checked out. Never pass `--template`: the approved body is the whole description. Run from the spec checkout, setting the variables in the same Bash command, since each Bash call starts a fresh shell:
+**Publish** with the stakeholder's go-ahead: merge the spec branch into the main branch through a PR/MR carrying `pr-body.md` as its description, or by a local merge whose message holds it. The route follows the remote, as task merges do: a PR/MR needs a host. Pick the line with the shared host choice that task PRs use, `wf_origin_host` in `.agents/lib/workflow-paths.sh`: `bash -c '. .agents/lib/workflow-paths.sh && wf_origin_host .'` prints `github` for the `gh` line, `gitlab` for the `glab` line, and nothing for any other host or no remote. Without a remote or the CLI, on any other host, or when the stakeholder asks for one, run the last three lines, the local merge, which lands in the main checkout (the first worktree `git worktree list` names), where the main branch is checked out. Never pass `--template`: the approved body is the whole description. Run from the spec checkout, setting the variables in the same Bash command, since each Bash call starts a fresh shell:
 
 - `SPEC_DIR=.workflow/specs/done/NNN-slug`
 - `SPEC_BRANCH`: `spec_branch` in `$SPEC_DIR/spec.md` (`spec/NNN-slug`; the move leaves it unchanged).
@@ -255,13 +261,19 @@ git -C "$main_checkout" switch "$MAIN" && git -C "$main_checkout" merge --no-ff 
 
 The merge message is built in the spec checkout because `pr-body.md` exists only on the spec branch; git refuses the merge while the main checkout has uncommitted changes to files it touches, so check `git -C "$main_checkout" status --short` first and ask the stakeholder about anything it lists; `--no-edit` and `--cleanup=verbatim` keep the message to the body as checked, line for line: an editor session would strip the `##` heading lines as comments, and the default cleanup trims blank lines and trailing spaces. Push only what the stakeholder asked for: after a local merge, push the main branch only on request. Remove leftover agent worktrees (`git worktree list`, then `git worktree remove <path>` for each one under `.workflow/.worktrees/` this feature created).
 
-**Remove the spec worktree and the spec branch** once the spec branch is on the main branch: right after a local merge, or once the PR/MR has merged and the main checkout has pulled it. Leave the spec worktree first, since the command deletes it: on Claude Code call `ExitWorktree` with `action: keep` when this session entered it with `EnterWorktree` (that returns the session to the main checkout); a session opened in the spec worktree runs it as its last command. From the main checkout:
+**Move the spec's tracker issue to done, then remove the spec worktree and the spec branch,** once the spec branch is on the main branch: right after a local merge, or once the PR/MR has merged and the main checkout has pulled it. A merged PR/MR closes the issue through its `Closes #<n>` line but leaves the in-progress label, so run the move on both routes; on a closed issue it changes only the label:
+
+```bash
+.agents/skills/issue-tracking/scripts/issue-tracker.sh move "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/done/NNN-slug/spec.md)" done
+```
+
+Leave the spec worktree first, since the command deletes it: on Claude Code call `ExitWorktree` with `action: keep` when this session entered it with `EnterWorktree` (that returns the session to the main checkout); a session opened in the spec worktree runs it as its last command. From the main checkout:
 
 ```bash
 .agents/skills/feature-workflow/scripts/spec-worktree.sh remove .workflow/specs/done/NNN-slug
 ```
 
-It removes `.workflow/.spec-worktrees/NNN-slug` and deletes `spec/NNN-slug` with `git branch -d`, the safe delete, so a branch that is not merged is never lost; a spec run in the main checkout has no spec worktree, and only its branch goes. Exit 1 removes nothing and says what still holds them (not merged yet, uncommitted changes, an agent worktree left inside): fix that and run it again. While the PR/MR is still open, leave both and tell the stakeholder to run the command once it merges. Close with a one- or two-sentence summary: what shipped, the merge commit, where the deferred items wait, and which backlog items were promoted (with their new spec folders) or kept open.
+It removes `.workflow/.spec-worktrees/NNN-slug` and deletes `spec/NNN-slug` with `git branch -d`, the safe delete, so a branch that is not merged is never lost; a spec run in the main checkout has no spec worktree, and only its branch goes. Exit 1 removes nothing and says what still holds them (not merged yet, uncommitted changes, an agent worktree left inside): fix that and run it again. While the PR/MR is still open, leave the issue, the worktree and the branch, and tell the stakeholder to run both commands once it merges. Close with a one- or two-sentence summary: what shipped, the merge commit, where the deferred items wait, and which backlog items were promoted (with their new spec folders) or kept open.
 
 **Harness after a local merge.** Run the harness on the main branch again only when the merge changed what was tested. Check first; it runs nothing and writes nothing:
 
@@ -273,4 +285,4 @@ Exit 0: the merge result is a tree the harness already passed on (it prints the 
 
 **Close the initiative.** For a spec that carries `initiative:`, once the merge has landed on main, load [large-path](large-path.md#613-close-when-every-spec-is-done) at 6.13 for that initiative. 6.13 first reads the initiative's status on main, then at the tip of `initiative/NNN-slug` when that branch exists locally or on `origin`: while the initiative is still exploring (absent from main, `exploring` there, or `exploring` at the branch tip after a reopen), it tells the stakeholder so and writes nothing. A branch whose tip reads `planned`, left on `origin` by a merged PR, does not stop the close. When it is `planned` and every emitted spec is `done` on main (at the top level or in the Done folder), it re-points the initiative's links to the specs now in the Done folder and moves the initiative to `done` through `initiative-transition.sh` on a re-created `initiative/NNN-slug` and merges that change into main the way `planned` was merged; otherwise it tells the stakeholder which specs are still open. While the PR/MR is still open, skip this: the initiative's next resume runs the same check.
 
-Done when the PR is open (or the local merge has landed) with the stakeholder told where, the spec worktree and spec branch are removed once merged (or the stakeholder has the command for when the PR/MR merges), the spec sits in `.workflow/specs/done/NNN-slug` reading `status: done`, and a spec carrying `initiative:` has been through the 6.13 check or waits for its PR/MR.
+Done when the PR is open (or the local merge has landed) with the stakeholder told where, the spec's tracker issue is moved to done and the spec worktree and spec branch are removed once merged (or the stakeholder has the commands for when the PR/MR merges), the spec sits in `.workflow/specs/done/NNN-slug` reading `status: done`, and a spec carrying `initiative:` has been through the 6.13 check or waits for its PR/MR.

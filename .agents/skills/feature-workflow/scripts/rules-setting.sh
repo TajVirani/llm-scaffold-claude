@@ -19,6 +19,7 @@
 #                                                     merge); scripts/open-task-pr.sh. Read from the checkout (no --rules), pr and
 #                                                     pr-blocking print `local` when the `origin` remote is neither on GitHub nor on
 #                                                     GitLab (or there is none), with a note on stderr saying why: a PR needs a host.
+#                                                     The host comes from the shared wf_origin_host (lib/workflow-paths.sh).
 #   main_branch   a branch name             see below the branch spec branches fork from (1.1, 0.3.20) and merge into at sign-off (5.8):
 #                                                     the target of the feature's PR/MR; scripts/budget-check.sh (3.15 count)
 #   pr_template   workflow | a path         workflow  sign-off 5.2 and 5.4: the body the feature's PR/MR is written from, the
@@ -104,13 +105,14 @@ fi
 # emit VALUE : print VALUE and exit 0; task_review read from a checkout whose origin is on no PR host prints local instead.
 emit() {
   local url=""
-  if [[ "$KEY" == task_review && "$1" != local && -z "$RULES_GIVEN" ]]; then
+  if [[ "$KEY" == task_review && "$1" != local && -z "$RULES_GIVEN" && -z "$(wf_origin_host "$ROOT")" ]]; then
     url=$(git -C "$ROOT" remote get-url origin 2>/dev/null || true)
-    case "$url" in
-      *github* | *gitlab*) ;;
-      '') printf '%s: task_review is %s, read as local: there is no origin remote\n' "$PROG" "$1" >&2; emit local ;;
-      *) printf '%s: task_review is %s, read as local: the origin remote %s is neither on GitHub nor on GitLab\n' "$PROG" "$1" "$url" >&2; emit local ;;
-    esac
+    if [[ -z "$url" ]]; then
+      printf '%s: task_review is %s, read as local: there is no origin remote\n' "$PROG" "$1" >&2
+    else
+      printf '%s: task_review is %s, read as local: the origin remote %s is neither on GitHub nor on GitLab\n' "$PROG" "$1" "$url" >&2
+    fi
+    emit local
   fi
   printf '%s\n' "$1"
   exit 0

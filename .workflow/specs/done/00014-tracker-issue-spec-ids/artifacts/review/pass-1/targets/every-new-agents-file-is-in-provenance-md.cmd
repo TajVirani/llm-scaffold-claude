@@ -1,0 +1,1 @@
+git diff --name-only --diff-filter=A "$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/00014-tracker-issue-spec-ids/spec.md)"..HEAD -- .agents | while read -r f; do grep -qF -- "${f#.agents/}" PROVENANCE.md || echo "$f"; done | wc -l | tr -d ' '

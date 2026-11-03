@@ -8,28 +8,24 @@ Out-of-scope work raised in Phase 0 goes through the scope gate 0.3.16–0.3.17 
 
 ## 0.1 Initialise the feature folder
 
-1. **0.1.1 Scan.** Find the highest number any spec has taken. The scan's subshell runs in the main checkout, where the spec worktrees sit, even from a spec worktree (5.9 seeds the next spec from there), and leaves the session where it is. A number stays taken after its folder leaves the top level of `.workflow/specs/`: in its spec worktree `.workflow/.spec-worktrees/NNN-slug` (from 1.1, or 0.3.20 on the light path), in the Done folder `.workflow/specs/done/` (from 5.8), in an initiative's emitted slices, and as the `origin` of an initiative a spec was converted into (its folder is deleted; the number is never reused). Branches are not counted: every spec a merged and deleted spec branch held is in one of these places. So count the spec folders at the top level and in the Done folder, the spec worktrees, and every initiative's `origin` and `slices[].spec`, in the working tree and on each `initiative/*` branch:
+1. **0.1.1 Scan.** Take the number from one call, run where the session is; it leaves the session there:
 
    ```bash
-   ( cd "$(git worktree list --porcelain | sed -n '1s/^worktree //p')" && {
-     for d in .workflow/specs/[0-9]*-*/ .workflow/specs/done/[0-9]*-*/ .workflow/.spec-worktrees/[0-9]*-*/; do [ -d "$d" ] && basename "$d"; done
-     for f in .workflow/initiatives/*/initiative.md; do [ -f "$f" ] && yq --front-matter=extract '.origin, (.slices // [] | .[].spec)' "$f"; done
-     for ref in $(git for-each-ref --format='%(refname)' refs/heads/initiative refs/remotes/origin/initiative); do
-       git show "$ref:.workflow/initiatives/${ref##*/}/initiative.md" 2>/dev/null | yq --front-matter=extract '.origin, (.slices // [] | .[].spec)'
-     done
-   } ) | grep -oE '^[0-9]+' | sort -n | tail -1
+   .agents/skills/feature-workflow/scripts/next-spec-number.sh
    ```
 
-   A folder without a numeric prefix (`.workflow/specs/work-backlog/`, the Done folder itself) is not a spec and never counts; the finished specs inside the Done folder do. The new number is the highest plus one, zero-padded to five digits (`printf '%05d' $((10#$highest + 1))`; `00001` when nothing prints). Older specs keep their three-digit numbers: a spec number may have any number of digits, and only its value orders it.
+   Its first line is `NNN`. With no tracker set up it is the next number after the highest any spec has taken, counted in the main checkout even from a spec worktree: specs at the top level and in the Done folder, spec worktrees, and every initiative's `origin` and slices, on `initiative/*` branches too. With a tracker it is the new tracker issue's number, and the second line is the issue's URL. Exit 1 (the tracker failed) or 2 (bad settings): stop and show the stakeholder the message; never pick a number by hand. Older specs keep three digits; only a number's value orders it.
 2. **0.1.2 Slug.** Two to four lowercase kebab-case words from the request, action-noun where it reads well, keeping technical terms ("Implement OAuth2 for the API" → `oauth2-api`). Use the glossary's term when the request names a known concept; the term list (0.2.1) names them.
 3. **0.1.3** `mkdir -p .workflow/specs/NNN-slug`.
 4. **0.1.4 `spec.md`.** Set the step, write the template, then record the status through the script:
 
    ```bash
    ST step .workflow/specs/NNN-slug 0.1.4
-   # Write .workflow/specs/NNN-slug/spec.md from ../assets/spec.md: frontmatter unchanged (status: draft), title filled, template comment removed
+   # Write .workflow/specs/NNN-slug/spec.md from ../assets/spec.md: status: draft, tracker_issue set, title filled, template comment removed
    ST status .workflow/specs/NNN-slug draft --step 0.1.4
    ```
+
+   Set `tracker_issue` to the second line 0.1.1 printed, or keep `""` when it printed one line (no tracker). With a URL, the first Links line is `Tracker issue: [#<n>](<url>)`, `<n>` the number without its padding; with `""`, delete that line.
 
    On the small path: also set `small_path: true` and `light_path: true` in the frontmatter. A small-path spec is a light-path spec, so the progress line counts the light path from the start.
 

@@ -1,0 +1,33 @@
+== lint: tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage
+== lint/frontmatter
+
+== summary
+PASS lint/frontmatter                       passed=42   failed=0   skipped=0   xfail=0   2s
+TOTAL passed=42 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/step-list
+
+== summary
+PASS lint/step-list                         passed=36   failed=0   skipped=0   xfail=0   5s
+TOTAL passed=36 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/symlinks
+
+== summary
+PASS lint/symlinks                          passed=45   failed=0   skipped=0   xfail=0   0s
+TOTAL passed=45 failed=0 skipped=0 xfail=0 (1 suites)
+== lint/upstream-lineage
+
+== summary
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   1s
+TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
+== lint exit 0
+
+== test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
+== scripts/sign-off-pr
+== lint/issue-tracking-docs
+
+== summary
+PASS scripts/sign-off-pr                    passed=38   failed=0   skipped=0   xfail=0   3s
+PASS lint/issue-tracking-docs               passed=26   failed=0   skipped=0   xfail=0   3s
+TOTAL passed=64 failed=0 skipped=0 xfail=0 (2 suites)
+== test exit 0
+

@@ -1,0 +1,2 @@
+tests/scripts/tracker-adoption.sh
+tests/lint/shared-tracker-logic.sh

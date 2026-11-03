@@ -1,0 +1,36 @@
+status: done
+summary: "The session-start backlog scan accepts an optional old_ prefix on a spec's backlog list name and on an older item-file name, so open items of a Done spec's list renamed by tracker adoption stay in the reminder. In this fix round only comments changed: the hook header and the test comment now say that adoption writes only the old_ list, and that the old_ item-file form is accepted to match the names the write guard accepts."
+task_id: "T4"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t4"
+branch: "task/00014-tracker-issue-spec-ids/T04-done-folder-old-names"
+base_commit: "3c3e3cd2385fc2b8a3ff6453bde163e7a8c622b9"
+head_commit: "fa4c8ec88e250aaca9987b49965f8511a7344cae"
+files_changed: [".agents/hooks/session-start-resume.sh", "tests/hooks/audit-sync-resume.sh"]
+tests_added:
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "backlog: old_ list's open line and old_ open item file counted; malformed old names skipped", kind: edge}
+evidence:
+  red: "tests/run-all.sh --suite hooks/audit-sync-resume; FAIL backlog: old_ list's open line and old_ open item file counted; malformed old names skipped (passed=58 failed=1), before the case-pattern change"
+  green: "tests/run-all.sh --suite hooks/audit-sync-resume; passed=59 failed=0 (re-run after the comment rewording)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00014-tracker-issue-spec-ids --task-id T4 --cwd <worktree>; exit 0, lint pass, scoped test (the task's own suites) 462/462 passed. The hook suite is outside that scope and was run on its own: 59/59 passed."
+  toolchain: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T4/toolchain.txt (pass)"
+considered_not_built: ["Changing the backlog glob: work-backlog/*.md already collects old_ files.", "check-write.sh backlog name check: already accepts old_ through its (old_)? origin pattern."]
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "No new .workflow/ path; the scan still uses WF_WORK_BACKLOG."}
+  - {item: 2, verdict: pass, note: "session-start-resume.sh:281,283 only widen two case patterns; no logic added to the hook."}
+  - {item: 3, verdict: pass, note: "No new error path; a malformed name falls through the case unmatched, as the header documents."}
+  - {item: 4, verdict: not-applicable, note: "No new write or check inside a loop with || die."}
+  - {item: 5, verdict: not-applicable, note: "No exit code changed."}
+  - {item: 6, verdict: not-applicable, note: "No sibling path resolution touched."}
+  - {item: 7, verdict: fixed, note: "session-start-resume.sh:35-37 header note reworded: adoption writes only the old_ list; the old_ item-file form matches the write guard's names."}
+  - {item: 8, verdict: pass, note: "Edited files keep their existing test syntax; no new file."}
+  - {item: 9, verdict: not-applicable, note: "No new function or shellcheck directive."}
+  - {item: R1, verdict: pass, note: "No new identifiers; the test name says what it checks."}
+  - {item: R2, verdict: pass, note: "The old_ patterns sit beside their unprefixed forms in the same case arms."}
+  - {item: R3, verdict: fixed, note: "tests/hooks/audit-sync-resume.sh:295-296 comment now says only the list is renamed by adoption and the item-file form is accepted by the write guard."}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh (exit 0 over the diff); no changed comment points at another document."}
+  - {item: R5, verdict: pass, note: "No shorthand; 'adopting an issue tracker' and 'the write guard' are spelled out."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over both changed files exits 0."}

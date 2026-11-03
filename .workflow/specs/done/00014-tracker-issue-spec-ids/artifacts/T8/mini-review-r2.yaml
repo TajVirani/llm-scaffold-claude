@@ -1,0 +1,76 @@
+verdict: "pass"
+task_id: "T8"
+work_type: "shell-scripts"
+mode: "re-check"
+previous: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T8/mini-review-r1.yaml"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t8@cca257c3be4945da0d6b7bde87ffaa0ca43b1bb3..acd0b03d64befbe5645c6a67177d35bf0082f895"
+tool_output: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T8/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: "tracker-adoption.sh:199 (wf_path with WF_WORKTREES), 313-326 (WF_SPECS, WF_SPEC_WORKTREES, WF_SPECS_DONE, WF_WORK_BACKLOG); no .workflow/ literal in code, only in header lines 5 and 17"
+    carried_from: "r1"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook in the diff; the diff files are tracker-adoption.sh, SKILL.md and tests/scripts/tracker-adoption.sh"
+    carried_from: "r1"
+  - n: 3
+    verdict: "pass"
+    location: "tracker-adoption.sh:49 (die), 55 (warn), 78-91 (require_tracker), 93-94 (main branch), 166-181 (on_exit), 196-216 (spec_refusal), 348 (create-spec status), 364-365 (fill, counted by warn)"
+    carried_from: "r1"
+  - n: 4
+    verdict: "pass"
+    location: "tracker-adoption.sh:106-120 (rewrite_branch_names: sed and cat each || return 2), 124-146 (edit_branch_names: grep status checked, rewrite status case), 185-186 (front_matter || die), 196-216 (spec_refusal: each command || die or || exit 2), 218-234 (name_taken), 249-260 (report_old_remote_branch || exit 2), 262-303 (adopt_in_spec_worktree, each step || die), 400-412 (Done loop, empty-array guard)"
+    carried_from: "r1"
+  - n: 5
+    verdict: "pass"
+    location: "tracker-adoption.sh:24-29 (# Exit: header), 52 (usage, exit 2), 176-180 (on_exit exit 2 after a rollback), 430-433 (exit 1 when PROBLEMS is set); only exits 0, 1 and 2"
+    carried_from: "r1"
+  - n: 6
+    verdict: "pass"
+    location: "tracker-adoption.sh:36 (SCRIPT_DIR with cd -P from BASH_SOURCE), 38 (lib source), 41-42 (ISSUE_TRACKER and RULES_SETTING from SCRIPT_DIR), run as commands at 93 and 348, not sourced"
+    carried_from: "r1"
+  - n: 7
+    verdict: "pass"
+    location: "tracker-adoption.sh:1-32 (File, Purpose, Usage, stdout, Exit, Called by, Notes, Sources: the same sections as the helper header of issue-tracker.sh:1-22); no decision or task id in it"
+    carried_from: "r1"
+  - n: 8
+    verdict: "pass"
+    location: "tracker-adoption.sh:34 (set -euo pipefail, and the file was already in the base, so it is not new); [[ used throughout, no single-bracket test in the diff; the test file keeps its [[ syntax"
+    carried_from: "r1"
+  - n: 9
+    verdict: "pass"
+    location: "every new function has its doc line: tracker-adoption.sh:54 (warn), 76-77, 104-105, 122-123, 147, 164-165, 184, 187, 194-195, 216-217, 234-235, 247-248, 260-261, 304; the only directive added is a source= hint at 37, which needs no reason"
+    carried_from: "r1"
+  - n: R1
+    verdict: "pass"
+    location: "tracker-adoption.sh:196 (spec_refusal), 218 (name_taken), 236 (rename_spec), 249 (report_old_remote_branch), 262 (adopt_in_spec_worktree): each name says what the thing does; tests/scripts/tracker-adoption.sh: the short fixture variables (R_*, U_*, N) each follow a line naming their folder, and none misleads"
+    carried_from: "r1"
+  - n: R2
+    verdict: "pass"
+    location: "tracker-adoption.sh:98-100 (RUN_OPEN and why the branch edits are listed), 107-108 (sed repeat and why), 290 (push refspec and -u), 332-333 (tracker_issue written at once, and why), 380-381 (worktrees before the main run, and why it is last), 399 (bash 3.2 empty-array guard)"
+    carried_from: "r1"
+  - n: R3
+    verdict: "pass"
+    location: "tracker-adoption.sh:98-100, 107-108, 290, 317, 332-333, 380-381, 390-391 (the main-checkout block comment gives the order and why worktree specs' references are rewritten here, which the loop alone does not show); no comment restates the line under it"
+    carried_from: "r1"
+  - n: R4
+    verdict: "tool-covered"
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh and tests/scripts/tracker-adoption.sh (no body comment points at a docs/ path or URL)"
+    note: "lint key: check-comments.sh over tracker-adoption.sh, exit 0. The lint key does not read tests/, so I ran check-comments.sh on a scratch copy of tests/scripts/tracker-adoption.sh (exit 0) and read its one new body comment by hand: it names no docs/ path or URL."
+    carried_from: "r1"
+  - n: R5
+    verdict: "pass"
+    location: "tracker-adoption.sh:98-100, 122-123, 290, 332-333, 380-381 (plain sentences; the terms used are the spec worktree, tracker_issue and the step marker, all defined in the lib or the header); tests/scripts/tracker-adoption.sh new body comment (the draft comment) is plain"
+    carried_from: "r1"
+read_outside_diff:
+  - "tracker-adoption.sh:122-124 at acd0b03 (the fix hunk, the only change in 425ff80..acd0b03): the new edit_branch_names doc line, checked against items 9 and R1-R5. The '# name ARGS : what it does' shape is kept, no name changed, no decision or task id, .workflow/ path or doc path, and the text matches the body."
+  - "tracker-adoption.sh:125-146 at acd0b03 (body of edit_branch_names): the grep covers the spec folder $WF_SPECS/NAME and the backlog list $WF_WORK_BACKLOG/NAME.md, and rewrite_branch_names rewrites spec/NAME and task/NAME... in them; no git command, so 'the git branches are not renamed here' is true."
+  - "tracker-adoption.sh:284 at acd0b03 (git -C $MAIN branch -m in adopt_in_spec_worktree, reached from the call at 272): the git branch rename happens there, outside edit_branch_names. This settles the r1 out_of_scope entry: the misleading doc line is fixed and the entry is resolved."
+  - "tracker-adoption.sh:272 and 396 at acd0b03: the two callers of edit_branch_names; their arguments and behaviour are unchanged by the fix."
+  - "tracker-adoption.sh: the fix adds one line at 124, so the line numbers in carried locations at or after line 125 read one higher at acd0b03. Carried locations are copied unchanged, as the re-check rule requires."
+not_checked:
+  - "carried from r1: tracker-adoption.sh:316 (acd0b03 line 317): a spec folder whose name fails SPEC_NAME_PATTERN is skipped with no message, yet exit 0 means every spec was adopted; settle with a fixture .workflow/specs/015_delta/spec.md and a run that checks the output"
+  - "carried from r1: tracker-adoption.sh:359: a create-spec URL that does not end in a number exits 2 after the tracker has filed an issue, before tracker_issue is written, so a rerun would file a second issue; settle with a fake tracker that prints such a URL"
+  - "check-comments.sh was not re-run on acd0b03: the toolchain.json on record is for tree c8d79c5, not acd0b03. Reading the lint's patterns, the new doc line has no decision, journey or task id and no .workflow/ path, so R4 stays tool-covered; settle by running the lint key over tracker-adoption.sh at acd0b03."
+out_of_scope_noticed: []

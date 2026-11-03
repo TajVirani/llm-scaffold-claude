@@ -4,6 +4,10 @@
 #   a validator yq cannot run (exit 1 with yq's diagnostic, nothing written),
 #   split-out tasks and backlog seeding at 0.1.4, task bodies under tasks/, record fields, set-task --pr, set-spec
 #   (spec_branch, impl_base_revision) and budget-check.sh --predicted over the task records.
+#   JRN-006 (spec 00014): set-task --issue records an https URL as the task's issue, refuses a non-URL with exit 2 keeping the
+#   recorded value, clears it with null, and the tasks.md validator refuses an issue field that is not a URL.
+#   Tracker issue keys: --issue refuses a plain http URL, the spec.md template validator accepts tracker_issue as "", absent
+#   or an https URL and refuses anything else.
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures
 # shellcheck source=../lib/common.sh
@@ -293,6 +297,43 @@ yq --front-matter=process -i '.tasks[1].status = "split-out"' "$R/$M/tasks.md"
 out=$(jb --spec-dir $M --predicted); eq "predicted skips split-out" "$(jq -r .changed_files <<<"$out")" 4
 yq --front-matter=process -i '.tasks[1].status = "pending" | del(.tasks[1].size)' "$R/$M/tasks.md"
 t "predicted: record without size -> 1"     1 BC --spec-dir $M --predicted
+
+echo "== JRN-006 (spec 00014): set-task --issue records the task's tracker issue"
+cp "$F/mu-tasks.md" "$R/$M/tasks.md"
+ISSUE_URL=https://gitlab.com/acme/widget/-/issues/43
+t "JRN-006 (spec 00014) set-task --issue with an https URL exits 0" 0 ST set-task $M T1 --issue "$ISSUE_URL"
+eq "JRN-006 (spec 00014) set-task --issue records the URL as the task's issue" "$(fm '.tasks[0].issue')" "$ISSUE_URL"
+ST set-task $M T1 --issue not-a-url >/dev/null 2>&1; rc=$?
+check "JRN-006 (spec 00014) set-task --issue with a non-URL exits 2 and keeps the recorded issue" \
+  '[[ $rc == 2 && $(fm ".tasks[0].issue") == "$ISSUE_URL" ]]' "rc=$rc issue=$(fm '.tasks[0].issue')"
+ST set-task $M T1 --issue null >/dev/null 2>&1; rc=$?
+check "JRN-006 (spec 00014) set-task --issue null exits 0 and clears the issue" '[[ $rc == 0 && $(fm ".tasks[0].issue") == null ]]' \
+  "rc=$rc issue=$(fm '.tasks[0].issue')"
+cp "$F/mu-tasks.md" "$R/$M/tasks.md"
+yq --front-matter=process -i '.tasks[0].issue = "x"' "$R/$M/tasks.md"
+t "JRN-006 (spec 00014) the tasks.md validator rejects an issue that is not a URL" 1 ST set-task $M T2 --pr https://x.y/1
+cp "$F/mu-tasks.md" "$R/$M/tasks.md"
+
+echo "== tracker issue keys: refused values and the spec.md validator"
+t "set-task --issue with a plain http URL exits 2" 2 ST set-task $M T1 --issue http://gitlab.com/acme/widget/-/issues/43
+eq "a refused --issue leaves the record without an issue" "$(fm '.tasks[0].issue')" null
+t "set-task --issue with a URL holding a space exits 2" 2 ST set-task $M T1 --issue "https://gitlab.com/acme/widget/-/issues/4 3"
+t "--issue in status mode refused" 1 ST status $M in-progress --issue "$ISSUE_URL"
+t "a task record without an issue key passes the tasks.md validator" 0 ST set-task $M T1 --pr https://x.y/2
+cp "$F/mu-tasks.md" "$R/$M/tasks.md"
+awk '/yq --front-matter=extract -e .$/ { on = 1; next } on && /^  . \.workflow\/specs/ { exit } on' "$SRC/assets/spec.md" >"$F/spec-validator.yq"
+# spec_valid_with NAME YQ-EXPR : runs the spec.md template validator on a copy of the template with YQ-EXPR applied.
+spec_valid_with() {
+  cp "$SRC/assets/spec.md" "$F/$1.md" && yq --front-matter=process -i "$2" "$F/$1.md" &&
+    yq --front-matter=extract -e "$(cat "$F/spec-validator.yq")" "$F/$1.md" >/dev/null 2>&1
+}
+eq "the spec.md template ships tracker_issue as an empty string" "$(yq --front-matter=extract '.tracker_issue | tag' "$SRC/assets/spec.md")" '!!str'
+t "a spec with tracker_issue \"\" passes the spec.md validator" 0 spec_valid_with no-tracker '.tracker_issue = ""'
+t "a spec without tracker_issue (written before trackers) passes" 0 spec_valid_with older 'del(.tracker_issue)'
+t "a spec with an https tracker_issue passes" 0 spec_valid_with tracked ".tracker_issue = \"$ISSUE_URL\""
+t "a spec with a non-URL tracker_issue fails" 1 spec_valid_with not-url '.tracker_issue = "issue 43"'
+t "a spec with a plain http tracker_issue fails" 1 spec_valid_with http '.tracker_issue = "http://gitlab.com/acme/widget/-/issues/43"'
+t "a spec with a numeric tracker_issue fails" 1 spec_valid_with number '.tracker_issue = 43'
 
 shellcheck_files "shellcheck: scripts under test" "$SRC/scripts/status-transition.sh" "$SRC/scripts/check-write.sh" "$SRC/scripts/budget-check.sh"
 finish

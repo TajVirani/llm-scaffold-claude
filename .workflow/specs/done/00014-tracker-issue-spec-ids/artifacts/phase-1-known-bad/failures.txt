@@ -1,0 +1,315 @@
+-- scripts/check-write-paths
+FAIL JRN-012 (spec 00014) an old_NNN-slug.md backlog list passes the list-name rule a misnamed list fails
+       deny: .workflow/specs/work-backlog/old_012-alpha.md: the backlog holds one list per spec, .workflow/specs/work-backlog/<origin NNN-slug>.md, and older item files .workflow/specs/work-backlog/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9.
+FAIL JRN-012 (spec 00014) the backlog list name old_.md still fails the list-name rule while old_012-alpha.md passes it
+       deny: .workflow/specs/work-backlog/old_.md: the backlog holds one list per spec, .workflow/specs/work-backlog/<origin NNN-slug>.md, and older item files .workflow/specs/work-backlog/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9.
+FAIL JRN-012 (spec 00014) the backlog list name old_x01-short.md still fails the list-name rule while old_012-alpha.md passes it
+       deny: .workflow/specs/work-backlog/old_x01-short.md: the backlog holds one list per spec, .workflow/specs/work-backlog/<origin NNN-slug>.md, and older item files .workflow/specs/work-backlog/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9.
+FAIL JRN-012 (spec 00014) the backlog list name old-012-alpha.md still fails the list-name rule while old_012-alpha.md passes it
+       deny: .workflow/specs/work-backlog/old-012-alpha.md: the backlog holds one list per spec, .workflow/specs/work-backlog/<origin NNN-slug>.md, and older item files .workflow/specs/work-backlog/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9.
+FAIL JRN-012 (spec 00014) the backlog list name old_old_012-alpha.md still fails the list-name rule while old_012-alpha.md passes it
+       deny: .workflow/specs/work-backlog/old_old_012-alpha.md: the backlog holds one list per spec, .workflow/specs/work-backlog/<origin NNN-slug>.md, and older item files .workflow/specs/work-backlog/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9.
+-- scripts/issue-tracking-setup
+FAIL JRN-010 check on a gitlab origin without glab exits 1 naming glab as missing, writing nothing
+       rc=0 err=
+FAIL JRN-010 check on a github origin without gh exits 1 naming gh as missing, writing nothing
+       rc=0 err=
+FAIL JRN-010 check with glab not logged in exits 1 naming the login, writing nothing
+       rc=0 err=
+FAIL JRN-010 check with gh not logged in exits 1 naming the login, writing nothing
+       rc=0 err=
+FAIL JRN-010 check on a GitLab project with issues turned off exits 1 naming issues, writing nothing
+       rc=0 err=
+FAIL JRN-010 check on a GitHub repository with issues turned off exits 1 naming issues, writing nothing
+       rc=0 err=
+FAIL JRN-010 check with a glab older than the minimum exits 1 naming the version, writing nothing
+       rc=0 err=
+FAIL JRN-010 check with a gh older than the minimum exits 1 naming the version, writing nothing
+       rc=0 err=
+FAIL JRN-010 check on an origin on neither GitHub nor GitLab exits 1 naming the origin, writing nothing
+       rc=0 err=
+FAIL JRN-010 check on a usable GitLab tracker exits 0 and prints gitlab first
+       got=0|placeholder want=0|gitlab
+FAIL JRN-010 check on a usable GitHub tracker exits 0 and prints github first
+       got=0|placeholder want=0|github
+FAIL JRN-010 save with two flow labels missing exits 1 naming both, writing nothing
+       rc=0 out=placeholder err=
+FAIL JRN-010 save without --create-labels creates no label
+       got=0|Backlog, want=1|Backlog,
+FAIL JRN-010 save --create-labels creates exactly the two missing labels
+       got=0|Backlog, want=0|Backlog,Done,In progress,
+FAIL JRN-010 save --create-labels writes the GitLab host and the three flow labels
+       got= want=gitlab|Backlog|In progress|Done
+FAIL JRN-010 save on GitHub with every flow label present writes the settings without --create-labels
+       got=0| want=0|github|Backlog|In progress|Done
+FAIL JRN-010 save on a gitlab origin without glab exits 1 naming glab, writing nothing
+       rc=0 err=
+FAIL JRN-010 save --none writes issue_tracker: none with no CLI installed and no tracker call
+       got=0||0 want=0|none|0
+-- scripts/issue-tracking
+FAIL JRN-002 next-spec-number.sh prints 00042 and the GitLab issue URL
+       got=0|00000 want=0|00042
+FAIL JRN-002 the tracker holds exactly the one new issue, 42
+       got= want=42 
+FAIL JRN-002 the new issue has a placeholder title and an empty body
+       title= body=
+FAIL JRN-002 the new spec issue starts in the backlog stage
+FAIL JRN-002 the GitLab origin drives glab and never gh
+FAIL JRN-002 create-spec prints the new issue's URL
+       got=0|https://example.invalid/placeholder| want=0|https://gitlab.com/acme/widget/-/issues/43|43
+FAIL JRN-002 an issue number longer than five digits is printed whole
+       got=0|00000 want=0|123456
+FAIL JRN-003 next-spec-number.sh prints 00007 and the GitHub issue URL
+       got=0|00000 want=0|00007
+FAIL JRN-003 the tracker holds the one new issue, with a placeholder title and an empty body
+       issues= title=
+FAIL JRN-003 the GitHub origin drives gh and never glab
+FAIL JRN-004 the two clones get two different tracker numbers, 00042 and 00043, not the local 00051
+       got=00000 00000 want=00042 00043
+FAIL JRN-004 the tracker holds one issue per start
+       got= want=42 43 
+FAIL JRN-005 GitLab fill sets the title from the first heading
+       got=0|Spec placeholder want=0|Widget export
+FAIL JRN-005 GitLab fill sets the body to the whole file, unchanged
+       got= want=# Widget export
+FAIL JRN-005 GitHub fill takes the title from the first heading after the frontmatter
+       got=0|Spec placeholder want=0|Tracker issues as spec IDs
+FAIL JRN-005 GitHub fill sets the body to the whole file, unchanged
+       got= want=---
+FAIL JRN-006 GitLab create-task prints the URL of the one new issue
+       got=0|https://example.invalid/placeholder want=0|https://gitlab.com/acme/widget/-/issues/none
+FAIL JRN-006 the GitLab task issue is a child of the spec's issue
+       got= want=42
+FAIL JRN-006 the GitLab task issue's body is the task file
+       got= want=# T1: Move script
+FAIL JRN-006 the GitLab task issue is titled from the task file and starts in the backlog stage
+       title= labels=
+FAIL JRN-006 with the child call refused, create-task prints the URL of the one new issue
+       got=0|https://example.invalid/placeholder want=0|https://gitlab.com/acme/widget/-/issues/none
+FAIL JRN-006 with the child call refused, the task issue is linked relates_to the spec's issue and has no parent
+       issues=42  links=: 
+FAIL JRN-006 the linked task issue's body is the task file
+       got= want=# T1: Move script
+FAIL JRN-006 GitHub create-task prints the URL of the one new issue
+       got=0|https://example.invalid/placeholder want=0|https://github.com/acme/widget/issues/none
+FAIL JRN-006 the GitHub task issue is a sub-issue of the spec's issue
+       got= want=7
+FAIL JRN-006 the GitHub task issue's body is the task file
+       got= want=# T1: Move script
+FAIL JRN-007 glab: backlog to in_progress swaps the flow label and keeps the issue open
+       rc=0 labels=Backlog,bug, state=open: 
+FAIL JRN-007 glab: in_progress to done swaps the flow label and closes the issue
+       rc=0 labels=In progress,bug, state=open: 
+FAIL JRN-007 glab: a done issue moved back to in_progress is reopened with only the in-progress flow label
+       rc=0 labels=Done,bug, state=closed: 
+FAIL JRN-007 glab: in_progress back to backlog swaps the flow label
+       rc=0 labels=In progress,bug,: 
+FAIL JRN-007 glab: an unknown stage exits 2 and leaves the labels
+       rc=0 labels=In progress,bug,
+FAIL JRN-007 glab: move without a stage exits 2 and leaves the labels
+       rc=0 labels=In progress,bug,
+FAIL JRN-007 gh: backlog to in_progress swaps the flow label and keeps the issue open
+       rc=0 labels=Backlog,bug, state=open: 
+FAIL JRN-007 gh: in_progress to done swaps the flow label and closes the issue
+       rc=0 labels=In progress,bug, state=open: 
+FAIL JRN-007 gh: a done issue moved back to in_progress is reopened with only the in-progress flow label
+       rc=0 labels=Done,bug, state=closed: 
+FAIL JRN-007 gh: in_progress back to backlog swaps the flow label
+       rc=0 labels=In progress,bug,: 
+FAIL JRN-007 gh: an unknown stage exits 2 and leaves the labels
+       rc=0 labels=In progress,bug,
+FAIL JRN-007 gh: move without a stage exits 2 and leaves the labels
+       rc=0 labels=In progress,bug,
+FAIL JRN-008 a GitLab network failure exits 1 naming the cause, with nothing on stdout
+       rc=0 out=00000 err=
+FAIL JRN-008 the network failure exits 1 leaving no new spec folder and no issue
+       rc=0 folders=0
+FAIL JRN-008 a GitHub auth failure exits 1 naming the cause, with nothing on stdout
+       rc=0 out=00000 err=
+FAIL JRN-008 create-spec on a network failure exits 1 naming the cause, with nothing on stdout
+       rc=0 out=https://example.invalid/placeholder err=
+FAIL JRN-008 move on an auth failure exits 1 naming the cause
+       rc=0 err=
+FAIL JRN-001 with no settings file, issue-tracker.sh create-spec prints skipped: no tracker and calls no tracker
+       rc=0 out=https://example.invalid/placeholder calls=
+FAIL JRN-001 with no settings file, issue-tracker.sh fill prints skipped: no tracker and calls no tracker
+       rc=0 out=https://example.invalid/placeholder calls=
+FAIL JRN-001 with no settings file, issue-tracker.sh create-task prints skipped: no tracker and calls no tracker
+       rc=0 out=https://example.invalid/placeholder calls=
+FAIL JRN-001 with no settings file, issue-tracker.sh move prints skipped: no tracker and calls no tracker
+       rc=0 out=https://example.invalid/placeholder calls=
+FAIL JRN-001 with issue_tracker: none, issue-tracker.sh create-spec prints skipped: no tracker and calls no tracker
+       rc=0 out=https://example.invalid/placeholder calls=
+FAIL JRN-001 with issue_tracker: none, issue-tracker.sh fill prints skipped: no tracker and calls no tracker
+       rc=0 out=https://example.invalid/placeholder calls=
+FAIL JRN-001 with issue_tracker: none, issue-tracker.sh create-task prints skipped: no tracker and calls no tracker
+       rc=0 out=https://example.invalid/placeholder calls=
+FAIL JRN-001 with issue_tracker: none, issue-tracker.sh move prints skipped: no tracker and calls no tracker
+       rc=0 out=https://example.invalid/placeholder calls=
+FAIL JRN-002 settings naming GitHub on a GitLab origin exit 2 with no tracker call
+       rc=0 out=https://example.invalid/placeholder calls=
+-- scripts/lib-workflow-paths
+FAIL JRN-012 (spec 00014) wf_norm_folder spec maps the relative form of an old_ Done folder spec to its folder
+       got=1| want=0|.workflow/specs/done/old_012-alpha
+FAIL JRN-012 (spec 00014) wf_norm_folder spec maps the absolute-main form of an old_ Done folder spec to its folder
+       got=1| want=0|.workflow/specs/done/old_012-alpha
+FAIL JRN-012 (spec 00014) wf_norm_folder spec maps the five-digit form of an old_ Done folder spec to its folder
+       got=1| want=0|.workflow/specs/done/old_00010-wide
+FAIL JRN-012 (spec 00014) wf_norm_folder spec refuses .workflow/specs/old_012-alpha while it accepts .workflow/specs/done/old_012-alpha
+       1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_012-alpha; 1|spec dir must be .workflow/specs/NNN-slug: .workflow/specs/old_012-alpha
+FAIL JRN-012 (spec 00014) wf_norm_folder spec refuses .workflow/specs/done/old_ while it accepts .workflow/specs/done/old_012-alpha
+       1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_012-alpha; 1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_
+FAIL JRN-012 (spec 00014) wf_norm_folder spec refuses .workflow/specs/done/old_x01-short while it accepts .workflow/specs/done/old_012-alpha
+       1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_012-alpha; 1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_x01-short
+FAIL JRN-012 (spec 00014) wf_norm_folder spec refuses .workflow/specs/done/old-012-alpha while it accepts .workflow/specs/done/old_012-alpha
+       1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_012-alpha; 1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old-012-alpha
+FAIL JRN-012 (spec 00014) wf_norm_folder spec refuses .workflow/specs/done/OLD_012-alpha while it accepts .workflow/specs/done/old_012-alpha
+       1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_012-alpha; 1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/OLD_012-alpha
+FAIL JRN-012 (spec 00014) wf_norm_folder spec refuses .workflow/specs/done/old_old_012-alpha while it accepts .workflow/specs/done/old_012-alpha
+       1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_012-alpha; 1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_old_012-alpha
+FAIL JRN-012 (spec 00014) wf_norm_folder spec refuses .workflow/specs/done/old_012- while it accepts .workflow/specs/done/old_012-alpha
+       1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_012-alpha; 1|spec dir must be .workflow/specs/done/NNN-slug: .workflow/specs/done/old_012-
+-- scripts/next-spec-number
+FAIL JRN-001 with no spec anywhere the next number is 00001 and no tracker is called
+       rc=0 out=00000 want=00001 calls=0:  
+FAIL JRN-001 top-level specs of any digit count give 00006 and no tracker call
+       rc=0 out=00000 want=00006 calls=0:  
+FAIL JRN-001 the Done folder counts: 00011 and no tracker call
+       rc=0 out=00000 want=00011 calls=0:  
+FAIL JRN-001 a spec worktree counts: 00012 and no tracker call
+       rc=0 out=00000 want=00012 calls=0:  
+FAIL JRN-001 an initiative's origin and emitted slices count: 00014 and no tracker call
+       rc=0 out=00000 want=00014 calls=0:  
+FAIL JRN-001 an initiative on its own branch counts: 00016 and no tracker call
+       rc=0 out=00000 want=00016 calls=0:  
+FAIL JRN-001 run from inside the spec worktree the next number is the same 00016, with no tracker call
+       rc=0 out=00000 want=00016 calls=0:  
+FAIL JRN-001 with issue_tracker: none the next number is still 00016 and no tracker is called
+       rc=0 out=00000 want=00016 calls=0:  
+FAIL JRN-001 a settings file naming an unknown tracker exits 2 with nothing on stdout and no call
+       rc=0 out=00000: 
+FAIL JRN-001 a tracker without its issue flow exits 2 with nothing on stdout and no call
+       rc=0 out=00000: 
+-- scripts/review-lessons
+FAIL JRN-012 (spec 00014) validate accepts origin_spec .workflow/specs/done/old_001-fixture
+       rc=1: review-lessons.sh: /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.8bi962/lessons/origin.md: lessons[0].origin_spec: must be .workflow/specs/ or .workflow/specs/done/ then a number, a dash and a slug
+FAIL JRN-012 (spec 00014) validate refuses origin_spec .workflow/specs/old_001-fixture naming lessons[0].origin_spec while it accepts .workflow/specs/done/old_001-fixture
+       accepted rc=1; rc=1: review-lessons.sh: /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.8bi962/lessons/origin.md: lessons[0].origin_spec: must be .workflow/specs/ or .workflow/specs/done/ then a number, a dash and a slug
+FAIL JRN-012 (spec 00014) validate refuses origin_spec .workflow/specs/done/old_ naming lessons[0].origin_spec while it accepts .workflow/specs/done/old_001-fixture
+       accepted rc=1; rc=1: review-lessons.sh: /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.8bi962/lessons/origin.md: lessons[0].origin_spec: must be .workflow/specs/ or .workflow/specs/done/ then a number, a dash and a slug
+FAIL JRN-012 (spec 00014) validate refuses origin_spec .workflow/specs/done/old_x01-fixture naming lessons[0].origin_spec while it accepts .workflow/specs/done/old_001-fixture
+       accepted rc=1; rc=1: review-lessons.sh: /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.8bi962/lessons/origin.md: lessons[0].origin_spec: must be .workflow/specs/ or .workflow/specs/done/ then a number, a dash and a slug
+FAIL JRN-012 (spec 00014) validate refuses origin_spec .workflow/specs/done/old_old_001-fixture naming lessons[0].origin_spec while it accepts .workflow/specs/done/old_001-fixture
+       accepted rc=1; rc=1: review-lessons.sh: /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.8bi962/lessons/origin.md: lessons[0].origin_spec: must be .workflow/specs/ or .workflow/specs/done/ then a number, a dash and a slug
+-- scripts/sign-off-pr
+FAIL JRN-009 (spec 00014) the pr-template.md Link to issue guidance gives the tracker_issue URL and Closes #<n>, and keeps the no-tracker stub
+       
+FAIL JRN-009 (spec 00014) a workflow body in the template's tracker form passes check-pr-body.sh
+       rc=0: 
+FAIL JRN-009 (spec 00014) sign-off 5.4 ends a project-template body with the issue URL and Closes #<n>
+       no 5.4 paragraph names Closes #, the last lines and a project template
+FAIL JRN-009 (spec 00014) a project-template body ending with the issue URL and Closes #<n> passes check-pr-body.sh --project-template
+       rc=0: 
+-- scripts/status-transition-tasks
+FAIL JRN-006 (spec 00014) set-task --issue with an https URL exits 0
+       rc=1 want=0: status-transition.sh: unknown option: --issue
+FAIL JRN-006 (spec 00014) set-task --issue records the URL as the task's issue
+       got=null want=https://gitlab.com/acme/widget/-/issues/43
+FAIL JRN-006 (spec 00014) set-task --issue with a non-URL exits 2 and keeps the recorded issue
+       rc=1 issue=null
+FAIL JRN-006 (spec 00014) set-task --issue null exits 0 and clears the issue
+       rc=1 issue=null
+FAIL JRN-006 (spec 00014) the tasks.md validator rejects an issue that is not a URL
+       rc=0 want=1: status-transition.sh: .workflow/specs/011-mu task T2: pr null -> https://x.y/1
+-- scripts/tracker-adoption
+FAIL JRN-011 adoption exits 1 and names 016-epsilon, refused for its live task worktree
+       rc=0: placeholder
+FAIL JRN-011 the refused spec keeps its folder, branch and both worktrees as they were
+FAIL JRN-011 the tracker gets one issue per adopted active spec and none for the refused or Done specs
+       got= want=101 102 
+FAIL JRN-011 the draft and the spec past 1.1 are renamed to the two issue numbers, five digits wide
+       draft= beta=
+FAIL JRN-011 the draft's old folder is gone and its renamed folder keeps its step marker
+       draft=
+FAIL JRN-011 the draft's tracker_issue is its issue URL
+       got= want=https://gitlab.com/acme/widget/-/issues/0
+FAIL JRN-011 the draft's backlog list is renamed with it
+FAIL JRN-011 the draft's shelf file names the renamed folder
+       got=.workflow/specs/015-delta want=.workflow/specs/none
+FAIL JRN-011 the spec branch is renamed locally
+FAIL JRN-011 the spec worktree moved to the new name and holds the renamed folder, checked out on the renamed branch
+       beta=; /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.p8A3WU/project                                                                    48c5868 [main]
+FAIL JRN-011 spec_branch names the renamed branch
+       got= want=spec/none
+FAIL JRN-011 the task records' branch fields name the renamed spec
+       got= want=task/none/T01-build task/none/T02-wire
+FAIL JRN-011 the spec's tracker_issue is its issue URL
+       got= want=https://gitlab.com/acme/widget/-/issues/0
+FAIL JRN-011 the spec keeps its step marker and its design log names the new folder
+FAIL JRN-011 the renamed branch is committed with the renamed folder and pushed
+       remote branches: * main   spec/013-beta 
+FAIL JRN-011 the old remote branch is left in place and reported
+       placeholder
+FAIL JRN-011 the Done specs are renamed with the old_ prefix
+FAIL JRN-011 their backlog lists are renamed with the old_ prefix
+FAIL JRN-011 the retrospective keeps its file name and points at the renamed folder
+FAIL JRN-011 the review lesson's origin_spec names the renamed folder and the lessons still validate
+FAIL JRN-011 capabilities.md links the renamed folders
+FAIL JRN-011 move-to-done.sh --check accepts the renamed Done spec
+FAIL JRN-011 no .workflow/ file in the main checkout still names a spec or backlog list by its old name
+       /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.p8A3WU/project/.workflow/capabilities.md:5:| CAP-001 | Alpha feature | [012-alpha](specs/done/012-alpha/spec.md) |
+FAIL JRN-011 the renamed spec's files no longer name 013-beta
+FAIL JRN-011 after the renames every relative link in the main checkout's specs, shelf and decisions resolves
+       draft=; 
+FAIL JRN-012 move-to-done.sh --check passes an old_ Done spec whose backlog list is well formed
+       got=2 want=0
+FAIL JRN-012 move-to-done.sh --check reads the old_ backlog list and names its malformed line
+       rc=2 out= err=move-to-done.sh: not a spec folder (want .workflow/specs/NNN-slug): .workflow/specs/done/old_020-zeta
+-- lint/issue-tracking-docs
+FAIL JRN-001 discovery 0.1.1 calls next-spec-number.sh
+       step 0.1.1 has no line matching next-spec-number\.sh
+FAIL JRN-005 0.3.19 calls issue-tracker.sh fill
+       step 0.3.19 has no line matching issue-tracker\.sh.*[[:space:]]fill([[:space:]]|$)
+FAIL JRN-005 0.6 (ready-for-dev on the full path) calls issue-tracker.sh fill
+       step 0.6 has no line matching issue-tracker\.sh.*[[:space:]]fill([[:space:]]|$)
+FAIL JRN-005 0.3.20 (ready-for-dev on the light path) calls issue-tracker.sh fill
+       step 0.3.20 has no line matching issue-tracker\.sh.*[[:space:]]fill([[:space:]]|$)
+FAIL JRN-005 a sign-off step (5.1-5.9) calls issue-tracker.sh fill
+       no sign-off step has a line matching issue-tracker\.sh.*[[:space:]]fill([[:space:]]|$)
+FAIL JRN-006 2.5 files each task issue with issue-tracker.sh create-task
+       step 2.5 has no line matching issue-tracker\.sh.*[[:space:]]create-task([[:space:]]|$)
+FAIL JRN-006 2.5 records each task issue with set-task --issue
+       step 2.5 has no line matching status-transition\.sh.*[[:space:]]set-task[[:space:]].*--issue([[:space:]=]|$)
+FAIL JRN-006 0.3.20 files each task issue with issue-tracker.sh create-task
+       step 0.3.20 has no line matching issue-tracker\.sh.*[[:space:]]create-task([[:space:]]|$)
+FAIL JRN-006 0.3.20 records each task issue with set-task --issue
+       step 0.3.20 has no line matching status-transition\.sh.*[[:space:]]set-task[[:space:]].*--issue([[:space:]=]|$)
+FAIL JRN-007 3.1 moves the spec's issue to in_progress
+       step 3.1 has no line matching issue-tracker\.sh.*[[:space:]]move[[:space:]].*[[:space:]]in_progress([^A-Za-z_]|$)
+FAIL JRN-007 3.3 moves each launched task's issue to in_progress
+       step 3.3 has no line matching issue-tracker\.sh.*[[:space:]]move[[:space:]].*[[:space:]]in_progress([^A-Za-z_]|$)
+FAIL JRN-007 3.16 moves each merged task's issue to done
+       step 3.16 has no line matching issue-tracker\.sh.*[[:space:]]move[[:space:]].*[[:space:]]done([^A-Za-z_]|$)
+FAIL JRN-007 5.8 moves the spec's issue to done
+       step 5.8 has no line matching issue-tracker\.sh.*[[:space:]]move[[:space:]].*[[:space:]]done([^A-Za-z_]|$)
+FAIL JRN-007 3.9 moves a reopened task's issue back to in_progress
+       step 3.9 has no line matching issue-tracker\.sh.*[[:space:]]move[[:space:]].*[[:space:]]in_progress([^A-Za-z_]|$)
+FAIL JRN-007 3.11 moves a reopened task's issue back to in_progress
+       step 3.11 has no line matching issue-tracker\.sh.*[[:space:]]move[[:space:]].*[[:space:]]in_progress([^A-Za-z_]|$)
+FAIL JRN-007 4.7 moves a reopened task's issue back to in_progress
+       step 4.7 has no line matching issue-tracker\.sh.*[[:space:]]move[[:space:]].*[[:space:]]in_progress([^A-Za-z_]|$)
+FAIL JRN-014 project-setup runs tracker-setup.sh check
+FAIL JRN-014 project-setup runs tracker-setup.sh save
+FAIL JRN-014 the issue-tracking skill has a SKILL.md named issue-tracking
+       got= want=issue-tracking
+FAIL JRN-014 the install manifest lists skills/issue-tracking
+FAIL JRN-014 PROVENANCE.md names skills/issue-tracking
+-- lint/shared-tracker-logic
+FAIL JRN-013 no script outside .agents/lib/ picks gh or glab by matching the origin URL itself
+       .agents/skills/feature-workflow/scripts/open-task-pr.sh:162:  *github*) CLI=gh ;;
+FAIL JRN-013 .agents/lib/ defines the host choice and every script that needs it calls it
+       lib host functions: ; not calling one: skills/feature-workflow/scripts/open-task-pr.sh skills/feature-workflow/scripts/rules-setting.sh skills/issue-tracking/scripts/issue-tracker.sh skills/issue-tracking/scripts/tracker-setup.sh 
+FAIL JRN-013 no script outside .agents/lib/ keeps its own path rewrite with rollback
+       .agents/skills/feature-workflow/scripts/move-to-done.sh:138:MOVED_FROM=() MOVED_TO=() STEP_COPY=() SAVED_FILE=() SAVED_COPY=()
+FAIL JRN-013 .agents/lib/ defines the path rewrite and move-to-done.sh and tracker-adoption.sh call it
+       lib rewrite functions: ; not calling one: skills/feature-workflow/scripts/move-to-done.sh skills/issue-tracking/scripts/tracker-adoption.sh 

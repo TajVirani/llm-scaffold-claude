@@ -1,0 +1,4 @@
+tests/scripts/next-spec-number.sh
+tests/scripts/issue-tracking.sh
+tests/lint/issue-tracking-docs.sh
+tests/scripts/sign-off-pr.sh

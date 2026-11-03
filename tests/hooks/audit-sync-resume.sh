@@ -292,6 +292,15 @@ rm "$P/.workflow/specs/work-backlog/001-demo-disc-001.md"
 printf '%s\n' "# Work backlog: 002-list" "" "- [promoted] B2 bug (3.7): B. Evidence: b. -> .workflow/specs/003-next" > "$P/.workflow/specs/work-backlog/002-list.md"
 out=$(ss "$P")
 check "backlog list with only promoted lines and no specs -> nothing" '[ -z "$out" ]' "$out"
+# Tracker adoption renames a Done spec's list old_NNN-slug.md; the write guard also accepts an old_ item file. Open items in both still
+# count; other old names do not.
+printf '%s\n' "# Work backlog: 00010-alpha" "" "- [open] B1 bug (4.4): A. Evidence: a." > "$P/.workflow/specs/work-backlog/old_00010-alpha.md"
+printf -- '---\nstatus: open\n---\n# item\n' > "$P/.workflow/specs/work-backlog/old_00011-beta-disc-001.md"
+printf '%s\n' "- [open] B8 bug (4.4): stray. Evidence: z." > "$P/.workflow/specs/work-backlog/old_notes.md"
+printf '%s\n' "- [open] B9 bug (4.4): stray. Evidence: z." > "$P/.workflow/specs/work-backlog/old-00012-gamma.md"
+out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
+check "backlog: old_ list's open line and old_ open item file counted; malformed old names skipped" \
+  'grep -q "work-backlog/: 2 (old_00010-alpha.md#B1, old_00011-beta-disc-001.md)" <<<"$ctx" && ! grep -q "B8\|B9" <<<"$ctx"' "$ctx"
 rm -rf "$P/.workflow/specs/work-backlog"
 
 echo "== session-start-resume: session handoffs (.workflow/.handoff/)"

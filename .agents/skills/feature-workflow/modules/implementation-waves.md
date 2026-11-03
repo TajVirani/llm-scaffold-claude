@@ -85,6 +85,7 @@ For each frontier task, mark it started, then launch it in the background in its
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T3 --status in-progress
+.agents/skills/issue-tracking/scripts/issue-tracker.sh move <issue> in_progress
 ```
 
 Launch all of the wave's tasks before handling any return. Results arrive on their own; handle each as it lands.
@@ -116,6 +117,7 @@ When every task of the wave has passed 3.8 (or is blocked), take the passing tas
    .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh --spec-dir .workflow/specs/NNN-slug --rev <branch>
    git merge --no-ff -m "Merge T3: <task title>" <branch>   # the message names the task id; 4.7 finds task owners by it
    .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T3 --status done --step 3.16
+   .agents/skills/issue-tracking/scripts/issue-tracker.sh move <issue> done
    ```
 
    The light path merges its task branch the same way, `--no-ff`, so `git log` names T1 by its merge as on the full path.
@@ -176,6 +178,7 @@ The spec branch is red by design until the last wave, so the bar depends on the 
 
   ```bash
   .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T3 --status in-progress --step 3.9
+  .agents/skills/issue-tracking/scripts/issue-tracker.sh move <issue> in_progress
   ```
 
   Give it a fix round (resume its agent, or a fresh launch when the worktree is gone), then 3.5-3.8 ([gates](implementation-gates.md#per-task-gates-34-38)), 3.16, 3.15 and 3.9 again. If the task cannot continue (a stop, or the fifth round fails), record it with `set-task .workflow/specs/NNN-slug T3 --status blocked --step 3.9` and go to [Stops](#stops).

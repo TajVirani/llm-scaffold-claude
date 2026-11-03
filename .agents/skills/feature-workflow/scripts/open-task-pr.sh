@@ -24,8 +24,8 @@
 #     --record    after a PR/MR is opened (or found), write its URL with initiative-transition.sh set-pr <initiative-dir> <url>; the directory is
 #                 `.workflow/initiatives/NNN-slug` (relative to the project root, or an absolute path ending in it).
 #     --cwd, --dry-run as in task mode. The caller reads task_review; this mode does not.
-# Host choice: `git remote get-url origin`; a host containing "github" -> gh (gh pr create --base <base> --head <head>), a host
-#   containing "gitlab" -> glab (glab mr create --target-branch <base> --source-branch <head> --yes); anything else -> skipped.
+# Host choice: the shared wf_origin_host (lib/workflow-paths.sh) reads the `origin` remote; github -> gh (gh pr create --base
+#   <base> --head <head>), gitlab -> glab (glab mr create --target-branch <base> --source-branch <head> --yes); anything else -> skipped.
 #   An existing open PR/MR for the same head and base is reused (its URL is printed; nothing new is created).
 # Spec branch (task mode): spec.md `spec_branch`, else spec/<NNN-slug>.
 # PR title (task mode) "T<n>: <title>"; body names the task file and, when present, artifacts/<task-id>/mini-review.yaml.
@@ -158,9 +158,9 @@ Mini-review: $SPEC_DIR/artifacts/$TASK_ID/mini-review.yaml"
 fi
 
 URL=$(git -C "$ROOT" remote get-url origin 2>/dev/null) || skip "no origin remote"
-case "$URL" in
-  *github*) CLI=gh ;;
-  *gitlab*) CLI=glab ;;
+case $(wf_origin_host "$ROOT") in
+  github) CLI=gh ;;
+  gitlab) CLI=glab ;;
   *) skip "origin host is neither GitHub nor GitLab ($URL)" ;;
 esac
 command -v "$CLI" >/dev/null 2>&1 || skip "$CLI not installed"

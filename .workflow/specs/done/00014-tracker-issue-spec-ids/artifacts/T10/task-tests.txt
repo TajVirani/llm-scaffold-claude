@@ -1,0 +1,2 @@
+tests/lint/issue-tracking-docs.sh
+tests/scripts/sign-off-pr.sh

@@ -1,0 +1,65 @@
+verdict: "fail"
+task_id: "T3"
+work_type: "shell-scripts"
+mode: "full"
+previous: null
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t3@f896f20dd74f13749fa1e977f1425f674a3209cb..HEAD"
+tool_output: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T3/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: "next-spec-number.sh:49,52,58,128"
+  - n: 2
+    verdict: "not-applicable"
+    location: "none: the diff changes no hook under .agents/hooks/"
+  - n: 3
+    verdict: "fail"
+    location: "next-spec-number.sh:60"
+    note: "Line 60 sends every failure of git cat-file -e to the no-file branch, not only a missing initiative.md, so that branch's origin and slices are skipped with no error. Reproduced in a scratch repo with the initiative.md blob of initiative/001-ini deleted (as an offline partial clone or damaged object store leaves it): cat-file exits 1, git show exits 128 with 'fatal: bad object', yet the script prints 00001 with exit 0 and nothing on stderr, where the healthy repo prints 00021 (origin 00020), so a developer gets a number an existing spec already holds. Change: list the path with listed=$(git -C $root ls-tree $ref -- $WF_INITIATIVES/${ref##*/}/initiative.md) || die 'cannot list the branch' and read it with the existing git show only when listed is non-empty; ls-tree exits 0 with no output for an absent path and does not read the blob, so the git show || die line reports a missing object (checked: absent path rc 0 empty; missing-blob path rc 0 with the entry)."
+  - n: 4
+    verdict: "pass"
+    location: "next-spec-number.sh:42,55-56,61,69-70,82,91-94,102"
+  - n: 5
+    verdict: "pass"
+    location: "next-spec-number.sh:34,70,104,109,127,130"
+  - n: 6
+    verdict: "pass"
+    location: "next-spec-number.sh:26,28,31"
+  - n: 7
+    verdict: "pass"
+    location: "next-spec-number.sh:1-22"
+  - n: 8
+    verdict: "pass"
+    location: "next-spec-number.sh:24,89,93,108"
+  - n: 9
+    verdict: "pass"
+    location: "next-spec-number.sh:33,36,39,45,66,74,98; tests/scripts/next-spec-number.sh:149; tests/scripts/move-to-done.sh:117"
+  - n: "R1"
+    verdict: "pass"
+    location: "next-spec-number.sh:39,45,66,74,98,113-134"
+  - n: "R2"
+    verdict: "pass"
+    location: "next-spec-number.sh:59; tests/fixtures/initiative.sh:129-130"
+  - n: "R3"
+    verdict: "pass"
+    location: "next-spec-number.sh:3-10,59"
+  - n: "R4"
+    verdict: "tool-covered"
+    location: "next-spec-number.sh:2-22"
+    note: "lint key: check-comments.sh over the changed shell files exits 0 (toolchain.json lint pass). The header Called-by line naming modules/discovery.md is the header form R4 allows, and no changed comment names a docs/ path or a URL."
+  - n: "R5"
+    verdict: "pass"
+    location: "next-spec-number.sh:3-10; tests/fixtures/initiative.sh:2-3"
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh: the WF_ names and wf_main_root / wf_project_root that the script calls at lines 127 and 130"
+  - ".agents/skills/feature-workflow/references/readable-code.md: R1 to R5 and the Checking table"
+  - ".agents/skills/feature-workflow/scripts/initiative-transition.sh and move-to-done.sh: sibling helper headers for item 7"
+  - ".agents/skills/issue-tracking/scripts/issue-tracker.sh: its header (create-spec verb, exit codes) and the path the script calls at line 31"
+  - "tests/fixtures/initiative.sh:2-3: defines the large-path suites named in the R5 comment"
+  - "toolchain.json and implementation.yaml: tool keys and the implementer's self-review"
+  - "scratch repo probe outside the worktree (git cat-file -e, git show, git ls-tree, and the script), removed afterwards"
+not_checked:
+  - "R1 next_issue_number (next-spec-number.sh:100, called at 133): the name does not say that the function creates a tracker issue, while issue-tracker.sh names that verb create-spec. Passed because the name matches the number it returns and the comment says create; a rename such as create_spec_issue would remove the doubt. The orchestrator decides whether this counts as misleading."
+  - "R4 borderline: changed body comments name workflow step numbers, the discovery 0.1.1 call (tests/scripts/move-to-done.sh:117) and Sign-off 5.9 with the 0.1.1 numbering (tests/scripts/spec-worktree.sh:84). They are step numbers, not paths or URLs, and check-comments.sh does not classify them, so passed. The orchestrator decides whether step numbers count as a document pointer."
+  - "The scan no longer counts refs/heads/spec or refs/remotes/origin/spec, which the old 0.1.1 block counted (tests/fixtures/initiative.sh diff). The header claims each such spec sits in another counted place. Not checked against the spec, which is outside my context; settling it needs the spec's numbering decision."
+out_of_scope_noticed: []

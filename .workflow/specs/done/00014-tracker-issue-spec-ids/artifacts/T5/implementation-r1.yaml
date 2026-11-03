@@ -1,0 +1,50 @@
+status: done
+summary: "issue-tracker.sh now creates, fills, files tasks under and moves tracker issues through glab or gh. It picks the CLI with wf_origin_host and checks that host against the settings file. GitLab tasks are child tasks through GraphQL, with a relates_to linked issue when GraphQL refuses, and GitHub tasks are sub-issues. With no tracker set up, every command prints skipped: no tracker. The new .agents/skills/issue-tracking/SKILL.md has its frontmatter and the tracker-script section. I also added negative cases to the task's own suite, tests/scripts/issue-tracking.sh, which is outside the predicted files."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t5"
+branch: "task/00014-tracker-issue-spec-ids/T05-tracker-script"
+base_commit: "8680e8519362070994b12697a5d545d6706bc6a3"
+head_commit: "e5f31a95de7d13d25e98d440595de1813f607e8e"
+files_changed:
+  - ".agents/skills/issue-tracking/scripts/issue-tracker.sh"
+  - ".agents/skills/issue-tracking/SKILL.md"
+  - "tests/scripts/issue-tracking.sh"
+tests_added:
+  - {file: "tests/scripts/issue-tracking.sh", test: "settings naming an unknown tracker exit 2 naming the setting, with no tracker call", kind: negative}
+  - {file: "tests/scripts/issue-tracking.sh", test: "settings with two flow stages on one label exit 2 naming issue_flow, with no tracker call", kind: negative}
+  - {file: "tests/scripts/issue-tracking.sh", test: "fill with a file that has no '# ' heading exits 2 and leaves the issue untouched", kind: edge}
+  - {file: "tests/scripts/issue-tracking.sh", test: "fill with a missing file exits 2 with no tracker call", kind: negative}
+  - {file: "tests/scripts/issue-tracking.sh", test: "move with an argument that is not an issue URL exits 2 with no tracker call", kind: negative}
+  - {file: "tests/scripts/issue-tracking.sh", test: "a GitLab project without glab installed exits 2 naming glab, with no tracker call", kind: negative}
+  - {file: "tests/scripts/issue-tracking.sh", test: "create-task on a GitLab network failure exits 1 naming the cause, with nothing on stdout and no new issue", kind: negative}
+  - {file: "tests/scripts/issue-tracking.sh", test: "fill on a GitHub auth failure exits 1 naming the cause and leaves the issue untouched", kind: negative}
+evidence:
+  red: "tests/run-all.sh --suite scripts/issue-tracking at base: passed=2 failed=51 (the placeholder printed https://example.invalid/placeholder for every command, e.g. 'FAIL JRN-001 with no settings file, issue-tracker.sh create-spec prints skipped: no tracker', 'FAIL JRN-007 glab: in_progress to done swaps the flow label and closes the issue'). The suite went green one slice at a time: skip, mismatch and usage gave 15 passed, create-spec 29, fill 33, move 42 and create-task 53. The 8 negative and edge cases added afterwards passed on their first run, because the handling was already there."
+  green: "tests/run-all.sh --suite scripts/issue-tracking: TOTAL passed=61 failed=0 skipped=0 xfail=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00014-tracker-issue-spec-ids --task-id T5 --cwd <worktree>: lint pass, test pass (scoped: scripts/issue-tracking passed=61 failed=0)"
+  toolchain: ".workflow/specs/done/00014-tracker-issue-spec-ids/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "Sharing the settings check with next-spec-number.sh: the same check now lives in both scripts. A shared copy belongs in .agents/lib/, which is shared core, so I kept a local copy rather than widen the task."
+  - "A gh version check before --parent: tracker-setup.sh check owns the minimum version. An older gh fails on the unknown flag, which exits 1 with gh's own message."
+  - "Checking that an issue URL belongs to the origin project: the CLIs run in the project root and resolve the project from it (gh {owner}/{repo}, glab :fullpath). The URL only supplies the issue number."
+  - "Setting the GitLab child task's label through the GraphQL labels widget: that needs label global ids. A REST add_labels call after the create does the same job."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "issue-tracker.sh:335 builds the settings path with wf_path and WF_ISSUE_TRACKING. No code line spells the workflow folder."}
+  - {item: 2, verdict: not-applicable, note: "No hook in the diff."}
+  - {item: 3, verdict: pass, note: "Every failure reaches die (issue-tracker.sh:47) or exit 1/2 after a die. A refused child task is reported on stderr before the fallback (issue-tracker.sh:280)."}
+  - {item: 4, verdict: fixed, note: "The label reads at issue-tracker.sh:351-353 had no die of their own; added one. tracker_call carries its own die (issue-tracker.sh:97), and create_child_task returns 1 at each step because it runs inside an if (issue-tracker.sh:227-246)."}
+  - {item: 5, verdict: pass, note: "Exits 0/1/2. The Exit: header (issue-tracker.sh:21-23) now also names bad files, a host mismatch and a missing CLI as 2."}
+  - {item: 6, verdict: pass, note: "SCRIPT_DIR is resolved with cd -P from BASH_SOURCE (issue-tracker.sh:32)."}
+  - {item: 7, verdict: pass, note: "Helper header: File, Purpose, Usage, stdout, Exit, Called by, Notes, Sources (issue-tracker.sh:2-28). No decision ids."}
+  - {item: 8, verdict: pass, note: "kebab-case name, set -euo pipefail (issue-tracker.sh:30), [[ ]] throughout, as in the stub."}
+  - {item: 9, verdict: pass, note: "All 18 functions have a '# name ARGS : what it does' line. Both SC2016 directives give a reason (issue-tracker.sh:40,42)."}
+  - {item: R1, verdict: pass, note: "Names say what each thing is for: stale_labels, CHILD_REFUSAL, create_linked_issue, first_heading."}
+  - {item: R2, verdict: pass, note: "The trade-offs say why: one-request GitLab move (issue-tracker.sh:201), JSON request file for the body (issue-tracker.sh:153), GraphQL-only child tasks (issue-tracker.sh:39)."}
+  - {item: R3, verdict: pass, note: "No comment restates its line. The comments give reasons only."}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh in the lint key (passed). No changed comment points at a doc or URL."}
+  - {item: R5, verdict: pass, note: "Plain sentences. Terms used (flow label, child task, sub-issue) are defined in the header and SKILL.md."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the three changed files exited 0."}

@@ -17,10 +17,11 @@ tasks:
     parallel_with: []        # stakeholder-approved overlaps: ids that may share a wave despite overlapping predicted_files
     tests: []                # optional: selectors of the Phase 1 tests this task turns green (2.5); every Phase 1 test belongs to exactly one task
     pr: null                 # task PR/MR URL, set by the orchestrator at 3.16 through set-task; null until then or with task_review local
+    issue: null              # the task's tracker issue URL (https), set through set-task at 2.5 / 0.3.20; null with no tracker
 ---
 <!--
 File: Template for .workflow/specs/NNN-slug/tasks.md, the task INDEX: the records, the waves table and the dependency graph. Every feature has one. Each task's body lives in its own task file, tasks/Tnn-<slug>.md, from assets/task.md; this file holds no per-task body text.
-Written by modules/task-breakdown.md at 2.5, or by modules/discovery-impact.md at 0.3.20 on the light path (one task). work_type is filled at 3.1, pr at 3.16.
+Written by modules/task-breakdown.md at 2.5, or by modules/discovery-impact.md at 0.3.20 on the light path (one task). work_type is filled at 3.1, pr at 3.16, issue at 2.5 or 0.3.20 when the project has a tracker.
 
 Record schema (the `tasks:` array in the frontmatter is the source; the body is commentary). Read with mikefarah yq v4 `--front-matter=extract` by resolve-launch.sh (work_type by task id), status-transition.sh (writes records, via `--front-matter=process`), run-toolchain.sh (tests), budget-check.sh (size) and task-waves.sh (predicted_files, parallel_with).
   Plan-specified fields (required on every record):
@@ -39,12 +40,13 @@ Record schema (the `tasks:` array in the frontmatter is the source; the body is 
   - parallel_with:   list of ids. Two tasks whose predicted_files overlap share a wave only when each lists the other here, after the stakeholder approved it at 2.1; otherwise the overlap is a depends_on edge. Default [].
   - tests:           optional list of non-empty strings: the Phase 1 tests (from the 1.2/1.3 records) this task turns green, as selectors the profile's test runner understands (paths, ids or name patterns). 2.5 assigns every Phase 1 test to exactly one task. run-toolchain.sh excludes the tests of unfinished tasks from `test` through the profile's `test_scoped` key (3.5, 3.9). Absent or [] when the task owns no Phase 1 test.
   - pr:              string URL or null. Set by the orchestrator through `set-task` at 3.16 after it opens the task PR/MR.
+  - issue:           string `https://` URL or null: the task's tracker issue. Written once through `set-task --issue` at 2.5 (0.3.20 on the light path) when the project has a tracker; null or absent means no tracker.
   Added by this template (first-party, consumers may ignore them):
   - title:        string, short name of the slice.
   - module:       string, the owning module from .workflow/rules.md Ownership. One task works in one module (3.3).
   - seam:         string, the interface under test agreed at 2.3, which the implementation agent receives.
   Status meaning: `pending` not started; `in-progress` launched; `done` its gates (3.6 tools, 3.8 mini-review) passed and its task branch is merged into the spec branch; `blocked` cannot continue without a human (for example a "profile is wrong" report); `split-out` terminal: the work moved to a work-backlog item at a size-budget split, set only by `set-task --status split-out --step 00.29` from `pending`.
-  Add no other keys. Waves are not stored as a key: they are derived from depends_on (below) and copied into the Waves table.
+  Add no other keys beyond those listed here, `issue` included. Waves are not stored as a key: they are derived from depends_on (below) and copied into the Waves table.
 
 Waves (derived): a task with depends_on [] is in wave 1; otherwise its wave is 1 + the highest wave among its dependencies. At each wave start the orchestrator creates one task branch and worktree per task off the spec-branch tip, launches the wave in parallel, and merges it back in id order.
 
@@ -67,7 +69,8 @@ Read and validate with yq (prints true, exits non-zero otherwise):
         ([.mode == null, ((.mode | tag) == "!!str" and ((.mode // "") | tostring | test("^(afk|hitl)$")))] | any) and
         ([.parallel_with == null, ([(.parallel_with | tag) == "!!seq", ([.parallel_with[] | select(tag == "!!str") | select(test("^T[0-9]+$"))] | length) == (.parallel_with | length)] | all)] | any) and
         ([.tests == null, ([(.tests | tag) == "!!seq", ([.tests[] | select(tag == "!!str" and . != "")] | length) == (.tests | length)] | all)] | any) and
-        ([.pr == null, ((.pr | tag) == "!!str" and ((.pr // "") | tostring | test("^https?://[^[:space:]]+$")))] | any)
+        ([.pr == null, ((.pr | tag) == "!!str" and ((.pr // "") | tostring | test("^https?://[^[:space:]]+$")))] | any) and
+        ([.issue == null, ((.issue | tag) == "!!str" and ((.issue // "") | tostring | test("^https://[^[:space:]]+$")))] | any)
       ))] | length) == (.tasks | length)
   ' .workflow/specs/NNN-slug/tasks.md
 

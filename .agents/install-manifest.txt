@@ -16,6 +16,7 @@ skills/retrospective
 skills/deeper-prompt
 skills/handoff
 skills/project-standards
+skills/issue-tracking
 
 # --- Agents (15)
 agents/cache-regeneration.md

@@ -1,0 +1,67 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "e8162a94fb923cdae2496f4db5c8d9231abcabfc"
+head: "ef72c2cca6f5db49f49b67d877fc7583256bd17c"
+findings:
+  - id: RE-1
+    category: missing
+    severity: high
+    confidence: 85
+    location: ".agents/skills/feature-workflow/modules/discovery.md:24"
+    claim: "No step file tells the session to write the issue URL that next-spec-number.sh prints at 0.1.1 into spec.md's tracker_issue. 0.1.4 says to write the template with its 'frontmatter unchanged', which leaves tracker_issue empty."
+    consequence: "On a tracker project, a session that follows the step text leaves tracker_issue empty. Every later tracker call (fill at 0.3.19, create-task at 2.5/0.3.20, move at 3.1, sign-off fill and close) reads that empty value and exits 2 with 'not an issue URL ending in its number'. The spec is never linked to the issue it was numbered from, and the stakeholder hits a stop with no step telling them how to fix it."
+    evidence:
+      basis: "verification-plan.md End state: 'with GitLab (or GitHub) set up, starting a spec creates one issue ... and the spec folder is named after its number padded to five digits, with `tracker_issue` holding its URL.' data-model.md:66: 'written with spec.md at 0.1.4 from the number next-spec-number.sh returned'."
+      diff: "discovery.md 0.1.1 (changed): 'With a tracker it is the new tracker issue's number, and the second line is the issue's URL.' discovery.md:24 (unchanged): '# Write .workflow/specs/NNN-slug/spec.md from ../assets/spec.md: frontmatter unchanged (status: draft), title filled, template comment removed'. grep -rn tracker_issue over modules/, SKILL.md and references/ finds only reads (yq '.tracker_issue // \"\"') in discovery-impact, questioning-loop, task-breakdown, implementation-setup and sign-off; no step writes it. The only mention of writing it is the template comment in assets/spec.md:10/35. lint/issue-tracking-docs has no 0.1.4 check."
+      reproduction: "In a scratch repo with a github origin, .workflow/issue-tracking.yaml set to github, a fake gh on PATH, and spec.md holding tracker_issue: \"\" as 0.1.4 leaves it: issue-tracker.sh fill \"$(yq --front-matter=extract '.tracker_issue // \"\"' spec.md)\" spec.md -> 'issue-tracker.sh: not an issue URL ending in its number: ' exit=2 (no gh call)."
+    suggested_fix: "At 0.1.4, tell the session to set tracker_issue to the second line 0.1.1 printed (or \"\" with no tracker) and add the Links line; add a 0.1.4 check to lint/issue-tracking-docs."
+  - id: RE-2
+    category: missing
+    severity: medium
+    confidence: 90
+    location: ".agents/skills/feature-workflow/modules/sign-off.md:264"
+    claim: "On the PR/MR route, the spec's tracker issue never gets the done label. Only a local merge runs 'move ... done'; a merged PR closes the issue through 'Closes #<n>' but leaves the in-progress label on it."
+    consequence: "On a tracker project with a remote, the PR route is the normal one. There, every finished spec's issue is closed but still labelled in progress, so anyone on the team filtering or counting by the issue flow labels sees a wrong stage."
+    evidence:
+      basis: "verification-plan.md End state: 'issue labels move backlog → in progress → done at 3.1, 3.3, 3.16 and the sign-off merge, done closes the issue'. spec.md CAP-NEW-tracker-issues success: 'the issue labels change at 3.1, 3.3, 3.16 and merge'. design-log D5: 'done adds the done label and closes the issue'."
+      diff: "sign-off.md:264: '**Close the spec's tracker issue after a local merge.** A PR/MR closes it through the `Closes #<n>` line of its description when it merges; a local merge has no PR to do that, so move the issue to done'. design-log.md:332 (T10 notes) says the same: 'On the PR/MR route ... nothing moves its label to done; 5.8 moves it only on a local merge.'"
+    suggested_fix: "After the PR/MR merges (the point where 5.8 already removes the spec worktree once main has pulled it), run 'issue-tracker.sh move <tracker_issue> done' on both routes; it is harmless on an issue that is already closed."
+  - id: RE-3
+    category: missing
+    severity: medium
+    confidence: 90
+    location: ".agents/hooks/session-start-resume.sh:282"
+    claim: "The session-start hook counts open backlog lines only in lists named '[0-9]*-*.md'. After Tracker adoption renames a Done spec's list to old_NNN-slug.md, its open items silently drop out of the session-start reminder."
+    consequence: "On a project that has adopted the tracker, the items the stakeholder kept for later on finished specs stop showing up at session start. Nothing tells them the items are still there, so the work gets forgotten."
+    evidence:
+      basis: "spec.md CAP-NEW-issue-tracking-setup success: 'renames the Done specs to `done/old_NNN-slug` and their backlog lists to `old_NNN-slug.md` with references rewritten, and every workflow script still accepts the renamed folders'."
+      diff: "session-start-resume.sh:279-283 (unchanged by this diff): '[0-9]*-disc-[0-9][0-9][0-9]*.md) ...' / '[0-9]*-*.md)' then the '- [open] B<n>' scan; an 'old_' name matches neither case. design-log.md:199 marks the 'session-start scan' as 'unchanged: no `old_` folder outside the Done folder', which misses the backlog list rename this spec adds (D21). tests/fixtures/tracker-adoption.sh and tests/scripts/tracker-adoption.sh never run the hook."
+      reproduction: "Scratch git repo with .workflow/specs/work-backlog/00010-alpha.md holding '- [open] B1 bug (3.5): something kept for later'; echo '{\"cwd\":\"<repo>\"}' | bash .agents/hooks/session-start-resume.sh -> additionalContext 'Open discovered-work backlog items in .workflow/specs/work-backlog/: 1 (00010-alpha.md#B1) ...'. After mv to old_00010-alpha.md, the same command prints nothing (exit=0)."
+    suggested_fix: "Make the hook's list pattern accept an optional old_ prefix, as check-write.sh and wf_norm_folder now do, and add a JRN-012 case for it."
+  - id: RE-4
+    category: missing
+    severity: medium
+    confidence: 80
+    location: ".agents/skills/issue-tracking/scripts/tracker-adoption.sh:245"
+    claim: "Tracker adoption never rewrites .workflow/initiatives/. An initiative's slices[].spec still names a spec after adoption has renamed it (NNN-slug to 0000N-slug, or done/NNN-slug to done/old_NNN-slug)."
+    consequence: "On a project with an initiative whose slices were already emitted, the large path's spec_done_on_main check (large-path.md:48-54, 286-287, 296-298) looks up specs/<name> and specs/done/<name> under the old names and never finds them. The initiative then reports those specs as still open and cannot finish 6.13."
+    evidence:
+      basis: "spec.md CAP-NEW-issue-tracking-setup success: 'gives the active specs issues and new folder, backlog-list, branch and worktree names with every `.workflow/` reference rewritten ... renames the Done specs to `done/old_NNN-slug` ... with references rewritten'."
+      diff: "lib/workflow-paths.sh:59 wf_rewrite_spec_path rewrites 'under WF_DIR, outside the cache, initiatives, worktree, handoff and staging folders'; tracker-adoption.sh has no mention of initiatives (grep -n -i initiative finds nothing); the adoption test oracle explicitly skips them: tests/fixtures/tracker-adoption.sh:224 'grep -rnE --exclude-dir=cache --exclude-dir=initiatives ...'. move-to-done can skip initiatives because 6.13 re-points them; nothing re-points them after adoption."
+    suggested_fix: "Have adoption rewrite slices[].spec (and initiative-file path references) for each renamed spec, or refuse adoption while an initiative names an affected spec and say why."
+checked:
+  - "Pinned the diff: e8162a94...ef72c2cc, 51 files, 51 commits; read the full diff of modules, assets, references, project-setup, issue-tracking SKILL.md, manifest, PROVENANCE, and the scripts next-spec-number.sh, issue-tracker.sh, tracker-setup.sh, tracker-adoption.sh, the open-task-pr.sh, rules-setting.sh, status-transition.sh, check-write.sh and review-lessons.sh diffs, and wf_origin_host in lib/workflow-paths.sh."
+  - "CAP-NEW-tracker-issues: no-tracker numbering (next-spec-number.sh scan, same places as the old 0.1.1 block, no CLI call); tracker numbering (create-spec with a placeholder title, no body, backlog label, padded to 5 digits); unreachable tracker gives exit 1 with nothing on stdout; fill at 0.3.19, 0.6 and 0.3.20 and at sign-off; create-task at 2.5 and 0.3.20 with set-task --issue; moves at 3.1, 3.3, 3.16, 5.8 (local merge only, RE-2) and reopens at 3.9, 3.11 and 4.7; Sign-off PR link in pr-template.md and the project-template append at 5.4; check-pr-body.sh unchanged (not in the diff); tracker_issue written at 0.1.4 (RE-1)."
+  - "CAP-NEW-issue-tracking-setup: tracker-setup.sh check/save/--none/--create-labels and its named refusals; project-setup step 11 and modules/files.md Tracker; manifest and PROVENANCE entries; tracker-adoption.sh active, Done, refused-spec, push and report paths; old_ accepted by wf_norm_folder, review-lessons.sh, check-write.sh and the move-to-done lookup; session-start hook (RE-3); initiatives (RE-4); shared host choice and path rewrite (lint/shared-tracker-logic, grep for get-url/github/gitlab outside lib)."
+  - "Constraints: settings in .workflow/issue-tracking.yaml, not rules.md; glab/gh chosen through wf_origin_host; three-label flow, with done also closing; nothing deleted on the remote; tracker scripts live in skills/issue-tracking; old_ applies to the folder and backlog list only; tests use fakes (tests/fixtures/fake-trackers.sh)."
+  - "Non-goals and deferred items (initiative tracker issues, Done-folder spec-branch fallback, Jira/Linear, Projects columns, comment sync, adopting this repo, deleting remote branches): nothing in the diff implements any of them."
+  - "Read artifacts/gate-3.9-w6/toolchain.json (status pass, test tests/run-all.sh exit 0) and toolchain.txt (TOTAL passed=4751 failed=0, 81 suites, including scripts/issue-tracking, issue-tracking-setup, tracker-adoption, next-spec-number, sign-off-pr, lib-workflow-paths, review-lessons, check-write-paths, status-transition-tasks, move-to-done, lint/issue-tracking-docs, lint/shared-tracker-logic, lint/workflow-load-size). Listed artifacts/T1..T10 and integration-shell-scripts."
+  - "Re-ran in a scratch worktree of HEAD: lint/workflow-load-size (new-feature start 44046/45000, implementation resume 54967/55000), and lint/issue-tracking-docs, lint/shared-tracker-logic, scripts/next-spec-number, scripts/issue-tracking, scripts/sign-off-pr, scripts/issue-tracking-setup and scripts/tracker-adoption, all PASS (JRN-001 to JRN-015)."
+not_verifiable:
+  - "The GitLab child-task GraphQL call (workItemTypes / workItemCreate with hierarchyWidget), the relates_to fallback, and the glab api :fullpath placeholders work on real gitlab.com only. They are proven against the fake glab alone (spec Assumption, D17). Check them once against a real GitLab project."
+  - "Whether gh 2.94.0 is really the first gh with 'gh issue create --parent', and glab 1.115.0 the first glab with --description-file, as tracker-setup.sh's minimums claim. Check the gh and glab release notes."
+  - "Two people starting specs at the same moment get two numbers on a real tracker (Success signal). JRN-004 proves it only against a fake that hands out increasing numbers."
+not_checked:
+  - "Whether Tracker adoption should also move an active spec's issue to in progress for a spec already past 3.1. create-spec files every adopted spec in backlog. The spec's success line does not ask for this; the stakeholder would settle it."
+  - "Constraint 'templates ... unchanged' with no tracker: a new spec now carries tracker_issue: \"\" and tasks carry issue: null. I read this as allowed by the template contract, not as a change in behaviour. The stakeholder would settle it if they read the constraint more strictly."

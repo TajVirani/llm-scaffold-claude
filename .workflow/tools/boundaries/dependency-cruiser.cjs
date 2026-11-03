@@ -73,6 +73,17 @@ module.exports = {
       }
     },
     {
+      "name": "agents-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module agents may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/agents/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      }
+    },
+    {
       "name": "agents-not-to-lib",
       "comment": "Generated from .workflow/rules.md: module agents may not depend on module lib",
       "severity": "error",
@@ -275,6 +286,17 @@ module.exports = {
       }
     },
     {
+      "name": "data-structure-audit-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module data-structure-audit may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/data-structure-audit/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      }
+    },
+    {
       "name": "data-structure-audit-not-to-output-styles",
       "comment": "Generated from .workflow/rules.md: module data-structure-audit may not depend on module output-styles",
       "severity": "error",
@@ -463,6 +485,17 @@ module.exports = {
           "^\\.agents/install-manifest\\.txt$",
           "^install\\.sh$"
         ]
+      }
+    },
+    {
+      "name": "deeper-prompt-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module deeper-prompt may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/deeper-prompt/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
       }
     },
     {
@@ -679,6 +712,17 @@ module.exports = {
       }
     },
     {
+      "name": "deps-audit-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module deps-audit may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/deps-audit/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      }
+    },
+    {
       "name": "deps-audit-not-to-lib",
       "comment": "Generated from .workflow/rules.md: module deps-audit may not depend on module lib",
       "severity": "error",
@@ -859,6 +903,17 @@ module.exports = {
           "^\\.agents/install-manifest\\.txt$",
           "^install\\.sh$"
         ]
+      }
+    },
+    {
+      "name": "domain-modeling-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module domain-modeling may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/domain-modeling/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
       }
     },
     {
@@ -1233,6 +1288,17 @@ module.exports = {
       }
     },
     {
+      "name": "hooks-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module hooks may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/hooks/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      }
+    },
+    {
       "name": "hooks-not-to-output-styles",
       "comment": "Generated from .workflow/rules.md: module hooks may not depend on module output-styles",
       "severity": "error",
@@ -1428,6 +1494,20 @@ module.exports = {
       }
     },
     {
+      "name": "installer-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module installer may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": [
+          "^\\.agents/install-manifest\\.txt$",
+          "^install\\.sh$"
+        ]
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      }
+    },
+    {
       "name": "installer-not-to-output-styles",
       "comment": "Generated from .workflow/rules.md: module installer may not depend on module output-styles",
       "severity": "error",
@@ -1580,6 +1660,208 @@ module.exports = {
       }
     },
     {
+      "name": "issue-tracking-not-to-agents",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module agents",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/agents/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-data-structure-audit",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module data-structure-audit",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/data-structure-audit/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-deeper-prompt",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module deeper-prompt",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/deeper-prompt/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-deps-audit",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module deps-audit",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/deps-audit/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-domain-modeling",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module domain-modeling",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/domain-modeling/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-hooks",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module hooks",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/hooks/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-installer",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module installer",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": [
+          "^\\.agents/install-manifest\\.txt$",
+          "^install\\.sh$"
+        ]
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-output-styles",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module output-styles",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/output-styles/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-pr-review-data",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module pr-review-data",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/pr-review-data/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-project-setup",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module project-setup",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/project-setup/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-project-standards",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module project-standards",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/project-standards/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-regenerate-caches",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module regenerate-caches",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/regenerate-caches/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-retrospective",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module retrospective",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/retrospective/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-root-docs",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module root-docs",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": [
+          "^\\.agents/README\\.md$",
+          "^AGENTS\\.md$",
+          "^README\\.md$"
+        ]
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-scaffold-scripts",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module scaffold-scripts",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^scripts/.*$"
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-standalone-skills",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module standalone-skills",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": [
+          "^\\.agents/skills/deps-update/.*$",
+          "^\\.agents/skills/design-pattern-doc/.*$",
+          "^\\.agents/skills/glab/.*$",
+          "^\\.agents/skills/handoff/.*$",
+          "^\\.agents/skills/pr-quality/.*$",
+          "^\\.agents/skills/visual-change-report/.*$",
+          "^\\.agents/skills/writing-for-agents/.*$"
+        ]
+      }
+    },
+    {
+      "name": "issue-tracking-not-to-tests",
+      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module tests",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      },
+      "to": {
+        "path": "^tests/.*$"
+      }
+    },
+    {
       "name": "lib-not-to-agents",
       "comment": "Generated from .workflow/rules.md: module lib may not depend on module agents",
       "severity": "error",
@@ -1668,6 +1950,17 @@ module.exports = {
           "^\\.agents/install-manifest\\.txt$",
           "^install\\.sh$"
         ]
+      }
+    },
+    {
+      "name": "lib-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module lib may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/lib/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
       }
     },
     {
@@ -1884,6 +2177,17 @@ module.exports = {
       }
     },
     {
+      "name": "output-styles-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module output-styles may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/output-styles/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      }
+    },
+    {
       "name": "output-styles-not-to-lib",
       "comment": "Generated from .workflow/rules.md: module output-styles may not depend on module lib",
       "severity": "error",
@@ -2083,6 +2387,17 @@ module.exports = {
           "^\\.agents/install-manifest\\.txt$",
           "^install\\.sh$"
         ]
+      }
+    },
+    {
+      "name": "pr-review-data-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module pr-review-data may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/pr-review-data/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
       }
     },
     {
@@ -2446,6 +2761,17 @@ module.exports = {
       }
     },
     {
+      "name": "project-standards-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module project-standards may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/project-standards/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      }
+    },
+    {
       "name": "project-standards-not-to-lib",
       "comment": "Generated from .workflow/rules.md: module project-standards may not depend on module lib",
       "severity": "error",
@@ -2618,6 +2944,17 @@ module.exports = {
       }
     },
     {
+      "name": "regenerate-caches-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/regenerate-caches/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      }
+    },
+    {
       "name": "regenerate-caches-not-to-output-styles",
       "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module output-styles",
       "severity": "error",
@@ -2776,6 +3113,17 @@ module.exports = {
           "^\\.agents/install-manifest\\.txt$",
           "^install\\.sh$"
         ]
+      }
+    },
+    {
+      "name": "retrospective-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module retrospective may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/skills/retrospective/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
       }
     },
     {
@@ -3021,6 +3369,21 @@ module.exports = {
           "^\\.agents/install-manifest\\.txt$",
           "^install\\.sh$"
         ]
+      }
+    },
+    {
+      "name": "root-docs-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module root-docs may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": [
+          "^\\.agents/README\\.md$",
+          "^AGENTS\\.md$",
+          "^README\\.md$"
+        ]
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
       }
     },
     {
@@ -3273,6 +3636,17 @@ module.exports = {
       }
     },
     {
+      "name": "scaffold-scripts-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module scaffold-scripts may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^scripts/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
+      }
+    },
+    {
       "name": "scaffold-scripts-not-to-lib",
       "comment": "Generated from .workflow/rules.md: module scaffold-scripts may not depend on module lib",
       "severity": "error",
@@ -3483,6 +3857,17 @@ module.exports = {
           "^\\.agents/install-manifest\\.txt$",
           "^install\\.sh$"
         ]
+      }
+    },
+    {
+      "name": "shared-core-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: shared core may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": "^\\.agents/lib/.*$"
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
       }
     },
     {
@@ -3771,6 +4156,25 @@ module.exports = {
           "^\\.agents/install-manifest\\.txt$",
           "^install\\.sh$"
         ]
+      }
+    },
+    {
+      "name": "standalone-skills-not-to-issue-tracking",
+      "comment": "Generated from .workflow/rules.md: module standalone-skills may not depend on module issue-tracking",
+      "severity": "error",
+      "from": {
+        "path": [
+          "^\\.agents/skills/deps-update/.*$",
+          "^\\.agents/skills/design-pattern-doc/.*$",
+          "^\\.agents/skills/glab/.*$",
+          "^\\.agents/skills/handoff/.*$",
+          "^\\.agents/skills/pr-quality/.*$",
+          "^\\.agents/skills/visual-change-report/.*$",
+          "^\\.agents/skills/writing-for-agents/.*$"
+        ]
+      },
+      "to": {
+        "path": "^\\.agents/skills/issue-tracking/.*$"
       }
     },
     {
