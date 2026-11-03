@@ -38,10 +38,13 @@ modules:
     may_depend_on: [lib, feature-workflow, project-setup]
   feature-workflow:
     owns: [".agents/skills/feature-workflow/**"]
-    may_depend_on: [lib, regenerate-caches, domain-modeling, project-setup]
+    may_depend_on: [lib, regenerate-caches, domain-modeling, project-setup, issue-tracking]
+  issue-tracking:
+    owns: [".agents/skills/issue-tracking/**"]
+    may_depend_on: [lib, feature-workflow]
   project-setup:
     owns: [".agents/skills/project-setup/**"]
-    may_depend_on: [lib, domain-modeling, feature-workflow, project-standards]
+    may_depend_on: [lib, domain-modeling, feature-workflow, project-standards, issue-tracking]
   project-standards:
     owns: [".agents/skills/project-standards/**"]
     may_depend_on: [project-setup, feature-workflow, domain-modeling, standalone-skills]
@@ -90,7 +93,7 @@ modules:
     may_depend_on: []
   tests:
     owns: ["tests/**"]
-    may_depend_on: [lib, hooks, feature-workflow, project-setup, project-standards, regenerate-caches, domain-modeling, retrospective, deeper-prompt, data-structure-audit, pr-review-data, deps-audit, standalone-skills, agents, output-styles, installer, scaffold-scripts]
+    may_depend_on: [lib, hooks, feature-workflow, project-setup, project-standards, regenerate-caches, domain-modeling, retrospective, deeper-prompt, data-structure-audit, pr-review-data, deps-audit, standalone-skills, agents, output-styles, installer, scaffold-scripts, issue-tracking]
   root-docs:
     owns: ["AGENTS.md", "README.md", ".agents/README.md"]
     may_depend_on: []

@@ -18,10 +18,10 @@ Spec numbers come from a scan of the local checkout, so two people starting spec
 
 ## Capabilities
 
-- **CAP-NEW-tracker-issues** Specs and tasks filed as tracker issues
+- **CAP-013** Specs and tasks filed as tracker issues
   - **intent:** When a project has a tracker set up, discovery files a spec's tracker issue before the spec folder exists and names the folder after the issue number, task breakdown files each task under it, and the workflow moves every issue through the issue flow, so parallel specs never share a number and the team follows progress on the tracker.
   - **success:** With a fake glab and a fake gh on PATH, starting two specs gives folders named after the two issue numbers zero-padded to five digits (`00042-slug`); the issue receives the spec's title and body at 0.3.19, ready-for-dev and sign-off; each task gets a GitLab child task (or a `relates_to` linked issue when the child call fails) or a GitHub sub-issue, recorded as `issue` in its task record; the issue labels change at 3.1, 3.3, 3.16 and merge, and done closes the issue; the Sign-off PR's "Link to issue" holds the URL and `Closes #<n>` (appended last with a project PR template); and with no tracker set up, numbering, templates and the PR stub behave exactly as before.
-- **CAP-NEW-issue-tracking-setup** Tracker setup and adoption
+- **CAP-014** Tracker setup and adoption
   - **intent:** project-setup, and the `issue-tracking` skill on a project already under way, check that the tracker can be used, agree the issue flow with the stakeholder and save it, and on adoption file and rename every active spec and prefix every finished spec `old_`, so the tracker can be added at any time.
   - **success:** With fake CLIs, setup refuses with a named reason when the CLI is missing, not logged in, or issues are disabled; on success it writes `.workflow/issue-tracking.yaml` with the host and the three agreed labels and creates the missing labels only after confirmation; adoption on a fixture project with one draft spec, one spec past 1.1 and two Done specs gives the active specs issues and new folder, backlog-list, branch and worktree names with every `.workflow/` reference rewritten, refuses a spec with a live task worktree, renames the Done specs to `done/old_NNN-slug` and their backlog lists to `old_NNN-slug.md` with references rewritten, and every workflow script still accepts the renamed folders; `move-to-done.sh`, `open-task-pr.sh` and `rules-setting.sh` keep passing their existing tests on the shared lib functions.
 

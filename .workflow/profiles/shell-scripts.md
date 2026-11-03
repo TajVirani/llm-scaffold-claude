@@ -26,6 +26,7 @@
 - Resolve sibling paths from `BASH_SOURCE` with `cd -P`, so a path reached through the `.claude/` symlinks resolves into `.agents/`.
 - Test syntax: match the file being edited; new files use `[[ ]]`. A file is new when it is absent at the spec's `baseline_revision`, even if an earlier task or the Phase 1 harness added it. Never convert a file for style. No line-length limit.
 - A shellcheck directive carries its reason after `#` → `# shellcheck disable=SC2016 # expanded by eval`.
+- A bash 3.2 workaround carries a one-line reason comment, so no reader drops it as noise: `${a[@]+"${a[@]}"}` for an empty array under `set -u`, `10#` for a number with a leading zero, `|| true` after a pipeline that may match nothing.
 
 ## Toolchain
 

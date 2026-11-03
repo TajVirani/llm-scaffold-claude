@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Shared host choice and path rewrite"
     status: done
-    capability: CAP-NEW-issue-tracking-setup
+    capability: CAP-014
     depends_on: []
     touches_core: true
     work_type: shell-scripts
@@ -24,7 +24,7 @@ tasks:
   - id: T2
     title: "Tracker link keys"
     status: done
-    capability: CAP-NEW-tracker-issues
+    capability: CAP-013
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -45,7 +45,7 @@ tasks:
   - id: T3
     title: "next-spec-number.sh"
     status: done
-    capability: CAP-NEW-tracker-issues
+    capability: CAP-013
     depends_on: []
     touches_core: true
     work_type: shell-scripts
@@ -67,7 +67,7 @@ tasks:
   - id: T4
     title: "Done folder accepts old_ names"
     status: done
-    capability: CAP-NEW-issue-tracking-setup
+    capability: CAP-014
     depends_on: [T1]
     touches_core: true
     work_type: shell-scripts
@@ -87,7 +87,7 @@ tasks:
   - id: T5
     title: "Tracker script"
     status: done
-    capability: CAP-NEW-tracker-issues
+    capability: CAP-013
     depends_on: [T1, T3]
     touches_core: false
     work_type: shell-scripts
@@ -106,7 +106,7 @@ tasks:
   - id: T6
     title: "Tracker setup"
     status: done
-    capability: CAP-NEW-issue-tracking-setup
+    capability: CAP-014
     depends_on: [T5]
     touches_core: false
     work_type: shell-scripts
@@ -125,7 +125,7 @@ tasks:
   - id: T7
     title: "project-setup tracker step"
     status: done
-    capability: CAP-NEW-issue-tracking-setup
+    capability: CAP-014
     depends_on: [T6]
     touches_core: false
     work_type: agent-docs
@@ -143,7 +143,7 @@ tasks:
   - id: T8
     title: "Tracker adoption"
     status: done
-    capability: CAP-NEW-issue-tracking-setup
+    capability: CAP-014
     depends_on: [T1, T2, T4, T5, T6]
     touches_core: false
     work_type: shell-scripts
@@ -162,7 +162,7 @@ tasks:
   - id: T9
     title: "Package the issue-tracking skill"
     status: done
-    capability: CAP-NEW-issue-tracking-setup
+    capability: CAP-014
     depends_on: [T5, T6, T8]
     touches_core: false
     work_type: agent-docs
@@ -180,7 +180,7 @@ tasks:
   - id: T10
     title: "Step-file tracker calls and Sign-off PR link"
     status: done
-    capability: CAP-NEW-tracker-issues
+    capability: CAP-013
     depends_on: [T1, T2, T3, T7, T9]
     touches_core: false
     work_type: agent-docs
