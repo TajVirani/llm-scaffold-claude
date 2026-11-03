@@ -6,8 +6,8 @@
 == lint/shared-tracker-logic
 
 == summary
-PASS scripts/tracker-adoption               passed=47   failed=0   skipped=0   xfail=0   16s
-PASS lint/shared-tracker-logic              passed=5    failed=0   skipped=0   xfail=0   3s
-TOTAL passed=52 failed=0 skipped=0 xfail=0 (2 suites)
+PASS scripts/tracker-adoption               passed=58   failed=0   skipped=0   xfail=0   34s
+PASS lint/shared-tracker-logic              passed=5    failed=0   skipped=0   xfail=0   2s
+TOTAL passed=63 failed=0 skipped=0 xfail=0 (2 suites)
 == test exit 0
 

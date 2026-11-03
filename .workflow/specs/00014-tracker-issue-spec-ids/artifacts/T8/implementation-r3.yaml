@@ -1,0 +1,49 @@
+status: done
+summary: "tracker-adoption.sh now files a task issue (issue-tracker.sh create-task) for each task record of an adopted spec that has no issue and is not split-out, and records it through status-transition.sh set-task before the rename, so the spec-worktree rename commit carries it and a rollback keeps it as it keeps tracker_issue. A rerun skips tasks that already hold an issue, including on an already-adopted spec. A task issue the tracker cannot file, or one that cannot be recorded, is reported with the commands to finish it by hand, and the run exits 1. The fixture's task records gained the fields the tasks.md validator requires (capability, depends_on, touches_core, work_type, file), plus task files and a split-out T3."
+task_id: "T8"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00014-tracker-issue-spec-ids/.workflow/.worktrees/s00014_t8"
+branch: "task/00014-tracker-issue-spec-ids/T08-tracker-adoption"
+base_commit: "a499e376ccfe193e5170eb36fee9f7fb90a7d8f9"
+head_commit: "8e3ca0c3452c832a33b61ea2c6d80232f745ba28"
+files_changed:
+  - ".agents/skills/issue-tracking/scripts/tracker-adoption.sh"
+  - ".agents/skills/issue-tracking/SKILL.md"
+  - "tests/scripts/tracker-adoption.sh"
+  - "tests/fixtures/tracker-adoption.sh"
+  - "tests/README.md"
+tests_added:
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the pending task T2 gets an issue under the spec's issue, recorded as issue in its task record", kind: behaviour}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the split-out task T3 gets no issue and the tracker holds one task issue each for T1 and T2", kind: edge}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "JRN-011 the task issues are committed on the renamed branch with the rename", kind: behaviour}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "a second run files no second task issue and leaves T2 its first one", kind: edge}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "a task issue the tracker cannot file exits 1 and names the commands that file and record it by hand", kind: negative}
+  - {file: "tests/scripts/tracker-adoption.sh", test: "the spec is still renamed and the task left unfiled holds no issue", kind: negative}
+evidence:
+  red: "tests/run-all.sh --suite scripts/tracker-adoption; FAIL JRN-011 the pending task T2 gets an issue under the spec's issue, recorded as issue in its task record (plus the split-out, committed, rerun and tracker-failure checks): passed=48 failed=5"
+  green: "tests/run-all.sh --suite scripts/tracker-adoption; PASS scripts/tracker-adoption passed=53 failed=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00014-tracker-issue-spec-ids --task-id T8 --cwd <worktree>; test pass (scripts/tracker-adoption 53/53, lint/shared-tracker-logic 5/5). Full harness tests/run-all.sh: TOTAL passed=4765 failed=0 (81 suites)"
+  toolchain: ".workflow/specs/00014-tracker-issue-spec-ids/artifacts/T8/toolchain.txt (pass)"
+considered_not_built:
+  - "Guessing a task file by globbing tasks/T<nn>-*.md when a record has no file field: the patch names the record's task file; a record without one is reported with the command to finish it by hand instead."
+  - "Filing task issues for a spec refused because its new name is taken: the spec is left for a later run, which files them once the name is free."
+  - "Dying (exit 2) when create-task exits 2: a bad task file is per task, so it is reported like a tracker failure and the other tasks and specs still run."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "tracker-adoption.sh file_task_issues builds tasks.md and spec folders from WF_SPECS / WF_SPEC_WORKTREES via wf_path; only the fixture spells .workflow/ paths"}
+  - {item: 2, verdict: not-applicable, note: "no hook changed"}
+  - {item: 3, verdict: pass, note: "file_task_issues: front_matter dies on a read error; create-task and set-task failures go through warn (counted, exit 1) with the hand commands"}
+  - {item: 4, verdict: pass, note: "front_matter write into SCRATCH carries its own || exit 2; file_task_issues is called without a || so set -e stays active"}
+  - {item: 5, verdict: pass, note: "no new exit code; # Exit: line 1 now names filing or recording a task's issue"}
+  - {item: 6, verdict: pass, note: "STATUS_TRANSITION resolves from SCRIPT_DIR, which is cd -P from BASH_SOURCE"}
+  - {item: 7, verdict: pass, note: "helper header keeps Purpose/Usage/Exit/Sources; Purpose, Usage, stdout and Exit updated for task issues"}
+  - {item: 8, verdict: pass, note: "edited file keeps its [[ ]] syntax and set -euo pipefail; no new files"}
+  - {item: 9, verdict: pass, note: "file_task_issues has its # name ARGS : line; no new shellcheck directive"}
+  - {item: R1, verdict: pass, note: "names say their use: file_task_issues, by_hand, new_root, unfiled-tasks, task_issue, issues_under"}
+  - {item: R2, verdict: pass, note: "comments give the why only: the fd 3 read keeps child scripts off the list; recording before the rename lets the rename carry it"}
+  - {item: R3, verdict: pass, note: "file_task_issues does one job; the loop body reads top to bottom with early continue"}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh (exit 0 over the diff); no changed comment points at another document"}
+  - {item: R5, verdict: pass, note: "no unexplained shorthand in changed comments or messages"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the changed files exits 0"}

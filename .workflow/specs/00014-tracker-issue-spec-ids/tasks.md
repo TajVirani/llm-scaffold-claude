@@ -142,7 +142,7 @@ tasks:
     pr: null
   - id: T8
     title: "Tracker adoption"
-    status: in-progress
+    status: done
     capability: CAP-NEW-issue-tracking-setup
     depends_on: [T1, T2, T4, T5, T6]
     touches_core: false
