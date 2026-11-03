@@ -382,3 +382,4 @@ Gaps: the GitLab child-task GraphQL call, the `relates_to` fallback and the `gla
 Outcome: rework 2 of 5
 - Rework 2, 3.7 T8 out_of_scope_noticed x3 (`artifacts/T8/mini-review-r2.yaml`): hand-finish command uses a spec-relative task path with no `--cwd`; a filed-but-unrecorded task issue is filed again on rerun; a missing CLI at create-task gives exit 1 per task against the `# Exit:` line (missing tool is exit 2). All proven by probes on lines rework 2 adds. Route: **current work**; behaviour fix round for T8.
 - 3.16 rework 2: T8 merged locally (`skipped: gh not installed`) after one behaviour fix round.
+- 3.9 after rework 2: full harness `TOTAL passed=4770 failed=0 skipped=0 xfail=0 (81 suites)` (`artifacts/gate-3.9-rework2/`); budget 10 tasks, 32 of 34 changed files; loads 44,286 / 45,000 and 54,967 / 55,000. In-review at 3.11; no patch in pass 2 was verified high, so Phase 4 ends after this rework (no pass 3).
