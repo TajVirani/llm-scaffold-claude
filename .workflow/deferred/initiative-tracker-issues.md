@@ -38,3 +38,7 @@ Spec 00014 makes the tracker the source of spec numbers and files specs and task
 ## Out of scope
 
 - Spec and task issues (spec 00014).
+
+## Later requests
+
+- .workflow/specs/00014-tracker-issue-spec-ids, 5.9: Tracker adoption renames specs an initiative names (`slices[].spec`, `origin`) but skips `.workflow/initiatives/`, so the large path's 6.13 done check looks up the old names (review F4); adoption should refuse such a spec or re-point the initiative through `initiative-transition.sh`.

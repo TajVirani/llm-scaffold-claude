@@ -384,3 +384,19 @@ Outcome: rework 2 of 5
 - 3.16 rework 2: T8 merged locally (`skipped: gh not installed`) after one behaviour fix round.
 - 3.9 after rework 2: full harness `TOTAL passed=4770 failed=0 skipped=0 xfail=0 (81 suites)` (`artifacts/gate-3.9-rework2/`); budget 10 tasks, 32 of 34 changed files; loads 44,286 / 45,000 and 54,967 / 55,000. In-review at 3.11; no patch in pass 2 was verified high, so Phase 4 ends after this rework (no pass 3).
 - 5.3: P1-P7 approved ("Approve all (Recommended)") and applied: rules.md Ownership (issue-tracking module; feature-workflow, project-setup and tests may depend on it; boundary config regenerated), capabilities CAP-013 and CAP-014 (tokens replaced in spec, tasks via set-task, verification-plan, proposals, design-log), two pitfalls, shell-scripts profile rule for bash 3.2 workarounds.
+
+## 2026-11-03 Sign-off: stakeholder approval (5.5)
+
+- Approval: yes: "Yes (Recommended)"
+- PR description: approved. Changes asked before approval: none
+- Ruling: F4 (adoption skips initiative files): keep for later. Asked at 5.5.
+- Ruling: F10 (non-Conventional commit subjects in step files): keep for later. Asked at 5.5.
+- Ruling: B1 (Phase 1 runs as one serial harness build): keep for later.
+- Going-in concerns: none ("Nothing in particular")
+- 5.9: F4 kept for later as a Later requests line on [.workflow/deferred/initiative-tracker-issues.md](../../deferred/initiative-tracker-issues.md) (matched by concept: initiatives under a tracker); F10 kept for later as [work-backlog/00014-tracker-issue-spec-ids.md](../work-backlog/00014-tracker-issue-spec-ids.md) B2; B1 unchanged.
+
+## 2026-11-03 Retrospective notes
+
+- Tracker adoption commits each spec worktree's rename on its spec branch, but leaves the main checkout's renames (Done `old_` prefixes, draft renames, reference rewrites) uncommitted by design: the shared rewrite refuses to commit on the main branch, so the script prints `not committed:` and asks for a branch and a merge.
+- The 4.7 reopen tracker call lives in `modules/review-triage.md`, beside the existing 4.7 reopen command, because `implementation-waves.md` had 33 bytes of resume budget left after the 3.3, 3.16 and 3.9 lines.
+- Every task merged locally with `pr: null`: `task_review` is `pr`, but gh is not installed here, and `open-task-pr.sh` skips before any push.
