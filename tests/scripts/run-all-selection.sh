@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Suite: tests/run-all.sh suite selection and parallel runs.
 # Covers: --only-file and --exclude-file (repo-relative and label selectors, F minus G, empty or missing files),
+#   --covering-file (a suite whose text names the changed file's basename as a whole word, a changed suite itself, a
+#   markdown file selecting the lint suites, an uncovered file named on stderr and selecting nothing, the union with
+#   --only-file, minus --exclude-file, an empty or missing file adding no constraint, --suite and a missing path exiting 2),
 #   unknown selectors and --suite conflicts exiting 2, repeated --suite (only the named suites, in glob order; one
 #   unknown name exits 2), -j validation, concurrent runs by default and serial with -j 1 (judged by whether the
 #   suites' recorded run times overlap, never by elapsed time), output in glob order identical to a serial run apart
@@ -100,6 +103,43 @@ eq "--only-file and --exclude-file together run F minus G" "$(summary_labels)" "
 only=$(selector_file only-all-excluded tests/hooks/gamma.sh)
 run_all --only-file "$only" --exclude-file "$exclude"
 eq "a selection left empty by exclusion runs nothing and exits 0" "$RC" 0
+
+# --covering-file: alpha names widget.sh and lib/common.sh in its text, the way a suite names the component it tests.
+printf '# tests src/widget.sh; sources lib/common.sh\n' >>"$FIXTURE_TESTS/scripts/alpha.sh"
+covering=$(selector_file covering-script src/widget.sh)
+run_all --covering-file "$covering"
+eq "--covering-file selects the suite whose text names the changed file's basename" "$(summary_labels)" "scripts/alpha"
+eq "a covered run of a passing suite exits 0" "$RC" 0
+covering=$(selector_file covering-word src/get.sh)
+run_all --covering-file "$covering"
+eq "the basename must match as a whole word" "$(summary_labels)" ""
+check "the uncovered file is named on stderr" '[[ "$OUT" == *"run-all: no suite covers src/get.sh"* ]]' "$OUT"
+eq "a covering file that covers nothing runs no suite and exits 0" "$RC" 0
+covering=$(selector_file covering-md docs/notes.md)
+run_all --covering-file "$covering"
+eq "a changed markdown file selects the lint suites" "$(summary_labels)" "lint/delta"
+covering=$(selector_file covering-suite ./tests/hooks/gamma.sh)
+run_all --covering-file "$covering"
+eq "a changed suite selects itself" "$(summary_labels)" "hooks/gamma"
+covering=$(selector_file covering-lib tests/lib/common.sh)
+run_all --covering-file "$covering"
+eq "a changed lib selects every suite that names it" "$(summary_labels)" "scripts/alpha"
+only=$(selector_file only-beta-for-covering tests/scripts/beta.sh)
+covering=$(selector_file covering-union src/widget.sh docs/notes.md)
+run_all --only-file "$only" --covering-file "$covering"
+eq "--only-file and --covering-file select the union" "$(summary_labels)" "scripts/alpha scripts/beta lint/delta"
+exclude=$(selector_file exclude-delta tests/lint/delta.sh)
+run_all --only-file "$only" --covering-file "$covering" --exclude-file "$exclude"
+eq "--exclude-file takes from the union" "$(summary_labels)" "scripts/alpha scripts/beta"
+empty=$(selector_file covering-empty "")
+run_all --covering-file "$empty" --exclude-file "$exclude"
+eq "an empty --covering-file adds no constraint" "$(summary_labels)" "scripts/alpha scripts/beta hooks/gamma"
+run_all --covering-file "$WORK/no-such-file" --only-file "$only"
+eq "a missing --covering-file adds no constraint" "$(summary_labels)" "scripts/beta"
+run_all --suite beta --covering-file "$covering"
+eq "--suite with --covering-file exits 2" "$RC" 2
+run_all --covering-file
+eq "--covering-file without a path exits 2" "$RC" 2
 
 # Unknown selectors and conflicting flags
 only=$(selector_file only-unknown tests/scripts/beta.sh tests/scripts/omega.sh)

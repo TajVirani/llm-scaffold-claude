@@ -65,7 +65,7 @@ work_type: test-harness        # e2e-browser for 1.3
 git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
 ```
 
-`.workflow/.worktrees/` is gitignored. Name the worktree's absolute path in the brief as the directory the agent works in. A resumed or relaunched build reuses the worktree while it exists. The merge removes it, so a 1.4 loop back creates it again with the same command, off a spec-branch tip that already holds the earlier round. 1.3 creates its worktree only after the 1.2 merge, so it starts from the harness.
+`.workflow/.worktrees/` is gitignored. Name the worktree's absolute path in the brief as the directory the agent works in, and say in every brief: run only the test files you write, never the whole harness, before or after your changes; 1.4 runs it. A resumed or relaunched build reuses the worktree while it exists. The merge removes it, so a 1.4 loop back creates it again with the same command, off a spec-branch tip that already holds the earlier round. 1.3 creates its worktree only after the 1.2 merge, so it starts from the harness.
 
 - **Claude.** Call the Agent tool with `subagent_type: implementation` and the prompt above, as [Claude Code](../references/launching.md#claude-code) says, and confine the agent to its worktree as [An agent worktree on Claude Code](../references/launching.md#an-agent-worktree-on-claude-code) says.
 - **Codex.** Build and spawn the launch as [launching](../references/launching.md#codex) says, with `--task-type implementation` and `--work-type` from the header; the `task_name` is the worktree `<name>`.
@@ -114,7 +114,7 @@ Merge only on gate exit 0. Exit 1 prints each path under `artifacts/` that the b
 
 Launch under `work_type: test-harness`. The brief names what to build: the unit and integration harness for the modules this feature touches (from `codebase-map.md`), the CI checks that run it, the commands that measure the coverage targets from 1.1, and the fixtures and oracles from `verification-plan.md` (`## Fixtures and oracles`, pasted as rows). Ask for the harness command and the CI check name in the result `summary`. For each module listed as new in `codebase-map.md`, the brief also asks for a minimal interface stub first (the exported names and signatures from the `codebase-map.md` interface additions, returning a fixed placeholder value rather than throwing), so the new tests fail on an assertion at 1.4 instead of on an import error.
 
-**Done when:** the branch is merged and its worktree and branch removed, the stop audit is clean, and you can name the harness command and have run it once on the merged checkout.
+**Done when:** the branch is merged and its worktree and branch removed, the stop audit is clean, and you can name the harness command; 1.4 is its first whole run.
 
 ## 1.3 Browser suite from the journeys
 

@@ -66,8 +66,8 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
    bash "$spec/.agents/skills/feature-workflow/scripts/run-toolchain.sh" --spec-dir <spec_dir> --work-type <work_type> --task-id integration-<work_type> --cwd "$PWD" --exclude-unfinished
    ```
 
-   `--exclude-unfinished` leaves out the Phase 1 tests of every task not yet `done`: they are red by design until their task merges. Evidence lands in `<spec_dir>/artifacts/integration-<work_type>/` in the spec checkout.
-3. **Run the shared-core tests and the tests of every caller you found** in step 4 of the Method.
+   `--exclude-unfinished` leaves out the Phase 1 tests of every task not yet `done`: they are red by design until their task merges. In your worktree `test` is scoped to the suites that cover the files you changed; never run the whole harness (the profile's full `test` command) yourself, since the wave gate (3.9) runs it after the merge. Evidence lands in `<spec_dir>/artifacts/integration-<work_type>/` in the spec checkout.
+3. **Run the shared-core tests and the tests of every caller you found** in step 4 of the Method: those test files, not the whole suite.
 4. **Commit** in your worktree, one commit per applied request where practical, each message naming the request number. The orchestrator merges it before the next wave.
 5. **Write the result file, then return the summary block**, as [Return](#return) says. Do this every time you stop, a stop after a resume included.
 

@@ -45,7 +45,7 @@ typecheck: "npx tsc --noEmit -p tsconfig.json"
 format: "npx oxfmt --check"          # Prettier variant: "npx prettier --check ."
 boundary: "npx depcruise --config .workflow/tools/boundaries/dependency-cruiser.cjs --output-type err-long src"
 test: "npx vitest run --coverage"    # the harness; also the 3.9 gate. Coverage thresholds in vitest.config.ts fail the run.
-test_scoped: 'npx vitest run $(sed "s/^/--exclude /" "$WF_EXCLUDE_TESTS_FILE")'   # runs in place of test while other tasks' Phase 1 tests are excluded (3.5, 3.9); selectors are test file paths or globs. No --coverage: thresholds apply to the full run, which has nothing to exclude.
+test_scoped: 'npx vitest run $(sed "s/^/--exclude /" "$WF_EXCLUDE_TESTS_FILE") ${WF_CHANGED_BASE:+--changed "$WF_CHANGED_BASE"}'   # runs in place of test in an agent worktree and while other tasks' Phase 1 tests are excluded (3.5, 3.9); selectors are test file paths or globs. In an agent worktree $WF_CHANGED_BASE is set, so --changed keeps to the tests touching the files changed since the task left the spec branch; in the spec checkout (the 3.9 gate) it is empty and every test not excluded runs. No --coverage: thresholds apply to the full run, which has nothing to exclude.
 e2e: ""
 # Descriptive keys (not commands; run-toolchain.sh never runs them):
 serve: ""                            # the harness needs no running app

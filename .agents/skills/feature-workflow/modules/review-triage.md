@@ -149,7 +149,7 @@ Set the outcome line to `loop back (4.6 third pass)` and load `modules/questioni
 
 1. Run step 7 (4.8) to record the pass's gaps.
 2. In the spec checkout, on the spec branch, make each edit exactly as its fix gives it, and nothing else.
-3. Run the toolchain of the work type that owns each edited path: `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id wording-p<n> --work-type <work_type> --cwd <that checkout>`. Exit 1: the edit broke a check, so undo your edits by hand and continue with the rework below for those entries.
+3. Run the toolchain of the work type that owns each edited path: `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id wording-p<n> --work-type <work_type> --cwd <that checkout> --reuse` (with `--reuse`, `test` is not run again when only comments and docs changed since the last passing run; the lints run on the new text). Exit 1: the edit broke a check, so undo your edits by hand and continue with the rework below for those entries.
 4. Commit there with a Conventional Commit subject and the finding ids in the body (`docs: <the wording change>`, body `F<n>, F<m>: wording patch from review pass <n>`).
 5. Set the outcome line to `clean, to sign-off`, add the line `Patched directly: F<n>, F<m> (<short sha>)` under it, and load `modules/sign-off.md`.
 

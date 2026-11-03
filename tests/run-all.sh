@@ -6,7 +6,14 @@
 #                                     repeat it to run several suites, in --list order
 #   tests/run-all.sh --only-file F    run only the suites F names, one per line (tests/scripts/NAME.sh or scripts/NAME);
 #                                     an empty or missing F selects every suite
-#   tests/run-all.sh --exclude-file G leave out the suites G names (same format); with --only-file, runs F minus G
+#   tests/run-all.sh --covering-file C add the suites that cover the changed files C lists (repo-relative paths, one per line):
+#                                     a suite covers a file when the file is the suite itself, the suite's text names the
+#                                     file's basename as a whole word (a script, hook, lib or fixture), or the file is markdown
+#                                     and the suite is under tests/lint. The selection is the suites F names plus these;
+#                                     a file no suite covers is named on stderr and selects nothing, so a C that covers
+#                                     nothing runs no suite. An empty or missing C adds no constraint
+#   tests/run-all.sh --exclude-file G leave out the suites G names (same format); with --only-file or --covering-file,
+#                                     runs the selection minus G
 #   tests/run-all.sh -j N             run N suites at once (default: the number of CPUs, else 4; -j 1 runs serially)
 #   tests/run-all.sh --list           list suite names
 #   tests/run-all.sh -v               print each suite's full output (default: only failures and xfail lines); when a suite
@@ -38,6 +45,7 @@ default_jobs() {
 # The --suite names, each followed by a newline, so a case pattern can test membership.
 suite_names=$'\n'
 only_file=""
+covering_file=""
 exclude_file=""
 jobs=$(default_jobs)
 verbose=0
@@ -52,6 +60,11 @@ while [ $# -gt 0 ]; do
     --only-file)
       [ $# -ge 2 ] || usage_error "--only-file needs a path"
       only_file=$2
+      shift
+      ;;
+    --covering-file)
+      [ $# -ge 2 ] || usage_error "--covering-file needs a path"
+      covering_file=$2
       shift
       ;;
     --exclude-file)
@@ -78,8 +91,8 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-if [ "$suite_names" != $'\n' ] && { [ -n "$only_file" ] || [ -n "$exclude_file" ]; }; then
-  usage_error "--suite cannot be combined with --only-file or --exclude-file"
+if [ "$suite_names" != $'\n' ] && { [ -n "$only_file" ] || [ -n "$covering_file" ] || [ -n "$exclude_file" ]; }; then
+  usage_error "--suite cannot be combined with --only-file, --covering-file or --exclude-file"
 fi
 
 suites=()
@@ -129,12 +142,45 @@ selector_labels() {
   done <"$file"
 }
 
+# covering_labels FILE : the label of each suite that covers a changed file listed in FILE (repo-relative paths, one per
+# line), one per line, repeats included. A suite covers a file when the file is that suite, the suite's text names the
+# file's basename as a whole word, or the file is markdown and the suite is a lint. A file no suite covers is named on
+# stderr. Prints nothing for an empty or missing FILE.
+covering_labels() {
+  local file=$1 path base f label found
+  [ -f "$file" ] || return 0
+  while IFS= read -r path || [ -n "$path" ]; do
+    path=$(printf '%s' "$path" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+    [ -n "$path" ] || continue
+    path=${path#./}
+    base=$(basename "$path")
+    found=0
+    for f in "${suites[@]}"; do
+      label=$(suite_label "$f")
+      if [ "$path" = "$(basename "$HERE")/$label.sh" ] \
+        || { case "$path" in *.md | *.markdown) [ "${label%%/*}" = lint ] ;; *) false ;; esac; } \
+        || grep -qwF -- "$base" "$f"; then
+        printf '%s\n' "$label"
+        found=1
+      fi
+    done
+    [ "$found" -eq 1 ] || echo "run-all: no suite covers $path" >&2
+  done <"$file"
+}
+
 # Run in this shell, not a command substitution, so an unknown selector's exit 2 ends the run.
 only_list=$'\n'
 exclude_list=$'\n'
 selector_tmp=$(mktemp "${TMPDIR:-/tmp}/scaffold-tests-selectors.XXXXXX")
 if [ -n "$only_file" ]; then
   selector_labels "$only_file" >"$selector_tmp" || { rm -f "$selector_tmp"; exit 2; }
+  [ -s "$selector_tmp" ] && only_list+=$(cat "$selector_tmp")$'\n'
+fi
+# A covering file that names at least one path narrows the selection, even when no suite covers any of them.
+covering_given=0
+if [ -n "$covering_file" ] && [ -f "$covering_file" ] && grep -q '[^[:space:]]' "$covering_file"; then
+  covering_given=1
+  covering_labels "$covering_file" >"$selector_tmp"
   [ -s "$selector_tmp" ] && only_list+=$(cat "$selector_tmp")$'\n'
 fi
 if [ -n "$exclude_file" ]; then
@@ -152,7 +198,7 @@ is_selected() {
       *) return 1 ;;
     esac
   fi
-  if [ "$only_list" != $'\n' ]; then
+  if [ "$only_list" != $'\n' ] || [ "$covering_given" -eq 1 ]; then
     case "$only_list" in *$'\n'"$label"$'\n'*) ;; *) return 1 ;; esac
   fi
   case "$exclude_list" in *$'\n'"$label"$'\n'*) return 1 ;; esac

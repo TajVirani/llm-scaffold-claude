@@ -3,7 +3,12 @@
 # Covers: toolchain key order and skipping, serve keys never run, --e2e, failure digest and --tail, evidence files,
 #   missing profile / unclassified work type / usage errors, evidence in the checkout an agent worktree sits in, commands run in --cwd,
 #   the tree hash (recorded, --tree-hash, untracked files, workflow data, the Tier A files nothing reads and the model map ignored, rules and profiles counted, a gitignored data folder present, and the orchestrator and sign-off describing it so),
-#   --reuse hits and misses (whole records across profile files, single keys by command), --reuse-check, test_scoped on the own list alone.
+#   --reuse hits and misses (whole records across profile files, single keys by command), --reuse-check, test_scoped on the own list alone,
+#   no-code reuse (a test key not run again after comment-only and doc-only edits, reused across tasks from an unscoped record, run
+#   again on a code line, a shebang, a trailing comment, a mode change or a file of another kind, and never without --reuse),
+#   and changed-file scoping (an agent worktree off the spec branch gets its committed, uncommitted, deleted and untracked changes
+#   in WF_CHANGED_FILES, WF_CHANGED_FILES_FILE and WF_CHANGED_BASE and a `changed` count; the spec checkout, a worktree on the spec
+#   branch, a missing spec branch or a profile without test_scoped runs `test` whole).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -235,6 +240,124 @@ eq scope-own-file "$(tr '\n' ' ' < "$T/own.txt")" "tests/scripts/a.sh tests/scri
 out=$("$RT" --spec-dir .workflow/specs/001-x --task-id T2 2>/dev/null)
 eq scope-none-full "$(tail -n 1 "$M")" full
 eq scope-none-no-flags "$(jq -c '.results[] | select(.key=="test") | has("scoped")' <<<"$out")" false
+
+echo "== --reuse: a test key is not run again when only comments and docs changed since a passing run"
+N=$T/nocode
+git_init_repo "$N"
+mkdir -p "$N/.workflow/profiles" "$N/.workflow/specs/002-n" "$N/src"
+M2=$T/marker2
+cat > "$N/.workflow/profiles/nc.md" <<P
+## Toolchain
+\`\`\`yaml
+lint: "echo lint >> '$M2'"
+test: "echo test >> '$M2'"
+\`\`\`
+P
+printf -- '---\ntasks:\n  - {id: N1, status: in-progress, work_type: nc}\n---\n' > "$N/.workflow/specs/002-n/tasks.md"
+printf '#!/usr/bin/env bash\n# the old reason\necho hi # trailing\n' > "$N/src/s.sh"
+printf '// the old reason\nconsole.log(1)\n' > "$N/src/t.ts"
+printf '# Title\n\nold text\n' > "$N/doc.md"
+printf 'old\n' > "$N/data.txt"
+git_commit_all "$N" init
+EVN=$N/.workflow/specs/002-n/artifacts
+# marks WORD : how many times WORD has been appended to the second marker
+marks() { if [ -f "$M2" ]; then grep -c "^$1\$" "$M2"; else echo 0; fi; }
+NC() { "$RT" --spec-dir .workflow/specs/002-n --cwd "$N" --work-type nc "$@"; }
+NC --task-id N1 --reuse >/dev/null 2>&1
+eq nocode-first-run "$(marks lint):$(marks test)" 1:1
+printf '#!/usr/bin/env bash\n# the new reason\n\necho hi # trailing\n' > "$N/src/s.sh"
+printf '// the new reason\n// and more\nconsole.log(1)\n' > "$N/src/t.ts"
+printf '# Title\n\nnew text\n' > "$N/doc.md"
+printf '# a new doc\n' > "$N/new.md"
+out=$(NC --task-id N1 --reuse 2>/dev/null); rc=$?
+eq nocode-rc "$rc" 0
+eq nocode-lint-runs-test-does-not "$(marks lint):$(marks test)" 2:1
+eq nocode-test-result "$(jq -r '.results[] | select(.key=="test") | .status + ":" + .reused_from + ":" + .reason' <<<"$out")" \
+  "pass:N1:no code changed since that run: only comments and docs differ"
+check nocode-no-record-stamp '[ "$(jq -r ".reused_from // \"none\"" <<<"$out")" = none ] && [ "$(jq -r .status <<<"$out")" = pass ]' "$out"
+t nocode-txt-names-source 0 grep -q "not run: passed in .*N1/toolchain.txt on a tree that differs only in comments and docs" "$EVN/N1/toolchain.txt"
+printf '# Title\n\nnewer text\n' > "$N/doc.md"
+out=$(NC --task-id N2 --reuse 2>/dev/null)
+eq nocode-other-task-reuses-unscoped "$(marks lint):$(marks test):$(jq -r '.results[] | select(.key=="test") | .reused_from' <<<"$out")" 3:1:N1
+NC --task-id N1 >/dev/null 2>&1
+eq nocode-without-reuse-runs "$(marks test)" 2
+# code changes: a code line, a shebang, a trailing comment, a mode, a file of another kind; each runs the tests
+# settle : record a fresh passing run on the current content, so the next --reuse run is judged against it
+settle() { NC --task-id N1 >/dev/null 2>&1; before=$(marks test); }
+settle
+printf '#!/usr/bin/env bash\n# the new reason\n\necho bye # trailing\n' > "$N/src/s.sh"
+NC --task-id N1 --reuse >/dev/null 2>&1
+eq code-line-runs "$(marks test)" $((before + 1))
+settle
+printf '#!/bin/bash\n# the new reason\n\necho bye # trailing\n' > "$N/src/s.sh"
+NC --task-id N1 --reuse >/dev/null 2>&1
+eq shebang-runs "$(marks test)" $((before + 1))
+settle
+printf '#!/bin/bash\n# the new reason\n\necho bye # other trailing\n' > "$N/src/s.sh"
+NC --task-id N1 --reuse >/dev/null 2>&1
+eq trailing-comment-runs "$(marks test)" $((before + 1))
+settle
+chmod +x "$N/src/s.sh"
+NC --task-id N1 --reuse >/dev/null 2>&1
+eq mode-change-runs "$(marks test)" $((before + 1))
+settle
+printf 'new\n' > "$N/data.txt"
+NC --task-id N1 --reuse >/dev/null 2>&1
+eq other-kind-runs "$(marks test)" $((before + 1))
+settle
+printf '#!/bin/bash\n# commented out: echo bye\n\necho bye # other trailing\n' > "$N/src/s.sh"
+printf '// the new reason\nconsole.log(1)\n' > "$N/src/t.ts"
+rm -f "$N/new.md"
+NC --task-id N1 --reuse >/dev/null 2>&1
+eq comment-lines-and-docs-only-not-run "$(marks test)" "$before"
+rm -f "$M2"
+
+echo "== changed-file scoping: an agent worktree gets the files changed since its branch left the spec branch"
+C=$T/changed
+git_init_repo "$C"
+mkdir -p "$C/.workflow/profiles" "$C/.workflow/specs/003-c"
+M3=$T/marker3
+cat > "$C/.workflow/profiles/chg.md" <<P
+## Toolchain
+\`\`\`yaml
+test: "echo full >> '$M3'"
+test_scoped: "echo scoped >> '$M3'; cat \"\$WF_CHANGED_FILES_FILE\" > '$T/changed.txt'; echo \"[\$WF_CHANGED_FILES] \$WF_CHANGED_BASE\" > '$T/changed-env.txt'"
+\`\`\`
+P
+printf '## Toolchain\n```yaml\ntest: "echo plain >> %s"\n```\n' "'$M3'" > "$C/.workflow/profiles/plain.md"
+printf -- '---\ntasks:\n  - {id: T1, status: in-progress, work_type: chg}\n  - {id: T2, status: in-progress, work_type: plain}\n---\n' > "$C/.workflow/specs/003-c/tasks.md"
+printf 'a\n' > "$C/a.sh"; printf 'b\n' > "$C/b.txt"; printf 'c\n' > "$C/c.txt"
+git_commit_all "$C" init
+echo '.workflow/.worktrees/' >> "$C/.git/info/exclude"
+git -C "$C" branch -q spec/003-c
+SPEC_TIP=$(git -C "$C" rev-parse spec/003-c)
+CW=$C/.workflow/.worktrees/s003_t1
+git -C "$C" worktree add -q "$CW" -b task/003-c/T1-x spec/003-c
+printf 'a changed\n' > "$CW/a.sh"
+git -C "$CW" rm -q b.txt
+git -C "$CW" commit -q -m "task work"
+printf 'later\n' >> "$CW/c.txt"
+printf 'new\n' > "$CW/new.txt"
+CH() { "$RT" --spec-dir .workflow/specs/003-c "$@"; }
+: > "$M3"
+out=$(CH --task-id T1 --cwd "$CW" 2>/dev/null); rc=$?
+eq changed-rc "$rc" 0
+eq changed-scoped "$(tail -n 1 "$M3")" scoped
+eq changed-flags "$(jq -c '.results[] | select(.key=="test") | [.scoped, .own, .excluded, .changed]' <<<"$out")" '[true,0,0,4]'
+eq changed-file "$(tr '\n' ' ' < "$T/changed.txt")" "a.sh b.txt c.txt new.txt "
+eq changed-env "$(cat "$T/changed-env.txt")" "[a.sh b.txt c.txt new.txt] $SPEC_TIP"
+eq changed-evidence-copy "$(tr '\n' ' ' < "$C/.workflow/specs/003-c/artifacts/T1/changed-files.txt")" "a.sh b.txt c.txt new.txt "
+out=$(CH --task-id T1 --cwd "$C" 2>/dev/null)
+eq spec-checkout-runs-full "$(tail -n 1 "$M3"):$(jq -c '.results[] | select(.key=="test") | has("changed")' <<<"$out")" full:false
+git -C "$C" worktree add -q "$C/.workflow/.worktrees/onspec" spec/003-c
+out=$(CH --task-id T1 --cwd "$C/.workflow/.worktrees/onspec" 2>/dev/null)
+eq worktree-on-spec-branch-runs-full "$(tail -n 1 "$M3")" full
+git -C "$C" worktree remove --force "$C/.workflow/.worktrees/onspec"
+out=$(CH --task-id T2 --cwd "$CW" 2>/dev/null); rc=$?
+eq changed-no-test-scoped-runs-test "$rc:$(tail -n 1 "$M3"):$(jq -c '.results[] | select(.key=="test") | [has("scoped"), .status]' <<<"$out")" '0:plain:[false,"pass"]'
+git -C "$C" branch -q -D spec/003-c
+out=$(CH --task-id T1 --cwd "$CW" 2>/dev/null)
+eq no-spec-branch-runs-full "$(tail -n 1 "$M3"):$(jq -c '.results[] | select(.key=="test") | has("changed")' <<<"$out")" full:false
 
 # The modules that read `tree` describe it as the script builds it: rules.md and the profiles count, so a 5.3 edit to them re-runs.
 # shellcheck disable=SC2034  # read inside the eval'd check strings below

@@ -27,7 +27,7 @@
 #   - profile-wrong needs profile_wrong.line; scope-expansion needs a non-empty scope_expansion.requested_paths list;
 #     blocked needs blocked.reason; discovered-work needs a non-empty discovered_work.
 #   - self_review, the agent's walk of the checklist over its own diff, is a list of {item, verdict, note}: item an integer
-#     of 1 or more (a profile checklist line), R1 to R5 (a readable-code line) or comment-lint; verdict pass, fixed or
+#     of 1 or more, or a string of one (a profile checklist line), R1 to R5 (a readable-code line) or comment-lint; verdict pass, fixed or
 #     not-applicable; note a string, non-empty on fixed. It is required and non-empty when status is done. A stop status
 #     may leave it out, since the agent can stop before it reviews; when present it is checked the same way.
 #   integration:
@@ -41,11 +41,11 @@
 #     discovered_work.
 #   mini-review:
 #   - verdict is pass or fail, and is fail exactly when an item is fail; task_id, work_type, diff and tool_output are
-#     non-empty strings; mode is full or re-check; previous is a non-empty string in re-check mode, else null.
+#     non-empty strings. Every review is a full one: a file from an older round may carry mode, previous or carried_from
+#     keys, which are ignored like any other key the rules do not name.
 #   - task_id equals the folder name when the file sits in artifacts/<folder>/.
-#   - items is a non-empty list of {n, verdict, location}: n an integer or R1 to R5; verdict pass, fail, tool-covered or
-#     not-applicable; location a string; a non-empty note on fail and tool-covered; carried_from, when present, is r<k>
-#     and is allowed only in re-check mode.
+#   - items is a non-empty list of {n, verdict, location}: n an integer, a string of one, or R1 to R5; verdict pass, fail, tool-covered or
+#     not-applicable; location a string; a non-empty note on fail and tool-covered.
 #   - read_outside_diff is a list; out_of_scope_noticed is a list of discovered-work entries.
 # stdout on exit 0, a header line, then tab-separated rows (values cut to 120 characters, tabs and line breaks become spaces):
 #   implementation: status: <s>  task: <id>  head: <sha7>  files: <n>  tests: <n> (behaviour <b>, negative <n>, edge <e>)  discovered_work: <k>  self_review: <r> (fixed <f>)
@@ -54,7 +54,7 @@
 #     `profile_wrong.line: <line>`, `scope_expansion.requested_paths: <a, b>` or `blocked.reason: <reason>`.
 #   integration: status: <s>  work_type: <wt>  head: <sha7>  requests: <n> (applied <a>, rejected <r>, conflict <c>, blocked <b>)  discovered_work: <k>
 #     then one row per request (n, verdict, reason); then the discovered-work rows.
-#   mini-review: verdict: <v>  task: <id>  mode: <m>  items: <n> (pass <p>, fail <f>, tool-covered <t>, not-applicable <na>, carried <c>)  out_of_scope: <k>
+#   mini-review: verdict: <v>  task: <id>  items: <n> (pass <p>, fail <f>, tool-covered <t>, not-applicable <na>)  out_of_scope: <k>
 #     then one row per fail and tool-covered item (n, verdict, location, note); then one discovered-work row per
 #     out_of_scope_noticed entry.
 #   A null head_commit prints as "-".
@@ -175,7 +175,7 @@ def check_stop_fields:
 def check_self_review_entry($at):
   if type != "object" then "\($at): not a mapping"
   else
-    (if (.item | is_int and . >= 1) or ((.item | type) == "string" and (.item | test("^(R[1-5]|comment-lint)$"))) then empty
+    (if (.item | is_int and . >= 1) or ((.item | type) == "string" and (.item | test("^([1-9][0-9]*|R[1-5]|comment-lint)$"))) then empty
      else "\($at).item: '\(.item | text)' is not a checklist number, R1 to R5 or comment-lint" end),
     (if (.verdict | one_of(["pass", "fixed", "not-applicable"])) then empty
      else "\($at).verdict: '\(.verdict | text)' is not pass, fixed or not-applicable" end),
@@ -243,35 +243,26 @@ def check_integration:
     null_or_map("profile_wrong"), null_or_map("blocked"),
     check_stop_fields;
 
-def check_item($recheck; $i):
+def check_item($i):
   "items[\($i)]" as $at
   | if type != "object" then "\($at): not a mapping"
     else
-      (if (.n | is_int) or ((.n | type) == "string" and (.n | test("^R[1-5]$"))) then empty
+      (if (.n | is_int) or ((.n | type) == "string" and (.n | test("^([1-9][0-9]*|R[1-5])$"))) then empty
        else "\($at).n: '\(.n | text)' is not an integer or R1 to R5" end),
       (if (.verdict | one_of(["pass", "fail", "tool-covered", "not-applicable"])) then empty
        else "\($at).verdict: '\(.verdict | text)' is not pass, fail, tool-covered or not-applicable" end),
       (if (.location | type) == "string" then empty else "\($at).location: missing or not a string" end),
       (if (.verdict | one_of(["fail", "tool-covered"])) and ((.note | str_filled) | not) then
          "\($at).note: missing or empty, required when the verdict is \(.verdict)"
-       else empty end),
-      (if has("carried_from") | not then empty
-       elif $recheck | not then "\($at).carried_from: allowed only when mode is re-check"
-       elif (.carried_from | type) == "string" and (.carried_from | test("^r[0-9]+$")) then empty
-       else "\($at).carried_from: '\(.carried_from | text)' is not r<k>" end)
+       else empty end)
     end;
 
 def check_mini_review($folder):
-  (.mode == "re-check") as $recheck
-  | need_enum("verdict"; ["pass", "fail"]),
+  need_enum("verdict"; ["pass", "fail"]),
     check_task_id($folder), need_str("work_type"), need_str("diff"), need_str("tool_output"),
-    need_enum("mode"; ["full", "re-check"]),
-    (if $recheck then (if (.previous | str_filled) then empty else "previous: missing or empty, required when mode is re-check" end)
-     elif .previous != null then "previous: must be null when mode is not re-check"
-     else empty end),
     (if ((.items | is_list) and (.items | length) > 0) | not then "items: not a non-empty list"
      else
-       (.items | to_entries[] | .key as $i | .value | check_item($recheck; $i)),
+       (.items | to_entries[] | .key as $i | .value | check_item($i)),
        (any(.items[]; type == "object" and .verdict == "fail") as $failed
         | if .verdict == "fail" and ($failed | not) then "verdict: fail but no item is fail"
           elif .verdict == "pass" and $failed then "verdict: pass but an item is fail"
@@ -312,7 +303,7 @@ def table_integration:
 
 def table_mini_review:
   .items as $i
-  | "verdict: \(.verdict)  task: \(.task_id)  mode: \(.mode)  items: \($i | length) (pass \(count($i; "verdict"; "pass")), fail \(count($i; "verdict"; "fail")), tool-covered \(count($i; "verdict"; "tool-covered")), not-applicable \(count($i; "verdict"; "not-applicable")), carried \([$i[] | select(has("carried_from"))] | length))  out_of_scope: \(.out_of_scope_noticed | length)",
+  | "verdict: \(.verdict)  task: \(.task_id)  items: \($i | length) (pass \(count($i; "verdict"; "pass")), fail \(count($i; "verdict"; "fail")), tool-covered \(count($i; "verdict"; "tool-covered")), not-applicable \(count($i; "verdict"; "not-applicable")))  out_of_scope: \(.out_of_scope_noticed | length)",
     ($i[] | select(.verdict == "fail" or .verdict == "tool-covered")
        | [(.n | tostring), .verdict, (.location | cut), (.note | cut)] | map(one_line) | join("\t")),
     (.out_of_scope_noticed[] | dw_row);

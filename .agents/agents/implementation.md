@@ -41,9 +41,9 @@ Your launch prompt holds, in order: the launch header (above), the whole work pr
 2. **Green.** Write the least code that makes it pass. Run the file again and keep the passing output: your GREEN evidence.
 3. **Next slice.** Pick the next behaviour, informed by what this cycle taught you. Each test is a tracer bullet; write the tests one at a time, each answered by its implementation before the next.
 
-Run the type checker and the single test file you are working on regularly. The toolchain run before you stop (3.5) runs your task's own suites; that is your whole-task test run.
+Run the type checker and the single test file you are working on regularly. The toolchain run before you stop (3.5) runs your task's own suites and the suites that cover the files you changed; that is your whole-task test run. Never run the whole harness (the profile's full `test` command, or the project's whole suite) yourself, before or after your changes: it costs minutes and proves nothing about your task that the scoped run does not.
 
-**Red by design.** The spec branch carries Phase 1 tests for the whole feature, and most of them fail until every task is merged. Your job is to make **your task's** tests green (the Phase 1 tests your task file lists under Phase 1 tests, and the ones you add) without breaking a test that passed at your base commit. Other tasks' red tests are expected; leave them alone, and never weaken or skip one to get green. When your task owns Phase 1 tests, the toolchain runs only your task's own suites; when it owns none, it runs the whole harness minus other unfinished tasks' Phase 1 tests. The wave gate (3.9) runs the full harness after the merge and catches regressions elsewhere.
+**Red by design.** The spec branch carries Phase 1 tests for the whole feature, and most of them fail until every task is merged. Your job is to make **your task's** tests green (the Phase 1 tests your task file lists under Phase 1 tests, and the ones you add) without breaking a test that passed at your base commit. Other tasks' red tests are expected; leave them alone, and never weaken or skip one to get green. The toolchain runs your task's own Phase 1 suites plus the suites that cover the files you changed, never the whole harness. The wave gate (3.9) runs the full harness after the merge and catches regressions elsewhere.
 
 **Negative and edge cases (3.4).** Once the behaviours are green, add tests at the same seams for invalid input, empty and boundary values, and each error path the interface promises, with the same red-then-green discipline when a case exposes missing handling.
 
@@ -86,7 +86,7 @@ Run the type checker and the single test file you are working on regularly. The 
    # Phase 1: --task-id phase-1-<work_type> --work-type <work_type> --skip test
    ```
 
-   It runs the profile's `lint`, `typecheck`, `format`, `boundary` and `test` commands and saves the output under `<spec_dir>/artifacts/<task id>/` in the spec checkout. Fix every failure it names, then run it again until it exits 0.
+   It runs the profile's `lint`, `typecheck`, `format`, `boundary` and `test` commands, `test` scoped to your task's own suites and the suites covering your changed files, and saves the output under `<spec_dir>/artifacts/<task id>/` in the spec checkout. Fix every failure it names, then run it again until it exits 0. This scoped command is the only test run you make over the whole task.
 6. **Commit** on your task branch (Phase 1: your worktree branch), with a message naming the task id in its body. Commit subjects are Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`), never a bare task id such as `T9:`. The orchestrator merges your branch into the spec branch between waves and opens any PR/MR; leave merging, rebasing and pushing to it.
 7. **Write the result file, then return the summary block**, as [Return](#return) says. Do this every time you stop, a stop after a resume included.
 
@@ -94,7 +94,7 @@ Run the type checker and the single test file you are working on regularly. The 
 
 ## Phase 1 mode (1.2, 1.3)
 
-A header with `work_type` and no `task_id` is a Phase 1 launch under a test profile (`test-harness` or `e2e-browser`). The deliverable is the test infrastructure itself: the harness and its CI wiring (1.2), or the browser suite driving the named journeys (1.3), placed and written as the profile says. Feature code is out of scope. Journey tests for behaviour not built yet are expected to fail; run the suite and report its result as observed. The Phase 1 toolchain and stop audit skip the `test` key for that reason. Whether both suites fail a known-bad build is checked afterwards by the orchestrator (1.4). Everything else above applies; use the Phase 1 toolchain command.
+A header with `work_type` and no `task_id` is a Phase 1 launch under a test profile (`test-harness` or `e2e-browser`). The deliverable is the test infrastructure itself: the harness and its CI wiring (1.2), or the browser suite driving the named journeys (1.3), placed and written as the profile says. Feature code is out of scope. Journey tests for behaviour not built yet are expected to fail; run only the test files you write, one at a time, and report what you saw. Never run the whole harness, before or after your changes: the Phase 1 toolchain and stop audit skip the `test` key, and the orchestrator runs the whole suite itself at 1.4 to prove the new tests fail a known-bad build. Everything else above applies; use the Phase 1 toolchain command.
 
 ## Return
 
@@ -138,7 +138,7 @@ discovered_work: []   # out-of-scope items noticed; each entry:
 #    blocker_assessment: blocks-this-task | can-wait
 #    reason: <why it blocks, or why it can wait>
 self_review:          # Before you stop, step 4; required when status is done, optional on a stop status
-  - {item: <checklist number | R1-R5 | comment-lint>, verdict: pass | fixed | not-applicable, note: "<file:line where it holds, or what you fixed>"}
+  - {item: 3, verdict: pass | fixed | not-applicable, note: "<file:line where it holds, or what you fixed>"}   # item: the checklist number, written unquoted, or R1-R5, or comment-lint
 ```
 
 ### Summary block

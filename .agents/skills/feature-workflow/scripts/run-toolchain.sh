@@ -22,7 +22,8 @@
 #   --exclude-unfinished  scope `test` for a gate run whose --task-id is not a task record (e.g. the 3.9 harness gate, `--task-id gate-3.9-w2`):
 #                exclude the Phase 1 tests of every task whose status is not done (see Test scoping). A task-record --task-id scopes automatically.
 #   --reuse      before running anything, look for an earlier passing record of the same checkout content (see Reuse); on a hit copy it and run nothing,
-#                otherwise run only the keys no earlier record passed with the same command.
+#                otherwise run only the keys no earlier record passed with the same command. `test` and `e2e` are also not run when a passing
+#                record's tree differs from this one only in comments and docs (see No-code reuse).
 #   --reuse-check  look for a whole-record hit as --reuse does and only report it: on a hit print the task id that ran the commands and exit 0,
 #                on a miss print nothing and exit 1. Runs nothing and writes nothing (sign-off's check after a local merge). Not with --reuse.
 #   --tree-hash  print the tree hash of --cwd (see Tree hash) on stdout and exit 0; needs no spec dir, task id or profile.
@@ -32,16 +33,23 @@
 #   understands; assigned at 2.5). When --task-id names a record, the excluded set is the `tests` of every OTHER record whose status is not
 #   done (pending, in-progress, blocked, split-out); with --exclude-unfinished it is the `tests` of every record not done. So the gate judges
 #   this task's own tests, the tests of merged (done) tasks and every pre-existing test (regressions since impl_base_revision) together.
-#   - Own list and excluded set both empty (no record lists tests, a gate run with nothing unfinished): `test` runs unchanged, the whole suite must pass.
-#   - Own list or excluded set non-empty and the profile has a `test_scoped` key: that command runs in place of `test` (result key stays `test`), with
+#   Changed files: in an agent worktree (--cwd is not the spec checkout, its HEAD is not the spec branch spec/<NNN-slug> and that branch
+#   exists), the changed set is every file that differs from the merge-base of HEAD and the spec branch, uncommitted and untracked files
+#   included, so the profile's `test_scoped` can run only the suites that cover them. In the spec checkout (a gate, sign-off) the set is
+#   not computed and the whole suite runs.
+#   - Own list, excluded set and changed set all absent (no record lists tests, a gate run with nothing unfinished): `test` runs unchanged, the whole suite must pass.
+#   - Any of them present and the profile has a `test_scoped` key: that command runs in place of `test` (result key stays `test`), with
 #       WF_EXCLUDE_TESTS       space-separated excluded selectors      WF_EXCLUDE_TESTS_FILE  same, one per line
 #       WF_TASK_TESTS          this task's own selectors (may be "")  WF_TASK_TESTS_FILE     same, one per line
+#       WF_CHANGED_FILES       space-separated changed paths ("" in  WF_CHANGED_FILES_FILE  same, one per line (empty outside an agent worktree)
+#                              the spec checkout)                    WF_CHANGED_BASE        the merge-base commit, "" outside an agent worktree
 #       WF_TASK_ID, WF_IMPL_BASE (spec.md impl_base_revision, "" when unset)
 #     e.g. vitest: test_scoped: "npx vitest run --coverage $(for t in $WF_EXCLUDE_TESTS; do printf -- '--exclude %s ' \"$t\"; done)"
 #   - Excluded set non-empty and no `test_scoped` key: `test` runs; a failure is reported as status "unscoped" (not a failure, a warning in
 #     `warnings`), because red tests owned by other tasks cannot be told apart from real failures. Add `test_scoped` to the profile.
-#   - Own list non-empty, excluded set empty and no `test_scoped` key: `test` runs unchanged.
-#   toolchain.json results for test carry `scoped` (true when test_scoped ran), `own` and `excluded` (selector counts) when scoping applied.
+#   - Only the own list or the changed set present and no `test_scoped` key: `test` runs unchanged.
+#   toolchain.json results for test carry `scoped` (true when test_scoped ran), `own` and `excluded` (selector counts) when scoping applied,
+#   and `changed` (the changed-file count) when the changed set was computed.
 # Tree hash: a git tree object id for the checkout's content at --cwd's repository top level, tracked and untracked files alike (ignored files
 #   stay out), minus the workflow data folders (specs, initiatives, deferred, decisions, .handoff, .worktrees, .cache-staging, .standards-staging
 #   under the workflow root), so writing evidence or a step marker never changes it, and minus the Tier A files sign-off and the retrospective
@@ -57,13 +65,20 @@
 #   Without a whole-record hit, each key is looked up on its own in the same order: a key whose exact command is `pass` in a passing candidate
 #   of the same tree (a scoped result only from this task's own record) is not run. Its result is copied with `reused_from` and its
 #   toolchain.txt section names the record; the other keys run. So a gate under another profile whose `test` matches the task's runs only its lint.
+# No-code reuse (--reuse): a `test` or `e2e` key with no same-tree hit is still not run when a passing candidate (same rules) has a tree
+#   whose diff to this one changes no code: every changed path is a doc (.md, .markdown) or a file whose added and removed lines are all
+#   blank or whole-line comments (`#` lines in .sh, .bash, .py, .rb, .yml, .yaml, .toml, never a `#!` line; `//` lines in .js, .jsx,
+#   .mjs, .cjs, .ts, .tsx, .go, .java, .kt, .kts, .swift, .rs, .c, .h, .cc, .cpp, .hpp, .cs, .scala). A mode change, a binary file, a
+#   trailing comment on a code line, any other path, or a candidate tree git no longer holds counts as code. The result is copied as
+#   above with `reason` "no code changed since that run"; the other keys (lint and the rest) run on the new text. So a wording patch
+#   runs the lints and no tests.
 # Commands: keys lint, typecheck, format, boundary, test (then e2e) from the profile's Toolchain yaml block, run in that order with `bash -c` in --cwd.
 #   `test` is the harness command that 3.5 runs and the 3.9 gate reuses.
 #   Empty or absent keys are skipped. All commands run even after a failure so one block reply lists every failure. Other keys are ignored,
 #   (test_scoped only replaces test, see Test scoping), including the non-command keys `serve` and `serve_ready` (review-targets uses them at 4.3) and `config` / `rule_set`: never run.
 # Evidence (spec checkout, never the agent worktree, so it survives worktree removal): <spec-dir>/artifacts/<task-id>/toolchain.txt (combined output, one section per key),
 #   toolchain.json (the summary below) and toolchain-digest.txt (failure digest; present only on failure).
-# stdout: one JSON object {status: pass|fail, task_id, work_type, profile, cwd, evidence_dir, tree, ran, results:[{key, command, status: pass|fail|skipped|unscoped, exit_code, reason?, scoped?, own?, excluded?}], digest, warnings?, reused_from?}.
+# stdout: one JSON object {status: pass|fail, task_id, work_type, profile, cwd, evidence_dir, tree, ran, results:[{key, command, status: pass|fail|skipped|unscoped, exit_code, reason?, scoped?, own?, excluded?, changed?, reused_from?}], digest, warnings?, reused_from?}.
 #   digest is "" on pass; on failure it is bounded text suitable as a SubagentStop block reason. The digest is also printed to stderr on failure.
 #   With --tree-hash, stdout is the 40-hex tree hash alone. With --reuse-check, stdout is the hit's task id alone, or nothing.
 # Exit: 0 all run commands passed (or a reuse hit, or --tree-hash printed); 1 at least one failed, or --reuse-check found no hit;
@@ -202,6 +217,20 @@ n_excl=0 n_own=0
 [ -z "$own_list" ] || n_own=$(printf '%s\n' "$own_list" | grep -c .)
 warnings='[]'
 
+# Changed-file scoping: in an agent worktree, the files that differ from where its branch left the spec branch. The spec checkout
+# itself (a gate, sign-off) gets no changed set, so the whole suite runs there.
+changed_list="" changed_base="" n_changed=0 scope_changed=0
+spec_branch=spec/$(basename "$spec_abs")
+if [ "$cwd" != "$spec_root" ] && git -C "$cwd" rev-parse -q --verify "refs/heads/$spec_branch" >/dev/null 2>&1 \
+  && [ "$(git -C "$cwd" symbolic-ref -q --short HEAD 2>/dev/null || true)" != "$spec_branch" ] \
+  && changed_base=$(git -C "$cwd" merge-base HEAD "$spec_branch" 2>/dev/null) && [ -n "$changed_base" ]; then
+  scope_changed=1
+  cwd_top=$(git -C "$cwd" rev-parse --show-toplevel) || die "cannot find the top level of $cwd"
+  changed_list=$( { git -C "$cwd_top" diff --name-only --no-renames "$changed_base" -- . && git -C "$cwd_top" ls-files -o --exclude-standard -- .; } | sort -u) \
+    || die "cannot list the files changed since $changed_base in $cwd_top"
+  [ -z "$changed_list" ] || n_changed=$(printf '%s\n' "$changed_list" | grep -c .)
+fi
+
 tree=$(tree_hash "$cwd")
 evidence_dir=$spec_abs/artifacts/$task_id
 
@@ -219,7 +248,7 @@ for i in "${!keys[@]}"; do
     *" $key "*) skip="skipped by caller" ;;
     *)
       cmd=$(printf '%s\n' "$block" | K=$key yq '.[strenv(K)] // "" | select(tag == "!!str")' 2>/dev/null || true)
-      if [ "$key" = test ] && [ -n "$cmd" ] && { [ "$n_own" -gt 0 ] || [ "$n_excl" -gt 0 ]; }; then
+      if [ "$key" = test ] && [ -n "$cmd" ] && { [ "$n_own" -gt 0 ] || [ "$n_excl" -gt 0 ] || [ "$scope_changed" -eq 1 ]; }; then
         scmd=$(printf '%s\n' "$block" | yq '.test_scoped // "" | select(tag == "!!str")' 2>/dev/null || true)
         if [ -n "$scmd" ]; then cmd=$scmd scoped=true
         elif [ "$n_excl" -gt 0 ]; then scoped=false unscoped=1
@@ -242,13 +271,48 @@ reuse_match() {
       and ((any(.results[]; .scoped == true) | not) or .task_id == $task)' "$1" >/dev/null 2>&1
 }
 
-# reused_key FILE KEY COMMAND : print KEY's result from the record at FILE, stamped with the task that ran it, when it passed there with
-# COMMAND on this tree; print nothing otherwise.
+# reused_key FILE KEY COMMAND [TREE] : print KEY's result from the record at FILE, stamped with the task that ran it, when it passed there
+# with COMMAND on TREE (this checkout's tree by default); print nothing otherwise.
 reused_key() {
-  jq -c --arg tree "$tree" --arg task "$task_id" --arg k "$2" --arg c "$3" --arg src "$(dirname "$1")/toolchain.txt" '
+  jq -c --arg tree "${4:-$tree}" --arg task "$task_id" --arg k "$2" --arg c "$3" --arg src "$(dirname "$1")/toolchain.txt" '
     select(.status == "pass" and .tree == $tree) | . as $rec
     | first(.results[] | select(.key == $k and .command == $c and .status == "pass" and (.scoped != true or $rec.task_id == $task)))
     | . + {reused_from: (.reused_from // $rec.reused_from // $rec.task_id), reused_txt: $src}' "$1" 2>/dev/null || true
+}
+
+# no_code_diff TREE_A TREE_B : true when the diff between the two trees changes no code: only docs, blank lines and whole-line comments.
+# A tree git no longer holds, a mode change or a binary file counts as code, so the tests run.
+no_code_diff() {
+  git -C "$cwd" diff --no-color --no-ext-diff --no-renames -U0 "$1" "$2" 2>/dev/null | awk '
+    function kind(p) {
+      if (p ~ /\.(md|markdown)$/) return "doc"
+      if (p ~ /\.(sh|bash|py|rb|yml|yaml|toml)$/) return "hash"
+      if (p ~ /\.(js|jsx|mjs|cjs|ts|tsx|go|java|kt|kts|swift|rs|c|h|cc|cpp|hpp|cs|scala)$/) return "slash"
+      return "code"
+    }
+    /^diff --git / { hdr = 1; path = $0; sub(/^diff --git a\/.* b\//, "", path); k = kind(path); next }
+    hdr && /^@@/ { hdr = 0; next }
+    hdr { if ($0 ~ /^(old|new) mode / || $0 ~ /^Binary files/) code = 1; next }
+    /^[+-]/ {
+      if (k == "doc") next
+      if (k == "code") { code = 1; next }
+      line = substr($0, 2)
+      if (line ~ /^[[:space:]]*$/) next
+      if (k == "hash" && line ~ /^[[:space:]]*#/ && line !~ /^#!/) next
+      if (k == "slash" && line ~ /^[[:space:]]*\/\//) next
+      code = 1
+    }
+    END { exit code }'
+}
+
+# reused_test_no_code FILE KEY COMMAND : as reused_key, for a test key, when the record at FILE passed on a tree that differs from this
+# one only in comments and docs; the result carries the reason.
+reused_test_no_code() {
+  local cand_tree
+  cand_tree=$(jq -r '.tree // ""' "$1" 2>/dev/null || true)
+  [ -n "$cand_tree" ] && [ "$cand_tree" != "$tree" ] || return 0
+  no_code_diff "$cand_tree" "$tree" || return 0
+  reused_key "$1" "$2" "$3" "$cand_tree" | jq -c 'select(. != null) | . + {reason: "no code changed since that run: only comments and docs differ"}'
 }
 
 plan_reused=()
@@ -286,6 +350,12 @@ if [ "$reuse" -eq 1 ] || [ "$reuse_check" -eq 1 ]; then
       plan_reused[i]=$(reused_key "$cand" "${keys[$i]}" "${plan_cmd[$i]}")
       [ -z "${plan_reused[$i]}" ] || break
     done
+    [ -z "${plan_reused[$i]}" ] || continue
+    case "${keys[$i]}" in test|e2e) ;; *) continue ;; esac
+    for cand in ${candidates[@]+"${candidates[@]}"}; do
+      plan_reused[i]=$(reused_test_no_code "$cand" "${keys[$i]}" "${plan_cmd[$i]}")
+      [ -z "${plan_reused[$i]}" ] || break
+    done
   done
 fi
 
@@ -299,8 +369,8 @@ for i in "${!keys[@]}"; do
     continue
   fi
   if [ -n "${plan_reused[$i]}" ]; then
-    src=$(jq -r '.reused_txt' <<<"${plan_reused[$i]}")
-    printf '== %s: %s\n(not run: passed on this tree in %s)\n== %s exit 0\n\n' "$key" "$cmd" "$src" "$key" >> "$evidence_dir/toolchain.txt"
+    why=$(jq -r 'if .reason then "passed in \(.reused_txt) on a tree that differs only in comments and docs" else "passed on this tree in \(.reused_txt)" end' <<<"${plan_reused[$i]}")
+    printf '== %s: %s\n(not run: %s)\n== %s exit 0\n\n' "$key" "$cmd" "$why" "$key" >> "$evidence_dir/toolchain.txt"
     results=$(jq -c --argjson r "${plan_reused[$i]}" '. + [$r | del(.reused_txt)]' <<<"$results")
     continue
   fi
@@ -310,11 +380,13 @@ for i in "${!keys[@]}"; do
     cd "$cwd" || exit 125
     if [ "$key" = test ]; then
       WF_EXCLUDE_TESTS=$(printf '%s' "$excl_list" | tr '\n' ' ') WF_TASK_TESTS=$(printf '%s' "$own_list" | tr '\n' ' ')
-      WF_EXCLUDE_TESTS_FILE=$evidence_dir/excluded-tests.txt WF_TASK_TESTS_FILE=$evidence_dir/task-tests.txt
+      WF_CHANGED_FILES=$(printf '%s' "$changed_list" | tr '\n' ' ') WF_CHANGED_BASE=$changed_base
+      WF_EXCLUDE_TESTS_FILE=$evidence_dir/excluded-tests.txt WF_TASK_TESTS_FILE=$evidence_dir/task-tests.txt WF_CHANGED_FILES_FILE=$evidence_dir/changed-files.txt
       { [ -z "$excl_list" ] || printf '%s\n' "$excl_list"; } > "$WF_EXCLUDE_TESTS_FILE"
       { [ -z "$own_list" ] || printf '%s\n' "$own_list"; } > "$WF_TASK_TESTS_FILE"
+      { [ -z "$changed_list" ] || printf '%s\n' "$changed_list"; } > "$WF_CHANGED_FILES_FILE"
       WF_TASK_ID=$task_id WF_IMPL_BASE=$impl_base
-      export WF_EXCLUDE_TESTS WF_TASK_TESTS WF_EXCLUDE_TESTS_FILE WF_TASK_TESTS_FILE WF_TASK_ID WF_IMPL_BASE
+      export WF_EXCLUDE_TESTS WF_TASK_TESTS WF_CHANGED_FILES WF_CHANGED_BASE WF_EXCLUDE_TESTS_FILE WF_TASK_TESTS_FILE WF_CHANGED_FILES_FILE WF_TASK_ID WF_IMPL_BASE
     fi
     bash -c "$cmd"
   ) >"$log" 2>&1
@@ -336,8 +408,11 @@ for i in "${!keys[@]}"; do
     digest+=$(printf '[%s] %s exited %d. Last %d lines:\n%s\n\n' "$key" "$cmd" "$rc" "$tail_n" "$(tail -n "$tail_n" "$log" | cut -c1-500)")$'\n'
   fi
   rm -f "$log"
-  results=$(jq -c --arg k "$key" --arg c "$cmd" --arg s "$st" --argjson r "$rc" --arg sc "$scoped" --argjson ne "$n_excl" --argjson no "$n_own" \
-    '. + [{key:$k, command:$c, status:$s, exit_code:$r} + (if $sc == "" then {} else {scoped: ($sc == "true"), own: $no, excluded: $ne} end)]' <<<"$results")
+  chg=""
+  [ "$key" != test ] || [ "$scope_changed" -eq 0 ] || chg=$n_changed
+  results=$(jq -c --arg k "$key" --arg c "$cmd" --arg s "$st" --argjson r "$rc" --arg sc "$scoped" --argjson ne "$n_excl" --argjson no "$n_own" --arg chg "$chg" \
+    '. + [{key:$k, command:$c, status:$s, exit_code:$r} + (if $sc == "" then {} else {scoped: ($sc == "true"), own: $no, excluded: $ne} end)
+          + (if $chg == "" then {} else {changed: ($chg | tonumber)} end)]' <<<"$results")
 done
 
 if [ "$failed" -gt 0 ]; then

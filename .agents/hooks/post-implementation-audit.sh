@@ -33,7 +33,8 @@
 #     unreadable (either host), or no .agents/skills/feature-workflow in the spec checkout: exit 0, no output, no evidence file.
 #   - Task launch header (spec_dir, task_id[, work_type]): run-toolchain.sh --spec-dir --task-id --cwd <worktree> --reuse [--work-type] (Claude:
 #     .workflow/.worktrees/s<NNN>_t<N>, else the isolation-worktree payload cwd; Codex: .workflow/.worktrees/<task_name>). run-toolchain.sh
-#     scopes `test` to the task (other unfinished tasks' Phase 1 tests excluded). Without a
+#     scopes `test` to the task (other unfinished tasks' Phase 1 tests excluded, the suites covering the worktree's changed files only,
+#     and not run at all under --reuse when only comments and docs changed since the agent's passing run). Without a
 #     header work_type, run-toolchain.sh reads it from tasks.md (pre-launch.sh already denied a disagreeing header value).
 #   - Phase 1 header (spec_dir, work_type, no task_id): run-toolchain.sh with --work-type and the evidence id `phase-1-<work_type>`, so the
 #     two Phase 1 launches (1.2 harness, 1.3 browser suite) keep separate evidence under artifacts/phase-1-<work_type>/.
