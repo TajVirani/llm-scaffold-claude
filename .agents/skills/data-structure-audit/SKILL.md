@@ -13,6 +13,8 @@ Audit a codebase's data structures in three phases, in this order:
 
 Correctness beats ergonomics beats performance. Never propose a performance change that reopens an invalid-state hole fixed in phase 1.
 
+**Project stack reference:** when `.workflow/data-structure-audit/stack.md` exists, read it before Step 0b. It maps which layer owns which shape, lists paths to drop from scope, and carries project rules that override the generic advice here. Each phase below also reads its section of that file.
+
 ## Step 0: Determine the diff scope (git anchoring)
 
 This audit is incremental. It never re-checks code that hasn't changed since the last recorded run. Start every run here:
@@ -40,12 +42,13 @@ Within the in-scope files, build the inventory:
 - **Changed definitions** get the full three-phase audit.
 - **Changed usages of unchanged types**: if scoped code merely *uses* a type defined in an out-of-scope file, don't re-audit the type definition — but do check the new call sites for phase-2 smells (repeated derivation, sync obligations) and for bypassing existing parse boundaries. If a new usage reveals a definition-level flaw, report it, noting the definition itself was out of scope.
 - Rank by centrality within scope; note serialization boundaries — boundary types get extra scrutiny ("parse, don't validate").
+- Drop the paths listed under "Scope hygiene" in `.workflow/data-structure-audit/stack.md`, when it exists, and say which you skipped.
 
 Present the inventory as a short table (type, file, rough usage count, boundary yes/no, changed-definition vs changed-usage) and confirm before deep-diving, unless the user already pointed at specific files.
 
 ## Phase 1: Invalid states
 
-Read `references/invalid-states.md` before starting this phase.
+Read `references/invalid-states.md` before starting this phase, then the phase-1 section of the project stack reference.
 
 For each in-scope type, do the **state-space math**: multiply out the cardinality of what the type can represent, compare against what the domain allows, and name the difference. A finding is only real if you can exhibit a concrete invalid value the compiler accepts. Example framing:
 
@@ -55,13 +58,13 @@ Then propose the tightened shape (discriminated union, sealed interface, newtype
 
 ## Phase 2: Simplification
 
-Read `references/simplification.md` before starting this phase.
+Read `references/simplification.md` before starting this phase, then the phase-2 section of the project stack reference.
 
 Look for shapes that make callers work too hard: repeated derivations at call sites, parallel collections that must be kept in sync by discipline, denormalized copies of the same fact, wide structs consumed narrowly, temporal coupling (must call `Init` before use). Evidence here is call-site based: cite the 3+ places doing the same dance.
 
 ## Phase 3: Performance
 
-Read `references/performance.md` before starting this phase.
+Read `references/performance.md` before starting this phase, then the phase-3 section of the project stack reference.
 
 **Gate this phase.** Ask (or check the repo) for profiles, benchmarks, or at least a stated hot path. If none exist, still note *obvious* structural costs (slice-of-pointers where slice-of-values works, per-item allocation in a tight loop, map used as a fixed-field record) but label them "unverified — benchmark before acting" and offer to write the benchmark. Do not recommend layout changes that hurt readability for unprofiled code.
 

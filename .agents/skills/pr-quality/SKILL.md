@@ -3,7 +3,9 @@ name: pr-quality
 description: |
   PR code quality review dispatching parallel sub-agents for duplicate detection,
   orphan detection, complexity analysis, seam conformance and documentation conformance
-  against the branch diff, plus one agent per project check in .workflow/pr-quality/*.md.
+  against the branch diff, plus one agent per project check in .workflow/pr-quality/*.md and,
+  when .workflow/pr-quality/expert-panel/ exists, a per-concept expert panel that debates
+  cross-concept impact.
 
   Triggers: pr quality, code review, duplicate code, orphaned code, complexity review, pr cleanup
 
@@ -11,7 +13,7 @@ description: |
   DO NOT use when: mid-feature development, single-file changes, non-code PRs
 category: code-quality
 tags: [pr-review, duplicates, orphans, complexity, refactoring, documentation]
-tools: [Agent, Bash, Grep, Glob, Read]
+tools: [Agent, Bash, Grep, Glob, Read, SendMessage]
 modules:
   - duplicate-detection
   - orphan-detection
@@ -65,6 +67,7 @@ Project-specific checks (a library's correct use, recurring fix patterns from th
 
 - **Contract:** every `.workflow/pr-quality/*.md` file in the project root except `README.md` is one project check. Each file is the complete methodology for one sub-agent: Objective, Scope (trigger and self-skip), Checks, What to report, What NOT to flag. Its H1 names its report section.
 - **Start one** by copying [assets/project-check.template.md](assets/project-check.template.md) to `.workflow/pr-quality/<check-name>.md` and filling it in.
+- **Expert panel:** `.workflow/pr-quality/expert-panel/` is not a project check (the `*.md` listing never descends into it). When its `PANEL.md` exists, the orchestrator runs it as Step 2b, because the panel fans out per expert and debates over `SendMessage`, which a single check agent cannot do.
 - **No folder or no files** → no project checks run; the report says "No project checks (.workflow/pr-quality/ has none)".
 - This skill never ships project checks, and the scaffold installer never writes, overwrites or removes anything under `.workflow/pr-quality/`.
 
@@ -152,6 +155,15 @@ Dispatch agents 1–5 plus one agent per project check simultaneously using the 
   2. Run each applicable check group against the diff; list skipped groups explicitly
   3. Report findings in the file's "What to report" format, anchored to diffed files and lines
 
+### Step 2b: Expert Panel (only when `.workflow/pr-quality/expert-panel/PANEL.md` exists)
+
+Read `PANEL.md` and run it from this session, alongside the Step 2 agents:
+
+1. Map the changed files onto the code roots of the roster `PANEL.md` names to find residents; dispatch one `Explore` triage agent to nominate neighbors.
+2. Dispatch one `Explore` agent per resident and nominated neighbor. Each reads its persona file (matched on its `concept:` frontmatter), its roster entry and its listed docs, and returns claims in the PANEL.md claim format.
+3. Run the debate rounds by continuing the same expert agents with `SendMessage`, then adjudicate per PANEL.md.
+4. When the user rules on a Decision Point, append the ruling to the named personas' **Settled precedents**.
+
 ### Step 3: Consolidate Results
 
 After all agents complete, present a unified report:
@@ -177,6 +189,12 @@ After all agents complete, present a unified report:
 ### <H1 of each project check>
 [That agent's findings plus its skipped-sections line, or its "not applicable" line. With no project checks, one line: "No project checks (.workflow/pr-quality/ has none)"]
 
+### Expert Panel
+[Only when Step 2b ran: per-expert stance line, agreed findings with anchors, non-impact assertions — per PANEL.md Reporting]
+
+### Decision Points
+[Only when Step 2b ran: numbered unresolved disagreements, per PANEL.md]
+
 ### Summary
 - X duplicate patterns found
 - Y orphaned exports found
@@ -184,6 +202,7 @@ After all agents complete, present a unified report:
 - W seam violations found
 - V doc mismatches (+ D drift notes)
 - one line per project check: N findings in <check name>
+- expert panel: A agreed findings, P decision points (when Step 2b ran)
 ```
 
 Only report actual findings. If a category has no issues, say "No issues found" for that section.
