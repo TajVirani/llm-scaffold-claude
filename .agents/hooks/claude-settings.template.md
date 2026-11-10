@@ -46,7 +46,7 @@ What the docs say ([permissions](https://code.claude.com/docs/en/permissions), "
 
 - No existing `<target>/.claude/settings.json`: write the template as is.
 - Existing file: deep-merge with `jq`.
-  - `hooks.<event>`, on every event: first remove each hook whose command an earlier template wired and the payload no longer ships (`RETIRED_HOOK_COMMANDS` in `install.sh`: `spec-single-writer-guard.sh`, `tier-a-write-guard.sh`, `tier-b-write-guard.sh`), and any group that leaves empty. Then append each template command not yet present under that event, in the template's matcher group. A command already present is not added again, so reinstalling is idempotent.
+  - `hooks.<event>`, on every event: first remove each hook whose command an earlier template wired and the payload no longer ships (`RETIRED_HOOK_COMMANDS` in `install.sh`: `spec-single-writer-guard.sh`, `tier-a-write-guard.sh`, `tier-b-write-guard.sh`). Then append each template command not yet present under that event, in the template's matcher group; a group the removal left empty under the same matcher takes the template group in its place, so the upgraded file reads as a fresh install's, and a group still empty goes. A command already present is not added again, so reinstalling is idempotent.
   - Matcher rule: an existing group that runs a template command under a matcher not covering the template's is resolved on its own, per group. A matcher covers the template's when its `|` alternatives include all of the template's, so a re-run asks nothing.
     - `merge`: union of both matchers' `|` alternatives in one group (`implementation|foo` with `implementation|integration` gives `implementation|foo|integration`). Offered only when both matchers are plain alternations (`[A-Za-z0-9_|]`).
     - `replace`: the group takes the template's matcher. A match-all template matcher makes merge and replace drop the matcher.
@@ -56,7 +56,7 @@ What the docs say ([permissions](https://code.claude.com/docs/en/permissions), "
     - `--matchers=merge|replace|keep` sets the outcome for every group without asking, mixed groups included.
     - A match-all group (matcher absent, `""` or `"*"`) is never touched.
     - `--dry-run` asks nothing and shows the matcher changes the run would make: without `--matchers`, the no-terminal outcome. `--force` does not change matchers.
-  - `permissions.deny`: union, de-duplicated. Never remove user entries.
+  - `permissions.allow` and `permissions.deny`: first remove each entry an earlier template wrote for a retired script or path (`RETIRED_PERMISSIONS` in `install.sh`: the three `regenerate-caches` script allows and `Edit(.workflow/cache/**)`, plus two older deny rules), then union with the template's, de-duplicated. Never remove other user entries.
   - Other `permissions` keys and unrelated top-level keys (`enabledPlugins`, `env`, ...): keep the user's values.
   - `outputStyle`: set it if absent. If the user set a different style, keep theirs and warn, or overwrite with `--force`.
   - `statusLine`: same rule as `outputStyle`. A project `statusLine` overrides a user-level one, so a user who prefers their own status line removes the key from the project settings.

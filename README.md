@@ -86,10 +86,18 @@ In target projects, used by the workflow at runtime:
 - Claude: it creates the `.claude/{skills,agents,output-styles}` symlinks and merges `.agents/hooks/claude-settings.template.json` into `.claude/settings.json`. The merge keeps your keys, hooks and deny rules, and it keeps your `outputStyle` and `statusLine` with a warning. The default `statusLine` is the context bar, `context-bridge.cjs` (D83).
 - Codex: it generates `.codex/agents/*.toml` and merges the hook and config templates into `.codex/hooks.json` and `.codex/config.toml`, including a `[tui] status_line` of built-in items as the context bar (D83; a `[tui]` table you already have is kept with a warning). Afterwards, start Codex in the project, trust its `.codex/` layer and review the hooks with `/hooks`. Do this again after every upgrade.
 - It adds `.workflow/specs/*/.step`, `.workflow/initiatives/*/.step`, `.workflow/.worktrees/`, `.workflow/.spec-worktrees/`, `.workflow/.handoff/` and `.workflow/.standards-staging/` to `.gitignore`, for every `--host`. It does not create `.workflow/` itself; `project-setup` does.
-- It never touches project-owned files: everything under `.workflow/` (the glossary, rules, profiles, model map, specs, deferred items and decisions), `e2e/` and the project's own `docs/` (D81).
+- It never touches project-owned files: everything under `.workflow/` (the glossary, rules, profiles, model map, specs, deferred items and decisions), `e2e/` and the project's own `docs/` (D81). The one exception is an upgrade from an older format, below.
 - `--dry-run` prints the changes and writes nothing. When something conflicts, it refuses before writing anything; `--force` replaces the conflicting entries instead (see the header of `install.sh`).
 
 To upgrade, pull this repo and run the same command again. Changed payload files are overwritten. Files the previous install shipped that the manifest no longer lists are removed. A re-run with nothing new changes nothing.
+
+An upgrade also clears what earlier versions left, so the project ends as a fresh install plus its own data:
+
+- Removed: the old write-hook entries and the cache permissions in the host settings, the old Codex permission blocks and retired agent files, the `.workflow/.cache-staging/` ignore line, and the generated `.workflow/cache/` and `.workflow/.cache-staging/` folders.
+- Converted, where nothing is lost: `.workflow/model-map/` and `agent-overrides.yaml` into `model-map.yaml`, per-item backlog files into backlog-list lines, and the dead keys `graph_extractor` (profiles), `small_path` (in-flight specs, which keep `light_path: true`) and `cache_stamps` (their codebase maps). Specs in the Done folder are never changed.
+- Reported, not changed: a done spec still outside the Done folder, an unfinished task with no task branch, and a review lesson or shelf item that names a removed path, each with the command to run.
+
+The run that does this ends with an "Upgrade from an older install" summary of all three. A second run prints none. To retire something later, add one entry to the matching table near the top of `install.sh`.
 
 Hook matchers on upgrade: when an existing hook group runs a scaffold hook under a matcher that does not cover the template's (its `|` alternatives miss some of the template's), the upgrade resolves that group on its own. A match-all group and a covering one are left as they are, so a re-run asks nothing.
 

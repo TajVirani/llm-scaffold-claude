@@ -5,7 +5,9 @@
 #   and .workflow/pr-quality/); .gitignore user lines kept. JRN-006: a project installed with the template whose stop audit
 #   matched only implementation agents is left, after an upgrade, with one SubagentStop entry matching implementation and integration,
 #   and with the retired write-guard hooks (spec-single-writer, tier-a, tier-b) removed, workflow-write-guard.sh wired in their place
-#   and a user hook that shared their group kept.
+#   and a user hook that shared their group kept, a re-run changing and printing nothing more; a .gitignore line an
+#   earlier install wrote in its block and this one does not (.workflow/.cache-staging/) removed, the user line kept, the
+#   summary naming it, and a re-run changing and printing nothing.
 #   Matcher resolution on an upgrade to a template whose stop audit matches implementation|integration, from an old install
 #   with user groups: JRN-011 without a terminal (template-only group merged, mixed group kept, also when its own hook is
 #   a prompt hook, match-all and covering groups untouched, a Warnings line per merged or kept group, a third run writes
@@ -236,6 +238,28 @@ for agent in implementation integration; do
   check "JRN-006 after the upgrade: the stop audit matcher matches $agent" 'matcher_matches "$(stop_audit_matchers "$OS")" "$agent"' \
     "$(jq -c .hooks.SubagentStop "$OS")"
 done
+before=$(snap "$O")
+out=$(INST "$O" --host claude 2>&1)
+eq "a re-run after removing the retired hooks exits 0" "$?" 0
+eq "...and changes nothing" "$(snap "$O")" "$before"
+check "...and prints no upgrade summary" '! grep -q "^Upgrade from an older install" <<<"$out"' "$out"
+
+echo "== a .gitignore line an earlier install wrote in the block and this one no longer does"
+G=$WORK/gitignore-retired
+new_target "$G"
+INST "$G" --host claude >/dev/null 2>&1
+printf 'node_modules/\n' >>"$G/.gitignore"
+awk '$0 == ".workflow/.worktrees/" { print ".workflow/.cache-staging/" } { print }' "$G/.gitignore" >"$WORK/gi.tmp" && mv "$WORK/gi.tmp" "$G/.gitignore"
+check "the fixture has the retired line inside the block" 'grep -qx ".workflow/.cache-staging/" "$G/.gitignore"'
+out=$(INST "$G" --host claude 2>&1)
+eq "the upgrade exits 0" "$?" 0
+check "the retired line is gone" '! grep -q "cache-staging" "$G/.gitignore"'
+check "the user line after the block is kept" 'grep -qx "node_modules/" "$G/.gitignore"'
+check "the summary names the line" 'grep -qF "the .gitignore line(s) .workflow/.cache-staging/" <<<"$out"' "$out"
+before=$(snap "$G")
+out=$(INST "$G" --host claude 2>&1)
+eq "a re-run changes nothing" "$(snap "$G")" "$before"
+check "a re-run prints no summary" '! grep -q "^Upgrade from an older install" <<<"$out"' "$out"
 
 echo "== matcher resolution fixtures: the template upgraded to and the old install"
 # The template the upgrade goes to gets its stop audit widened here, so these cases hold whether or not the repo's own

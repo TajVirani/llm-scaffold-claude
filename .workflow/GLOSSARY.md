@@ -45,7 +45,7 @@ The kind of sub-agent a launch runs, one per agent definition: retrieval, librar
 _Avoid_: Agent role
 
 **Model map**:
-The project-owned table that assigns a model tier and host model alias to each **task type**. Lowest-precedence source: agent overrides and the agent definition win over it.
+The project-owned table, `.workflow/model-map.yaml`, that gives each **task type** one row: its model tier, the model alias per host and why. It is the only source of a launch's model.
 _Avoid_: Model config
 
 **Launch header**:
