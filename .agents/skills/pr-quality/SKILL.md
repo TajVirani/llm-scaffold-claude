@@ -5,8 +5,8 @@ description: |
   orphan detection, complexity analysis, seam conformance and documentation conformance
   against the branch diff, plus one agent per project check in .workflow/pr-quality/*.md and,
   when .workflow/pr-quality/expert-panel/ exists, a per-concept expert panel that debates
-  cross-concept impact. On a workflow spec branch whose spec is in-review or done, skips the
-  checks the Phase 4 review already settled and says so.
+  cross-concept impact. On a workflow spec branch whose spec is done, or in-review after its last
+  review pass sent it to sign-off, skips the checks the Phase 4 review already settled and says so.
 
   Triggers: pr quality, code review, duplicate code, orphaned code, complexity review, pr cleanup
 
@@ -33,7 +33,7 @@ Parallel code quality analysis for PR branches. Dispatches five built-in sub-age
 ## Workflow
 
 ```
-spec for the branch, status in-review or done? → skip Dupe, Seam, Docs and covered project checks
+spec for the branch done, or in-review and sent to sign-off? → skip Dupe, Seam, Docs and covered project checks
 git diff origin/main → changed files + branch name + commit subjects
 ls .workflow/pr-quality/*.md → project checks (0..N)
          ↓
@@ -68,7 +68,7 @@ See `modules/doc-conformance.md` for spec/PRD ↔ code conformance and doc-drift
 Project-specific checks (a library's correct use, recurring fix patterns from the project's history, house rules no linter enforces) are **project-owned**: they live in the target project, never in this skill.
 
 - **Contract:** every `.workflow/pr-quality/*.md` file in the project root except `README.md` is one project check. Each file is the complete methodology for one sub-agent: Objective, Scope (trigger and self-skip), Checks, What to report, What NOT to flag. Its H1 names its report section.
-- **Covered by the review phase:** a check whose file starts with the frontmatter `covered_by_review: true` repeats what the workflow's Phase 4 review already judges (commit subjects against `.workflow/rules.md`, say). Step 0 skips it on a branch whose spec is `in-review` or `done`; everywhere else it runs. Leave the key out for a check the review does not cover.
+- **Covered by the review phase:** a check whose file starts with the frontmatter `covered_by_review: true` repeats what the workflow's Phase 4 review already judges (commit subjects against `.workflow/rules.md`, say). Step 0 skips it on a branch whose spec the review settled (`done`, or `in-review` and sent to sign-off); everywhere else it runs. Leave the key out for a check the review does not cover.
 - **Start one** by copying [assets/project-check.template.md](assets/project-check.template.md) to `.workflow/pr-quality/<check-name>.md` and filling it in.
 - **Expert panel:** `.workflow/pr-quality/expert-panel/` is not a project check (the `*.md` listing never descends into it). When its `PANEL.md` exists, the orchestrator runs it as Step 2b, because the panel fans out per expert and debates over `SendMessage`, which a single check agent cannot do.
 - **No folder or no files** → no project checks run; the report says "No project checks (.workflow/pr-quality/ has none)".
@@ -86,23 +86,23 @@ Slash invocation: `/pr-quality`. Follow these steps exactly.
 
 ### Step 0: Skip what the review phase settled
 
-A workflow spec that reached `in-review` or `done` has been through the Phase 4 review: its standards and end-state lenses already judged duplication, module seams, the spec and docs, and the project's written rules. Find the branch's spec:
+A workflow spec that is `done`, or `in-review` with its last triage pass sending it to sign-off, has been through the Phase 4 review: its standards and end-state lenses already judged duplication, module seams, the spec and docs, and the project's written rules. A spec is also `in-review` while that review runs and during a rework, when the code on the branch has not been reviewed yet, so the status alone is not enough. Find the branch's spec, its status and its last triage outcome:
 
 ```bash
 branch=$(git rev-parse --abbrev-ref HEAD)
 case "$branch" in spec/*) slug=${branch#spec/} ;; *) slug="" ;; esac
 [ -n "$slug" ] || slug=$(git diff origin/main --name-only | sed -nE 's#^\.workflow/specs/(done/)?([0-9]+-[^/]+)/.*#\2#p' | sort -u)
-for d in ".workflow/specs/$slug" ".workflow/specs/done/$slug"; do [ -f "$d/spec.md" ] && yq --front-matter=extract '.status' "$d/spec.md" && break; done
+for d in ".workflow/specs/$slug" ".workflow/specs/done/$slug"; do [ -f "$d/spec.md" ] || continue; yq --front-matter=extract '.status' "$d/spec.md"; grep '^Outcome: ' "$d/design-log.md" 2>/dev/null | tail -n 1; break; done
 ```
 
-- **One spec found, status `in-review` or `done`:** skip Agent 1 (duplicate detection), Agent 4 (seam conformance) and Agent 5 (documentation conformance), and every project check this loop prints (a file with no frontmatter has no key, so it runs):
+- **One spec found, status `done`, or status `in-review` with an outcome line ending `to sign-off`:** skip Agent 1 (duplicate detection), Agent 4 (seam conformance) and Agent 5 (documentation conformance), and every project check this loop prints (a file with no frontmatter has no key, so it runs):
 
   ```bash
   for f in .workflow/pr-quality/*.md; do [ "$(head -n 1 "$f")" = "---" ] && [ "$(yq --front-matter=extract '.covered_by_review // false' "$f")" = true ] && echo "$f"; done; true
   ```
 
   Orphan detection, complexity, the other project checks and the expert panel still run.
-- **Anything else** (no `spec/` branch and no spec folder in the diff, more than one slug, no `spec.md`, any other status): skip nothing.
+- **Anything else** (no `spec/` branch and no spec folder in the diff, more than one slug, no `spec.md`, any other status, an `in-review` spec whose last outcome is a rework or that has none yet): skip nothing.
 
 Done when you know the spec and its status, or that there is none, and which agents Step 2 leaves out.
 

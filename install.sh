@@ -37,7 +37,7 @@
 #      specs/, ...) and created by the project-setup skill. install.sh creates nothing there; it only converts a format this payload
 #      no longer reads, keeping every value. A .workflow/model-map/ folder (one <type>.md per task type) and agent-overrides.yaml
 #      become .workflow/model-map.yaml (an override wins over the folder's value; the template's rows for task types the folder
-#      lacks are added), unless model-map.yaml exists already, which is then kept with a warning. Each per-item backlog file
+#      lacks are added; the task types whose agents the payload no longer ships get no row), unless model-map.yaml exists already, which is then kept with a warning. Each per-item backlog file
 #      .workflow/specs/work-backlog/<NNN-slug>-disc-<###>.md is removed: an open one becomes a `- [open] B<n>` line on its spec's
 #      list <NNN-slug>.md (its kind, origin step, Problem and Evidence), and a closed one is dropped. The project's own docs/ and
 #      e2e/ are never touched.
@@ -656,34 +656,38 @@ esac
 OLD_MODEL_MAP_DIR=$WF_DIR/model-map
 OLD_AGENT_OVERRIDES=$WF_DIR/agent-overrides.yaml
 MODEL_MAP_TPL=$SRC/skills/project-setup/assets/model-map.yaml
+# Task types whose agents this payload no longer ships; their old model map files are not carried into the table.
+RETIRED_TASK_TYPES="cache-regeneration review-lessons"
 
 # convert_model_map OUT : write to OUT the model table that the old one-file-per-type model map folder and agent-overrides.yaml
 #   hold (an override wins over the folder, as it did), plus each task type the template has and the folder lacks, copied from
-#   the template. Prints the added types, one per line; 1 when a file cannot be read.
+#   the template. A retired task type's file is left out. Prints the added types, one per line; 1 when a file cannot be read.
 convert_model_map() {
-  local f type fm why obs rows='{}' ov='{}' tpl
+  local f type frontmatter why obs rows='{}' overrides='{}' template_rows
   for f in "$T/$OLD_MODEL_MAP_DIR"/*.md; do
     [ -f "$f" ] || continue
     type=$(basename "$f" .md)
     [ "$type" != TEMPLATE ] || continue
-    fm=$(yq --front-matter=extract -o=json -I=0 '{"tier": .tier, "claude": .claude, "codex": .codex}' "$f") || return 1
+    case " $RETIRED_TASK_TYPES " in *" $type "*) continue ;; esac
+    frontmatter=$(yq --front-matter=extract -o=json -I=0 '{"tier": .tier, "claude": .claude, "codex": .codex}' "$f") || return 1
     why=$(awk '/^## /{ on = ($0 ~ /^## Why this model/); next } on && NF && !/^<!--/' "$f" | tr '\n' ' ' | sed 's/ *$//') || return 1
     obs=$(awk '/^## /{ on = ($0 ~ /^## Observations/); next } on && /^- /{ sub(/^- /, ""); print }' "$f" | jq -R . | jq -s -c .) || return 1
-    rows=$(jq -c --arg t "$type" --argjson fm "$fm" --arg why "$why" --argjson obs "$obs" '.[$t] = ($fm | with_entries(select(.value != null)))
+    rows=$(jq -c --arg t "$type" --argjson fm "$frontmatter" --arg why "$why" --argjson obs "$obs" '.[$t] = ($fm | with_entries(select(.value != null)))
       + (if $why == "" then {} else {why: $why} end) + (if ($obs | length) > 0 then {observations: $obs} else {} end)' <<<"$rows") || return 1
   done
   if [ -f "$T/$OLD_AGENT_OVERRIDES" ]; then
-    ov=$(yq -o=json -I=0 '. // {}' "$T/$OLD_AGENT_OVERRIDES") || return 1
+    overrides=$(yq -o=json -I=0 '. // {}' "$T/$OLD_AGENT_OVERRIDES") || return 1
   fi
-  tpl=$(yq -o=json -I=0 '.' "$MODEL_MAP_TPL") || return 1
+  template_rows=$(yq -o=json -I=0 '.' "$MODEL_MAP_TPL") || return 1
   # Only a filled claude or codex string overrides; empty values and <...> placeholders were unset before too.
-  rows=$(jq -c --argjson ov "$ov" '. * ($ov | with_entries(select(.value | type == "object")
+  rows=$(jq -c --argjson ov "$overrides" '. * ($ov | with_entries(select(.value | type == "object")
       | .value |= with_entries(select((.key == "claude" or .key == "codex") and (.value | type) == "string"
         and (.value | test("^\\s*(<.*>)?\\s*$") | not))))
       | with_entries(select(.value | length > 0)))' <<<"$rows") || return 1
-  jq -r --argjson have "$rows" 'keys[] | select(. as $k | $have | has($k) | not)' <<<"$tpl" || return 1
-  rows=$(jq -c --argjson tpl "$tpl" '. as $have | ($tpl | with_entries(select(.key as $k | $have | has($k) | not))) + $have
-    | to_entries | sort_by(.key) | from_entries' <<<"$rows") || return 1
+  jq -r --argjson have "$rows" 'keys[] | select(. as $k | $have | has($k) | not)' <<<"$template_rows" || return 1
+  rows=$(jq -c --argjson tpl "$template_rows" --arg retired "$RETIRED_TASK_TYPES" '. as $have
+    | ($tpl | with_entries(select(.key as $k | $have | has($k) | not))) + $have
+    | delpaths([$retired | split(" ")[] | [.]]) | to_entries | sort_by(.key) | from_entries' <<<"$rows") || return 1
   { awk '!/^#/ { exit } 1' "$MODEL_MAP_TPL"; yq -p json -o yaml -P '.' <<<"$rows"; } >"$1" || return 1
 }
 

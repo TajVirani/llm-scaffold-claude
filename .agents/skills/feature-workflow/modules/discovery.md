@@ -63,7 +63,7 @@ A spec the large path emits from an initiative's slice runs 0.1.1–0.1.6 with t
 
    **Is library evaluation needed?** Yes when the request names a library, SDK or external API the project does not use yet, or when a concern the change needs from outside the project has no approved library in the **Approved libraries per concern** section of the work profile for the affected area (`.workflow/profiles/<work type>.md`). Otherwise launch `retrieval` alone; at 0.2.6, **Library options** is one line saying it was not needed and why.
 
- `Agreed terms` is the terms agreed at 0.2.2 when the gate has finished, else each raised term followed by `(proposed, pending the 0.2.2 gate)`.
+   `Agreed terms` is the terms agreed at 0.2.2 when the gate has finished, else each raised term followed by `(proposed, pending the 0.2.2 gate)`.
 
    ````markdown
    ```yaml launch-header

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: check-write.sh (feature-workflow/scripts): Tier A.
 # Covers: Tier A writes per step (the glossary, rules.md, capabilities.md, ADRs, profiles new and existing, and an existing profile
-#   with a `TODO:` toolchain value at 3.3-3.5 only), sub-agent
+#   with a `TODO:` toolchain value at 3.3-3.5 only, and then only in its Toolchain section), sub-agent
 #   denials, the newest marker across specs in flight (by seq; by updated_at only for markers without seq, which are older), no feature in flight, and a missing yq; JRN-004: the review-lessons
 #   file allowed at 5.7 only (denied at 0.3.7, 5.3, 4.1 and 0.1.4, and to a sub-agent at 5.7).
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
@@ -73,6 +73,11 @@ for s in 3.3 3.4 3.5; do
   t "new profile at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/todo2.md
 done
 ST step $B 3.5 >/dev/null
+# The proposed content: the TODO: value filled in alone, and the same fill plus a changed line outside the Toolchain section.
+printf '# Profile: todo\n## Toolchain\n```yaml\nlint: ""\ntest: "tests/run.sh"\n```\n' > "$WORK/todo-filled.md"
+printf '# Profile: todo, reworded\n## Toolchain\n```yaml\nlint: ""\ntest: "tests/run.sh"\n```\n' > "$WORK/todo-widened.md"
+t "profile at 3.5: filling the TODO: value alone allow" 0 CW --cwd "$R" --path .workflow/profiles/todo.md --proposed "$WORK/todo-filled.md"
+t "profile at 3.5: a change outside the Toolchain section deny" 2 CW --cwd "$R" --path .workflow/profiles/todo.md --proposed "$WORK/todo-widened.md"
 t "profile with a TODO: toolchain value at 3.5 sub-agent deny" 2 CW --cwd "$WT" --path "$WT/.workflow/profiles/todo.md" --agent impl
 for s in 3.2 3.6; do ST step $B $s >/dev/null; t "profile with a TODO: toolchain value at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/todo.md; done
 rm -f .workflow/profiles/todo.md .workflow/profiles/prose.md

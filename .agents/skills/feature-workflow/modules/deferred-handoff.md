@@ -22,7 +22,7 @@ Used at 0.3.17 (outside agreed scope), 3.14 (light-path suite gap), and for a di
    | `created` | today, `date -u +%F` | same | same |
    | `severity` | delete the key | delete the key | the verified triage severity (`high`, `medium` or `low`) for a review finding; else delete the key |
    | **Mode** | HITL when a human must decide; AFK when an agent can act alone | AFK unless the suite needs a human choice | as the item needs |
-   | **Origin** | `0.3.17 scope decision` + design-log entry | `3.14 suite gap` | `shelf request` + the step it was asked at, the triage row `F<n>` or the backlog line or item file, and its Discovered work entry; Problem and Evidence copied from the item |
+   | **Origin** | `0.3.17 scope decision` + design-log entry | `3.14 suite gap` | `shelf request` + the step it was asked at, the triage row `F<n>` or the backlog line, and its Discovered work entry; Problem and Evidence copied from the item |
 
    Write it to these rules:
    - **Durable.** Describe behaviour, interfaces and contracts. File paths and line numbers appear only under Evidence, each with the commit it was true at (`git rev-parse HEAD`).

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Suite: pr-quality's Step 0, which skips the checks the workflow's Phase 4 review already settled.
-# Covers: SKILL.md has a Step 0 before Step 1 that names the in-review and done statuses, skips duplicate detection, seam
+# Covers: SKILL.md has a Step 0 before Step 1 that names the done status and in-review once sent to sign-off, skips duplicate detection, seam
 #   conformance and documentation conformance and the covered_by_review project checks, keeps orphan detection, complexity
 #   and the expert panel, and puts the skips in the report; the project-check template carries the covered_by_review key;
 #   this repo's commit-hygiene check sets it and payload-bookkeeping does not. Step 0's two bash blocks, run in a fixture
-#   repo: the spec status from a spec/ branch, from the Done folder, from a spec folder the diff touches on another branch,
+#   repo: the spec status from a spec/ branch, the last triage Outcome line after it, from the Done folder, from a spec folder the diff touches on another branch,
 #   nothing with no spec or with two spec folders in the diff, and the covered project checks listed (a check with no
 #   frontmatter left out). Reads the repo; writes only to a scratch dir.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -27,7 +27,8 @@ echo "== SKILL.md Step 0"
 check "Step 0 exists" '[ -n "$step0" ]'
 check "Step 0 comes before Step 1" \
   '[ "$(grep -n "^### Step 0" "$SKILL" | cut -d: -f1)" -lt "$(grep -n "^### Step 1" "$SKILL" | cut -d: -f1)" ]'
-check "Step 0 names the in-review and done statuses" 'grep -q "status \`in-review\` or \`done\`" <<<"$step0"'
+check "Step 0 names the done status and in-review sent to sign-off" \
+  'grep -q "status \`done\`, or status \`in-review\` with an outcome line ending \`to sign-off\`" <<<"$step0"'
 check "Step 0 skips duplicate detection, seam conformance and documentation conformance" \
   'grep -q "skip Agent 1 (duplicate detection), Agent 4 (seam conformance) and Agent 5 (documentation conformance)" <<<"$step0"'
 check "Step 0 skips the covered_by_review project checks" 'grep -q "covered_by_review" <<<"$step0"'
@@ -69,9 +70,15 @@ status_on() {
 git -C "$R" add -A >/dev/null
 git -C "$R" commit -q -m "specs and checks"
 git -C "$R" update-ref refs/remotes/origin/main HEAD
-eq "a spec/ branch prints its spec's status" "$(status_on spec/012-alpha)" "in-review"
+eq "a spec/ branch prints its spec's status, and no outcome before any triage pass" "$(status_on spec/012-alpha)" "in-review"
 eq "a spec/ branch whose spec is in the Done folder prints done" "$(status_on spec/011-old)" "done"
 eq "a spec/ branch of a draft spec prints draft" "$(status_on spec/013-beta)" "draft"
+printf '## 2026-11-01 Review pass 1\n\nOutcome: rework 1 of 5\n\n## 2026-11-02 Review pass 2\n\nOutcome: clean, to sign-off\n' >"$R/.workflow/specs/013-beta/design-log.md"
+git -C "$R" switch -q main
+git -C "$R" add -A >/dev/null
+git -C "$R" commit -q -m "triage passes"
+git -C "$R" update-ref refs/remotes/origin/main HEAD
+eq "a spec with triage passes prints its status and its last outcome line" "$(status_on spec/013-beta)" "draft"$'\n'"Outcome: clean, to sign-off"
 git -C "$R" switch -q -C fix/touch-one main
 printf 'more\n' >>"$R/.workflow/specs/012-alpha/spec.md"
 git -C "$R" commit -q -am "touch 012"

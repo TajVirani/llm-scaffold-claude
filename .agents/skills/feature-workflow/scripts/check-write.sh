@@ -6,8 +6,9 @@
 #     --cwd       payload cwd (a worktree for isolated sub-agents); relative --path values resolve against it.
 #     --path      the file the tool would write (absolute or relative).
 #     --agent     pass it when the payload carries agent_id (only sub-agent calls do; verified on Claude Code 2.1.300). Its value is used in the message only.
-#     --proposed  file holding the full content the write would produce (spec.md only): denied if it changes `status`
-#                 or `blocked_condition`, which only status-transition.sh may change.
+#     --proposed  file holding the full content the write would produce: for spec.md, denied if it changes `status`
+#                 or `blocked_condition`, which only status-transition.sh may change; for a profile edited at 3.3-3.5, denied
+#                 if it changes anything outside the `## Toolchain` section.
 # Rules, in order (path classes compared case-insensitively, repo-relative to the worktree that holds the path):
 #   spec     .workflow/specs/done/** (the Done folder)  deny always, any writer, any file. A finished spec is a closed record; this rule
 #                                                   comes before the spec-file and glossary rules, so done/spec.md, done/.step and a
@@ -37,7 +38,8 @@
 #            .workflow/capabilities.md, .workflow/rules.md,   otherwise allow only when the newest .step among in-flight specs and initiatives names an allowed step:
 #            .workflow/decisions/**, .workflow/profiles/**           glossary files: 0.2.3, 0.3.15, 0.4.3, 5.3, 6.6 (the initiative term gate)
 #                                                     .workflow/profiles/**: editing an existing file 5.3, or 3.3-3.5 while its Toolchain
-#                                                       block still has a value starting `TODO:` (the placeholder run-toolchain.sh refuses);
+#                                                       block still has a value starting `TODO:` (the placeholder run-toolchain.sh refuses),
+#                                                       when the write changes nothing outside the `## Toolchain` section (checked with --proposed);
 #                                                       creating a new file 00.19 or 5.3
 #                                                     other Tier A (rules.md, capabilities.md, decisions/**): 0.3.7, 5.3, 5.7
 #                                                   else redirect to a 5.2 proposal.
@@ -149,6 +151,11 @@ toolchain_has_todo() {
     insec && inblock && /^```/ { inblock = 0; insec = 0; next }
     inblock && /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*:[[:space:]]*["'"'"']?[[:space:]]*TODO:/ { found = 1; exit }
     END { exit !found }' "$1"
+}
+
+# outside_toolchain FILE : print FILE without its `## Toolchain` section (the heading through the line before the next `## `).
+outside_toolchain() {
+  awk '/^## / { insec = ($0 ~ /^## Toolchain[[:space:]]*$/) } !insec' "$1"
 }
 
 marker_get() {
@@ -393,7 +400,11 @@ if in_list "$BEST_STEP" "$STEPS"; then
   allow "$REL: Tier A ($KIND), main session at step $BEST_STEP ($BEST_DIR)"
 fi
 if [[ "$KIND" == profile && -f "$ABS" ]] && in_list "$BEST_STEP" "$PROFILE_TODO_STEPS" && toolchain_has_todo "$ABS"; then
-  allow "$REL: profile with a TODO: toolchain value, main session at step $BEST_STEP ($BEST_DIR); fill in the command run-toolchain.sh refused"
+  # The exception exists only to fill the refused command, so the rest of the profile stays a 5.3 change.
+  if [[ -z "$PROPOSED" || "$(outside_toolchain "$ABS")" == "$(outside_toolchain "$PROPOSED")" ]]; then
+    allow "$REL: profile with a TODO: toolchain value, main session at step $BEST_STEP ($BEST_DIR); fill in the command run-toolchain.sh refused"
+  fi
+  deny "$REL is Tier A; at step $BEST_STEP only its ## Toolchain section may change, to fill the TODO: value run-toolchain.sh refused. Make that edit alone, and record any other change as a 5.2 proposal in $BEST_DIR/proposals.md for approval at sign-off (5.5)."
 fi
 REDIRECT="Record the change as a 5.2 proposal in $BEST_DIR/proposals.md for approval at sign-off (5.5) instead."
 if [[ "$BEST_DIR" == "$WF_INITIATIVES"/* ]]; then

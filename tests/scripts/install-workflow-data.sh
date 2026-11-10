@@ -3,7 +3,8 @@
 # Covers: a .workflow/model-map/ folder (one <type>.md per task type) and agent-overrides.yaml become one
 #   .workflow/model-map.yaml: each row keeps the folder's tier, claude, codex, its "Why this model" text as why and its
 #   Observations lines as observations; a filled override wins over the folder's value and a placeholder override does not;
-#   the template's rows for task types the folder lacks (research) are added; the folder and the overrides file are
+#   the template's rows for task types the folder lacks (research) are added, and a retired task type (cache-regeneration,
+#   review-lessons) gets no row from its file or its override; the folder and the overrides file are
 #   removed, and resolve-launch.sh then resolves from the new file. Per-item backlog files: an open one becomes the next
 #   B<n> line on its spec's list (an existing list kept and extended, a missing one created) in the list's line shape, a
 #   closed one is dropped, and every item file is removed. --dry-run previews and writes nothing; a re-run changes nothing;
@@ -70,6 +71,7 @@ Bounded reading task.
 
 <!-- Appended at 5.7 by the retrospective skill. -->
 M
+  printf -- '---\ntier: strong\nclaude: opus\ncodex: gpt-6-sol\n---\n# cache-regeneration\n' >"$p/.workflow/model-map/cache-regeneration.md"
   cat >"$p/.workflow/model-map/TEMPLATE.md" <<'M'
 ---
 tier: cheap
@@ -82,6 +84,8 @@ retrieval:
   claude: sonnet
 implementation:
   codex: "<alias>"
+review-lessons:
+  claude: haiku
 M
   cat >"$p/.workflow/specs/work-backlog/001-alpha-disc-001.md" <<'M'
 ---
@@ -136,6 +140,8 @@ eq "the first observation line" "$(yq '.implementation.observations[0]' "$MM")" 
 eq "a filled override wins over the folder" "$(yq '.retrieval.claude' "$MM")" sonnet
 eq "a placeholder override leaves the folder's value" "$(yq '.implementation.codex' "$MM")" gpt-6-sol
 check "a row with no observations has no observations key" '[ "$(yq ".retrieval | has(\"observations\")" "$MM")" = false ]'
+check "a retired task type's file and override leave no row" \
+  '[ "$(yq "has(\"cache-regeneration\") or has(\"review-lessons\")" "$MM")" = false ]' "$(yq 'keys' "$MM")"
 check "the folder's TEMPLATE.md is not a task type" '[ "$(yq "has(\"TEMPLATE\")" "$MM")" = false ]'
 eq "the template's research row is added" "$(yq '.research.claude' "$MM")" opus
 check "the upgrade says it added research" 'grep -q "add the template.s row for .*research" <<<"$out"' "$out"

@@ -3,10 +3,12 @@
 #   rules in references/conventions.md, the one sign-off ask in modules/sign-off.md, the retrospective's draft and finish
 #   modes, the Assumed, Breakdown quiz and Sign-off shapes in assets/design-log.md, and the step files that assume and log
 #   or launch before asking.
-# Covers: conventions holds the blocking test (scope or intent, or hard to reverse), the assume-and-log rule with its
+# Covers: conventions holds the blocking test (scope or intent, or hard to reverse), the assume-and-log rule (a question with no one
+#   answer to recommend blocks) with its
 #   veto at the next blocking ask, and launch before asking; every link to that rule names an anchor the file has.
 #   Sign-off asks one AskUserQuestion call before 5.8, inside 5.5, covering the work and the PR description, the
-#   proposals, the backlog list and the retrospective's lessons; 5.3, 5.9 and 5.7 ask nothing; 5.8 asks nothing and
+#   proposals, the backlog list and the retrospective's lessons; 5.5 sets its step and a resume after the answered ask
+#   does not ask again; 5.3, 5.9 and 5.7 ask nothing; 5.8 asks nothing and
 #   publishes on the 5.5 approval; a No applies nothing; the run order and steps.tsv put 5.3 after 5.5; no small-path note,
 #   older backlog item file or Done-folder sweep is left in sign-off.md or the retrospective, and the one-task report keeps
 #   its five lines. The retrospective drafts into retrospective-draft.md and reads at finish the lines the Sign-off shape
@@ -52,6 +54,8 @@ check "any other question takes the recommended answer at once and is logged as 
   'grep "recommended answer" <<<"$ASKING" | grep -q "Assumed"'
 check "the Assumed entry records the question, the answer taken and why it was safe" \
   'grep "Assumed" <<<"$ASKING" | grep "question" | grep "answer taken" | grep -q "safe to assume"'
+check "a question with no one answer to recommend blocks instead of being assumed" \
+  'grep "Assume and log the rest" <<<"$ASKING" | grep -q "If you cannot recommend one answer, it blocks"'
 check "the next blocking ask offers every assumption for veto" 'grep "next blocking ask" <<<"$ASKING" | grep -q "veto"'
 check "launch before asking: every sub-agent whose input does not depend on the answer" \
   'grep "Launch before asking" <<<"$ASKING" | grep -q "does not depend on its answer"'
@@ -86,6 +90,10 @@ check "5.5 asks the retrospective lessons with L<n> exceptions" 'grep -q "Record
 check "5.5 drafts the retrospective before asking" 'grep -q "Draft the retrospective" <<<"$S55" && grep -q "retrospective-draft.md" <<<"$S55"'
 check "5.5 opens with the assumptions for veto" 'grep "assumptions" <<<"$S55" | grep -q "conventions.md#asking-the-stakeholder"'
 check "a No applies nothing else" 'grep -q "Nothing else is applied" <<<"$S55"'
+check "5.5 sets its own step, so a resume after the ask does not go back to 5.1" \
+  'grep -q "status-transition.sh step .workflow/specs/NNN-slug 5.5" <<<"$S55"'
+check "a resume at 5.5 whose last design-log entry is a Sign-off entry does not ask again" \
+  'grep -q "When the last entry in \`design-log.md\` is a \"Sign-off\" entry" <<<"$S55" && grep -q "Do not ask again" <<<"$S55"'
 check "5.3 asks nothing and reads the 5.5 answer" 'sign_off_step 5.3 | grep -q "so ask nothing here" && sign_off_step 5.3 | grep -q "Proposals:"'
 check "5.9 carries out the rulings without asking again" 'sign_off_step 5.9 | grep -q "without asking again"'
 check "5.7 asks nothing" 'sign_off_step 5.7 | grep -q "It asks nothing"'

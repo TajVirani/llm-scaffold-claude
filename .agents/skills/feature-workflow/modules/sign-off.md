@@ -87,7 +87,13 @@ Done when every PASS links evidence, every number is measured or marked "not mea
 
 ## 5.5 The sign-off ask
 
-This is the one question sign-off puts to the stakeholder: it covers the work, the PR description, the proposals, the backlog and the retrospective's lessons. 5.1, 5.2 and 5.4 have prepared the spec, the proposals, the report and the PR body; prepare the rest, then ask once. Every step after this one applies the answers and asks nothing.
+This is the one question sign-off puts to the stakeholder: it covers the work, the PR description, the proposals, the backlog and the retrospective's lessons. 5.1, 5.2 and 5.4 have prepared the spec, the proposals, the report and the PR body; prepare the rest, then ask once. Every step after this one applies the answers and asks nothing. Set the step first, so a resume comes back here and not to 5.1:
+
+```bash
+.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.5
+```
+
+**Resuming at 5.5.** When the last entry in `design-log.md` is a "Sign-off" entry, the stakeholder already answered this pass's ask before the session ended. Do not ask again: go on as its lines say (the Yes and No routes below). Otherwise start at step 1.
 
 1. **Draft the retrospective.** Invoke the `retrospective` skill for `.workflow/specs/NNN-slug` to draft (its Inputs say how). It judges the result against `spec.md`, gives each finding a disposition, and proposes the process lessons, pitfalls, review lessons, feature notes and model observations, numbered `L1`, `L2`, ... with their sources and destinations, in `.workflow/specs/NNN-slug/retrospective-draft.md`. It writes nothing else and asks nothing.
 2. **Gather the list:** the discovered-work items still waiting for a ruling (00.25 step 1 in `modules/discovered-work.md`) and the open lines of this spec's backlog list:
