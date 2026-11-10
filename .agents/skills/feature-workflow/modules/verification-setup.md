@@ -134,7 +134,7 @@ A suite that cannot go red proves nothing. For each suite, run it against a know
 
    ```bash
    npx vitest run --reporter=json --outputFile=<spec checkout>/.workflow/specs/NNN-slug/artifacts/phase-1-known-bad/harness.json
-   npx playwright test        # JSON reporter writes test-results/e2e-results.json; copy it beside harness.json
+   npx playwright test        # the JSON report lands where the e2e profile's e2e_report key says; copy it beside harness.json
    ```
 
    **Pass:** every new harness test and every new `@JRN-###` test has status `failed`, and its first error is an assertion failure. For Vitest read `testResults[].assertionResults[].failureMessages`; for Playwright, `results[].errors[].message` matching `expect(`. A new test that passes on the baseline, or fails only for a setup reason, is not proof.

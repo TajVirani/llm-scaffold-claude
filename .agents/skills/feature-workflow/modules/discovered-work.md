@@ -4,7 +4,7 @@ Work found outside the agreed scope while a feature is under way is **never** fo
 
 Not for Phase 0: an out-of-scope item raised while framing goes through the scope gate 0.3.16–0.3.17 to `.workflow/deferred/` ([deferred-handoff](deferred-handoff.md)).
 
-`ST` below is `.agents/skills/feature-workflow/scripts/status-transition.sh`; type the full path every time. `NNN-slug` is the current spec.
+`ST` and the exit codes are in [conventions](../references/conventions.md). `NNN-slug` is the current spec.
 
 ## What the caller hands you
 

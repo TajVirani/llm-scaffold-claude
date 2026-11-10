@@ -4,7 +4,7 @@ Turn a request into a spec folder that says what to build, where it goes, what i
 
 Out-of-scope work raised in Phase 0 goes through the scope gate 0.3.16–0.3.17 to `.workflow/deferred/`, never to `.workflow/specs/work-backlog/`.
 
-`ST` is shorthand for `.agents/skills/feature-workflow/scripts/status-transition.sh`: type the full path every time. `NNN-slug` is this feature's folder. Keep `spec.md` an index: link the support files, never copy them.
+`ST` and the exit codes are in [conventions](../references/conventions.md). `NNN-slug` is this feature's folder. Keep `spec.md` an index: link the support files, never copy them.
 
 ## 0.1 Initialise the feature folder
 
@@ -116,5 +116,5 @@ A spec the large path emits from an initiative's slice runs 0.1.1–0.1.6 with t
 
 - `spec.md` exists at `draft` with its Why drafted.
 - A spec seeded from a work item carries `origin` and a design-log Origin entry, and the item is marked `promoted`.
-- `codebase-map.md` was written only from agent returns and carries the stamps; `design-log.md` holds any placement decision and the **Deeper prompt** entry.
+- `codebase-map.md` was written only from agent returns; `design-log.md` holds any placement decision and the **Deeper prompt** entry.
 - The questioning loop is loaded, and returns at 0.3.20 to [discovery-impact.md](discovery-impact.md).

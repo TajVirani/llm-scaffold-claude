@@ -2,7 +2,7 @@
 
 You reconcile the spec with what shipped, prepare everything the stakeholder needs to close the feature, ask them once (5.5), then carry out what they approved without asking again. The steps run in the order 5.1, 5.2, 5.4, 5.5, then 5.3, 5.9, 5.7, 5.8: everything before 5.5 prepares the one sign-off ask, and everything after it applies the answers, the backlog rulings before the retrospective sets `done`. You are done when the spec is `done`, moved to the Done folder and merged (5.8), or when a change request has sent it back to 0.3.8 (5.6).
 
-`.workflow/specs/NNN-slug` is this feature's folder until 5.8 moves it into the Done folder, `.workflow/specs/done/NNN-slug`. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix ([conventions](../references/conventions.md)). Every status, task-record and step change goes through `status-transition.sh` with the exact `--step` shown; exit 2 is a refused transition: stop and report it. Protected files are written with Write or Edit after the matching step is set, so the write guards can check them. If a guard denies a write, stop and show the stakeholder the denial and the text you meant to write. On Codex, run `check-write.sh` before each protected write as the conventions' [Host notes](../references/conventions.md#host-notes) say.
+`.workflow/specs/NNN-slug` is this feature's folder until 5.8 moves it into the Done folder, `.workflow/specs/done/NNN-slug`. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix ([conventions](../references/conventions.md)). Every status, task-record and step change goes through `status-transition.sh` with the exact `--step` shown. Protected files are written with Write or Edit after the matching step is set, so the write guards can check them. If a guard denies a write, stop and show the stakeholder the denial and the text you meant to write. On Codex, run `check-write.sh` before each protected write as the conventions' [Host notes](../references/conventions.md#host-notes) say.
 
 ## 5.1 Reconcile spec.md
 
@@ -62,7 +62,7 @@ For a one-task spec (every light-path spec): write `report.md` as these five lin
 
   - **Changed:** <what is different, in one sentence>; files: <the `files` list of budget-check.sh>; `<baseline_revision>`..`<head sha>`.
   - **Tests:** <the harness summary line> ([toolchain.txt](artifacts/sign-off-5.4/toolchain.txt)); <the 3.13–3.14 suite gap, or "both suites ran">.
-  - **Findings:** <n> patched, <n> deferred, <n> dismissed over <n> review passes; failed review: <none | the review>. Detail in design-log.md.
+  - **Findings:** <n> patched, <n> left open as known gaps, <n> dismissed over <n> review passes; failed review: <none | the review>. Detail in design-log.md.
   - **Known gaps:** <spec.md Known gaps, and the review's not_checked and not_verifiable lines, one phrase each | None.>
   - **Merge:** `<spec_branch>` into `<main_branch>` at 5.8, by <PR | local merge>.
   ```
@@ -191,7 +191,7 @@ Run after 5.9 has carried out every backlog ruling. Set the step, then check tha
 
 Exit 0: every task record is `done` or `split-out`, and every line on this spec's backlog list is a well-formed `open` or `promoted` line. Exit 1: stop. Show the stakeholder each open item it lists, leave the spec `in-review`, and resume at 5.7 once they are closed; a spec with open sub-items never becomes `done`. Exit 2 is a usage error or a folder that is not a spec: stop and report it.
 
-Invoke the `retrospective` skill for `.workflow/specs/NNN-slug` to finish the draft it wrote at 5.5. It asks nothing: the 5.5 answers are the stakeholder's agreement. It moves `retrospective-draft.md` into `.workflow/decisions/retrospectives/NNN-slug.md` and writes each lesson the 5.5 answer approved: process lessons and pitfalls, feature notes in `design-log.md`, each approved review lesson to `.workflow/review-lessons.md` (created from `assets/review-lessons.md` when the file is missing, and retiring a lesson a rule, lint or profile line now enforces; `.agents/skills/retrospective/modules/routing.md`, "Review lessons", has the procedure), and model observations as a `.workflow/model-map/` entry or a proposed `.workflow/agent-overrides.yaml` entry. Each lesson the stakeholder rejected is recorded as rejected at 5.5. It changes no status. For a one-task spec each section of its document may be one line.
+Invoke the `retrospective` skill for `.workflow/specs/NNN-slug` to finish the draft it wrote at 5.5. It asks nothing: the 5.5 answers are the stakeholder's agreement. It moves `retrospective-draft.md` into `.workflow/decisions/retrospectives/NNN-slug.md` and writes each lesson the 5.5 answer approved: process lessons and pitfalls, feature notes in `design-log.md`, each approved review lesson to `.workflow/review-lessons.md` (created from `assets/review-lessons.md` when the file is missing, and retiring a lesson a rule, lint or profile line now enforces; `.agents/skills/retrospective/modules/routing.md`, "Review lessons", has the procedure), and model observations as dated lines in the task type's row of `.workflow/model-map.yaml`. Each lesson the stakeholder rejected is recorded as rejected at 5.5. It changes no status. For a one-task spec each section of its document may be one line.
 
 When it returns, read its verdict:
 

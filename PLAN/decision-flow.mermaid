@@ -1,53 +1,46 @@
 flowchart TD
-    %% Reconciled with assetlist.md decisions D1-D101; names and paths follow assetlist.md
+    %% Reconciled with assetlist.md decisions D1-D127 and the feature-workflow step files; node ids are the step ids in .agents/skills/feature-workflow/references/steps.tsv
     intake(["0.0 - Feature request"])
     gTrivial{"0.0.1 - Trivial edit the stakeholder will review themselves?"}
     direct(["0.0.2 - Edit directly; no workflow"])
-    gSmall{"0.0.3 - Small path? The request names the file, the cause and the test"}
 
     subgraph TierA["Tier A - authored project context: what the code cannot say. Agent proposes, human approves"]
         dContext[/"00.1 - .workflow/GLOSSARY.md: canonical terms"/]
         dCap[/"00.2 - Capabilities index: what the system does for users, with stable IDs"/]
         dRules[/"00.3 - Rules: cross-cutting policy, module ownership and boundaries, external systems, required versions"/]
-        dLog[/"00.4 - Decision log: ADRs, pitfalls from observed failures, retrospective lessons"/]
-    end
-
-    subgraph TierB["Tier B - generated caches: derived from code, stamped with the commit, never hand-edited"]
-        cModules[/"00.5 - Module map: modules and their interfaces"/]
-        cFlows[/"00.6 - System flow diagrams"/]
-        cArch[/"00.7 - Architecture structure: dependencies between modules"/]
-        regen["regenerate-caches skill: launches cache-regeneration, publishes via publish-cache.sh; runs outside this flow"]
+        dLog[/"00.4 - Decision log: ADRs, pitfalls from observed failures, retrospective lessons; review lessons in .workflow/review-lessons.md"/]
     end
 
     subgraph Deferred[".workflow/deferred/ - work on the shelf"]
-        defFile[/"00.8 - .workflow/deferred/slug.md: goal, background, constraints, links back to the originating spec; written by the deferred-handoff module"/]
+        defFile[/"00.8 - One .workflow/deferred/ file per concept: goal, background, constraints, links back to the originating spec; written by the deferred-handoff module"/]
         archiveStep["00.9 - Mark superseded at the top and move to the archive"]
-        defArchive[/"00.10 - .workflow/deferred/archive/slug.md"/]
+        defArchive[/"00.10 - The archived file in .workflow/deferred/archive/"/]
     end
 
     subgraph DiscWork["Discovered work - scope-creep guardrail, run in the main session"]
-        dwBlock["00.21 - Blockers only, after the assessment: set spec blocked at the current step; blocked_condition discovered work or size budget"]
-        dwPresent["00.22 - Present every blocker that has arrived in one call: problem, evidence, assessment, recommendation"]
-        gDwBlocker{"00.23 - Blocker for the current work?"}
+        dwAssess{"Assess each report first: unproven, current work, blocker, or for the stakeholder?"}
+        dwBlock["00.21 - Block: blockers and size-budget reports only; spec blocked at the current step, blocked_condition discovered work or size budget"]
+        dwPresent["00.22 - Present every blocker in one call: problem, evidence, assessment, recommendation; the ask also carries the 00.25 batched question"]
+        gDwBlocker{"00.23 - Blocker? The stakeholder may overrule"}
         gDwDiscovery{"00.24 - Go to discovery to address it?"}
-        gDwNext{"00.25 - Tackle it as the next feature?"}
-        dwWrite["00.26 - Duplicate check against the shelf and the open backlog, then append to the match or write a work item; can-wait items arrive here without a block"]
-        dwItem[/"00.27 - .workflow/specs/work-backlog/NNN-slug-disc-###.md: origin, problem, evidence, size, status"/]
-        dwResume["00.28 - Unblock a blocked spec to blocked_from; continue the current work unchanged; not run for a can-wait filing"]
+        gDwAsk{"00.25 - Batched ask: every to-ask item in one question at the next blocking ask, or at 5.5 at the latest. Fold in, keep for later or drop?"}
+        dwWrite["00.26 - Add the backlog line: match by concept against the shelf and the open backlog lines; a match gets one line, otherwise a new B-numbered line"]
+        dwItem[/"00.27 - .workflow/specs/work-backlog/NNN-slug.md: one backlog list per spec, one line per item: [open] Bn kind (origin node): problem. Evidence"/]
+        dwResume["00.28 - Resume: restore the status from blocked_from; the current work continues unchanged"]
         gDwBudget{"00.29 - Size budget crossed: split, re-scope or approve the overrun?"}
     end
 
-    subgraph ModelMap[".workflow/model-map/ - model selection map, read by the launcher only"]
-        modelFile[/"00.11 - .workflow/model-map/task-type.md: tier, model alias per host, and why; lowest precedence after .workflow/agent-overrides.yaml and the agent definition"/]
-        hook["00.12 - Pre-launch hook: resolve-launch.sh checks per-type header fields; prepends the profile and sets the resolved model via updatedInput"]
-        gModel{"00.13 - Model for this host? .workflow/agent-overrides.yaml, then agent definition, then model-map"}
-        assignModel["00.14 - Assign a model for this task type and record it"]
+    subgraph ModelMap[".workflow/model-map.yaml - the model table, read by the launcher only"]
+        modelFile[/"00.11 - .workflow/model-map.yaml: one row per task type: tier, model alias per host, why, dated observations"/]
+        hook["00.12 - Pre-launch hook: resolve-launch.sh checks per-type header fields; prepends the profile and sets the model from the task type's row via updatedInput"]
+        gModel{"00.13 - Model for this host? The task type's row in .workflow/model-map.yaml"}
+        assignModel["00.14 - Record the model the stakeholder chooses as the task type's row, then relaunch"]
     end
 
     subgraph Profiles[".workflow/profiles/ - work profiles: the operating context injected into coding agents, by work type"]
         pTemplate[/"00.16 - .workflow/profiles/TEMPLATE.md: file locations, approved libraries per concern, language and style rules, toolchain, mini-review checklist"/]
-        setup["project-setup skill: fill the template once per work type, install toolchains incl. anti-slop, seed .workflow/model-map/; separate process"]
-        pFile[/"00.17 - .workflow/profiles/work-type.md: e.g. frontend-react, backend-api, data-migration"/]
+        setup["project-setup skill: fill the template once per work type, install toolchains incl. anti-slop, seed .workflow/model-map.yaml; separate process"]
+        pFile[/"00.17 - One .workflow/profiles/ file per work type: e.g. frontend-react, backend-api, data-migration"/]
         gProfile{"00.18 - Task matches a work profile?"}
         newProfile["00.19 - Human defines the missing profile from the template"]
         inject["00.20 - Inject the profile into the launch prompt, in full: the pre-launch hook prepends it"]
@@ -55,23 +48,21 @@ flowchart TD
 
     subgraph P0["Phase 0 - Discovery"]
         subgraph P0a["0.1 - Initialise the feature folder"]
-            scan["0.1.1 - Scan .workflow/specs/ for the highest existing number"]
+            scan["0.1.1 - Take the next spec number from next-spec-number.sh: the next free number, or the new tracker issue's number"]
             slug["0.1.2 - Derive a short slug from the request"]
             folder[/"0.1.3 - .workflow/specs/NNN-slug/"/]
-            spec[/"0.1.4 - spec.md: frontmatter status + Why, Capabilities with stable IDs, Constraints, Non-goals, Success signal, links to support docs"/]
-            gFromDef{"0.1.5 - Did this request come off the shelf?"}
+            spec[/"0.1.4 - spec.md: frontmatter status and tracker_issue + Why, Capabilities with stable IDs, Constraints, Non-goals, Success signal, links to support docs"/]
+            gFromDef{"0.1.5 - Did this request come off the shelf? A clear match is assumed and logged"}
             draft["0.1.6 - Draft the goal as understood from the request"]
         end
 
         subgraph P0b["0.2 - Retrieve existing system context"]
-            area["0.2.1 - Identify the affected area of the system"]
-            gTerm0{"0.2.2 - Request uses a new, ambiguous, or conflicting term?"}
+            area["0.2.1 - Identify the affected area: modules and paths from the rules.md Ownership block; read the glossary term list"]
+            gTerm0{"0.2.2 - Request uses a new, ambiguous, or conflicting term? Clear terms are assumed and logged; the launches go out beside the ask"}
             agree0["0.2.3 - Agree canonical definition with stakeholder"]
-            retrieve["0.2.4 - Sub-agent: retrieve relevant code, seams, modules, architecture"]
-            libs["0.2.5 - Sub-agent: evaluate third-party libraries and APIs"]
-            map[/"0.2.6 - codebase-map.md: relevant code, seams, interfaces, prior decisions"/]
-            gSufficient{"0.2.7 - Cache stamps match HEAD for the affected area?"}
-            derive["0.2.8 - Sub-agent: regenerate the affected caches from code into staging; publish-cache.sh stamps and publishes"]
+            retrieve["0.2.4 - Sub-agent: retrieve the code, Tier A decisions and rules, and the shelf for the affected area"]
+            libs["0.2.5 - Sub-agent: evaluate third-party libraries and APIs; only when the request names a new library, SDK or external API, or a concern has no approved library in the work profile"]
+            map[/"0.2.6 - codebase-map.md: relevant code, seams, interfaces, prior decisions, library options"/]
         end
 
         subgraph P0c["0.3 - Frame the problem"]
@@ -82,11 +73,11 @@ flowchart TD
             gADR{"0.3.5 - Placement conflicts with an existing ADR or rule?"}
             supersede["0.3.6 - Revise placement to conform, or supersede the ADR"]
             adrDoc[/"0.3.7 - ADR: placement decision"/]
-            deeper["0.3.22 - Deeper prompt: elevate the ask, define goals, ask downstream, tools and gotchas; restate until the stakeholder agrees"]
+            deeper["0.3.22 - Deeper prompt: elevate the ask, define goals, downstream, tools and gotchas; its agreement and questions ride on the first 0.3.11 ask"]
             answerable["0.3.8 - Compute the frontier: open decisions whose prerequisites are settled, highest priority first"]
             gAny{"0.3.9 - Any answerable questions?"}
             lookup["0.3.10 - Sub-agent: find any fact a question needs from the code or docs"]
-            ask["0.3.11 - Ask the whole set in one round: multi-question interface, each with a recommended answer and a defer option"]
+            ask["0.3.11 - Ask the whole frontier in one round: each question with a recommended answer and a defer option; launch first what does not wait on the answers; one round unless a question stays open"]
             gDefer{"0.3.12 - Any question deferred to deep dive?"}
             deepdive["0.3.13 - Deep dive each deferred question in turn, once the round has closed"]
             gTerm1{"0.3.14 - Answer introduces a new or conflicting term?"}
@@ -94,10 +85,10 @@ flowchart TD
             gScope{"0.3.16 - Outside agreed scope?"}
             shelve["0.3.17 - Write a self-contained handoff for the deferred work: deferred-handoff module"]
             gOpen{"0.3.18 - Questions still unanswered or newly surfaced?"}
-            settle["0.3.19 - Confirm or revise the goal; unchanged if no questions arose"]
+            settle["0.3.19 - Confirm or revise the goal: the summary rides on the last round; write spec.md with light_path"]
             convert["0.3.23 - Convert a spec into an initiative: several features; the draft spec's design log moves to a new initiative branch and the spec folder is deleted"]
             gLight{"0.3.20 - Light-path test: no intent gaps, no irreversible actions, small footprint?"}
-            dlog[/"0.3.21 - design-log.md: questions, answers, decisions, references"/]
+            dlog[/"0.3.21 - design-log.md: questions, answers, decisions, assumptions, references"/]
         end
 
         subgraph P0d["0.4 - Model the impact"]
@@ -106,7 +97,7 @@ flowchart TD
             agree2["0.4.3 - Agree canonical definition with stakeholder"]
             classify["0.4.4 - Classify each part: create, extend, refactor, unchanged"]
             dataModel[/"0.4.5 - data-model.md: entities, relationships, migrations"/]
-            audit["0.4.6 - Sub-agent: audit the owning module in depth"]
+            audit["0.4.6 - Sub-agent: audit the owning module in depth; reuses the audit launched beside the first round unless the design changed"]
             gConflict{"0.4.7 - Impact conflicts with the goal or the placement?"}
         end
 
@@ -121,65 +112,64 @@ flowchart TD
     end
 
     subgraph P1["Phase 1 - Verification setup"]
-        budgets["1.1 - Create spec branch spec/NNN-slug off main (baseline = its first commit); set measurable targets: performance, error, coverage"]
-        harness["1.2 - Build automated test harness and CI checks"]
-        browser["1.3 - Build the end-to-end browser suite from the named journeys"]
-        gHarness{"1.4 - Do both suites fail a known-bad build?"}
-        harnessDoc[/"1.5 - Test harness, browser suite, CI pipeline; commit Phase 1 on the spec branch (red by design)"/]
+        budgets["1.1 - Create the spec branch spec/NNN-slug and its spec worktree off the main branch (baseline = its first commit); set measurable targets: performance, error, coverage"]
+        harness["1.2 - Sub-agent: build the automated test harness and CI checks in its agent worktree, under the test-harness profile"]
+        browser["1.3 - Sub-agent: build the end-to-end browser suite from the named journeys, after the 1.2 merge"]
+        gHarness{"1.4 - Do both suites fail a known-bad build, every new test on an assertion?"}
+        harnessDoc[/"1.5 - Suites recorded in verification-plan.md; Phase 1 committed on the spec branch (red by design)"/]
         halt(["Halt: status blocked until a human resolves the blocking condition"])
     end
 
     subgraph P2["Phase 2 - Task breakdown"]
-        cut["2.1 - Split into vertical slices, each independently testable, with predicted files, size S/M/L and mode afk/hitl; overlaps become edges unless approved parallel; quiz shows the waves table"]
+        cut["2.1 - Split into vertical slices, each independently testable, with predicted files, size S/M/L and mode afk/hitl; overlaps become edges unless approved parallel; the quiz shows the waves table"]
         gSpecifiable{"2.2 - Discovery complete enough to specify the task?"}
         gSeams{"2.3 - Interfaces under test agreed?"}
         gCore{"2.4 - Modifies shared core code?"}
         gTaskBudget{"2.6 - Task count and predicted files within the size budget?"}
-        tasks[/"2.5 - tasks.md index (tasks YAML array, waves table, dependency graph) + one tasks/Tnn-slug.md per task; every feature has one"/]
+        tasks[/"2.5 - tasks.md index (tasks YAML array, waves table, dependency graph) + one tasks/Tnn-slug.md per task; Phase 1 tests assigned; task tracker issues filed"/]
     end
 
     subgraph P3["Phase 3 - Implementation"]
-        orch["3.1 - Orchestrator: classify each task by work type; record impl_base_revision; per wave create task branches and worktrees, launch one sub-agent per task in dependency order; merge between waves"]
-        integrator["3.2 - Integration owner applies core changes between batches; one work type per batch"]
-        impl["3.3 - Pause before hitl tasks; sub-agent per module, in its task worktree: write failing test, then implementation, under the injected profile"]
-        selfreview["3.4 - Add negative and edge-case tests"]
-        toolAudit["3.5 - On stop, run the profile's toolchain via run-toolchain.sh: lint with anti-slop rules, type-check, format, import-boundary check; reused when the tree is unchanged"]
+        orch["3.1 - Orchestrator: classify each task by work type; record impl_base_revision; status in-progress; then per wave create task branches and worktrees off the spec-branch tip"]
+        integrator["3.2 - Sub-agent: integration owner applies shared-core change requests before the wave, in its own worktree; one work type per batch"]
+        impl["3.3 - Launch the wave: one implementation sub-agent per task, in its task worktree: failing test, then implementation, under the injected profile; hitl tasks asked after the rest are launched"]
+        selfreview["3.4 - Negative and edge-case tests, read from the result file the implementer wrote"]
+        toolAudit["3.5 - On stop, run the profile's toolchain via run-toolchain.sh: lint with anti-slop rules, type-check, format, import-boundary check, scoped tests; reused when the tree is unchanged"]
         gTool{"3.6 - Tool audit clean?"}
-        miniReview["3.7 - Sub-agent: mini-review against the checklist items no tool can express, given the tool output; returns verdicts, not the checklist; files its verdict under artifacts itself; a re-check of failed items and changed lines after a wording-only fix round"]
+        miniReview["3.7 - Sub-agent: mini-review against the checklist items no tool can express and the readable-code lines R1-R5, given the tool output; files its verdicts under artifacts; lists every readable-code breach with its exact fix"]
         gMini{"3.8 - Mini-review passes?"}
         gSuites{"3.13 - Harness and browser suite both exist? Always yes on the full path"}
         skipSuites["3.14 - Light path only: skip only the gate of each missing suite; record the gap in spec.md and .workflow/deferred/"]
-        waveMerge["3.16 - Once every task in the wave has passed 3.8: task PR/MR per task_review, merge into the spec branch in id order, delete branch and worktree"]
+        waveMerge["3.16 - Once every task in the wave has passed 3.8: task PR/MR per task_review, merge into the spec branch in id order, mark done, delete branch and worktree, commit the workflow data"]
         gWaveBudget{"3.15 - After each wave merge: changed files within the size budget?"}
-        gGreen{"3.9 - Tests pass and CI green?"}
+        gGreen{"3.9 - Tests pass and CI green? The whole harness after the last wave"}
         e2e["3.10 - Run the browser suite against the running feature"]
         gE2E{"3.11 - Do the end-to-end journeys pass?"}
         evidence[/"3.12 - Run artifacts: screenshots, traces, console and network logs"/]
     end
 
     subgraph P4["Phase 4 - Review and triage"]
-        aStd["4.1 - Sub-agent: coding standards, rules, profile and architecture conformance"]
+        aStd["4.1 - Sub-agent: standards review: rules, profiles, placement ADR, glossary naming, readable-code and smell baselines, recorded review lessons, pitfalls and retrospective process lessons"]
         aReq["4.2 - Sub-agent: goal and end-state conformance"]
-        aTargets["4.3 - Sub-agent: measurable targets met"]
-        aLessons["4.9 - Sub-agent: recorded review lessons, pitfalls and retrospectives"]
-        aCombined["4.10 - Sub-agent: combined review of end state, standards and lessons; light and small paths, in place of 4.1, 4.2 and 4.9"]
-        triage["4.4 - Triage each finding from each lens's findings file, checked by check-review-findings.sh: verify it at the named location, assign severity, dismiss noise with a recorded reason"]
-        gRoute{"4.5 - Route each surviving finding"}
-        gThird{"4.6 - Another pass only after a high-severity patch?"}
+        aTargets["4.3 - Sub-agent: measurable targets met, measured on the running build"]
+        aCombined["4.10 - Sub-agent: combined review of end state, standards and lessons; light path, in place of 4.1 and 4.2; no targets"]
+        triage["4.4 - Triage each finding from each lens's pass file, checked by check-review-findings.sh: carry settled rows, check the proof, verify at the location, one verdict, dismiss noise with a recorded reason"]
+        gRoute{"4.5 - Route each surviving entry: patch, decision needed, discovered work, proposal or none"}
+        gThird{"4.6 - Pass 3 or later with a verified high patch?"}
         gRounds{"4.7 - Rework attempts remaining? (max 5)"}
-        gaps["4.8 - Write deferred findings and remaining gaps as deferred handoffs"]
+        gaps["4.8 - Record the gaps: one Gaps line under the pass in design-log.md, before every exit; no file is written"]
     end
 
     subgraph P5["Phase 5 - Sign-off"]
         reconcile["5.1 - Reconcile spec.md with what actually shipped"]
-        propose["5.2 - Propose Tier A updates in proposals.md: new capabilities, changed rules, decisions, observed pitfalls, profile changes"]
-        gApproveDocs{"5.3 - Human approves or modifies the proposals? One round: approve all or name exceptions"}
-        report["5.4 - report.md: test output (reuses the last passing run), metrics, known gaps"]
-        gApprove{"5.5 - Stakeholder approves the work? Asked in one call with the backlog offer and the retrospective concerns"}
+        propose["5.2 - Propose Tier A updates in proposals.md: new capabilities, changed rules, decisions, observed pitfalls, profile changes, tool rules"]
+        report["5.4 - report.md: test output (reuses the last passing run), targets, journeys, known gaps; five lines for a one-task spec; fill and check pr-body.md"]
+        gApprove{"5.5 - The sign-off ask, in one call: approve the work and the PR description, the proposals, the backlog rulings and the retrospective's drafted lessons"}
         reenter["5.6 - Read spec.md status; re-enter at the phase it names"]
-        retro["5.7 - retrospective skill, run with stakeholder: judge the combined result against spec.md; agree process lessons"]
-        backlogOffer{"5.9 - Before done: offer each open work-backlog item from this spec as the next feature; asked in the same call as 5.5"}
-        done(["5.8 - Merge the spec branch into main through a PR and close"])
+        applyDocs["5.3 - Apply the approved proposals to Tier A and the profiles; assign real capability IDs"]
+        backlogOffer["5.9 - Carry out the backlog rulings from the 5.5 ask: keep, drop, start next, or move to the shelf"]
+        retro["5.7 - retrospective skill: finish the 5.5 draft and write the approved lessons; asks nothing"]
+        done(["5.8 - Move the spec to the Done folder, publish pr-body.md as the PR or local merge message, move the tracker issue to done, remove the spec worktree and branch"])
     end
 
     subgraph P6["Phase 6 - Large path: plans an initiative and emits each settled slice as a spec; never builds"]
@@ -198,23 +188,24 @@ flowchart TD
         lgClose(["6.13 - Close when every emitted spec is done on main"])
     end
 
-    %% Model selection: the pre-launch hook resolves through resolve-launch.sh and rewrites every launch; the map stays with the launcher
+    %% Model selection: the pre-launch hook resolves through resolve-launch.sh and rewrites every launch; the table stays with the launcher
     modelFile --> hook --> gModel
-    gModel -->|"No"| assignModel --> modelFile
+    gModel -->|"No row or no value for this host: deny"| assignModel --> modelFile
     gModel -->|"Yes: allow the launch"| hook
     hook -.->|"launch on the resolved model"| retrieve
     hook -.->|"launch on the resolved model"| libs
-    hook -.->|"launch on the resolved model"| derive
     hook -.->|"launch on the resolved model"| lookup
     hook -.->|"launch on the resolved model"| audit
+    hook -.->|"launch on the resolved model"| harness
+    hook -.->|"launch on the resolved model"| browser
+    hook -.->|"launch on the resolved model"| integrator
     hook -.->|"launch on the resolved model"| impl
     hook -.->|"launch on the resolved model"| miniReview
     hook -.->|"launch on the resolved model"| aStd
     hook -.->|"launch on the resolved model"| aReq
     hook -.->|"launch on the resolved model"| aTargets
-    hook -.->|"launch on the resolved model"| aLessons
     hook -.->|"launch on the resolved model"| aCombined
-    hook -.->|"launch on the resolved model"| integrator
+    hook -.->|"launch on the resolved model"| lgLaunch
     orch -->|"every launch: header block + task"| hook
 
     %% Work profiles: configured once, injected per coding task
@@ -235,18 +226,12 @@ flowchart TD
     toolAudit -.->|"tool output; the lens does not re-lint"| aStd
     pFile -.->|"conformance baseline"| aStd
     pFile -.->|"file locations constrain slicing"| cut
-
-    %% Tier B caches are maintained outside the flow
-    regen -.->|"periodic, or on demand"| cModules
-    regen -.->|"periodic, or on demand"| cFlows
-    regen -.->|"periodic, or on demand"| cArch
+    pFile -.->|"approved libraries decide whether 0.2.5 runs"| libs
 
     %% 0.0 Sizing at intake
     intake --> gTrivial
     gTrivial -->|"Yes"| direct
-    gTrivial -->|"No"| gSmall
-    gSmall -->|"Yes: small_path and light_path true at 0.1.4; the small-path module runs beside each phase module"| scan
-    gSmall -->|"No"| scan
+    gTrivial -->|"No"| scan
 
     %% 0.1 Initialise
     scan --> slug --> folder
@@ -258,25 +243,18 @@ flowchart TD
     defFile --> archiveStep --> defArchive
     draft -->|"initial goal"| spec
     draft --> area
-    dContext -->|"read into main context"| area
+    dContext -->|"term list read into main context"| area
 
-    %% 0.2 Retrieve
+    %% 0.2 Retrieve: the launches go out with the term-gate ask
     area --> gTerm0
-    gTerm0 -->|"Yes"| agree0 --> gSufficient
-    gTerm0 -->|"No"| gSufficient
+    gTerm0 -->|"Yes: an open term"| agree0
     agree0 -->|"write inline"| dContext
-    gSufficient -->|"No: stale, missing or invalid"| derive
-    derive -->|"refresh and restamp"| TierB
-    derive --> retrieve
-    derive --> libs
-    gSufficient -->|"Yes"| retrieve
-    gSufficient -->|"Yes"| libs
+    agree0 -->|"agreed names replace proposed ones"| map
+    gTerm0 -->|"launched beside the ask, or alone when no term is open"| retrieve
+    gTerm0 -.->|"only when needed"| libs
     dCap --> retrieve
     dRules --> retrieve
     dLog --> retrieve
-    cModules --> retrieve
-    cFlows --> retrieve
-    cArch --> retrieve
     defFile -->|"this request may already be on the shelf"| retrieve
     retrieve -->|"extracts only"| map
     libs --> map
@@ -291,6 +269,7 @@ flowchart TD
     gADR -->|"No"| adrDoc
     adrDoc -->|"first entry to the loop only"| deeper
     deeper -->|"agreed prompt is the input"| answerable
+    deeper -.->|"agreement and its questions ride on the first ask"| ask
     dCap -.->|"answers this"| gDup
     dRules -.->|"ownership is read from here"| gPlace
 
@@ -314,12 +293,14 @@ flowchart TD
     settle --> gLight
     settle -->|"several features: stakeholder agrees to convert"| convert
     ask -->|"conversion question answered yes"| convert
+    ask -.->|"first round, footprint plainly too big for the light path"| audit
+    ask -.->|"an answer brings in a library 0.2.5 did not evaluate"| libs
     convert -->|"initiative: exploring"| lgEnter
-    gLight -->|"Yes: light path; creates the spec branch, writes the one-task tasks.md, its task file and budget, status: ready-for-dev; no 2.6 check"| orch
+    gLight -->|"Yes: light path; writes the budget, the one-task tasks.md and its task file, creates the spec branch and spec worktree, status: ready-for-dev; no 2.6 check"| orch
     gLight -->|"No: full path"| impact
     ask -.->|"appends the round and its answers"| dlog
     deepdive -.-> dlog
-    deeper -.->|"appends the agreed prompt"| dlog
+    deeper -.->|"appends the deeper prompt"| dlog
     place -.-> dlog
     shelve -.->|"records the scope decision"| dlog
     spec -.->|"draft goal frames the questions"| answerable
@@ -338,7 +319,8 @@ flowchart TD
     gConflict -->|"No"| endstate
     map -.->|"scopes the audit"| audit
     audit -->|"updates as more is found"| map
-    impact --> audit
+    audit -.->|"out of scope noticed: through the scope gate"| shelve
+    classify --> audit
     classify -.-> dlog
 
     %% 0.5 End state
@@ -356,6 +338,8 @@ flowchart TD
 
     %% Phase 1
     budgets --> harness --> browser --> gHarness
+    budgets -->|"tests in tasks: no new capability or suite; 1.2 and 1.3 skipped, 1.4 runs after the last wave"| harnessDoc
+    harness -.->|"the breakdown quiz is asked while 1.2 runs"| cut
     gHarness -->|"No, one passes a broken build"| harness
     gHarness -->|"Yes"| harnessDoc --> cut
     gHarness -->|"Suites cannot be made to fail, status: blocked"| halt
@@ -371,7 +355,7 @@ flowchart TD
     gCore -->|"Yes: flag touches_core"| tasks
     gCore -->|"No"| tasks
     tasks -->|"budget written to spec.md"| gTaskBudget
-    gTaskBudget -->|"Yes"| orch
+    gTaskBudget -->|"Yes: commit the breakdown on the spec branch"| orch
     gTaskBudget -->|"No"| dwBlock
     dRules -.->|"defines shared core"| gCore
     dataModel -.->|"orders migration work"| cut
@@ -379,11 +363,12 @@ flowchart TD
 
     %% Phase 3
     orch -->|"status: in-progress"| impl --> selfreview --> toolAudit --> gTool
-    orch -->|"core batches, one work type each"| integrator
-    integrator --> orch
+    orch -->|"shared-core requests, one work type per batch"| integrator
+    integrator -->|"merged before the wave launches"| impl
     gTool -->|"No: stop blocked, tool output back to the same agent"| impl
     gTool -->|"Yes"| miniReview --> gMini
-    gMini -->|"No"| impl
+    gMini -->|"No: a behaviour fix; a fresh launch, then a full review"| impl
+    gMini -->|"No: readable-code or wording fixes only; the orchestrator applies them and reruns the toolchain, no relaunch"| waveMerge
     gMini -->|"Yes"| waveMerge
     waveMerge -->|"once per wave"| gWaveBudget
     gWaveBudget -->|"Yes"| gSuites
@@ -397,15 +382,16 @@ flowchart TD
     skipSuites -->|"neither exists, status: in-review"| aCombined
     skipSuites -.->|"gap flagged at sign-off"| report
     gGreen -->|"No: reopen the task, done to in-progress"| impl
-    gGreen -->|"Yes"| e2e --> gE2E
-    gGreen -->|"Yes, no browser suite on the light path: status: in-review"| aCombined
+    gGreen -->|"Yes, tasks still pending: next wave"| impl
+    gGreen -->|"Yes after the last wave"| e2e --> gE2E
+    gGreen -->|"Yes after the last wave, no browser suite on the light path: status: in-review"| aCombined
     e2e --> evidence
     gE2E -->|"No: reopen the task, done to in-progress"| impl
     gE2E -->|"Yes, status: in-review"| aStd
     gE2E --> aReq
     gE2E --> aTargets
-    gE2E --> aLessons
     gE2E -->|"Yes on the light path, status: in-review"| aCombined
+    gE2E -.->|"after a rework with no verified high patch: no new pass"| reconcile
     harnessDoc -.->|"gates every batch"| gGreen
     harnessDoc -.->|"the suite that runs here"| e2e
 
@@ -413,43 +399,46 @@ flowchart TD
     aStd --> triage
     aReq --> triage
     aTargets --> triage
-    aLessons --> triage
     aCombined --> triage
     triage --> gRoute
-    gRoute -->|"Patch: unambiguous code fix"| gThird
-    gRoute -->|"Defer: real, but not this change"| gaps
-    gRoute -->|"Decision needed: ambiguous, stakeholder must choose; status: draft"| answerable
-    gRoute -->|"None left"| reconcile
+    gRoute -->|"Patch: proven, caused by this change, smallest fix unambiguous"| gThird
+    gRoute -->|"Discovered work: assessed first; a blocker stops the spec, the rest wait for the batched ask"| dwAssess
+    gRoute -->|"Decision needed: intent the spec does not settle; status: draft"| answerable
+    gRoute -.->|"Proposal: a proposals.md row for the 5.5 ask"| propose
+    gRoute -->|"None left: dismissed, proposal and discovered-work entries only"| gaps
     gThird -->|"Yes: the problem is upstream; followup_review_recommended; status: draft"| answerable
     gThird -->|"No"| gRounds
-    gRounds -->|"Yes"| impl
-    gRounds -->|"No, high-severity findings open: status: blocked"| gaps
-    gRounds -->|"No, no high-severity findings: stays in-review, defer the rest"| gaps
-    gaps --> defFile
+    gRounds -->|"Readable-code or low wording patches only: the orchestrator patches them, no rework counted"| gaps
+    gRounds -->|"Yes: reopen the owning tasks, rework k of 5"| impl
+    gRounds -->|"No, verified high open: status: blocked; open patches go to discovered work"| gaps
+    gRounds -->|"No, no verified high open: stays in-review"| gaps
     gaps -->|"5.1 sets status: in-review if blocked; open findings recorded as known gaps"| reconcile
+    gaps -.->|"Gaps line under the pass"| dlog
     adrDoc -.->|"conformance baseline"| aStd
     dRules -.->|"conformance baseline"| aStd
     dContext -.->|"naming baseline"| aStd
+    dLog -.->|"recorded lessons"| aStd
+    dLog -.->|"recorded lessons"| aCombined
     vplan -.->|"conformance baseline"| aReq
     evidence -.->|"proof the journeys ran"| aReq
     triage -.->|"triage log"| dlog
 
-    %% Phase 5
+    %% Phase 5: everything before 5.5 prepares the one ask; everything after applies its answers
     reconcile --> spec
-    reconcile --> propose --> gApproveDocs
-    gApproveDocs -->|"Modify"| propose
-    gApproveDocs -->|"Approve"| report
-    gApproveDocs -->|"Approve: write as approved"| TierA
-    gApproveDocs -->|"Approve: write as approved"| pFile
-    report --> gApprove
-    gApprove -->|"Yes"| backlogOffer
-    gApprove -->|"No, change requested"| reenter
+    reconcile --> propose --> report --> gApprove
+    retro -.->|"drafted before the ask: verdict and numbered lessons"| gApprove
+    gApprove -->|"Yes, nothing folded in"| applyDocs
+    gApprove -->|"No: change requested, or an item ruled fold in"| reenter
     reenter -->|"status: draft"| answerable
-    backlogOffer -->|"Every item started, kept open or moved; or no items"| retro
+    applyDocs -->|"write as approved"| TierA
+    applyDocs -->|"write as approved"| pFile
+    applyDocs --> backlogOffer
+    backlogOffer -->|"Keep for later: 00.26 adds the line"| dwWrite
+    backlogOffer -->|"Move to the shelf, only when the stakeholder asked"| defFile
+    backlogOffer -.->|"Start it: seeds a new spec through 0.1; its 0.1.4 marks the line promoted"| intake
+    backlogOffer -->|"every ruling carried out"| retro
     retro -->|"status: done, from in-review"| done
-    backlogOffer -->|"Move to .workflow/deferred/: moved-to-deferred"| defFile
-    backlogOffer -.->|"Start: hand off to a new spec seeded via 0.1; its 0.1.4 marks the item promoted"| intake
-    dwItem -.->|"open items from this spec"| backlogOffer
+    dwItem -.->|"open lines of this spec"| gApprove
 
     %% Phase 6: the large path
     lgEnter -->|"exploring"| lgWriteBack
@@ -466,55 +455,62 @@ flowchart TD
     lgEmit --> lgLog
     lgPlanned --> lgMerge
     lgMerge -.->|"stakeholder reopens"| lgReopen --> lgWriteBack
-    done -.->|"a spec carrying initiative: merged"| lgClose
+    done -.->|"a spec carrying initiative: 6.13 once merged"| lgClose
     lgClose -->|"done: merged as at 6.11"| lgMerge
-    %% Discovered-work protocol: detection points in Phases 1-4, then one HITL
-    harness -->|"discovered work"| dwBlock
-    cut -->|"discovered work"| dwBlock
-    impl -->|"discovered-work return"| dwBlock
-    integrator -->|"discovered-work return"| dwBlock
-    triage -->|"discovered-work finding"| dwBlock
-    dwBlock -->|"running tasks finish their gates; no new launches, merges or budget checks; later reports join this prompt"| dwPresent
+
+    %% Discovered-work protocol: detection points in Phases 1-4; only a blocker stops the work
+    harness -->|"discovered work"| dwAssess
+    cut -->|"discovered work"| dwAssess
+    impl -->|"discovered-work return"| dwAssess
+    integrator -->|"discovered-work return"| dwAssess
+    miniReview -->|"out of scope noticed"| dwAssess
+    dwAssess -.->|"Unproven: one design-log line"| dlog
+    dwAssess -->|"Current work: a simple fix for the owning worker"| impl
+    dwAssess -->|"Blocker"| dwBlock
+    dwAssess -->|"For the stakeholder: logged as to ask; the work continues"| gDwAsk
+    dwBlock -->|"running tasks finish their gates; no new launches, merges or budget checks; later blockers join this prompt"| dwPresent
     dwPresent -->|"discovered work"| gDwBlocker
     dwPresent -->|"size budget"| gDwBudget
+    dwPresent -.->|"carries the batched question"| gDwAsk
     gDwBlocker -->|"Yes"| gDwDiscovery
-    gDwBlocker -->|"No, can be solved later"| gDwNext
+    gDwBlocker -->|"No: keep it for later"| dwWrite
+    gDwBlocker -->|"No: drop it"| dwResume
     gDwDiscovery -->|"Yes: status blocked to draft, problem is the first frontier; design-log Outcome loop back"| answerable
     gDwDiscovery -->|"No: stays blocked"| halt
     halt -.->|"a human resolves the condition"| dwResume
-    gDwNext -->|"Yes"| dwWrite
-    gDwNext -->|"No: ignore"| dwResume
-    gDwNext -.->|"ignored: one traceability line"| dlog
+    gDwAsk -->|"Keep for later"| dwWrite
+    gDwAsk -->|"Fold in: a scope change through 5.6 or the next round's frontier"| reenter
+    gDwAsk -.->|"Drop: the ruling line only"| dlog
+    gDwAsk -.->|"asked at 5.5 at the latest"| gApprove
     dwWrite --> dwItem
-    dwWrite --> dwResume
-    gDwBudget -->|"Split: remaining work to the backlog; pending tasks split-out"| dwWrite
+    dwWrite -->|"a shelf match: one Later requests line"| defFile
+    dwWrite -->|"a blocked spec"| dwResume
+    gDwBudget -->|"Split: remaining work to the backlog list; pending tasks split-out"| dwWrite
     gDwBudget -->|"Re-scope: status draft"| answerable
     gDwBudget -->|"Approve the overrun: budget raised for this spec"| dwResume
     gDwBudget -.->|"overrun and reason"| dlog
     dwResume -->|"status restored from blocked_from"| spec
-    retro -->|"agreed lessons, pitfalls, action items"| dLog
+    retro -->|"agreed lessons, pitfalls, review lessons"| dLog
     retro -->|"what this feature taught"| dlog
-    retro -.->|"model observations: map entry, or .workflow/agent-overrides.yaml if the definition pins the model"| modelFile
+    retro -.->|"model observations: dated lines in the task type's row"| modelFile
     adrDoc --> dLog
     evidence -.->|"attached as evidence"| report
 
     classDef stage fill:#27374D,color:#fff,stroke:#27374D
     classDef step fill:#526D82,color:#fff,stroke:#526D82
     classDef doc fill:#659DF2,color:#fff,stroke:#659DF2
-    classDef cache fill:#8FB8DE,color:#1b1b1b,stroke:#8FB8DE,stroke-dasharray: 4 3
     classDef index fill:#2FA39B,color:#fff,stroke:#2FA39B
     classDef agent fill:#7C6BA8,color:#fff,stroke:#7C6BA8
     classDef gate fill:#E8A33D,color:#1b1b1b,stroke:#E8A33D
     classDef terminal fill:#9DB2BF,color:#1b1b1b,stroke:#9DB2BF
     classDef external fill:#EEEEEE,color:#555,stroke:#999,stroke-dasharray: 4 3
 
-    class scan,slug,draft,area,place,deeper,answerable,ask,deepdive,shelve,settle,impact,classify,endstate,budgets,harness,browser,cut,orch,toolAudit,e2e,triage,gaps,reconcile,propose,report,retro,hook,inject,dwBlock,dwPresent,dwWrite,dwResume,waveMerge stage
+    class scan,slug,draft,area,place,deeper,answerable,ask,deepdive,shelve,settle,impact,classify,endstate,budgets,cut,orch,toolAudit,e2e,triage,gaps,reconcile,propose,report,applyDocs,backlogOffer,retro,hook,inject,dwBlock,dwPresent,dwWrite,dwResume,waveMerge stage
     class agree0,agree1,agree2,reuse,supersede,journeys,fixtures,selfreview,reenter,archiveStep,assignModel,newProfile,skipSuites step
-    class retrieve,derive,libs,audit,lookup,impl,integrator,miniReview,aStd,aReq,aTargets,aLessons,aCombined agent
+    class retrieve,libs,audit,lookup,harness,browser,impl,integrator,miniReview,aStd,aReq,aTargets,aCombined agent
     class dContext,dCap,dRules,dLog,folder,map,dlog,dataModel,vplan,adrDoc,harnessDoc,tasks,defFile,dwItem,defArchive,evidence,modelFile,pTemplate,pFile doc
-    class cModules,cFlows,cArch cache
-    class regen,setup external
-    class gTrivial,gSmall,gModel,gProfile,gFromDef,gTerm0,gSufficient,gDup,gPlace,gADR,gAny,gDefer,gTerm1,gScope,gOpen,gLight,gTerm2,gConflict,gReady,gHarness,gSpecifiable,gSeams,gCore,gTool,gMini,gSuites,gGreen,gE2E,gRoute,gThird,gRounds,gApproveDocs,gApprove,gDwBlocker,gDwDiscovery,gDwNext,gDwBudget,gTaskBudget,gWaveBudget,backlogOffer gate
+    class setup external
+    class gTrivial,gModel,gProfile,gFromDef,gTerm0,gDup,gPlace,gADR,gAny,gDefer,gTerm1,gScope,gOpen,gLight,gTerm2,gConflict,gReady,gHarness,gSpecifiable,gSeams,gCore,gTool,gMini,gSuites,gGreen,gE2E,gRoute,gThird,gRounds,gApprove,dwAssess,gDwBlocker,gDwDiscovery,gDwAsk,gDwBudget,gTaskBudget,gWaveBudget gate
     class spec index
     class convert,lgEnter,lgWriteBack,lgFrontier,lgAsk,lgSlices,lgLog,lgEmit,lgPlanned,lgMerge,lgReopen stage
     class lgLaunch agent

@@ -4,7 +4,7 @@ The rules every feature-workflow step file follows, for a spec and for an initia
 
 ## Status, step marker and guarded writes
 
-- **One writer.** Status, the step marker `.workflow/specs/NNN-slug/.step` and task records change only through `.agents/skills/feature-workflow/scripts/status-transition.sh`. An initiative's status, its `.step` and its slice and question records change only through `.agents/skills/feature-workflow/scripts/initiative-transition.sh`, whose call forms are in [large-path](../modules/large-path.md#conventions). Always call scripts with that exact repo-relative prefix from the project root: sandboxed projects exclude these exact command lines.
+- **One writer.** Status, the step marker `.workflow/specs/NNN-slug/.step` and task records change only through `.agents/skills/feature-workflow/scripts/status-transition.sh`. An initiative's status, its `.step` and its slice and question records change only through `.agents/skills/feature-workflow/scripts/initiative-transition.sh`, whose call forms are in [large-path](../modules/large-path.md#conventions). Always call scripts with that exact repo-relative prefix from the project root: sandboxed projects exclude these exact command lines. Step files write these two scripts as `ST` and `IT`; type the full path.
 
   ```text
   status-transition.sh status   <spec-dir> <new-status> [--step <node>] [--blocked "<condition>"]
@@ -17,7 +17,7 @@ The rules every feature-workflow step file follows, for a spec and for an initia
 
   | File | Allowed steps |
   | --- | --- |
-  | `spec.md` | 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 4.8, 5.1, 5.3, 5.9, 00.29 |
+  | `spec.md` | 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9, 00.29 |
   | `tasks.md` and `tasks/T<nn>-<slug>.md` (create or replace) | 0.3.20, 2.5; afterwards task records only through `set-task` |
   | `.workflow/specs/work-backlog/**` | 00.26, 5.9, 0.1.4 (marking a seeded item `promoted`) |
   | `.workflow/initiatives/NNN-slug/initiative.md` | 6.1, 6.7, 6.9 (the initiative's own `.step`, set with `initiative-transition.sh step`) |

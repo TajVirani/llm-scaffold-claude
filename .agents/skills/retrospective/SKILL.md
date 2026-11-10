@@ -27,7 +27,7 @@ The retrospective writes these files, each with the stakeholder's agreement:
 | `.workflow/decisions/pitfalls.md` | A | Observed failures only |
 | `.workflow/review-lessons.md` | A | Review lessons: new entries, and retirements of enforced ones |
 | `.workflow/specs/NNN-slug/design-log.md` | — | One appended "Retrospective notes" section |
-| `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` | — | Model observations |
+| `.workflow/model-map.yaml` | — | Model observations: a dated line in the task type's `observations`, and an agreed alias change |
 
 At 5.7, set the step before the first Tier A write, so `workflow-write-guard` allows it:
 

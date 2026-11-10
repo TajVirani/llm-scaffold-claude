@@ -5,8 +5,7 @@
 #   backlog list <NNN-slug>.md: main session at the origin spec's 00.26 or 5.9 only; a per-item file name is denied).
 #   JRN-004 (spec 007): every Write/Edit under .workflow/specs/done/** is denied for the main session and a sub-agent, from the
 #   main checkout and a worktree, in any case and as an absolute path, including done/.step, done/spec.md beside a stray
-#   done/.step at a spec writer step, and a glossary file inside a moved spec at a glossary step; one of the two hook classes
-#   denies it; the reason names the Done folder; look-alike folders (done-x/, 012-done/, a done/ inside a spec) stay unguarded.
+#   done/.step at a spec writer step, and a glossary file inside a moved spec at a glossary step; the reason names the Done folder; look-alike folders (done-x/, 012-done/, a done/ inside a spec) stay unguarded.
 #   JRN-012 (spec 00014): a backlog list named old_NNN-slug.md, the list of a Done spec renamed with the old_ prefix, passes
 #   the list-name rule a misnamed list fails, and malformed old_ list names still fail it; such a list is written at 00.26
 #   or 5.9 of the step marker in its Done folder spec, and denied at another step or without one.
@@ -63,14 +62,11 @@ t ".step via .. deny"                        2 CW --cwd "$R" --path src/../.work
 t ".Workflow/Specs/.../.STEP case deny"      2 CW --cwd "$R" --path .Workflow/Specs/002-beta/.STEP
 t ".step in worktree deny"                   2 CW --cwd "$WT" --path "$WT/.workflow/specs/002-beta/.step" --agent abc
 t ".step via /tmp symlink path"             2 CW --cwd "$R" --path "${R#/private}/.workflow/specs/002-beta/.step"
-t "--only tier-a ignores the marker"         0 CW --cwd "$R" --path .workflow/specs/002-beta/.step --only tier-a
-t "--only spec denies the marker"            2 CW --cwd "$R" --path .workflow/specs/002-beta/.step --only spec
 t ".step deny (main)"                       2 CW --cwd "$R" --path .workflow/specs/002-beta/.step
 t "unguarded src file"                      0 CW --cwd "$R" --path src/app.ts
 t "unguarded, sub-agent"                    0 CW --cwd "$WT" --path "$WT/src/app.ts" --agent a1
 t "outside repo"                            0 CW --cwd "$R" --path /etc/hosts
 t "missing --path"                          1 CW --cwd "$R"
-t "bad --only"                              1 CW --cwd "$R" --path x --only foo
 
 echo "== check-write: .workflow/ prefixes"
 # A sub-agent write is denied on every guarded path before any step check, so --agent isolates classification.
@@ -103,8 +99,8 @@ t "spec.md from worktree, main session"     0 CW --cwd "$WT" --path "$WT/.workfl
 t "spec.md worktree sub-agent deny"         2 CW --cwd "$WT" --path "$WT/.workflow/specs/002-beta/spec.md" --agent a1
 ST step $B 0.3.7 >/dev/null
 t "spec.md at 0.3.7 deny"                   2 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md
-for s in 1.2 2.6 3.3 3.11 3.15 3.16 4.5 4.7 5.7 00.19 00.21 00.26 00.28; do ST step $B $s >/dev/null; t "spec.md at $s deny" 2 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
-for s in 0.1.4 0.3.17 0.3.20 1.1 2.5 3.1 3.14 4.6 4.8 5.3 5.9 00.29; do ST step $B $s >/dev/null; t "spec.md at $s allow (widened)" 0 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
+for s in 1.2 2.6 3.3 3.11 3.15 3.16 4.5 4.7 4.8 5.7 00.19 00.21 00.26 00.28; do ST step $B $s >/dev/null; t "spec.md at $s deny" 2 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
+for s in 0.1.4 0.3.17 0.3.20 1.1 2.5 3.1 3.14 4.6 5.3 5.9 00.29; do ST step $B $s >/dev/null; t "spec.md at $s allow (widened)" 0 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
 for s in 0.1.6 0.5.1 5.1; do ST step $B $s >/dev/null; t "spec.md at $s allow" 0 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
 t "spec.md of feature without marker deny"  2 CW --cwd "$R" --path .workflow/specs/004-new/spec.md
 cp "$R/$B/spec.md" "$F/proposed-ok.md"; echo "more" >> "$F/proposed-ok.md"
@@ -131,10 +127,7 @@ yq --front-matter=process -i '.status="done"' "$R/.workflow/specs/005-new/spec.m
 
 echo "== check-write: tasks.md (set-task is the only record writer)"
 for s in 2.5 0.3.20; do ST step $B $s >/dev/null; t "tasks.md at $s allow" 0 CW --cwd "$R" --path .workflow/specs/002-beta/tasks.md; t "tasks.md at $s sub-agent deny" 2 CW --cwd "$WT" --path "$WT/.workflow/specs/002-beta/tasks.md" --agent impl; done
-t "tasks.md --only spec covers it"          0 CW --cwd "$R" --path .workflow/specs/002-beta/tasks.md --only spec
 for s in 3.1 0.6 2.4 4.7 0.1.6; do ST step $B $s >/dev/null; t "tasks.md at $s deny" 2 CW --cwd "$R" --path .workflow/specs/002-beta/tasks.md; done
-t "tasks.md --only spec denies at 3.1"      2 CW --cwd "$R" --path .workflow/specs/002-beta/tasks.md --only spec
-t "tasks.md --only tier-a ignores it"       0 CW --cwd "$R" --path .workflow/specs/002-beta/tasks.md --only tier-a
 t "tasks.md deny points at set-task"        0 bash -c "CW --cwd '$R' --path .workflow/specs/002-beta/tasks.md 2>&1 | grep -q 'status-transition.sh set-task'"
 t "tasks.md no marker deny"                 2 CW --cwd "$R" --path .workflow/specs/007-x/tasks.md
 t "tasks.md from worktree, main, at 3.1 deny" 2 CW --cwd "$WT" --path "$WT/.workflow/specs/002-beta/tasks.md"
@@ -151,15 +144,13 @@ echo "== check-write: .workflow/specs/work-backlog"
 WB=.workflow/specs/work-backlog/006-delta.md
 ST step $D 00.26 >/dev/null
 t "backlog item at 00.26 allow"             0 CW --cwd "$R" --path $WB
-t "backlog item --only spec at 00.26 allow" 0 CW --cwd "$R" --path $WB --only spec
-t "backlog --only tier-a ignores it"        0 CW --cwd "$R" --path $WB --only tier-a
 t "backlog item sub-agent deny"             2 CW --cwd "$R" --path $WB --agent impl
 t "backlog item worktree sub-agent deny"    2 CW --cwd "$WT" --path "$WT/$WB" --agent impl
 t "backlog item from worktree, main allow"  0 CW --cwd "$WT" --path "$WT/$WB"
 t "backlog case-insensitive class"          0 CW --cwd "$R" --path .Workflow/Specs/Work-Backlog/006-delta.md
 ST step $D 5.9 >/dev/null
 t "backlog item at 5.9 allow"               0 CW --cwd "$R" --path $WB
-for s in 3.1 3.4 4.4 00.21 00.25 00.27 5.7; do ST step $D $s >/dev/null; t "backlog item at $s deny" 2 CW --cwd "$R" --path $WB; t "backlog --only spec at $s deny" 2 CW --cwd "$R" --path $WB --only spec; done
+for s in 3.1 3.4 4.4 00.21 00.25 00.27 5.7; do ST step $D $s >/dev/null; t "backlog item at $s deny" 2 CW --cwd "$R" --path $WB; done
 t "backlog deny message names 00.26"        0 bash -c "CW --cwd '$R' --path $WB 2>&1 | grep -q '00.26'"
 ST step $D 00.26 >/dev/null
 t "backlog misnamed item deny"              2 CW --cwd "$R" --path .workflow/specs/work-backlog/notes.md
@@ -207,17 +198,6 @@ yq --front-matter=process -i '.status="in-progress"' "$R/$D/spec.md"
 
 echo "== check-write: the Done folder .workflow/specs/done/** (JRN-004, spec 007)"
 DN=.workflow/specs/done
-# any_guard_denies PATH [ARG...] : true when one of the two guard classes (--only spec, tier-a), as the write-guard
-#   hooks call check-write.sh, denies PATH.
-any_guard_denies() {
-  local p=$1 only
-  shift
-  for only in spec tier-a; do
-    CW --cwd "$R" --path "$p" --only "$only" "$@" >/dev/null 2>&1
-    [ $? -eq 2 ] && return 0
-  done
-  return 1
-}
 # A stray marker in done/ itself would let done/spec.md through as a spec file at a writer step; the Done folder rule must win.
 mkdir -p "$R/$DN"
 printf 'step: "0.3.19"\nupdated_at: "2026-10-30T10:00:00Z"\n' >"$R/$DN/.step"
@@ -233,10 +213,6 @@ t "done/** case-insensitive deny"           2 CW --cwd "$R" --path .Workflow/Spe
 t "done/** absolute path deny"              2 CW --cwd "$R" --path "$R/$DN/012-x/pr-body.md"
 t "done/** from worktree, main session deny" 2 CW --cwd "$WT" --path "$WT/$DN/012-x/spec.md"
 t "done/** from worktree, sub-agent deny"   2 CW --cwd "$WT" --path "$WT/$DN/012-x/report.md" --agent impl
-for p in $DN/012-x/design-log.md $DN/012-x/pr-body.md $DN/012-x/spec.md $DN/spec.md; do
-  t "done/** a write-guard hook class denies: $p" 0 any_guard_denies "$p"
-  t "done/** a write-guard hook class denies a sub-agent: $p" 0 any_guard_denies "$p" --agent impl
-done
 t "done/** deny reason names the Done folder" 0 bash -c "CW --cwd '$R' --path $DN/012-x/design-log.md 2>&1 >/dev/null | grep -qi 'done folder'"
 for p in .workflow/specs/done-x/012-x/design-log.md .workflow/specs/012-done/design-log.md .workflow/specs/012-x/done/notes.md \
   .workflow/specs/donex.md docs/specs/done/012-x/spec.md; do

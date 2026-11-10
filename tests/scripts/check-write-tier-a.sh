@@ -105,8 +105,6 @@ t "new profile at 3.1 deny"                 2 CW --cwd "$R" --path .workflow/pro
 t "deep .workflow/GLOSSARY.md at 3.1 deny"      2 CW --cwd "$R" --path src/billing/GLOSSARY.md
 t "deep .workflow/GLOSSARY-MAP.md at 3.1 deny"  2 CW --cwd "$R" --path a/b/c/GLOSSARY-MAP.md
 t "deny message points at proposals.md"     0 bash -c "CW --cwd '$R' --path .workflow/rules.md 2>&1 | grep -q '.workflow/specs/002-beta/proposals.md'"
-t "--only tier-a ignores spec.md"           0 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md --only tier-a
-t "--only spec ignores GLOSSARY"            0 CW --cwd "$R" --path .workflow/GLOSSARY.md --only spec
 ST step $G 0.3.15 >/dev/null
 t "newest marker (gamma 0.3.15) wins"       0 CW --cwd "$R" --path .workflow/GLOSSARY.md
 echo "== newest marker by seq, not by time"

@@ -204,8 +204,6 @@ t "tasks/ at 0.3.20 allow"                  0 CW --cwd "$R" --path $M/tasks/T01-
 ST step $M 3.3 >/dev/null
 t "tasks/ at 3.3 deny"                      2 CW --cwd "$R" --path $M/tasks/T01-x.md
 t "TASKS/ upper-case at 3.3 deny"           2 CW --cwd "$R" --path .workflow/specs/011-mu/TASKS/T01-x.md
-t "tasks/ only spec class"                  2 CW --cwd "$R" --path $M/tasks/T01-x.md --only spec
-t "tasks/ not tier-a"                       0 CW --cwd "$R" --path $M/tasks/T01-x.md --only tier-a
 t "look-alike tasks-x/ allow"               0 CW --cwd "$R" --path $M/tasks-x/T01.md
 t "look-alike tasks.md.bak allow"           0 CW --cwd "$R" --path $M/tasks.md.bak
 t "look-alike src/tasks/ allow"             0 CW --cwd "$R" --path src/tasks/T01.md

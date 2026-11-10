@@ -142,6 +142,7 @@ own_result_file() {
     *) return 1 ;;
   esac
   want=$(wf_agent_worktree_name "$spec_folder" "$kind" "$value" 2>/dev/null) || return 1
+  # Work types that differ only in `-` and `_` encode to one worktree name, and two worktrees cannot share a name, so only one such agent runs at a time.
   [ "$want" = "$name" ]
 }
 

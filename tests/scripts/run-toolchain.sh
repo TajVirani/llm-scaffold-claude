@@ -382,7 +382,8 @@ eq no-spec-branch-runs-full "$(tail -n 1 "$M3"):$(jq -c '.results[] | select(.ke
 FW="$AGENTS_SRC/skills/feature-workflow/modules"
 check docs-gates-tree-counts-rules-and-profiles \
   'grep -F "toolchain.json\` records \`tree\`" "$FW/implementation-gates.md" | grep -qF "\`rules.md\` and the profiles stay in"'
-check docs-sign-off-tree-counts-rules-and-profiles 'grep -F -B 3 -- "--task-id sign-off-5.4" "$FW/sign-off.md" | grep -qF "a 5.3 edit to \`rules.md\` or a profile does"'
+# 5.4 runs before the 5.3 edits, so its description names only the workflow-data commits as leaving the tree unchanged.
+check docs-sign-off-tree-ignores-workflow-data 'grep -F -B 3 -- "--task-id sign-off-5.4" "$FW/sign-off.md" | grep -qF "(workflow-data commits do not change it)"'
 
 shellcheck_files "shellcheck: run-toolchain.sh" "$RT"
 finish

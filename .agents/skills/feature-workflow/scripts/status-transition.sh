@@ -19,7 +19,7 @@
 #       overwritten (exit 2) unless the value is identical. --step names the node (required: 1.1 | 0.3.20 for --spec-branch,
 #       3.1 for --impl-base) and is written to .step. Refused (exit 2) while the spec is done.
 #   status-transition.sh step <spec-dir> <node-id> [--cwd <dir>]
-#       Step-only mode: set .step before a guarded write (spec.md: 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 4.8, 5.1, 5.3, 5.9, 00.29;
+#       Step-only mode: set .step before a guarded write (spec.md: 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9, 00.29;
 #       tasks.md: 2.5, 0.3.20; .workflow/specs/work-backlog/: 00.26, 5.9, 0.1.4; glossaries: 0.2.3, 0.3.15, 0.4.3, 5.3; other Tier A: 0.3.7, 5.3, 5.7; new profile: 00.19 — see check-write.sh).
 #       Any node id of the form N(.N)* is accepted, including 00.21-00.29, 2.6, 3.15, 3.16 and 5.9. `step <dir> 0.1.4` works before
 #       spec.md exists (the folder must exist), so 0.1.4 can create spec.md with Write.

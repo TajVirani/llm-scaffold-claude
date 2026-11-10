@@ -58,7 +58,7 @@ Behaviour verification: <what was exercised end to end against the running build
 
 ## Review outcome
 
-- Review passes: <n> (rework ceiling 5) · Findings: <n> patched, <n> deferred, <n> dismissed with reason (see design-log.md triage entries)
+- Review passes: <n> (rework ceiling 5) · Findings: <n> patched, <n> left open as known gaps, <n> dismissed with reason (see design-log.md triage entries)
 - Follow-up review recommended: <yes / no, with the reason>
 
 ## Known gaps

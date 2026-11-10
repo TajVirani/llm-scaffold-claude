@@ -38,7 +38,7 @@ Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`). stat
   Add no other keys beyond those listed here, `tracker_issue` included. Status changes go only through status-transition.sh, never by hand.
 
 Writing rules:
-  - Single writer: the main session writes this file only at 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 4.8, 5.1, 5.3, 5.9 and 00.29 (workflow-write-guard checks the .step marker). Sub-agents never write it. `status` and `blocked_condition` change only through status-transition.sh, whatever the step.
+  - Single writer: the main session writes this file only at 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9 and 00.29 (workflow-write-guard checks the .step marker). Sub-agents never write it. `status` and `blocked_condition` change only through status-transition.sh, whatever the step.
   - Links, never copies: support detail lives in the linked files. Each fact has one home.
   - Capability IDs: a capability that already exists in .workflow/capabilities.md keeps its ID (0.3.1). A new one gets a provisional ID scoped to this spec, `CAP-NEW-<slug>` (lowercase kebab-case, unique within the spec, e.g. CAP-NEW-guest-checkout). At sign-off 5.3 the approved proposal assigns the next real CAP-### in .workflow/capabilities.md, and every reference in this spec's files (spec.md, tasks.md, verification-plan.md, proposals.md, report.md) is rewritten to it.
   - Optional sections (Assumptions, Open Questions, Known gaps) are deleted when empty. Every other section stays.

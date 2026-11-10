@@ -16,8 +16,7 @@
 #   done_render DEST KEY=VALUE...   renders a manifest read on stdin into DEST, replacing each @KEY@ with VALUE
 #   done_folder_repo DIR   git repo with a committed copy of .agents/ and the manifest rendered at the top level, checked out
 #                          on spec/012-alpha, with the gitignored step markers 5.8 (alpha, gamma), 3.4 (beta) and 0.1.6 (delta)
-#   done_expected DEST moved|swept   the tree the manifest describes after `move-to-done.sh .workflow/specs/012-alpha`
-#                          (moved) or after `--sweep` (swept: alpha and gamma both in done/)
+#   done_expected DEST moved   the tree the manifest describes after `move-to-done.sh .workflow/specs/012-alpha`
 #   done_digits_manifest, done_digits_repo DIR, done_digits_expected DEST
 #                          the any-digit project: 00010-wide and 009-narrow done, 005-current in progress and checked out on
 #                          spec/005-current, a backlog item and a shelf file pointing at the two done specs (@W@ and @N@)
@@ -338,7 +337,6 @@ done_folder_repo() {
 done_expected() {
   case "$2" in
     moved) done_manifest | done_render "$1" S=done/012-alpha UP=../ G=014-gamma GUP= ;;
-    swept) done_manifest | done_render "$1" S=done/012-alpha UP=../ G=done/014-gamma GUP=../ ;;
     *) return 1 ;;
   esac
 }

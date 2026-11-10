@@ -2,7 +2,7 @@
 
 Three lenses review the whole change independently (one combined review on the light path); you then verify, grade and route every finding yourself in the main session. Every finding is proven first and escalated by the rule in [discovered-work](discovered-work.md#assess-each-report-first). You are done with Phase 4 when one exit in step 6 has run: rework, loop back, or hand-off to sign-off.
 
-`.workflow/specs/NNN-slug` is this feature's folder. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix ([conventions](../references/conventions.md)). Every status, task-record and step change goes through `status-transition.sh`, with the exact `--step` shown. Exit 0 is done; exit 2 is a refused transition with the reason on stderr: stop and report it rather than working around it. On Codex, run `check-write.sh` before the spec.md write at 4.6 as the conventions' [Host notes](../references/conventions.md#host-notes) say.
+`.workflow/specs/NNN-slug` is this feature's folder. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix ([conventions](../references/conventions.md)). Every status, task-record and step change goes through `status-transition.sh`, with the exact `--step` shown. On Codex, run `check-write.sh` before the spec.md write at 4.6 as the conventions' [Host notes](../references/conventions.md#host-notes) say.
 
 ## 1. Fix the pass number
 

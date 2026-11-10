@@ -2,13 +2,10 @@
 # File: Shared script (host-neutral, not a hook): decide whether a file write is allowed at the current workflow step.
 # Purpose: One home for the write rules behind workflow-write-guard and codex-write-guard, so each host hook stays a thin adapter.
 # Usage:
-#   check-write.sh --cwd <payload cwd> --path <target> [--agent <agent_id or agent_type>] [--only spec|tier-a] [--proposed <file>]
+#   check-write.sh --cwd <payload cwd> --path <target> [--agent <agent_id or agent_type>] [--proposed <file>]
 #     --cwd       payload cwd (a worktree for isolated sub-agents); relative --path values resolve against it.
 #     --path      the file the tool would write (absolute or relative).
 #     --agent     pass it when the payload carries agent_id (only sub-agent calls do; verified on Claude Code 2.1.300). Its value is used in the message only.
-#     --only      evaluate only that path class and allow everything else (for a check of one class; the hooks pass no --only).
-#                 `spec` covers .workflow/specs/*/spec.md, .workflow/specs/*/tasks.md, .workflow/specs/*/tasks/**, .workflow/specs/*/.step, .workflow/specs/work-backlog/**,
-#                 .workflow/specs/done/**, .workflow/initiatives/*/initiative.md and .workflow/initiatives/*/.step (the spec class).
 #     --proposed  file holding the full content the write would produce (spec.md only): denied if it changes `status`
 #                 or `blocked_condition`, which only status-transition.sh may change.
 # Rules, in order (path classes compared case-insensitively, repo-relative to the worktree that holds the path):
@@ -25,7 +22,7 @@
 #                                                   in-flight scan below ignore it.
 #   spec     .workflow/specs/*/.step                          deny always. Only status-transition.sh writes the marker.
 #   spec     .workflow/specs/*/spec.md                        deny sub-agents. Main session: allow only when that spec's .step names
-#                                                   0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 4.8, 5.1, 5.3, 5.9 or 00.29,
+#                                                   0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9 or 00.29,
 #                                                   and (with --proposed) status/blocked_condition are unchanged (a new file must say status: draft).
 #   spec     .workflow/specs/*/tasks.md,                      deny sub-agents. Main session: allow only when that spec's .step names 2.5 or 0.3.20
 #            .workflow/specs/*/tasks/** (per-task bodies,    (creating or replacing the file); otherwise point at status-transition.sh set-task,
@@ -66,12 +63,12 @@ set -euo pipefail
 . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/workflow-paths.sh"
 
 PROG=check-write.sh
-# spec.md writers by step: 0.1.6/0.3.19/0.5.1/5.1 (the core spec steps), 0.1.4 (creation), 0.3.17 and 4.8 (deferred[]),
+# spec.md writers by step: 0.1.6/0.3.19/0.5.1/5.1 (the core spec steps), 0.1.4 (creation), 0.3.17 (deferred[]),
 # 1.1 and 3.1 (baseline_revision: full path at 1.1, light path at 3.1), 3.14 (Known gaps, deferred[]),
 # 4.6 (followup_review_recommended), 5.3 (provisional capability ids rewritten),
 # 0.3.20 and 2.5 (budget written with tasks.md), 00.29 (budget raised after an approved overrun),
 # 5.9 (a backlog item moved to the deferred shelf adds to deferred[]).
-SPEC_STEPS="0.1.4 0.1.6 0.3.17 0.3.19 0.3.20 0.5.1 1.1 2.5 3.1 3.14 4.6 4.8 5.1 5.3 5.9 00.29"
+SPEC_STEPS="0.1.4 0.1.6 0.3.17 0.3.19 0.3.20 0.5.1 1.1 2.5 3.1 3.14 4.6 5.1 5.3 5.9 00.29"
 TASKS_STEPS="2.5 0.3.20"
 BACKLOG_STEPS="00.26 5.9"                         # work-backlog items (origin spec's .step)
 BACKLOG_SEED_STEP="0.1.4"                         # newest .step of any spec (new spec seeded from an item)
@@ -88,7 +85,7 @@ allow() { printf 'allow: %s\n' "$1"; exit 0; }
 deny() { printf 'deny: %s\n' "$1" >&2; exit 2; }
 
 usage() {
-  echo "usage: check-write.sh --cwd <dir> --path <target> [--agent <id>] [--only spec|tier-a] [--proposed <file>]" >&2
+  echo "usage: check-write.sh --cwd <dir> --path <target> [--agent <id>] [--proposed <file>]" >&2
   exit 1
 }
 
@@ -161,13 +158,12 @@ marker_get() {
 }
 
 # ---------------------------------------------------------------- arguments
-CWD="" TARGET="" AGENT="" HAVE_AGENT=0 ONLY="" PROPOSED=""
+CWD="" TARGET="" AGENT="" HAVE_AGENT=0 PROPOSED=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --cwd)      [[ $# -ge 2 ]] || usage; CWD=$2; shift 2 ;;
     --path)     [[ $# -ge 2 ]] || usage; TARGET=$2; shift 2 ;;
     --agent)    [[ $# -ge 2 ]] || usage; AGENT=$2; HAVE_AGENT=1; shift 2 ;;
-    --only)     [[ $# -ge 2 ]] || usage; ONLY=$2; shift 2 ;;
     --proposed) [[ $# -ge 2 ]] || usage; PROPOSED=$2; shift 2 ;;
     -h|--help)  usage ;;
     *)          die "unknown argument: $1" ;;
@@ -175,7 +171,6 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -n "$CWD" && -n "$TARGET" ]] || usage
 [[ -d "$CWD" ]] || die "--cwd is not a directory: $CWD"
-case "$ONLY" in ''|spec|tier-a) ;; *) die "--only must be spec or tier-a" ;; esac
 if [[ $HAVE_AGENT -eq 1 && -z "$AGENT" ]]; then AGENT="unknown"; fi
 if [[ -n "$PROPOSED" && ! -f "$PROPOSED" ]]; then die "--proposed file not found: $PROPOSED"; fi
 
@@ -232,7 +227,6 @@ elif [[ "$LC" == "$P_CAPABILITIES" || "$LC" == "$P_RULES" || "$LC" == "$P_DECISI
 fi
 
 [[ "$CLASS" != "other" ]] || allow "$REL is not a guarded path"
-[[ -z "$ONLY" || "$ONLY" == "$CLASS" ]] || allow "$REL is not a $ONLY path"
 
 WHO="main session"
 [[ $HAVE_AGENT -eq 1 ]] && WHO="sub-agent ($AGENT)"

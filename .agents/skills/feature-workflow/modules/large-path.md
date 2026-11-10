@@ -8,7 +8,7 @@ The initiative folder is `.workflow/initiatives/NNN-slug/`: `initiative.md` (sta
 
 The rules every step file follows (one writer, the exit codes, set the step then write, the progress line, sub-agent writes) hold for an initiative as for a spec; they are in [../references/conventions.md](../references/conventions.md). These are the initiative's own parts.
 
-- **Initiative writer.** `IT` below is shorthand for `.agents/skills/feature-workflow/scripts/initiative-transition.sh`, and `ST` for `.agents/skills/feature-workflow/scripts/status-transition.sh`: type the full path every time from the project root, because sandboxed projects allow those exact command lines. Initiative status, the marker `.workflow/initiatives/NNN-slug/.step`, and the state of every slice and question change only through `IT`:
+- **Initiative writer.** `IT` and `ST` are the shorthands in [conventions](../references/conventions.md). Initiative status, the marker `.workflow/initiatives/NNN-slug/.step`, and the state of every slice and question change only through `IT`:
 
   ```text
   IT status       .workflow/initiatives/NNN-slug <exploring|planned|done> [--step <6.x>]

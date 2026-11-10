@@ -2,7 +2,7 @@
 
 The questioning loop returns here at 0.3.20 with `spec.md` settled. Test whether the spec takes the light path; on the full path, model the impact (0.4), define the end state (0.5) and pass the exit gate (0.6). The first half of discovery, 0.1–0.3.7 and 0.3.22, is in [discovery.md](discovery.md). You run in the main session; the corpus (Tier A docs, the code of the affected area, the shelf) reaches you only as sub-agent extracts, except the `.workflow/rules.md` blocks a step names (design rule 3). Conventions for status, step markers and guarded writes are in [../references/conventions.md](../references/conventions.md), and launches in [../references/launching.md](../references/launching.md); this step file names the exact calls.
 
-Throughout, `ST` is shorthand for `.agents/skills/feature-workflow/scripts/status-transition.sh`: type the full path every time, because sandboxed projects allow that exact command line. `NNN-slug` is this feature's folder. Keep `spec.md` an index: link the support files, never copy them.
+`NNN-slug` is this feature's folder. Keep `spec.md` an index: link the support files, never copy them.
 
 ## 0.3.20 Light-path test
 

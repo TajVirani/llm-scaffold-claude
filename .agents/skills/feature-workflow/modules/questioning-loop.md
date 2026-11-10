@@ -2,7 +2,7 @@
 
 Interview the stakeholder until the feature's design tree is settled. Work in **rounds**: each round asks the whole **frontier** at once (design rule 7). **Facts are your job; decisions are the stakeholder's** (design rule 8). Every round, deep dive and scope ruling is appended to `design-log.md`, so the loop survives a cleared context and resumes from the log.
 
-`ST` below is `.agents/skills/feature-workflow/scripts/status-transition.sh`; type the full path every time.
+`ST` and the exit codes are in [conventions](../references/conventions.md).
 
 ## Entry
 

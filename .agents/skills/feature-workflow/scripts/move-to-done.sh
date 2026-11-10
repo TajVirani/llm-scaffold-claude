@@ -4,13 +4,10 @@
 #   --check reads the spec's task records and the work-backlog items it raised and lists every one still open; it changes
 #   nothing. The move runs the same check, then moves a `done` spec into the Done folder (WF_SPECS_DONE), deletes its step
 #   marker and rewrites the spec's path in the workflow files that name it, so every link still resolves, and commits the
-#   result on the checked-out branch. --sweep moves every `done` spec at the top level in one commit, except the one whose
-#   spec_branch is checked out: that is the spec being signed off, and its own move step follows the sweep.
+#   result on the checked-out branch.
 # Usage:
 #   move-to-done.sh --check <spec-dir> [--cwd <dir>]   check only: every task record and work-backlog item is closed
 #   move-to-done.sh <spec-dir> [--cwd <dir>]           check, then move the done spec into the Done folder, rewrite, commit
-#   move-to-done.sh --sweep [--cwd <dir>]              move every done spec at the top level of the specs folder, except
-#                                                      the one whose spec_branch is the checked-out branch
 #     <spec-dir>  `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it); --check also
 #                 takes a spec already in the Done folder.
 #     --cwd       any directory in the project or one of its worktrees (default $PWD); git runs in the spec checkout
@@ -19,21 +16,16 @@
 #   is a well-formed `- [open] B<n> <kind> (<node>): ...` or `- [promoted] ...` line (a line kept for later or started as a
 #   spec). The spec's own status does not matter to --check.
 # stdout: one `open: ...` line per open task record or malformed backlog line; `check passed: <spec-dir>`; for a move, `moved <old> -> <new>`
-#   per spec and `committed <sha>`; for a sweep, `left in place: <spec-dir>` per spec that failed, `skipped: <spec-dir> (moved
-#   by its own sign-off step)` for the spec on the checked-out branch, or `nothing to sweep`.
-# Exit: 0 check passed, or moved and committed, or nothing to sweep (a sweep that only skips the checked-out spec has
-#   nothing to sweep); 1 refused: an open sub-item, a spec that is not `done`, a Done folder entry of the same name, the
-#   main branch or a detached HEAD checked out, a merge in progress; nothing changed. For --sweep, 1 also means at least
-#   one done spec failed and stayed in place while the others moved and were committed; the skipped spec is not a failure.
+#   and `committed <sha>`.
+# Exit: 0 check passed, or moved and committed; 1 refused: an open sub-item, a spec that is not `done`, a Done folder
+#   entry of the same name, the main branch or a detached HEAD checked out, a merge in progress; nothing changed.
 #   2 usage or environment error (bad arguments, not a git repository, a folder that is not a spec, spec.md missing, yq
-#   missing, a git or file operation failing). An error after the first move rolls the run back before it
-#   exits 2: every moved spec goes back with its step marker, every rewritten file gets its old content back and the index
+#   missing, a git or file operation failing). An error after the move rolls the run back before it
+#   exits 2: the moved spec goes back with its step marker, every rewritten file gets its old content back and the index
 #   is restored, so nothing is left moved or staged. When a rollback step itself fails, stderr names each spec folder, file
 #   or index still changed and how to put it back by hand.
-# Called by: modules/sign-off.md (5.7 --check, 5.8 the move and the one-off --sweep).
-# Notes: Requires git and mikefarah yq v4. Never pushes. bash 3.2 compatible. At sign-off the spec being signed off is
-#   already `done` when the sweep runs, so the sweep skips it: the sweep commit holds only the older specs, and the spec's
-#   own `move-to-done.sh <spec-dir>` after it still finds the folder at the top level. The move, the path rewrite, the
+# Called by: modules/sign-off.md (5.7 --check, 5.8 the move).
+# Notes: Requires git and mikefarah yq v4. Never pushes. bash 3.2 compatible. The move, the path rewrite, the
 #   rollback and the commit of exactly the touched paths are the shared path rewrite in lib/workflow-paths.sh (wf_rewrite_*).
 # Sources: first-party. Pattern: commit-workflow-data.sh (spec-checkout resolution, explicit staging, path-limited commit).
 
@@ -44,7 +36,7 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PROG=move-to-done.sh
-USAGE="usage: move-to-done.sh --check <spec-dir> | <spec-dir> | --sweep [--cwd <dir>]"
+USAGE="usage: move-to-done.sh [--check] <spec-dir> [--cwd <dir>]"
 # die MSG [CODE] : print "<prog>: MSG" to stderr and exit CODE (default 2; 1 for a refusal).
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit "${2:-2}"; }
 # usage : print the usage line to stderr and exit 2.
@@ -82,18 +74,13 @@ MODE=move SPEC_ARG="" OPT_CWD=$PWD
 while [[ $# -gt 0 ]]; do
   case $1 in
     --check) MODE=check; shift ;;
-    --sweep) MODE=sweep; shift ;;
     --cwd) [[ $# -ge 2 ]] || usage; OPT_CWD=$2; shift 2 ;;
     -h | --help) echo "$USAGE"; exit 0 ;;
     -*) usage ;;
     *) [[ -z "$SPEC_ARG" ]] || usage; SPEC_ARG=$1; shift ;;
   esac
 done
-if [[ "$MODE" == sweep ]]; then
-  [[ -z "$SPEC_ARG" ]] || usage
-else
-  [[ -n "$SPEC_ARG" ]] || usage
-fi
+[[ -n "$SPEC_ARG" ]] || usage
 
 command -v yq >/dev/null 2>&1 || die "yq not found on PATH; install mikefarah yq v4"
 ROOT=$(wf_project_root "$OPT_CWD" 2>/dev/null) || die "not inside a git repository: $OPT_CWD"
@@ -109,10 +96,7 @@ if [[ "$MODE" == check ]]; then
   exit 0
 fi
 
-# The names of the specs this run moved, for the commit body.
-MOVED=()
-
-# on_exit : roll back the uncommitted changes when the script fails after its first move, then remove the temporary folder.
+# on_exit : roll back the uncommitted changes when the script fails after the move, then remove the temporary folder.
 on_exit() {
   local exit_code=$?
   set +e
@@ -131,14 +115,13 @@ on_exit() {
 trap on_exit EXIT
 
 # refuse_unsafe_checkout : exit 1 when the checked-out branch must not take the move commit or git is mid-operation;
-#   otherwise set MAIN_BRANCH to the main branch and CURRENT_BRANCH to the checked-out one.
+#   otherwise set MAIN_BRANCH to the main branch.
 refuse_unsafe_checkout() {
   local refusal
   MAIN_BRANCH=$(bash "$SCRIPT_DIR/rules-setting.sh" main_branch --cwd "$ROOT" 2>/dev/null) ||
     die "cannot read the main branch name (rules-setting.sh main_branch)"
   refusal=$(wf_rewrite_checkout_refusal "$ROOT" "$MAIN_BRANCH") || die "cannot check whether $ROOT may take the move commit"
   [[ -z "$refusal" ]] || die "$refusal" 1
-  CURRENT_BRANCH=$(git -C "$ROOT" branch --show-current) || die "cannot read the checked-out branch in $ROOT"
 }
 
 # move_refusal SPEC_DIR : print why SPEC_DIR cannot move (its open sub-items, a status other than done, a taken Done
@@ -164,7 +147,6 @@ move_spec() {
     wf_rewrite_set_aside "$target/.step" || die "cannot set aside $target/.step"
   fi
   wf_rewrite_spec_path "$spec_dir" "$target" || die "cannot rewrite the path of $spec_dir in the workflow files"
-  MOVED+=("${spec_dir##*/}")
   echo "moved $spec_dir -> $target"
 }
 
@@ -172,55 +154,19 @@ move_spec() {
 #   new commit id.
 commit_done_folder() {
   local head
-  wf_rewrite_commit "$MAIN_BRANCH" "$1" "Moved into the Done folder: ${MOVED[*]}" || die "cannot commit the move"
+  wf_rewrite_commit "$MAIN_BRANCH" "$1" "Moved into the Done folder: ${SPEC_DIR##*/}" || die "cannot commit the move"
   head=$(git -C "$ROOT" rev-parse HEAD) || die "committed, but cannot read the new commit id"
   echo "committed $head"
 }
 
-if [[ "$MODE" == move ]]; then
-  SPEC_DIR=$(resolve_spec "$SPEC_ARG") || exit 2
-  [[ "$SPEC_DIR" == "$WF_SPECS/${SPEC_DIR##*/}" ]] || die "$SPEC_DIR is already in the Done folder"
-  REFUSAL=$(move_refusal "$SPEC_DIR") || exit 2
-  if [[ -n "$REFUSAL" ]]; then
-    printf '%s\n' "$REFUSAL"
-    die "$SPEC_DIR cannot move; nothing changed" 1
-  fi
-  refuse_unsafe_checkout
-  wf_rewrite_begin "$ROOT" || die "cannot start the move"
-  move_spec "$SPEC_DIR"
-  commit_done_folder "chore(workflow): move ${SPEC_DIR##*/} into the Done folder"
-  exit 0
+SPEC_DIR=$(resolve_spec "$SPEC_ARG") || exit 2
+[[ "$SPEC_DIR" == "$WF_SPECS/${SPEC_DIR##*/}" ]] || die "$SPEC_DIR is already in the Done folder"
+REFUSAL=$(move_refusal "$SPEC_DIR") || exit 2
+if [[ -n "$REFUSAL" ]]; then
+  printf '%s\n' "$REFUSAL"
+  die "$SPEC_DIR cannot move; nothing changed" 1
 fi
-
 refuse_unsafe_checkout
-wf_rewrite_begin "$ROOT" || die "cannot start the sweep"
-LEFT=0
-for spec_md in "$(wf_path "$ROOT" "$WF_SPECS")"/*/spec.md; do
-  [[ -f "$spec_md" ]] || continue
-  name=$(basename "$(dirname "$spec_md")")
-  [[ "$name" =~ ^[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || continue
-  status=$(yq --front-matter=extract '.status // ""' "$spec_md") || die "cannot read the status of $WF_SPECS/$name/spec.md"
-  [[ "$status" == "done" ]] || continue
-  spec_branch=$(yq --front-matter=extract '.spec_branch // ""' "$spec_md") ||
-    die "cannot read the spec branch of $WF_SPECS/$name/spec.md"
-  # At sign-off the spec on the checked-out branch is already done, and its own move must follow the sweep commit.
-  if [[ "$spec_branch" == "$CURRENT_BRANCH" ]]; then
-    echo "skipped: $WF_SPECS/$name (moved by its own sign-off step)"
-    continue
-  fi
-  REFUSAL=$(move_refusal "$WF_SPECS/$name") || exit 2
-  if [[ -n "$REFUSAL" ]]; then
-    echo "left in place: $WF_SPECS/$name"
-    printf '%s\n' "$REFUSAL" | sed 's/^/  /'
-    LEFT=1
-    continue
-  fi
-  move_spec "$WF_SPECS/$name"
-done
-if [[ ${#MOVED[@]} -eq 0 ]]; then
-  [[ $LEFT -eq 0 ]] || die "no done spec could move; nothing changed" 1
-  echo "nothing to sweep"
-  exit 0
-fi
-commit_done_folder "chore(workflow): sweep finished specs into the Done folder"
-[[ $LEFT -eq 0 ]] || die "some done specs failed the check and stayed in place; the others moved" 1
+wf_rewrite_begin "$ROOT" || die "cannot start the move"
+move_spec "$SPEC_DIR"
+commit_done_folder "chore(workflow): move ${SPEC_DIR##*/} into the Done folder"

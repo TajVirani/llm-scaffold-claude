@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Suite: hooks/workflow-write-guard.sh: the thin PreToolUse adapter over feature-workflow/scripts/check-write.sh.
-# Covers: one check-write.sh call per write, with no --only, covering spec-class and Tier A paths alike; the settings template
+# Covers: one check-write.sh call per write, covering spec-class and Tier A paths alike; the settings template
 #   wires it as the one write hook; main session vs sub-agent (agent_id), Write / Edit / NotebookEdit payloads, status edits denied through the
 #   proposed-content check, Tier A steps and glossary / profile rules, the review-lessons file at 5.7 only (JRN-004),
 #   worktree cwd, CLAUDE_PROJECT_DIR fallback, fail-closed on bad payload / no jq (static deny) / failure before a decision / no yq / non-repo cwd,
@@ -228,7 +228,7 @@ for target in .workflow/specs/001-demo/spec.md .workflow/rules.md; do
   : > "$CW1/calls"
   out=$(payload Write "$target" | bash "$CW1/.agents/hooks/$SPECG.sh" 2>/dev/null); rc=$?
   eq "$target: one check-write.sh call" "$(wc -l < "$CW1/calls" | tr -d ' ')" 1
-  check "$target: the call names no --only class and passes --proposed" '! grep -q -- "--only" "$CW1/calls" && grep -q -- "--proposed" "$CW1/calls"' "$(cat "$CW1/calls")"
+  check "$target: the call passes --proposed" 'grep -q -- "--proposed" "$CW1/calls"' "$(cat "$CW1/calls")"
   if is_deny && reason | grep -q 'deny: stub'; then ok "$target: the stub's deny reason is passed on"; else ko "$target: the stub's deny reason is passed on" "rc=$rc out=$out"; fi
 done
 SETTINGS_TPL=$H/claude-settings.template.json

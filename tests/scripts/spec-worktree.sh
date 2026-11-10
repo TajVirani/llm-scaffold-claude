@@ -116,12 +116,12 @@ check "no evidence reached the main checkout" '[ ! -e "$P/.workflow/specs/001-al
 check "no evidence crossed between the specs" '[ ! -e "$WA/.workflow/specs/002-beta" ] && [ ! -e "$WB/.workflow/specs/001-alpha" ]'
 
 echo "== the write guard reads the step of the spec checkout that holds the path"
-out=$(script check-write.sh --cwd "$WA" --path "$WA/.workflow/specs/001-alpha/spec.md" --only spec 2>&1); rc=$?
+out=$(script check-write.sh --cwd "$WA" --path "$WA/.workflow/specs/001-alpha/spec.md" 2>&1); rc=$?
 check "spec.md of 001 at 001's step 3.4 -> denied" '[ $rc -eq 2 ]' "rc=$rc $out"
 script status-transition.sh step .workflow/specs/001-alpha 3.1 --cwd "$WA" >/dev/null 2>&1
-out=$(script check-write.sh --cwd "$TA" --path "$WA/.workflow/specs/001-alpha/spec.md" --only spec 2>&1); rc=$?
+out=$(script check-write.sh --cwd "$TA" --path "$WA/.workflow/specs/001-alpha/spec.md" 2>&1); rc=$?
 check "spec.md of 001 at 001's step 3.1, from its task worktree -> allowed" '[ $rc -eq 0 ]' "rc=$rc $out"
-out=$(script check-write.sh --cwd "$WA" --path "$WB/.workflow/specs/002-beta/spec.md" --only spec 2>&1); rc=$?
+out=$(script check-write.sh --cwd "$WA" --path "$WB/.workflow/specs/002-beta/spec.md" 2>&1); rc=$?
 check "spec.md of 002 at 002's step 3.3, from 001's worktree -> denied by 002's own step" '[ $rc -eq 2 ] && grep -q 3.3 <<<"$out"' "rc=$rc $out"
 
 echo "== commits land on each spec's own branch"
