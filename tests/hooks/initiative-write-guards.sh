@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 # Suite: the write guards for initiative files; JRN-006 "Write guards for initiative files".
-# Covers: hooks/spec-single-writer-guard.sh, hooks/tier-a-write-guard.sh and hooks/tier-b-write-guard.sh (thin adapters over
+# Covers: hooks/workflow-write-guard.sh (the thin adapter over
 #   feature-workflow/scripts/check-write.sh) on PreToolUse Write payloads: initiative.md denied at a 6.x step that does not write it
 #   and allowed at a writer step; questions.md allowed at any step; a sub-agent write to initiative.md and any Write to the initiative
 #   .step denied; a glossary write with no spec in flight allowed at a 6.x term-gate step and denied at another 6.x step; edge
-#   cases: questions.md unguarded for sub-agents, a non-6.x or missing initiative marker, a done initiative not in flight. Every
-#   guard runs on every payload: the decision is a deny when any guard denies, so the suite does not depend on which guard owns the
-#   initiative class.
+#   cases: questions.md unguarded for sub-agents, a non-6.x or missing initiative marker, a done initiative not in flight. The
+#   decision is a deny when any guard in GUARDS denies.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -20,7 +19,7 @@ large_path_repo "$P"
 seed_initiative "$P" 001 storage-overhaul
 INI=.workflow/initiatives/001-storage-overhaul
 H=$P/.agents/hooks
-GUARDS="spec-single-writer-guard tier-a-write-guard tier-b-write-guard"
+GUARDS="workflow-write-guard"
 at() { initiative_transition "$P" step "$INI" "$1" >/dev/null 2>&1 || echo "setup failed: initiative step $1" >&2; }
 
 # payload PATH [EXTRA_JSON] : PreToolUse Write payload from the main session; EXTRA merges into the top level.
@@ -92,5 +91,5 @@ yq --front-matter=process -i '.status = "done"' "$P/$INI/initiative.md"
 expect "JRN-006 glossary with only a done initiative is allowed" allow "$(payload .workflow/GLOSSARY.md)"
 
 shellcheck_files "JRN-006 shellcheck guard components" "$P/.agents/skills/feature-workflow/scripts/check-write.sh" \
-  "$H/spec-single-writer-guard.sh" "$H/tier-a-write-guard.sh" "$H/tier-b-write-guard.sh" "$H/_guard-common.sh"
+  "$H/workflow-write-guard.sh"
 finish

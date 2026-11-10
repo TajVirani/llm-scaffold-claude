@@ -1,26 +1,23 @@
 #!/usr/bin/env bash
-# Suite: .agents/lib/test-paths.sh, the one definition of a test file, and its two callers (JRN-005): budget-check.sh (the
-#   size-budget count, read through `--predicted` test_files) and build-architecture.sh (`--cache entries` candidates).
+# Suite: .agents/lib/test-paths.sh, the one definition of a test file, and its caller budget-check.sh (JRN-005): the
+#   size-budget count, read through `--predicted` test_files.
 # Covers: the default patterns; loading the work profiles' Toolchain `test_patterns` (a list, `[]`, the key absent, an empty
 #   Toolchain block, TEMPLATE.md skipped, no profiles, invalid values refused with status 1 and a reason); the matcher (a
 #   `dir/` pattern at any depth, a pattern holding another `/` against the whole repo path, any other pattern against the
-#   file name); both callers classifying the same paths as tests for the same profiles; an invalid `test_patterns` exiting 1
-#   in budget-check and 2 in build-architecture, each with its own message; no copy of the default list in a shell file
+#   file name); budget-check classifying the paths the matcher calls tests for each profile shape; an invalid
+#   `test_patterns` exiting 1 in budget-check with its own message; no copy of the default list in a shell file
 #   under .agents/ outside lib/test-paths.sh.
 # shellcheck disable=SC2016  # the bash -c programs and check expressions are single-quoted on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
-# shellcheck source=../fixtures/graph-extractors.sh
-source "$TESTS_DIR/fixtures/graph-extractors.sh"
 preflight
 
 new_workdir
 copy_agents "$WORK/scaffold"
 LIB="$WORK/scaffold/.agents/lib/test-paths.sh"
 BC="$WORK/scaffold/.agents/skills/feature-workflow/scripts/budget-check.sh"
-B="$WORK/scaffold/.agents/skills/regenerate-caches/scripts/build-architecture.sh"
 
-# The nine patterns the budget step and the entry candidates fell back to before the rules were shared.
+# The nine default patterns.
 DEFAULTS='*.spec.*
 *.test.*
 *_test.go
@@ -45,6 +42,17 @@ empty_toolchain_profile() {
 }
 # profiles_dir NAME : a fresh profiles folder under the scratch dir.
 profiles_dir() { rm -rf "$WORK/profiles/$1"; mkdir -p "$WORK/profiles/$1"; printf '%s\n' "$WORK/profiles/$1"; }
+# write_profile DIR NAME [TEST_PATTERNS] : writes the work profile NAME under DIR; an empty TEST_PATTERNS leaves the key out.
+write_profile() {
+  local dir=$1 name=$2 patterns=${3:-}
+  mkdir -p "$dir/.workflow/profiles"
+  {
+    printf '# Profile: %s\n\n## File locations\n\n- Scripts live by owner.\n\n## Toolchain\n\n```yaml\n' "$name"
+    printf 'lint: ""\ntest: "true"\n'
+    [ -z "$patterns" ] || printf 'test_patterns: %s\n' "$patterns"
+    printf '```\n'
+  } >"$dir/.workflow/profiles/$name.md"
+}
 
 echo "== wf_default_test_patterns"
 eq "JRN-005 the default patterns are the nine shared ones" "$(lib_call wf_default_test_patterns 2>/dev/null | LC_ALL=C sort)" "$DEFAULTS"
@@ -54,7 +62,7 @@ eq "JRN-005 no profiles folder gives the defaults" "$(lib_call wf_load_test_patt
 d=$(profiles_dir none)
 eq "JRN-005 an empty profiles folder gives the defaults" "$(lib_call wf_load_test_patterns "$d" 2>/dev/null)" "$DEFAULTS"
 d=$(profiles_dir list)
-write_profile "$WORK/profiles/list-root" shell bash "$PROFILE_PATTERNS"
+write_profile "$WORK/profiles/list-root" shell "$PROFILE_PATTERNS"
 mv "$WORK/profiles/list-root/.workflow/profiles/shell.md" "$d/shell.md"
 eq "JRN-005 a profile's list replaces the defaults, sorted and unique" "$(lib_call wf_load_test_patterns "$d" 2>/dev/null)" '*.check.sh
 checks/*.sh
@@ -63,7 +71,7 @@ printf '# Template\n\n## Toolchain\n\n```yaml\ntest_patterns: ["*.sh"]\n```\n' >
 eq "JRN-005 TEMPLATE.md is skipped" "$(lib_call wf_load_test_patterns "$d" 2>/dev/null)" '*.check.sh
 checks/*.sh
 tests/'
-write_profile "$WORK/profiles/list-root" docs none '[]'
+write_profile "$WORK/profiles/list-root" docs '[]'
 mv "$WORK/profiles/list-root/.workflow/profiles/docs.md" "$d/docs.md"
 eq "JRN-005 a [] profile adds the defaults to another profile's list" "$(lib_call wf_load_test_patterns "$d" 2>/dev/null)" \
   "$(printf '%s\n%s\n' "$DEFAULTS" '*.check.sh
@@ -71,8 +79,8 @@ checks/*.sh' | LC_ALL=C sort -u)"
 for form in absent empty-list empty-block; do
   d=$(profiles_dir "$form")
   case $form in
-    absent) write_profile "$WORK/profiles/$form-root" one bash ;;
-    empty-list) write_profile "$WORK/profiles/$form-root" one bash '[]' ;;
+    absent) write_profile "$WORK/profiles/$form-root" one ;;
+    empty-list) write_profile "$WORK/profiles/$form-root" one '[]' ;;
     empty-block) empty_toolchain_profile "$WORK/profiles/$form-root/.workflow/profiles" one ;;
   esac
   mv "$WORK/profiles/$form-root/.workflow/profiles/one.md" "$d/one.md"
@@ -80,7 +88,7 @@ for form in absent empty-list empty-block; do
 done
 for bad in '"tests/"' '["tests/", ""]' '[1]' '{a: b}'; do
   d=$(profiles_dir invalid)
-  write_profile "$WORK/profiles/invalid-root" odd bash "$bad"
+  write_profile "$WORK/profiles/invalid-root" odd "$bad"
   mv "$WORK/profiles/invalid-root/.workflow/profiles/odd.md" "$d/odd.md"
   out=$(lib_call wf_load_test_patterns "$d" 2>&1); rc=$?
   check "JRN-005 test_patterns: $bad is refused with status 1 and a reason naming the profile" \
@@ -112,7 +120,7 @@ not pkg/tests.sh
 EOF
 eq "JRN-005 wf_is_test_path: no patterns means no test" "$(is_test "" tests/unit.sh)" not
 
-echo "== JRN-005 budget-check and build-architecture agree"
+echo "== JRN-005 budget-check uses the shared matcher"
 R="$WORK/repo"
 git_init_repo "$R"
 FILES='checks/a.sh
@@ -137,30 +145,20 @@ cp "$AGENTS_SRC/skills/feature-workflow/assets/spec.md" "$R/$SPECD/spec.md"
 printf -- '---\ntasks:\n  - {id: T1, status: pending, depends_on: [], size: {files: 15, est_lines: 10, points: S}, predicted_files: [%s]}\n---\n' \
   "$(printf '%s\n' "$FILES" | sed 's/.*/"&"/' | paste -sd, -)" >"$R/$SPECD/tasks.md"
 git_commit_all "$R" init
-jq -n --arg files "$FILES" '{modules: [$files | split("\n")[] | {source: ., dependencies: []}]}' >"$WORK/graph.json"
-SCOPES=(--scope checks --scope e2e --scope pkg --scope tests)
-MODULES=(--module checks --module e2e --module pkg --module tests)
 
 # budget_tests : the paths budget-check counts as tests, sorted, one per line.
 budget_tests() { bash "$BC" --spec-dir "$SPECD" --cwd "$R" --predicted 2>/dev/null | jq -r '.test_files // [] | sort[]'; }
-# entries_tests : the fixture files build-architecture leaves out of the entry candidates, sorted, one per line.
-entries_tests() {
-  local candidates
-  candidates=$(bash "$B" --cache entries "${SCOPES[@]}" "${MODULES[@]}" --root "$R" --from-json "$WORK/graph.json" 2>/dev/null \
-    | jq -r '.candidates[].file') || return 1
-  printf '%s\n' "$FILES" | LC_ALL=C comm -23 - <(printf '%s\n' "$candidates" | LC_ALL=C sort)
-}
 # set_profiles NAME... : replace the fixture's work profiles with the named shapes (list, empty-list, absent, empty-block).
 set_profiles() {
   local shape
   rm -rf "$R/.workflow/profiles"
   for shape in "$@"; do
     case $shape in
-      list) write_profile "$R" "p-$shape" bash "$PROFILE_PATTERNS" ;;
-      empty-list) write_profile "$R" "p-$shape" none '[]' ;;
-      absent) write_profile "$R" "p-$shape" none ;;
+      list) write_profile "$R" "p-$shape" "$PROFILE_PATTERNS" ;;
+      empty-list) write_profile "$R" "p-$shape" '[]' ;;
+      absent) write_profile "$R" "p-$shape" ;;
       empty-block) empty_toolchain_profile "$R/.workflow/profiles" "p-$shape" ;;
-      invalid) write_profile "$R" "p-$shape" bash '"tests/"' ;;
+      invalid) write_profile "$R" "p-$shape" '"tests/"' ;;
     esac
   done
 }
@@ -189,13 +187,12 @@ pkg/tests/deep.sh
 pkg/util.test.sh
 pkg/x.spec.sh
 tests/unit.sh'
-# both_classify LABEL WANT SHAPE... : with profiles of the given shapes, both scripts treat exactly WANT as tests.
+# both_classify LABEL WANT SHAPE... : with profiles of the given shapes, budget-check treats exactly WANT as tests.
 both_classify() {
   local label=$1 want=$2
   shift 2
   set_profiles "$@"
   eq "JRN-005 budget-check counts the expected tests with $label" "$(budget_tests)" "$want"
-  eq "JRN-005 build-architecture leaves the same tests out of the entry candidates with $label" "$(entries_tests)" "$want"
 }
 both_classify "a list beside [], absent and empty-block profiles" "$ALL_SHAPES_TESTS" list empty-list absent empty-block
 both_classify "a list only" "$LIST_ONLY_TESTS" list
@@ -208,16 +205,10 @@ out=$(bash "$BC" --spec-dir "$SPECD" --cwd "$R" --predicted 2>&1); rc=$?
 eq "JRN-005 budget-check exits 1 on an invalid test_patterns" "$rc" 1
 check "JRN-005 budget-check names the profile in its own message" \
   '[[ "$out" == *"budget-check.sh: test_patterns in "*"p-invalid.md must be a list of path patterns"* ]]' "$out"
-out=$(bash "$B" --cache entries "${SCOPES[@]}" "${MODULES[@]}" --root "$R" --from-json "$WORK/graph.json" 2>&1); rc=$?
-eq "JRN-005 build-architecture exits 2 on an invalid test_patterns" "$rc" 2
-check "JRN-005 build-architecture names the profile in its own message" \
-  '[[ "$out" == *"test_patterns in .workflow/profiles/p-invalid.md must be a list of non-empty path patterns"* ]]' "$out"
 
 echo "== JRN-005 one copy of the defaults"
 copies=$(cd "$WORK/scaffold" && grep -rlx -F -e '*_test.go' --include='*.sh' .agents | grep -vx '.agents/lib/test-paths.sh')
 eq "JRN-005 no shell file under .agents/ outside lib/test-paths.sh lists the default test patterns" "$copies" ""
-check "JRN-005 the entry-candidate JS filter is still in build-architecture.sh" \
-  'grep -qF "(__tests__|__mocks__)/|\\\\.(test|spec)\\\\.[cm]?[jt]sx?\$|\\\\.d\\\\.[cm]?ts\$" "$B"'
 
-shellcheck_files "shellcheck: lib/test-paths.sh, budget-check.sh, build-architecture.sh" "$LIB" "$BC" "$B"
+shellcheck_files "shellcheck: lib/test-paths.sh, budget-check.sh" "$LIB" "$BC"
 finish

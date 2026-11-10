@@ -6,10 +6,12 @@
 #   relative paths; Bash needs a leading `cd <worktree> &&`; main session, other agent types, missing transcript or worktree unaffected;
 #   isolation (linked-worktree cwd) confinement; integration agents; Codex task_name from session_meta; settings wiring; shellcheck.
 #   JRN-002, JRN-003: a Phase 1 implementation agent (header work_type, no task_id) and an integration agent confined to their
-#   agent worktrees s007_phase_1_shell_scripts and s007_integration_shell_scripts. JRN-002 to JRN-004: the result-file command
-#   read from implementation.md and integration.md starts with `cd <agent worktree> &&` (a launch- or spec-checkout placeholder
-#   fills as the main checkout, where the fixture's spec runs), passes the guard from the main checkout, and run for real leaves
-#   the file in that checkout's artifacts/<id>/, where check-task-result.sh accepts it. JRN-009: read-only commands (allowlisted reads
+#   agent worktrees s007_phase_1_shell_scripts and s007_integration_shell_scripts. JRN-002 to JRN-004: the result-file path
+#   read from implementation.md and integration.md fills as the main checkout's artifacts/<id>/<file> (where the fixture's spec
+#   runs), a Write to it passes the guard from the main checkout and from the agent worktree, and check-task-result.sh accepts
+#   the file written there. The own result file is the one write allowed outside the agent worktree, on Claude and Codex, also
+#   when the named worktree is missing; a neighbour (another task's result, another file name or folder under artifacts/,
+#   another spec folder) is still denied. JRN-009: read-only commands (allowlisted reads
 #   joined by | or &&) pass without the leading cd; writing or exec flags, shell forms and other commands still need it.
 #   Fail closed: an implementation or integration agent whose agent worktree cannot be established (the named agent worktree
 #   is missing, sub-agent transcript missing, launch header missing or not valid YAML, cwd outside any git repo) is denied every
@@ -255,26 +257,24 @@ integration_result() {
     '  - n: 1' '    verdict: applied' '    reason: "adds a helper"' 'files_changed: [.agents/lib/workflow-paths.sh]' 'evidence:' \
     '  toolchain: artifacts/integration-shell-scripts/toolchain.txt (pass)' 'profile_wrong: null' 'blocked: null' 'discovered_work: []'
 }
-# result_journey JRN AGENT_LABEL AGENT_JSON DOC FILE_NAME RESULT_ID WORKTREE BODY : the brief's command passes the guard from the
-#   main checkout, and run for real leaves a file check-task-result.sh accepts in the spec checkout (here the main checkout) and
-#   none in the worktree copy.
+# result_journey JRN AGENT_LABEL AGENT_JSON DOC FILE_NAME RESULT_ID WORKTREE BODY : the brief's result path, filled in, is an
+#   absolute path in the spec checkout (here the main checkout); a Write to it from the main checkout passes the guard; the file
+#   written there is one check-task-result.sh accepts; a Write to a neighbouring file under artifacts/ is still denied.
 result_journey() {
-  local jrn=$1 label=$2 agent=$3 doc=$4 file=$5 id=$6 wt=$7 body=$8 opening cmd landed copy
-  opening=$(brief_result_command "$doc" "$file")
-  check "$jrn $label: ${doc##*/} has a result-file command for $file" '[ -n "$opening" ]'
+  local jrn=$1 label=$2 agent=$3 doc=$4 file=$5 id=$6 wt=$7 body=$8 path landed
+  path=$(brief_result_path "$doc" "$file")
+  check "$jrn $label: ${doc##*/} names a result-file path for $file" '[ -n "$path" ]'
   UNKNOWN_PLACEHOLDERS=""
-  fill_placeholders "$opening" "$wt" "$id"
-  cmd="$FILLED"$'\n'"$body"$'\nEOF'
-  eq "$jrn $label: every placeholder in the command names a known value" "$UNKNOWN_PLACEHOLDERS" ""
-  check "$jrn $label: the command's leading cd names the agent worktree, not the launch or main checkout" \
-    '[[ "$FILLED" == "cd $wt && "* ]]' "command: ${FILLED%%$'\n'*}"
-  expect "$jrn $label: the brief's result-file command from the main checkout -> allow" allow "$(pl Bash "$cmd" "$P" "$agent")"
+  fill_placeholders "$path" "$wt" "$id"
+  eq "$jrn $label: every placeholder in the path names a known value" "$UNKNOWN_PLACEHOLDERS" ""
   landed=$P/.workflow/specs/007-demo/artifacts/$id/$file
-  copy=$wt/.workflow/specs/007-demo/artifacts/$id/$file
-  rm -f "$landed" "$copy"
-  (cd "$P" && bash -c "$cmd") >/dev/null 2>&1
-  check "$jrn $label: the command leaves $file in the spec checkout's artifacts/$id/" '[ -f "$landed" ]'
-  check "$jrn $label: the command leaves no $file in the worktree copy" '[ ! -e "$copy" ]'
+  eq "$jrn $label: the path is the spec checkout's artifacts/$id/$file" "$FILLED" "$landed"
+  expect "$jrn $label: Write to the brief's result path from the main checkout -> allow" allow "$(pl Write "$FILLED" "$P" "$agent")"
+  expect "$jrn $label: Write to its result path from its agent worktree cwd -> allow" allow "$(pl Write "$FILLED" "$wt" "$agent")"
+  expect "$jrn $label: Write to a toolchain file beside the result file -> deny" deny \
+    "$(pl Write "$P/.workflow/specs/007-demo/artifacts/$id/toolchain.txt" "$P" "$agent")" "denied write outside it"
+  mkdir -p "${landed%/*}"
+  printf '%s\n' "$body" >"$landed"
   t "$jrn $label: check-task-result.sh accepts the file" 0 bash "$P/.agents/skills/feature-workflow/scripts/check-task-result.sh" "$landed"
 }
 IMPL_DOC=$P/.agents/agents/implementation.md
@@ -298,6 +298,24 @@ expect "JRN-003 integration agent write to another agent worktree -> deny" deny 
 expect "JRN-003 integration agent Bash write without cd -> deny with the cd hint" deny "$(pl Bash 'touch src/x' "$P" "$AIG")" "cd .*s007_integration_shell_scripts &&"
 
 result_journey JRN-004 "Phase 3 task agent" "$A3" "$IMPL_DOC" implementation.yaml T3 "$W3" "$(implementation_result T3 "$W3")"
+
+echo "== Claude: the own result file is the one write allowed outside the agent worktree"
+R=$P/.workflow/specs/007-demo/artifacts
+expect "task agent Write to another task's result file -> deny" deny "$(pl Write "$R/T4/implementation.yaml" "$P" "$A3")" "denied write outside it"
+expect "task agent Write to its task's mini-review.yaml -> deny" deny "$(pl Write "$R/T3/mini-review.yaml" "$P" "$A3")" "denied write outside it"
+expect "task agent Write to its task's integration.yaml -> deny" deny "$(pl Write "$R/T3/integration.yaml" "$P" "$A3")" "denied write outside it"
+expect "task agent Write to a T3 result in another spec folder -> deny" deny \
+  "$(pl Write "$P/.workflow/specs/008-other/artifacts/T3/implementation.yaml" "$P" "$A3")" "denied write outside it"
+expect "task agent Write to a nested path under its result folder -> deny" deny \
+  "$(pl Write "$R/T3/sub/implementation.yaml" "$P" "$A3")" "denied write outside it"
+expect "task agent Edit of its result file -> allow" allow "$(pl Edit "$R/T3/implementation.yaml" "$P" "$A3")"
+expect "integration agent Write to the Phase 1 result file -> deny" deny \
+  "$(pl Write "$R/phase-1-shell-scripts/implementation.yaml" "$P" "$AIG")" "denied write outside it"
+expect "task agent whose worktree is missing: Write to its own result file -> allow" allow "$(pl Write "$R/T9/implementation.yaml" "$P" "$A9")"
+expect "task agent whose worktree is missing: Write to another file -> deny naming the missing worktree" deny \
+  "$(pl Write "$R/T9/toolchain.txt" "$P" "$A9")" "s007_t9.*$WORKTREE_MISSING"
+t "check-worktree-scope.sh: own result file and a neighbour in one call -> exit 2" 2 \
+  bash "$SCOPE" --cwd "$P" --worktree-name s007_t3 --path "$R/T3/implementation.yaml" --path "$R/T3/notes.md"
 
 echo "== fail closed (JRN-003)"
 for payload in 'not json' '[1,2]'; do
@@ -418,6 +436,10 @@ cexpect() { cguard "$3"; judge "$1" "$2" "${4:-}"; } # name allow|deny payload [
 cexpect "Codex task agent: patch inside its worktree (relative) -> allow" allow "$(wp "$(add .workflow/.worktrees/s007_t3/src/a.ts)" "$WORK/rollout-t3.jsonl")"
 cexpect "Codex task agent: patch in the main checkout -> deny" deny "$(wp "$(add src/a.ts)" "$WORK/rollout-t3.jsonl")" "src/a.ts: worktree guard"
 cexpect "Codex task agent: patch in another worktree -> deny" deny "$(wp "$(add "$W4/a.ts")" "$WORK/rollout-t3.jsonl")"
+cexpect "Codex task agent: patch adding its own result file -> allow" allow \
+  "$(wp "$(add .workflow/specs/007-demo/artifacts/T3/implementation.yaml)" "$WORK/rollout-t3.jsonl")"
+cexpect "Codex task agent: patch adding another task's result file -> deny" deny \
+  "$(wp "$(add .workflow/specs/007-demo/artifacts/T4/implementation.yaml)" "$WORK/rollout-t3.jsonl")" "worktree guard"
 cexpect "JRN-004 Codex task agent without a worktree -> allow (Codex unchanged)" allow "$(wp "$(add src/a.ts)" "$WORK/rollout-t9.jsonl")"
 cexpect "Codex transcript without session_meta -> allow" allow "$(wp "$(add src/a.ts)" "$TR/sess.jsonl")"
 out=$(jq -cn --arg p "$(add src/a.ts)" --arg c "$P" --arg tp "$WORK/rollout-t3.jsonl" \

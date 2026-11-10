@@ -1,30 +1,26 @@
 #!/usr/bin/env bash
 # File: Shared script (host-neutral, not a hook): decide whether a file write is allowed at the current workflow step.
-# Purpose: One home for the write rules behind spec-single-writer-guard, tier-a-write-guard and tier-b-write-guard, so each host hook stays a thin adapter.
+# Purpose: One home for the write rules behind workflow-write-guard and codex-write-guard, so each host hook stays a thin adapter.
 # Usage:
-#   check-write.sh --cwd <payload cwd> --path <target> [--agent <agent_id or agent_type>] [--only spec|tier-a|tier-b] [--proposed <file>]
+#   check-write.sh --cwd <payload cwd> --path <target> [--agent <agent_id or agent_type>] [--only spec|tier-a] [--proposed <file>]
 #     --cwd       payload cwd (a worktree for isolated sub-agents); relative --path values resolve against it.
 #     --path      the file the tool would write (absolute or relative).
 #     --agent     pass it when the payload carries agent_id (only sub-agent calls do; verified on Claude Code 2.1.300). Its value is used in the message only.
-#     --only      evaluate only that path class and allow everything else, so each guard hook handles only its own paths.
+#     --only      evaluate only that path class and allow everything else (for a check of one class; the hooks pass no --only).
 #                 `spec` covers .workflow/specs/*/spec.md, .workflow/specs/*/tasks.md, .workflow/specs/*/tasks/**, .workflow/specs/*/.step, .workflow/specs/work-backlog/**,
-#                 .workflow/specs/done/**, .workflow/initiatives/*/initiative.md and .workflow/initiatives/*/.step (all handled by spec-single-writer-guard).
+#                 .workflow/specs/done/**, .workflow/initiatives/*/initiative.md and .workflow/initiatives/*/.step (the spec class).
 #     --proposed  file holding the full content the write would produce (spec.md only): denied if it changes `status`
 #                 or `blocked_condition`, which only status-transition.sh may change.
 # Rules, in order (path classes compared case-insensitively, repo-relative to the worktree that holds the path):
-#   tier-b   .workflow/cache/**                          deny always, any writer. Caches arrive only via regenerate-caches/scripts/publish-cache.sh,
-#                                                   which stamps them, so the guard never needs to know who is writing.
 #   spec     .workflow/specs/done/** (the Done folder)  deny always, any writer, any file. A finished spec is a closed record; this rule
 #                                                   comes before the spec-file and glossary rules, so done/spec.md, done/.step and a
 #                                                   glossary inside a moved spec are not read as a spec named `done` or as Tier A.
 #   spec     .workflow/specs/work-backlog/**                  deny sub-agents. Main session: allow only when the origin spec's .step names 00.26
 #                                                   (add a line) or 5.9 (the sign-off rulings), or when the newest .step of
 #                                                   any spec names 0.1.4 (a new spec seeded from the item marks it promoted). The origin
-#                                                   spec comes from the file name: the spec's backlog list <NNN-slug>.md, or an older
-#                                                   item file <NNN-slug>-disc-<###>.md; any other name is denied. A name
-#                                                   old_<NNN-slug> names the Done folder spec renamed so at tracker adoption.
-#                                                   Deleting a promoted item (Bash rm at the new spec's 0.6 / 0.3.20) is not a file-tool
-#                                                   write and is not checked here.
+#                                                   spec comes from the file name, the spec's backlog list <NNN-slug>.md; any other
+#                                                   name is denied. A name old_<NNN-slug> names the Done folder spec renamed so at
+#                                                   tracker adoption.
 #                                                   .workflow/specs/work-backlog/ is not a spec folder: the spec.md/tasks.md/.step rules and the
 #                                                   in-flight scan below ignore it.
 #   spec     .workflow/specs/*/.step                          deny always. Only status-transition.sh writes the marker.
@@ -43,7 +39,9 @@
 #                                                   missing or not done: project-setup and standalone domain-modeling);
 #            .workflow/capabilities.md, .workflow/rules.md,   otherwise allow only when the newest .step among in-flight specs and initiatives names an allowed step:
 #            .workflow/decisions/**, .workflow/profiles/**           glossary files: 0.2.3, 0.3.15, 0.4.3, 5.3, 6.6 (the initiative term gate)
-#                                                     .workflow/profiles/**: editing an existing file 5.3 only; creating a new file 00.19 or 5.3
+#                                                     .workflow/profiles/**: editing an existing file 5.3, or 3.3-3.5 while its Toolchain
+#                                                       block still has a value starting `TODO:` (the placeholder run-toolchain.sh refuses);
+#                                                       creating a new file 00.19 or 5.3
 #                                                     other Tier A (rules.md, capabilities.md, decisions/**): 0.3.7, 5.3, 5.7
 #                                                   else redirect to a 5.2 proposal.
 #   tier-a   .workflow/review-lessons.md              deny sub-agents. Main session: allow only when the newest .step among in-flight specs and
@@ -51,14 +49,15 @@
 #   other    everything else                        allow.
 #   (The in-flight scan skips .workflow/specs/work-backlog/.)
 # Triggers/inputs: Reads the gitignored step markers .workflow/specs/NNN-slug/.step and .workflow/initiatives/NNN-slug/.step (formats owned by status-transition.sh and initiative-transition.sh: `step: "<node>"`, `updated_at: "<UTC>"`,
-#   optional `blocked_from`) and the spec.md and initiative.md frontmatter `status`, all from the spec checkout that holds the path (lib/workflow-paths.sh
+#   `seq: <n>`, optional `blocked_from`; "newest" is the highest seq, by lib/workflow-paths.sh wf_marker_order_key, and a marker
+#   without seq, written before seq existed, is older than any with it and ordered among its kind by updated_at) and the spec.md and initiative.md frontmatter `status`, all from the spec checkout that holds the path (lib/workflow-paths.sh
 #   wf_project_root: the main checkout or a spec worktree; a path in an agent worktree counts as the checkout the worktree sits in),
 #   because gitignored state exists only there, not in agent worktrees. Needs mikefarah yq v4 only for Tier A checks and --proposed.
 # Outputs/handoff: exit 0 allow (reason on stdout); exit 2 deny (reason on stderr); exit 1 usage or environment error (adapters should treat it as deny).
 #   Host adapters translate this to their decision format.
-# Called by: hooks/spec-single-writer-guard.sh (--only spec), tier-a-write-guard.sh (--only tier-a), tier-b-write-guard.sh (--only tier-b);
+# Called by: hooks/workflow-write-guard.sh (Claude) and hooks/codex-write-guard.sh (Codex), once per path, every class;
 #   phase modules call it directly before writing on hosts without write hooks (advisory there).
-# Notes: Accident prevention only. Bash writes bypass Write/Edit hooks; hard limits come from the permission deny rules Edit(.workflow/cache/**), Edit(.workflow/specs/*/.step) and Edit(.workflow/initiatives/*/.step).
+# Notes: Accident prevention only. Bash writes bypass Write/Edit hooks; hard limits come from the permission deny rules Edit(.workflow/specs/*/.step) and Edit(.workflow/initiatives/*/.step).
 # Sources: first-party.
 
 set -euo pipefail
@@ -80,6 +79,7 @@ INITIATIVE_STEPS="6.1 6.7 6.9"                    # initiative.md: entry, slice 
 GLOSSARY_STEPS="0.2.3 0.3.15 0.4.3 5.3 6.6"       # the term gates (6.6 is the initiative one) and sign-off
 TIER_A_STEPS="0.3.7 5.3 5.7"                     # every other Tier A path (rules.md, capabilities.md, decisions/**)
 PROFILE_EDIT_STEPS="5.3"                          # an existing work profile file
+PROFILE_TODO_STEPS="3.3 3.4 3.5"                  # an existing profile whose Toolchain block still has a TODO: value (run-toolchain.sh refuses it)
 PROFILE_CREATE_STEPS="00.19 5.3"                  # a new work profile file (00.19 in-flow, 5.3 approved proposal)
 REVIEW_LESSONS_STEPS="5.7"                        # the review-lessons file: only the retrospective records a lesson
 
@@ -88,7 +88,7 @@ allow() { printf 'allow: %s\n' "$1"; exit 0; }
 deny() { printf 'deny: %s\n' "$1" >&2; exit 2; }
 
 usage() {
-  echo "usage: check-write.sh --cwd <dir> --path <target> [--agent <id>] [--only spec|tier-a|tier-b] [--proposed <file>]" >&2
+  echo "usage: check-write.sh --cwd <dir> --path <target> [--agent <id>] [--only spec|tier-a] [--proposed <file>]" >&2
   exit 1
 }
 
@@ -144,6 +144,16 @@ existing_dir() {
   printf '%s\n' "$p"
 }
 
+# toolchain_has_todo FILE : true when FILE's `## Toolchain` yaml block has a key whose value starts with `TODO:`.
+toolchain_has_todo() {
+  awk '
+    /^## / { insec = ($0 ~ /^## Toolchain[[:space:]]*$/); inblock = 0; next }
+    insec && /^```yaml/ { inblock = 1; next }
+    insec && inblock && /^```/ { inblock = 0; insec = 0; next }
+    inblock && /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*:[[:space:]]*["'"'"']?[[:space:]]*TODO:/ { found = 1; exit }
+    END { exit !found }' "$1"
+}
+
 marker_get() {
   local file=$1 key=$2
   [[ -f "$file" ]] || return 0
@@ -165,7 +175,7 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -n "$CWD" && -n "$TARGET" ]] || usage
 [[ -d "$CWD" ]] || die "--cwd is not a directory: $CWD"
-case "$ONLY" in ''|spec|tier-a|tier-b) ;; *) die "--only must be spec, tier-a or tier-b" ;; esac
+case "$ONLY" in ''|spec|tier-a) ;; *) die "--only must be spec or tier-a" ;; esac
 if [[ $HAVE_AGENT -eq 1 && -z "$AGENT" ]]; then AGENT="unknown"; fi
 if [[ -n "$PROPOSED" && ! -f "$PROPOSED" ]]; then die "--proposed file not found: $PROPOSED"; fi
 
@@ -187,17 +197,15 @@ LC=$(lower "$REL")
 # ---------------------------------------------------------------- classify
 CLASS=other KIND=""
 # Lower-cased guarded roots from lib/workflow-paths.sh. Prefix tests compare whole segments ("$P"/*), so a
-# look-alike folder such as specs-x/ or cache2/ beside the real one is not matched.
-P_CACHE=$(lower "$WF_CACHE") P_SPECS=$(lower "$WF_SPECS") P_BACKLOG=$(lower "$WF_WORK_BACKLOG") P_SPECS_DONE=$(lower "$WF_SPECS_DONE")
+# look-alike folder such as specs-x/ beside the real one is not matched.
+P_SPECS=$(lower "$WF_SPECS") P_BACKLOG=$(lower "$WF_WORK_BACKLOG") P_SPECS_DONE=$(lower "$WF_SPECS_DONE")
 P_PROFILES=$(lower "$WF_PROFILES") P_DECISIONS=$(lower "$WF_DECISIONS")
 P_RULES=$(lower "$WF_RULES") P_CAPABILITIES=$(lower "$WF_CAPABILITIES") P_INITIATIVES=$(lower "$WF_INITIATIVES")
 P_REVIEW_LESSONS=$(lower "$WF_REVIEW_LESSONS")
 SPEC_REST="" INITIATIVE_REST=""
 [[ "$LC" != "$P_SPECS"/* ]] || SPEC_REST=${LC#"$P_SPECS"/}
 [[ "$LC" != "$P_INITIATIVES"/* ]] || INITIATIVE_REST=${LC#"$P_INITIATIVES"/}
-if [[ "$LC" == "$P_CACHE" || "$LC" == "$P_CACHE"/* ]]; then
-  CLASS=tier-b
-elif [[ "$LC" == "$P_SPECS_DONE" || "$LC" == "$P_SPECS_DONE"/* ]]; then
+if [[ "$LC" == "$P_SPECS_DONE" || "$LC" == "$P_SPECS_DONE"/* ]]; then
   CLASS=spec KIND=done-folder                # checked first, because a finished spec's own files would otherwise match the spec-folder rules below
 elif [[ "$LC" == "$P_BACKLOG" || "$LC" == "$P_BACKLOG"/* ]]; then
   CLASS=spec KIND=backlog                    # checked first: not a spec folder
@@ -229,11 +237,6 @@ fi
 WHO="main session"
 [[ $HAVE_AGENT -eq 1 ]] && WHO="sub-agent ($AGENT)"
 
-# ---------------------------------------------------------------- Tier B
-if [[ "$CLASS" == "tier-b" ]]; then
-  deny "$REL is a Tier B cache under $WF_CACHE/; no file-tool write lands there, from any writer. Regenerate it with the regenerate-caches skill: cache-regeneration writes to the staging path and skills/regenerate-caches/scripts/publish-cache.sh stamps it and moves it in."
-fi
-
 # ---------------------------------------------------------------- the Done folder
 if [[ "$KIND" == "done-folder" ]]; then
   deny "$REL is in the Done folder $WF_SPECS_DONE/, which holds finished work; no file-tool write changes a finished spec, from any writer. Record a follow-up in a new spec instead."
@@ -259,15 +262,14 @@ ROOT=$(cd -P "$ROOT" && pwd)
 # ---------------------------------------------------------------- work-backlog items
 if [[ "$KIND" == "backlog" ]]; then
   ITEM=${REL:${#WF_WORK_BACKLOG}+1}
-  # A Done spec renamed old_NNN-slug keeps its backlog files under that name, and only the Done folder holds such a spec.
+  # A Done spec renamed old_NNN-slug keeps its backlog list under that name, and only the Done folder holds such a spec.
   ORIGIN_NAME='(old_)?[0-9]+-[A-Za-z0-9][A-Za-z0-9._-]*'
-  # The item-file pattern is tried first: its name would also match the list pattern with the wrong origin.
-  if [[ "$ITEM" =~ ^($ORIGIN_NAME)-disc-[0-9]{3,}\.md$ ]] || [[ "$ITEM" =~ ^($ORIGIN_NAME)\.md$ ]]; then
+  if [[ "$ITEM" =~ ^($ORIGIN_NAME)\.md$ ]]; then
     ORIGIN=${BASH_REMATCH[1]}
     ORIGIN_DIR=$WF_SPECS/$ORIGIN
     [[ "$ORIGIN" != old_* ]] || ORIGIN_DIR=$WF_SPECS_DONE/$ORIGIN
   else
-    deny "$REL: the backlog holds one list per spec, $WF_WORK_BACKLOG/<origin NNN-slug>.md, and older item files $WF_WORK_BACKLOG/<origin NNN-slug>-disc-<###>.md, written by the main session at 00.26 or 5.9."
+    deny "$REL: the backlog holds one list per spec, $WF_WORK_BACKLOG/<origin NNN-slug>.md, written by the main session at 00.26 or 5.9."
   fi
   STEP=$(marker_get "$ROOT/$ORIGIN_DIR/.step" step)
   if [[ -n "$STEP" ]] && in_list "$STEP" "$BACKLOG_STEPS"; then
@@ -277,7 +279,7 @@ if [[ "$KIND" == "backlog" ]]; then
   for mk in "$ROOT/$WF_SPECS"/*/.step; do
     [[ -f "$mk" ]] || continue
     [[ "$(lower "$(basename "$(dirname "$mk")")")" != "work-backlog" ]] || continue
-    at=$(marker_get "$mk" updated_at)
+    at=$(wf_marker_order_key "$mk")
     if [[ -z "$NEW_STEP" || "$at" > "$NEW_AT" ]]; then
       NEW_AT=$at NEW_STEP=$(marker_get "$mk" step) NEW_SPEC="$WF_SPECS/$(basename "$(dirname "$mk")")"
     fi
@@ -285,7 +287,7 @@ if [[ "$KIND" == "backlog" ]]; then
   if [[ "$NEW_STEP" == "$BACKLOG_SEED_STEP" ]]; then
     allow "$REL: work-backlog item, main session seeding $NEW_SPEC at step 0.1.4"
   fi
-  deny "$REL: origin spec $ORIGIN_DIR is at step ${STEP:-<none>}; work-backlog lists and items are written only at 00.26 (a kept item's line) or 5.9 (the sign-off rulings) of the origin spec, or at 0.1.4 of a new spec seeded from the item. Set the step with status-transition.sh step $ORIGIN_DIR 00.26 | 5.9."
+  deny "$REL: origin spec $ORIGIN_DIR is at step ${STEP:-<none>}; work-backlog lists are written only at 00.26 (a kept item's line) or 5.9 (the sign-off rulings) of the origin spec, or at 0.1.4 of a new spec seeded from the item. Set the step with status-transition.sh step $ORIGIN_DIR 00.26 | 5.9."
 fi
 
 # ---------------------------------------------------------------- tasks.md
@@ -351,7 +353,7 @@ for spec in "$ROOT/$WF_SPECS"/*/spec.md; do
   [[ "$status" == "done" ]] && continue
   IN_FLIGHT=1
   dir=$(dirname "$spec")
-  at=$(marker_get "$dir/.step" updated_at)
+  at=$(wf_marker_order_key "$dir/.step")
   st=$(marker_get "$dir/.step" step)
   [[ -n "$st" ]] || continue
   if [[ -z "$BEST_STEP" || "$at" > "$BEST_AT" ]]; then
@@ -368,7 +370,7 @@ for mk in "$ROOT/$WF_INITIATIVES"/*/.step; do
     [[ "$status" == "done" ]] && continue
   fi
   IN_FLIGHT=1
-  at=$(marker_get "$mk" updated_at)
+  at=$(wf_marker_order_key "$mk")
   st=$(marker_get "$mk" step)
   [[ -n "$st" ]] || continue
   if [[ -z "$BEST_STEP" || "$at" > "$BEST_AT" ]]; then
@@ -396,12 +398,15 @@ fi
 if in_list "$BEST_STEP" "$STEPS"; then
   allow "$REL: Tier A ($KIND), main session at step $BEST_STEP ($BEST_DIR)"
 fi
-REDIRECT="Record the change as a 5.2 proposal in $BEST_DIR/proposals.md for approval at 5.3 instead."
+if [[ "$KIND" == profile && -f "$ABS" ]] && in_list "$BEST_STEP" "$PROFILE_TODO_STEPS" && toolchain_has_todo "$ABS"; then
+  allow "$REL: profile with a TODO: toolchain value, main session at step $BEST_STEP ($BEST_DIR); fill in the command run-toolchain.sh refused"
+fi
+REDIRECT="Record the change as a 5.2 proposal in $BEST_DIR/proposals.md for approval at sign-off (5.5) instead."
 if [[ "$BEST_DIR" == "$WF_INITIATIVES"/* ]]; then
   if [[ "$KIND" == "glossary" ]]; then
     REDIRECT="A new or conflicting term waits for the initiative's term gate: initiative-transition.sh step $BEST_DIR 6.6, then the domain-modeling skill."
   else
-    REDIRECT="Record the change as a 5.2 proposal in the proposals.md of a spec for approval at 5.3 instead."
+    REDIRECT="Record the change as a 5.2 proposal in the proposals.md of a spec for approval at sign-off (5.5) instead."
   fi
 fi
 deny "$REL is Tier A; current step is $BEST_STEP ($BEST_DIR). $WHAT written only at $STEPS. $REDIRECT"

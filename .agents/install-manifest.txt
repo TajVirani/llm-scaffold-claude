@@ -10,7 +10,6 @@ install-manifest.txt
 # --- Workflow 2.0 skills
 skills/feature-workflow
 skills/project-setup
-skills/regenerate-caches
 skills/domain-modeling
 skills/retrospective
 skills/deeper-prompt
@@ -18,8 +17,7 @@ skills/handoff
 skills/project-standards
 skills/issue-tracking
 
-# --- Agents (15)
-agents/cache-regeneration.md
+# --- Agents (13)
 agents/fact-lookup.md
 agents/implementation.md
 agents/integration.md
@@ -30,7 +28,6 @@ agents/research.md
 agents/retrieval.md
 agents/review-combined.md
 agents/review-end-state.md
-agents/review-lessons.md
 agents/review-standards.md
 agents/review-targets.md
 agents/standards-discovery.md
@@ -39,16 +36,13 @@ agents/standards-discovery.md
 lib/workflow-paths.sh
 lib/test-paths.sh
 
-# --- Claude hooks (9 workflow hooks + shared helper) and the destructive-git guard (wired by both templates; also the Codex Bash guard)
-hooks/_guard-common.sh
+# --- Claude hooks (7 workflow hooks) and the destructive-git guard (wired by both templates; also the Codex Bash guard)
 hooks/evidence-capture.sh
 hooks/post-implementation-audit.sh
 hooks/pre-launch.sh
 hooks/rules-boundary-config-sync.sh
 hooks/session-start-resume.sh
-hooks/spec-single-writer-guard.sh
-hooks/tier-a-write-guard.sh
-hooks/tier-b-write-guard.sh
+hooks/workflow-write-guard.sh
 hooks/worktree-write-guard.sh
 hooks/block-destructive-git.sh
 

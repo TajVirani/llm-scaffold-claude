@@ -7,14 +7,15 @@ Design*). The vocabulary (module, interface, seam, depth, deletion test) is
 [`references/codebase-design.md`](../references/codebase-design.md)
 (a copy of the mattpocock/skills `codebase-design` glossary).
 
-The module index is the project's own:
-- `.workflow/rules.md` § Ownership — each module and the paths it `owns`.
-- `.workflow/cache/modules.md` — each module's **Public interface** (the exported names of its entry
-  declaration). That entry declaration is the module's **seam**: the only sanctioned way in.
+The module index is the project's own: `.workflow/rules.md` § Ownership, each module and the paths
+it `owns`. Read it first. If it has no modules, report "not applicable — no module index
+(.workflow/rules.md Ownership is empty)" and stop.
 
-Read both first. If `.workflow/rules.md` has no modules, report "not applicable — no module index
-(.workflow/rules.md Ownership is empty)" and stop. If `.workflow/cache/modules.md` is missing, take each
-module's entry file (its `index.*` or the module file itself) as its seam and say so in the report.
+Find each touched module's **seam** in the code: its entry file (`index.*`, the file named after the
+module, or the one file its `owns` paths hold) and the names that file exports. That entry is the
+only sanctioned way in. When a module has no single entry file, take the files other modules already
+call into (search the repo for imports, `source` lines or script calls into its `owns` paths) as its
+seam, and say so in the report.
 
 The other three modules find *shallowness smells* (size, duplication, orphans). This module
 finds *seam violations*: code that reaches around a module's interface, widens it without

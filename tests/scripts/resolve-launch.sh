@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Suite: resolve-launch.sh (feature-workflow/scripts).
-# Covers: --requirements table (including the review-lessons lens row and the review-combined row), model precedence (override > definition > map), per-task-type launch-header
+# Covers: --requirements table (the review-combined row, and no review-lessons row), the model from .workflow/model-map.yaml
+#   (<type>.<host>; a missing row, host value or <...> placeholder is 00.14; the old folder, overrides file and a definition's
+#   models: key are not read; an unparseable table is denied), per-task-type launch-header
 #   requirements, header parsing and malformed headers, --parse-header, flag (orchestrator) mode, worktree and
 #   CLAUDE_PROJECT_DIR project-root resolution, usage errors.
 # shellcheck disable=SC2016,SC2015  # jq programs use single quotes on purpose; A && B || C is deliberate in ok/ko lines
@@ -16,33 +18,18 @@ FX=$WORK/fixture
 mkdir -p "$FX"
 cd "$FX" || exit 1
 git init -q -b main . && git config user.email t@t.invalid && git config user.name tester
-mkdir -p .agents/agents .workflow/model-map .workflow/profiles .workflow/specs/007-checkout
-for t in implementation integration profile-mini-review retrieval library-evaluation fact-lookup research module-audit review-standards review-end-state review-targets review-combined cache-regeneration standards-discovery; do
+mkdir -p .agents/agents .workflow/profiles .workflow/specs/007-checkout
+printf '# The model table: one row per task type.\n' > .workflow/model-map.yaml
+for t in implementation integration profile-mini-review retrieval library-evaluation fact-lookup research module-audit review-standards review-end-state review-targets review-combined standards-discovery; do
   printf -- '---\nname: %s\ndescription: "x"\n---\nbody\n' "$t" > ".agents/agents/$t.md"
-  printf -- '---\ntier: cheap\nclaude: haiku\ncodex: <alias>\n---\n# %s\n' "$t" > ".workflow/model-map/$t.md"
+  printf '%s:\n  tier: cheap\n  claude: haiku\n  codex: "<alias>"\n  why: x\n' "$t" >> .workflow/model-map.yaml
 done
-# implementation: definition pins claude sonnet (precedence level 2) and codex gpt-def
-cat > .agents/agents/implementation.md <<'EOF'
----
-name: implementation
-description: "x"
-models:
-  claude: sonnet
-  codex: gpt-def
----
-body
-EOF
-printf -- '---\ntier: strong\nclaude: opus\ncodex: gpt-map\n---\n# implementation\n' > .workflow/model-map/implementation.md
-# overrides: comments + integration override for claude only
-cat > .workflow/agent-overrides.yaml <<'EOF'
-# File: comments only header
-#   implementation:
-#     claude: <alias>
-integration:
-  claude: opus-override
-module-audit:
-  claude: "<alias>"
-EOF
+yq -i '.implementation = {"tier": "strong", "claude": "sonnet", "codex": "gpt-def", "why": "x"} | .integration.claude = "opus-int" | .module-audit.claude = "<alias>" | del(.fact-lookup)' .workflow/model-map.yaml
+# Neither the old one-file-per-type folder, the old overrides file nor a definition's models key is read any more.
+mkdir -p .workflow/model-map
+printf -- '---\ntier: strong\nclaude: from-old-folder\ncodex: from-old-folder\n---\n' > .workflow/model-map/fact-lookup.md
+printf 'integration:\n  claude: from-old-overrides\n' > .workflow/agent-overrides.yaml
+printf -- '---\nname: review-targets\ndescription: "x"\nmodels:\n  claude: from-definition\n---\nbody\n' > .agents/agents/review-targets.md
 cat > .workflow/profiles/frontend.md <<'EOF'
 <!-- comment -->
 # Profile: frontend
@@ -122,40 +109,38 @@ P=(--project-dir "$FX")
 
 # ── Requirements table ──
 IN=""
-run "requirements: all 15 types" 0 'keys|length==15' "" -- --requirements
+run "requirements: all 13 types" 0 'keys|length==13' "" -- --requirements
 run "requirements: implementation required fields" 0 '.implementation.d31_fields==["spec_dir","task_id","work_type"]' "" -- --requirements --task-type implementation
-run "requirements: review-lessons is listed" 0 'has("review-lessons")' "" -- --requirements
-run "requirements: review-lessons is a Phase 4 lens row" 0 \
-  '."review-lessons" == {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"}' \
-  "" -- --requirements --task-type review-lessons
+run "requirements: the retired review-lessons lens is not listed" 0 'has("review-lessons") | not' "" -- --requirements
 run "requirements: review-combined takes spec_dir only, no profile" 0 \
   '."review-combined".d31_fields == ["spec_dir"] and ."review-combined".shapes[0].required == ["spec_dir"] and ."review-combined".profile == "none" and ."review-combined".header_optional == false' \
   "" -- --requirements --task-type review-combined
 run "requirements: unknown type denied" 2 "" "unknown task type" -- --requirements --task-type nope
 
-# ── Model precedence ──
+# ── Model: the one table ──
 IN=$(hdr task_type=integration spec_dir=.workflow/specs/007-checkout work_type=frontend)
-run "precedence 1: override wins (integration claude)" 0 '.model=="opus-override" and .model_source=="override"' "" -- --host claude --task-type integration "${P[@]}"
-run "precedence 3: map when no override for host (integration codex placeholder -> none)" 2 "" "00.14" -- --host codex --task-type integration "${P[@]}"
+run "model: the integration row's claude value" 0 '.model=="opus-int" and (has("model_source") | not)' "" -- --host claude --task-type integration "${P[@]}"
+run "model: a <...> codex placeholder is unset -> 00.14" 2 "" "00.14" -- --host codex --task-type integration "${P[@]}"
 IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout task_id=T1)
-run "precedence 2: definition beats map (implementation claude)" 0 '.model=="sonnet" and .model_source=="definition"' "" -- --host claude --task-type implementation "${P[@]}"
-run "precedence 2: definition codex" 0 '.model=="gpt-def" and .model_source=="definition"' "" -- --host codex --task-type implementation "${P[@]}"
+run "model: the implementation row, claude" 0 '.model=="sonnet"' "" -- --host claude --task-type implementation "${P[@]}"
+run "model: the implementation row, codex" 0 '.model=="gpt-def"' "" -- --host codex --task-type implementation "${P[@]}"
 IN=$(hdr task_type=retrieval spec_dir=.workflow/specs/007-checkout)
-run "precedence 3: map (retrieval claude)" 0 '.model=="haiku" and .model_source=="map" and .profile==null and .work_type==null' "" -- --host claude --task-type retrieval "${P[@]}"
-run "missing model: map codex placeholder -> 00.14" 2 "" "^resolve-launch.sh: 00.14: no model for task type 'retrieval' on host 'codex'" -- --host codex --task-type retrieval "${P[@]}"
+run "model: the retrieval row (no profile)" 0 '.model=="haiku" and .profile==null and .work_type==null' "" -- --host claude --task-type retrieval "${P[@]}"
+run "missing model: codex placeholder -> 00.14 naming the table" 2 "" "^resolve-launch.sh: 00.14: no model for task type 'retrieval' on host 'codex' in .workflow/model-map.yaml" -- --host codex --task-type retrieval "${P[@]}"
 IN=$(hdr task_type=module-audit spec_dir=.workflow/specs/007-checkout)
-run "override placeholder skipped, falls to map" 0 '.model=="haiku" and .model_source=="map"' "" -- --host claude --task-type module-audit "${P[@]}"
-mv "$FX/.workflow/model-map/fact-lookup.md" "$FX/fact.bak"
+run "model: a claude placeholder is unset -> 00.14" 2 "" "00.14" -- --host claude --task-type module-audit "${P[@]}"
 IN=$(hdr task_type=fact-lookup spec_dir=.workflow/specs/007-checkout)
-run "missing model: no file at any level -> 00.14" 2 "" "00.14" -- --host claude --task-type fact-lookup "${P[@]}"
-mv "$FX/fact.bak" "$FX/.workflow/model-map/fact-lookup.md"
-cp "$FX/.workflow/agent-overrides.yaml" "$FX/ov.bak"
-printf 'implementation:\n  claude: opus\n' >> "$FX/.workflow/agent-overrides.yaml"
-IN=$(hdr task_type=implementation spec_dir=.workflow/specs/007-checkout task_id=T1)
-run "precedence 1 over 2: override beats definition" 0 '.model=="opus" and .model_source=="override"' "" -- --host claude --task-type implementation "${P[@]}"
-printf 'this: [is: broken\n' > "$FX/.workflow/agent-overrides.yaml"
-run "unparseable overrides -> deny" 2 "" "cannot parse YAML: .workflow/agent-overrides.yaml" -- --host claude --task-type implementation "${P[@]}"
-mv "$FX/ov.bak" "$FX/.workflow/agent-overrides.yaml"
+run "missing row -> 00.14; the old folder is not read" 2 "" "00.14" -- --host claude --task-type fact-lookup "${P[@]}"
+IN=$(hdr task_type=review-targets spec_dir=.workflow/specs/007-checkout)
+run "a definition's models key is not read" 0 '.model=="haiku"' "" -- --host claude --task-type review-targets "${P[@]}"
+cp "$FX/.workflow/model-map.yaml" "$FX/mm.bak"
+printf 'this: [is: broken\n' > "$FX/.workflow/model-map.yaml"
+IN=$(hdr task_type=retrieval spec_dir=.workflow/specs/007-checkout)
+run "unparseable model table -> deny" 2 "" "cannot parse YAML: .workflow/model-map.yaml" -- --host claude --task-type retrieval "${P[@]}"
+rm "$FX/.workflow/model-map.yaml"
+run "no model table -> 00.14" 2 "" "00.14" -- --host claude --task-type retrieval "${P[@]}"
+mv "$FX/mm.bak" "$FX/.workflow/model-map.yaml"
+yq -i '.fact-lookup = .retrieval | .module-audit.claude = "haiku"' "$FX/.workflow/model-map.yaml"
 
 # ── Header requirements per task type ──
 for t in retrieval library-evaluation fact-lookup research module-audit review-standards review-end-state review-targets review-combined; do
@@ -198,10 +183,6 @@ IN=$(hdr task_type=profile-mini-review spec_dir=.workflow/specs/007-checkout wor
 run "profile-mini-review: missing task_id denied (no Phase 1 exception)" 2 "" "do not match task type" -- --host claude --task-type profile-mini-review "${P[@]}"
 IN=$(hdr task_type=profile-mini-review spec_dir=.workflow/specs/007-checkout task_id=T4)
 run "profile-mini-review: profile lacks checklist -> 00.19" 2 "" "00.19: profile .workflow/profiles/nochecklist.md has no" -- --host claude --task-type profile-mini-review "${P[@]}"
-IN=$(hdr task_type=cache-regeneration spec_dir=.workflow/specs/007-checkout)
-run "cache-regeneration: with spec_dir (0.2.8)" 0 '.header.spec_dir==".workflow/specs/007-checkout" and .profile==null' "" -- --host claude --task-type cache-regeneration "${P[@]}"
-IN=$'Regenerate .workflow/cache/modules.md for src/.\n'
-run "cache-regeneration: header-less bulk run accepted, prompt unchanged" 0 '.header==null and .header_block==null and .prompt=="Regenerate .workflow/cache/modules.md for src/.\n"' "" -- --host claude --task-type cache-regeneration "${P[@]}"
 IN=$'Scan src/ for conventions.\n'
 run "standards-discovery: header-less run accepted" 0 '.header==null and .profile==null and .prompt=="Scan src/ for conventions.\n"' "" -- --host claude --task-type standards-discovery "${P[@]}"
 IN=$(hdr task_type=standards-discovery)
@@ -248,7 +229,7 @@ run "parse-header: matching --task-type" 0 '.task_id=="T1"' "" -- --parse-header
 run "parse-header: mismatch denied" 2 "" "disagrees" -- --parse-header --task-type integration
 IN=$'no header here\n'
 run "parse-header: missing header denied" 2 "" "no launch header" -- --parse-header
-run "parse-header: header-less cache-regeneration -> {}" 0 '.=={}' "" -- --parse-header --task-type cache-regeneration
+run "parse-header: header-less standards-discovery -> {}" 0 '.=={}' "" -- --parse-header --task-type standards-discovery
 printf '%s' "$(hdr task_type=retrieval spec_dir=.workflow/specs/007-checkout)" > "$B2B/prompt.txt"
 IN=""
 run "parse-header: --prompt-file" 0 '.task_type=="retrieval"' "" -- --parse-header --prompt-file "$B2B/prompt.txt"
@@ -256,7 +237,6 @@ run "parse-header: --prompt-file" 0 '.task_type=="retrieval"' "" -- --parse-head
 # ── Orchestrator (flag) mode, Codex ──
 IN=$'Implement T1.\n'
 run "flags: implementation T1 codex, prompt assembled" 0 '.model=="gpt-def" and .header=={task_type:"implementation",spec_dir:".workflow/specs/007-checkout",task_id:"T1"} and .header_block=="```yaml launch-header\ntask_type: implementation\nspec_dir: .workflow/specs/007-checkout\ntask_id: T1\n```" and (. as $o | $o.prompt|startswith($o.header_block+"\n\n<!-- comment -->")) and (.prompt|endswith("Implement T1.\n"))' "" -- --host codex --task-type implementation --spec-dir .workflow/specs/007-checkout --task-id T1 "${P[@]}"
-run "flags: --no-header for bulk cache-regeneration" 0 '.header==null and .prompt=="Implement T1.\n"' "" -- --host claude --task-type cache-regeneration --no-header "${P[@]}"
 run "flags: --no-header for standards-discovery" 0 '.header==null and .prompt=="Implement T1.\n"' "" -- --host claude --task-type standards-discovery --no-header "${P[@]}"
 run "flags: --no-header for retrieval denied" 2 "" "requires" -- --host claude --task-type retrieval --no-header "${P[@]}"
 IN=$(hdr task_type=retrieval spec_dir=.workflow/specs/007-checkout)

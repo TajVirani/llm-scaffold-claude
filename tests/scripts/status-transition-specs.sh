@@ -28,7 +28,7 @@ export TEST_BASH SRC
 git_init_repo "$F/repo"
 R=$F/repo
 cd "$R" || exit 1
-mkdir -p .workflow/specs/001-alpha .workflow/specs/002-beta .workflow/cache .workflow/decisions/adr .workflow/profiles
+mkdir -p .workflow/specs/001-alpha .workflow/specs/002-beta .workflow/decisions/adr .workflow/profiles
 cp "$SRC/assets/spec.md" .workflow/specs/001-alpha/spec.md
 cp "$SRC/assets/spec.md" .workflow/specs/002-beta/spec.md
 cp "$SRC/assets/tasks.md" .workflow/specs/001-alpha/tasks.md
@@ -50,6 +50,11 @@ echo "== status-transition: spec transitions"
 t "draft->draft at 0.1.4 (init)"            0 ST status $A draft
 eq ".step after init" "$(step 001-alpha)" 0.1.4
 if grep -q '^updated_at: "20[0-9-]*T[0-9:]*Z"$' "$R/$A/.step"; then eq "timestamp UTC format" ok ok; else eq "timestamp UTC format" bad ok; fi
+seq_of() { sed -n 's/^seq: \([0-9]*\)$/\1/p' "$1"; }
+first_seq=$(seq_of "$R/$A/.step")
+check "the marker records a seq" '[ -n "$first_seq" ]' "$(cat "$R/$A/.step")"
+ST step $A 0.1.6 >/dev/null
+eq "each marker write raises the seq by one" "$(seq_of "$R/$A/.step")" "$((first_seq + 1))"
 t "draft->in-progress illegal"              2 ST status $A in-progress
 t "draft->done illegal"                     2 ST status $A done
 t "draft->ready-for-dev without --step"     1 ST status $A ready-for-dev

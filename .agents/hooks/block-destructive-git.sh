@@ -27,7 +27,8 @@
 #
 # Output: the PreToolUse deny shape {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny",
 # "permissionDecisionReason":...}} on stdout, exit 0; Codex's PreToolUse reads the same shape. Silent exit 0 otherwise.
-# A command the tokenizer cannot read is denied when it mentions git (fail closed).
+# A command the tokenizer cannot read is denied when it mentions git (fail closed). A missing jq or a payload that is not
+# a JSON object is denied with a reason naming the cause (fail closed); a payload with no command is allowed silently.
 #
 # Sources: first-party, adapted from mattpocock/skills `skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh`
 # at 49dd158 (MIT, Copyright (c) 2026 Matt Pocock; blocked-command list, which this script extends, except that plain
@@ -37,7 +38,17 @@
 set -uo pipefail
 
 INPUT=$(cat)
-COMMAND=$(printf '%s' "$INPUT" | jq -r '(.tool_input.command // "") | if type == "array" then map(@sh) | join(" ") else tostring end' 2>/dev/null) || COMMAND=""
+
+# deny_unread CAUSE : deny a command the hook could not read, naming the cause; hand-written JSON so it works without jq.
+deny_unread() {
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"BLOCKED: block-destructive-git could not read the command (%s), so it denies it (fail closed)."}}\n' "$1"
+  exit 0
+}
+
+command -v jq >/dev/null 2>&1 || deny_unread "jq not found; install jq"
+printf '%s' "$INPUT" | jq -e 'type == "object"' >/dev/null 2>&1 || deny_unread "the hook payload is not a JSON object"
+COMMAND=$(printf '%s' "$INPUT" | jq -r '(.tool_input.command // "") | if type == "array" then map(@sh) | join(" ") else tostring end' 2>/dev/null) ||
+  deny_unread "tool_input.command could not be read"
 
 [ -n "$COMMAND" ] || exit 0
 

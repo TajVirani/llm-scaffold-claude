@@ -1,6 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/proposals.md: the 5.2 proposed updates to Tier A and the profiles, all approved in one round at 5.3 (approve all as written, or name exceptions by id). No frontmatter.
-Written by modules/sign-off.md at 5.2; the Status column is updated at 5.3, and only `approved` and `modified` lines are applied. Also the landing place for writes tier-a-write-guard redirected mid-feature: record them here as they happen, with the step in Origin.
+Written by modules/sign-off.md at 5.2; the Status column is updated at 5.3, and only `approved` and `modified` lines are applied. Also the landing place for writes workflow-write-guard redirected mid-feature: record them here as they happen, with the step in Origin.
 
 Rules:
   - One row per proposal. Ids P1, P2, ... in order across the file, never reused.

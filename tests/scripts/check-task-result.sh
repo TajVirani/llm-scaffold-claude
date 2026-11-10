@@ -4,7 +4,8 @@
 #   line, the kind taken from the file name and from --kind, one malformed file per shape rule (exit 1, the message names
 #   the field), task_id against the artifacts folder for implementation and mini-review files, the stop-status fields for
 #   implementation and integration, the implementation self_review list (required when status is done, optional and still
-#   shape-checked on a stop status), a mini-review verdict that disagrees with its items, an older round's mode, previous
+#   shape-checked on a stop status), a mini-review verdict that disagrees with its items, the readable-code items (R1 to R5) with the fixes a failing one
+#   must carry and their rows, the orchestrator's patched sha, an older round's mode, previous
 #   and carried_from keys ignored, a multi-document file, and the exit-2 cases: no argument, missing file, YAML that does not parse,
 #   a name that implies no kind, an unknown --kind.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -204,7 +205,13 @@ items:
   - {n: 1, verdict: not-applicable, location: ""}
   - {n: 2, verdict: pass, location: "check-task-result.sh:60"}
   - {n: 3, verdict: tool-covered, location: "check-task-result.sh:12", note: "lint: shellcheck SC2086"}
-  - {n: R3, verdict: fail, location: "check-task-result.sh:88, check-task-result.sh:91", note: "the comment restates the case below it; delete it"}
+  - n: R3
+    verdict: fail
+    location: "check-task-result.sh:88, check-task-result.sh:91"
+    note: "the comments say what the case below each does"
+    fixes:
+      - {location: "check-task-result.sh:88", fix: "delete"}
+      - {location: "check-task-result.sh:91", fix: "replace: # yq has already turned an unquoted sha into a number"}
   - {n: R4, verdict: pass, location: "check-task-result.sh:1"}
 read_outside_diff: ["tests/lib/common.sh: helper names"]
 out_of_scope_noticed:
@@ -219,14 +226,16 @@ run_ctr "$MINI"
 eq "a valid mini-review file exits 0" "$RC" 0
 eq "the mini-review header line" "$(line 1)" \
   "verdict: fail  task: T1  items: 5 (pass 2, fail 1, tool-covered 1, not-applicable 1)  out_of_scope: 1"
-eq "the mini-review rows list only tool-covered and fail items, in file order" "$(sed -n '2,3p' <<<"$OUT")" \
+eq "the mini-review rows list only tool-covered and fail items, in file order, each fix under its item" "$(sed -n '2,5p' <<<"$OUT")" \
   "$(row 3 tool-covered check-task-result.sh:12 "lint: shellcheck SC2086")
-$(row R3 fail "check-task-result.sh:88, check-task-result.sh:91" "the comment restates the case below it; delete it")"
-eq "the mini-review out-of-scope row" "$(line 4)" \
+$(row R3 fail "check-task-result.sh:88, check-task-result.sh:91" "the comments say what the case below each does")
+$(row R3 fix check-task-result.sh:88 delete)
+$(row R3 fix check-task-result.sh:91 "replace: # yq has already turned an unquoted sha into a number")"
+eq "the mini-review out-of-scope row" "$(line 6)" \
   "$(row decision can-wait check-task-result.sh:70 "the 120-character cut may hide a long reason")"
 
 FULL="$ART/T1/mini-review-full.yaml"
-variant "$MINI" "$FULL" '.verdict = "pass" | .items[3].verdict = "pass" | del(.items[3].note)'
+variant "$MINI" "$FULL" '.verdict = "pass" | .items[3].verdict = "pass" | del(.items[3].note) | del(.items[3].fixes)'
 run_ctr "$FULL"
 eq "a passing mini-review exits 0" "$RC" 0
 eq "a passing mini-review header" "$(line 1)" \
@@ -356,7 +365,28 @@ expect_error "mini-review: missing work_type" "$MINI" 'del(.work_type)' "work_ty
 expect_error "mini-review: empty diff" "$MINI" '.diff = ""' "diff: "
 expect_error "mini-review: missing tool_output" "$MINI" 'del(.tool_output)' "tool_output: "
 expect_error "mini-review: empty items" "$MINI" '.items = []' "items: not a non-empty list"
-expect_error "mini-review: item n out of range" "$MINI" '.items[4].n = "R6"' "items\\[4\\].n: 'R6'"
+expect_error "mini-review: item n out of range" "$MINI" '.items[4].n = "R6"' "items\\[4\\].n: 'R6' is not an integer or R1 to R5"
+expect_error "mini-review: a failing readable-code item without fixes" "$MINI" 'del(.items[3].fixes)' \
+  "items\\[3\\].fixes: missing or empty, required when a readable-code line fails"
+expect_error "mini-review: a failing readable-code item with an empty fixes list" "$MINI" '.items[3].fixes = []' \
+  "items\\[3\\].fixes: missing or empty"
+expect_error "mini-review: a fix that is a direction, not an edit" "$MINI" '.items[3].fixes[0].fix = "make the comment better"' \
+  "items\\[3\\].fixes\\[0\\].fix: 'make the comment better' is not delete"
+expect_error "mini-review: a replace fix with no text" "$MINI" '.items[3].fixes[1].fix = "replace: "' "items\\[3\\].fixes\\[1\\].fix: "
+expect_error "mini-review: a delete fix with more after it" "$MINI" '.items[3].fixes[0].fix = "delete\nthis"' "items\\[3\\].fixes\\[0\\].fix: "
+expect_error "mini-review: a fix without a location" "$MINI" 'del(.items[3].fixes[0].location)' "items\\[3\\].fixes\\[0\\].location: missing or empty"
+expect_ok "mini-review: a rename fix listing every use" "$MINI" \
+  '.items[3].n = "R1" | .items[3].fixes = [{"location": "a.sh:3, a.sh:9, b.sh:4", "fix": "rename data to invoices"}]'
+expect_ok "mini-review: an insert fix" "$MINI" '.items[3].n = "R2" | .items[3].fixes = [{"location": "a.sh:3", "fix": "insert: # retry once: the API drops the first call after idle"}]'
+expect_ok "mini-review: a multi-line replace fix" "$MINI" '.items[3].fixes[1].fix = "replace: # first line\n# second line"'
+expect_error "mini-review: a rename fix without a new name" "$MINI" '.items[3].fixes[0].fix = "rename data"' "items\\[3\\].fixes\\[0\\].fix: "
+expect_error "mini-review: fixes on a checklist item" "$MINI" '.items[1].fixes = [{"location": "a.sh:1", "fix": "delete"}]' \
+  "items\\[1\\].fixes: only a failing R1 to R5 item carries fixes"
+expect_error "mini-review: fixes on a passing readable-code item" "$MINI" '.items[4].fixes = [{"location": "a.sh:1", "fix": "delete"}]' \
+  "items\\[4\\].fixes: only a failing R1 to R5 item carries fixes"
+expect_ok "mini-review: the orchestrator's patched sha" "$MINI" '.patched = "9f8e7d6"'
+expect_error "mini-review: patched that is not a sha" "$MINI" '.patched = "done"' "patched: 'done' is not 7 to 40 hex characters"
+expect_error "mini-review: patched as an unquoted number" "$MINI" '.patched = 1234567' "patched: unquoted sha; quote it"
 expect_ok "mini-review: item n as a quoted number" "$MINI" '.items[4].n = "1"'
 expect_ok "mini-review: item n as a quoted two-digit number" "$MINI" '.items[4].n = "12"'
 expect_error "mini-review: item n quoted zero" "$MINI" '.items[4].n = "0"' "items\\[4\\].n: '0'"

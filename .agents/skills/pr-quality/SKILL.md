@@ -5,7 +5,8 @@ description: |
   orphan detection, complexity analysis, seam conformance and documentation conformance
   against the branch diff, plus one agent per project check in .workflow/pr-quality/*.md and,
   when .workflow/pr-quality/expert-panel/ exists, a per-concept expert panel that debates
-  cross-concept impact.
+  cross-concept impact. On a workflow spec branch whose spec is in-review or done, skips the
+  checks the Phase 4 review already settled and says so.
 
   Triggers: pr quality, code review, duplicate code, orphaned code, complexity review, pr cleanup
 
@@ -22,16 +23,17 @@ modules:
   - doc-conformance
 progressive_loading: true
 estimated_tokens: 700
-version: 1.3.0
+version: 1.4.0
 ---
 
 # PR Quality Review
 
-Parallel code quality analysis for PR branches. Dispatches five built-in sub-agents, plus one per project check (see [Project checks](#project-checks)), to analyze the diff against `origin/main`. All of them run every time; agents whose scope doesn't apply self-skip cheaply and say so (a silent skip reads as "checked and clean").
+Parallel code quality analysis for PR branches. Dispatches five built-in sub-agents, plus one per project check (see [Project checks](#project-checks)), to analyze the diff against `origin/main`. When the branch's workflow spec has already passed its Phase 4 review, Step 0 skips the checks that review settled. Every other agent runs; one whose scope doesn't apply self-skips cheaply and says so. Every skip is reported: a silent skip reads as "checked and clean".
 
 ## Workflow
 
 ```
+spec for the branch, status in-review or done? → skip Dupe, Seam, Docs and covered project checks
 git diff origin/main → changed files + branch name + commit subjects
 ls .workflow/pr-quality/*.md → project checks (0..N)
          ↓
@@ -50,7 +52,7 @@ Dupe Orph Cmplx Seam Docs Project check × N
 - **Skip**: dependency and build output (`node_modules`, `vendor`, `dist`, `build`), generated files, `*.test.*`, `*.spec.*`, config files
 - **New code focus**: Duplicate detection compares new functions against the existing codebase and against each other
 - **Whole-file scope**: Orphan and complexity checks examine the full file, not just the diff hunks; a project check sets its own scope
-- **Context reads beyond the diff**: doc-conformance reads the branch's `.workflow/specs/` folder, cited ADRs, and sweeps `docs/`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/GLOSSARY.md` and `README.md`; seam-conformance reads the module index in `.workflow/rules.md` and `.workflow/cache/modules.md`; a project check reads what its file's Scope names — but findings always anchor to the diff
+- **Context reads beyond the diff**: doc-conformance reads the branch's `.workflow/specs/` folder, cited ADRs, and sweeps `docs/`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/GLOSSARY.md` and `README.md`; seam-conformance reads the module index in `.workflow/rules.md` and finds each module's seam in the code; a project check reads what its file's Scope names — but findings always anchor to the diff
 - **Self-skips**: no spec folder → doc agent reports it and stops; no modules in `.workflow/rules.md` → seam agent reports "not applicable"; a project check whose trigger matches nothing in the diff reports "not applicable" and lists any skipped sections
 
 ## Analysis Modules
@@ -66,6 +68,7 @@ See `modules/doc-conformance.md` for spec/PRD ↔ code conformance and doc-drift
 Project-specific checks (a library's correct use, recurring fix patterns from the project's history, house rules no linter enforces) are **project-owned**: they live in the target project, never in this skill.
 
 - **Contract:** every `.workflow/pr-quality/*.md` file in the project root except `README.md` is one project check. Each file is the complete methodology for one sub-agent: Objective, Scope (trigger and self-skip), Checks, What to report, What NOT to flag. Its H1 names its report section.
+- **Covered by the review phase:** a check whose file starts with the frontmatter `covered_by_review: true` repeats what the workflow's Phase 4 review already judges (commit subjects against `.workflow/rules.md`, say). Step 0 skips it on a branch whose spec is `in-review` or `done`; everywhere else it runs. Leave the key out for a check the review does not cover.
 - **Start one** by copying [assets/project-check.template.md](assets/project-check.template.md) to `.workflow/pr-quality/<check-name>.md` and filling it in.
 - **Expert panel:** `.workflow/pr-quality/expert-panel/` is not a project check (the `*.md` listing never descends into it). When its `PANEL.md` exists, the orchestrator runs it as Step 2b, because the panel fans out per expert and debates over `SendMessage`, which a single check agent cannot do.
 - **No folder or no files** → no project checks run; the report says "No project checks (.workflow/pr-quality/ has none)".
@@ -80,6 +83,29 @@ Findings without file paths and line numbers are not actionable — always inclu
 ## Instructions
 
 Slash invocation: `/pr-quality`. Follow these steps exactly.
+
+### Step 0: Skip what the review phase settled
+
+A workflow spec that reached `in-review` or `done` has been through the Phase 4 review: its standards and end-state lenses already judged duplication, module seams, the spec and docs, and the project's written rules. Find the branch's spec:
+
+```bash
+branch=$(git rev-parse --abbrev-ref HEAD)
+case "$branch" in spec/*) slug=${branch#spec/} ;; *) slug="" ;; esac
+[ -n "$slug" ] || slug=$(git diff origin/main --name-only | sed -nE 's#^\.workflow/specs/(done/)?([0-9]+-[^/]+)/.*#\2#p' | sort -u)
+for d in ".workflow/specs/$slug" ".workflow/specs/done/$slug"; do [ -f "$d/spec.md" ] && yq --front-matter=extract '.status' "$d/spec.md" && break; done
+```
+
+- **One spec found, status `in-review` or `done`:** skip Agent 1 (duplicate detection), Agent 4 (seam conformance) and Agent 5 (documentation conformance), and every project check this loop prints (a file with no frontmatter has no key, so it runs):
+
+  ```bash
+  for f in .workflow/pr-quality/*.md; do [ "$(head -n 1 "$f")" = "---" ] && [ "$(yq --front-matter=extract '.covered_by_review // false' "$f")" = true ] && echo "$f"; done; true
+  ```
+
+  Orphan detection, complexity, the other project checks and the expert panel still run.
+- **Anything else** (no `spec/` branch and no spec folder in the diff, more than one slug, no `spec.md`, any other status): skip nothing.
+
+Done when you know the spec and its status, or that there is none, and which agents Step 2 leaves out.
+
 ### Step 1: Gather Context
 
 Run these commands to understand what changed:
@@ -103,7 +129,7 @@ ls .workflow/pr-quality/*.md 2>/dev/null | grep -v '/README\.md$'
 
 ### Step 2: Launch the Parallel Sub-Agents
 
-Dispatch agents 1–5 plus one agent per project check simultaneously using the Agent tool. Each agent must receive the full list of changed files from Step 1; agent 5 and the project-check agents also receive the branch name and commit subjects. Agents self-skip when their scope doesn't apply — a skip is reported, never silent.
+Dispatch agents 1–5 plus one agent per project check simultaneously using the Agent tool, leaving out the ones Step 0 skipped. Each agent must receive the full list of changed files from Step 1; agent 5 and the project-check agents also receive the branch name and commit subjects. Agents self-skip when their scope doesn't apply — a skip is reported, never silent.
 
 **Agent 1: Duplicate Code Detection**
 - subagent_type: `Explore`
@@ -132,7 +158,7 @@ Dispatch agents 1–5 plus one agent per project check simultaneously using the 
 
 **Agent 4: Seam Conformance**
 - subagent_type: `Explore`
-- Prompt: Use the seam-conformance methodology from `Skill(pr-quality)` module `seam-conformance`. First read `.workflow/rules.md` § Ownership and `.workflow/cache/modules.md` (the module index and each module's public interface) and `.agents/skills/pr-quality/references/codebase-design.md` (vocabulary). Provide the agent with the list of changed files. The agent should:
+- Prompt: Use the seam-conformance methodology from `Skill(pr-quality)` module `seam-conformance`. First read `.workflow/rules.md` § Ownership (the module index) and `.agents/skills/pr-quality/references/codebase-design.md` (vocabulary). Provide the agent with the list of changed files. The agent should:
   1. For each module, check whether changed code from outside it reaches *past* its seam into internals instead of through the sanctioned entry point
   2. Flag new public exports that widen a module's seam without earning their place (deletion test)
   3. Flag new shallow modules (interface nearly as complex as implementation) and new behaviour that duplicates what an existing module's interface already provides
@@ -145,7 +171,7 @@ Dispatch agents 1–5 plus one agent per project check simultaneously using the 
   1. Locate the originating spec folder from the branch name (`.workflow/specs/<branch>/`); no match → report that as a finding and stop
   2. Check spec.md/plan.md/tasks.md against the diff in both directions: doc claims without code, code without doc record, task checkbox state
   3. Check ADRs cited in commits/diff for contradiction
-  4. Keyword-sweep `docs/`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/GLOSSARY.md` and `README.md` (never the generated `.workflow/cache/`) for statements the diff makes false
+  4. Keyword-sweep `docs/`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/GLOSSARY.md` and `README.md` for statements the diff makes false
   5. Report Tier 1 (spec/tasks/ADR mismatches) and Tier 2 (doc drift) separately, plus a one-line open-task inventory
 
 **Project-check agents (one per `.workflow/pr-quality/*.md` file)**
@@ -166,10 +192,12 @@ Read `PANEL.md` and run it from this session, alongside the Step 2 agents:
 
 ### Step 3: Consolidate Results
 
-After all agents complete, present a unified report:
+After all agents complete, present a unified report. A section Step 0 skipped holds one line instead of findings: `Skipped: spec <slug> is <status>; the Phase 4 review settled this.`
 
 ```
 ## PR Quality Review
+
+[When Step 0 skipped anything, one line first: "Review phase settled: spec <slug> is <status>; skipped <the skipped sections>."]
 
 ### Duplicate Code
 [Agent 1 findings — list each instance with file paths and line numbers]

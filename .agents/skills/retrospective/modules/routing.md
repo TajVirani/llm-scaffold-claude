@@ -30,7 +30,7 @@ Admit only an observed failure: a suspicion or a trap-looking fact is not an ent
 
 A review lesson tells the Phase 4 review what to look for: its symptom shows in changed lines, and it names the paths where the mistake can recur. A lesson about how the workflow ran is a process lesson, and one whose symptom no diff shows is a judgement lesson: both go where the table sends them. A lesson a rule, a lint or a profile checklist line already enforces is not a review lesson.
 
-Only the retrospective of a feature in flight writes the file. With no feature in flight, `tier-a-write-guard` denies the write, so a standalone run turns an approved review lesson into an action item.
+Only the retrospective of a feature in flight writes the file. With no feature in flight, `workflow-write-guard` denies the write, so a standalone run turns an approved review lesson into an action item.
 
 The template is `.agents/skills/feature-workflow/assets/review-lessons.md`. Its header comment holds the entry rules and two commands, `validate:` and `next-id:`. Run either one on the lessons file like this:
 

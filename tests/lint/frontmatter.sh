@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: lint of YAML frontmatter in .agents/skills/*/SKILL.md and .agents/agents/*.md (reads the repo, writes nothing).
 # Covers: frontmatter is the first thing in the file and parses with yq v4; non-empty `name` (matches folder / file name)
-#   and `description`; agents carry no `model:` and only `claude` / `codex` keys under `models:`;
+#   and `description`; agents carry no `model:` and no `models:`;
 #   `disable-model-invocation` only on stub skills (a STUB marker in the body) or on the user-invoked skills listed in
 #   USER_INVOKED (workflows with side effects the human triggers by hand), and a user-invoked skill has a Codex
 #   agents/openai.yaml with allow_implicit_invocation: false; no implemented file has a STUB marker;
@@ -58,11 +58,7 @@ lint_file() {
   [ -n "$desc" ] || echo "description is missing or empty"
   if [ "$kind" = agent ]; then
     [ "$(yq e 'has("model")' "$fm")" = false ] || echo "agent has a model: key"
-    if [ "$(yq e 'has("models")' "$fm")" = true ]; then
-      for k in $(yq e '.models | keys | .[]' "$fm" 2>/dev/null); do
-        case "$k" in claude | codex) ;; *) echo "models: has unsupported key '$k' (only claude, codex)" ;; esac
-      done
-    fi
+    [ "$(yq e 'has("models")' "$fm")" = false ] || echo "agent has a models: key (models come from the project's model map)"
   fi
   if [ "$kind" = skill ]; then
     if [ "$(yq e 'has("disable-model-invocation")' "$fm")" = true ] && ! body_has_stub "$f"; then
@@ -119,7 +115,7 @@ printf -- '---\nname: d\ndescription: d\ndisable-model-invocation: true\n---\nbo
 check "lint flags missing frontmatter" '[ -n "$(lint_file agent a "$WORK/bad/a.md")" ]'
 check "lint flags unparseable frontmatter" '[ -n "$(lint_file agent b "$WORK/bad/b.md")" ]'
 out=$(lint_file agent c "$WORK/bad/c.md")
-check "lint flags name mismatch, model and bad models key" 'grep -q "does not match" <<<"$out" && grep -q "model: key" <<<"$out" && grep -q "gemini" <<<"$out"'
+check "lint flags name mismatch, a model key and a models key" 'grep -q "does not match" <<<"$out" && grep -q "model: key" <<<"$out" && grep -q "models: key" <<<"$out"'
 check "lint flags disable-model-invocation without STUB" '[ -n "$(lint_file skill d "$WORK/bad/d.md")" ]'
 mkdir -p "$WORK/bad/project-setup"
 printf -- '---\nname: project-setup\ndescription: d\n---\nbody\n' >"$WORK/bad/project-setup/SKILL.md"

@@ -2,8 +2,7 @@
 # Suite: lint that each rule every feature-workflow step file shares is written in one file only.
 # Covers: JRN-006. Each shared rule's marker (listed below with the reason it was picked) appears in exactly one of
 #   SKILL.md, references/conventions.md, references/launching.md and modules/*.md (large-path.md included); the
-#   escalation-class line only in modules/discovered-work.md and the "## Leave the small path" heading only in
-#   modules/questioning-loop.md; modules/small-path.md does not exist; and the guarded-writes table, wherever it lives,
+#   escalation-class line only in modules/discovered-work.md; and the guarded-writes table, wherever it lives,
 #   gives each guarded file the steps scripts/check-write.sh allows it. Reads the repo only.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -26,7 +25,8 @@ TABLE_HEADER="| File | Allowed steps |"
 #     sentence that names the Codex spawn hook.
 #   Codex write-guard row: the advisory clause of the check-write.sh row.
 #   escalation classes: the scope-expanding class line of the proven-first rule; it belongs in discovered-work.md.
-#   leave the small path: the section heading; it belongs in questioning-loop.md, where the triggers run.
+#   blocking questions, assume and log, launch before asking: the bold labels that open the three rules on asking the
+#     stakeholder; they belong in references/conventions.md and step files point at it.
 MARKERS='one writer and exit codes|Exit 0 done; 1 environment error|any
 set the step then write|These files are written only from the main session, only at these steps.|any
 guarded-writes table|TABLE_HEADER|any
@@ -37,7 +37,9 @@ host launch rows: fork_turns|a full-history fork may ignore the spawn `model` ov
 host launch rows: spawn hook|`hooks/codex-pre-spawn.sh` denies a malformed name|any
 Codex write-guard row|write only on exit 0 (advisory)|any
 escalation classes|**scope-expanding**|modules/discovered-work.md
-leave the small path|## Leave the small path|modules/questioning-loop.md'
+blocking questions|**Only blocking questions wait.**|references/conventions.md
+assume and log|**Assume and log the rest.**|references/conventions.md
+launch before asking|**Launch before asking.**|references/conventions.md'
 
 # rule_files : the files a shared rule may live in, relative to the skill folder, those that exist.
 rule_files() {
@@ -71,7 +73,6 @@ while IFS='|' read -r rule marker home; do
     eq "$rule: only in $home" "$holders" "$home"
   fi
 done <<<"$MARKERS"
-check "modules/small-path.md no longer exists" '[ ! -e "$FW_SKILL/modules/small-path.md" ]'
 
 echo "== the guarded-writes table matches check-write.sh"
 # step_set TEXT : the step ids in TEXT, sorted, one space-separated line.

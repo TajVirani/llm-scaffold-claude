@@ -152,7 +152,7 @@
       "commit_basis": "survey-date",
       "changes": [
         "took read-only tool scoping (pattern only, no text copied)",
-        "returns cited extracts plus cache stamps instead of a file list"
+        "returns cited extracts instead of a file list"
       ],
       "why": "Tight tool scoping keeps the corpus out of the main session (Apache-2.0, so no text adapted).",
       "reviewed_at": "2026-10-19"
@@ -166,7 +166,7 @@
       "commit_basis": "survey-date",
       "changes": [
         "took 'document what exists, return only what matters' (pattern only, no text copied)",
-        "applied to Tier A docs, Tier B caches and the .workflow/deferred/ shelf"
+        "applied to the code, Tier A docs and the .workflow/deferred/ shelf"
       ],
       "why": "Same discipline, our corpus and return contract.",
       "reviewed_at": "2026-10-19"
@@ -631,33 +631,6 @@
         "took 'cite the exact source for each claim'"
       ],
       "why": "Citation rule only.",
-      "reviewed_at": "2026-10-19"
-    },
-    {
-      "path": ".agents/agents/cache-regeneration.md",
-      "kind": "derived",
-      "upstream_repo": "open-gsd/gsd-core",
-      "upstream_path": "agents/gsd-codebase-mapper.md",
-      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
-      "commit_basis": "survey-date",
-      "changes": [
-        "took the agent shape: one focus per launch, write the document straight to disk, return a short confirmation, current state only, never quote secrets, do not commit (pattern only, no text copied)",
-        "writes only to .workflow/.cache-staging/<type>.md; the caller stamps and publishes"
-      ],
-      "why": "Keeps cache bodies out of the main session; determinism rules are ours (G6).",
-      "reviewed_at": "2026-10-19"
-    },
-    {
-      "path": ".agents/agents/cache-regeneration.md",
-      "kind": "derived",
-      "upstream_repo": "open-gsd/gsd-core",
-      "upstream_path": "commands/gsd/map-codebase.md",
-      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
-      "commit_basis": "survey-date",
-      "changes": [
-        "took parallel mappers that write to disk and return confirmations (pattern only, no text copied)"
-      ],
-      "why": "Orchestration pattern shared with regenerate-caches.",
       "reviewed_at": "2026-10-19"
     },
     {
@@ -1807,7 +1780,7 @@
       "commit_basis": "survey-date",
       "changes": [
         "idea only: 'document what exists, do not critique' and the commit stamp on research output",
-        "section-per-agent layout and cache_stamps frontmatter are ours"
+        "section-per-agent layout is ours"
       ],
       "why": "Apache-2.0; no text copied.",
       "reviewed_at": "2026-10-19"
@@ -2385,33 +2358,6 @@
         "ideas only: mock at system boundaries"
       ],
       "why": "Mini-review checklist lines.",
-      "reviewed_at": "2026-10-19"
-    },
-    {
-      "path": ".agents/skills/regenerate-caches/SKILL.md",
-      "kind": "derived",
-      "upstream_repo": "open-gsd/gsd-core",
-      "upstream_path": "commands/gsd/map-codebase.md",
-      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
-      "commit_basis": "survey-date",
-      "changes": [
-        "took orchestration of parallel mappers that write to disk and return only confirmations, then a check that every document exists (pattern only, no text copied)",
-        "adds stamp checks, staging and publish-cache.sh (D17)"
-      ],
-      "why": "Keeps cache bodies out of the session.",
-      "reviewed_at": "2026-10-19"
-    },
-    {
-      "path": ".agents/skills/regenerate-caches/assets/cache-frontmatter.md",
-      "kind": "derived",
-      "upstream_repo": "open-gsd/gsd-core",
-      "upstream_path": "agents/gsd-codebase-mapper.md",
-      "upstream_commit": "2c6bd96feecb7f3fbb535dfd93a4b36b59731869",
-      "commit_basis": "survey-date",
-      "changes": [
-        "idea only: the commit stamp (last_mapped_commit -> generated_at_commit); the source file could not be fetched when written"
-      ],
-      "why": "Stamp idiom; fields are plan-specified (00.5-00.7).",
       "reviewed_at": "2026-10-19"
     },
     {

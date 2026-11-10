@@ -35,7 +35,7 @@ Spec 008 needed to save one project-wide choice (whether the Sign-off PR uses th
 
 - Behaviour settings are read from the rules.md block by `.agents/skills/feature-workflow/scripts/rules-setting.sh:42-48, 86-98` as of commit `02bc218`.
 - rules.md is Tier A, writable only at 0.3.7, 5.3, 5.7: `.agents/skills/feature-workflow/scripts/check-write.sh:75` as of commit `02bc218`.
-- Model precedence is resolved in `.agents/skills/feature-workflow/scripts/resolve-launch.sh` from `.workflow/agent-overrides.yaml` and `.workflow/model-map/<type>.md` as of commit `02bc218`.
+- The model is read in `.agents/skills/feature-workflow/scripts/resolve-launch.sh` from one table, `.workflow/model-map.yaml` (it was `.workflow/agent-overrides.yaml` and `.workflow/model-map/<type>.md` as of commit `02bc218`).
 
 ## Acceptance criteria
 

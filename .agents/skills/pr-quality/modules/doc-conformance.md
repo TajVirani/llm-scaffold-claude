@@ -20,8 +20,8 @@ docs elsewhere don't contradict the new work. Report-only: never edit docs or co
    `.workflow/decisions/adr/`). Checked for contradiction only, not completeness.
 3. **Wider sweep (tertiary).** Extract the key concepts the diff touches (module names,
    feature nouns, table/field names, tool names). Grep `docs/`, `.workflow/rules.md`, `.workflow/capabilities.md`,
-   `.workflow/decisions/`, `.workflow/GLOSSARY.md` and `README.md` (never the generated `.workflow/cache/`;
-   search hidden dirs, e.g. `rg --hidden`) for those concepts and read the hits.
+   `.workflow/decisions/`, `.workflow/GLOSSARY.md` and `README.md` (search hidden dirs,
+   e.g. `rg --hidden`) for those concepts and read the hits.
    Checked for contradiction only.
 
 ## Checks

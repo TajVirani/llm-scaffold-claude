@@ -2,8 +2,7 @@
 # Suite: move-to-done.sh (feature-workflow/scripts) and the readers that look in the Done folder, .workflow/specs/done/.
 # Covers: the interface: the script is executable, and no argument or an unknown option exits 2.
 #   JRN-001: --check on a spec whose task record T2 is pending exits 1, names T2 and not the done tasks, and changes no file,
-#   ref or index entry; two open records are both named; a backlog item from the spec with a status outside open, promoted,
-#   moved-to-deferred and dismissed is named, while one from another spec is not; on the spec's backlog list open,
+#   ref or index entry; two open records are both named; a per-item backlog file is not read; on the spec's backlog list open,
 #   promoted and split lines pass, while a line with another status, no status or no evidence is named by line number, and
 #   another spec's list is not read; the 5.7 sequence (the check, then
 #   status-transition.sh status done --step 5.7) leaves the spec in-review; once every record is done or split-out the check
@@ -11,9 +10,9 @@
 #   JRN-002: moving the done spec 012-alpha puts it at .workflow/specs/done/012-alpha with no step marker, the same
 #   spec_branch and status, and the old folder gone, committed as one Conventional Commits commit on the spec branch with a
 #   clean tree; every back-link form is rewritten (shelf, retrospective, capabilities row, review lesson, backlog items,
-#   sibling spec, the spec's own path strings, pr-body.md); the cache file, the initiative file, docs/notes.md and the
+#   sibling spec, the spec's own path strings, pr-body.md); the initiative file, docs/notes.md and the
 #   look-alike 012-alpha-two and 012-alphabet references are byte-identical; no other file changed (the expected-tree
-#   oracle); no old-path reference remains outside cache/ and initiatives/; the word-level diff changes only path words;
+#   oracle); no old-path reference remains outside initiatives/; the word-level diff changes only path words;
 #   every relative link in the moved spec resolves; refusals that change nothing: a spec not done, an existing
 #   done/012-alpha, a pending task record, a missing folder, a folder that is not a spec.
 #   JRN-006 (the move half): the moved pr-body.md differs from the approved one only in the spec path, and check-pr-body.sh
@@ -158,11 +157,8 @@ set_task "$P" "$DONE_SPEC" T1 done
 set_task "$P" "$DONE_SPEC" T2 done
 
 set_status "$P/.workflow/specs/work-backlog/012-alpha-disc-002.md" in-progress
-set_status "$P/.workflow/specs/work-backlog/013-beta-disc-001.md" in-progress
 mtd "$P" --check "$DONE_SPEC"
-check "JRN-001 --check names a backlog item from the spec whose status is not a closed or open one" \
-  '[[ $RC == 1 && $OUT == *012-alpha-disc-002* ]]' "rc=$RC: $OUT"
-check "JRN-001 --check does not name a backlog item from another spec" '[[ $OUT != *013-beta-disc-001* ]]' "$OUT"
+check "JRN-001 --check reads no per-item backlog file" '[[ $OUT != *012-alpha-disc-002* ]]' "rc=$RC: $OUT"
 set_status "$P/.workflow/specs/work-backlog/012-alpha-disc-002.md" dismissed
 
 # The spec's backlog list: open and promoted lines are closed; any other status, or a line out of shape, is named.
@@ -208,7 +204,7 @@ check "fixture: every relative link in the spec resolves before the move" '[[ -z
 check "fixture: every relative link in the expected moved spec resolves" '[[ -z $(unresolved_links "$EXPECTED/$MOVED") ]]' \
   "$(unresolved_links "$EXPECTED/$MOVED")"
 check "fixture: the old path is referenced before the move" '[[ -n $(old_spec_refs "$P" 012-alpha) ]]'
-for kept in .workflow/cache/modules.md .workflow/initiatives/001-ini/initiative.md docs/notes.md .workflow/deferred/alpha-two-shelf.md; do
+for kept in .workflow/initiatives/001-ini/initiative.md docs/notes.md .workflow/deferred/alpha-two-shelf.md; do
   cp "$P/$kept" "$WORK/kept-$(basename "$kept")"
 done
 TIP=$(git -C "$P" rev-parse HEAD)
@@ -247,12 +243,12 @@ moved design log own path strings|.workflow/specs/done/012-alpha/design-log.md
 moved report own path string|.workflow/specs/done/012-alpha/report.md
 moved pr-body.md own path string|.workflow/specs/done/012-alpha/pr-body.md
 FORMS
-for kept in .workflow/cache/modules.md .workflow/initiatives/001-ini/initiative.md docs/notes.md .workflow/deferred/alpha-two-shelf.md; do
+for kept in .workflow/initiatives/001-ini/initiative.md docs/notes.md .workflow/deferred/alpha-two-shelf.md; do
   check "JRN-002 byte-identical: $kept" 'cmp -s "$WORK/kept-$(basename "$kept")" "$P/$kept"'
 done
 check "JRN-002 no other file under .workflow/ or docs/ changed (expected-tree oracle)" \
   '[[ -z $(tree_differences "$EXPECTED" "$P") ]]' "$(tree_differences "$EXPECTED" "$P" 2>/dev/null | head -8)"
-check "JRN-002 no old-path reference remains outside cache/ and initiatives/" '[[ -z $(old_spec_refs "$P" 012-alpha) ]]' \
+check "JRN-002 no old-path reference remains outside initiatives/" '[[ -z $(old_spec_refs "$P" 012-alpha) ]]' \
   "$(old_spec_refs "$P" 012-alpha | head -5)"
 check "JRN-002 the word-level diff changes only path words" \
   '[[ -n $(word_changes "$P" "$TIP" HEAD "$DONE_SPEC" "$MOVED") && -z $(word_changes "$P" "$TIP" HEAD "$DONE_SPEC" "$MOVED" | grep -vE "012-alpha|\.\./") ]]' \

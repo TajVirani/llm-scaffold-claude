@@ -46,6 +46,9 @@
 #   - task_id equals the folder name when the file sits in artifacts/<folder>/.
 #   - items is a non-empty list of {n, verdict, location}: n an integer, a string of one, or R1 to R5; verdict pass, fail, tool-covered or
 #     not-applicable; location a string; a non-empty note on fail and tool-covered.
+#   - a failing R1 to R5 item carries fixes, a non-empty list of {location, fix}: location a non-empty string, fix one of
+#     `delete`, `replace: <text>`, `insert: <text>` or `rename <old> to <new>`. Any other item carries no fixes.
+#   - patched, written by the orchestrator once it has applied the fixes itself, is 7 to 40 hex characters when present.
 #   - read_outside_diff is a list; out_of_scope_noticed is a list of discovered-work entries.
 # stdout on exit 0, a header line, then tab-separated rows (values cut to 120 characters, tabs and line breaks become spaces):
 #   implementation: status: <s>  task: <id>  head: <sha7>  files: <n>  tests: <n> (behaviour <b>, negative <n>, edge <e>)  discovered_work: <k>  self_review: <r> (fixed <f>)
@@ -55,8 +58,8 @@
 #   integration: status: <s>  work_type: <wt>  head: <sha7>  requests: <n> (applied <a>, rejected <r>, conflict <c>, blocked <b>)  discovered_work: <k>
 #     then one row per request (n, verdict, reason); then the discovered-work rows.
 #   mini-review: verdict: <v>  task: <id>  items: <n> (pass <p>, fail <f>, tool-covered <t>, not-applicable <na>)  out_of_scope: <k>
-#     then one row per fail and tool-covered item (n, verdict, location, note); then one discovered-work row per
-#     out_of_scope_noticed entry.
+#     then one row per fail and tool-covered item (n, verdict, location, note), each failing R item followed by one row per
+#     fixes entry (n, `fix`, location, fix); then one discovered-work row per out_of_scope_noticed entry.
 #   A null head_commit prints as "-".
 # Exit: 0 the shape is valid and the table was printed; 1 one or more shape errors (one line each on stdout, nothing else);
 #   2 usage error, missing or unreadable file, YAML that does not parse, unknown kind, or missing jq or mikefarah yq v4
@@ -243,6 +246,25 @@ def check_integration:
     null_or_map("profile_wrong"), null_or_map("blocked"),
     check_stop_fields;
 
+def is_readable_code_line: (.n | type) == "string" and (.n | test("^R[1-5]$"));
+
+# The orchestrator applies a readable-code fix exactly as written, so each one must name a finished edit.
+def check_fixes($at):
+  if is_readable_code_line and .verdict == "fail" then
+    if ((.fixes | is_list) and (.fixes | length) > 0) | not then
+      "\($at).fixes: missing or empty, required when a readable-code line fails"
+    else .fixes | to_entries[] | .key as $j | .value
+      | "\($at).fixes[\($j)]" as $f
+      | if type != "object" then "\($f): not a mapping"
+        else
+          (if (.location | str_filled) then empty else "\($f).location: missing or empty" end),
+          (if (.fix | type) == "string" and (.fix | test("\\A(delete|replace: [\\s\\S]*\\S[\\s\\S]*|insert: [\\s\\S]*\\S[\\s\\S]*|rename \\S+ to \\S+)\\z")) then empty
+           else "\($f).fix: '\(.fix | text)' is not delete, replace: <text>, insert: <text> or rename <old> to <new>" end)
+        end
+    end
+  elif .fixes != null then "\($at).fixes: only a failing R1 to R5 item carries fixes"
+  else empty end;
+
 def check_item($i):
   "items[\($i)]" as $at
   | if type != "object" then "\($at): not a mapping"
@@ -254,7 +276,8 @@ def check_item($i):
       (if (.location | type) == "string" then empty else "\($at).location: missing or not a string" end),
       (if (.verdict | one_of(["fail", "tool-covered"])) and ((.note | str_filled) | not) then
          "\($at).note: missing or empty, required when the verdict is \(.verdict)"
-       else empty end)
+       else empty end),
+      check_fixes($at)
     end;
 
 def check_mini_review($folder):
@@ -269,7 +292,11 @@ def check_mini_review($folder):
           else empty end)
      end),
     need_list("read_outside_diff"),
-    check_dw_list("out_of_scope_noticed");
+    check_dw_list("out_of_scope_noticed"),
+    (if .patched == null then empty
+     elif (.patched | type) == "number" then "patched: unquoted sha; quote it"
+     elif (.patched | type) == "string" and (.patched | test("^[0-9a-fA-F]{7,40}$")) then empty
+     else "patched: '\(.patched | text)' is not 7 to 40 hex characters" end);
 
 if length != 1 then "root: expected one YAML document, found \(length)"
 else .[0]
@@ -305,7 +332,8 @@ def table_mini_review:
   .items as $i
   | "verdict: \(.verdict)  task: \(.task_id)  items: \($i | length) (pass \(count($i; "verdict"; "pass")), fail \(count($i; "verdict"; "fail")), tool-covered \(count($i; "verdict"; "tool-covered")), not-applicable \(count($i; "verdict"; "not-applicable")))  out_of_scope: \(.out_of_scope_noticed | length)",
     ($i[] | select(.verdict == "fail" or .verdict == "tool-covered")
-       | [(.n | tostring), .verdict, (.location | cut), (.note | cut)] | map(one_line) | join("\t")),
+       | ([(.n | tostring), .verdict, (.location | cut), (.note | cut)] | map(one_line) | join("\t")),
+         ((.n | tostring) as $n | (.fixes // [])[] | [$n, "fix", (.location | cut), (.fix | cut)] | map(one_line) | join("\t"))),
     (.out_of_scope_noticed[] | dw_row);
 
 .[0]

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Suite: lint over how much workflow text a session loads at its two heaviest load points, counted with wc -c.
-# Covers: JRN-001 (a new-feature start, small path included: AGENTS.md, the session-start hook output, the feature-workflow
+# Covers: JRN-001 (a new-feature start: AGENTS.md, the session-start hook output, the feature-workflow
 #   router SKILL.md, references/conventions.md, modules/discovery.md and the term-list output for this repo's glossary is
 #   at most 45000 bytes), JRN-002 (an implementation resume: AGENTS.md, the same hook output, SKILL.md,
 #   references/conventions.md and modules/implementation-waves.md is at most 55000 bytes) and JRN-008 (the measuring

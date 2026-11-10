@@ -18,7 +18,7 @@
 ## Language and style rules
 
 - A skill's or agent's `name` matches its folder or file name.
-- Agent frontmatter is exactly `name`, `description`, `tools`; never `model:` (models come from `.workflow/model-map/` and overrides).
+- Agent frontmatter is exactly `name`, `description`, `tools`; never `model:` or `models:` (models come from `.workflow/model-map.yaml`).
 - Agent descriptions lead with the role and the workflow step: `<role> (step X.Y)`.
 - New agents follow `.agents/skills/writing-for-agents/assets/agent.template.md` (Input / Steps / Return). A Phase 4 review lens follows the shape of the existing lenses in `.agents/agents/review-*.md` (Receives / Method / Scoring / Return), so the four stay alike. Existing agents change shape only when touched for another reason.
 
@@ -44,7 +44,6 @@ rule_set: "scaffold lint suites (frontmatter, step-list, symlinks, upstream-line
 test_patterns: [] # which paths are tests, kept out of the size-budget file count (budget-check.sh). [] or absent: the defaults
                   # ["*.test.*", "*.spec.*", "__tests__/", "tests/", "test/", "e2e/", "*_test.go", "test_*.py", "*_test.py"]. A list replaces them
                   # for this profile. "dir/" matches that folder at any depth; a pattern with another / matches the repo-relative path; else the file name.
-graph_extractor: none # the graph extractor the Tier B cache build runs for this work type: bash, dependency-cruiser or none
 ```
 
 ## Mini-review checklist

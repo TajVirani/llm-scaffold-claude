@@ -23,23 +23,21 @@ Workflow skills (`.agents/skills/`):
 - `feature-workflow` — entry point: sizes a request, runs discovery through sign-off, resumes in-flight specs (modules in `modules/`)
 - `project-setup` — sets up a target project's `.workflow/` folder: glossary, rules, profiles, model map, then the standards interview, toolchain and boundary config
 - `project-standards` — drafts, approves and writes a project's standards: rules, work profiles, ADRs, pr-quality checks, lint config
-- `regenerate-caches` — regenerates and publishes the Tier B caches
 - `domain-modeling` — agrees terms and writes `.workflow/GLOSSARY.md` and ADRs
 - `retrospective` — post-feature retrospective at sign-off
 - `deeper-prompt` — rewrites a feature request into a deeper prompt the stakeholder agrees to, before the questioning loop (step 0.3.22)
 
 Agents (`.agents/agents/`, one line each):
 
-- `retrieval` — pulls cited extracts from Tier A, Tier B and `.workflow/deferred/`
+- `retrieval` — pulls cited extracts from the code, Tier A and `.workflow/deferred/`
 - `library-evaluation` — grades candidate libraries for a feature
-- `cache-regeneration` — derives one Tier B cache from code
 - `fact-lookup` — answers factual questions with file:line sources
 - `module-audit` — deep-reads the owning module
 - `implementation` — test-first coding for one task in a worktree
 - `integration` — single owner of shared-core changes
 - `profile-mini-review` — reviews one task's diff against the profile checklist
-- `review-standards`, `review-end-state`, `review-targets`, `review-lessons` — Phase 4 review lenses (standards, spec conformance, measured targets, recorded review lessons)
-- `review-combined` — one review lens for the light and small paths, covering standards, spec conformance and review lessons
+- `review-standards`, `review-end-state`, `review-targets` — Phase 4 review lenses (standards and recorded review lessons, spec conformance, measured targets)
+- `review-combined` — one review lens for the light path, covering standards, spec conformance and review lessons
 - `standards-discovery` — read-only brownfield standards scan for `project-standards`
 
 Hooks live in `.agents/hooks/`, wired by `claude-settings.template.json`, `codex-hooks.template.json` and `codex-config.template.toml`. Each script carries a `# File:` header describing it; `PROVENANCE.md` is the full inventory.
@@ -47,7 +45,6 @@ Hooks live in `.agents/hooks/`, wired by `claude-settings.template.json`, `codex
 Helper scripts:
 
 - `feature-workflow/scripts/`: each script carries a `# File:` header describing it; `PROVENANCE.md` is the full inventory.
-- `regenerate-caches/scripts/`: see the folder.
 - `project-setup/scripts/`: see the folder.
 
 Other first-party skills: `data-structure-audit`, `pr-review-data`, `deps-audit`, `deps-update`, `design-pattern-doc`, `glab`, `pr-quality`, `visual-change-report`. `handoff` and `writing-for-agents` (first-party rewrites, D78) ship too. Nothing vendored remains in `.agents/skills/`; `PROVENANCE.md` has the full inventory.
@@ -74,8 +71,8 @@ To run this repo's tests: the above plus [shellcheck](https://www.shellcheck.net
 
 In target projects, used by the workflow at runtime:
 
-- node and [dependency-cruiser](https://github.com/sverweij/dependency-cruiser), for the import-boundary config and the architecture cache
-- tsc (TypeScript), optional, for type checks and the architecture cache
+- node and [dependency-cruiser](https://github.com/sverweij/dependency-cruiser), for the import-boundary config
+- tsc (TypeScript), optional, for type checks
 - the per-profile toolchain, for example Vitest for the test harness and Playwright for the browser suite. `project-setup` installs it per work profile.
 
 ## Install and upgrade
@@ -87,9 +84,9 @@ In target projects, used by the workflow at runtime:
 - `<target-dir>` must be the top level of a git repository. `--host` defaults to `all`.
 - It copies the first-party payload listed in `.agents/install-manifest.txt` into `<target>/.agents/` and writes `<target>/.agents/VERSION`. Vendored skills are never installed (D71, D72).
 - Claude: it creates the `.claude/{skills,agents,output-styles}` symlinks and merges `.agents/hooks/claude-settings.template.json` into `.claude/settings.json`. The merge keeps your keys, hooks and deny rules, and it keeps your `outputStyle` and `statusLine` with a warning. The default `statusLine` is the context bar, `context-bridge.cjs` (D83).
-- Codex: it generates `.codex/agents/*.toml` and merges the hook and permission templates into `.codex/hooks.json` and `.codex/config.toml`, including a `[tui] status_line` of built-in items as the context bar (D83; a `[tui]` table you already have is kept with a warning). Afterwards, start Codex in the project, trust its `.codex/` layer and review the hooks with `/hooks`. Do this again after every upgrade.
-- It adds `.workflow/specs/*/.step`, `.workflow/initiatives/*/.step`, `.workflow/.cache-staging/`, `.workflow/.worktrees/`, `.workflow/.spec-worktrees/`, `.workflow/.handoff/` and `.workflow/.standards-staging/` to `.gitignore`, for every `--host`. It does not create `.workflow/` itself; `project-setup` does.
-- It never touches project-owned files: everything under `.workflow/` (the glossary, rules, profiles, model map, `agent-overrides.yaml`, specs, deferred items, caches and decisions), `e2e/` and the project's own `docs/` (D81).
+- Codex: it generates `.codex/agents/*.toml` and merges the hook and config templates into `.codex/hooks.json` and `.codex/config.toml`, including a `[tui] status_line` of built-in items as the context bar (D83; a `[tui]` table you already have is kept with a warning). Afterwards, start Codex in the project, trust its `.codex/` layer and review the hooks with `/hooks`. Do this again after every upgrade.
+- It adds `.workflow/specs/*/.step`, `.workflow/initiatives/*/.step`, `.workflow/.worktrees/`, `.workflow/.spec-worktrees/`, `.workflow/.handoff/` and `.workflow/.standards-staging/` to `.gitignore`, for every `--host`. It does not create `.workflow/` itself; `project-setup` does.
+- It never touches project-owned files: everything under `.workflow/` (the glossary, rules, profiles, model map, specs, deferred items and decisions), `e2e/` and the project's own `docs/` (D81).
 - `--dry-run` prints the changes and writes nothing. When something conflicts, it refuses before writing anything; `--force` replaces the conflicting entries instead (see the header of `install.sh`).
 
 To upgrade, pull this repo and run the same command again. Changed payload files are overwritten. Files the previous install shipped that the manifest no longer lists are removed. A re-run with nothing new changes nothing.
@@ -103,4 +100,4 @@ Hook matchers on upgrade: when an existing hook group runs a scaffold hook under
 
 Upgrade note (D75): `design-pattern-doc` conventions and `pr-quality`'s project-specific modules are now project-owned. If an earlier install gave your project `.agents/skills/design-pattern-doc/conventions.md`, or pr-quality's `modules/legend-state-review.md` or `modules/project-pitfalls.md`, the upgrade prunes them. Before upgrading, copy them to `.workflow/design-pattern-doc/conventions.md` and `.workflow/pr-quality/`. The athena originals were removed from this repo (its git history has them).
 
-After the first install, run the `project-setup` skill in the target project. It creates the `.workflow/` folder, where every piece of workflow data lives (glossary, rules, capabilities, decisions, caches, profiles, model map, specs, deferred items, tools and handoffs), and only `e2e/` (the app's browser tests) stays at the project root. It then runs the standards interview (`project-standards`) before offering example profiles or installing any toolchain. Installs made before this layout are not migrated (workflow 2.0 is unreleased); re-run `project-setup` on a clean project.
+After the first install, run the `project-setup` skill in the target project. It creates the `.workflow/` folder, where every piece of workflow data lives (glossary, rules, capabilities, decisions, profiles, model map, specs, deferred items, tools and handoffs), and only `e2e/` (the app's browser tests) stays at the project root. It then runs the standards interview (`project-standards`) before offering example profiles or installing any toolchain. Installs made before this layout are not migrated (workflow 2.0 is unreleased); re-run `project-setup` on a clean project.

@@ -42,17 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/spec-single-writer-guard.sh",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/tier-a-write-guard.sh",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/tier-b-write-guard.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/workflow-write-guard.sh",
             "timeout": 10
           }
         ]
@@ -138,17 +128,13 @@
       "Bash(.agents/skills/feature-workflow/scripts/task-waves.sh:*)",
       "Bash(.agents/skills/feature-workflow/scripts/resolve-launch.sh:*)",
       "Bash(.agents/skills/feature-workflow/scripts/rules-setting.sh:*)",
-      "Bash(.agents/skills/feature-workflow/scripts/run-toolchain.sh:*)",
-      "Bash(.agents/skills/regenerate-caches/scripts/cache-stamp-check.sh:*)",
-      "Bash(.agents/skills/regenerate-caches/scripts/check-staged-cache.sh:*)",
-      "Bash(.agents/skills/regenerate-caches/scripts/publish-cache.sh:*)"
+      "Bash(.agents/skills/feature-workflow/scripts/run-toolchain.sh:*)"
     ],
     "deny": [
       "Bash(yq *--front-matter=extract* -i*)",
       "Bash(yq *-i* --front-matter=extract*)",
       "Bash(yq *--front-matter=extract* --inplace*)",
       "Bash(yq *--inplace* --front-matter=extract*)",
-      "Edit(.workflow/cache/**)",
       "Edit(.workflow/specs/*/.step)",
       "Edit(.workflow/initiatives/*/.step)"
     ]

@@ -17,9 +17,8 @@
 #                 (lib/workflow-paths.sh wf_project_root: the checkout it is in, or the one an agent worktree sits in).
 # Closed means: a task record is `done` or `split-out`; every line of the spec's backlog list `<NNN-slug>.md` that starts `- `
 #   is a well-formed `- [open] B<n> <kind> (<node>): ...` or `- [promoted] ...` line (a line kept for later or started as a
-#   spec); an older work-backlog item `<NNN-slug>-disc-*.md` is `open`, `promoted`, `moved-to-deferred` or `dismissed`. The
-#   spec's own status does not matter to --check.
-# stdout: one `open: ...` line per open task record, item or malformed backlog line; `check passed: <spec-dir>`; for a move, `moved <old> -> <new>`
+#   spec). The spec's own status does not matter to --check.
+# stdout: one `open: ...` line per open task record or malformed backlog line; `check passed: <spec-dir>`; for a move, `moved <old> -> <new>`
 #   per spec and `committed <sha>`; for a sweep, `left in place: <spec-dir>` per spec that failed, `skipped: <spec-dir> (moved
 #   by its own sign-off step)` for the spec on the checked-out branch, or `nothing to sweep`.
 # Exit: 0 check passed, or moved and committed, or nothing to sweep (a sweep that only skips the checked-out spec has
@@ -59,9 +58,9 @@ resolve_spec() {
   printf '%s\n' "$folder"
 }
 
-# open_sub_items SPEC_DIR : print one line per task record or work-backlog item of SPEC_DIR that is not closed.
+# open_sub_items SPEC_DIR : print one line per task record or backlog line of SPEC_DIR that is not closed.
 open_sub_items() {
-  local spec_dir=$1 tasks list item status
+  local spec_dir=$1 tasks list
   tasks=$(wf_path "$ROOT" "$spec_dir/tasks.md")
   if [[ -f "$tasks" ]]; then
     yq --front-matter=extract \
@@ -77,15 +76,6 @@ open_sub_items() {
         printf "open: backlog line %s:%d (%s)\n", f, NR, status
       }' "$list" || die "cannot read the backlog list $WF_WORK_BACKLOG/${list##*/}"
   fi
-  for item in "$(wf_path "$ROOT" "$WF_WORK_BACKLOG")/${spec_dir##*/}"-disc-*.md; do
-    [[ -f "$item" ]] || continue
-    status=$(yq --front-matter=extract '.status // ""' "$item") || die "cannot read the status of $WF_WORK_BACKLOG/${item##*/}"
-    case $status in
-      open | promoted | moved-to-deferred | dismissed) ;;
-      *) printf 'open: backlog item %s (%s)\n' "$WF_WORK_BACKLOG/${item##*/}" "${status:-no status}" ||
-        die "cannot write the list of open sub-items" ;;
-    esac
-  done
 }
 
 MODE=move SPEC_ARG="" OPT_CWD=$PWD

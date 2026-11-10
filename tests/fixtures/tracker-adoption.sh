@@ -19,7 +19,7 @@
 #                               The task records carry the fields the tasks.md validator requires, so set-task can write
 #                               them.
 #   ADOPTION_BETA_WT, ADOPTION_EPSILON_WT, ADOPTION_EPSILON_TASK_WT   those worktrees (set by adoption_project)
-#   adoption_old_refs ROOT      prints each line under ROOT/.workflow, outside cache/, initiatives/ and the worktree
+#   adoption_old_refs ROOT      prints each line under ROOT/.workflow, outside initiatives/ and the worktree
 #                               folders, that still names a spec or backlog list by its path before adoption: 012-alpha or
 #                               014-gamma under specs/done/, 015-delta under specs/ or ../, any of the three lists; a path
 #                               ending a sentence counts, while link text and prose naming a spec are not paths
@@ -256,7 +256,7 @@ adoption_project() {
 }
 
 adoption_old_refs() {
-  grep -rnE --exclude-dir=cache --exclude-dir=initiatives --exclude-dir=.spec-worktrees --exclude-dir=.worktrees \
+  grep -rnE --exclude-dir=initiatives --exclude-dir=.spec-worktrees --exclude-dir=.worktrees \
     "(specs/done/(012-alpha|014-gamma)|(specs|\.\.)/015-delta)([^A-Za-z0-9._-]|\.([^A-Za-z0-9]|$)|$)|work-backlog/(012-alpha|014-gamma|015-delta)\.md" \
     "$1/.workflow" 2>/dev/null
 }

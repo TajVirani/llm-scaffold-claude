@@ -4,7 +4,7 @@
 # Covers: create carries the draft spec folder and discovery's other workflow data (a glossary edit) onto the spec branch's first
 #   commit, leaves the main checkout on main with nothing of that spec behind, moves .step into the worktree and prints the worktree
 #   and the baseline; a second spec created while the first runs; next-spec-number.sh, the 0.1.1 call, counts both from a spec worktree; status-transition.sh, run-toolchain.sh, the implementation
-#   brief's result-file command (its spec checkout taken from the worktree path), commit-workflow-data.sh, check-merge-artifacts.sh
+#   brief's result-file path (its spec checkout taken from the worktree path), commit-workflow-data.sh, check-merge-artifacts.sh
 #   and check-write.sh, each run from a spec worktree or its task worktree, read and write that spec's .step, artifacts and branch
 #   only; session-start-resume.sh lists both specs from the main checkout and from a spec worktree, naming where each runs, and so does the router's
 #   own listing (Find the state) from a spec worktree; the sign-off local merge run from a spec worktree lands on main in the main checkout; remove refuses an unmerged branch, a branch the main checkout's HEAD lacks and a nested
@@ -27,7 +27,7 @@ script() { local name=$1; shift; bash "$P/$S/$name" "$@"; }
 step_of() { sed -n 's/^step: "\(.*\)"$/\1/p' "$1"; }
 
 # The workflow block install.sh writes, a profile with a trivial toolchain and a committed glossary.
-printf '%s\n' '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.cache-staging/' '.workflow/.worktrees/' \
+printf '%s\n' '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.worktrees/' \
   '.workflow/.spec-worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/' >"$P/.gitignore"
 mkdir -p "$P/.workflow/profiles" "$P/src"
 printf '# Profile: shell\n## Toolchain\n\n```yaml\nlint: "true"\ntypecheck: ""\nformat: ""\nboundary: ""\ntest: "true"\n```\n' \
@@ -106,14 +106,11 @@ for pair in "001-alpha|$TA|$WA" "002-beta|$TB|$WB"; do
   # The brief's rule: the spec checkout is the agent worktree path less its last three parts.
   spec_checkout=$(cd "$task/../../.." && pwd -P)
   eq "$spec: the brief's spec-checkout rule names the spec worktree" "$spec_checkout" "$spec_wt"
-  cmd=$(brief_result_command "$P/.agents/agents/implementation.md" implementation.yaml)
-  cmd=${cmd//<worktree path>/$task}
-  cmd=${cmd//<spec checkout>/$spec_checkout}
-  cmd=${cmd//<spec_dir>/.workflow/specs/$spec}
-  cmd=${cmd//<task_id>/T1}
-  (cd "$P" && bash -c "$cmd"$'\nstatus: done\nEOF') >/dev/null 2>&1
-  check "$spec: the brief's result-file command writes into its spec worktree" \
-    '[ -f "$spec_wt/.workflow/specs/$spec/artifacts/T1/implementation.yaml" ] && [ ! -e "$task/.workflow/specs/$spec/artifacts/T1/implementation.yaml" ]'
+  result=$(brief_result_path "$P/.agents/agents/implementation.md" implementation.yaml)
+  result=${result//<spec checkout>/$spec_checkout}
+  result=${result//<spec_dir>/.workflow/specs/$spec}
+  result=${result//<task_id>/T1}
+  eq "$spec: the brief's result-file path lies in its spec worktree" "$result" "$spec_wt/.workflow/specs/$spec/artifacts/T1/implementation.yaml"
 done
 check "no evidence reached the main checkout" '[ ! -e "$P/.workflow/specs/001-alpha" ] && [ ! -e "$P/.workflow/specs/002-beta" ]'
 check "no evidence crossed between the specs" '[ ! -e "$WA/.workflow/specs/002-beta" ] && [ ! -e "$WB/.workflow/specs/001-alpha" ]'

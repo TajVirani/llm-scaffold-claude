@@ -26,7 +26,7 @@ Return only `LAUNCH ERROR: <what is wrong>` when the header names another task t
 - Use Read, Grep and Glob. Bash runs only read-only commands: `git ls-files`, `git log`, `git show`, `git blame`, `git diff --name-only`, `git grep`, `git rev-parse`, `git cat-file`, `rg`, `wc`.
 - Do not build, install, run tests, linters or the app, or execute any project script. Versions come from the files that declare them, never from running a tool.
 - Never read or quote `.env*`, key, credential or token files. Note only that one exists when it matters.
-- Skip generated and vendored trees (`node_modules/`, `dist/`, `build/`, `vendor/`, `.git/`, lockfile bodies beyond the resolved version of a tool you report, `.workflow/cache/`).
+- Skip generated and vendored trees (`node_modules/`, `dist/`, `build/`, `vendor/`, `.git/`, lockfile bodies beyond the resolved version of a tool you report).
 
 ## 3. Scan
 

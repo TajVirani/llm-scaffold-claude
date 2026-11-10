@@ -24,7 +24,7 @@ For each question:
 
 1. **Is it a fact?** A fact can be read off the repo: what the code does, where something is, which version is pinned, what a config sets, when a file last changed. A choice about what the feature *should* do is a decision. Return decisions as `not a fact` and stop on that question.
 2. **Search the primary source first**: the code, config and manifests that own the fact. Start in the affected area; widen to the rest of the repo only if the fact lives elsewhere.
-3. **Use docs as a second source.** If a doc and the code disagree, the code wins: give the code answer and note the disagreement. A Tier B cache (`.workflow/cache/*.md`) may be stale: cite one only together with its `generated_at_commit`, and prefer the code.
+3. **Use docs as a second source.** If a doc and the code disagree, the code wins: give the code answer and note the disagreement.
 4. **Git history** for history facts. Use Bash only for read-only commands: `git log`, `git show`, `git blame`, `git grep`, `git rev-parse`, `rg`. Run nothing that changes files, the index, branches or the network, and do not build, install or run the project.
 5. **Stop at the answer.** Once the fact is found and sourced, move to the next question.
 
@@ -41,7 +41,7 @@ One block per question, in the order asked. Plain statements, no recommendations
 
 Answer: <the fact, one to three sentences> | not determinable from the repo | not a fact: decision for the stakeholder
 Source: `<path:line>` [, `<path:line>` ...] | <doc path> § <heading> | `git log <args>` -> <commit sha>
-Note: <only if needed: doc disagrees with code, cache stamp, answer outside the affected area>
+Note: <only if needed: doc disagrees with code, answer outside the affected area>
 Searched: <only when not determinable: paths and patterns tried>
 ```
 

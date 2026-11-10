@@ -19,7 +19,7 @@ spec_dir: .workflow/specs/007-csv-export
 - The task body carries only what `.agents/agents/<type>.md` lists under its inputs. Its return format is fixed in that file; read the return from there rather than expecting another shape.
 - A return that starts `LAUNCH ERROR:` means the header was wrong: fix it and relaunch once.
 - Launch independent agents in one message so they run in parallel. No nested launches.
-- A deny that names **00.14** means no model is configured for that task type: tell the stakeholder, record the model they choose in `.workflow/model-map/<type>.md` (or in `.workflow/agent-overrides.yaml` when the agent definition pins a model for this host), and relaunch. A deny that names **00.19** means a coding launch has no profile: the step file that launches it handles it.
+- A deny that names **00.14** means no model is configured for that task type: tell the stakeholder, record the model they choose as that task type's row in `.workflow/model-map.yaml` (tier, `claude`, `codex`, why), and relaunch. A deny that names **00.19** means a coding launch has no profile: the step file that launches it handles it.
 
 ## Claude Code
 
@@ -27,7 +27,7 @@ Call the Agent tool with `subagent_type: <task type>` and the prompt = header + 
 
 ### An agent worktree on Claude Code
 
-The Agent tool has no working-directory option (a sub-agent starts in the main session's directory), so launch it without `isolation` and confine it by the brief: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside the worktree. `hooks/worktree-write-guard.sh` enforces this for implementation and integration sub-agents: it reads the agent worktree from the launch header (`.workflow/.worktrees/s<NNN>_t<N>` for a task, `s<NNN>_integration_<enc(work_type)>` for an integration batch) and denies a Write, Edit or NotebookEdit inside the main checkout but outside it, and a Bash command without that leading `cd` (accident prevention; a command can still reach out after its `cd`). The stop audit finds the worktree itself and warns when it is missing.
+The Agent tool has no working-directory option (a sub-agent starts in the main session's directory), so launch it without `isolation` and confine it by the brief: every Bash command starts with `cd <absolute worktree path> && `, and every Read, Edit and Write uses an absolute path inside the worktree. `hooks/worktree-write-guard.sh` enforces this for implementation and integration sub-agents: it reads the agent worktree from the launch header (`.workflow/.worktrees/s<NNN>_t<N>` for a task, `s<NNN>_integration_<enc(work_type)>` for an integration batch) and denies a Write, Edit or NotebookEdit inside the main checkout but outside it (except the agent's own result file, the one path under the spec's `artifacts/` its launch names), and a Bash command without that leading `cd` (accident prevention; a command can still reach out after its `cd`). The stop audit finds the worktree itself and warns when it is missing.
 
 ## Codex
 
@@ -40,7 +40,7 @@ On Codex you build each launch yourself (advisory): the spawn message is encrypt
    ```
 
 2. Spawn the agent with:
-   - `agent_type` = `<type>` with `-` replaced by `_` (`fact_lookup`, `profile_mini_review`, `cache_regeneration`);
+   - `agent_type` = `<type>` with `-` replaced by `_` (`fact_lookup`, `profile_mini_review`, `module_audit`);
    - `.prompt` as its message;
    - `.model` as its model. The generated `.codex/agents/*.toml` never carry `model` (a toml model would override the spawn-time one), so this is what selects it;
    - `task_name` from [Task names](#task-names);
@@ -60,7 +60,6 @@ Codex accepts only `[a-z0-9_]` in a `task_name`, with no `/`. `enc` lowercases a
 | `profile-mini-review` of review round `<round>` (3.7) | `s<NNN>_t<N>_r<round>` | `s007_t3_r2` |
 | `integration` batch (3.2) | `s<NNN>_integration_<enc(work_type)>` | `s007_integration_web` |
 | Phase 1 build (1.2, 1.3) | `s<NNN>_phase_1_<enc(work_type)>` | `s007_phase_1_test_harness` |
-| `cache-regeneration` inside a feature (0.2.8); `cache_<type>` in a bulk run | `s<NNN>_cache_<type>` | `s007_cache_modules` |
 | `review-combined` on the light path (4.10) | `s<NNN>_review_combined` | `s007_review_combined` |
-| Every other type in a spec: `retrieval` (0.2.4), `library-evaluation` (0.2.5), `fact-lookup` (0.3.10), `module-audit` (0.4.6), the four review lenses (4.1–4.3, 4.9) | `s<NNN>_<enc(task type)>` | `s007_retrieval`, `s007_library_evaluation`, `s007_fact_lookup`, `s007_module_audit`, `s007_review_standards`, `s007_review_end_state`, `s007_review_targets`, `s007_review_lessons` |
+| Every other type in a spec: `retrieval` (0.2.4), `library-evaluation` (0.2.5), `fact-lookup` (0.3.10), `module-audit` (0.4.6), the three review lenses (4.1–4.3) | `s<NNN>_<enc(task type)>` | `s007_retrieval`, `s007_library_evaluation`, `s007_fact_lookup`, `s007_module_audit`, `s007_review_standards`, `s007_review_end_state`, `s007_review_targets` |
 | Any launch from an initiative, with `--spec-dir .workflow/initiatives/NNN-slug` | `i<NNN>_<enc(task type)>` | `i004_research`, `i004_fact_lookup` |

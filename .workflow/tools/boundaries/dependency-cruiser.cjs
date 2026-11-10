@@ -341,17 +341,6 @@ module.exports = {
       }
     },
     {
-      "name": "data-structure-audit-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module data-structure-audit may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/data-structure-audit/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "data-structure-audit-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module data-structure-audit may not depend on module retrospective",
       "severity": "error",
@@ -551,17 +540,6 @@ module.exports = {
       },
       "to": {
         "path": "^\\.agents/skills/project-standards/.*$"
-      }
-    },
-    {
-      "name": "deeper-prompt-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module deeper-prompt may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/deeper-prompt/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
       }
     },
     {
@@ -778,17 +756,6 @@ module.exports = {
       }
     },
     {
-      "name": "deps-audit-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module deps-audit may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/deps-audit/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "deps-audit-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module deps-audit may not depend on module retrospective",
       "severity": "error",
@@ -969,17 +936,6 @@ module.exports = {
       },
       "to": {
         "path": "^\\.agents/skills/project-standards/.*$"
-      }
-    },
-    {
-      "name": "domain-modeling-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module domain-modeling may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/domain-modeling/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
       }
     },
     {
@@ -1332,17 +1288,6 @@ module.exports = {
       }
     },
     {
-      "name": "hooks-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module hooks may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/hooks/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "hooks-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module hooks may not depend on module retrospective",
       "severity": "error",
@@ -1564,20 +1509,6 @@ module.exports = {
       }
     },
     {
-      "name": "installer-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module installer may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": [
-          "^\\.agents/install-manifest\\.txt$",
-          "^install\\.sh$"
-        ]
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "installer-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module installer may not depend on module retrospective",
       "severity": "error",
@@ -1781,17 +1712,6 @@ module.exports = {
       },
       "to": {
         "path": "^\\.agents/skills/project-standards/.*$"
-      }
-    },
-    {
-      "name": "issue-tracking-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module issue-tracking may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/issue-tracking/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
       }
     },
     {
@@ -2008,17 +1928,6 @@ module.exports = {
       }
     },
     {
-      "name": "lib-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module lib may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/lib/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "lib-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module lib may not depend on module retrospective",
       "severity": "error",
@@ -2232,17 +2141,6 @@ module.exports = {
       }
     },
     {
-      "name": "output-styles-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module output-styles may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/output-styles/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "output-styles-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module output-styles may not depend on module retrospective",
       "severity": "error",
@@ -2445,17 +2343,6 @@ module.exports = {
       }
     },
     {
-      "name": "pr-review-data-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module pr-review-data may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/pr-review-data/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "pr-review-data-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module pr-review-data may not depend on module retrospective",
       "severity": "error",
@@ -2611,17 +2498,6 @@ module.exports = {
       },
       "to": {
         "path": "^\\.agents/skills/pr-review-data/.*$"
-      }
-    },
-    {
-      "name": "project-setup-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module project-setup may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/project-setup/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
       }
     },
     {
@@ -2805,17 +2681,6 @@ module.exports = {
       }
     },
     {
-      "name": "project-standards-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module project-standards may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/project-standards/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "project-standards-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module project-standards may not depend on module retrospective",
       "severity": "error",
@@ -2858,178 +2723,6 @@ module.exports = {
       "severity": "error",
       "from": {
         "path": "^\\.agents/skills/project-standards/.*$"
-      },
-      "to": {
-        "path": "^tests/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-agents",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module agents",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/agents/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-data-structure-audit",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module data-structure-audit",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/data-structure-audit/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-deeper-prompt",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module deeper-prompt",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/deeper-prompt/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-deps-audit",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module deps-audit",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/deps-audit/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-domain-modeling",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module domain-modeling",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/domain-modeling/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-hooks",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module hooks",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/hooks/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-installer",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module installer",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": [
-          "^\\.agents/install-manifest\\.txt$",
-          "^install\\.sh$"
-        ]
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-issue-tracking",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module issue-tracking",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/issue-tracking/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-output-styles",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module output-styles",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/output-styles/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-pr-review-data",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module pr-review-data",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/pr-review-data/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-project-standards",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module project-standards",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/project-standards/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-retrospective",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module retrospective",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/retrospective/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-root-docs",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module root-docs",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": [
-          "^\\.agents/README\\.md$",
-          "^AGENTS\\.md$",
-          "^README\\.md$"
-        ]
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-scaffold-scripts",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module scaffold-scripts",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      },
-      "to": {
-        "path": "^scripts/.*$"
-      }
-    },
-    {
-      "name": "regenerate-caches-not-to-tests",
-      "comment": "Generated from .workflow/rules.md: module regenerate-caches may not depend on module tests",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
       },
       "to": {
         "path": "^tests/.*$"
@@ -3179,17 +2872,6 @@ module.exports = {
       },
       "to": {
         "path": "^\\.agents/skills/project-standards/.*$"
-      }
-    },
-    {
-      "name": "retrospective-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module retrospective may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/skills/retrospective/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
       }
     },
     {
@@ -3462,21 +3144,6 @@ module.exports = {
       }
     },
     {
-      "name": "root-docs-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module root-docs may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": [
-          "^\\.agents/README\\.md$",
-          "^AGENTS\\.md$",
-          "^README\\.md$"
-        ]
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "root-docs-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module root-docs may not depend on module retrospective",
       "severity": "error",
@@ -3702,17 +3369,6 @@ module.exports = {
       }
     },
     {
-      "name": "scaffold-scripts-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module scaffold-scripts may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^scripts/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
-      }
-    },
-    {
       "name": "scaffold-scripts-not-to-retrospective",
       "comment": "Generated from .workflow/rules.md: module scaffold-scripts may not depend on module retrospective",
       "severity": "error",
@@ -3923,17 +3579,6 @@ module.exports = {
       },
       "to": {
         "path": "^\\.agents/skills/project-standards/.*$"
-      }
-    },
-    {
-      "name": "shared-core-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: shared core may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": "^\\.agents/lib/.*$"
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
       }
     },
     {
@@ -4270,25 +3915,6 @@ module.exports = {
       },
       "to": {
         "path": "^\\.agents/skills/project-standards/.*$"
-      }
-    },
-    {
-      "name": "standalone-skills-not-to-regenerate-caches",
-      "comment": "Generated from .workflow/rules.md: module standalone-skills may not depend on module regenerate-caches",
-      "severity": "error",
-      "from": {
-        "path": [
-          "^\\.agents/skills/deps-update/.*$",
-          "^\\.agents/skills/design-pattern-doc/.*$",
-          "^\\.agents/skills/glab/.*$",
-          "^\\.agents/skills/handoff/.*$",
-          "^\\.agents/skills/pr-quality/.*$",
-          "^\\.agents/skills/visual-change-report/.*$",
-          "^\\.agents/skills/writing-for-agents/.*$"
-        ]
-      },
-      "to": {
-        "path": "^\\.agents/skills/regenerate-caches/.*$"
       }
     },
     {

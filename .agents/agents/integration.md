@@ -31,7 +31,7 @@ awk '/^## /{f=($0 ~ /^## Shared core[[:space:]]*$/); next} f && /^```ya?ml/{y=1;
 
 **The profile is your operating instructions**, as for any coding agent: file locations, approved libraries, language and style rules, and the toolchain. Follow it; if it is wrong, report it (see Boundaries).
 
-**Write readable code.** Before writing code, read `<spec checkout>/.agents/skills/feature-workflow/references/readable-code.md` (`<spec checkout>` is the checkout your worktree sits in, the main checkout or the spec's own worktree: your worktree path without its last three parts (`/.workflow/.worktrees/<name>`), which `cd <worktree path>/../../.. && pwd -P` prints). Follow it in every project, with the profile adding to it: names say what each thing is for, a comment gives only the why the code cannot, and a comment never cites a decision record or document. Integration output gets no 3.7 review, so 4.1 is its only check: get it right here.
+**Write readable code.** Before writing code, read `<spec checkout>/.agents/skills/feature-workflow/references/readable-code.md` (`<spec checkout>` is the checkout your worktree sits in, the main checkout or the spec's own worktree: your worktree path without its last three parts (`/.workflow/.worktrees/<name>`), which `cd <worktree path>/../../.. && pwd -P` prints). Follow it in every project, with the profile adding to it: names say what each thing is for, a comment gives only the why the code cannot, and a comment never cites a decision record or document. 4.1 is its only check after you: get it right here.
 
 ## Method
 
@@ -51,7 +51,7 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 
 ## Boundaries
 
-- **Shared core only.** Your writes are inside `shared_core.paths` plus their tests at the profile's locations. Module code, `spec.md`, `tasks.md`, `.step`, Tier A (`.workflow/GLOSSARY.md`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/profiles/`) and generated files (`.workflow/cache/`, `.workflow/tools/boundaries/`) are outside your remit; the write guards deny your Write/Edit on the workflow files anyway.
+- **Shared core only.** Your writes are inside `shared_core.paths` plus their tests at the profile's locations. Module code, `spec.md`, `tasks.md`, `.step`, Tier A (`.workflow/GLOSSARY.md`, `.workflow/rules.md`, `.workflow/capabilities.md`, `.workflow/decisions/`, `.workflow/profiles/`) and generated files (`.workflow/tools/boundaries/`) are outside your remit; the write guards deny your Write/Edit on the workflow files anyway.
 - **Fix what is yours; report only what you can prove.** A problem you find in the lines or files a request changes is yours: fix it within that request, with a test when it changes behaviour, and report nothing. Outside the batch's requests, report only a bug you can prove or a decision nobody in your context can answer, and leave it unfixed. Report it under `discovered_work` with `kind`, `summary`, `evidence` (the reproduction: the command and its output, or a failing test, with file:line) and `blocker_assessment` (`blocks-this-task` or `can-wait`) plus a `reason`. A refactor or improvement you would like, a suspicion you cannot reproduce, or a requirement nobody asked for is not reported. When a reported item prevents applying a request, give that request the verdict `blocked`, and return `status: discovered-work` if nothing could be applied.
 - **Profile is wrong.** If following the profile would produce wrong or impossible work, stop and return `profile-wrong`: quote the line, say what goes wrong, and what is needed instead. Report it; do not work around it.
 - **Escalate instead of guessing.** A request that needs a design decision with several valid answers is a `conflict` or `blocked` verdict with the options named, not a choice you make.
@@ -73,16 +73,13 @@ Read workflow files under `.workflow/` by explicit path; when searching, include
 
 ## Return
 
-Write the full result block below to your **result file** in the spec checkout, `<spec checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml`. `<spec checkout>` is that checkout's absolute path, which `cd <worktree path>/../../.. && pwd -P` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commits, in one Bash command with one quoted heredoc, creating the folder first:
+Write the full result block below to your **result file** in the spec checkout, `<spec checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml`. `<spec checkout>` is that checkout's absolute path, which `cd <worktree path>/../../.. && pwd -P` prints. Leave out the fence lines and double-quote string values, so the file parses as YAML. Write it after the toolchain run and the commits with the Write tool, at this absolute path (the Write tool creates the folder):
 
-```bash
-cd <worktree path> && mkdir -p "<spec checkout>/<spec_dir>/artifacts/integration-<work_type>" && cat > "<spec checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml" <<'EOF'
-status: done
-...
-EOF
+```text
+<spec checkout>/<spec_dir>/artifacts/integration-<work_type>/integration.yaml
 ```
 
-Spell out both paths as literal absolute paths. A path relative to the worktree puts the file in the worktree copy, where the orchestrator never looks. A `$(…)` substitution in the path can be refused as too complex to verify. Use this command rather than the Write tool: the worktree guard denies a Write outside your worktree. The result file is your only write outside shared core and its tests, and you never commit it: leave everything under `artifacts/` out of `git add`, because a branch that carries a file there is refused at merge. `artifacts/` lies outside the tree hash `run-toolchain.sh` records, so your toolchain run still describes your committed work. Each stop writes the whole file again. When you are resumed with error lines from `check-task-result.sh`, rewrite the file with the fields they name fixed, then return the summary block again.
+Spell out `<spec checkout>` as the literal absolute path; a path relative to the worktree puts the file in the worktree copy, where the orchestrator never looks. The worktree guard allows a Write to exactly this path outside your worktree and denies every other path there, other files under `artifacts/` included. The result file is your only write outside shared core and its tests, and you never commit it: leave everything under `artifacts/` out of `git add`, because a branch that carries a file there is refused at merge. `artifacts/` lies outside the tree hash `run-toolchain.sh` records, so your toolchain run still describes your committed work. Each stop writes the whole file again. When you are resumed with error lines from `check-task-result.sh`, rewrite the file with the fields they name fixed, then return the summary block again.
 
 Report only commands you ran and output you saw. The result file holds:
 

@@ -11,7 +11,7 @@
 #                          folder needs once it sits one level deeper. Every back-link form is planted once: the repo-relative
 #                          path (shelf, backlog item, review lesson, retrospective, the spec's own files and pr-body.md),
 #                          `../specs/` (shelf), `../../specs/` (retrospective), `specs/` (capabilities.md) and `../NNN-slug/`
-#                          (backlog item, sibling spec). The cache file, the initiative file, docs/notes.md and a shelf file
+#                          (backlog item, sibling spec). The initiative file, docs/notes.md and a shelf file
 #                          naming the look-alike specs 012-alpha-two and 012-alphabet hold literal paths only.
 #   done_render DEST KEY=VALUE...   renders a manifest read on stdin into DEST, replacing each @KEY@ with VALUE
 #   done_folder_repo DIR   git repo with a committed copy of .agents/ and the manifest rendered at the top level, checked out
@@ -25,7 +25,7 @@
 #                          missing from ACTUAL, extra in ACTUAL, or differs; nothing when the trees match
 #   unresolved_links DIR   prints `<file>: <target>` for each relative Markdown link in DIR/**/*.md that does not resolve with
 #                          test -e from its file's folder; links to a URL or an anchor only are skipped
-#   old_spec_refs ROOT NAME   prints each line under ROOT/.workflow/, outside cache/ and initiatives/, that still names spec NAME
+#   old_spec_refs ROOT NAME   prints each line under ROOT/.workflow/, outside initiatives/, that still names spec NAME
 #                          at the top level of the specs folder (`specs/NAME` or `../NAME`, NAME followed by a non-slug character)
 #   tree_digest DIR        prints a checksum of every file under DIR outside .git, ignored files included, then the branch,
 #                          every ref and `git status`, so two calls compare equal only when nothing changed
@@ -42,7 +42,6 @@ DONE_GITIGNORE='.workflow/specs/*/.step
 .workflow/initiatives/*/.step
 .workflow/.worktrees/
 .workflow/.handoff/
-.workflow/.cache-staging/
 .workflow/.standards-staging/'
 
 done_manifest() {
@@ -275,10 +274,6 @@ lessons:
     origin_spec: .workflow/specs/@S@
     date: 2026-10-30
 ```
-=== .workflow/cache/modules.md
-# Modules cache
-
-Spec 012-alpha lives at .workflow/specs/012-alpha ([spec](../specs/012-alpha/spec.md)).
 === .workflow/initiatives/001-ini/initiative.md
 ---
 status: planned
@@ -463,7 +458,7 @@ unresolved_links() {
 }
 
 old_spec_refs() {
-  grep -rnE --exclude-dir=cache --exclude-dir=initiatives "(specs|\.\.)/$2([^A-Za-z0-9._-]|$)" "$1/.workflow" 2>/dev/null
+  grep -rnE --exclude-dir=initiatives "(specs|\.\.)/$2([^A-Za-z0-9._-]|$)" "$1/.workflow" 2>/dev/null
 }
 
 tree_digest() {

@@ -5,8 +5,8 @@
 # Covers: JRN-001: 5.7 runs `move-to-done.sh --check .workflow/specs/NNN-slug` before the `status ... done --step 5.7` call and
 #   says to stop, listing what is open, when it fails. JRN-006: 5.8 runs, in this order, the commit of what is left, the
 #   check-pr-body.sh run on the top-level pr-body.md, the move (`move-to-done.sh .workflow/specs/NNN-slug`), check-pr-body.sh on
-#   `.workflow/specs/done/NNN-slug/pr-body.md`, and the `<!-- 5.8 publish commands -->` marker; it shows the stakeholder the diff
-#   of pr-body.md with the publish go-ahead; a paragraph says a fault on the moved body stops sign-off unpublished as a move bug;
+#   `.workflow/specs/done/NNN-slug/pr-body.md`, and the `<!-- 5.8 publish commands -->` marker; it publishes on the 5.5
+#   approval and asks for no go-ahead; a paragraph says a fault on the moved body stops sign-off unpublished as a move bug;
 #   between the post-move check and the marker no line tells the main session to fix, Edit or log anything; the marker stays
 #   directly above the fenced publish block. 5.4 says 5.8 publishes the body unchanged apart from the spec path, and no line in
 #   sign-off.md, the check-pr-body.sh header or the PR template still says the body is published unchanged without naming the
@@ -90,8 +90,8 @@ check "JRN-006 5.8 runs check-pr-body.sh on .workflow/specs/done/NNN-slug/pr-bod
   'in_order "$P_MOVE" "$P_POST"' "move at ${P_MOVE:-none}, moved-body check at ${P_POST:-none}"
 check "JRN-006 5.8 checks the moved body before the publish marker" 'in_order "$P_POST" "$P_MARKER"' \
   "moved-body check at ${P_POST:-none}, marker at ${P_MARKER:-none}"
-check "JRN-006 5.8 shows the stakeholder the diff of pr-body.md with the publish go-ahead" \
-  '[[ -n $(paragraphs_with "$S58" "diff" "pr-body\\.md" "go-ahead") ]]'
+check "5.8 publishes on the 5.5 approval, asking for no go-ahead" \
+  '[[ -n $(paragraphs_with "$S58" "5\\.5 approval" "go-ahead" "ask nothing") ]]'
 check "JRN-006 5.8 stops sign-off unpublished on a fault in the moved body, as a move bug" \
   '[[ -n $(paragraphs_with "$S58" "move bug" "stop" "publish") ]]'
 AFTER_MOVE=""

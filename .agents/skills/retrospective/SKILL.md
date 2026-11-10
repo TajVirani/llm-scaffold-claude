@@ -1,6 +1,6 @@
 ---
 name: retrospective
-description: "Feature retrospective with the stakeholder: judges the combined result against spec.md, records process lessons, pitfalls, review lessons, feature notes and model observations, and writes .workflow/decisions/retrospectives/NNN-slug.md. Use at sign-off (5.7), or when a stakeholder asks for a retrospective on a shipped feature."
+description: "Feature retrospective with the stakeholder: judges the combined result against spec.md, records process lessons, pitfalls, review lessons, feature notes and model observations, and writes .workflow/decisions/retrospectives/NNN-slug.md. Use at sign-off (drafted before the 5.5 ask, finished at 5.7), or when a stakeholder asks for a retrospective on a shipped feature."
 ---
 
 # Retrospective
@@ -9,8 +9,12 @@ Judge a finished feature against its spec with the stakeholder, and turn what th
 
 ## Inputs
 
-- **Spec folder** `.workflow/specs/NNN-slug/`. From `sign-off` at 5.7, the spec is `in-review`. Standalone, ask which spec, offering those with `status: done`.
+- **Spec folder** `.workflow/specs/NNN-slug/`. From `sign-off` the spec is `in-review`. Standalone, ask which spec, offering those with `status: done`.
 - **Output** `.workflow/decisions/retrospectives/NNN-slug.md`, with the same `NNN-slug` as the spec folder, from [assets/retrospective.md](assets/retrospective.md).
+- **Mode.** Sign-off runs the skill twice, so the stakeholder agrees everything in its one ask:
+  - **Draft** (sign-off 5.5, before the ask): steps 1–5 and the machine verdict of step 6 write the document as `.workflow/specs/NNN-slug/retrospective-draft.md`, with the candidate lessons numbered `L1`, `L2`, ... Ask nothing; return to sign-off with the draft verdict and the candidate list.
+  - **Finish** (sign-off 5.7, after the ask): the 5.5 answers in the newest Sign-off entry of `design-log.md` are the stakeholder's agreement. Move the draft into the output and run steps 5–7 from those answers. Ask nothing.
+  - **Standalone**: every step as written, with the stakeholder in the conversation.
 
 ## Writes and the step marker
 
@@ -18,13 +22,14 @@ The retrospective writes these files, each with the stakeholder's agreement:
 
 | File | Tier | What |
 | --- | --- | --- |
+| `.workflow/specs/NNN-slug/retrospective-draft.md` | — | The draft, from sign-off 5.5 until 5.7 moves it into the document |
 | `.workflow/decisions/retrospectives/NNN-slug.md` | A | The document |
 | `.workflow/decisions/pitfalls.md` | A | Observed failures only |
 | `.workflow/review-lessons.md` | A | Review lessons: new entries, and retirements of enforced ones |
 | `.workflow/specs/NNN-slug/design-log.md` | — | One appended "Retrospective notes" section |
 | `.workflow/model-map/<type>.md` or `.workflow/agent-overrides.yaml` | — | Model observations |
 
-At 5.7, set the step before the first Tier A write, so `tier-a-write-guard` allows it:
+At 5.7, set the step before the first Tier A write, so `workflow-write-guard` allows it:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 5.7
@@ -38,23 +43,22 @@ Write Tier A files with Write or Edit, never through Bash. The retrospective doe
 
 ### 1. Open or resume the document
 
-If `.workflow/decisions/retrospectives/NNN-slug.md` exists, read it, check what it records against the current evidence (the evidence wins), and resume at the first incomplete step. Otherwise, set the step (at 5.7), then copy the template with `spec`, `date` and the title filled in. Write each step's result into the document as you finish it: the document is the working state.
+- **Draft.** If `.workflow/specs/NNN-slug/retrospective-draft.md` exists, read it, check what it records against the current evidence (the evidence wins), and resume at the first incomplete step. Otherwise copy the template there with `spec`, `date` and the title filled in. The spec folder needs no step.
+- **Finish.** Set the step to 5.7, copy the draft to `.workflow/decisions/retrospectives/NNN-slug.md` with Write, delete the draft, and go to step 5. If the document already exists, resume at its first incomplete step.
+- **Standalone.** If the document exists, read and resume it as for a draft. Otherwise copy the template to it with `spec`, `date` and the title filled in.
+
+Write each step's result into the file as you finish it: it is the working state.
 
 Done when the document exists and you know which step to start from.
 
 ### 2. Gather the evidence
 
-Read [modules/evidence.md](modules/evidence.md) and fill **Summary** and **Measurements**. Then take the stakeholder's going-in concerns from the newest sign-off entry in `.workflow/specs/NNN-slug/design-log.md`, its `Going-in concerns:` line (sign-off asks for them at 5.5; `none` means there are none):
+Read [modules/evidence.md](modules/evidence.md) and fill **Summary** and **Measurements**. Then the stakeholder's concerns, which direct the analysis; a concern becomes a finding only once you can tie it to a source:
 
-```bash
-grep '^- Going-in concerns:' .workflow/specs/NNN-slug/design-log.md | tail -1
-```
+- **Draft:** there are none yet; the stakeholder raises them in answer to the 5.5 ask.
+- **Standalone:** ask for them ("anything you want weighed: a task that felt rushed, a review finding that worried you?").
 
-**Small path.** When `yq --front-matter=extract '.small_path // false' .workflow/specs/NNN-slug/spec.md` prints `true`, 5.5 already asked both questions: read the same entry's `Retrospective lessons approved at 5.5:` line too (`grep '^- Retrospective lessons approved at 5.5:' .workflow/specs/NNN-slug/design-log.md | tail -1`), and ask nothing in this step or in step 5. With no such line, the approvals are `none`.
-
-Otherwise, only when there is no `Going-in concerns:` line (standalone, or a log written before sign-off asked), ask them ("anything you want weighed: a task that felt rushed, a review finding that worried you?"). A concern directs the analysis, but it becomes a finding only once you can tie it to a source.
-
-Done when Summary lists every evidence source as available or missing, every Measurements row holds a number or `not recorded`, and you hold the going-in concerns (or `none`).
+Done when Summary lists every evidence source as available or missing, and every Measurements row holds a number or `not recorded`.
 
 ### 3. Judge the result against the spec
 
@@ -71,7 +75,19 @@ Done when every finding has a disposition, and every earlier action item has a l
 
 ### 5. Agree the lessons with the stakeholder
 
-Read [modules/routing.md](modules/routing.md). Present the candidate process lessons, pitfalls, review lessons (new ones, and recorded ones to retire), feature notes and model observations together, each with its source and proposed destination, in one ask. The stakeholder approves, changes or rejects each one. When the going-in concerns are `none`, the stakeholder has already said there is nothing more to weigh: the ask's first option is "Approve as proposed, nothing more (Recommended)", and you ask nothing further. With no candidates and no concerns there is no ask: record "None." in each lesson section. On the small path there is no ask either: the `Retrospective lessons approved at 5.5:` line from step 2 is the stakeholder's answer, so write each candidate it lists to the destination it names, and record every other candidate as rejected at 5.5. Write only the approved ones, each to its destination, and record where each went in the document; for a review lesson, "Recorded in" names the file and the id (`.workflow/review-lessons.md RL-003`).
+Read [modules/routing.md](modules/routing.md). The candidates are the process lessons, pitfalls, review lessons (new ones, and recorded ones to retire), feature notes and model observations, each with its source and proposed destination.
+
+- **Draft:** number each candidate `L<n>` and write it into its section with `proposed L<n>` under **Recorded in** (or the section's last column). Write nothing to a destination. Done when every candidate has its number, source and destination; then the machine verdict of step 6.
+- **Finish:** read the answers sign-off logged at 5.5:
+
+  ```bash
+  grep '^- Retrospective lessons:\|^- Concerns for the retrospective:' .workflow/specs/NNN-slug/design-log.md | tail -2
+  ```
+
+  "Record as drafted" approves every candidate; `L<n>: change <text>` approves it with that text; `L<n>: reject <reason>` and "None" reject. First weigh each concern against steps 3 and 4 and add any finding it yields. A lesson that comes only from a concern was never shown to the stakeholder: record it as an action item, not at a destination.
+- **Standalone:** present the candidates together in one ask; the stakeholder approves, changes or rejects each one. With no candidates and no concerns there is no ask.
+
+Write only the approved candidates, each to its destination, and record where each went in the document; for a review lesson, "Recorded in" names the file and the id (`.workflow/review-lessons.md RL-003`). Record every other candidate as rejected, at 5.5 when sign-off asked. With no candidates, record "None." in each lesson section.
 
 Done when every candidate is written (or retired), turned into an action item, or recorded as rejected.
 
@@ -85,13 +101,13 @@ Then render the machine verdict:
 - `accepted-with-open-items`: the spec items are met, but named findings or known gaps remain and are deferred or tracked.
 - `rejected`: a spec item is not met, a blocking finding is unresolved, or a task is neither `done` nor `split-out`. A `split-out` task never counts as unfinished.
 
-The stakeholder's decision overrides the machine verdict; record both when they differ. A spec that fails its items with no stakeholder decision is recorded as not accepted, never as accepted by default. Write the verdict to the frontmatter and to **Acceptance verdict**, keeping the two in sync.
+The stakeholder's decision overrides the machine verdict; record both when they differ. In a draft, write the machine verdict: it is shown at the 5.5 ask. At finish, a 5.5 approval of the work is the stakeholder's decision: a `rejected` machine verdict becomes `accepted-with-open-items`, with both recorded. A spec that fails its items with no stakeholder decision is recorded as not accepted, never as accepted by default. Write the verdict to the frontmatter and to **Acceptance verdict**, keeping the two in sync.
 
 Done when the frontmatter `verdict` matches the section, and every action item has an owner.
 
 ### 7. Finish
 
-Fill **Open questions** ("None." if empty), replace any placeholder left in the document, and delete the template comment. Return to the caller with the document path and the verdict. At 5.7 that caller is `sign-off`, which sets `done` and moves on to 5.8.
+Fill **Open questions** ("None." if empty), replace any placeholder left in the document, and delete the template comment. Return to the caller with the document path and the verdict. At 5.7 that caller is `sign-off`, which sets `done` and moves on to 5.8. A draft stops after the machine verdict of step 6 and returns to sign-off; the rest of step 6 and step 7 run at finish.
 
 ## Done
 
@@ -99,3 +115,4 @@ Fill **Open questions** ("None." if empty), replace any placeholder left in the 
 - Every approved pitfall is in `pitfalls.md`, every feature note is in `design-log.md`, and every model observation is in its one destination (the model map for that task type).
 - Every approved review lesson is an entry in `.workflow/review-lessons.md` or marked "already present", every approved retirement carries `retired` and `enforced_by`, and the file passes its `validate:` command.
 - Every Tier A write happened with the 5.7 step set, or outside any in-flight feature.
+- From sign-off, nothing was asked: the 5.5 answers were the agreement, and `retrospective-draft.md` is gone after finish.

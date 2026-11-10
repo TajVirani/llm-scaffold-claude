@@ -28,7 +28,7 @@ export TEST_BASH SRC
 git_init_repo "$F/repo"
 R=$F/repo
 cd "$R" || exit 1
-mkdir -p .workflow/specs/001-alpha .workflow/specs/002-beta .workflow/cache .workflow/decisions/adr .workflow/profiles
+mkdir -p .workflow/specs/001-alpha .workflow/specs/002-beta .workflow/decisions/adr .workflow/profiles
 cp "$SRC/assets/spec.md" .workflow/specs/001-alpha/spec.md
 cp "$SRC/assets/spec.md" .workflow/specs/002-beta/spec.md
 cp "$SRC/assets/tasks.md" .workflow/specs/001-alpha/tasks.md
@@ -96,7 +96,7 @@ out=$(jb --spec-dir $E); eq "impl_base=HEAD: 0 changed" "$(jq -r .changed_files 
 eq "impl_base: no note" "$(jq -r 'has("note")' <<<"$out")" false
 eq "impl_base: basis" "$(jq -r .basis <<<"$out")" impl_base_revision
 mkdir -p "$R/src" "$R/.workflow/specs/work-backlog"
-echo a > "$R/src/a.ts"; echo b > "$R/src/b.ts"; echo c > "$R/src/c.ts"; echo x > "$R/$E/notes.md"; echo w > "$R/.workflow/specs/work-backlog/007-eps-disc-001.md"
+echo a > "$R/src/a.ts"; echo b > "$R/src/b.ts"; echo c > "$R/src/c.ts"; echo x > "$R/$E/notes.md"; echo w > "$R/.workflow/specs/work-backlog/007-eps.md"
 git -C "$R" add src "$E/notes.md" .workflow/specs/work-backlog; git -C "$R" commit -qm wave1
 t "3 changed > 2 -> 2"                      2 BC --spec-dir $E
 out=$(jb --spec-dir $E)

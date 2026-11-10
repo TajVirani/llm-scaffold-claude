@@ -30,7 +30,10 @@ Done when you have the change summary, one elevated statement and a goal list, e
 
 ## 2. Ask about downstream effects, tools and gotchas
 
-One message: open with the **What this changes** and **Why** lines from step 1 (inside the workflow, prefix them with the spec folder name, e.g. `007-done-folder`), so the stakeholder knows which feature the questions are about. Then these questions numbered, then wait for the answers:
+- **Inside the workflow** these questions are not a round of their own: they ride on the questioning loop's first ask, beside the agreement question (step 3). Write `asked in the first questioning ask` in the block's **Downstream**, **Tools and technologies** and **Gotchas** lines and go on to step 3. The loop asks them, worded as below.
+- **Standalone** ask them now:
+
+One message: open with the **What this changes** and **Why** lines from step 1, so the stakeholder knows which feature the questions are about. Then these questions numbered, then wait for the answers:
 
 1. **Downstream:** Will other features be built on this one? Ask for their shape one level up (what will sit on this), so the architecture leaves room for them. Take the general sense and stop there; details of future work belong to that future work.
 2. **Tools and technologies:** Any tools, libraries or technologies you want used, or avoided, for this?
@@ -73,12 +76,12 @@ Loop until agreement. Done when the stakeholder has explicitly agreed to the blo
 
 ## 4. Hand off
 
-- **Inside the workflow:** append the block to `.workflow/specs/NNN-slug/design-log.md` as a **Deeper prompt** entry (create the log from `.agents/skills/feature-workflow/assets/design-log.md` if missing) ending `Agreement: pending, asked in the first questioning ask`. Then return to discovery, which loads the questioning loop at 0.3.8; the loop asks for the agreement and frames its design tree from this block.
+- **Inside the workflow:** append the block to `.workflow/specs/NNN-slug/design-log.md` as a **Deeper prompt** entry (create the log from `.agents/skills/feature-workflow/assets/design-log.md` if missing) ending `Agreement: pending, asked in the first questioning ask`. Then return to discovery, which loads the questioning loop at 0.3.8; the loop asks for the agreement and the step 2 questions in its first ask, and frames its design tree from this block.
 - **Standalone:** return the agreed block. When the next step is the feature workflow, it starts there with this block as the request.
 
 ## Done
 
 - The block was restated in full and the stakeholder explicitly agreed to it, or, inside the workflow, it is logged with its agreement pending for the loop's first ask.
-- Every message to the stakeholder opened with **What this changes** and **Why**.
+- Every message to the stakeholder opened with **What this changes** and **Why**; inside the workflow this skill sends none.
 - Every goal traces to the request; every addition the request did not ask for sits under **Not asked for**.
 - Inside the workflow, the block is in `design-log.md` as a **Deeper prompt** entry.

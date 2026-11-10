@@ -35,7 +35,7 @@ Problem, from the work item: The worktree guard's exit trap denies on an unexpec
 
 - `.agents/hooks/worktree-write-guard.sh:56`, `:72`, `:74`, `:81` (exit trap gated on `CONFINED`; library source and stdin read before it), at T2 head `bb1b749`.
 - T2 mini-review, `.workflow/specs/done/00010-worktree-guard-followups/artifacts/T2/mini-review-r1.yaml` `out_of_scope_noticed[0]`.
-- `_guard-common.sh` denies on any failure before a decision (its header, line 11).
+- `workflow-write-guard.sh` denies on any failure before a decision (its header, Behaviour).
 - Commit at shelving: `f276ea1`.
 
 ## Acceptance criteria

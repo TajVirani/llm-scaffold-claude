@@ -8,7 +8,6 @@
 # >>> workflow-2.0 scaffold: gitignore (managed by install.sh; edits inside are replaced) >>>
 .workflow/specs/*/.step
 .workflow/initiatives/*/.step
-.workflow/.cache-staging/
 .workflow/.worktrees/
 .workflow/.spec-worktrees/
 .workflow/.handoff/

@@ -45,7 +45,7 @@ cat >"$M/.claude/settings.json" <<'EOF'
   "statusLine": {"type": "command", "command": "my-status.sh"},
   "enabledPlugins": {"foo@bar": true},
   "env": {"FOO": "1"},
-  "permissions": {"allow": ["Bash(ls:*)"], "deny": ["Read(.env)", "Edit(.workflow/cache/**)"]},
+  "permissions": {"allow": ["Bash(ls:*)"], "deny": ["Read(.env)", "Edit(.workflow/specs/*/.step)"]},
   "hooks": {
     "PreToolUse": [
       {"matcher": "Bash", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/block-destructive-git.sh", "timeout": 10}]},
@@ -65,9 +65,9 @@ check "statusLine warning printed" 'printf "%s" "$out" | grep -q "statusLine: ke
 eq "unrelated user keys kept" "$(jq -c '[.enabledPlugins, .env]' "$S")" '[{"foo@bar":true},{"FOO":"1"}]'
 eq "user allow rule kept first, template allow rules appended" "$(jq -c '.permissions.allow | [.[0], (index("Bash(git status:*)") != null)]' "$S")" '["Bash(ls:*)",true]'
 eq "deny unioned, user first, no duplicates" "$(jq -c '.permissions.deny | [.[0:2], (length == (unique | length))]' "$S")" \
-  '[["Read(.env)","Edit(.workflow/cache/**)"],true]'
+  '[["Read(.env)","Edit(.workflow/specs/*/.step)"],true]'
 eq "deny holds the template's entries after the user's, nothing else" "$(jq -c '.permissions.deny[2:] | sort' "$S")" \
-  "$(jq -c '.permissions.deny - ["Edit(.workflow/cache/**)"] | sort' "$TEMPLATE")"
+  "$(jq -c '.permissions.deny - ["Edit(.workflow/specs/*/.step)"] | sort' "$TEMPLATE")"
 check "user hooks kept" '[ "$(jq -r ".hooks.Stop[0].hooks[0].command" "$S")" = my-stop.sh ] && jq -e "[.hooks.PreToolUse[].hooks[].command] | index(\"my-read-hook.sh\")" "$S" >/dev/null'
 eq "block-destructive-git not duplicated" "$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("block-destructive-git"))] | length' "$S")" 1
 # shellcheck disable=SC2034  # used inside the eval'd check below
@@ -152,14 +152,9 @@ for pair in "the settings template|$TEMPLATE" "this repo's .claude/settings.json
 done
 eq "JRN-007 the template's deny list starts with the four rules" "$(jq -c '.permissions.deny[0:4] | sort' "$TEMPLATE")" \
   "$EXTRACT_IN_PLACE_SORTED"
-if main_template=$(git -C "$REPO_ROOT" show main:.agents/hooks/claude-settings.template.json 2>/dev/null); then
-  # Compared with main, not with a literal list, because another change edits the template's existing deny entries in parallel.
-  eq "JRN-007 the template's other deny entries are main's, in order" \
-    "$(jq -c --argjson r "$EXTRACT_IN_PLACE_SORTED" '.permissions.deny - $r' "$TEMPLATE")" \
-    "$(jq -c --argjson r "$EXTRACT_IN_PLACE_SORTED" '.permissions.deny - $r' <<<"$main_template")"
-else
-  skip "JRN-007 the template's other deny entries are main's, in order" "no main branch in $REPO_ROOT"
-fi
+eq "JRN-007 the template's other deny entries are the two step-marker rules, in order" \
+  "$(jq -c --argjson r "$EXTRACT_IN_PLACE_SORTED" '.permissions.deny - $r' "$TEMPLATE")" \
+  '["Edit(.workflow/specs/*/.step)","Edit(.workflow/initiatives/*/.step)"]'
 
 XF=$WORK/extract-fresh
 new_target "$XF"

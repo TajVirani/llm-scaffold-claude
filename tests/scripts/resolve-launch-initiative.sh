@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: resolve-launch.sh (feature-workflow/scripts) for launches from an initiative; JRN-008 "Launch from an initiative" (resolve part).
 # Covers: --requirements listing the research task type with its spec_dir field; resolving a research launch header whose spec_dir
-#   names an initiative folder (prompt and model returned, model from the research model-map entry or definition); the same for a
+#   names an initiative folder (prompt and model returned, model from the research row of the model map); the same for a
 #   fact-lookup launch; a spec_dir naming a missing initiative folder denied; spec launches unchanged; edge cases: research from a
 #   spec folder, module-audit from an initiative folder denied, an unnumbered initiative folder, a trailing slash, orchestrator mode.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose

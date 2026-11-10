@@ -29,7 +29,7 @@ export TEST_BASH SRC
 git_init_repo "$F/repo"
 R=$F/repo
 cd "$R" || exit 1
-mkdir -p .workflow/specs/001-alpha .workflow/specs/002-beta .workflow/cache .workflow/decisions/adr .workflow/profiles
+mkdir -p .workflow/specs/001-alpha .workflow/specs/002-beta .workflow/decisions/adr .workflow/profiles
 cp "$SRC/assets/spec.md" .workflow/specs/001-alpha/spec.md
 cp "$SRC/assets/spec.md" .workflow/specs/002-beta/spec.md
 cp "$SRC/assets/tasks.md" .workflow/specs/001-alpha/tasks.md
@@ -53,7 +53,7 @@ ST status $A in-review --step 3.14 >/dev/null; ST status $A done >/dev/null
 D=.workflow/specs/006-delta
 mkdir -p "$R/$D"; cp "$SRC/assets/spec.md" "$R/$D/spec.md"; cp "$R/$A/tasks.md" "$R/$D/tasks.md"
 ST status $D draft >/dev/null; ST status $D ready-for-dev --step 0.6 >/dev/null; ST status $D in-progress >/dev/null
-WB=.workflow/specs/work-backlog/006-delta-disc-001.md
+WB=.workflow/specs/work-backlog/006-delta.md
 jb() { BC "$@" 2>/dev/null; }
 # A second commit, so the impl_base check below has a commit older than the baseline to refuse.
 git -C "$R" commit -q --allow-empty -m second
@@ -180,13 +180,13 @@ t "budget: split-out tasks not counted"     0 BC --spec-dir $K
 out=$(jb --spec-dir $K); eq "task count excludes split-out" "$(jq -r .tasks <<<"$out")" 1
 yq --front-matter=process -i '.tasks[2].status = "pending"' "$R/$K/tasks.md"
 t "budget: pending counted -> over"         2 BC --spec-dir $K
-t "origin: key in spec.md accepted"         0 bash -c "yq --front-matter=process -i '.origin = \".workflow/specs/work-backlog/006-delta-disc-001.md\"' '$R/$K/spec.md' && BC --spec-dir $K >/dev/null; [ \$? -eq 2 ]"
+t "origin: key in spec.md accepted"         0 bash -c "yq --front-matter=process -i '.origin = \"006-delta.md#B1\"' '$R/$K/spec.md' && BC --spec-dir $K >/dev/null; [ \$? -eq 2 ]"
 ST step $D 3.4 >/dev/null
 t "backlog at origin 3.4 deny (pre-seed)"   2 CW --cwd "$R" --path $WB
-sleep 1; mkdir -p "$R/.workflow/specs/010-seeded"; ST step .workflow/specs/010-seeded 0.1.4 >/dev/null
+mkdir -p "$R/.workflow/specs/010-seeded"; ST step .workflow/specs/010-seeded 0.1.4 >/dev/null
 t "backlog at new spec 0.1.4 allow"   0 CW --cwd "$R" --path $WB
 t "backlog at 0.1.4 sub-agent deny"         2 CW --cwd "$R" --path $WB --agent impl
-sleep 1; ST step $D 3.4 >/dev/null
+ST step $D 3.4 >/dev/null
 t "backlog: 0.1.4 no longer newest deny"    2 CW --cwd "$R" --path $WB
 ST step $D 5.9 >/dev/null
 t "spec.md at 5.9 allow (deferred[])"   0 CW --cwd "$R" --path $D/spec.md
@@ -246,7 +246,6 @@ good_field() {
   yq --front-matter=process -i "$2" "$R/$M/tasks.md"
   t "validator accepts $1" 0 ST set-task $M T1 --pr null
 }
-good_field "branch null (light path)" '.tasks[0].branch = null'
 good_field "branch unpadded T1"       '.tasks[0].branch = "task/011-mu/T1-demo"'
 good_field "mode hitl"                '.tasks[0].mode = "hitl"'
 good_field "tests list"               '.tasks[0].tests = ["src/a.test.ts"]'

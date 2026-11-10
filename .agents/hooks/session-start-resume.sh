@@ -21,8 +21,8 @@
 #   - Initiatives (.workflow/initiatives/NNN-slug, sorted by name), each listed once as
 #     `- .workflow/initiatives/NNN-slug: status <s>; current step <id> (since <t>); research pending: <n>`, where <n> counts the questions in
 #     questions.md with state `researching` and the step comes from the gitignored .step in the main checkout. Listed: `exploring`, and
-#     `planned` while a spec made from one of its slices is not `done` on origin/<main_branch>, at the top level of .workflow/specs/ or in
-#     its Done folder, done/ (else <main_branch>; rules-setting.sh
+#     `planned` while a spec made from one of its slices is not `done` on origin/<main_branch> in the Done folder
+#     .workflow/specs/done/ (else <main_branch>; rules-setting.sh
 #     main_branch; when that setting cannot be read, main is used and the offer says so).
 #     Omitted: `done`, and `planned` with every emitted spec done. Read from the local initiative/NNN-slug branch with `git show` when it
 #     exists and is not checked out, else from the working tree, else from origin/initiative/NNN-slug; never by switching branches.
@@ -31,10 +31,9 @@
 #     needs its blocked_condition resolved by a human first; an initiative resumes through feature-workflow's large path.
 #   - A blocked spec whose blocked_condition starts with `discovered work:` or `size budget:` is flagged "discovered-work prompt pending".
 #   - .workflow/specs/work-backlog/ is not a spec folder and is skipped by the scan. Its open items are summarised as a count plus up to 5 names,
-#     and alone are enough to produce output: each `- [open] B<n> ...` line of a spec's backlog list <NNN-slug>.md (named <NNN-slug>.md#B<n>),
-#     and each older item file <NNN-slug>-disc-<###>.md with `status: open` (named by its file name). A list may be named
-#     old_<NNN-slug>.md, the name adopting an issue tracker gives a Done spec's list; an item file may carry the same `old_` prefix, matching
-#     the names the write guard accepts in work-backlog/. Other files there are ignored.
+#     and alone are enough to produce output: each `- [open] B<n> ...` line of a spec's backlog list <NNN-slug>.md (named <NNN-slug>.md#B<n>).
+#     A list may be named old_<NNN-slug>.md, the name adopting an issue tracker gives a Done spec's list, matching the names the write guard
+#     accepts in work-backlog/. Other files there are ignored.
 #   - Session handoffs (.workflow/.handoff/*.md at the main checkout, newest first by mtime): up to 3 listed with frontmatter created, spec and goal
 #     (or "frontmatter unreadable"), the rest counted; alone they are enough to produce output, and the text names the handoff skill's Resume.
 #   - The text is capped below the 10,000-character additionalContext limit: specs past the cap are counted, not listed.
@@ -175,7 +174,7 @@ initiative_file() {
 # A spec is done once it is done on the main branch; on its own branch it reads done before the merge lands.
 main_ref="" main_warning=""
 # spec_done_on_main SPEC : succeeds when SPEC's spec.md has status done on origin/<main> (or <main> without a remote copy),
-#   at the top level of the specs folder or in the Done folder.
+#   in the Done folder.
 spec_done_on_main() {
   if [ -z "$main_ref" ]; then
     local main err_file
@@ -189,12 +188,7 @@ spec_done_on_main() {
     main_ref=$main
     git -C "$root" rev-parse -q --verify "refs/remotes/origin/$main" >/dev/null 2>&1 && main_ref=origin/$main
   fi
-  # Specs merged before the Done folder existed stay at the top level, so both locations count.
-  local folder
-  for folder in "$WF_SPECS" "$WF_SPECS_DONE"; do
-    [ "$(git -C "$root" show "$main_ref:$folder/$1/spec.md" 2>/dev/null | raw_status /dev/stdin)" != "done" ] || return 0
-  done
-  return 1
+  [ "$(git -C "$root" show "$main_ref:$WF_SPECS_DONE/$1/spec.md" 2>/dev/null | raw_status /dev/stdin)" = "done" ]
 }
 
 # Initiatives to resume: every one exploring, or planned with an emitted spec not yet done on main. Each is listed once.
@@ -268,7 +262,7 @@ for spec in ${specs[@]+"${specs[@]}"}; do
   listed=$((listed + 1))
 done
 
-# Open work-backlog items: open lines of each spec's list, and older item files with status open; a count and up to 5 names.
+# Open work-backlog items: the open lines of each spec's list; a count and up to 5 names.
 open_n=0 open_names=""
 # add_open NAME : count one open item and keep its name while fewer than 6 are named.
 add_open() {
@@ -279,8 +273,6 @@ for item in ${backlog[@]+"${backlog[@]}"}; do
   [ "$SECONDS" -lt 8 ] || break
   name=$(basename "$item")
   case "$name" in
-    [0-9]*-disc-[0-9][0-9][0-9]*.md | old_[0-9]*-disc-[0-9][0-9][0-9]*.md)
-      [ "$(raw_status "$item")" = "open" ] && add_open "$name" ;;
     [0-9]*-*.md | old_[0-9]*-*.md)
       while IFS= read -r id; do add_open "$name#$id"; done < <(sed -n 's/^- \[open\] \(B[0-9][0-9]*\) .*/\1/p' "$item" 2>/dev/null) ;;
   esac

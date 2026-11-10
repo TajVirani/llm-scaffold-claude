@@ -68,7 +68,7 @@ set -euo pipefail
 # T3: added the guard.
 # Read .workflow/specs/<NNN>-slug/tasks.md for the list.
 x=1  # see D12
-echo "$x" # the path is .workflow/cache/
+echo "$x" # the path is .workflow/specs/
 # Both D4 and .workflow/rules.md in one comment.
 cat <<EOF
 # D12 inside a heredoc is skipped
@@ -86,7 +86,7 @@ eq "a journey id" "$(sed -n 4p <<<"$OUT")" "bad.sh:8: journey id: # JRN-003 driv
 eq "a task id" "$(sed -n 5p <<<"$OUT")" "bad.sh:9: task id: # T3: added the guard."
 eq "a workflow path" "$(sed -n 6p <<<"$OUT")" "bad.sh:10: workflow path: # Read .workflow/specs/<NNN>-slug/tasks.md for the list."
 eq "a trailing comment with a decision id" "$(sed -n 7p <<<"$OUT")" "bad.sh:11: decision id: # see D12"
-eq "a trailing comment with a workflow path" "$(sed -n 8p <<<"$OUT")" "bad.sh:12: workflow path: # the path is .workflow/cache/"
+eq "a trailing comment with a workflow path" "$(sed -n 8p <<<"$OUT")" "bad.sh:12: workflow path: # the path is .workflow/specs/"
 eq "two kinds in one comment give one line naming both" "$(sed -n 9p <<<"$OUT")" \
   "bad.sh:13: decision id, workflow path: # Both D4 and .workflow/rules.md in one comment."
 eq "a comment after a heredoc is checked" "$(sed -n 10p <<<"$OUT")" "bad.sh:17: decision id: # After the heredoc, comments are checked again: D9."

@@ -57,8 +57,8 @@ for n in 0 1 2 3 4 5 6; do
 done
 
 counts() { rows | awk -F'\t' -v p="$1" '($3 == "both" || $3 == p) { n[$2]++ } END { for (i = 0; i <= 6; i++) if (i in n) printf "%d:%d ", i, n[i] }'; }
-eq "full path step counts per phase" "$(counts full)" "0:48 1:5 2:6 3:14 4:9 5:9 "
-eq "light path step counts per phase" "$(counts light)" "0:36 3:15 4:6 5:9 "
+eq "full path step counts per phase" "$(counts full)" "0:46 1:5 2:6 3:14 4:9 5:9 "
+eq "light path step counts per phase" "$(counts light)" "0:34 3:15 4:6 5:9 "
 eq "large path step count, apart from both paths" "$(rows | awk -F'\t' '$3 == "large" { n++ } END { print n + 0 }')" "13"
 
 # Step ids the scripts and skills use must be in the file.

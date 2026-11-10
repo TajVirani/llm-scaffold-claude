@@ -1,6 +1,6 @@
 # Review and triage (Phase 4)
 
-Four lenses review the whole change independently (one combined review on the light path); you then verify, grade and route every finding yourself in the main session. Every finding is proven first and escalated by the rule in [discovered-work](discovered-work.md#assess-each-report-first). You are done with Phase 4 when one exit in step 6 has run: rework, loop back, or hand-off to sign-off.
+Three lenses review the whole change independently (one combined review on the light path); you then verify, grade and route every finding yourself in the main session. Every finding is proven first and escalated by the rule in [discovered-work](discovered-work.md#assess-each-report-first). You are done with Phase 4 when one exit in step 6 has run: rework, loop back, or hand-off to sign-off.
 
 `.workflow/specs/NNN-slug` is this feature's folder. Run scripts from the project root with their exact `.agents/skills/feature-workflow/scripts/` prefix ([conventions](../references/conventions.md)). Every status, task-record and step change goes through `status-transition.sh`, with the exact `--step` shown. Exit 0 is done; exit 2 is a refused transition with the reason on stderr: stop and report it rather than working around it. On Codex, run `check-write.sh` before the spec.md write at 4.6 as the conventions' [Host notes](../references/conventions.md#host-notes) say.
 
@@ -16,11 +16,11 @@ Phase 4 runs once per **pass**. Read `.workflow/specs/NNN-slug/design-log.md` be
 
 **Resuming.** If any task record in `tasks.md` is `in-progress`, a rework is under way whatever `.step` says (Phase 3's gates move it off 4.7): load `modules/implementation-waves.md` for those tasks instead, at its Rework entry, as the router does. Otherwise, if the newest triage entry has an `Outcome:` line and `.step` names 4.5 to 4.8, that pass is already decided: finish its exit instead of starting a new pass; for a pass with no `Gaps:` line, run step 7. If `.step` names a node from 00.21 to 00.28, a discovered-work entry was being handled: finish it through `modules/discovered-work.md`, then continue at 6.0 with the next one.
 
-## 2. Launch the four lenses (4.1-4.3, 4.9), or the combined review (4.10)
+## 2. Launch the three lenses (4.1-4.3), or the combined review (4.10)
 
-**Light path: one combined review (4.10).** When `light_path` is `true` in `.workflow/specs/NNN-slug/spec.md` (the small path included), launch one `review-combined` in place of the lenses, with the same minimal prompt below and `task_type: review-combined`. It covers the end state, the standards and the review lessons, and writes one pass file in the lens shape, `review-combined.yaml`, checked in step 3 like any lens's. There is no `verification-plan.md` and so no targets: write `no targets (light path)` in the triage entry where the targets lens would be named. The rest of this step is the full path.
+**Light path: one combined review (4.10).** When `light_path` is `true` in `.workflow/specs/NNN-slug/spec.md`, launch one `review-combined` in place of the lenses, with the same minimal prompt below and `task_type: review-combined`. It covers the end state, the standards and the review lessons, and writes one pass file in the lens shape, `review-combined.yaml`, checked in step 3 like any lens's. There is no `verification-plan.md` and so no targets: write `no targets (light path)` in the triage entry where the targets lens would be named. The rest of this step is the full path.
 
-Launch `review-standards`, `review-end-state`, `review-targets` and `review-lessons` together in one message, in the foreground, and wait for every one before reading any result. Give each the same minimal prompt: the header, then one line of task. Pass nothing else: no diff, no other lens's output, no summary of the feature. Each lens reads its own inputs.
+Launch `review-standards`, `review-end-state` and `review-targets` together in one message, in the foreground, and wait for every one before reading any result. Give each the same minimal prompt: the header, then one line of task. Pass nothing else: no diff, no other lens's output, no summary of the feature. Each lens reads its own inputs.
 
 ````text
 ```yaml launch-header
@@ -31,7 +31,7 @@ spec_dir: .workflow/specs/NNN-slug
 Review pass <n> of .workflow/specs/NNN-slug. Write the review-findings block to your pass file and return the summary block.
 ````
 
-Repeat with `task_type: review-end-state`, `task_type: review-targets` and `task_type: review-lessons`. Launch each on your host as [launching](../references/launching.md) says; on Codex the task body is the one line above.
+Repeat with `task_type: review-end-state` and `task_type: review-targets`. Launch each on your host as [launching](../references/launching.md) says; on Codex the task body is the one line above.
 
 **`review-targets` runs the build itself.** It starts the build with the profile's `serve`, waits for `serve_ready`, measures and stops it, so start nothing for it. Its pass file is checked as in step 3, including its `measurements:` table.
 
@@ -54,7 +54,7 @@ Each lens writes its full `review-findings` block to `.workflow/specs/NNN-slug/a
    - **`review-targets` only, after exit 0:** the script does not read the spec, so check that `measurements:` has one row per `## Targets` row of `verification-plan.md`, in table order: `yq '.measurements | length' <file>` must equal `awk '/^## /{s=($0=="## Targets")} s && /^\|/' .workflow/specs/NNN-slug/verification-plan.md | tail -n +3 | wc -l`. A mismatch is a shape error: relaunch the lens once with the two counts, as for exit 1.
 3. **Read the status:** `yq '.status, .blocked_reason' <file>`. `status: blocked`: fix the cause it names (usually an empty or unresolvable `baseline_revision`) and relaunch. If you cannot fix it, it is a failed lens.
 
-The four pass files are `review-standards.yaml`, `review-end-state.yaml`, `review-targets.yaml` and `review-lessons.yaml`, with finding ids prefixed `RS`, `RE`, `RT` and `RL`; on the light path the one pass file is `review-combined.yaml`, with ids prefixed `RC`. A `review-lessons` file that fails the check twice, or stays `blocked`, is a failed lens like any other: the pass goes on with the other lenses' findings.
+The three pass files are `review-standards.yaml`, `review-end-state.yaml` and `review-targets.yaml`, with finding ids prefixed `RS`, `RE` and `RT`; on the light path the one pass file is `review-combined.yaml`, with ids prefixed `RC`.
 
 `review-targets` findings use `category: target` (one per failed target: `claim` names the measured value and the threshold, `evidence.basis` the raw output path). Its `measurements:` table is not triaged; 5.4 copies it into "Targets vs measured", and every `not_measurable` row is a gap, never a pass.
 
@@ -66,7 +66,7 @@ Done when every launched lens has a file that passed the check or is recorded as
 
 Work on one combined list: the rows of the step 3 tables. Read a finding's full entry only when you triage it, by id: `yq '.findings[] | select(.id == "RS-2")' <file>` gives its `claim`, `consequence`, `evidence` and `suggested_fix`, or, for discovered work, its `kind`, `summary`, `evidence`, `blocker_assessment` and `reason`. Read `not_checked` and `not_verifiable` too (`yq '.not_checked, .not_verifiable' <file>`): they are gaps, never passes, and step 7 records them. Give each finding the next `F<n>` and keep its lens id beside it (`F7 (RS-2)`). Treat the lens's `severity` as a claim only: the lens lacks the context to grade, and your verdict replaces it.
 
-A `review-lessons` finding has `category: lesson`. When it repeats a review lesson its `lesson:` field carries that lesson's id (`RL-001`). Its claimed `high` (a review lesson repeated) or `medium` (a pitfall or retrospective lesson repeated) is a claim like any other severity: verify, grade and route it as below.
+A finding with `category: lesson` (from `review-standards` or `review-combined`) says the change repeats a recorded lesson. When it repeats a review lesson its `lesson:` field carries that lesson's id (`RL-001`). Its claimed `high` (a review lesson repeated) or `medium` (a pitfall or retrospective lesson repeated) is a claim like any other severity: verify, grade and route it as below.
 
 1. **Carry what was settled.** On pass 2 or later, compare each finding with the earlier triage rows. Same location, same claim, and the code there still reads as the row describes: keep that row's verdict and route, write `carried from F<m>` as the evidence, and skip verification. A carried finding is never patched or routed to the stakeholder a second time.
 2. **Check the proof.** The lens proves its own findings: `evidence.reproduction` (a command and its output, or a failing test) or a quoted rule, spec or lesson line in `evidence.basis` that the cited line breaks. A finding with neither is **unproven**. You may supply the proof yourself with one command (a probe in a scratch worktree, as the lenses run them); otherwise it is unproven and step 4 dismisses it.
@@ -75,7 +75,7 @@ A `review-lessons` finding has `category: lesson`. When it repeats a review less
    - `high` (intolerable), `medium` (tolerable), `low` (cosmetic or negligible): the bad outcome is real and proven. Grade by harm to end users or developers; for developer-only harm, name where it will cause trouble. When the harm is real but you cannot tell how bad, pick the higher grade.
    - `false`: you checked, and the bad outcome does not happen there. Write what disproves this specific claim.
    - `unproven`: no reproduction and no quotable line, and none you could supply with one command. Write what would settle it, in one line.
-5. **Dismiss noise, with the reason recorded.** Route `none` for: every `false` (on its refutation); every `unproven` (it stays that one line, with no question and no file); a `low` that users or developers are unlikely to meet in everyday use and whose fix adds guards, branches or parameters.
+5. **Dismiss noise, with the reason recorded.** Route `none` for: every `false` (on its refutation); every `unproven` (it stays that one line, with no question and no file); a `low` that users or developers are unlikely to meet in everyday use and whose fix adds guards, branches or parameters. A proven readable-code R1 breach (a generic or misleading name) or R3 breach (a comment that says what the code does) is never noise: it routes to patch whatever its grade.
 6. **Spot discovered work.** A finding with `category: discovered-work`, or any proven finding whose fix lies outside what this change caused (a bug found along the way, pre-existing behaviour on lines this change did not cause, a needed refactor, scope spreading into another module, a new requirement, a decision nobody in the session can answer), is **discovered work**. It routes to the protocol in step 5, never to patch: the current spec does not grow on its own to fix it.
 7. **Group by root cause.** Two findings share an entry only when the same defect produced both; the same location or the same fix is not enough. The group takes the highest verdict among its members (`high` > `medium` > `low` > `unproven`) and keeps every member's id.
 
@@ -87,7 +87,7 @@ Done when every finding has a verdict and evidence; none is dropped, merged sile
 
 Route each entry into exactly one bucket. An entry with a verified `high`, `medium` or `low` member routes by that verdict, never to `none` just because another member is `unproven`.
 
-- **patch**: proven and caused by this change, on lines or files the spec changes or inside its capabilities; the smallest fix is unambiguous, adds no public surface and guards no state you did not demonstrate. It goes back to the worker in the rework (step 6.3); the stakeholder is not asked. Name the task that owns the location.
+- **patch**: proven and caused by this change, on lines or files the spec changes or inside its capabilities; the smallest fix is unambiguous, adds no public surface and guards no state you did not demonstrate. It goes back to the worker in the rework (step 6.3), or you apply it yourself when it is a readable-code or wording fix (6.3, Patch it yourself first); the stakeholder is not asked. Name the task that owns the location. Every proven R1 or R3 breach of `readable-code.md` routes here, never to `none`, discovered work or a known gap: it is the breach agents make most, and its fix is small.
 - **decision needed**: a blocker by the **Blocker?** test of [discovered-work](discovered-work.md#assess-each-report-first) whose correct fix depends on intent the spec does not settle: two plausible readings, a fix that changes what a capability, constraint or non-goal says, or a fix that adds public surface. Record each plausible option in one line, the one you recommend, and why. These become questions at 0.3.8.
 - **discovered work**: the entries from 4.4 item 6, and every proven entry this change caused that is no blocker and whose fix is not simple (the convoluted class in [discovered-work](discovered-work.md#assess-each-report-first)). Record the evidence (the proof, the lens id and its claim) and your assessment with a recommendation; `modules/discovered-work.md` routes them in step 6.0: a blocker stops the spec, everything else waits for the stakeholder's batched question.
 - **proposal**: an entry whose only fix edits Tier A (`.workflow/rules.md`, an ADR, a glossary, a profile) or agent instructions. Tier A changes only at 5.3, so add a row to `.workflow/specs/NNN-slug/proposals.md` (template `assets/proposals.md`; Origin `F<n>`, Status `proposed`) and route it `proposal P<n>`; the 5.3 approval round is its question.
@@ -145,12 +145,12 @@ Set the outcome line to `loop back (4.6 third pass)` and load `modules/questioni
 
 ### 6.3 Rework attempts remain (4.7 Yes)
 
-**Wording patch first.** When every **patch** entry is `low`, is wording only (a comment or a name; fixing it changes no behaviour) and its smallest fix is the new text itself, patch it yourself instead of reopening tasks; the rework count is untouched:
+**Patch it yourself first.** When every **patch** entry is a readable-code breach (R1-R5, any grade) or a `low` wording-only entry (a comment or a name; fixing it changes no behaviour), and its smallest fix is the edit itself (delete the comment, the new text, or the new name at every place it is used), patch it yourself instead of reopening tasks; the rework count is untouched:
 
 1. Run step 7 (4.8) to record the pass's gaps.
-2. In the spec checkout, on the spec branch, make each edit exactly as its fix gives it, and nothing else.
-3. Run the toolchain of the work type that owns each edited path: `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id wording-p<n> --work-type <work_type> --cwd <that checkout> --reuse` (with `--reuse`, `test` is not run again when only comments and docs changed since the last passing run; the lints run on the new text). Exit 1: the edit broke a check, so undo your edits by hand and continue with the rework below for those entries.
-4. Commit there with a Conventional Commit subject and the finding ids in the body (`docs: <the wording change>`, body `F<n>, F<m>: wording patch from review pass <n>`).
+2. In the spec checkout, on the spec branch, make each edit exactly as its fix gives it, and nothing else. For a rename, change the name at every place it is used: search the files the change touched (`git diff --name-only <baseline_revision>...HEAD`) for the old name.
+3. Run the toolchain of the work type that owns each edited path: `.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/NNN-slug --task-id wording-p<n> --work-type <work_type> --cwd <that checkout> --reuse` (with `--reuse`, `test` is not run again when only comments and docs changed since the last passing run; the lints run on the new text; a rename is a code change, so `test` runs too). Exit 1: the edit broke a check, so undo your edits by hand and continue with the rework below for those entries.
+4. Commit there with a Conventional Commit subject and the finding ids in the body (`docs: <the wording change>`, or `refactor: <the names changed>` when a name changed; body `F<n>, F<m>: patch from review pass <n>`).
 5. Set the outcome line to `clean, to sign-off`, add the line `Patched directly: F<n>, F<m> (<short sha>)` under it, and load `modules/sign-off.md`.
 
 **Rework.** If any **patch** entry remains and rework used is below 5: run step 7 (4.8) to record the pass's gaps, then reopen each task that owns a patch location. Find the owner from the history since the baseline (`git log --format='%H %s' <baseline_revision>..HEAD -- <path>`, where each worktree merge names its task id), falling back to the task (never a `split-out` one) whose `module` in `.workflow/specs/NNN-slug/tasks.md` owns the path under `.workflow/rules.md`. For each owning task:
@@ -164,7 +164,7 @@ Set the outcome line to `loop back (4.6 third pass)` and load `modules/questioni
 
 ### 6.4 Rework ceiling reached (4.7 No)
 
-If **patch** entries remain and rework used is 5:
+If **patch** entries remain and rework used is 5, first apply every readable-code entry among them yourself, as steps 2 to 4 of [Patch it yourself first](#63-rework-attempts-remain-47-yes) say: a readable-code breach is never left open as a gap. The rest stay open:
 
 - **Verified high entries are open**:
 

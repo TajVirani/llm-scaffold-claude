@@ -23,6 +23,11 @@
 # Rules:
 #   path     deny when it lies inside the spec checkout (which holds .workflow/.worktrees/ and .claude/worktrees/) or the main checkout
 #            (which holds the spec worktrees) but outside the root. Paths outside both (a temp dir) are allowed. `.` and `..` are resolved, and symlinks through the deepest existing parent.
+#            One exception, the agent's own result file: with --worktree-name, a path <spec checkout>/.workflow/specs/<NNN-slug>/artifacts/<id>/<file>
+#            is allowed when its spec folder, <id> and <file> name this worktree: T<N>/implementation.yaml for s<NNN>_t<N>,
+#            phase-1-<work type>/implementation.yaml for s<NNN>_phase_1_<work type>, integration-<work type>/integration.yaml for
+#            s<NNN>_integration_<work type> (lib/workflow-paths.sh wf_agent_worktree_name). Any other file under artifacts/ is denied.
+#            The exception holds also when the named worktree is missing, so the agent can still file a blocked result.
 #   command  allow when --cwd is inside the root or outside both checkouts; otherwise the command must start with `cd <dir> &&` where <dir>
 #            is a literal absolute path (quotes allowed) inside the root, as the implementation brief asks. A cd target with `$`, `~` or a
 #            backtick cannot be checked and is denied. Accident prevention only: a command can still cd elsewhere later.
@@ -122,6 +127,34 @@ spec_root=$(cd -P "$spec_root" && pwd)
 main_root=$(wf_main_root "$cwd" 2>/dev/null) || no_root "the cwd $cwd is not in a git repository"
 main_root=$(cd -P "$main_root" && pwd)
 
+# own_result_file CANON_PATH : true when the path is the result file of the agent whose worktree is --worktree-name.
+own_result_file() {
+  local rel spec_folder rest id file kind value want
+  [ -n "$name" ] || return 1
+  case "$1" in "$spec_root/$WF_SPECS"/*) rel=${1#"$spec_root/$WF_SPECS"/} ;; *) return 1 ;; esac
+  spec_folder=${rel%%/*} rest=${rel#*/}
+  case "$rest" in artifacts/*/*) rest=${rest#artifacts/} ;; *) return 1 ;; esac
+  id=${rest%%/*} file=${rest#*/}
+  case "$id:$file" in
+    T*:implementation.yaml) kind=task value=$id ;;
+    phase-1-?*:implementation.yaml) kind=phase_1 value=${id#phase-1-} ;;
+    integration-?*:integration.yaml) kind=integration value=${id#integration-} ;;
+    *) return 1 ;;
+  esac
+  want=$(wf_agent_worktree_name "$spec_folder" "$kind" "$value" 2>/dev/null) || return 1
+  [ "$want" = "$name" ]
+}
+
+# Checked before the confinement root, so an agent whose worktree is missing can still report that in its result file.
+if [ "$have_cmd" -eq 0 ] && [ -n "$name" ]; then
+  all_own=1
+  for p in "${paths[@]}"; do own_result_file "$(canon "$p")" || all_own=0; done
+  if [ "$all_own" -eq 1 ]; then
+    echo "allow: the result file of the agent in $name"
+    exit 0
+  fi
+fi
+
 root=""
 if [ -n "$name" ] && [ -d "$spec_root/$WF_WORKTREES/$name" ]; then
   root=$(cd -P "$spec_root/$WF_WORKTREES/$name" && pwd)
@@ -143,10 +176,10 @@ if [ "$have_cmd" -eq 0 ]; then
   bad=()
   for p in "${paths[@]}"; do
     c=$(canon "$p")
-    if guarded "$c" && ! under "$c" "$root"; then bad+=("$p"); fi
+    if guarded "$c" && ! under "$c" "$root" && ! own_result_file "$c"; then bad+=("$p"); fi
   done
   if [ "${#bad[@]}" -gt 0 ]; then
-    echo "worktree guard: this agent works only in its agent worktree $root; denied write outside it: ${bad[*]}. Use an absolute path inside $root; the spec checkout, the main checkout and other agents' worktrees belong to the orchestrator and other agents." >&2
+    echo "worktree guard: this agent works only in its agent worktree $root; denied write outside it: ${bad[*]}. Use an absolute path inside $root; the spec checkout, the main checkout and other agents' worktrees belong to the orchestrator and other agents. The one file outside it you may write is your own result file, at the absolute path your agent definition gives under <spec checkout>/$WF_SPECS/<NNN-slug>/artifacts/." >&2
     exit 2
   fi
   echo "allow: inside $root or outside the spec and main checkouts"

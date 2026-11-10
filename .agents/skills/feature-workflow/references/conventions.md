@@ -25,14 +25,21 @@ The rules every feature-workflow step file follows, for a spec and for an initia
   | Other Tier A: `.workflow/capabilities.md`, `.workflow/rules.md`, `.workflow/decisions/**` | 0.3.7, 5.3, 5.7 only |
   | `.workflow/profiles/**` | new file 00.19 or 5.3; existing file 5.3 only |
   | `.workflow/review-lessons.md` | 5.7 only |
-  | `.workflow/cache/**`, `.step` | never by Write/Edit (`publish-cache.sh`, `status-transition.sh`, `initiative-transition.sh`) |
+  | `.step` | never by Write/Edit (`status-transition.sh`, `initiative-transition.sh`) |
   | `.workflow/specs/done/**` (the Done folder) | never by Write/Edit: a finished spec stays as `move-to-done.sh` moved it |
-  | Path-only rewrites of a moved spec's path, in Tier A files, design logs and every other `.workflow/` file outside `cache/` and `initiatives/` | 5.8, by `.agents/skills/feature-workflow/scripts/move-to-done.sh` only, which changes nothing but that path; the initiative's files are re-pointed at 6.13. Also Tracker adoption, for a renamed spec, outside any step |
+  | Path-only rewrites of a moved spec's path, in Tier A files, design logs and every other `.workflow/` file outside `initiatives/` | 5.8, by `.agents/skills/feature-workflow/scripts/move-to-done.sh` only, which changes nothing but that path; the initiative's files are re-pointed at 6.13. Also Tracker adoption, for a renamed spec, outside any step |
 
   A spec.md write never changes `status` or `blocked_condition`. Everything else in the spec folder (`codebase-map.md`, `design-log.md`, `data-model.md`, `verification-plan.md`) is unguarded.
 - **Tracker calls.** Steps call `.agents/skills/issue-tracking/scripts/issue-tracker.sh` the same with or without a tracker (with none it prints `skipped: no tracker`). `<issue>` is the task record's `issue`, `""` when null. On exit 1 or 2 stop, show the stakeholder its message and run it again once fixed.
 - **Never grow the spec mid-build.** Work found outside the agreed scope in Phases 1–4 goes to [discovered-work](../modules/discovered-work.md) (00.21), never into `spec.md` or `tasks.md` on your own; its [Assess each report first](../modules/discovered-work.md#assess-each-report-first) is the one statement of how a report is proven and routed. In Phase 0 it goes through the scope gate 0.3.16–0.3.17. A Tier A change outside its steps becomes a proposal in `proposals.md` for 5.3.
-- **Sub-agents write only their own result file.** Inside a spec, besides the code a coding agent builds (and the staged cache of `cache-regeneration`), a sub-agent writes one file: its findings or result file under the spec's `artifacts/`. The Phase 4 lenses write their pass files; `implementation`, `integration` and `profile-mini-review` write their result files; the main session checks each with a script and never retypes it. Inside an initiative a sub-agent writes nothing. Everything else a sub-agent returns as text, and the main session writes files from it. The guards deny a sub-agent's writes to the guarded workflow files.
+- **Sub-agents write only their own result file.** Inside a spec, besides the code a coding agent builds, a sub-agent writes one file: its findings or result file under the spec's `artifacts/`. The Phase 4 lenses write their pass files; `implementation`, `integration` and `profile-mini-review` write their result files; the main session checks each with a script and never retypes it. Inside an initiative a sub-agent writes nothing. Everything else a sub-agent returns as text, and the main session writes files from it. The guards deny a sub-agent's writes to the guarded workflow files.
+
+## Asking the stakeholder
+
+- **Only blocking questions wait.** A question blocks when its answer changes the scope or intent of the work, or when the action it gates is hard to reverse: a merge to the main branch, a publish, a delete, a migration, or anything outside the repo (a tracker, a remote, another system). Ask a blocking question and wait for the answer.
+- **Assume and log the rest.** Any other question has a recommended answer you would give anyway. Take it at once and carry on; do not ask. Append an **Assumed** entry to `design-log.md` (shape in [../assets/design-log.md](../assets/design-log.md)): the question, the answer taken, and why it was safe to assume. A step that says "assume and log" points here.
+- **Offer every assumption for veto.** Open the next blocking ask with each **Assumed** entry no `Offered for veto:` line names yet, one line each, as its first question: "Keep these assumptions?", with "Keep them all (Recommended)"; a veto names the entry. List them with `grep -n '^## .* Assumed: \|^- Offered for veto: ' .workflow/specs/NNN-slug/design-log.md`, and log `- Offered for veto: <titles>; vetoed: <titles | none>` in the entry of that ask. A veto is a change at that point, handled the way that step handles any change the stakeholder asks for.
+- **Launch before asking.** Before you send a blocking ask, launch every sub-agent whose input does not depend on its answer, and start any long check that can run meanwhile, so the stakeholder's time to answer is not idle time. Launch nothing an answer could invalidate: work that reads a term, a scope or a design the question is still deciding waits for the answer. Step files name the launches this applies to.
 
 ## Progress line
 
@@ -49,7 +56,7 @@ For a spec it reads the step from `.step` and the path from `light_path` unless 
 
 | Concern | Claude Code | Codex |
 | --- | --- | --- |
-| Write guards | `spec-single-writer-guard`, `tier-a-write-guard`, `tier-b-write-guard` hooks. | Before each guarded write run `.agents/skills/feature-workflow/scripts/check-write.sh --cwd "$PWD" --path <file>` (for `spec.md` add `--proposed <file holding the new content>`); write only on exit 0 (advisory). |
+| Write guards | `workflow-write-guard` hook. | Before each guarded write run `.agents/skills/feature-workflow/scripts/check-write.sh --cwd "$PWD" --path <file>` (for `spec.md` add `--proposed <file holding the new content>`); write only on exit 0 (advisory). |
 | Other skills | Skill tool, e.g. `domain-modeling`. | `$domain-modeling`, or read its `SKILL.md`. |
 
 Codex hooks replace a direct script call, here or in [launching](launching.md), only for events a live Codex run has verified; until then the calls stand.

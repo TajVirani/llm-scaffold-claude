@@ -20,7 +20,7 @@
 #   (ssh, https, self-hosted, from a sub-folder) and nothing, with status 0, for another host, a local path, no origin, an
 #   empty or missing argument and a folder outside git. The path rewrite on a fixture project: a rename to a new number, an
 #   old_ rename in the Done folder and a move into it, with their backlog lists, in one run: every specs/, ../,
-#   work-backlog/NAME.md and NAME.md#B<n> reference rewritten, look-alike names, the cache, initiatives and docs/ left
+#   work-backlog/NAME.md and NAME.md#B<n> reference rewritten, look-alike names, initiatives and docs/ left
 #   alone, links leaving the moved spec one level deeper, the commit holding exactly the moved and rewritten paths (plus
 #   a given extra path) with the given message while a change staged earlier stays staged; a rollback before the commit
 #   and after a failing commit restores tree, index, HEAD, step marker and created folders; a rollback that cannot
@@ -302,8 +302,6 @@ Backlog: [012-alpha.md](../../work-backlog/012-alpha.md) · Self: .workflow/spec
 === .workflow/capabilities.md
 | CAP-001 | [012-alpha](specs/done/012-alpha/spec.md) | origin: 012-alpha.md#B1 |
 | CAP-002 | [014-gamma](specs/014-gamma/spec.md) |
-=== .workflow/cache/graph.md
-specs/015-delta specs/done/012-alpha specs/014-gamma
 === .workflow/initiatives/001-ini/initiative.md
 specs/015-delta specs/done/012-alpha specs/014-gamma
 === docs/notes.md
@@ -394,8 +392,8 @@ eq "the old_ backlog list names the old_ spec path" "$(cat "$P/.workflow/specs/w
 eq "a file outside the specs folder gets every form rewritten" "$(cat "$P/.workflow/capabilities.md")" \
   "| CAP-001 | [012-alpha](specs/done/old_012-alpha/spec.md) | origin: old_012-alpha.md#B1 |
 | CAP-002 | [014-gamma](specs/done/014-gamma/spec.md) |"
-check "the cache, the initiative record and docs/ are left as they were" \
-  '[[ -z $(git -C "$P" diff --name-only "$TIP" HEAD -- .workflow/cache .workflow/initiatives docs) ]]'
+check "the initiative record and docs/ are left as they were" \
+  '[[ -z $(git -C "$P" diff --name-only "$TIP" HEAD -- .workflow/initiatives docs) ]]'
 eq "the commit holds exactly the moved and rewritten paths" \
   "$(git -C "$P" diff --name-status --no-renames "$TIP" HEAD | LC_ALL=C sort)" "$(printf '%s\n' \
     "A	.workflow/specs/1234-delta/spec.md" "A	.workflow/specs/done/014-gamma/spec.md" \

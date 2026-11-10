@@ -38,8 +38,8 @@ Spec 005 adds `wf_main_root` to the shared library and moves only the six featur
 - Status-returning copy with `cd -P`: `.agents/skills/feature-workflow/scripts/check-write.sh:141-149`, as of `d6edbc9`.
 - `dirname` of the common dir without the worktree fallback: `.agents/skills/feature-workflow/scripts/run-toolchain.sh:141-142`, `check-worktree-scope.sh:89-90`, `resolve-launch.sh:263-265`, as of `d6edbc9`.
 - Absolute spec folder used as given: `.agents/skills/feature-workflow/scripts/run-toolchain.sh:144-147`, as of `d6edbc9`.
-- Hooks: `.agents/hooks/codex-pre-spawn.sh:28,60-62`, `pre-launch.sh:64-66`, `session-start-resume.sh:56-58`, `rules-boundary-config-sync.sh:45-47`, `evidence-capture.sh:75`, `post-implementation-audit.sh:79,217`; regenerate-caches: `publish-cache.sh:39`, `cache-stamp-check.sh:38`, `build-architecture.sh:66-70`, as of `d6edbc9`.
-- Agent docs: `.agents/agents/implementation.md:75,95`, `integration.md:65,79`, `cache-regeneration.md:24`, `profile-mini-review.md:70`; `.agents/skills/handoff/SKILL.md:18`, as of `d6edbc9`.
+- Hooks: `.agents/hooks/codex-pre-spawn.sh:28,60-62`, `pre-launch.sh:64-66`, `session-start-resume.sh:56-58`, `rules-boundary-config-sync.sh:45-47`, `evidence-capture.sh:75`, `post-implementation-audit.sh:79,217`, as of `d6edbc9`.
+- Agent docs: `.agents/agents/implementation.md:75,95`, `integration.md:65,79`, `profile-mini-review.md:70`; `.agents/skills/handoff/SKILL.md:18`, as of `d6edbc9`.
 - Reported by module-audit (lib, feature-workflow) at 0.4.6 of spec 005; can wait.
 
 ## Acceptance criteria

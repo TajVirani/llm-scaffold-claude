@@ -4,7 +4,7 @@ date: YYYY-MM-DD
 verdict: accepted
 ---
 <!--
-File: Template for .workflow/decisions/retrospectives/NNN-slug.md, one per shipped feature. Written by the `retrospective` skill at 5.7 with the stakeholder present; no `status` field lives here.
+File: Template for .workflow/decisions/retrospectives/NNN-slug.md, one per shipped feature. Drafted by the `retrospective` skill as .workflow/specs/NNN-slug/retrospective-draft.md before the sign-off ask (5.5) and moved here at 5.7; a standalone run writes it here directly. No `status` field lives here. In a draft, each candidate lesson carries `proposed L<n>` where its destination goes.
 
 How to fill it in:
   - Frontmatter: `spec` is the spec folder (.workflow/specs/NNN-slug). `verdict` is one of `accepted`, `accepted-with-open-items`, `rejected`, and matches the "Acceptance verdict" section. A gate that acts on the verdict reads this frontmatter, so keep both in sync. Add no other machine-read fields.

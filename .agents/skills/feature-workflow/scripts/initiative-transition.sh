@@ -47,6 +47,7 @@
 # .step format (YAML, written only here; same shape as the spec marker):
 #   step: "<6.x>"
 #   updated_at: "<UTC ISO-8601, e.g. 2026-10-21T12:00:00Z>"
+#   seq: <n>   (one more than the highest seq among the checkout's spec and initiative markers; readers pick the newest by it)
 #
 # Exit: 0 done; 1 usage or environment error (missing yq, not a git repo, missing folder or file, unknown slice or question
 #   id, malformed value, or a template validator yq cannot run, reported with yq's own error text); 2 illegal transition
@@ -112,6 +113,7 @@ write_marker() {
   {
     printf 'step: "%s"\n' "$step"
     printf 'updated_at: "%s"\n' "$(utc_now)"
+    printf 'seq: %s\n' "$(wf_next_marker_seq "${file%/"$WF_INITIATIVES"/*}")"
   } >"$tmp"
   mv -f "$tmp" "$file"
 }

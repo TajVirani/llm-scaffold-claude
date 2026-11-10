@@ -7,7 +7,8 @@
 #   git global options, $(...), backquotes, sh -c, eval and a heredoc or here-string fed to a shell; allowed forms
 #   (read-only git, plain push, branch -d, checkout <branch>, clean -n, stash list/show) and data that only mentions a
 #   blocked command (heredoc bodies, quoted arguments, commit messages, comments, redirect targets); deny JSON shape;
-#   Codex argv-array command; silence on empty input or no command; fail closed when the tokenizer cannot run; shellcheck.
+#   Codex argv-array command; silence on no command; fail closed, naming the cause, on empty or invalid input, missing jq
+#   or a tokenizer that cannot run; shellcheck.
 # Policy notes: --force-with-lease is blocked (a lease still rewrites the remote branch; ask the user). Plain `git push`
 #   is allowed (glab and the PR flow push branches), unlike the mattpocock/skills git-guardrails upstream. Every rebase is
 #   blocked, not only rebases of shared branches, because the hook cannot tell which branches are shared.
@@ -191,9 +192,19 @@ eq "Codex argv-array read-only command allowed" "$out" ""
 out=$(printf '{}' | "$TEST_BASH" "$HOOK" 2>&1); rc=$?
 eq "no command: silent exit 0" "$rc:$out" "0:"
 out=$(printf '' | "$TEST_BASH" "$HOOK" 2>&1); rc=$?
-eq "empty stdin: silent exit 0" "$rc:$out" "0:"
+check "empty stdin: deny naming the cause" \
+  '[ $rc -eq 0 ] && jq -r .hookSpecificOutput.permissionDecisionReason <<<"$out" | grep -q "not a JSON object"' "rc=$rc out=$out"
 out=$(printf 'not json' | "$TEST_BASH" "$HOOK" 2>&1); rc=$?
-eq "invalid JSON: silent exit 0" "$rc:$out" "0:"
+check "invalid JSON: deny naming the cause" \
+  '[ $rc -eq 0 ] && [ "$(jq -r .hookSpecificOutput.permissionDecision <<<"$out")" = deny ] && jq -r .hookSpecificOutput.permissionDecisionReason <<<"$out" | grep -q "not a JSON object"' "rc=$rc out=$out"
+
+echo "== fail closed when jq is missing"
+NJ=$WORK/nojq
+mkdir -p "$NJ"
+for tool in cat awk; do ln -s "$(command -v "$tool")" "$NJ/$tool"; done
+out=$(printf '{"tool_input":{"command":"git reset --hard"}}' | PATH=$NJ "$(command -v "$TEST_BASH")" "$HOOK" 2>&1); rc=$?
+check "no jq -> deny naming jq" \
+  '[ $rc -eq 0 ] && [ "$(jq -r .hookSpecificOutput.permissionDecision <<<"$out")" = deny ] && jq -r .hookSpecificOutput.permissionDecisionReason <<<"$out" | grep -q "jq not found"' "rc=$rc out=$out"
 
 echo "== fail closed when the tokenizer cannot run"
 NB=$WORK/noawk

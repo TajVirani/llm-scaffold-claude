@@ -3,7 +3,6 @@
 <!--
 File: Template for .workflow/specs/work-backlog/<NNN-slug>.md, the backlog list of one spec: the work it found outside its scope that the stakeholder chose to keep for later. One line per item. The file sits outside the spec's folder because that spec will not solve it.
 Written by the main session only, never by a sub-agent (check-write.sh): at 00.26 of the spec (an item kept at a batched ask or at 00.22, or a size-budget split), at its 5.9 (the 5.5 rulings: a line added, or a dropped line deleted) and by a new spec's 0.1.4 (an item started as that spec turns `promoted`).
-Older specs filed one file per item (<NNN-slug>-disc-<###>.md, assets/work-item.md); those stay readable until they are closed. New items go on this list.
 
 One line per item, in this exact shape:
   - [<status>] B<n> <kind> (<origin node>): <problem>. Evidence: <the command and its output, a failing test, or the quoted rule line with its path:line>.

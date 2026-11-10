@@ -2,7 +2,7 @@
 # File: Helper script (not a hook): start a spec in its own spec worktree, or remove that worktree and the spec branch once merged.
 # Purpose: A spec runs in a spec worktree, <main checkout>/.workflow/.spec-worktrees/NNN-slug, on its spec branch spec/NNN-slug, so
 #   several specs run in one clone while the main checkout stays on its own branch. Discovery writes the spec folder and other workflow
-#   data (glossary terms, decisions, deferred items, caches) uncommitted in the checkout it runs in. `create` carries all of it onto the
+#   data (glossary terms, decisions, deferred items) uncommitted in the checkout it runs in. `create` carries all of it onto the
 #   spec branch's first commit, so nothing of the spec stays behind, and moves the gitignored step marker into the new worktree.
 #   `remove` undoes the worktree and deletes the branch at sign-off, only once the spec branch has merged.
 # Usage:

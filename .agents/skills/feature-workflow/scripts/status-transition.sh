@@ -78,13 +78,15 @@
 # .step format (YAML, written only here; read by check-write.sh):
 #   step: "<node-id>"
 #   updated_at: "<UTC ISO-8601, e.g. 2026-10-15T12:00:00Z>"
+#   seq: <n>                      # one more than the highest seq among the checkout's spec and initiative markers; readers
+#                                 #   pick the newest marker by seq (lib/workflow-paths.sh wf_marker_order_key), not by time
 #   blocked_from: "<status>"      # present only while spec status is blocked
 #
 # Exit codes: 0 done; 1 usage or environment error (missing yq, not a git repo, missing file, schema failure, or a tasks.md
 #   schema validator yq cannot run, reported with yq's own error text); 2 illegal transition (deny), matching check-write.sh and resolve-launch.sh,
 #   or a set-task --issue value that is neither an https URL nor null.
 # Called by: the step files (discovery, verification-setup, task-breakdown, implementation-setup, implementation-waves, implementation-finish, review-triage, sign-off), domain-modeling and retrospective before guarded writes.
-# Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; spec-single-writer-guard rejects status edits made by Write/Edit. The deny rule Edit(.workflow/specs/*/.step) stops file tools forging the marker. The marker is accident prevention, not security. install.sh / project-setup add `.workflow/specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place).
+# Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; workflow-write-guard rejects status edits made by Write/Edit. The deny rule Edit(.workflow/specs/*/.step) stops file tools forging the marker. The marker is accident prevention, not security. install.sh / project-setup add `.workflow/specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place).
 # Sources: first-party; tasks.md validator from feature-workflow/assets/tasks.md. Pattern: skills/data-structure-audit/scripts/audit_scope.sh (sub-commands, git anchoring).
 
 set -euo pipefail
@@ -141,6 +143,7 @@ write_marker() {
   {
     printf 'step: "%s"\n' "$step"
     printf 'updated_at: "%s"\n' "$(utc_now)"
+    printf 'seq: %s\n' "$(wf_next_marker_seq "${file%/"$WF_SPECS"/*}")"
     [[ -n "$from" ]] && printf 'blocked_from: "%s"\n' "$from"
   } >"$tmp"
   mv -f "$tmp" "$file"

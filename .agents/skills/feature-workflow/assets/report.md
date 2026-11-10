@@ -1,7 +1,7 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/report.md: the 5.4 results report. No frontmatter.
 Written by modules/sign-off.md at 5.4; read by the stakeholder at 5.5 and by the `retrospective` skill at 5.7.
-A small-path spec (`small_path: true`) writes the five-line short form in modules/sign-off.md (5.4) instead of this template.
+A light-path spec with one task writes the five-line short form in modules/sign-off.md (5.4) instead of this template.
 
 Rules:
   - Nothing is claimed that has not been verified (design rule 12). Every PASS links evidence: a file under artifacts/, a CI run, or command output pasted from the run.
