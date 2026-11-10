@@ -3,7 +3,11 @@
 # Covers: upgrade that overwrites a changed file and removes a file dropped from the manifest while keeping files no
 #   install shipped; project-owned files untouched by install, --force and upgrade (incl. .workflow/design-pattern-doc/
 #   and .workflow/pr-quality/); .gitignore user lines kept. JRN-006: a project installed with the template whose stop audit
-#   matched only implementation agents is left, after an upgrade, with one SubagentStop entry matching implementation and integration.
+#   matched only implementation agents is left, after an upgrade, with one SubagentStop entry matching implementation and integration,
+#   and with the retired write-guard hooks (spec-single-writer, tier-a, tier-b) removed, workflow-write-guard.sh wired in their place
+#   and a user hook that shared their group kept, a re-run changing and printing nothing more; a .gitignore line an
+#   earlier install wrote in its block and this one does not (.workflow/.cache-staging/) removed, the user line kept, the
+#   summary naming it, and a re-run changing and printing nothing.
 #   Matcher resolution on an upgrade to a template whose stop audit matches implementation|integration, from an old install
 #   with user groups: JRN-011 without a terminal (template-only group merged, mixed group kept, also when its own hook is
 #   a prompt hook, match-all and covering groups untouched, a Warnings line per merged or kept group, a third run writes
@@ -187,9 +191,8 @@ eq "upgrade re-run changes nothing" "$(snap "$U")" "$before"
 echo "== project-owned files untouched; .gitignore user lines kept"
 P=$WORK/owned
 new_target "$P"
-mkdir -p "$P/.workflow/model-map" "$P/.workflow/profiles" "$P/.workflow/decisions" "$P/.workflow/design-pattern-doc" "$P/.workflow/pr-quality" "$P/.workflow/deferred" "$P/.workflow/specs/001-x"
-echo "implementation: {claude: opus}" >"$P/.workflow/agent-overrides.yaml"
-echo "m" >"$P/.workflow/model-map/retrieval.md"
+mkdir -p "$P/.workflow/profiles" "$P/.workflow/decisions" "$P/.workflow/design-pattern-doc" "$P/.workflow/pr-quality" "$P/.workflow/deferred" "$P/.workflow/specs/001-x"
+echo "implementation: {tier: strong, claude: opus}" >"$P/.workflow/model-map.yaml"
 echo "p" >"$P/.workflow/profiles/web.md"
 echo "g" >"$P/.workflow/GLOSSARY.md"
 echo "r" >"$P/.workflow/rules.md"
@@ -199,13 +202,13 @@ echo "q" >"$P/.workflow/pr-quality/my-check.md"
 echo "d" >"$P/.workflow/deferred/x.md"
 echo "s" >"$P/.workflow/specs/001-x/spec.md"
 printf 'node_modules/\n*.log' >"$P/.gitignore"
-owned() { (cd "$P" && cksum .workflow/agent-overrides.yaml .workflow/model-map/retrieval.md .workflow/profiles/web.md .workflow/GLOSSARY.md .workflow/rules.md .workflow/decisions/0001.md .workflow/design-pattern-doc/conventions.md .workflow/pr-quality/my-check.md .workflow/deferred/x.md .workflow/specs/001-x/spec.md); }
+owned() { (cd "$P" && cksum .workflow/model-map.yaml .workflow/profiles/web.md .workflow/GLOSSARY.md .workflow/rules.md .workflow/decisions/0001.md .workflow/design-pattern-doc/conventions.md .workflow/pr-quality/my-check.md .workflow/deferred/x.md .workflow/specs/001-x/spec.md); }
 before=$(owned)
 INST "$P" >/dev/null 2>&1
 INST "$P" --force >/dev/null 2>&1
 "$TEST_BASH" "$WORK/sc2/install.sh" "$P" --force >/dev/null 2>&1 </dev/null
 eq "project-owned files byte-identical after install, --force and upgrade" "$(owned)" "$before"
-check "project-owned .workflow/ gained no files" '[ "$(find "$P/.workflow" -type f | wc -l | tr -d " ")" = 10 ]'
+check "project-owned .workflow/ gained no files" '[ "$(find "$P/.workflow" -type f | wc -l | tr -d " ")" = 9 ]'
 check ".gitignore user lines kept, block added once" 'grep -qx "node_modules/" "$P/.gitignore" && grep -qx "\*.log" "$P/.gitignore" && [ "$(grep -c "^.workflow/specs/\*/.step$" "$P/.gitignore")" = 1 ] && [ "$(grep -c "^.workflow/initiatives/\*/.step$" "$P/.gitignore")" = 1 ]'
 
 echo "== upgrade from the template whose stop audit matched only implementation agents (JRN-006)"
@@ -217,13 +220,46 @@ new_target "$O"
 INST_FROM "$SCO" "$O" --host claude >/dev/null 2>&1
 OS=$O/.claude/settings.json
 eq "JRN-006 the old install's stop audit matches implementation only" "$(stop_audit_matchers "$OS")" implementation
+# The old template still wires the write guards the merged write guard replaced; a user hook shares their group.
+RETIRED_GUARDS="spec-single-writer-guard.sh tier-a-write-guard.sh tier-b-write-guard.sh"
+USER_WRITE_HOOK=./scripts/user-write-hook.sh
+add_user_hook "$OS" PreToolUse tier-a-write-guard.sh "$USER_WRITE_HOOK"
 t "JRN-006 the upgrade exits 0" 0 INST "$O" --host claude
+for retired in $RETIRED_GUARDS; do
+  eq "the upgrade removes the retired hook $retired" "$(group_matchers "$OS" PreToolUse "$retired")" ""
+done
+eq "the upgrade wires workflow-write-guard.sh under Write|Edit|NotebookEdit" \
+  "$(group_matchers "$OS" PreToolUse workflow-write-guard.sh)" 'Write|Edit|NotebookEdit'
+eq "the user hook that shared the retired hooks' group is kept under its matcher" \
+  "$(group_matchers "$OS" PreToolUse "$USER_WRITE_HOOK")" 'Write|Edit|NotebookEdit'
 eq "JRN-006 after the upgrade: one SubagentStop entry in all" "$(jq '.hooks.SubagentStop | length' "$OS")" 1
 eq "JRN-006 after the upgrade: one SubagentStop group runs the stop audit" "$(stop_audit_matchers "$OS" | grep -c '')" 1
 for agent in implementation integration; do
   check "JRN-006 after the upgrade: the stop audit matcher matches $agent" 'matcher_matches "$(stop_audit_matchers "$OS")" "$agent"' \
     "$(jq -c .hooks.SubagentStop "$OS")"
 done
+before=$(snap "$O")
+out=$(INST "$O" --host claude 2>&1)
+eq "a re-run after removing the retired hooks exits 0" "$?" 0
+eq "...and changes nothing" "$(snap "$O")" "$before"
+check "...and prints no upgrade summary" '! grep -q "^Upgrade from an older install" <<<"$out"' "$out"
+
+echo "== a .gitignore line an earlier install wrote in the block and this one no longer does"
+G=$WORK/gitignore-retired
+new_target "$G"
+INST "$G" --host claude >/dev/null 2>&1
+printf 'node_modules/\n' >>"$G/.gitignore"
+awk '$0 == ".workflow/.worktrees/" { print ".workflow/.cache-staging/" } { print }' "$G/.gitignore" >"$WORK/gi.tmp" && mv "$WORK/gi.tmp" "$G/.gitignore"
+check "the fixture has the retired line inside the block" 'grep -qx ".workflow/.cache-staging/" "$G/.gitignore"'
+out=$(INST "$G" --host claude 2>&1)
+eq "the upgrade exits 0" "$?" 0
+check "the retired line is gone" '! grep -q "cache-staging" "$G/.gitignore"'
+check "the user line after the block is kept" 'grep -qx "node_modules/" "$G/.gitignore"'
+check "the summary names the line" 'grep -qF "the .gitignore line(s) .workflow/.cache-staging/" <<<"$out"' "$out"
+before=$(snap "$G")
+out=$(INST "$G" --host claude 2>&1)
+eq "a re-run changes nothing" "$(snap "$G")" "$before"
+check "a re-run prints no summary" '! grep -q "^Upgrade from an older install" <<<"$out"' "$out"
 
 echo "== matcher resolution fixtures: the template upgraded to and the old install"
 # The template the upgrade goes to gets its stop audit widened here, so these cases hold whether or not the repo's own
@@ -352,10 +388,12 @@ echo "== a group running two template groups' commands; a non-plain matcher unde
 # SPLIT_BASE's Write|Edit|NotebookEdit group also runs the git guard, whose template group is Bash, and its SessionStart
 # group is narrowed to a matcher that is not a plain | list, while the template's SessionStart group matches everything.
 GIT_GUARD=block-destructive-git.sh
-WRITE_GUARD=spec-single-writer-guard.sh
+WRITE_GUARD=workflow-write-guard.sh
 SESSION_MATCHER='^(startup|resume)$'
 SPLIT_BASE=$WORK/split-base
-clone_target "$OLD_BASE" "$SPLIT_BASE"
+# A current install, so the group's write guard is one the template still ships rather than a retired one the upgrade removes.
+new_target "$SPLIT_BASE"
+INSTW "$SPLIT_BASE" --host claude >/dev/null 2>&1
 edit_settings "$SPLIT_BASE/.claude/settings.json" '
   [.hooks.PreToolUse[] | select(runs($git)) | .hooks[]] as $git_hooks
   | .hooks.PreToolUse |= (map(select(runs($git) | not)) | map(if runs($write) then .hooks += $git_hooks else . end))' \

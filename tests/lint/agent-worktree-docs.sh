@@ -136,7 +136,7 @@ spec_checkout_path() {
 }
 for pair in "$IMPL|implementation.yaml" "$INTEG|integration.yaml"; do
   doc=${pair%|*} file=${pair#*|}
-  target=$(brief_result_target "$(brief_result_command "$doc" "$file")")
+  target=$(brief_result_path "$doc" "$file")
   check "JRN-008 ${doc##*/} writes $file to an absolute spec-checkout path" 'spec_checkout_path "$target"' "target: ${target:-none found}"
 done
 

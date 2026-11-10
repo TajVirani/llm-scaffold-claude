@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Suite: run-toolchain.sh (feature-workflow/scripts).
 # Covers: toolchain key order and skipping, serve keys never run, --e2e, failure digest and --tail, evidence files,
-#   missing profile / unclassified work type / usage errors, evidence in the checkout an agent worktree sits in, commands run in --cwd,
+#   missing profile / unclassified work type / usage errors, a key still set to a `TODO:` placeholder (refused before anything
+#   runs, naming the profile and key; a skipped key is not checked), evidence in the checkout an agent worktree sits in, commands run in --cwd,
 #   the tree hash (recorded, --tree-hash, untracked files, workflow data, the Tier A files nothing reads and the model map ignored, rules and profiles counted, a gitignored data folder present, and the orchestrator and sign-off describing it so),
 #   --reuse hits and misses (whole records across profile files, single keys by command), --reuse-check, test_scoped on the own list alone,
 #   no-code reuse (a test key not run again after comment-only and doc-only edits, reused across tasks from an unscoped record, run
@@ -111,8 +112,8 @@ eq tree-hash-matches-record "$(jq -r .tree .workflow/specs/001-x/artifacts/T7/to
 mkdir -p .workflow/specs/001-x/notes && echo x > .workflow/specs/001-x/notes/new.md
 eq tree-hash-ignores-specs "$("$RT" --tree-hash --cwd "$T/repo")" "$h1"
 # Sign-off and the retrospective edit Tier A files and the model map that no command reads; the rules, the profiles and other workflow files count.
-mkdir -p .workflow/decisions/adr .workflow/model-map
-for f in capabilities.md review-lessons.md GLOSSARY.md decisions/adr/0001-x.md model-map/implementation.md; do echo tier-a > ".workflow/$f"; done
+mkdir -p .workflow/decisions/adr
+for f in capabilities.md review-lessons.md GLOSSARY.md decisions/adr/0001-x.md model-map.yaml; do echo tier-a > ".workflow/$f"; done
 eq tree-hash-ignores-tier-a "$("$RT" --tree-hash --cwd "$T/repo")" "$h1"
 echo rules > .workflow/rules.md
 check tree-hash-counts-rules '[ "$("$RT" --tree-hash --cwd "$T/repo")" != "$h1" ]'
@@ -122,7 +123,7 @@ check tree-hash-counts-profiles '[ "$("$RT" --tree-hash --cwd "$T/repo")" != "$h
 mv "$T/fake.md.orig" .workflow/profiles/fake.md
 mkdir -p .workflow/tools && echo x > .workflow/tools/config.txt
 check tree-hash-counts-other-workflow-files '[ "$("$RT" --tree-hash --cwd "$T/repo")" != "$h1" ]'
-rm -rf .workflow/tools .workflow/decisions .workflow/model-map .workflow/capabilities.md .workflow/review-lessons.md .workflow/GLOSSARY.md
+rm -rf .workflow/tools .workflow/decisions .workflow/model-map.yaml .workflow/capabilities.md .workflow/review-lessons.md .workflow/GLOSSARY.md
 echo x > untracked.txt
 check tree-hash-untracked '[ "$("$RT" --tree-hash --cwd "$T/repo")" != "$h1" ]'
 rm -f untracked.txt
@@ -138,6 +139,23 @@ rm -rf .gitignore .workflow/.handoff
 mkdir -p "$T/nogit"
 t tree-hash-no-repo-rc 2 "$RT" --tree-hash --cwd "$T/nogit"
 t run-no-repo-rc 2 "$RT" --spec-dir .workflow/specs/001-x --task-id T1 --work-type fake --cwd "$T/nogit"
+
+# A toolchain value that still reads TODO: stops the run before any command, naming the profile file and the key.
+TM=$T/todo-marker
+cat > .workflow/profiles/todo.md <<P
+## Toolchain
+\`\`\`yaml
+lint: "echo lint >> '$TM'"
+test: "  TODO: the command that runs the tests"
+\`\`\`
+P
+out=$("$RT" --spec-dir .workflow/specs/001-x --task-id TD1 --work-type todo 2>&1); rc=$?
+eq todo-rc "$rc" 2
+check todo-names-profile-and-key 'grep -qF ".workflow/profiles/todo.md" <<<"$out" && grep -qF "key '"'"'test'"'"'" <<<"$out"' "$out"
+check todo-runs-nothing '[ ! -e "$TM" ] && [ ! -e .workflow/specs/001-x/artifacts/TD1/toolchain.json ]' "$out"
+out=$("$RT" --spec-dir .workflow/specs/001-x --task-id TD2 --work-type todo --skip test 2>&1); rc=$?
+eq todo-key-skipped-runs "$rc:$(cat "$TM" 2>/dev/null)" "0:lint"
+rm -f .workflow/profiles/todo.md "$TM"
 
 # --reuse: a passing record of the same tree, profile and keys is copied instead of running anything
 M=$T/marker
@@ -364,7 +382,8 @@ eq no-spec-branch-runs-full "$(tail -n 1 "$M3"):$(jq -c '.results[] | select(.ke
 FW="$AGENTS_SRC/skills/feature-workflow/modules"
 check docs-gates-tree-counts-rules-and-profiles \
   'grep -F "toolchain.json\` records \`tree\`" "$FW/implementation-gates.md" | grep -qF "\`rules.md\` and the profiles stay in"'
-check docs-sign-off-tree-counts-rules-and-profiles 'grep -F -B 3 -- "--task-id sign-off-5.4" "$FW/sign-off.md" | grep -qF "a 5.3 edit to \`rules.md\` or a profile does"'
+# 5.4 runs before the 5.3 edits, so its description names only the workflow-data commits as leaving the tree unchanged.
+check docs-sign-off-tree-ignores-workflow-data 'grep -F -B 3 -- "--task-id sign-off-5.4" "$FW/sign-off.md" | grep -qF "(workflow-data commits do not change it)"'
 
 shellcheck_files "shellcheck: run-toolchain.sh" "$RT"
 finish

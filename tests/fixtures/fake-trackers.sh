@@ -75,7 +75,6 @@ TRACKER_IN_PROGRESS="In progress"
 TRACKER_DONE=Done
 TRACKER_GITIGNORE='.workflow/specs/*/.step
 .workflow/initiatives/*/.step
-.workflow/.cache-staging/
 .workflow/.worktrees/
 .workflow/.spec-worktrees/
 .workflow/.handoff/

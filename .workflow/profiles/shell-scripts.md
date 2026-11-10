@@ -3,7 +3,7 @@
 
 ## File locations
 
-- Organised by owner, not by layer. Depth stops at `.agents/skills/<s>/scripts/<file>`, except `scripts/extractors/<name>.sh`, one graph extractor per file. Code a second skill needs moves to `.agents/lib/`.
+- Organised by owner, not by layer. Depth stops at `.agents/skills/<s>/scripts/<file>`. Code a second skill needs moves to `.agents/lib/`.
 - `.agents/lib/`: sourced helpers shared by hooks, skills and `install.sh`. Never an executable entry point.
 - `.agents/hooks/`: thin host adapters (`_name.sh` = a sourced helper) and host config templates. Never business logic: call the owning skill's script instead.
 - `.agents/skills/<s>/scripts/`: the skill's executable logic. Never sourced by another skill; shared code goes through `.agents/lib/`.
@@ -16,7 +16,7 @@
 
 ## Language and style rules
 
-- Script file names are kebab-case → `check-write.sh`. A sourced hook helper starts with `_` → `_guard-common.sh`.
+- Script file names are kebab-case → `check-write.sh`. A sourced hook helper starts with `_` → `_codex-patch.sh`.
 - Functions are lowercase snake_case → `block_state`, each preceded by a usage comment `# name ARGS : what it does`.
 - Every script opens with a header block starting `# File: <kind>: <summary>`. Hooks then use `Goals` / `Triggers/inputs` / `Outputs/handoff` / `Wiring` / `Notes`; helper scripts use `Purpose` / `Usage` / `Exit`. Both end with `# Sources:`.
 - Executable scripts run under `set -euo pipefail`.
@@ -47,10 +47,9 @@ config:         # config file path per tool
   lint: ""
   typecheck: ""
 rule_set: "shellcheck defaults"
-test_patterns: ["tests/"] # which paths are tests, kept out of the size-budget file count (budget-check.sh) and out of flow entry candidates. [] or absent: the defaults
+test_patterns: ["tests/"] # which paths are tests, kept out of the size-budget file count (budget-check.sh). [] or absent: the defaults
                   # ["*.test.*", "*.spec.*", "__tests__/", "tests/", "test/", "e2e/", "*_test.go", "test_*.py", "*_test.py"]. A list replaces them
                   # for this profile. "dir/" matches that folder at any depth; a pattern with another / matches the repo-relative path; else the file name.
-graph_extractor: bash # the graph extractor the Tier B cache build runs for this work type: bash, dependency-cruiser or none
 ```
 
 ## Mini-review checklist

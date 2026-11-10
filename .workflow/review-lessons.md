@@ -55,6 +55,8 @@ lessons:
     paths: [".agents/skills/regenerate-caches/scripts/extractors/**"]
     origin_spec: .workflow/specs/done/00012-extractor-multiline-quotes
     date: 2026-10-30
+    retired: 2026-11-10
+    enforced_by: "Nothing left to catch: the bash graph extractor was removed with the generated caches."
   - id: RL-008
     symptom: "A rule moved into a shared reference file keeps a paraphrased copy in the step file it left, often beside the new pointer, so the rule has two homes and an edit to one misses the other."
     paths: [".agents/skills/*/modules/**", ".agents/skills/*/references/**", ".agents/skills/*/SKILL.md"]

@@ -2,12 +2,12 @@
 
 Interview the stakeholder until the feature's design tree is settled. Work in **rounds**: each round asks the whole **frontier** at once (design rule 7). **Facts are your job; decisions are the stakeholder's** (design rule 8). Every round, deep dive and scope ruling is appended to `design-log.md`, so the loop survives a cleared context and resumes from the log.
 
-`ST` below is `.agents/skills/feature-workflow/scripts/status-transition.sh`; type the full path every time.
+`ST` and the exit codes are in [conventions](../references/conventions.md).
 
 ## Entry
 
 1. `ST step .workflow/specs/NNN-slug 0.3.8` (marks where to resume).
-2. Read the newest **Deeper prompt** entry in `design-log.md` (0.3.22): its Ask, Goals, Downstream, Tools and Gotchas are the loop's input and frame the design tree; its **Not asked for** items stay out of scope. When its `Agreement:` line says pending and no later Questioning round logs the answer, the next ask carries it (the first round, or the 0.3.19 summary when no round is needed): open the message with the block and make its first question "Pass this deeper prompt on as written?", with "Yes (Recommended)" and "Change it". Log the answer as that round's first question. A change: apply it, append the revised block as a new **Deeper prompt** entry (`Agreement: agreed in Questioning round <n>`), and ask again, in the next round, every answer the change touches. Then read `spec.md` (the draft goal), `codebase-map.md` (where recommended answers come from) and `design-log.md` (decisions already made; create it from [../assets/design-log.md](../assets/design-log.md) if missing).
+2. Read the newest **Deeper prompt** entry in `design-log.md` (0.3.22): its Ask, Goals, Downstream, Tools and Gotchas are the loop's input and frame the design tree; its **Not asked for** items stay out of scope. When its `Agreement:` line says pending and no later Questioning round logs the answer, the next ask carries it (the first round, or the 0.3.19 summary when no round is needed): open the message with the block and make its first question "Pass this deeper prompt on as written?", with "Yes (Recommended)" and "Change it". Log the answer as that round's first question. The same ask carries the deeper prompt's own questions when its **Downstream**, **Tools and technologies** and **Gotchas** read `asked in the first questioning ask`: put them straight after it, worded as the `deeper-prompt` skill's step 2 words them, each with "None" as an option. Their answers fill those lines of the block: append the filled block as a new **Deeper prompt** entry, and put any decision an answer opens on the next round's frontier. A change: apply it, append the revised block as a new **Deeper prompt** entry (`Agreement: agreed in Questioning round <n>`), and ask again, in the next round, every answer the change touches. Then read `spec.md` (the draft goal), `codebase-map.md` (where recommended answers come from) and `design-log.md` (decisions already made; create it from [../assets/design-log.md](../assets/design-log.md) if missing).
 3. On a loop-back, seed the tree with the reason you came back. Every loop-back sets `draft`: the step file that owns the gate makes the status call below before loading this loop, and `ST` refuses any other route to `draft` (on exit 2 the owner stops and reports the reason).
 
    | From | Owner | Status call before loading the loop | Seed question |
@@ -48,7 +48,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
    - **Answer + Source:** the fact is settled; use it in the recommendation, never ask it.
    - **not a fact:** it is a decision; it joins the round.
    - **not determinable from the repo:** the stakeholder may know it; ask it in the round, saying the repo could not settle it.
-4. **0.3.11 Ask the whole frontier in one round.** Each question carries options, your recommended answer with its reason (cite the `codebase-map.md` row it rests on), and a **Defer to deep dive** option. Word each question so "yes" accepts the recommendation.
+4. **0.3.11 Ask the whole frontier in one round.** Each question carries options, your recommended answer with its reason (cite the `codebase-map.md` row it rests on), and a **Defer to deep dive** option. Word each question so "yes" accepts the recommendation. Before you send the round, launch what does not wait on its answers, as [conventions](../references/conventions.md#asking-the-stakeholder) says: the 0.3.10 lookups are already out; on the first round, when the owning module is settled (0.3.3–0.3.4) and `codebase-map.md` already shows a footprint too big for the light path (the 0.3.20 table in [discovery-impact](discovery-impact.md#0320-light-path-test)), also launch `module-audit` as [0.4.6](discovery-impact.md#04-model-the-impact-full-path) says, with the deeper prompt's Ask and Goals as what the feature changes in the module.
    - **Claude Code:** AskUserQuestion, all questions in one call; put the recommended option first and mark it "(Recommended)", and add "Defer to deep dive" as an option. If the round has more questions than one call accepts, use the chat format below for the whole round.
    - **Codex, or chat:** one message in this format, then wait for the answers:
 
@@ -65,9 +65,9 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
 6. **0.3.12–0.3.13 Deep dives.** After the round closes, take each deferred question one at a time: gather what it needs (a `fact-lookup`, the map, the code via a sub-agent), lay out the options, ask it alone, and log a **Deep dive** entry.
 7. **0.3.14–0.3.15 Term gate.** For each answer that introduces a new or conflicting term, invoke the `domain-modeling` skill for gate 0.3.14; it agrees the term and writes the glossary under step `0.3.15`.
 8. **0.3.16–0.3.17 Scope gate.** For each answer that puts work outside the agreed scope, run [deferred-handoff](deferred-handoff.md#write) **Write** at step `0.3.17`. It writes `.workflow/deferred/<slug>.md`, adds it to `spec.md` `deferred` and Non-goals, and logs the **Scope decision**.
-9. **0.3.18 Questions remaining?** Answers reshape the tree: settled decisions push the frontier outward and surface new questions. Any open or newly surfaced → `ST step .workflow/specs/NNN-slug 0.3.8` and run the next round. None → 0.3.19.
+9. **0.3.18 Questions remaining?** Answers reshape the tree: settled decisions push the frontier outward and surface new questions. Any open or newly surfaced → `ST step .workflow/specs/NNN-slug 0.3.8` and run the next round. None → 0.3.19. A small request usually needs one round: ask its frontier with the summary as the last question ([Last round](#settle-the-goal)), and run a second round only when a question stays open after it.
 
-On the small path: entered from discovery, the loop runs one round. The deeper prompt's agreement is its first question (Entry step 2), and the settled-design summary is always its last question ([Last round](#settle-the-goal)). An answer that defers a question to a deep dive, leaves one open, or surfaces a new one (0.3.18 is Yes) means [leave the small path](#leave-the-small-path). A loop-back to 0.3.8 (from 4.5, 4.6, 5.6, 00.24 or 00.29) runs the loop as written, with no limit of one round; the spec stays on the small path unless 0.3.19 finds a fact that is not clean.
+**A library the discovery did not evaluate.** When an answer brings in a library, SDK or external API that 0.2.5 did not evaluate (its **Library options** line in `codebase-map.md` reads `Not evaluated:`), launch `library-evaluation` as [discovery](discovery.md#02-retrieve-existing-system-context) 0.2.5 says and replace that line with its report.
 
 ## Settle the goal
 
@@ -90,8 +90,6 @@ ST step .workflow/specs/NNN-slug 0.3.19
 - **Open Questions:** empty; anything still open means the loop is not done.
 - Frontmatter `light_path`: `true` only when all three facts are clean. Leave `status` and every other key as they are.
 
-On the small path: keep `small_path: true` and `light_path: true` when the three facts are clean. A fact that is not clean, a library the project does not have, or a correction that reopens the frontier means [leave the small path](#leave-the-small-path) first.
-
 Once `spec.md` is written, copy it into the spec's tracker issue, so the issue carries the settled goal:
 
 ```bash
@@ -99,18 +97,6 @@ Once `spec.md` is written, copy it into the spec's tracker issue, so the issue c
 ```
 
 Load [discovery-impact](discovery-impact.md#0320-light-path-test) at 0.3.20. The size `budget` is not written here: discovery-impact writes it at 0.3.20 on the light path, task-breakdown at 2.5 on the full path.
-
-## Leave the small path
-
-The small path holds only while the request stays as small as it looked at 0.0.3. Leave it the moment any of these is true:
-
-- **Placement (0.3.3):** the owning module is not clear, so placement needs its own question.
-- **The round:** an answer defers a question to a deep dive, leaves one open, or surfaces a new one (0.3.18 is Yes), so a second round is needed.
-- **The goal (0.3.19):** a light-path fact (table in [discovery-impact](discovery-impact.md#0320-light-path-test)) is not clean, or the request needs a library the project does not have.
-
-To leave: append a dated `Left the small path: <reason>` line to `design-log.md` and tell the stakeholder in one line, leading with the progress line. Then carry on in the step file you are in, as written: placement at 0.3.4, a second round at 0.3.8, the full path after 0.3.20. The small path skipped library evaluation, so launch `library-evaluation` now as [discovery](discovery.md#02-retrieve-existing-system-context) 0.2.5 says and paste its report into **Library options** in `codebase-map.md`. From then on no "On the small path:" note applies, but one write remains: at 0.3.19, write `small_path: false` with the rest of `spec.md`, and `light_path` from the three facts.
-
-Done when the line is logged, the stakeholder has been told and `library-evaluation` is launched.
 
 ## Done
 

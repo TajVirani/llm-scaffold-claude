@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: lint that every step id of feature-workflow's references/steps.tsv is held by exactly one step file, and that the
 #   router's Route by status section, or a load line in another step file, reaches that file.
-# Covers: JRN-003. Intake ids 0.0.1-0.0.3 are held by the router (SKILL.md) and by no step file; every 0.x, 1.x-5.x
+# Covers: JRN-003. Intake ids 0.0.1-0.0.2 are held by the router (SKILL.md) and by no step file; every 0.x, 1.x-5.x
 #   (4.10 included), 6.x and 00.x id is held by exactly one step file under modules/ and that file is reached; the ids
 #   no step text labels (artifacts, hook and script actions) are held by at most one step file. Reads the repo only.
 #
@@ -33,9 +33,9 @@ TSV=$FW_SKILL/references/steps.tsv
 # Ids the workflow names only as an artifact, a hook or script action or a call target, with no step text of their own:
 # the request itself (0.0); the glossary writes the domain-modeling skill makes under the 0.2.2 and 0.4.2 term gates
 # (0.2.3, 0.4.3); the verification-plan.md write that closes 0.5 (0.5.4); the side artifacts (0.3.21 design-log.md,
-# 3.12 run artifacts); the Tier A and Tier B files (00.1-00.7); the shelf files (00.8-00.10); and the model and profile
+# 3.12 run artifacts); the Tier A files (00.1-00.4); the shelf files (00.8-00.10); and the model and profile
 # lookups the launch hooks run (00.11-00.17, 00.19, 00.20). 00.18 keeps its own label in 3.1 and is checked like a step.
-UNLABELLED_IDS=" 0.0 0.2.3 0.4.3 0.5.4 0.3.21 3.12 00.1 00.2 00.3 00.4 00.5 00.6 00.7 00.8 00.9 00.10 00.11 00.12 00.13 00.14 00.16 00.17 00.19 00.20 "
+UNLABELLED_IDS=" 0.0 0.2.3 0.4.3 0.5.4 0.3.21 3.12 00.1 00.2 00.3 00.4 00.8 00.9 00.10 00.11 00.12 00.13 00.14 00.16 00.17 00.19 00.20 "
 
 # held_ids FILE : the step ids FILE holds, one per line, ranges expanded, by the three rules in the header.
 held_ids() {
@@ -135,8 +135,8 @@ for step_file in "$MODULES_DIR"/*.md; do
   reached "$name" && printf '%s\n' "$name"
 done >"$WORK/reached.txt"
 
-echo "== intake: the router holds 0.0.1-0.0.3"
-for id in 0.0.1 0.0.2 0.0.3; do
+echo "== intake: the router holds 0.0.1-0.0.2"
+for id in 0.0.1 0.0.2; do
   check "the router holds $id" 'grep -q "^$id	" "$WORK/router.tsv"'
   eq "no step file holds $id" "$(holders "$id")" ""
 done

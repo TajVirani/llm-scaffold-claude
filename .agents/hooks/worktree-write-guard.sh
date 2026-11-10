@@ -25,6 +25,8 @@
 #   - An implementation or integration sub-agent: always checked with check-worktree-scope.sh --confined.
 #     - A header the lib cannot name (e.g. a spec_dir that is not a <NNN>-<slug> folder): deny every call with the lib's reason, fail
 #       closed, with or without isolation.
+#     - A Write/Edit/NotebookEdit of the agent's own result file under the spec's artifacts/ (the path its launch header names, per
+#       check-worktree-scope.sh): allow, even when the named agent worktree is missing. Every other path outside the worktree is denied.
 #     - The named agent worktree exists: confine to it. Otherwise, a cwd in an isolation worktree (a launch with isolation: "worktree"; a spec worktree does not count): confine to
 #       that worktree. Otherwise (the named agent worktree is missing, transcript not found, launch header missing or not parsed, cwd outside any git
 #       repository): deny every call, reads and temp-dir writes included; the reason names the cause, with the transcript or header cause
@@ -35,7 +37,7 @@
 #   per event, so the same command in two groups of one event would be installed only once). Codex: hooks/codex-write-guard.sh applies the
 #   same check to apply_patch paths, with the worktree named by the spawn task_name.
 # Notes: Accident prevention only, like the other guards: a Bash command can still reach outside after its leading cd.
-# Sources: first-party; hooks/post-implementation-audit.sh (transcript header parse), hooks/_guard-common.sh (deny shape),
+# Sources: first-party; hooks/post-implementation-audit.sh (transcript header parse), hooks/workflow-write-guard.sh (deny shape),
 #   lib/workflow-paths.sh (agent worktree names).
 # Requires: bash 3.2+, jq, git; resolve-launch.sh needs mikefarah yq v4.
 

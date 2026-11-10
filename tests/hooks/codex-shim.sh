@@ -6,7 +6,7 @@
 #   with evidence in the main checkout, the forked parent prompt being
 #   ignored, warnings for unparseable names, missing or ambiguous specs and profiles, integration names, and the Claude path still
 #   working; template JSON shape, matchers limited to the verified set, commands that resolve the project root from a sub-directory
-#   with and without a shell; the permissions profile shape, plus a live `codex sandbox` check when codex is installed (free, no model).
+#   with and without a shell; the config template holding only the [tui] table, with no permissions profile and no model key.
 # shellcheck disable=SC2016,SC2034  # check expressions are single-quoted and eval'd on purpose (they use EV, WARN)
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -201,28 +201,8 @@ echo "== codex-config.template.toml"
 C=$H/codex-config.template.toml
 cj=$(yq -p toml -o json -I=0 '.' "$C" 2>/dev/null)
 check "parses as TOML" '[ -n "$cj" ]'
-eq "default_permissions" "$(jq -r .default_permissions <<<"$cj")" workflow
-eq "extends :workspace (else every sandboxed shell aborts)" "$(jq -r .permissions.workflow.extends <<<"$cj")" ":workspace"
-eq ".workflow/cache read-only" "$(jq -r '.permissions.workflow.filesystem[":workspace_roots"][".workflow/cache"]' <<<"$cj")" read
-eq "no glob entries (0.155.1 allows only deny on globs)" \
-  "$(jq -r '[.permissions.workflow.filesystem[":workspace_roots"] | keys[] | select(test("[*?\\[]"))] | length' <<<"$cj")" 0
+eq "only the tui table" "$(jq -c 'keys' <<<"$cj")" '["tui"]'
 check "no model key anywhere" '! grep -Eq "^[[:space:]]*model[[:space:]]*=" "$C"'
-
-if command -v codex >/dev/null 2>&1; then
-  S=$B/sbx
-  mkdir -p "$S/.workflow/cache" "$S/.codex"
-  git init -q "$S"
-  cp "$C" "$S/.codex/config.toml"
-  printf 'echo ok > a.txt; echo x > .workflow/cache/b.txt; echo rc=$?\n' > "$B/probe.sh"
-  out=$(cd "$S" && codex sandbox -P workflow -C "$S" -c "projects={\"$S\"={trust_level=\"trusted\"}}" -- /bin/sh "$B/probe.sh" 2>&1); rc=$?
-  if [ $rc -eq 0 ] && [ -f "$S/a.txt" ]; then
-    check "codex sandbox: workspace write ok, .workflow/cache write blocked" '[ ! -f "$S/.workflow/cache/b.txt" ] && grep -q "rc=1" <<<"$out"' "$out"
-  else
-    skip "codex sandbox live check" "codex sandbox could not run here (rc=$rc)"
-  fi
-else
-  skip "codex sandbox live check" "codex not installed"
-fi
 
 shellcheck_files "shellcheck: post-implementation-audit.sh, generate-codex-agents.sh" "$H/post-implementation-audit.sh" "$H/generate-codex-agents.sh"
 finish

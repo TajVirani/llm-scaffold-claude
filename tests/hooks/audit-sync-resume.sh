@@ -4,7 +4,7 @@
 # Covers: audit block / loop counter / give-up / evidence in the checkout an isolation worktree sits in, phase-1 and malformed headers,
 #   a passing self-run reused by the stop audit;
 #   rules.md -> boundary config sync (block on parse error, missing yq, worktree); resume offer listing,
-#   discovered-work and size-budget prompts, work-backlog count (older item files and the open lines of a spec's backlog list), output cap.
+#   discovered-work and size-budget prompts, work-backlog count (the open lines of each spec's backlog list), output cap.
 # The three share one fixture project, so the sections run in order.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -266,10 +266,12 @@ bl "size budget: 12 tasks"
 check "size budget blocked -> prompt pending" 'grep -q "discovered-work prompt pending" <<<"$ctx"' "$ctx"
 bl "intent gap"
 check "other blocked condition -> no pending note" '! grep -q "002-dw.*prompt pending" <<<"$ctx"' "$ctx"
-for i in 1 2 3 4 5 6 7; do printf -- '---\nstatus: open\n---\n# item\n' > "$P/.workflow/specs/work-backlog/001-demo-disc-00$i.md"; done
-printf -- '---\nstatus: promoted\n---\n' > "$P/.workflow/specs/work-backlog/001-demo-disc-008.md"
+{ printf '%s\n\n' "# Work backlog: 001-demo"
+  for i in 1 2 3 4 5 6 7; do printf -- '- [open] B%s bug (4.4): item %s. Evidence: e.\n' "$i" "$i"; done
+  printf -- '- [promoted] B8 bug (4.4): item 8. Evidence: e. -> .workflow/specs/009-next\n'
+} > "$P/.workflow/specs/work-backlog/001-demo.md"
 out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
-check "backlog: 7 open counted, 5 names, promoted skipped, not scanned as a spec" 'grep -q "work-backlog/: 7 (001-demo-disc-001.md, 001-demo-disc-002.md, 001-demo-disc-003.md, 001-demo-disc-004.md, 001-demo-disc-005.md, ...)" <<<"$ctx" && ! grep -q "disc-006" <<<"$ctx" && ! grep -q "disc-008" <<<"$ctx" && ! grep -q "^- .workflow/specs/work-backlog" <<<"$ctx"' "$ctx"
+check "backlog: 7 open counted, 5 names, promoted skipped, not scanned as a spec" 'grep -q "work-backlog/: 7 (001-demo.md#B1, 001-demo.md#B2, 001-demo.md#B3, 001-demo.md#B4, 001-demo.md#B5, ...)" <<<"$ctx" && ! grep -q "#B6" <<<"$ctx" && ! grep -q "#B8" <<<"$ctx" && ! grep -q "^- .workflow/specs/work-backlog" <<<"$ctx"' "$ctx"
 printf -- '---\nstatus: open\n---\n' > "$P/.workflow/specs/work-backlog/spec.md"
 out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
 check "work-backlog/spec.md never scanned as a spec" '! grep -q "^- .workflow/specs/work-backlog" <<<"$ctx"' "$ctx"
@@ -277,7 +279,7 @@ rm "$P/.workflow/specs/work-backlog/spec.md"
 mv "$P/.workflow/specs/001-demo/spec.md" "$B/keep.bak"; rm -rf "$P/.workflow/specs/002-dw" "$P/.workflow/specs/001-demo"
 out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
 check "backlog only (no in-flight spec) still offers" 'grep -q "work-backlog/: 7" <<<"$ctx" && ! grep -q "In-flight" <<<"$ctx"' "$ctx"
-for i in 1 2 3 4 5 6 7; do printf -- '---\nstatus: dismissed\n---\n' > "$P/.workflow/specs/work-backlog/001-demo-disc-00$i.md"; done
+printf '%s\n' "# Work backlog: 001-demo" "" "- [promoted] B8 bug (4.4): item 8. Evidence: e. -> .workflow/specs/009-next" > "$P/.workflow/specs/work-backlog/001-demo.md"
 out=$(ss "$P")
 check "no open backlog and no specs -> nothing" '[ -z "$out" ]' "$out"
 # One backlog list per spec, one line per kept item; open lines count, promoted lines and other files do not.
@@ -286,21 +288,19 @@ printf '%s\n' "# Work backlog: 002-list" "" "- [open] B1 bug (4.4): A. Evidence:
   "- [open] B3 refactor (4.4): C. Evidence: c." > "$P/.workflow/specs/work-backlog/002-list.md"
 printf '%s\n' "- [open] B9 bug (4.4): stray. Evidence: z." > "$P/.workflow/specs/work-backlog/notes.md"
 out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
-check "backlog list: open lines counted by list#id beside an open item file; promoted line and stray file skipped" \
-  'grep -q "work-backlog/: 3 (001-demo-disc-001.md, 002-list.md#B1, 002-list.md#B3)" <<<"$ctx" && ! grep -q "B2\|B9" <<<"$ctx"' "$ctx"
+check "backlog list: open lines counted by list#id; an old per-item file, a promoted line and a stray file skipped" \
+  'grep -q "work-backlog/: 2 (002-list.md#B1, 002-list.md#B3)" <<<"$ctx" && ! grep -q "B2\|B9\|disc-001" <<<"$ctx"' "$ctx"
 rm "$P/.workflow/specs/work-backlog/001-demo-disc-001.md"
 printf '%s\n' "# Work backlog: 002-list" "" "- [promoted] B2 bug (3.7): B. Evidence: b. -> .workflow/specs/003-next" > "$P/.workflow/specs/work-backlog/002-list.md"
 out=$(ss "$P")
 check "backlog list with only promoted lines and no specs -> nothing" '[ -z "$out" ]' "$out"
-# Tracker adoption renames a Done spec's list old_NNN-slug.md; the write guard also accepts an old_ item file. Open items in both still
-# count; other old names do not.
+# Tracker adoption renames a Done spec's list old_NNN-slug.md. Its open lines still count; other old names do not.
 printf '%s\n' "# Work backlog: 00010-alpha" "" "- [open] B1 bug (4.4): A. Evidence: a." > "$P/.workflow/specs/work-backlog/old_00010-alpha.md"
-printf -- '---\nstatus: open\n---\n# item\n' > "$P/.workflow/specs/work-backlog/old_00011-beta-disc-001.md"
 printf '%s\n' "- [open] B8 bug (4.4): stray. Evidence: z." > "$P/.workflow/specs/work-backlog/old_notes.md"
 printf '%s\n' "- [open] B9 bug (4.4): stray. Evidence: z." > "$P/.workflow/specs/work-backlog/old-00012-gamma.md"
 out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
-check "backlog: old_ list's open line and old_ open item file counted; malformed old names skipped" \
-  'grep -q "work-backlog/: 2 (old_00010-alpha.md#B1, old_00011-beta-disc-001.md)" <<<"$ctx" && ! grep -q "B8\|B9" <<<"$ctx"' "$ctx"
+check "backlog: old_ list's open line counted; malformed old names skipped" \
+  'grep -q "work-backlog/: 1 (old_00010-alpha.md#B1)" <<<"$ctx" && ! grep -q "B8\|B9" <<<"$ctx"' "$ctx"
 rm -rf "$P/.workflow/specs/work-backlog"
 
 echo "== session-start-resume: session handoffs (.workflow/.handoff/)"

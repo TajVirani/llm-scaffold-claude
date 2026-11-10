@@ -2,8 +2,7 @@
 # Suite: move-to-done.sh (feature-workflow/scripts) and the readers that look in the Done folder, .workflow/specs/done/.
 # Covers: the interface: the script is executable, and no argument or an unknown option exits 2.
 #   JRN-001: --check on a spec whose task record T2 is pending exits 1, names T2 and not the done tasks, and changes no file,
-#   ref or index entry; two open records are both named; a backlog item from the spec with a status outside open, promoted,
-#   moved-to-deferred and dismissed is named, while one from another spec is not; on the spec's backlog list open,
+#   ref or index entry; two open records are both named; a per-item backlog file is not read; on the spec's backlog list open,
 #   promoted and split lines pass, while a line with another status, no status or no evidence is named by line number, and
 #   another spec's list is not read; the 5.7 sequence (the check, then
 #   status-transition.sh status done --step 5.7) leaves the spec in-review; once every record is done or split-out the check
@@ -11,34 +10,26 @@
 #   JRN-002: moving the done spec 012-alpha puts it at .workflow/specs/done/012-alpha with no step marker, the same
 #   spec_branch and status, and the old folder gone, committed as one Conventional Commits commit on the spec branch with a
 #   clean tree; every back-link form is rewritten (shelf, retrospective, capabilities row, review lesson, backlog items,
-#   sibling spec, the spec's own path strings, pr-body.md); the cache file, the initiative file, docs/notes.md and the
+#   sibling spec, the spec's own path strings, pr-body.md); the initiative file, docs/notes.md and the
 #   look-alike 012-alpha-two and 012-alphabet references are byte-identical; no other file changed (the expected-tree
-#   oracle); no old-path reference remains outside cache/ and initiatives/; the word-level diff changes only path words;
+#   oracle); no old-path reference remains outside initiatives/; the word-level diff changes only path words;
 #   every relative link in the moved spec resolves; refusals that change nothing: a spec not done, an existing
 #   done/012-alpha, a pending task record, a missing folder, a folder that is not a spec.
 #   JRN-006 (the move half): the moved pr-body.md differs from the approved one only in the spec path, and check-pr-body.sh
 #   exits 0 on it.
-#   JRN-003: --sweep moves 012-alpha and 014-gamma, keeps 013-beta, 015-delta and work-backlog/ at the top level with their
-#   step markers, leaves the tree the swept oracle describes, commits on the checked-out branch, and a second sweep changes
-#   nothing.
-#   JRN-007 and JRN-004 (numbering): with 00010-wide and 009-narrow done, --check passes on the five-digit spec, --sweep
-#   moves both and rewrites their links, and next-spec-number.sh, the 0.1.1 call, counts the Done folder,
+#   JRN-007 and JRN-004 (numbering): with 00010-wide and 009-narrow done, --check passes on the five-digit spec, moving
+#   each in turn rewrites their links, and next-spec-number.sh, the 0.1.1 call, counts the Done folder,
 #   so the next number is 00011.
 #   JRN-004 (done on main): the spec_done_on_main helper read from modules/large-path.md is true for a done spec on main at
 #   the top level and in done/, and false for one that is not done.
 #   Edge cases: a path ending a sentence and two paths one space apart are all rewritten; a link back into the spec through
 #   its parent and a reference-style link resolve after the move; a spec already in done/ cannot move (2) but passes --check;
-#   the main branch and a detached HEAD are refused with nothing changed; an untracked done spec moves and is committed; a
-#   sweep with a done spec failing the check exits 1, names it and its open task, leaves it in place and commits the rest.
-#   The sweep on a done spec's own branch (sign-off 5.8) leaves that spec at the top level, says so, exits 0 and commits the
-#   other done spec alone; the spec's own move then succeeds and the tree matches the swept oracle; when that spec is the
-#   only done one the sweep prints nothing to sweep, exits 0 and changes nothing.
+#   the main branch and a detached HEAD are refused with nothing changed; an untracked done spec moves and is committed.
 #   Failing reads (git stubbed on PATH, or a file or folder made unreadable): the checked-out branch, the list of workflow
 #   files, the tracked check, the search of an unreadable file and the listing of an unreadable spec subfolder each exit 2
 #   with their message and leave nothing changed; so does a search whose list of matching files cannot be written (a stubbed
-#   mktemp puts a folder in its place). Rollback: a commit that fails after the move and a sweep that cannot write
-#   a read-only file for its second spec both exit 2 and leave the tree, the step markers, the refs and the index exactly as
-#   they were.
+#   mktemp puts a folder in its place). Rollback: a commit that fails after the move exits 2 and leaves the tree, the step
+#   markers, the refs and the index exactly as they were.
 # Fixtures: tests/fixtures/done-folder.sh (the project, its expected trees and the oracles), tests/fixtures/pr-template.sh.
 # shellcheck disable=SC2016,SC2034,SC2329,SC1010  # check expressions are single-quoted and eval'd on purpose, read variables and call helpers shellcheck cannot see; "done" is a status word
 # shellcheck source=../lib/common.sh
@@ -158,11 +149,8 @@ set_task "$P" "$DONE_SPEC" T1 done
 set_task "$P" "$DONE_SPEC" T2 done
 
 set_status "$P/.workflow/specs/work-backlog/012-alpha-disc-002.md" in-progress
-set_status "$P/.workflow/specs/work-backlog/013-beta-disc-001.md" in-progress
 mtd "$P" --check "$DONE_SPEC"
-check "JRN-001 --check names a backlog item from the spec whose status is not a closed or open one" \
-  '[[ $RC == 1 && $OUT == *012-alpha-disc-002* ]]' "rc=$RC: $OUT"
-check "JRN-001 --check does not name a backlog item from another spec" '[[ $OUT != *013-beta-disc-001* ]]' "$OUT"
+check "JRN-001 --check reads no per-item backlog file" '[[ $OUT != *012-alpha-disc-002* ]]' "rc=$RC: $OUT"
 set_status "$P/.workflow/specs/work-backlog/012-alpha-disc-002.md" dismissed
 
 # The spec's backlog list: open and promoted lines are closed; any other status, or a line out of shape, is named.
@@ -208,7 +196,7 @@ check "fixture: every relative link in the spec resolves before the move" '[[ -z
 check "fixture: every relative link in the expected moved spec resolves" '[[ -z $(unresolved_links "$EXPECTED/$MOVED") ]]' \
   "$(unresolved_links "$EXPECTED/$MOVED")"
 check "fixture: the old path is referenced before the move" '[[ -n $(old_spec_refs "$P" 012-alpha) ]]'
-for kept in .workflow/cache/modules.md .workflow/initiatives/001-ini/initiative.md docs/notes.md .workflow/deferred/alpha-two-shelf.md; do
+for kept in .workflow/initiatives/001-ini/initiative.md docs/notes.md .workflow/deferred/alpha-two-shelf.md; do
   cp "$P/$kept" "$WORK/kept-$(basename "$kept")"
 done
 TIP=$(git -C "$P" rev-parse HEAD)
@@ -247,12 +235,12 @@ moved design log own path strings|.workflow/specs/done/012-alpha/design-log.md
 moved report own path string|.workflow/specs/done/012-alpha/report.md
 moved pr-body.md own path string|.workflow/specs/done/012-alpha/pr-body.md
 FORMS
-for kept in .workflow/cache/modules.md .workflow/initiatives/001-ini/initiative.md docs/notes.md .workflow/deferred/alpha-two-shelf.md; do
+for kept in .workflow/initiatives/001-ini/initiative.md docs/notes.md .workflow/deferred/alpha-two-shelf.md; do
   check "JRN-002 byte-identical: $kept" 'cmp -s "$WORK/kept-$(basename "$kept")" "$P/$kept"'
 done
 check "JRN-002 no other file under .workflow/ or docs/ changed (expected-tree oracle)" \
   '[[ -z $(tree_differences "$EXPECTED" "$P") ]]' "$(tree_differences "$EXPECTED" "$P" 2>/dev/null | head -8)"
-check "JRN-002 no old-path reference remains outside cache/ and initiatives/" '[[ -z $(old_spec_refs "$P" 012-alpha) ]]' \
+check "JRN-002 no old-path reference remains outside initiatives/" '[[ -z $(old_spec_refs "$P" 012-alpha) ]]' \
   "$(old_spec_refs "$P" 012-alpha | head -5)"
 check "JRN-002 the word-level diff changes only path words" \
   '[[ -n $(word_changes "$P" "$TIP" HEAD "$DONE_SPEC" "$MOVED") && -z $(word_changes "$P" "$TIP" HEAD "$DONE_SPEC" "$MOVED" | grep -vE "012-alpha|\.\./") ]]' \
@@ -299,52 +287,25 @@ mtd "$P" .workflow/specs/work-backlog
 eq "JRN-002 moving a folder that is not a spec exits 2" "$RC" 2
 check "JRN-002 the usage refusals change nothing" '[[ $(tree_digest "$P") == "$BEFORE" ]]'
 
-echo "== JRN-003: the sweep"
-P=$WORK/sweep
-done_folder_repo "$P"
-git -C "$P" switch -q -c spec/013-beta
-EXPECTED=$WORK/expected-swept
-done_expected "$EXPECTED" swept
-TIP=$(git -C "$P" rev-parse HEAD)
-DRAFT_DIGEST=$(cd "$P/$DONE_DRAFT" && find . -type f -exec cksum {} + | LC_ALL=C sort)
-mtd "$P" --sweep
-eq "JRN-003 --sweep exits 0" "$RC" 0
-check "JRN-003 both done specs sit in done/" '[[ -f "$P/$MOVED/spec.md" && -f "$P/$DONE/014-gamma/spec.md" ]]' "$OUT"
-check "JRN-003 neither done spec is left at the top level" '[[ ! -e "$P/$DONE_SPEC" && ! -e "$P/$DONE_SECOND" ]]'
-eq "JRN-003 the top level holds only the in-flight specs, work-backlog/ and done/" \
-  "$(find "$P/.workflow/specs" -mindepth 1 -maxdepth 1 -exec basename {} \; | LC_ALL=C sort | tr '\n' ' ')" "013-beta 015-delta done work-backlog "
-check "JRN-003 no step marker under done/" '[[ -d "$P/$DONE" && -z $(find "$P/$DONE" -name .step) ]]'
-check "JRN-003 the draft spec is byte-identical, its step marker included" \
-  '[[ $(cd "$P/$DONE_DRAFT" && find . -type f -exec cksum {} + | LC_ALL=C sort) == "$DRAFT_DIGEST" ]]'
-check "JRN-003 the in-progress spec keeps its step marker" '[[ -f "$P/$DONE_SIBLING/.step" ]]'
-check "JRN-003 the tree is what the swept oracle describes" '[[ -z $(tree_differences "$EXPECTED" "$P") ]]' \
-  "$(tree_differences "$EXPECTED" "$P" 2>/dev/null | head -8)"
-check "JRN-003 no old-path reference to either moved spec remains" \
-  '[[ -z $(old_spec_refs "$P" 012-alpha) && -z $(old_spec_refs "$P" 014-gamma) ]]' \
-  "$(old_spec_refs "$P" 012-alpha | head -3; old_spec_refs "$P" 014-gamma | head -3)"
-check "JRN-003 the sweep is committed on the checked-out branch with a clean tree" \
-  '[[ $(git -C "$P" branch --show-current) == spec/013-beta && $(git -C "$P" rev-parse HEAD) != "$TIP" && -z $(git -C "$P" status --porcelain) ]]'
-BEFORE=$(tree_digest "$P")
-mtd "$P" --sweep
-check "JRN-003 a second sweep exits 0 and changes nothing" '[[ $RC == 0 && $(tree_digest "$P") == "$BEFORE" ]]' "rc=$RC: $OUT"
-
 echo "== JRN-007 and JRN-004: any-digit spec numbers and next-spec-number.sh"
 P=$WORK/digits
 done_digits_repo "$P"
 EXPECTED=$WORK/expected-digits
 done_digits_expected "$EXPECTED"
-eq "JRN-007 fixture: before the sweep next-spec-number.sh gives 00011" "$(next_number "$P")" 00011
+eq "JRN-007 fixture: before the moves next-spec-number.sh gives 00011" "$(next_number "$P")" 00011
 mtd "$P" --check .workflow/specs/00010-wide
 eq "JRN-007 --check passes on the five-digit spec" "$RC" 0
-mtd "$P" --sweep
-eq "JRN-007 --sweep exits 0" "$RC" 0
+mtd "$P" .workflow/specs/00010-wide
+eq "JRN-007 moving the five-digit spec exits 0" "$RC" 0
+mtd "$P" .workflow/specs/009-narrow
+eq "JRN-007 moving the three-digit spec exits 0" "$RC" 0
 check "JRN-007 the five-digit and three-digit specs both sit in done/" \
   '[[ -f "$P/$DONE/00010-wide/spec.md" && -f "$P/$DONE/009-narrow/spec.md" ]]' "$OUT"
 check "JRN-007 the in-progress spec stays at the top level" '[[ -f "$P/.workflow/specs/005-current/spec.md" ]]'
 check "JRN-007 the tree is what the any-digit oracle describes" '[[ -z $(tree_differences "$EXPECTED" "$P") ]]' \
   "$(tree_differences "$EXPECTED" "$P" 2>/dev/null | head -8)"
 NEXT=$(next_number "$P")
-check "JRN-007 after the sweep next-spec-number.sh still gives 00011, with 00010 now in done/" \
+check "JRN-007 after the moves next-spec-number.sh still gives 00011, with 00010 now in done/" \
   '[[ -f "$P/$DONE/00010-wide/spec.md" && $NEXT == 00011 ]]' "next=$NEXT"
 
 echo "== JRN-004: readers of the Done folder"
@@ -400,8 +361,8 @@ mtd "$P" "$DONE_SPEC"
 check "moving on the main branch exits 1 and changes nothing" '[[ $RC == 1 && $(tree_digest "$P") == "$BEFORE" ]]' "rc=$RC: $OUT"
 git -C "$P" switch -q --detach spec/012-alpha
 BEFORE=$(tree_digest "$P")
-mtd "$P" --sweep
-check "sweeping on a detached HEAD exits 1 and changes nothing" '[[ $RC == 1 && $(tree_digest "$P") == "$BEFORE" ]]' "rc=$RC: $OUT"
+mtd "$P" "$DONE_SPEC"
+check "moving on a detached HEAD exits 1 and changes nothing" '[[ $RC == 1 && $(tree_digest "$P") == "$BEFORE" ]]' "rc=$RC: $OUT"
 git -C "$P" switch -q spec/012-alpha
 git -C "$P" rm -rq --cached "$DONE_SPEC"
 git_commit_all "$P" "fixture: 012-alpha untracked"
@@ -411,48 +372,6 @@ mtd "$P" .workflow/specs/016-seeded
 check "an untracked done spec moves and is committed" \
   '[[ $RC == 0 && -n $(git -C "$P" ls-tree -r --name-only HEAD -- "$DONE/016-seeded") && -z $(git -C "$P" status --porcelain -- .workflow/specs) ]]' \
   "rc=$RC: $OUT"
-
-echo "== the sweep leaves a done spec that fails the check"
-P=$WORK/sweep-open
-done_folder_repo "$P"
-git -C "$P" switch -q -c spec/013-beta
-set_task "$P" "$DONE_SECOND" T1 blocked
-git_commit_all "$P" "fixture: 014-gamma done with T1 blocked"
-TIP=$(git -C "$P" rev-parse HEAD)
-mtd "$P" --sweep
-eq "the sweep with one done spec failing the check exits 1" "$RC" 1
-check "the sweep names the spec it left and its open task" '[[ $OUT == *"left in place: $DONE_SECOND"* && $OUT == *"task T1 (blocked)"* ]]' "$OUT"
-check "the failing spec stays at the top level with its step marker" '[[ -f "$P/$DONE_SECOND/spec.md" && -f "$P/$DONE_SECOND/.step" ]]'
-check "the passing spec still moves and is committed" \
-  '[[ -f "$P/$MOVED/spec.md" && $(git -C "$P" rev-parse HEAD~1) == "$TIP" && -z $(git -C "$P" status --porcelain) ]]' "$OUT"
-
-echo "== the sweep leaves the spec on the checked-out branch to its own move"
-P=$WORK/sweep-own
-done_folder_repo "$P"
-EXPECTED=$WORK/expected-own
-done_expected "$EXPECTED" swept
-TIP=$(git -C "$P" rev-parse HEAD)
-mtd "$P" --sweep
-check "the sweep on the spec branch of a done spec exits 0 and says that spec is left for its own move step" \
-  '[[ $RC == 0 && $OUT == *"skipped: $DONE_SPEC (moved by its own sign-off step)"* ]]' "rc=$RC: $OUT"
-check "the done spec on the checked-out branch stays at the top level with its step marker" \
-  '[[ -f "$P/$DONE_SPEC/spec.md" && -f "$P/$DONE_SPEC/.step" && ! -e "$P/$MOVED" ]]' "$OUT"
-check "the other done spec moves, committed alone on the checked-out branch" \
-  '[[ -f "$P/$DONE/014-gamma/spec.md" && ! -e "$P/$DONE_SECOND" && $(git -C "$P" rev-parse HEAD~1) == "$TIP" && -z $(git -C "$P" status --porcelain) ]]' "$OUT"
-mtd "$P" "$DONE_SPEC"
-check "the spec's own move after the sweep exits 0 and commits it into done/" \
-  '[[ $RC == 0 && -f "$P/$MOVED/spec.md" && ! -e "$P/$DONE_SPEC" && -z $(git -C "$P" status --porcelain) ]]' "rc=$RC: $OUT"
-check "after the sweep and the own move the tree is what the swept oracle describes" \
-  '[[ -z $(tree_differences "$EXPECTED" "$P") ]]' "$(tree_differences "$EXPECTED" "$P" 2>/dev/null | head -8)"
-
-P=$WORK/sweep-own-only
-done_folder_repo "$P"
-set_status "$P/$DONE_SECOND/spec.md" in-progress
-git_commit_all "$P" "fixture: 014-gamma back in progress"
-BEFORE=$(tree_digest "$P")
-mtd "$P" --sweep
-check "a sweep whose only done spec is on the checked-out branch prints nothing to sweep, exits 0 and changes nothing" \
-  '[[ $RC == 0 && $OUT == *"nothing to sweep"* && $(tree_digest "$P") == "$BEFORE" ]]' "rc=$RC: $OUT"
 
 echo "== a failing read is an error, not a clean result"
 P=$WORK/read-branch
@@ -509,19 +428,6 @@ PATH="$(failing_git "$WORK/git-commit" '* commit *'):$PATH" mtd "$P" "$DONE_SPEC
 eq "a failing commit after the move exits 2" "$RC" 2
 check "a failing commit after the move leaves the spec, its step marker, every rewritten file and the index as they were" \
   '[[ $(tree_digest "$P") == "$BEFORE" && ! -d "$P/$DONE" && $OUT == *"rolled back"* ]]' "$OUT"
-
-P=$WORK/rollback-sweep
-done_folder_repo "$P"
-git -C "$P" switch -q -c spec/013-beta
-printf '%s\n' "Gamma closed in .workflow/specs/014-gamma." >"$P/.workflow/deferred/gamma-read-only.md"
-git_commit_all "$P" "fixture: a read-only file naming 014-gamma"
-chmod 444 "$P/.workflow/deferred/gamma-read-only.md"
-BEFORE=$(tree_digest "$P")
-mtd "$P" --sweep
-chmod 644 "$P/.workflow/deferred/gamma-read-only.md"
-eq "a sweep that cannot rewrite a file for its second spec exits 2" "$RC" 2
-check "the failed sweep puts the first spec it moved back too, and commits nothing" \
-  '[[ $(tree_digest "$P") == "$BEFORE" && -f "$P/$DONE_SPEC/.step" && ! -d "$P/$DONE" && $OUT == *"cannot write"* ]]' "$OUT"
 
 shellcheck_files "shellcheck: move-to-done.sh, its suite and fixture" "$REPO_ROOT/$DONE_MTD_REL" \
   "$TESTS_DIR/scripts/move-to-done.sh" "$TESTS_DIR/fixtures/done-folder.sh"

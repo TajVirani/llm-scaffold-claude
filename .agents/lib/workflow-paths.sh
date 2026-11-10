@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # File: Sourced helper (not a hook, not executable on its own): the one home for where workflow data lives in a target project.
 # Purpose: Every workflow-written path in a target project sits under one hidden, committed folder, WF_DIR. Hooks (through
-#   hooks/_guard-common.sh or directly) and skill scripts source this file and build paths from the variables below instead of
+#   hooks/workflow-write-guard.sh through check-write.sh, or directly) and skill scripts source this file and build paths from the variables below instead of
 #   spelling the folder out, so the root can change in one place. Static files that cannot source it (JSON/TOML templates,
 #   markdown) carry the literal paths and must be kept in step by hand.
 # Usage (from a hook):         . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/workflow-paths.sh"
@@ -38,6 +38,14 @@
 #                          <NNN> taken from the spec folder name NNN-slug (relative, dot-relative, trailing-slash or absolute
 #                          spec dir), no trailing newline; status 1 and the reason on stderr for a spec folder that is not
 #                          NNN-slug, an unknown kind, a task value that is not T<digits> or an empty work type
+#   wf_marker_seq <marker>  prints the marker's `seq:` value, nothing when it has none or the file is absent
+#   wf_marker_order_key <marker>
+#                          prints a key that orders step markers (.step of a spec or an initiative) oldest to newest when
+#                          compared as strings: `1:<seq, zero-padded to 12>` for a marker with a `seq:` line, `0:<updated_at>`
+#                          for an older marker without one (so any marker with seq is newer), nothing when the file is absent
+#   wf_next_marker_seq <checkout root>
+#                          prints one more than the highest `seq:` among the spec and initiative step markers under <checkout
+#                          root> (1 when none has one), the value a marker writer records so readers never compare clock times
 #   wf_origin_host <dir>   prints `github` when the `origin` remote URL of the checkout at <dir> contains "github", else
 #                          `gitlab` when it contains "gitlab", else nothing (another host, no origin remote, <dir> empty or
 #                          not in a git repository); status 0 in every case. Callers still check the CLI is installed.
@@ -56,7 +64,7 @@
 #                               moves an untracked local file such as a step marker out of the tree until rollback or end
 #     wf_rewrite_spec_path <old> <new>
 #                               <old> and <new> each `$WF_SPECS/NAME` or `$WF_SPECS_DONE/NAME`: rewrites in every workflow
-#                               file (tracked or untracked and not ignored, under WF_DIR, outside the cache, initiatives,
+#                               file (tracked or untracked and not ignored, under WF_DIR, outside the initiatives,
 #                               worktree, handoff and staging folders) the `specs/<old part>` forms, the `../<old part>`
 #                               form a file under the specs folder climbs with, and, when NAME changes, the backlog list
 #                               `work-backlog/NAME.md` and `NAME.md#B<n>` references; queues each changed file. When <new>
@@ -80,9 +88,8 @@ WF_DIR=".workflow"
 
 WF_GLOSSARY="$WF_DIR/GLOSSARY.md"
 WF_GLOSSARY_MAP="$WF_DIR/GLOSSARY-MAP.md"
-WF_AGENT_OVERRIDES="$WF_DIR/agent-overrides.yaml"
 WF_ISSUE_TRACKING="$WF_DIR/issue-tracking.yaml"
-WF_MODEL_MAP="$WF_DIR/model-map"
+WF_MODEL_MAP="$WF_DIR/model-map.yaml"
 WF_PROFILES="$WF_DIR/profiles"
 WF_SPECS="$WF_DIR/specs"
 WF_SPECS_DONE="$WF_SPECS/done"
@@ -92,14 +99,12 @@ WF_DEFERRED="$WF_DIR/deferred"
 WF_RULES="$WF_DIR/rules.md"
 WF_CAPABILITIES="$WF_DIR/capabilities.md"
 WF_REVIEW_LESSONS="$WF_DIR/review-lessons.md"
-WF_CACHE="$WF_DIR/cache"
 WF_DECISIONS="$WF_DIR/decisions"
 WF_PR_QUALITY="$WF_DIR/pr-quality"
 WF_DESIGN_PATTERN_DOC="$WF_DIR/design-pattern-doc"
 WF_TOOLS="$WF_DIR/tools"
 WF_BOUNDARIES="$WF_TOOLS/boundaries"
 WF_OXLINT="$WF_TOOLS/oxlint"
-WF_CACHE_STAGING="$WF_DIR/.cache-staging"
 WF_STANDARDS_STAGING="$WF_DIR/.standards-staging"
 WF_HANDOFF="$WF_DIR/.handoff"
 WF_WORKTREES="$WF_DIR/.worktrees"
@@ -236,6 +241,37 @@ wf_agent_worktree_name() {
       return 1
       ;;
   esac
+}
+
+# wf_marker_seq MARKER : print the marker's seq value, nothing when it has none or the file is absent.
+wf_marker_seq() {
+  [[ -f "$1" ]] || return 0
+  sed -n 's/^seq:[[:space:]]*"\{0,1\}\([0-9][0-9]*\)"\{0,1\}[[:space:]]*$/\1/p' "$1" | head -n 1
+}
+
+# wf_marker_order_key MARKER : print a key that sorts step markers oldest to newest as strings; nothing when MARKER is absent.
+wf_marker_order_key() {
+  local seq at
+  [[ -f "$1" ]] || return 0
+  seq=$(wf_marker_seq "$1")
+  if [[ -n "$seq" ]]; then
+    # 10# reads a zero-padded value as decimal, not octal.
+    printf '1:%012d\n' "$((10#$seq))"
+    return 0
+  fi
+  at=$(sed -n 's/^updated_at:[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$1" | head -n 1)
+  printf '0:%s\n' "$at"
+}
+
+# wf_next_marker_seq ROOT : print one more than the highest seq among the spec and initiative step markers under ROOT.
+wf_next_marker_seq() {
+  local mk seq high=0
+  for mk in "$1/$WF_SPECS"/*/.step "$1/$WF_INITIATIVES"/*/.step; do
+    [[ -f "$mk" ]] || continue
+    seq=$(wf_marker_seq "$mk")
+    [[ -z "$seq" ]] || (( 10#$seq <= high )) || high=$((10#$seq))
+  done
+  printf '%s\n' "$((high + 1))"
 }
 
 # wf_origin_host DIR : print github or gitlab when the origin remote URL of the checkout at DIR contains that name, nothing
@@ -566,10 +602,9 @@ wf_rewrite_references() {
 # wf_rewrite_spec_path OLD NEW : rewrite every path to the spec folder OLD into NEW (each `$WF_SPECS/NAME` or
 #   `$WF_SPECS_DONE/NAME`, repo-relative) in the workflow files, and queue each changed file for the commit. When NEW sits a
 #   folder deeper and its folder is already moved there, the relative links in it that climb out of it first get one more
-#   `../` each, so call this once per move, after wf_rewrite_move. Generated caches, initiative records and local working
-#   state are skipped: caches are rebuilt from the tree, an initiative re-points its own spec paths when it closes, and
-#   other checkouts are not this branch's to change. Status 1 with a reason when OLD or NEW is not a spec folder, NEW sits
-#   higher than OLD, or a step fails.
+#   `../` each, so call this once per move, after wf_rewrite_move. Initiative records and local working state are
+#   skipped: an initiative re-points its own spec paths when it closes, and other checkouts are not this branch's to
+#   change. Status 1 with a reason when OLD or NEW is not a spec folder, NEW sits higher than OLD, or a step fails.
 wf_rewrite_spec_path() {
   wf_rewrite_require_run || return 1
   local old=$1 new=$2 old_part new_part old_slashes new_slashes levels new_abs prefix file rel slashes rewrite_status
@@ -598,9 +633,8 @@ wf_rewrite_spec_path() {
       wf_rewrite_outbound_links "$file" "${#slashes}" "$levels" || return 1
     done <"$WF_REWRITE_SCRATCH/list"
   fi
-  git -C "$WF_REWRITE_ROOT" ls-files -c -o --exclude-standard -z -- "$WF_DIR" ":(exclude)$WF_CACHE" \
-    ":(exclude)$WF_INITIATIVES" ":(exclude)$WF_WORKTREES" ":(exclude)$WF_SPEC_WORKTREES" ":(exclude)$WF_HANDOFF" \
-    ":(exclude)$WF_CACHE_STAGING" ":(exclude)$WF_STANDARDS_STAGING" >"$WF_REWRITE_SCRATCH/list" || {
+  git -C "$WF_REWRITE_ROOT" ls-files -c -o --exclude-standard -z -- "$WF_DIR" ":(exclude)$WF_INITIATIVES" \
+    ":(exclude)$WF_WORKTREES" ":(exclude)$WF_SPEC_WORKTREES" ":(exclude)$WF_HANDOFF" ":(exclude)$WF_STANDARDS_STAGING" >"$WF_REWRITE_SCRATCH/list" || {
     wf_rewrite_say "cannot list the workflow files to rewrite"
     return 1
   }

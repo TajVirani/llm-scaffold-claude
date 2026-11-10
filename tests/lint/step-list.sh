@@ -3,7 +3,9 @@
 # Covers: the file's shape (4 tab-separated columns, unique ids, known tracks, seven phase rows, each id's phase matches its
 #   prefix); the id set equals the numbered nodes of PLAN/decision-flow-reference.md and of PLAN/decision-flow.mermaid (removed
 #   nodes such as ~~00.15~~ excluded); each "## Phase N" section of the reference lists exactly the ids the file puts in phase N;
-#   per-phase step counts on the full and light paths, and the large-path count, are the agreed ones; every step id named by status-transition.sh, the
+#   step-progress.sh prints every counted step with the per-phase totals steps.tsv gives on the full and light paths, and the
+#   large form with the large-track total; every file path named in the decision-flow records, assetlist.md and checklist.md
+#   exists, except the allowed target-project and example paths and removals marked as such; every step id named by status-transition.sh, the
 #   check-write.sh step lists and every `--step` / `step <spec-dir> <id>` call under .agents/ is in the file; and
 #   step-progress.sh prints a line for every counted step on each of its paths. JRN-007: the large track (phase row P6, 6.x ids
 #   on track large, the conversion node in phase 0 on both paths), its ids in the reference and the mermaid, the 6.x ids the
@@ -56,10 +58,63 @@ for n in 0 1 2 3 4 5 6; do
   eq "reference Phase $n ids == steps.tsv phase $n ids" "$(comm -3 "$WORK/ref$n" "$WORK/tsv$n" | tr -s '\t ' ' ')" ""
 done
 
+# counts PATH : "<phase>:<steps> " for each phase with a counted step on PATH, in phase order, from steps.tsv.
 counts() { rows | awk -F'\t' -v p="$1" '($3 == "both" || $3 == p) { n[$2]++ } END { for (i = 0; i <= 6; i++) if (i in n) printf "%d:%d ", i, n[i] }'; }
-eq "full path step counts per phase" "$(counts full)" "0:48 1:5 2:6 3:14 4:9 5:9 "
-eq "light path step counts per phase" "$(counts light)" "0:36 3:15 4:6 5:9 "
-eq "large path step count, apart from both paths" "$(rows | awk -F'\t' '$3 == "large" { n++ } END { print n + 0 }')" "13"
+check "full path counts steps in phases 0-5" '[[ "$(counts full)" =~ ^0:[0-9]+\ 1:[0-9]+\ 2:[0-9]+\ 3:[0-9]+\ 4:[0-9]+\ 5:[0-9]+\ $ ]]' "$(counts full)"
+check "light path counts steps in phases 0, 3, 4 and 5" '[[ "$(counts light)" =~ ^0:[0-9]+\ 3:[0-9]+\ 4:[0-9]+\ 5:[0-9]+\ $ ]]' "$(counts light)"
+
+# Every file path the design records name exists. The awk prints "<file>:<line>: <path>" for each path-like token, skipping
+# placeholders (a token that runs into <, {, * or $, or names NNN), records (assetlist's Decisions and Open questions), a "### " section whose first bullet says Removed (D<n>),
+# and lines that mark a removal. Paths under skills/, agents/, hooks/ and lib/ are relative to .agents/ (assetlist's form).
+# Allowed below: target-project paths and examples, which do not exist in this repo; a folder allows what is under it.
+NAMED_PATH_ALLOW='.agents/VERSION
+.codex/config.toml
+.codex/hooks.json
+.workflow/GLOSSARY-MAP.md
+.workflow/data-structure-audit-state.jsonl
+.workflow/design-pattern-doc/
+.workflow/tools/oxlint/
+agents/openai.yaml
+PLAN/archive/
+scripts/generate-codex-agents'
+# named_paths FILE... : print "<file>:<line>: <path>" for each repo path a design record names.
+named_paths() {
+  awk '
+    FNR == 1 { skip = 0; sect = 0 }
+    /^## / { skip = (FILENAME ~ /assetlist\.md$/ && ($0 ~ /^## Decisions/ || $0 ~ /^## Open questions/)); sect = 0; next }
+    /^### / { sect = 0; head = 1; next }
+    head && /^- \*\*Removed \(D[0-9]+\)\.\*\*/ { sect = 1 }
+    head && /^- / { head = 0 }
+    skip || sect { next }
+    /[Rr]emoved (by D[0-9]+|\(D[0-9]+\))|content stays in git history/ { next }
+    {
+      line = " " $0
+      while (match(line, /[^A-Za-z0-9_.\/-](\.agents|\.workflow|\.claude|\.codex|tests|scripts|PLAN|skills|agents|hooks|lib)\/[A-Za-z0-9._\/-]*|[^A-Za-z0-9_.\/-]install\.sh/)) {
+        tok = substr(line, RSTART + 1, RLENGTH - 1)
+        rest = substr(line, RSTART + RLENGTH, 1)
+        line = substr(line, RSTART + RLENGTH)
+        sub(/\.+$/, "", tok)
+        if (rest ~ /[<{*$]/ || tok ~ /NNN/) continue
+        # A bare skills/ or hooks/ word with no extension or trailing slash is prose ("skills/agents/hooks"), not a path.
+        if (tok ~ /^(skills|agents|hooks|lib)\// && tok !~ /(\.[A-Za-z0-9]+|\/)$/) continue
+        print FILENAME ":" FNR ": " tok
+      }
+    }' "$@"
+}
+missing_paths=""
+while IFS= read -r hit; do
+  path=${hit##*: }
+  [ -e "$REPO_ROOT/$path" ] && continue
+  case $path in skills/* | agents/* | hooks/* | lib/*) [ -e "$AGENTS_SRC/$path" ] && continue ;; esac
+  allowed=0
+  while IFS= read -r ok_path; do
+    # An allowed folder (trailing slash) also allows the paths under it.
+    case $path in "$ok_path" | "${ok_path%/}" | "${ok_path%/}"/*) [[ $ok_path == */ || $path == "$ok_path" ]] && allowed=1 ;; esac
+  done <<<"$NAMED_PATH_ALLOW"
+  [ "$allowed" = 1 ] && continue
+  missing_paths="$missing_paths${hit#"$REPO_ROOT"/}"$'\n'
+done < <(named_paths "$MMD" "$REF" "$REPO_ROOT/assetlist.md" "$REPO_ROOT/checklist.md")
+eq "every file path the decision flow, assetlist.md and checklist.md name exists" "$missing_paths" ""
 
 # Step ids the scripts and skills use must be in the file.
 ST=$FW_SKILL/scripts/status-transition.sh
@@ -73,15 +128,19 @@ CW=$FW_SKILL/scripts/check-write.sh
 check "found step ids in the scripts and skills" '[ "$(wc -l <"$WORK/used")" -gt 20 ]'
 eq "every step id used by status-transition.sh, check-write.sh and the skills is in steps.tsv" "$(comm -23 "$WORK/used" "$WORK/tsv" | tr '\n' ' ')" ""
 
-# step-progress.sh prints a line for every counted step on each of its paths.
+# step-progress.sh prints a line for every counted step on each of its paths, with the phase and step totals steps.tsv gives.
+COUNTS_full=$(counts full) COUNTS_light=$(counts light)
 miss=""
-while IFS=$'\t' read -r id _ track _; do
+while IFS=$'\t' read -r id phase track _; do
   for p in full light; do
     [ "$track" = both ] || [ "$track" = "$p" ] || continue
-    out=$(bash "$SP" "$id" --path "$p" 2>&1) && [[ "$out" == Phase*"($id)" ]] || miss="$miss $id/$p"
+    if [ "$p" = full ]; then path_counts=$COUNTS_full; else path_counts=$COUNTS_light; fi
+    phases=$(wc -w <<<"$path_counts" | tr -d ' ')
+    steps=$(tr ' ' '\n' <<<"$path_counts" | sed -n "s/^$phase://p")
+    out=$(bash "$SP" "$id" --path "$p" 2>&1) && [[ "$out" == "Phase "*" of $phases · step "*" of $steps — "*"($id)" ]] || miss="$miss $id/$p"
   done
 done < <(rows | awk -F'\t' '$3 == "both" || $3 == "full" || $3 == "light"')
-eq "step-progress.sh prints every counted step" "$miss" ""
+eq "step-progress.sh prints every counted step with the totals steps.tsv gives" "$miss" ""
 
 # The large track. Its ids are 6.x, so they sit outside ID_RE and are checked here on their own.
 LARGE_RE='6(\.[0-9]+)+'

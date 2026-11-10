@@ -10,7 +10,7 @@ A candidate earns a record only when it holds something the final code, tests an
 | Review lesson: a symptom a reader can see in a diff, with the paths where it can recur | `.workflow/review-lessons.md` (below), plus the file and id under the document's **Recorded in** | Yes (Tier A, step 5.7) |
 | Judgement lesson: needs a reader, but no diff shows its symptom | Action item: a profile **Mini-review checklist** line, or a `.workflow/rules.md` line | No: a 5.3 proposal in a later feature, or applied by a human |
 | Feature note: about this feature only | `.workflow/specs/NNN-slug/design-log.md` | Yes |
-| Model observation | `.workflow/agent-overrides.yaml` or `.workflow/model-map/<type>.md` (below) | Yes |
+| Model observation | The task type's row in `.workflow/model-map.yaml` (below) | Yes |
 
 Each finding gets two dispositions: what to do about this instance (step 4), and what would prevent the next one (this table, or nothing).
 
@@ -30,7 +30,7 @@ Admit only an observed failure: a suspicion or a trap-looking fact is not an ent
 
 A review lesson tells the Phase 4 review what to look for: its symptom shows in changed lines, and it names the paths where the mistake can recur. A lesson about how the workflow ran is a process lesson, and one whose symptom no diff shows is a judgement lesson: both go where the table sends them. A lesson a rule, a lint or a profile checklist line already enforces is not a review lesson.
 
-Only the retrospective of a feature in flight writes the file. With no feature in flight, `tier-a-write-guard` denies the write, so a standalone run turns an approved review lesson into an action item.
+Only the retrospective of a feature in flight writes the file. With no feature in flight, `workflow-write-guard` denies the write, so a standalone run turns an approved review lesson into an action item.
 
 The template is `.agents/skills/feature-workflow/assets/review-lessons.md`. Its header comment holds the entry rules and two commands, `validate:` and `next-id:`. Run either one on the lessons file like this:
 
@@ -90,28 +90,21 @@ Append one section to `design-log.md`, newest last, and never edit an earlier en
 
 For each task type and host with an observation backed by evidence (rework rounds, a `profile-wrong` or `blocked` return, a launch denial, review findings traced to one agent's output, the stakeholder's account):
 
-1. Check whether the agent definition pins a model for that host:
+1. Append one dated line to that task type's `observations` list in `.workflow/model-map.yaml`, in the form its header comment gives:
 
    ```bash
-   yq --front-matter=extract '.models.<host> // ""' .agents/agents/<type>.md
+   yq -i '.<type>.observations += ["<YYYY-MM-DD> (<host> <alias>, spec <NNN-slug>): <what happened>. <the alias change, or No alias change.>"]' .workflow/model-map.yaml
    ```
 
-2. Route the proposal to exactly one place:
-   - **Pinned** (a non-empty value): set the override in `.workflow/agent-overrides.yaml`, which takes precedence over the definition:
+2. When the stakeholder agreed an alias change, also set that row's host key:
 
-     ```bash
-     yq -i '.<type>.<host> = "<alias>"' .workflow/agent-overrides.yaml
-     ```
-
-   - **Not pinned**: in `.workflow/model-map/<type>.md`, append a dated line under `## Observations`. When the stakeholder agreed an alias change, also set the frontmatter key:
-
-     ```bash
-     yq -i --front-matter=process '.<host> = "<alias>"' .workflow/model-map/<type>.md
-     ```
+   ```bash
+   yq -i '.<type>.<host> = "<alias>"' .workflow/model-map.yaml
+   ```
 
 3. Write aliases only, never a dated model ID. Leave `.agents/agents/*.md` unedited: definitions are scaffold-owned and overwritten on reinstall.
-4. Record the row in the document's **Model observations** table, with the destination.
+4. Record the row in the document's **Model observations** table.
 
-An observation with no proposed change still gets its dated line in `.workflow/model-map/<type>.md` when the definition pins nothing. When the definition pins a model, record it in the document only.
+An observation with no proposed change still gets its dated line.
 
 Done when every approved candidate is at its destination, the document names that destination for each one, and `.workflow/review-lessons.md`, when this run wrote it, passes `validate:`.

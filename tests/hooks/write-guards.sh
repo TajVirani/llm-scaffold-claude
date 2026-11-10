@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Suite: hooks/spec-single-writer-guard.sh, hooks/tier-a-write-guard.sh, hooks/tier-b-write-guard.sh (and the sourced
-#   _guard-common.sh): thin PreToolUse adapters over feature-workflow/scripts/check-write.sh.
-# Covers: main session vs sub-agent (agent_id), Write / Edit / NotebookEdit payloads, status edits denied through the
+# Suite: hooks/workflow-write-guard.sh: the thin PreToolUse adapter over feature-workflow/scripts/check-write.sh.
+# Covers: one check-write.sh call per write, covering spec-class and Tier A paths alike; the settings template
+#   wires it as the one write hook; main session vs sub-agent (agent_id), Write / Edit / NotebookEdit payloads, status edits denied through the
 #   proposed-content check, Tier A steps and glossary / profile rules, the review-lessons file at 5.7 only (JRN-004),
-#   .workflow/cache always denied,
 #   worktree cwd, CLAUDE_PROJECT_DIR fallback, fail-closed on bad payload / no jq (static deny) / failure before a decision / no yq / non-repo cwd,
 #   and silence in a project that does not have the workflow installed.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -18,7 +17,7 @@ H=$P/.agents/hooks
 ST="$P/.agents/skills/feature-workflow/scripts/status-transition.sh"
 TPL="$P/.agents/skills/feature-workflow/assets"
 
-mkdir -p "$P/.workflow/specs/001-demo" "$P/.workflow/specs/work-backlog" "$P/.workflow/profiles" "$P/.workflow/cache" "$P/.workflow/decisions/adr" "$P/src"
+mkdir -p "$P/.workflow/specs/001-demo" "$P/.workflow/specs/work-backlog" "$P/.workflow/profiles" "$P/.workflow/decisions/adr" "$P/src"
 cp "$TPL/spec.md" "$P/.workflow/specs/001-demo/spec.md"
 cp "$TPL/tasks.md" "$P/.workflow/specs/001-demo/tasks.md"
 echo '# glossary' > "$P/.workflow/GLOSSARY.md"
@@ -58,9 +57,9 @@ expect() {
     if [ -z "$pat" ] || reason | grep -qE -- "$pat"; then ok "$name"; else ko "$name" "reason lacks /$pat/: $(reason)"; fi
   else ko "$name" "rc=$rc out=$out"; fi
 }
-SPECG=spec-single-writer-guard
-TIERA=tier-a-write-guard
-TIERB=tier-b-write-guard
+# Spec-class and Tier A paths go through the same hook; the two names keep each case's intent readable.
+SPECG=workflow-write-guard
+TIERA=workflow-write-guard
 
 echo "== main session vs sub-agent: spec.md"
 at 0.3.19
@@ -96,14 +95,13 @@ expect "tasks.md at 2.5, sub-agent" deny $SPECG "$(payload Write .workflow/specs
 at 3.1
 expect "tasks.md at 3.1 denied with set-task pointer" deny $SPECG "$(payload Write .workflow/specs/001-demo/tasks.md)" "set-task"
 at 00.26
-expect "work-backlog item at 00.26, main" allow $SPECG "$(payload Write .workflow/specs/work-backlog/001-demo-disc-001.md)"
-expect "work-backlog item at 00.26, sub-agent" deny $SPECG "$(payload Write .workflow/specs/work-backlog/001-demo-disc-001.md "$P" "$SUB")"
+expect "work-backlog list at 00.26, main" allow $SPECG "$(payload Write .workflow/specs/work-backlog/001-demo.md)"
+expect "work-backlog list at 00.26, sub-agent" deny $SPECG "$(payload Write .workflow/specs/work-backlog/001-demo.md "$P" "$SUB")"
 expect "work-backlog misnamed item denied" deny $SPECG "$(payload Write .workflow/specs/work-backlog/notes.md)"
 at 3.1
-expect "work-backlog item at 3.1 denied" deny $SPECG "$(payload Write .workflow/specs/work-backlog/001-demo-disc-001.md)" "00\.26"
-expect "spec guard ignores Tier A path" allow $SPECG "$(payload Write .workflow/GLOSSARY.md)"
-expect "spec guard ignores Tier B path" allow $SPECG "$(payload Write .workflow/cache/modules.md)"
-expect "spec guard ignores source file" allow $SPECG "$(payload Write src/app.ts)"
+expect "work-backlog list at 3.1 denied" deny $SPECG "$(payload Write .workflow/specs/work-backlog/001-demo.md)" "00\.26"
+expect "the same hook denies a Tier A path at 3.1" deny $SPECG "$(payload Write .workflow/GLOSSARY.md)" "proposals\.md"
+expect "source file allowed" allow $SPECG "$(payload Write src/app.ts)"
 expect "spec guard: feature without marker denied" deny $SPECG "$(payload Write .workflow/specs/004-new/spec.md)"
 
 echo "== Tier A guard"
@@ -138,8 +136,7 @@ expect "existing profile at 5.3, sub-agent denied" deny $TIERA "$(payload Write 
 at 00.19
 expect "new profile at 00.19 allowed" allow $TIERA "$(payload Write .workflow/profiles/backend.md)"
 expect "existing profile at 00.19 denied" deny $TIERA "$(payload Write .workflow/profiles/frontend.md)" "5\.3"
-expect "Tier A guard ignores spec.md" allow $TIERA "$(payload Write .workflow/specs/001-demo/spec.md)"
-expect "Tier A guard ignores .workflow/cache" allow $TIERA "$(payload Write .workflow/cache/modules.md)"
+expect "the same hook denies spec.md at 00.19" deny $TIERA "$(payload Write .workflow/specs/001-demo/spec.md)" "spec\.md is written only at"
 expect "NotebookEdit on Tier A path follows the same rule" deny $TIERA "$(payload NotebookEdit .workflow/rules.md)"
 at 0.3.7
 expect "NotebookEdit on .workflow/rules.md at 0.3.7 allowed" allow $TIERA "$(payload NotebookEdit .workflow/rules.md)"
@@ -158,20 +155,11 @@ expect "no feature in flight: main allowed" allow $TIERA "$(payload Write .workf
 expect "no feature in flight: sub-agent denied" deny $TIERA "$(payload Write .workflow/rules.md "$P" "$SUB")"
 yq --front-matter=process -i '.status="draft"' "$P/.workflow/specs/001-demo/spec.md"
 
-echo "== Tier B guard"
+echo "== paths no guard owns"
 at 5.3
-expect ".workflow/cache denied for main" deny $TIERB "$(payload Write .workflow/cache/modules.md)" "regenerate-caches|publish-cache"
-expect ".workflow/cache denied for sub-agent" deny $TIERB "$(payload Write .workflow/cache/modules.md "$P" '{"agent_id":"a3","agent_type":"cache-regeneration"}')"
-expect ".workflow/cache nested path denied" deny $TIERB "$(payload Edit .workflow/cache/x/y.md)"
-expect ".workflow/cache via .. denied" deny $TIERB "$(payload Write src/../.workflow/cache/flows.md)"
-expect ".workflow/cache absolute path denied" deny $TIERB "$(payload Write "$P/.workflow/cache/modules.md")"
-expect ".workflow/cache NotebookEdit denied" deny $TIERB "$(payload NotebookEdit .workflow/cache/n.ipynb)"
-expect ".workflow/cache case-insensitive" deny $TIERB "$(payload Write .Workflow/Cache/a.md)"
-expect "docs/cachex is not Tier B" allow $TIERB "$(payload Write docs/cachex.md)"
-expect "source file allowed" allow $TIERB "$(payload Write src/app.ts)"
-expect "path outside repo allowed" allow $TIERB "$(payload Write /etc/hosts)"
-expect "no path (e.g. other tool input) allowed" allow $TIERB '{"cwd":"'"$P"'","tool_name":"Write","tool_input":{}}'
-expect "Tier B guard ignores Tier A path" allow $TIERB "$(payload Write .workflow/rules.md)"
+expect "source file allowed" allow $TIERA "$(payload Write src/app.ts)"
+expect "path outside repo allowed" allow $TIERA "$(payload Write /etc/hosts)"
+expect "no path (e.g. other tool input) allowed" allow $TIERA '{"cwd":"'"$P"'","tool_name":"Write","tool_input":{}}'
 
 echo "== worktree cwd"
 at 0.3.19
@@ -180,31 +168,26 @@ expect "spec.md from worktree cwd, sub-agent" deny $SPECG "$(payload Write "$WT/
 expect "relative spec.md path resolves against worktree cwd (Edit)" allow $SPECG "$(payload Edit .workflow/specs/001-demo/spec.md "$WT" | jq -c '.tool_input={file_path:".workflow/specs/001-demo/spec.md",old_string:"light_path: false",new_string:"light_path: false"}')"
 at 3.1
 expect "spec.md from worktree at 3.1 denied" deny $SPECG "$(payload Write "$WT/.workflow/specs/001-demo/spec.md" "$WT")"
-expect ".workflow/cache in worktree denied" deny $TIERB "$(payload Write "$WT/.workflow/cache/a.md" "$WT" "$SUB")"
 expect "Tier A path in worktree, sub-agent denied" deny $TIERA "$(payload Write "$WT/.workflow/rules.md" "$WT" "$SUB")"
-out=$(payload Write .workflow/cache/a.md "" | jq -c 'del(.cwd)' | (cd / && CLAUDE_PROJECT_DIR="$P" bash "$H/$TIERB.sh" 2>/dev/null)); rc=$?
+out=$(payload Write .workflow/specs/001-demo/.step "" | jq -c 'del(.cwd)' | (cd / && CLAUDE_PROJECT_DIR="$P" bash "$H/$SPECG.sh" 2>/dev/null)); rc=$?
 if is_deny; then ok "no cwd in payload: CLAUDE_PROJECT_DIR fallback"; else ko "no cwd in payload: CLAUDE_PROJECT_DIR fallback" "rc=$rc out=$out"; fi
 
 echo "== fail closed"
-for g in $SPECG $TIERA $TIERB; do
-  guard "$g" 'not json'
-  if is_deny && reason | grep -q 'unparsable'; then ok "$g: invalid payload denied"; else ko "$g: invalid payload denied" "rc=$rc out=$out"; fi
-  guard "$g" ''
-  if is_deny; then ok "$g: empty payload denied"; else ko "$g: empty payload denied" "rc=$rc out=$out"; fi
-done
+guard "$SPECG" 'not json'
+if is_deny && reason | grep -q 'unparsable'; then ok "invalid payload denied"; else ko "invalid payload denied" "rc=$rc out=$out"; fi
+guard "$SPECG" ''
+if is_deny; then ok "empty payload denied"; else ko "empty payload denied" "rc=$rc out=$out"; fi
 # A PATH with the usual tools but no jq.
 NOJQ=$WORK/bin-nojq
 mkdir -p "$NOJQ"
 for b in bash git cat sed tr grep mktemp rm dirname basename head awk env wc sort ls date find cut stat yq; do
   command -v "$b" >/dev/null 2>&1 && ln -sf "$(command -v "$b")" "$NOJQ/$b"
 done
-out=$(payload Write .workflow/cache/a.md | (cd "$P" && PATH="$NOJQ" "$NOJQ/bash" "$H/$TIERB.sh" 2>/dev/null)); rc=$?
+out=$(payload Write .workflow/specs/001-demo/.step | (cd "$P" && PATH="$NOJQ" "$NOJQ/bash" "$H/$SPECG.sh" 2>/dev/null)); rc=$?
 # Without jq the guard cannot parse the payload; it emits a static deny (like pre-launch.sh) instead of failing open.
 if is_deny && grep -q 'write guard error (denying, fail closed): jq not found' <<<"$out"; then ok "no jq: static deny (fail closed)"; else ko "no jq: static deny (fail closed)" "rc=$rc out=$out"; fi
-for g in $SPECG $TIERA; do
-  out=$(payload Write .workflow/GLOSSARY.md | (cd "$P" && PATH="$NOJQ" "$NOJQ/bash" "$H/$g.sh" 2>/dev/null)); rc=$?
-  if is_deny; then ok "$g: no jq, static deny"; else ko "$g: no jq, static deny" "rc=$rc out=$out"; fi
-done
+out=$(payload Write .workflow/GLOSSARY.md | (cd "$P" && PATH="$NOJQ" "$NOJQ/bash" "$H/$TIERA.sh" 2>/dev/null)); rc=$?
+if is_deny; then ok "Tier A path, no jq: static deny"; else ko "Tier A path, no jq: static deny" "rc=$rc out=$out"; fi
 # A failure before any decision (here a mktemp that fails) is a static deny too, not a non-zero exit.
 FAILMK=$WORK/bin-failmk
 mkdir -p "$FAILMK"
@@ -228,13 +211,33 @@ expect "cwd outside any git repo: path is not in a workflow project, allowed" al
 echo "== project without the workflow installed"
 NW=$WORK/nowf
 mkdir -p "$NW/.agents/hooks"
-cp "$H"/_guard-common.sh "$H"/*-guard.sh "$NW/.agents/hooks/"
+cp "$H/$SPECG.sh" "$NW/.agents/hooks/"
 # The guards exit before reading stdin here, so the payload comes from a file: a pipe would let the writer die of SIGPIPE.
-payload Write .workflow/cache/modules.md "$NW" > "$WORK/nowf.json"
-for g in $SPECG $TIERA $TIERB; do
-  out=$(bash "$NW/.agents/hooks/$g.sh" < "$WORK/nowf.json" 2>/dev/null); rc=$?
-  if is_allow; then ok "$g: no feature-workflow skill -> silent allow"; else ko "$g: no feature-workflow skill -> silent allow" "rc=$rc out=$out"; fi
+payload Write .workflow/rules.md "$NW" > "$WORK/nowf.json"
+out=$(bash "$NW/.agents/hooks/$SPECG.sh" < "$WORK/nowf.json" 2>/dev/null); rc=$?
+if is_allow; then ok "no feature-workflow skill -> silent allow"; else ko "no feature-workflow skill -> silent allow" "rc=$rc out=$out"; fi
+
+echo "== one check-write.sh call per write"
+# A copy of the hook beside a check-write.sh stub that records its arguments and denies, so the calls can be counted.
+CW1=$WORK/one-call
+mkdir -p "$CW1/.agents/hooks" "$CW1/.agents/skills/feature-workflow/scripts"
+cp "$H/$SPECG.sh" "$CW1/.agents/hooks/"
+printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s/calls"\necho "deny: stub" >&2\nexit 2\n' "$CW1" > "$CW1/.agents/skills/feature-workflow/scripts/check-write.sh"
+chmod +x "$CW1/.agents/skills/feature-workflow/scripts/check-write.sh"
+for target in .workflow/specs/001-demo/spec.md .workflow/rules.md; do
+  : > "$CW1/calls"
+  out=$(payload Write "$target" | bash "$CW1/.agents/hooks/$SPECG.sh" 2>/dev/null); rc=$?
+  eq "$target: one check-write.sh call" "$(wc -l < "$CW1/calls" | tr -d ' ')" 1
+  check "$target: the call passes --proposed" 'grep -q -- "--proposed" "$CW1/calls"' "$(cat "$CW1/calls")"
+  if is_deny && reason | grep -q 'deny: stub'; then ok "$target: the stub's deny reason is passed on"; else ko "$target: the stub's deny reason is passed on" "rc=$rc out=$out"; fi
 done
+SETTINGS_TPL=$H/claude-settings.template.json
+eq "the template's Write|Edit|NotebookEdit PreToolUse group runs only workflow-write-guard.sh" \
+  "$(jq -r '[.hooks.PreToolUse[] | select(.matcher == "Write|Edit|NotebookEdit") | .hooks[].command] | join(",")' "$SETTINGS_TPL")" \
+  '"$CLAUDE_PROJECT_DIR"/.agents/hooks/workflow-write-guard.sh'
+check "the manifest ships workflow-write-guard.sh and none of the hooks it replaced" \
+  'grep -qx "hooks/workflow-write-guard.sh" "$P/.agents/install-manifest.txt" && ! grep -qE "spec-single-writer-guard|tier-a-write-guard|_guard-common" "$P/.agents/install-manifest.txt"'
+
 
 echo "== workflow-paths.sh constants"
 # lib_eval EXPR : source the path library in a clean shell and print EXPR's expansion.
@@ -245,5 +248,5 @@ eq "WF_REVIEW_LESSONS is the repo-relative review-lessons file" "$(lib_eval '$WF
 eq "wf_path joins the project root and WF_INITIATIVES" "$(lib_eval "\$(wf_path $P/ \"\$WF_INITIATIVES\")")" "$P/.workflow/initiatives"
 eq "an initiative's .step pattern builds from WF_INITIATIVES" "$(lib_eval '$WF_INITIATIVES/*/.step')" ".workflow/initiatives/*/.step"
 
-shellcheck_files "shellcheck: write guards, workflow-paths.sh" "$H/../lib/workflow-paths.sh" "$H/_guard-common.sh" "$H/$SPECG.sh" "$H/$TIERA.sh" "$H/$TIERB.sh"
+shellcheck_files "shellcheck: write guard, workflow-paths.sh" "$H/../lib/workflow-paths.sh" "$H/$SPECG.sh"
 finish

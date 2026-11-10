@@ -51,10 +51,10 @@
 #   toolchain.json results for test carry `scoped` (true when test_scoped ran), `own` and `excluded` (selector counts) when scoping applied,
 #   and `changed` (the changed-file count) when the changed set was computed.
 # Tree hash: a git tree object id for the checkout's content at --cwd's repository top level, tracked and untracked files alike (ignored files
-#   stay out), minus the workflow data folders (specs, initiatives, deferred, decisions, .handoff, .worktrees, .cache-staging, .standards-staging
+#   stay out), minus the workflow data folders (specs, initiatives, deferred, decisions, .handoff, .worktrees, .standards-staging
 #   under the workflow root), so writing evidence or a step marker never changes it, and minus the Tier A files sign-off and the retrospective
-#   edit that no script or test reads (capabilities.md, review-lessons.md, GLOSSARY.md, the decisions folder above, and model-map/). rules.md
-#   and the profiles stay in: cache scripts and the project's tests read them, so an edit there must re-run the commands. Built in a temporary
+#   edit that no script or test reads (capabilities.md, review-lessons.md, GLOSSARY.md, the decisions folder above, and model-map.yaml). rules.md
+#   and the profiles stay in: the project's scripts and tests read them, so an edit there must re-run the commands. Built in a temporary
 #   index; the checkout's index is not touched.
 # Reuse (--reuse): candidates are <spec-dir>/artifacts/*/toolchain.json, this task's own record first, then the others by directory name.
 #   A candidate matches when its status is pass, its `tree` equals this checkout's, every key this run would execute is `pass` there with the
@@ -82,7 +82,8 @@
 #   digest is "" on pass; on failure it is bounded text suitable as a SubagentStop block reason. The digest is also printed to stderr on failure.
 #   With --tree-hash, stdout is the 40-hex tree hash alone. With --reuse-check, stdout is the hit's task id alone, or nothing.
 # Exit: 0 all run commands passed (or a reuse hit, or --tree-hash printed); 1 at least one failed, or --reuse-check found no hit;
-#   2 usage or config error, including --cwd outside a git repository (message on stderr, no JSON).
+#   2 usage or config error, including --cwd outside a git repository and a key that would run whose value still starts with
+#   `TODO:` (the message names the profile file and the key; nothing runs) (message on stderr, no JSON).
 # Requires: bash, jq, mikefarah yq v4, git.
 
 set -euo pipefail
@@ -95,7 +96,7 @@ die() { echo "run-toolchain.sh: $*" >&2; exit 2; }
 # tree_hash DIR : print the tree hash of DIR's repository content, without the workflow data folders and the Tier A files nothing reads.
 tree_hash() {
   local top real idx err rc=0 hash="" path
-  local left_out=("$WF_SPECS" "$WF_INITIATIVES" "$WF_DEFERRED" "$WF_DECISIONS" "$WF_HANDOFF" "$WF_WORKTREES" "$WF_CACHE_STAGING" "$WF_STANDARDS_STAGING"
+  local left_out=("$WF_SPECS" "$WF_INITIATIVES" "$WF_DEFERRED" "$WF_DECISIONS" "$WF_HANDOFF" "$WF_WORKTREES" "$WF_STANDARDS_STAGING"
     "$WF_CAPABILITIES" "$WF_REVIEW_LESSONS" "$WF_GLOSSARY" "$WF_MODEL_MAP")
   local excludes=()
   top=$(git -C "$1" rev-parse --show-toplevel 2>/dev/null) || die "--cwd is not inside a git repository: $1"
@@ -259,6 +260,16 @@ for i in "${!keys[@]}"; do
   esac
   plan_cmd[i]=$cmd plan_skip[i]=$skip plan_scoped[i]=$scoped plan_unscoped[i]=$unscoped
   [ -n "$skip" ] || planned=$(jq -c --arg k "$key" --arg c "$cmd" '. + [{key:$k, command:$c}]' <<<"$planned")
+done
+
+# A placeholder left by project setup would run as a command named `TODO:` and fail with a message that hides the cause.
+for i in "${!keys[@]}"; do
+  [ "$reuse_check" -eq 0 ] && [ -z "${plan_skip[i]}" ] || continue
+  todo_key=${keys[$i]}
+  [ "${plan_scoped[i]}" != true ] || todo_key=test_scoped
+  case "${plan_cmd[i]#"${plan_cmd[i]%%[![:space:]]*}"}" in
+    TODO:*) die "the Toolchain key '$todo_key' in $profile is still a placeholder ('${plan_cmd[i]}'), so nothing ran. Replace it with the real command, or \"\" when the key does not apply, then run again." ;;
+  esac
 done
 
 # reuse_match FILE : true when the toolchain.json at FILE is a passing record that this run would only repeat.

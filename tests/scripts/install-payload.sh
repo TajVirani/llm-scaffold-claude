@@ -73,7 +73,7 @@ t "generated agents are current (--check)" 0 "$TEST_BASH" "$A/.agents/hooks/gene
 check "hooks.json equals the Codex template" '[ "$(jq -S . "$A/.codex/hooks.json")" = "$(jq -S . "$SC/.agents/hooks/codex-hooks.template.json")" ]'
 check "config.toml parses to the template values" '[ "$(yq -p toml -o json -I=0 . "$A/.codex/config.toml")" = "$(yq -p toml -o json -I=0 . "$SC/.agents/hooks/codex-config.template.toml")" ]'
 eq "config.toml sets the Codex context bar" "$(yq -p toml -o json -I=0 .tui.status_line "$A/.codex/config.toml")" '["model-with-reasoning","context-remaining","current-dir","git-branch"]'
-for p in '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.cache-staging/' '.workflow/.worktrees/' '.workflow/.spec-worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/'; do
+for p in '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.worktrees/' '.workflow/.spec-worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/'; do
   check ".gitignore has $p" 'grep -qxF -- "$p" "$A/.gitignore"'
 done
 check "install creates no .workflow/" '[ ! -e "$A/.workflow" ]'
@@ -85,7 +85,7 @@ check "an installed hook runs from the target" 'printf "%s" "$out" | grep -qi "d
 
 echo "== vendored and scaffold-only files are absent"
 eq "installed skills are exactly the first-party set" "$(cd "$A/.agents/skills" && find . -mindepth 1 -maxdepth 1 | sed 's|^\./||' | LC_ALL=C sort | tr '\n' ' ')" \
-  "data-structure-audit deeper-prompt deps-audit deps-update design-pattern-doc domain-modeling feature-workflow glab handoff issue-tracking pr-quality pr-review-data project-setup project-standards regenerate-caches retrospective visual-change-report writing-for-agents "
+  "data-structure-audit deeper-prompt deps-audit deps-update design-pattern-doc domain-modeling feature-workflow glab handoff issue-tracking pr-quality pr-review-data project-setup project-standards retrospective visual-change-report writing-for-agents "
 bad=""
 # No vendored skill remains: handoff and writing-for-agents are first-party; the rest were deleted.
 for s in ask-matt clear-context code-review codebase-design diagnosing-bugs grill-me grill-with-docs grilling implement implement-spec improve-codebase-architecture install-anti-slop pr proof-of-work prototype research retro setup-matt-pocock-skills tdd to-questionnaire to-spec to-tickets triage wait-what wayfinder wizard wrap-up zoom-out; do
@@ -113,7 +113,6 @@ else
   skip "context-bridge.cjs behaviour" "node not installed"
 fi
 check ".agents/README.md (scaffold note) not installed" '[ ! -e "$A/.agents/README.md" ]'
-check "Mermaid validator and syntax rules for the caches ship" '[ -f "$A/.agents/skills/visual-change-report/scripts/validate_mermaid.mjs" ] && [ -f "$A/.agents/skills/visual-change-report/references/visual-library.md" ]'
 check "progress line script and its step list ship, executable" '[ -x "$A/.agents/skills/feature-workflow/scripts/step-progress.sh" ] && [ -f "$A/.agents/skills/feature-workflow/references/steps.tsv" ]'
 check "vendor copies ship with their consumer and LICENSE" '[ -f "$A/.agents/skills/pr-quality/references/codebase-design.md" ] && [ -f "$A/.agents/skills/pr-quality/references/LICENSE" ]'
 check "no shipped file points at a vendored skill path" '! grep -rqE "\.agents/skills/(improve-codebase-architecture|codebase-design)/|\.\./\.\./improve-codebase-architecture/" "$A/.agents/skills/pr-quality"'

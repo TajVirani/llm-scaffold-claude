@@ -41,7 +41,7 @@ Evidence lives under `.workflow/specs/NNN-slug/artifacts/` in the spec checkout:
 - **Exit 1** (one line per shape error, each naming the field), **exit 2 for a missing file or YAML that does not parse**, or no summary at all: resume the same agent once, with the checker's lines (or "write your result file as your Return section says"). If the file is still missing or invalid, it is a [stop](#stops).
 - **Exit 2 for a usage error or a missing `jq` or `yq`:** fix the cause and run it again.
 
-**Keep earlier rounds.** Before a fix round, a rework launch or a later integration batch of the same work type, rename each result file that already exists in that folder to `<name>-r<k>.yaml`, `k` being 1 + the count of existing `<name>-r*.yaml` files of that name, so the plain name is always the newest round (sign-off and the retrospective read the plain names). Rename once, when the round that produced the file ends (a fix round, a rework, a wording patch). For example, for `mini-review.yaml`:
+**Keep earlier rounds.** Before a fix round, a rework launch or a later integration batch of the same work type, rename each result file that already exists in that folder to `<name>-r<k>.yaml`, `k` being 1 + the count of existing `<name>-r*.yaml` files of that name, so the plain name is always the newest round (sign-off and the retrospective read the plain names). Rename once, when the round that produced the file ends (a fix round, a rework, a patch you apply at 3.8). For example, for `mini-review.yaml`:
 
 ```bash
 d=.workflow/specs/NNN-slug/artifacts/T3; k=$(( $(find "$d" -maxdepth 1 -name 'mini-review-r*.yaml' | wc -l) + 1 )); mv "$d/mini-review.yaml" "$d/mini-review-r$k.yaml"
@@ -73,13 +73,13 @@ After 3.2's merges, commit the workflow data you have written since the last com
 git worktree add .workflow/.worktrees/<task_name> -b <branch> spec/NNN-slug
 ```
 
-A record with `branch: null` (a light-path spec written before light-path tasks got branches) still gets a task branch: use `task/NNN-slug/T01-<slug>`, the stem of its `file`, as `<branch>` here and at 3.16. A worktree that already exists (resume, fix round, rework) is reused. Integration worktrees are created at 3.2, in `modules/implementation-shared-core.md`.
+A worktree that already exists (resume, fix round, rework) is reused. Integration worktrees are created at 3.2, in `modules/implementation-shared-core.md`.
 
 ### 3.3 Launch the wave
 
 **No new launch while the spec is `blocked`.** Before each launch, read `status` (`yq --front-matter=extract '.status' .workflow/specs/NNN-slug/spec.md`). While it is `blocked` (discovered work or a crossed budget at 00.21, or any other stop), start no new implementation or integration launch; tasks already running finish and pass through their gates, including their 3.7 mini-review and fix rounds.
 
-**Pause before a `hitl` task.** For a frontier task with `mode: hitl`, ask the stakeholder before launching it: name the human decision, credential or manual step its task file's **Mode** line says it needs, and whether it can be supplied now. Launch it when they confirm (put what they supplied in the brief); otherwise leave it `pending` and launch the rest of the wave. A `hitl` task the stakeholder cannot serve in this session blocks the spec at 3.3 once the rest of the wave has merged (see [Stops](#stops)).
+**Pause before a `hitl` task.** Launch the wave's other tasks first, so they run while the stakeholder answers ([conventions](../references/conventions.md#asking-the-stakeholder)). Then, for a frontier task with `mode: hitl`, ask the stakeholder before launching it: name the human decision, credential or manual step its task file's **Mode** line says it needs, and whether it can be supplied now. Launch it when they confirm (put what they supplied in the brief); otherwise leave it `pending` and launch the rest of the wave. A `hitl` task the stakeholder cannot serve in this session blocks the spec at 3.3 once the rest of the wave has merged (see [Stops](#stops)).
 
 For each frontier task, mark it started, then launch it in the background in its task worktree:
 
@@ -211,7 +211,7 @@ A stop halts the task. Let the rest of the wave finish its gates and merge what 
 | Result file missing or invalid after one resume ([Reading a result file](#evidence-and-the-ledger)) | Block with the agent, the task and the checker's first error line. | the node that read it (3.2, 3.4, 3.7) |
 | Budget over at 3.15 | [3.15](#315-within-the-size-budget). | 00.21 (via the module) |
 | `blocked` on a fact | Not a stop: look it up in the code, answer, resume the agent. | none |
-| `blocked` on a decision | Ask the stakeholder; with no answer available, block with the decision as the condition. | 3.3 |
+| `blocked` on a decision | When its answer changes scope or intent, or the action is hard to reverse, ask the stakeholder; with no answer available, block with the decision as the condition. Any other decision: assume and log it as [conventions](../references/conventions.md#asking-the-stakeholder) says, then resume the agent with it. | 3.3 for a block; none otherwise |
 | Fifth fix round fails | Block with the open findings and the gate that keeps failing. | the failing gate (3.6, 3.8, 3.9, 3.11) |
 | Integration `conflict` with no decision | Block with both consumers' needs. | 3.2 |
 | Agent keeps working outside its worktree (repeated worktree-guard denies, or spec-checkout edits through Bash) | Never relaunch it another way: isolation cannot be configured from this repo, and an isolation launch is refused the result-file write to the spec checkout. Block the task with the denies as the condition. | 3.3 (3.2 for an integration batch) |

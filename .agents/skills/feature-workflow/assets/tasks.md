@@ -10,7 +10,7 @@ tasks:
     module: "<module>"       # owning module, a key under `modules` in .workflow/rules.md "Ownership"
     seam: "<interface under test>"  # the interface the tests drive, agreed at 2.3
     file: tasks/T01-<slug>.md          # the task file holding the body (assets/task.md), relative to the spec folder
-    branch: task/NNN-slug/T01-<slug>   # the task branch created at wave start, on the light path too; null only in an older light-path spec
+    branch: task/NNN-slug/T01-<slug>   # the task branch created at wave start, on the light path too
     predicted_files: []      # paths or globs the task will create or change, tests included (2.1)
     size: {files: 0, est_lines: 0, points: S}  # predicted; points S | M | L, L is a split signal
     mode: afk                # afk | hitl (needs a human mid-task; the orchestrator pauses before launching it, 3.3)
@@ -33,7 +33,7 @@ Record schema (the `tasks:` array in the frontmatter is the source; the body is 
   - capability:   string, a capability listed in spec.md: `CAP-###` for an existing capability, or the provisional `CAP-NEW-<slug>` (lowercase kebab-case) for a new one until sign-off 5.3 rewrites it to the assigned CAP-###. A prefactoring task names the capability it unblocks.
   Task-breakdown fields. 2.5 and 0.3.20 write every one except tests; the validator accepts a missing one (older lists) but checks each that is present:
   - file:            string, `tasks/T<nn>-<slug>.md`, `<nn>` the id number zero-padded to two digits (the validator accepts any zero-padding of the record's own number). The task file must exist.
-  - branch:          string `task/<NNN-slug>/T<nn>-<slug>` (the same stem as `file`), on both paths. null only in a light-path spec written before light-path tasks got branches; 3.16 then uses `task/<NNN-slug>/T01-<slug>` from the `file` stem.
+  - branch:          string `task/<NNN-slug>/T<nn>-<slug>` (the same stem as `file`), on both paths.
   - predicted_files: list of repo-relative paths or globs, tests included.
   - size:            map {files: int (predicted file count), est_lines: int (estimated changed lines), points: S | M | L}. S up to 5 files and 150 lines; M up to 15 files and 400 lines; L beyond either, or too big for one fresh context window: a split signal raised at 2.1.
   - mode:            afk | hitl. hitl needs a human decision, credential or manual step mid-task; the orchestrator asks before launching it (3.3).

@@ -1,7 +1,7 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/report.md: the 5.4 results report. No frontmatter.
 Written by modules/sign-off.md at 5.4; read by the stakeholder at 5.5 and by the `retrospective` skill at 5.7.
-A small-path spec (`small_path: true`) writes the five-line short form in modules/sign-off.md (5.4) instead of this template.
+A light-path spec with one task writes the five-line short form in modules/sign-off.md (5.4) instead of this template.
 
 Rules:
   - Nothing is claimed that has not been verified (design rule 12). Every PASS links evidence: a file under artifacts/, a CI run, or command output pasted from the run.
@@ -58,7 +58,7 @@ Behaviour verification: <what was exercised end to end against the running build
 
 ## Review outcome
 
-- Review passes: <n> (rework ceiling 5) · Findings: <n> patched, <n> deferred, <n> dismissed with reason (see design-log.md triage entries)
+- Review passes: <n> (rework ceiling 5) · Findings: <n> patched, <n> left open as known gaps, <n> dismissed with reason (see design-log.md triage entries)
 - Follow-up review recommended: <yes / no, with the reason>
 
 ## Known gaps

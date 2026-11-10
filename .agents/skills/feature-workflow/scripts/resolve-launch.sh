@@ -13,7 +13,7 @@
 #       a header task_type that disagrees is denied.
 #   resolve-launch.sh --host claude|codex --task-type <type> [--spec-dir <d>] [--task-id <id>] [--work-type <wt>] [--no-header] [--project-dir <dir>]
 #       Orchestrator mode (Codex). Builds the header from the flags (task_type = --task-type) instead of reading it; stdin, when it is not a
-#       terminal, is the task body (it must not carry its own header). --no-header (header-optional types only: cache-regeneration bulk runs, standards-discovery) builds no header.
+#       terminal, is the task body (it must not carry its own header). --no-header (header-optional types only: standards-discovery) builds no header.
 #       Prints the same JSON; .prompt is the complete launch prompt to send.
 #   resolve-launch.sh --parse-header [--task-type <type>] [--prompt-file <path>|-]
 #       Extract and validate the header only (syntax, known task_type, required-field shape, field formats; no file lookups). With --task-type, also deny a
@@ -22,18 +22,17 @@
 #       Print the requirements table (or one entry) as JSON.
 # Project root (--project-dir, else $CLAUDE_PROJECT_DIR, else the current directory): always normalised to the spec checkout with
 #   lib/workflow-paths.sh wf_project_root (the checkout it is in, or the one an agent worktree sits in), so an agent worktree cwd works;
-#   .workflow/agent-overrides.yaml, .workflow/model-map/, .workflow/profiles/, .agents/agents/ and .workflow/specs/ are read there, because
+#   .workflow/model-map.yaml, .workflow/profiles/ and .workflow/specs/ are read there, because
 #   gitignored state exists only in the spec checkout.
 # spec_dir: a spec folder .workflow/specs/NNN-slug, or, for the types the table marks initiative_launch (research, fact-lookup, retrieval,
 #   library-evaluation), an initiative folder .workflow/initiatives/NNN-slug. Either must exist under the project root.
-# Model: <root>/agent-overrides.yaml [type][host] > <root>/.agents/agents/<type>.md frontmatter models.<host> > <root>/model-map/<type>.md
-#   frontmatter [host] > none: deny with 00.14. Empty values and unfilled template placeholders (`<...>`) count as unset. model-map `fallback` is not used.
+# Model: .workflow/model-map.yaml <type>.<host>; none: deny with 00.14. Empty values and unfilled template placeholders (`<...>`) count as unset.
 # Work type: header work_type; for implementation and profile-mini-review with task_id, the task record in <spec_dir>/tasks.md is authoritative:
 #   it fills a missing header work_type, and a header value that disagrees is denied. Phase 1 implementation (no task_id) carries it explicitly, since it has no task record yet.
 # Profile (coding types only): implementation, integration = whole .workflow/profiles/<work_type>.md; profile-mini-review = its "## Mini-review checklist"
 #   section (heading through the line before the next level-2 heading); other types = null. Missing profile or section: deny with 00.19.
 # stdout (resolve and orchestrator modes): one JSON object
-#   {task_type, host, model, model_source: "override"|"definition"|"map", header: {...}|null, header_block: "<fenced block>"|null,
+#   {task_type, host, model, header: {...}|null, header_block: "<fenced block>"|null,
 #    work_type: <string>|null, profile: <string>|null, profile_path: <relative path>|null, prompt: <launch prompt>}
 #   prompt = header block, blank line, profile, blank line, rest of the prompt (the header stays first). Unchanged when there is no profile
 #   (resolve mode). In orchestrator mode it is assembled from header block, profile and body.
@@ -81,16 +80,7 @@ D31_TABLE=$(cat <<'JSON'
   "review-standards":   {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "review-end-state":   {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "review-targets":     {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
-  "review-lessons":     {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4 lens", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
-  "review-combined":    {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4, light and small paths: one lens in place of standards, end-state and lessons", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
-  "cache-regeneration": {
-    "d31_fields": ["spec_dir"],
-    "shapes": [
-      {"when": "inside a feature (0.2.8)", "required": ["spec_dir"], "optional": []},
-      {"when": "bulk regenerate-caches run: no header", "required": [], "optional": []}
-    ],
-    "header_optional": true, "profile": "none"
-  },
+  "review-combined":    {"d31_fields": ["spec_dir"], "shapes": [{"when": "Phase 4, light path: one lens in place of standards and end-state", "required": ["spec_dir"], "optional": []}], "header_optional": false, "profile": "none"},
   "standards-discovery": {
     "d31_fields": [],
     "shapes": [{"when": "project-standards run outside any feature: task_type only, or no header", "required": [], "optional": []}],
@@ -277,15 +267,10 @@ if [ -n "$spec_dir" ] && [ ! -d "$root/$spec_dir" ]; then
   deny "spec_dir '$spec_dir' does not exist under $root"
 fi
 
-# Load a YAML file (its frontmatter when $2 = fm) as JSON; comments are dropped. No frontmatter -> {}. Unreadable file -> deny.
+# yaml_json FILE : the YAML file as JSON, comments dropped. Unreadable file -> deny.
 yaml_json() {
-  local file=$1 fm=${2:-} out
-  if [ "$fm" = fm ]; then
-    [ "$(head -n1 "$file" | tr -d '\r')" = --- ] || { echo '{}'; return 0; }
-    out=$(yq --front-matter=extract -o=json -I=0 '.' "$file" 2>/dev/null) || deny "cannot parse frontmatter: ${file#"$root"/}"
-  else
-    out=$(yq -o=json -I=0 '.' "$file" 2>/dev/null) || deny "cannot parse YAML: ${file#"$root"/}"
-  fi
+  local out
+  out=$(yq -o=json -I=0 '.' "$1" 2>/dev/null) || deny "cannot parse YAML: ${1#"$root"/}"
   printf '%s' "${out:-null}"
 }
 # Pick a model string from JSON by path; unset, empty, non-string and unfilled `<...>` placeholders give "".
@@ -297,24 +282,13 @@ pick_model() { # $1 = json, then path keys
 }
 
 # ── Model ──
-model="" model_source=""
-if [ -f "$root/$WF_AGENT_OVERRIDES" ]; then
-  doc=$(yaml_json "$root/$WF_AGENT_OVERRIDES")
+model=""
+if [ -f "$root/$WF_MODEL_MAP" ]; then
+  doc=$(yaml_json "$root/$WF_MODEL_MAP") || exit 2
   model=$(pick_model "$doc" "$task_type" "$host")
-  [ -z "$model" ] || model_source=override
-fi
-if [ -z "$model" ] && [ -f "$root/.agents/agents/$task_type.md" ]; then
-  doc=$(yaml_json "$root/.agents/agents/$task_type.md" fm)
-  model=$(pick_model "$doc" models "$host")
-  [ -z "$model" ] || model_source=definition
-fi
-if [ -z "$model" ] && [ -f "$root/$WF_MODEL_MAP/$task_type.md" ]; then
-  doc=$(yaml_json "$root/$WF_MODEL_MAP/$task_type.md" fm)
-  model=$(pick_model "$doc" "$host")
-  [ -z "$model" ] || model_source=map
 fi
 if [ -z "$model" ]; then
-  deny "00.14: no model for task type '$task_type' on host '$host'. Checked, in precedence order: $WF_AGENT_OVERRIDES [$task_type][$host], .agents/agents/$task_type.md models.$host, $WF_MODEL_MAP/$task_type.md [$host]. Assign one in $WF_MODEL_MAP/$task_type.md (or in $WF_AGENT_OVERRIDES when the definition pins a model for this host) before launching."
+  deny "00.14: no model for task type '$task_type' on host '$host' in $WF_MODEL_MAP. Add the $task_type row's $host value there (with its tier and why) before launching."
 fi
 
 # ── Work type ──
@@ -368,11 +342,11 @@ else
 fi
 
 jq -n \
-  --arg task_type "$task_type" --arg host "$host" --arg model "$model" --arg model_source "$model_source" \
+  --arg task_type "$task_type" --arg host "$host" --arg model "$model" \
   --argjson header "$header_json" --arg header_block "$header_block" \
   --arg work_type "$work_type" --arg profile "$profile_text" --arg profile_kind "$profile_kind" --arg profile_path "${profile_path}" \
   --arg prompt "$prompt" '
-  {task_type: $task_type, host: $host, model: $model, model_source: $model_source,
+  {task_type: $task_type, host: $host, model: $model,
    header: $header,
    header_block: (if $header_block == "" then null else $header_block end),
    work_type: (if $work_type == "" then null else $work_type end),

@@ -1,9 +1,8 @@
 # Ordered step list for the phase progress line, read by scripts/step-progress.sh. Display data only: guards,
 # status-transition.sh and the decision flow keep using the node ids; this file never changes what a step does.
-# Rows are in run order within each phase (0.3.22 before 0.3.8; 0.3.23 before 0.3.20; 3.16 and 3.15 before 3.13 and 3.9), not id order.
+# Rows are in run order within each phase (0.3.22 before 0.3.8; 0.3.23 before 0.3.20; 3.16 and 3.15 before 3.13 and 3.9; 5.3 after 5.5), not id order.
 # Columns (tab-separated): id, phase, track, title.
-#   track  both | full | light   a counted step on both paths, the full path only, or the light path only; a small-path spec
-#                                carries light_path: true and counts as the light path
+#   track  both | full | light   a counted step on both paths, the full path only, or the light path only
 #          large                 a step of the large path (6.x), which plans an initiative; counted on its own, not as a phase
 #          phase                 a phase header: id P<n>, title is the phase name
 #          cross                 00.x cross-cutting node (persistent artifacts, model and profile lookup, discovered work);
@@ -22,7 +21,6 @@ P6	6	phase	Large path
 0.0	-	intake	Feature request
 0.0.1	-	intake	Trivial edit?
 0.0.2	-	intake	Edit directly
-0.0.3	-	intake	Small path?
 0.1.1	0	both	Scan the specs folder
 0.1.2	0	both	Derive a slug
 0.1.3	0	both	Create the feature folder
@@ -35,8 +33,6 @@ P6	6	phase	Large path
 0.2.4	0	both	Retrieve context
 0.2.5	0	both	Evaluate libraries
 0.2.6	0	both	Write codebase-map.md
-0.2.7	0	both	Cache stamps match HEAD?
-0.2.8	0	both	Regenerate stale caches
 0.3.1	0	both	Capability already exists?
 0.3.2	0	both	Reframe
 0.3.3	0	both	Owning module clear?
@@ -102,7 +98,6 @@ P6	6	phase	Large path
 4.1	4	full	Standards review
 4.2	4	full	End-state review
 4.3	4	full	Targets review
-4.9	4	full	Review lessons lens
 4.10	4	light	Combined review
 4.4	4	both	Triage findings
 4.5	4	both	Route findings
@@ -111,10 +106,10 @@ P6	6	phase	Large path
 4.8	4	both	Record the gaps
 5.1	5	both	Reconcile spec.md
 5.2	5	both	Propose Tier A updates
-5.3	5	both	Approve the proposals
 5.4	5	both	Report
-5.5	5	both	Stakeholder approves?
+5.5	5	both	The sign-off ask
 5.6	5	both	Re-enter on a change request
+5.3	5	both	Apply the approved proposals
 5.9	5	both	Carry out backlog rulings
 5.7	5	both	Retrospective
 5.8	5	both	Merge and close
@@ -135,9 +130,6 @@ P6	6	phase	Large path
 00.2	-	cross	Capabilities index
 00.3	-	cross	Rules
 00.4	-	cross	Decision log
-00.5	-	cross	Module map
-00.6	-	cross	System flow diagrams
-00.7	-	cross	Architecture structure
 00.8	-	cross	Deferred handoff file
 00.9	-	cross	Archive a shelf item
 00.10	-	cross	Shelf archive

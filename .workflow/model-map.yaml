@@ -1,0 +1,92 @@
+# File: the project's model table, .workflow/model-map.yaml: one row per sub-agent task type. Project-owned.
+# Read by .agents/skills/feature-workflow/scripts/resolve-launch.sh at every launch: the model for a launch is <task type>.<host>.
+#   A missing row or host value, or one still holding a <...> placeholder, denies the launch with 00.14.
+# Seeded by project-setup from .agents/skills/project-setup/assets/model-map.yaml. install.sh writes it only when it converts
+#   an older install's one-file-per-type folder, .workflow/model-map/<type>.md, into this file.
+# Keys per row:
+#   tier: cheap | strong
+#   claude: a Claude Code alias (haiku | sonnet | opus), never a dated model ID
+#   codex: a Codex model name (cheap gpt-6-luna, strong gpt-6-sol); Codex retires names, so check them with `codex debug models`
+#   why: one sentence on why this tier fits the task type
+#   observations: optional list, appended at 5.7 by the retrospective with the stakeholder's approval, one dated line each:
+#     "<YYYY-MM-DD> (<host> <alias>, spec <NNN-slug>): <what happened>. <the alias change, or No alias change.>"
+fact-lookup:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+implementation:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+  observations:
+    - '2026-10-22 (claude opus, spec 002-review-lessons): six tasks done; every rework and fix round converged in one launch; T3 returned profile-wrong correctly on a lint key another task''s pin had turned red. No change.'
+    - '2026-10-26 (claude, spec 003-bash-cache-extractor): T9 and T10 passed in one launch each; T3 rework 2 took three rounds (one behaviour fix for a continued line after an operator, two for missing reason comments on new parsing clauses), and the agent itself caught a first fix that added about 100 false edges on this repo. No alias change.'
+    - '2026-10-30 (claude, spec 008-pr-description-template): T4 built beyond its task file (a 5.5 hash check and a separate PR-description approval; the stakeholder removed one and kept the other, D17, D18); T2 was resumed once to add tests for behaviour beyond Phase 1; T1 needed one behaviour fix round. No alias change.'
+    - '2026-11-02 (claude, spec 009-slim-workflow-context): wrote `self_review[].item` as a quoted string in T1 and T2 (wave 1) and again in T1, T9 and T10 (rework 1), each fixed in one resume (backlog B2); every rework converged in one launch. No alias change.'
+    - '2026-11-03 (claude opus, spec 00014-tracker-issue-spec-ids): 10 tasks; 3 behaviour fix rounds (T3, T5, T8) and 5 wording rounds, each converging in one launch; wave-1 agents (T1, T2, T3) wrote quoted `self_review[].item` until the brief named the unquoted form; T8 first skipped negative tests ("tests/ is outside the module") and added 16 on one resume. No alias change.'
+integration:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+library-evaluation:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+module-audit:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+profile-mini-review:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+  observations:
+    - '2026-10-22 (claude, spec 002-review-lessons): six review rounds on one task, each failing round naming one new cosmetic item on lines an earlier round had passed, two of them header lines the rules exempt; the round that carried the earlier verdicts in its brief passed. No alias change.'
+    - '2026-10-26 (claude, spec 003-bash-cache-extractor): caught a real dropped-call bug as out of scope on T3 and a needed reason comment twice; one re-check wrote `mini-review-r2.yaml` instead of the plain name and reported a false stale `tree` by comparing it with the git tree id. No alias change.'
+    - '2026-10-30 (claude, spec 008-pr-description-template): caught real faults (T1 accepting a literal @template_path, T2 a missing reason on an early return, T6 a .workflow/ path in an asset), but in T2 round 1 asked for single-bracket tests against retrospective 002 (later F5), and the T6 re-check again reported a false toolchain.json tree mismatch, as in 003. No alias change.'
+    - '2026-10-30 (claude, spec 00010-worktree-guard-followups): caught real wording faults (T2: a missing reason comment, journey ids on changed suite-header lines) and reported three real out-of-scope bugs in the guard (later shelved); one T1 result file held unquoted YAML and needed a resume. No alias change.'
+    - '2026-10-31 (claude, spec 007-done-folder): caught real faults (unchecked writes under suspended `set -e` three times in T5, the sweep''s partial state, a missing reason comment), but wrote an unreadable result file twice (missing `location` fields; an unquoted `: ` in a note), each needing a resume, and twice again reported a false `toolchain.json` tree mismatch. No alias change.'
+    - '2026-11-02 (claude, spec 009-slim-workflow-context): its full re-review of T1 in rework 1 caught a missing `# die MSG :` comment that four earlier rounds had passed, and T1 round 1 again asked for single-bracket tests in a new file (as in 008; profile line clarified at 5.3, P4); one result file missed an item `location` and needed a resume. No alias change.'
+research:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Answers an open-ended initiative question from the repo and the web, where a wrong answer misleads the plan; uses the strongest model.
+retrieval:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+review-combined:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Does the end-state, standards and lessons reviews in one launch and runs probes to prove each finding, where a wrong call costs a rework loop; uses the strongest model, like review-end-state and review-standards.
+review-end-state:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+review-standards:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+review-targets:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+  observations:
+    - '2026-10-30 (claude, spec 008-pr-description-template): review cycle 1 reported TGT-003 (a plain lint command) as not_measurable; the main session measured it (pass). Cycle 2 measured all seven measurable targets. No alias change.'
+standards-discovery:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.

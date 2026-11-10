@@ -32,7 +32,7 @@ folder_fixture_repo() {
   cp "$assets/initiative.md" "$p/$FOLDER_INITIATIVE/initiative.md"
   cp "$assets/questions.md" "$p/$FOLDER_INITIATIVE/questions.md"
   printf '%s\n' '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.worktrees/' '.workflow/.handoff/' \
-    '.workflow/.cache-staging/' '.workflow/.standards-staging/' >"$p/.gitignore"
+    '.workflow/.standards-staging/' >"$p/.gitignore"
   git_commit_all "$p" "fixture: workflow folders"
   git -C "$p" branch -q -m spec/001-alpha
   git -C "$p" worktree add -q "$p/.workflow/.worktrees/wt-folders" -b wt-folders

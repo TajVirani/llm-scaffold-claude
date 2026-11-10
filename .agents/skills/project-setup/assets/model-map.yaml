@@ -1,0 +1,77 @@
+# File: the project's model table, .workflow/model-map.yaml: one row per sub-agent task type. Project-owned.
+# Read by .agents/skills/feature-workflow/scripts/resolve-launch.sh at every launch: the model for a launch is <task type>.<host>.
+#   A missing row or host value, or one still holding a <...> placeholder, denies the launch with 00.14.
+# Seeded by project-setup from .agents/skills/project-setup/assets/model-map.yaml. install.sh writes it only when it converts
+#   an older install's one-file-per-type folder, .workflow/model-map/<type>.md, into this file.
+# Keys per row:
+#   tier: cheap | strong
+#   claude: a Claude Code alias (haiku | sonnet | opus), never a dated model ID
+#   codex: a Codex model name (cheap gpt-6-luna, strong gpt-6-sol); Codex retires names, so check them with `codex debug models`
+#   why: one sentence on why this tier fits the task type
+#   observations: optional list, appended at 5.7 by the retrospective with the stakeholder's approval, one dated line each:
+#     "<YYYY-MM-DD> (<host> <alias>, spec <NNN-slug>): <what happened>. <the alias change, or No alias change.>"
+fact-lookup:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+implementation:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+integration:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+library-evaluation:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+module-audit:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+profile-mini-review:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+research:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Answers an open-ended initiative question from the repo and the web, where a wrong answer misleads the plan; uses the strongest model.
+retrieval:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+review-combined:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Does the end-state and standards reviews in one launch and runs probes to prove each finding, where a wrong call costs a rework loop; uses the strongest model.
+review-end-state:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+review-standards:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.
+review-targets:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Bounded reading or checking task with a fixed return format; a fast, low-cost model is enough, and the strong tier is kept for writing and judging code.
+standards-discovery:
+  tier: strong
+  claude: opus
+  codex: gpt-6-sol
+  why: Writes or judges code across files, where a wrong call costs a rework loop; uses the strongest model.

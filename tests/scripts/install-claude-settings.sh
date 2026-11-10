@@ -6,7 +6,9 @@
 #   JRN-006: a fresh install has one SubagentStop entry, running the stop audit for implementation and integration agents.
 #   JRN-007: the settings template and this repo's .claude/settings.json deny yq --front-matter=extract with -i or --inplace
 #   (four rules, at the top of the template's deny list, its other deny entries as on main), and an install into an empty
-#   target or over a user deny entry, and its re-run, leave each rule and the user entry in the target once.
+#   target or over a user deny entry, and its re-run, leave each rule and the user entry in the target once. An upgrade
+#   removes the allow and deny entries an earlier template wrote for retired scripts and paths, keeps the user's own, says
+#   so in its summary, and a re-run changes and prints nothing more.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Env: TEST_BASH=<bash binary> runs install.sh under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -45,7 +47,7 @@ cat >"$M/.claude/settings.json" <<'EOF'
   "statusLine": {"type": "command", "command": "my-status.sh"},
   "enabledPlugins": {"foo@bar": true},
   "env": {"FOO": "1"},
-  "permissions": {"allow": ["Bash(ls:*)"], "deny": ["Read(.env)", "Edit(.workflow/cache/**)"]},
+  "permissions": {"allow": ["Bash(ls:*)"], "deny": ["Read(.env)", "Edit(.workflow/specs/*/.step)"]},
   "hooks": {
     "PreToolUse": [
       {"matcher": "Bash", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/block-destructive-git.sh", "timeout": 10}]},
@@ -65,9 +67,9 @@ check "statusLine warning printed" 'printf "%s" "$out" | grep -q "statusLine: ke
 eq "unrelated user keys kept" "$(jq -c '[.enabledPlugins, .env]' "$S")" '[{"foo@bar":true},{"FOO":"1"}]'
 eq "user allow rule kept first, template allow rules appended" "$(jq -c '.permissions.allow | [.[0], (index("Bash(git status:*)") != null)]' "$S")" '["Bash(ls:*)",true]'
 eq "deny unioned, user first, no duplicates" "$(jq -c '.permissions.deny | [.[0:2], (length == (unique | length))]' "$S")" \
-  '[["Read(.env)","Edit(.workflow/cache/**)"],true]'
+  '[["Read(.env)","Edit(.workflow/specs/*/.step)"],true]'
 eq "deny holds the template's entries after the user's, nothing else" "$(jq -c '.permissions.deny[2:] | sort' "$S")" \
-  "$(jq -c '.permissions.deny - ["Edit(.workflow/cache/**)"] | sort' "$TEMPLATE")"
+  "$(jq -c '.permissions.deny - ["Edit(.workflow/specs/*/.step)"] | sort' "$TEMPLATE")"
 check "user hooks kept" '[ "$(jq -r ".hooks.Stop[0].hooks[0].command" "$S")" = my-stop.sh ] && jq -e "[.hooks.PreToolUse[].hooks[].command] | index(\"my-read-hook.sh\")" "$S" >/dev/null'
 eq "block-destructive-git not duplicated" "$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("block-destructive-git"))] | length' "$S")" 1
 # shellcheck disable=SC2034  # used inside the eval'd check below
@@ -152,14 +154,9 @@ for pair in "the settings template|$TEMPLATE" "this repo's .claude/settings.json
 done
 eq "JRN-007 the template's deny list starts with the four rules" "$(jq -c '.permissions.deny[0:4] | sort' "$TEMPLATE")" \
   "$EXTRACT_IN_PLACE_SORTED"
-if main_template=$(git -C "$REPO_ROOT" show main:.agents/hooks/claude-settings.template.json 2>/dev/null); then
-  # Compared with main, not with a literal list, because another change edits the template's existing deny entries in parallel.
-  eq "JRN-007 the template's other deny entries are main's, in order" \
-    "$(jq -c --argjson r "$EXTRACT_IN_PLACE_SORTED" '.permissions.deny - $r' "$TEMPLATE")" \
-    "$(jq -c --argjson r "$EXTRACT_IN_PLACE_SORTED" '.permissions.deny - $r' <<<"$main_template")"
-else
-  skip "JRN-007 the template's other deny entries are main's, in order" "no main branch in $REPO_ROOT"
-fi
+eq "JRN-007 the template's other deny entries are the two step-marker rules, in order" \
+  "$(jq -c --argjson r "$EXTRACT_IN_PLACE_SORTED" '.permissions.deny - $r' "$TEMPLATE")" \
+  '["Edit(.workflow/specs/*/.step)","Edit(.workflow/initiatives/*/.step)"]'
 
 XF=$WORK/extract-fresh
 new_target "$XF"
@@ -176,6 +173,31 @@ for run in "install over a user deny entry" "re-run over a user deny entry"; do
   holds_extract_rules_once "$run" "$XU/.claude/settings.json"
   eq "JRN-007 $run: the user deny entry is kept once" "$(deny_count "$XU/.claude/settings.json" 'Read(.env)')" 1
 done
+
+echo "== permissions an earlier template wrote for retired scripts and paths"
+RP=$WORK/retired-permissions
+new_target "$RP"
+t "a fresh install exits 0" 0 INST "$RP" --host claude
+# The entries the template wrote before the generated caches were retired, beside the user's own entries.
+RETIRED_ALLOW='["Bash(.agents/skills/regenerate-caches/scripts/cache-stamp-check.sh:*)","Bash(.agents/skills/regenerate-caches/scripts/check-staged-cache.sh:*)","Bash(.agents/skills/regenerate-caches/scripts/publish-cache.sh:*)"]'
+jq --argjson ra "$RETIRED_ALLOW" '.permissions.allow += $ra + ["Bash(npm test:*)"]
+  | .permissions.deny += ["Edit(.workflow/cache/**)", "Edit(secrets/**)"]' "$RP/.claude/settings.json" >"$WORK/rp.json"
+mv "$WORK/rp.json" "$RP/.claude/settings.json"
+out=$(INST "$RP" --host claude 2>&1)
+eq "the upgrade exits 0" "$?" 0
+eq "no retired allow entry is left" "$(jq -c --argjson ra "$RETIRED_ALLOW" '[.permissions.allow[] | select(. as $p | $ra | index($p))]' "$RP/.claude/settings.json")" '[]'
+eq "the retired cache deny entry is gone" "$(deny_count "$RP/.claude/settings.json" 'Edit(.workflow/cache/**)')" 0
+eq "the user's allow entry is kept once" "$(jq '[.permissions.allow[] | select(. == "Bash(npm test:*)")] | length' "$RP/.claude/settings.json")" 1
+eq "the user's deny entry is kept once" "$(deny_count "$RP/.claude/settings.json" 'Edit(secrets/**)')" 1
+eq "the template's own entries are all there" \
+  "$(jq -c --slurpfile t "$TEMPLATE" '[$t[0].permissions.allow[], $t[0].permissions.deny[]] - [.permissions.allow[], .permissions.deny[]]' "$RP/.claude/settings.json")" '[]'
+check "the summary counts the removed entries" \
+  'grep -q "0 hook and 4 permission entries from .claude/settings.json" <<<"$out"' "$out"
+before=$(snap "$RP")
+out=$(INST "$RP" --host claude 2>&1)
+eq "a re-run exits 0" "$?" 0
+eq "a re-run changes nothing" "$(snap "$RP")" "$before"
+check "a re-run prints no summary" '! grep -q "^Upgrade from an older install" <<<"$out"' "$out"
 
 echo "== lint"
 shellcheck_files "shellcheck: this suite" "${BASH_SOURCE[0]}"

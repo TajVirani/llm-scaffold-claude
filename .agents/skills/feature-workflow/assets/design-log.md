@@ -1,6 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter. An initiative keeps the same log at .workflow/initiatives/NNN-slug/design-log.md: conversion moves the spec's log there and replaces its `Spec:` line with `Initiative: [initiative.md](initiative.md)`.
-Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4), discovery-impact (0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off (5.5 Sign-off entry, 5.6, 5.9) / retrospective (5.7), the handoff skill on resume (a `Main moved since handoff` entry; its shape is in that skill's Resume step 3) and the large path (Conversion at 0.3.23; Initiative round at 6.8 and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
+Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4), discovery-impact (0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off (5.5 Sign-off entry, 5.6, 5.9) / retrospective (5.7), any step that assumes an answer (an Assumed entry, references/conventions.md "Asking the stakeholder"), verification-setup (1.2, a Breakdown quiz asked while Phase 1 builds), the handoff skill on resume (a `Main moved since handoff` entry; its shape is in that skill's Resume step 3) and the large path (Conversion at 0.3.23; Initiative round at 6.8 and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
 
 Rules:
   - Append only. Never edit or delete an earlier entry. A reversal is a new entry that names what it supersedes; the old entry stays.
@@ -22,7 +22,7 @@ Spec: [spec.md](spec.md)
 
 <!-- 0.1.4. Written only for a spec seeded from a .workflow/specs/work-backlog/ item. First entry in the log. -->
 
-- Work item: <NNN-slug.md#B<n> for a backlog line, or NNN-slug-disc-###.md for an older item file>
+- Work item: <NNN-slug.md#B<n>, the backlog line>
 - Origin spec and step: <.workflow/specs/NNN-slug>, step <n>
 - Problem: <the item's problem, one or two lines>
 - Evidence: <`path:line`, failing test or agent return, carried from the item>
@@ -82,6 +82,15 @@ Agreement: <pending, asked in the first questioning ask | agreed in Questioning 
 - Decision: **D<n>** <the decision, one line>
 
 Facts looked up instead of asked (0.3.10): <fact>: <answer> (source `<path:line>`), or "None."
+
+## YYYY-MM-DD Assumed: <the question, in a phrase>
+
+<!-- Any step. A question that changes neither scope nor intent and gates nothing hard to reverse: its recommended answer was taken without asking (references/conventions.md, "Asking the stakeholder"). The next blocking ask offers it for veto and logs the `Offered for veto:` line in its own entry. -->
+
+- Step: <node>
+- Question: <the question as it would have been asked, with the options>
+- Answer taken: <the recommended answer>
+- Why safe to assume: <why the answer changes neither scope nor intent, and how it is undone if vetoed>
 
 ## YYYY-MM-DD Initiative round <n>
 
@@ -147,13 +156,24 @@ Still researching: <IQ<n> (<task_type>)>, or "none".
 | --- | --- | --- |
 | <entity, field, interface or migration> | create / extend / refactor / unchanged | <one line; see data-model.md § <heading>> |
 
+## YYYY-MM-DD Breakdown quiz
+
+<!-- 2.1, asked while the Phase 1 builds run (verification-setup 1.2) or at 2.1 itself. Task breakdown takes the answers from here and asks again only about what Phase 1 changed. -->
+
+- Asked at: <1.2, beside the harness build | 2.1>
+- Slices: <approved as shown | changed: "<stakeholder's words, verbatim>">
+- Edges, parallel_with and hitl modes: <approved | changed: "<verbatim>">
+- Seams (2.3): <agreed | not agreed: <which slice and why>>
+- Budget: <project defaults | agreed: max_tasks <n>, max_changed_files <n>, "<verbatim>">
+- Decision: **D<n>** <the breakdown as approved, one line>
+
 ## YYYY-MM-DD Triage, review pass <n>
 
 <!-- 4.4-4.5. Every finding keeps its verdict and evidence; none is dropped or merged silently. -->
 
 | Id | Source lens | Finding | Location | Verdict | Evidence | Route |
 | --- | --- | --- | --- | --- | --- | --- |
-| F<n> | review-standards / review-end-state / review-targets / review-lessons / review-combined | <one line> | `<path:line>` | high / medium / low / false / unproven | <the reproduction or quoted line that proved it, or what disproved it; for unproven, what would settle it> | patch / decision needed (Q<n>) / discovered work (to ask, <convoluted / scope-expanding / out of scope>, or the blocker's ruling; see its Discovered work record) / proposal P<n> / none (dismissed: <reason>) |
+| F<n> | review-standards / review-end-state / review-targets / review-combined | <one line> | `<path:line>` | high / medium / low / false / unproven | <the reproduction or quoted line that proved it, or what disproved it; for unproven, what would settle it> | patch / decision needed (Q<n>) / discovered work (to ask, <convoluted / scope-expanding / out of scope>, or the blocker's ruling; see its Discovered work record) / proposal P<n> / none (dismissed: <reason>) |
 
 Failed lenses: none
 Gaps: <each not_verifiable requirement or unmeasured target, its lens and what would settle it | none>
@@ -188,12 +208,16 @@ Approved budget overrun (00.29 Approve):
 
 ## YYYY-MM-DD Sign-off: stakeholder approval (5.5)
 
-<!-- 5.5. One entry for the batched sign-off ask: the approval, the PR description approval, the one list question (a ruling per waiting discovered-work item and per open backlog line) and the going-in concerns for the retrospective, all answered in one round. The retrospective (5.7) reads the `Going-in concerns:` line instead of asking again. A change request (5.6) appends its own entry after this one. -->
+<!-- 5.5. One entry for the one sign-off ask: the assumptions offered for veto, the work and the PR description, the proposals, the one list question (a ruling per waiting discovered-work item and per open backlog line) and the retrospective's drafted lessons, all answered in one call. 5.3, 5.9 and the retrospective (5.7) apply these lines without asking again. A change request (5.6) appends its own entry after this one. -->
 
+- Offered for veto: <Assumed entry titles; vetoed: <titles> | none> (or "no assumptions")
 - Approval: yes / change requested: "<stakeholder's words, verbatim>"
-- PR description: approved / not approved (change requested). Changes asked before approval: "<stakeholder's words, verbatim>" | none
-- Ruling: <slug, B<n> or older item file>: fold in / keep for later / drop / start it as the next feature (one line per item on the list, or "Backlog: no items")
-- Going-in concerns: <the stakeholder's words, verbatim | none>
+- PR description: approved as shown / changed: "<stakeholder's words, verbatim>"; confirmed in the follow-up | not asked (change requested)
+- Proposals: all approved | exceptions: <P<n>: modify <text> / P<n>: reject <reason>, verbatim> | no proposals
+- Ruling: <slug or B<n>>: fold in / keep for later / drop / start it as the next feature (one line per item on the list, or "Backlog: no items")
+- Retrospective lessons: recorded as drafted | none | exceptions: <L<n>: change <text> / L<n>: reject <reason>, verbatim> | no candidates
+- Concerns for the retrospective: <the stakeholder's words, verbatim | none>
+- Follow-up: <the reworded rows and body confirmed, verbatim answer | none>
 
 ## YYYY-MM-DD Retrospective notes
 

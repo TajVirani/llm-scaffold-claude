@@ -20,7 +20,7 @@ SPEC=.workflow/specs/001-billing-suite
 INI=.workflow/initiatives/001-billing-suite
 BR=initiative/001-billing-suite
 SHELF=$P/.workflow/deferred/shelved-idea.md
-WORK_ITEM=$P/.workflow/specs/work-backlog/000-earlier-disc-001.md
+WORK_ITEM=$P/.workflow/specs/work-backlog/000-earlier.md
 IT() { initiative_transition "$P" "$@"; }
 
 eq "JRN-001 fixture: the draft spec sits at the conversion node" "$(marker_step "$P/$SPEC/.step")" "$CONVERSION_STEP"
@@ -41,7 +41,7 @@ sed -i.bak 's/^Spec: \[spec.md\](spec.md)$/Initiative: [initiative.md](initiativ
 printf '\n## 2026-10-21 Origin: converted from spec 001-billing-suite\n\n- Spec: %s (draft, step %s)\n- Initiative created: %s on branch `%s`\n- Number consumed: 001, kept as the initiative'"'"'s `origin`\n- Reason: discovery found several features.\n- Re-pointed: %s, %s\n' \
   "$SPEC" "$CONVERSION_STEP" "$INI" "$BR" "${SHELF#"$P"/}" "${WORK_ITEM#"$P"/}" >>"$P/$INI/design-log.md"
 NEW_REF=$INI yq --front-matter=process -i '.origin_spec = strenv(NEW_REF)' "$SHELF"
-NEW_REF=$INI yq --front-matter=process -i '.promoted_to = strenv(NEW_REF)' "$WORK_ITEM"
+sed -i.bak "s% -> $SPEC\$% -> $INI%" "$WORK_ITEM" && rm -f "$WORK_ITEM.bak"
 rm -rf "${P:?}/$SPEC"
 git -C "$P" add "$INI" && git -C "$P" commit -q -m "initiative 001-billing-suite: converted from spec 001-billing-suite"
 # task_review reads local unless origin is on GitHub or GitLab, so origin names a GitHub URL and pushes still land in the bare repo.
@@ -67,7 +67,7 @@ check "JRN-001 the design log has an Origin entry naming the spec" 'grep -q "^##
 check "JRN-001 the design log no longer links the deleted spec.md" '! grep -q "^Spec: \[spec.md\]" "$P/$INI/design-log.md"'
 check "JRN-001 the spec folder is gone" '[ ! -e "$P/$SPEC" ]'
 eq "JRN-001 the shelf item points at the initiative" "$(fm "$SHELF" .origin_spec)" "$INI"
-eq "JRN-001 the work item points at the initiative" "$(fm "$WORK_ITEM" .promoted_to)" "$INI"
+eq "JRN-001 the backlog line points at the initiative" "$(sed -n 's/^- \[promoted\] B1 .* -> //p' "$WORK_ITEM")" "$INI"
 eq "JRN-001 the conversion commit holds only the initiative folder" \
   "$(git -C "$P" show --name-only --format= HEAD | grep -v "^\.workflow/initiatives/001-billing-suite/")" ""
 

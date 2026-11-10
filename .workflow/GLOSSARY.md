@@ -10,18 +10,6 @@ An agent-agnostic scaffold for coding-agent skills and hooks, living in `.agents
 Authored project knowledge that cannot be derived from code: `.workflow/GLOSSARY.md`, capabilities, rules, the decision log, the review lessons and the work profiles, all under the target's `.workflow/` folder. The source of truth; agent-proposed, human-approved.
 _Avoid_: Docs, wiki
 
-**Tier B**:
-Generated caches of facts derivable from code (module map, flow diagrams, architecture structure). Stamped with a commit, never hand-edited, never the source of truth.
-_Avoid_: Generated docs, index
-
-**Cache stamp**:
-The commit a **Tier B** cache was derived from, plus the paths it covers. A cache is stale when any covered path changed since that commit.
-_Avoid_: Cache timestamp, cache version
-
-**Graph extractor**:
-The per-language tool that reads a scope's source files and outputs the file graph (files, their import or `source` edges, and candidate entry points) that the **Tier B** caches are built from. Each **work profile** names one with `graph_extractor`: `dependency-cruiser` for JS/TS, `bash` for shell scripts, or `none`. Not the boundary-config adapter, which generates lint config from `.workflow/rules.md`.
-_Avoid_: Extractor, parser, cache adapter
-
 **Placement ADR**:
 The decision record that says which module owns a change and why, written before requirements are settled.
 _Avoid_: Placement note
@@ -35,7 +23,7 @@ Shelving an out-of-scope item as one file in `.workflow/deferred/` with a back-l
 _Avoid_: Parking lot, TODO list
 
 **Review lesson**:
-A lesson a retrospective recorded for the Phase 4 review: a symptom to look for in a set of paths, with the spec it came from and the date, one entry per lesson in the project's review-lessons file (**Tier A**). The review-lessons lens checks every change against them. A lesson a rule, a lint or a profile checklist line already enforces is not one.
+A lesson a retrospective recorded for the Phase 4 review: a symptom to look for in a set of paths, with the spec it came from and the date, one entry per lesson in the project's review-lessons file (**Tier A**). The standards lens (`review-standards`), or the combined review on the light path, checks every change against them. A lesson a rule, a lint or a profile checklist line already enforces is not one.
 _Avoid_: Pitfall, watch item, recurrence check, review rule
 
 **Term list**:
@@ -53,11 +41,11 @@ The per-work-type file of operating instructions for coding agents: file locatio
 _Avoid_: Persona, config
 
 **Task type**:
-The kind of sub-agent a launch runs, one per agent definition: retrieval, library-evaluation, cache-regeneration, fact-lookup, module-audit, implementation, integration, profile-mini-review, review-standards, review-end-state, review-targets, review-lessons, review-combined, standards-discovery. Not the same as **work type**.
+The kind of sub-agent a launch runs, one per agent definition: retrieval, library-evaluation, fact-lookup, module-audit, implementation, integration, profile-mini-review, review-standards, review-end-state, review-targets, review-combined, standards-discovery. Not the same as **work type**.
 _Avoid_: Agent role
 
 **Model map**:
-The project-owned table that assigns a model tier and host model alias to each **task type**. Lowest-precedence source: agent overrides and the agent definition win over it.
+The project-owned table, `.workflow/model-map.yaml`, that gives each **task type** one row: its model tier, the model alias per host and why. It is the only source of a launch's model.
 _Avoid_: Model config
 
 **Launch header**:
@@ -79,12 +67,8 @@ The rules every **Step file** follows for status changes, the **Step marker**, g
 _Avoid_: Common rules, shared rules (clash with shared core)
 
 **Light path**:
-The short route for a small, clear request: three facts clean (no intent gaps, no irreversible actions, small footprint) lead to a one-task plan and straight to implementation against the existing suites.
-_Avoid_: Fast track, quick mode
-
-**Small path**:
-The route picked at intake for a request that already names the file to change, the cause and the test that proves the fix, as a work-backlog item usually does. It is built as a **light path** spec, with one questioning round, no library evaluation, one combined review, a five-line report and the retrospective folded into the sign-off ask. It drops to the light or full path as soon as the request proves bigger.
-_Avoid_: Quick fix, mini path, backlog path
+The short route for a small, clear request: three facts clean (no intent gaps, no irreversible actions, small footprint) lead to a one-task plan and straight to implementation against the existing suites. It is decided at 0.3.20, never at intake, and has one combined review and a five-line report.
+_Avoid_: Fast track, quick mode, small path
 
 **Full path**:
 The complete route for any request that does not qualify for the **light path**: discovery, verification setup, task breakdown, implementation, review and sign-off.
@@ -202,7 +186,6 @@ _Avoid_: Quota, cap
 
 - A **Work type** has exactly one **Work profile**; a launch's **Work profile** is chosen from the task's **Work type**.
 - A **Task type** is resolved to a model through the **Model map**, using the **Launch header**.
-- **Tier B** caches carry a **Cache stamp**; **Tier A** does not.
 - **Discovered work** the user keeps for later becomes one line on its spec's list in the **Work backlog**; out-of-scope items found during discovery go through a **Deferred handoff** instead.
 - A crossed **Size budget** is handled like **Discovered work**.
 - The **Deeper prompt** is the input from which the questioning loop computes its first **Frontier**.
@@ -210,7 +193,7 @@ _Avoid_: Quota, cap
 - A **Large path** runs on exactly one **Initiative** and emits one or more specs; each emitted spec takes the **Light path** or the **Full path**.
 - A spec whose discovery finds several features converts into an **Initiative**; a **Deferred handoff** item that grows large or unclear seeds one.
 - An **Initiative** holds many **Initiative questions** and many **Slices**; each **Slice** becomes exactly one spec, and an **Initiative question** may depend on an emitted spec.
-- A **Review lesson** is written by the retrospective of exactly one spec and checked by the review-lessons **Task type** on every later spec's review.
+- A **Review lesson** is written by the retrospective of exactly one spec and checked by the review-standards (or review-combined) **Task type** on every later spec's review.
 - Each spec has one **Sign-off PR**, and its description follows the **PR template**, which reports the change's **Blast radius**.
 - Each spec has one **Tracker issue**, and each of its tasks has one under it; every **Tracker issue** moves through the project's **Issue flow**.
 

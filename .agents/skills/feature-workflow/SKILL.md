@@ -1,6 +1,6 @@
 ---
 name: feature-workflow
-description: Workflow 2.0 entry point for feature work. Sizes a request (trivial edit, small path, light path or full path), runs discovery, resumes an in-flight spec at the phase its status names, and plans a subject too large for one spec as an initiative (large path). Use when starting a feature, resuming or changing work in .workflow/specs/NNN-slug/ or .workflow/initiatives/NNN-slug/, acting on a session-start resume offer, or when asked to grill me / stress-test my plan.
+description: Workflow 2.0 entry point for feature work. Sizes a request (trivial edit, light path or full path), runs discovery, resumes an in-flight spec at the phase its status names, and plans a subject too large for one spec as an initiative (large path). Use when starting a feature, resuming or changing work in .workflow/specs/NNN-slug/ or .workflow/initiatives/NNN-slug/, acting on a session-start resume offer, or when asked to grill me / stress-test my plan.
 ---
 
 # Feature workflow
@@ -26,11 +26,10 @@ Resolve which feature this request is about before doing anything else. Take the
 
 **"Grill me" / "stress-test my plan".** Treat it as a request to run the questioning loop (0.3.8 on) for the current spec. Resolve the spec by branches 2-4 and route by status; if none is in flight, start at discovery. The questioning loop owns it; there is no separate grill skill.
 
-**Work-backlog items.** `.workflow/specs/work-backlog/` holds discovered work that a stakeholder chose to keep for later: one list per spec, `<NNN-slug>.md`, one line per item, plus older one-file-per-item entries (`<NNN-slug>-disc-<###>.md`). It is not a spec: never route it by status. When you list in-flight specs, or the request starts new work, also list the open items:
+**Work-backlog items.** `.workflow/specs/work-backlog/` holds discovered work that a stakeholder chose to keep for later: one list per spec, `<NNN-slug>.md`, one line per item. It is not a spec: never route it by status. When you list in-flight specs, or the request starts new work, also list the open items:
 
 ```bash
 grep -H '^- \[open\]' .workflow/specs/work-backlog/*.md 2>/dev/null
-for f in .workflow/specs/work-backlog/*-disc-*.md; do [ -f "$f" ] && [ "$(yq --front-matter=extract '.status' "$f")" = open ] && printf '%s\t%s\n' "$f" "$(yq --front-matter=extract '.origin_spec' "$f")"; done
 ```
 
 When the stakeholder picks one, it is new work seeded from the item: size it, and discovery seeds 0.1 from it and marks it `promoted` at 0.1.4 ([discovery](modules/discovery.md#seeded-from-a-work-item)).
@@ -42,25 +41,18 @@ Done when you hold one `.workflow/specs/NNN-slug/` to resume, an initiative hand
 **0.0.1: trivial edit the stakeholder will review themselves?** A typo, a copy change, a one-line config tweak the stakeholder will read in the diff. Ask in one line when unsure, recommending your answer. If a bug could escape into production, it is not trivial.
 
 - **Yes, 0.0.2:** make the edit directly. No spec folder, no workflow, no status. Stop here.
-- **No:** go to 0.0.3.
-
-**0.0.3: small path?** Yes when the request already names all three: the file to change, the cause (what goes wrong and why, or what is missing), and the test that will prove the fix. A work-backlog item usually does, in its Problem, Evidence and Suggested scope. It must also look like a light-path change: one owning module, nothing irreversible. Ask in one line when unsure, recommending your answer.
-
-- **Yes:** load [modules/discovery.md](modules/discovery.md) and start at 0.1; discovery writes `small_path: true` at 0.1.4.
 - **No:** load [modules/discovery.md](modules/discovery.md) and start at 0.1.
 
-The small path runs the light path with less ceremony, through the same step files: each step it changes carries an "On the small path:" note in its step file. A note applies while `small_path` is `true` in `spec.md` and `design-log.md` has no `Left the small path` line.
-
-Light versus full path is decided at 0.3.20, once the questioning loop has settled the design, never at intake. Only the small path is picked at intake, and it drops to the light or full path as soon as the request proves bigger ([Leave the small path](modules/questioning-loop.md#leave-the-small-path)). The large path is not picked at intake either: the questioning loop converts the spec into an initiative when it finds several features (0.3.23).
+Light versus full path is decided at 0.3.20, once the questioning loop has settled the design, never at intake. The large path is not picked at intake either: the questioning loop converts the spec into an initiative when it finds several features (0.3.23).
 
 ## 3. Route by status
 
 Read the spec's frontmatter and step marker, then load the step file the table names.
 
-**Work in the spec checkout.** From 1.1 (0.3.20 on the light path) a spec runs in its spec worktree, `.workflow/.spec-worktrees/NNN-slug` inside the main checkout, on its spec branch; its `.step`, `artifacts/` and agent worktrees live there. A spec started before spec worktrees existed runs in the main checkout on its spec branch. When the session is elsewhere, move it in before reading anything: on Claude Code, call the `EnterWorktree` tool with the worktree's absolute path; on other hosts, ask the stakeholder to reopen the session in that folder (write a handoff first if the session holds context worth keeping). Every step file's commands then run from there.
+**Work in the spec checkout.** From 1.1 (0.3.20 on the light path) a spec runs in its spec worktree, `.workflow/.spec-worktrees/NNN-slug` inside the main checkout, on its spec branch; its `.step`, `artifacts/` and agent worktrees live there. When the session is elsewhere, move it in before reading anything: on Claude Code, call the `EnterWorktree` tool with the worktree's absolute path; on other hosts, ask the stakeholder to reopen the session in that folder (write a handoff first if the session holds context worth keeping). Every step file's commands then run from there.
 
 ```bash
-yq --front-matter=extract '.status, .light_path, .small_path // false, .blocked_condition // "", .impl_base_revision' .workflow/specs/NNN-slug/spec.md
+yq --front-matter=extract '.status, .light_path, .blocked_condition // "", .impl_base_revision' .workflow/specs/NNN-slug/spec.md
 cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_from (gitignored; in the spec checkout only)
 ```
 
@@ -76,11 +68,11 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 | `in-progress` | `impl_base_revision` is `""` | [implementation-setup](modules/implementation-setup.md) | 3.1 |
 | `in-progress` | otherwise | [implementation-waves](modules/implementation-waves.md) | its On resume (task records in `tasks.md` say what is done) |
 | `in-review` | any task record `in-progress` (a rework under way), whatever the step | [implementation-waves](modules/implementation-waves.md) | its Rework entry (4.7): relaunch the reopened tasks, then back to review-triage |
-| `in-review` | step in 5.x | sign-off | the step in `.step` (order 5.1–5.5, then 5.9, 5.7, 5.8) |
+| `in-review` | step in 5.x | sign-off | the step in `.step` (order 5.1, 5.2, 5.4, 5.5, then 5.3, 5.9, 5.7, 5.8) |
 | `in-review` | otherwise | review-triage | the 4.x step in `.step`, else 4.1 (4.10 on the light path) |
 | `blocked` | `blocked_condition` starts `discovered work:` or `size budget:` | [discovered-work](modules/discovered-work.md) | its "Resuming a blocked spec here" section (00.22 or 00.28) |
 | `blocked` | any other condition | none until a human resolves it | see [Blocked](#blocked) |
-| `done` | any | none | Read it as context only, from `.workflow/specs/done/NNN-slug/` once 5.8 has moved it (specs finished before the Done folder existed may still sit at the top level). A new change to a finished feature is new work: size it. |
+| `done` | any | none | Read it as context only, from `.workflow/specs/done/NNN-slug/` once 5.8 has moved it. A new change to a finished feature is new work: size it. |
 
 The rework row checks the task records, not `.step`, which Phase 3's `set-task --step` calls and 3.15 move off 4.7 as a reopened task passes its gates. It applies when `yq --front-matter=extract '[.tasks[] | select(.status == "in-progress")] | length' .workflow/specs/NNN-slug/tasks.md` is above 0; with none `in-progress`, the 5.x and review-triage rows apply.
 
@@ -107,7 +99,7 @@ A `discovered work:` or `size budget:` condition belongs to [discovered-work](mo
 
 ## 5. Templates
 
-Templates for every per-feature file are in [assets/](assets/), named after the file they create (`tasks.md` the index, `task.md` one per task under `tasks/`), except `pr-template.md` (for `pr-body.md`, the Sign-off PR description) and `work-backlog.md` for a spec's `.workflow/specs/work-backlog/` list (`work-item.md` is the older one-file-per-item shape); `initiative.md` and `questions.md` are for an initiative folder.
+Templates for every per-feature file are in [assets/](assets/), named after the file they create (`tasks.md` the index, `task.md` one per task under `tasks/`), except `pr-template.md` (for `pr-body.md`, the Sign-off PR description) and `work-backlog.md` for a spec's `.workflow/specs/work-backlog/` list; `initiative.md` and `questions.md` are for an initiative folder.
 
 ## Done
 

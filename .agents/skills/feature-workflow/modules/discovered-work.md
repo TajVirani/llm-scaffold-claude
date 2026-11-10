@@ -4,7 +4,7 @@ Work found outside the agreed scope while a feature is under way is **never** fo
 
 Not for Phase 0: an out-of-scope item raised while framing goes through the scope gate 0.3.16–0.3.17 to `.workflow/deferred/` ([deferred-handoff](deferred-handoff.md)).
 
-`ST` below is `.agents/skills/feature-workflow/scripts/status-transition.sh`; type the full path every time. `NNN-slug` is the current spec.
+`ST` and the exit codes are in [conventions](../references/conventions.md). `NNN-slug` is the current spec.
 
 ## What the caller hands you
 
@@ -42,7 +42,7 @@ Take each discovered-work report through these questions in order. The agent's a
 | Unproven | one design-log line; back to the caller |
 | Current work | back to the caller as a fix for the owning worker |
 | Blocker | [00.21](#0021-block) block → [00.22](#0022-present) present every blocker in one call → [00.23–00.24](#0023-0024-blocker), or [00.25](#0025-batched-ask) when the stakeholder overrules → [00.28](#0028-resume) |
-| For the stakeholder | a `to ask` entry in `design-log.md`; back to the caller; asked at the next ask the session already makes, or at 5.5 at the latest |
+| For the stakeholder | a `to ask` entry in `design-log.md`; back to the caller; asked at the next blocking ask, or at the sign-off ask (5.5) at the latest |
 
 Done when every report has a route and its reason.
 
@@ -80,7 +80,7 @@ Then ask one question per report whose options are the routes, recommended optio
 | `discovered work:` | Blocker, go to discovery (00.24 Yes) · Blocker, keep the spec blocked until I resolve it (00.24 No) · Not a blocker, keep it for later (00.26) · Not a blocker, drop it (00.25 drop) |
 | `size budget:` | Split: remaining work to the backlog list (00.29 Split) · Re-scope through discovery (00.29 Re-scope) · Approve the overrun for this spec (00.29 Approve) |
 
-This is an ask the session already makes, so it also carries the [batched ask](#0025-batched-ask) for every item waiting.
+This is a blocking ask, so it also carries the [batched ask](#0025-batched-ask) for every item waiting, and opens with the assumptions not yet offered for veto ([conventions](../references/conventions.md#asking-the-stakeholder)).
 
 - **Claude Code:** AskUserQuestion, one question per report plus the batched question, all in one call (a second call straight after when past four).
 - **Codex, or chat:** one message per round, then wait:
@@ -109,7 +109,7 @@ Tasks still running in Phase 3 finish their gates first; record their results th
 
 ## 00.25 Batched ask
 
-Every `to ask` item waits for one question. Ask it at the next ask the session already makes (a 00.22 presentation, the round of a loop back to 0.3.8, the 5.3 approval round), or at 5.5 at the latest. Never stop the work only to ask it.
+Every `to ask` item waits for one question. Ask it at the next blocking ask the session makes (a 00.22 presentation, a questioning round, the 2.1 breakdown quiz, a `hitl` pause at 3.3), or at the sign-off ask (5.5) at the latest. Never stop the work only to ask it.
 
 1. **List the waiting items:** every **Discovered work** entry in `design-log.md` whose ruling reads `to ask` and that no later `Ruling:` line names.
 
@@ -138,17 +138,16 @@ Used for an item the stakeholder kept (at 00.22, at a batched ask, or at 5.9 fro
    ST step .workflow/specs/NNN-slug 00.26
    ```
 
-2. **Match by concept** (skip for a `budget-split` item). List `.workflow/deferred/*.md` (not `.workflow/deferred/archive/`), the open lines of every backlog list and every older open item file, and open any that could be the same concept. Match by concept, not keyword: "night theme" matches `dark-mode.md`.
+2. **Match by concept** (skip for a `budget-split` item). List `.workflow/deferred/*.md` (not `.workflow/deferred/archive/`) and the open lines of every backlog list, and open any that could be the same concept. Match by concept, not keyword: "night theme" matches `dark-mode.md`.
 
    ```bash
    ls .workflow/deferred/*.md 2>/dev/null
    grep -H '^- \[open\]' .workflow/specs/work-backlog/*.md 2>/dev/null
-   for f in .workflow/specs/work-backlog/*-disc-*.md; do [ -f "$f" ] && [ "$(yq --front-matter=extract '.status' "$f")" = open ] && echo "$f"; done
    ```
 
    - **Match on a shelf file:** append one line to its **Later requests** section, `- .workflow/specs/NNN-slug, <origin node>: <one line>`, without asking.
-   - **Match on an open line or item of this spec:** add nothing; the existing line stands.
-   - **Match on another spec's line or item:** add nothing to it (the guard admits only this spec's list) and name it in the design-log line.
+   - **Match on an open line of this spec:** add nothing; the existing line stands.
+   - **Match on another spec's line:** add nothing to it (the guard admits only this spec's list) and name it in the design-log line.
    - Then append the one-line duplicate record to `design-log.md` (shape "Duplicate discovered work" in [../assets/design-log.md](../assets/design-log.md)) and skip steps 3–4.
    - **No match:** continue.
 3. **Append the line.** Create the list from the template when it does not exist yet (delete its comment and example line), then add one line at the end with Edit, `B<n>` the highest number on the list plus one (`B1` for the first):

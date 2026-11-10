@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# File: Hook (Codex adapter): the three write guards (spec-single-writer, Tier A, Tier B) for Codex's `apply_patch` tool.
+# File: Hook (Codex adapter): the workflow write guard and the worktree check for Codex's `apply_patch` tool.
 # Goals:
 #   - Codex sends a file edit as `apply_patch` with the patch text in tool_input.command, not a file_path (verified on 0.155.1), so the
-#     Claude guards (_guard-common.sh) would see no path and allow. This adapter splits the patch into its paths and runs, for each path,
-#     skills/feature-workflow/scripts/check-write.sh with --only spec, --only tier-a and --only tier-b: the same rules the three Claude
-#     guards apply.
+#     Claude guard (workflow-write-guard.sh) would see no path and allow. This adapter splits the patch into its paths and runs, for each
+#     path, skills/feature-workflow/scripts/check-write.sh once, covering every path class: the same call the Claude guard makes.
 #   - Deny the whole patch when any path is denied. Codex applies a PreToolUse deny, and deny wins over an allow from another hook (verified on 0.155.1).
 # Behaviour:
 #   - tool_name other than apply_patch: exit 0, no output. No skills/feature-workflow next to this hooks folder: exit 0 (workflow not installed).
@@ -18,18 +17,19 @@
 #   - Worktree confinement, sub-agents only: the worktree is named by the spawn task_name, read from the session_meta agent_path on the
 #     first line of the payload transcript_path (as post-implementation-audit.sh reads it from agent_transcript_path). When the name is
 #     s<NNN>_... and .workflow/.worktrees/<task_name> exists in the spec checkout, every path is also checked by
-#     skills/feature-workflow/scripts/check-worktree-scope.sh: a path inside the spec or main checkout but outside that worktree is denied. No
+#     skills/feature-workflow/scripts/check-worktree-scope.sh: a path inside the spec or main checkout but outside that worktree is denied,
+#     except the agent's own result file under the spec's artifacts/, which the task_name names. No
 #     session_meta agent_path in the transcript (unverified on 0.155.1 for PreToolUse; SubagentStart's transcript_path was seen to be the
 #     sub-agent's own rollout) or no such worktree: no confinement.
-#   - check-write.sh exit 0 for every path and class: allow (no output). Exit 2: deny with every denied path's reason. Any other exit, an
+#   - check-write.sh exit 0 for every path: allow (no output). Exit 2: deny with every denied path's reason. Any other exit, an
 #     unparsable payload, a missing or unparsable patch: deny, fail closed.
-#   - jq missing, or any failure before a decision: a static, hand-written deny JSON and exit 0 (as _guard-common.sh does).
+#   - jq missing, or any failure before a decision: a static, hand-written deny JSON and exit 0 (as workflow-write-guard.sh does).
 # Outputs/handoff: stdout is nothing or exactly one deny JSON (same shape as Claude's; verified on Codex):
 #   {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"..."}}. Exit code always 0.
 # Wiring: codex-hooks.template.json (written to <target>/.codex/hooks.json by install.sh): PreToolUse, matcher "apply_patch".
-# Notes: Accident prevention only, as on Claude. Shell writes do not reach this hook; the hard limit for .workflow/cache is the permissions profile in
-#   codex-config.template.toml. .workflow/specs/*/.step has no Codex hard limit, so this guard is its only file-tool protection.
-# Sources: first-party; check-write.sh CLI; _guard-common.sh (fail-closed pattern).
+# Notes: Accident prevention only, as on Claude. Shell writes do not reach this hook.
+#   .workflow/specs/*/.step has no Codex hard limit, so this guard is its only file-tool protection.
+# Sources: first-party; check-write.sh CLI; workflow-write-guard.sh (fail-closed pattern).
 # Requires: bash 3.2+, jq, awk; check-write.sh needs mikefarah yq v4 for Tier A and --proposed.
 
 set -euo pipefail
@@ -142,19 +142,16 @@ while IFS=$'\t' read -r idx op path; do
       continue
     fi
   fi
-  for only in spec tier-a tier-b; do
-    args=(--cwd "$cwd" --path "$path" --only "$only")
-    [ -z "$agent_id" ] || args+=(--agent "${agent_type:-$agent_id}")
-    [ -z "$proposed" ] || [ "$only" != spec ] || args+=(--proposed "$proposed")
-    rc=0
-    "$script" "${args[@]}" >/dev/null 2>"$TMP/err" || rc=$?
-    [ "$rc" -ne 0 ] || continue
-    reason=$(tr '\n' ' ' <"$TMP/err" | sed 's/ *$//')
-    [ -n "$reason" ] || reason="check-write.sh exited $rc"
-    [ "$rc" -eq 2 ] || reason="write guard error (denying, fail closed): $reason"
-    reasons+=("$path: $reason")
-    break
-  done
+  args=(--cwd "$cwd" --path "$path")
+  [ -z "$agent_id" ] || args+=(--agent "${agent_type:-$agent_id}")
+  [ -z "$proposed" ] || args+=(--proposed "$proposed")
+  rc=0
+  "$script" "${args[@]}" >/dev/null 2>"$TMP/err" || rc=$?
+  [ "$rc" -ne 0 ] || continue
+  reason=$(tr '\n' ' ' <"$TMP/err" | sed 's/ *$//')
+  [ -n "$reason" ] || reason="check-write.sh exited $rc"
+  [ "$rc" -eq 2 ] || reason="write guard error (denying, fail closed): $reason"
+  reasons+=("$path: $reason")
 done <"$TMP/paths"
 
 [ "${#reasons[@]}" -eq 0 ] && exit 0

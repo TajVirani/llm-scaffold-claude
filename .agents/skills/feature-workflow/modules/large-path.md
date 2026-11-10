@@ -8,7 +8,7 @@ The initiative folder is `.workflow/initiatives/NNN-slug/`: `initiative.md` (sta
 
 The rules every step file follows (one writer, the exit codes, set the step then write, the progress line, sub-agent writes) hold for an initiative as for a spec; they are in [../references/conventions.md](../references/conventions.md). These are the initiative's own parts.
 
-- **Initiative writer.** `IT` below is shorthand for `.agents/skills/feature-workflow/scripts/initiative-transition.sh`, and `ST` for `.agents/skills/feature-workflow/scripts/status-transition.sh`: type the full path every time from the project root, because sandboxed projects allow those exact command lines. Initiative status, the marker `.workflow/initiatives/NNN-slug/.step`, and the state of every slice and question change only through `IT`:
+- **Initiative writer.** `IT` and `ST` are the shorthands in [conventions](../references/conventions.md). Initiative status, the marker `.workflow/initiatives/NNN-slug/.step`, and the state of every slice and question change only through `IT`:
 
   ```text
   IT status       .workflow/initiatives/NNN-slug <exploring|planned|done> [--step <6.x>]
@@ -85,7 +85,7 @@ Entered from the questioning loop, when the stakeholder agrees that the draft sp
    ```
 
 4. **Move the record in.** `mv` the spec's `design-log.md` and `codebase-map.md` into the initiative folder. In the moved log, replace the line `Spec: [spec.md](spec.md)` with `Initiative: [initiative.md](initiative.md)` (the one edit of an earlier line, because the spec it linked is deleted). Decisions keep their `D<n>` ids; later rounds continue the numbering.
-5. **Re-point every reference to the spec.** Shelf items: [deferred-handoff](deferred-handoff.md#re-point-at-conversion) **Re-point at conversion**. A work item that seeded the spec: a backlog line ending ` -> .workflow/specs/<spec NNN-slug>` gets that path changed to `.workflow/initiatives/NNN-slug`, and an older item file whose `promoted_to` names the spec folder gets `promoted_to: .workflow/initiatives/NNN-slug`; change nothing else. Then append to the moved log the `Origin: converted from spec <NNN-slug>` entry, shaped as in [../assets/design-log.md](../assets/design-log.md): the spec folder at step 0.3.23, the new initiative and its branch, the spec's number as consumed, the reason it is several features (with the round that showed it), and the items re-pointed here.
+5. **Re-point every reference to the spec.** Shelf items: [deferred-handoff](deferred-handoff.md#re-point-at-conversion) **Re-point at conversion**. A work item that seeded the spec: a backlog line ending ` -> .workflow/specs/<spec NNN-slug>` gets that path changed to `.workflow/initiatives/NNN-slug`; change nothing else. Then append to the moved log the `Origin: converted from spec <NNN-slug>` entry, shaped as in [../assets/design-log.md](../assets/design-log.md): the spec folder at step 0.3.23, the new initiative and its branch, the spec's number as consumed, the reason it is several features (with the round that showed it), and the items re-pointed here.
 6. **Delete the spec folder** (`rm -rf .workflow/specs/<spec NNN-slug>`). Its number is never reused: discovery 0.1.1 counts each initiative's `origin`.
 7. **Commit point** (`converted from spec <spec NNN-slug>`).
 

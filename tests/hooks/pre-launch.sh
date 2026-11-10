@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Suite: hooks/pre-launch.sh (PreToolUse on Agent/Task).
+# Suite: hooks/pre-launch.sh (PreToolUse on Agent).
 # Covers: non-Agent and non-workflow launches pass silently, valid launches get the full updatedInput rewrite
-#   (model, header, profile), legacy Task tool name, deny paths (missing header, task_type mismatch, unresolved model,
+#   (model, header, profile), the old Task tool name passing silently, deny paths (missing header, task_type mismatch, unresolved model,
 #   env error with no yq, no jq, invalid payload), worktree cwd, CLAUDE_PROJECT_DIR fallback, workflow absent / not set up;
-#   JRN-005: a review-lessons launch allowed with its model from the model map, denied naming 00.14 without one, and denied
-#   when the header lacks spec_dir.
+#   JRN-005: a Phase 4 lens launch (review-standards) allowed with its model from the model map, denied naming 00.14 without
+#   one, and denied when the header lacks spec_dir.
 # shellcheck disable=SC2016,SC2015  # jq programs use single quotes; A && B || C is deliberate in ok/ko lines
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -16,20 +16,15 @@ FX=$T/proj
 mkdir -p "$FX"
 copy_agents "$FX"
 HOOK=$FX/.agents/hooks/pre-launch.sh
-mkdir -p "$FX/.workflow/model-map" "$FX/.workflow/profiles" "$FX/.workflow/specs/001-demo"
-cat > "$FX/.workflow/model-map/implementation.md" <<'M'
----
-tier: strong
-claude: opus
-codex: <alias>
----
-# implementation
-M
-cat > "$FX/.workflow/model-map/retrieval.md" <<'M'
----
-tier: cheap
-claude: haiku
----
+mkdir -p "$FX/.workflow/profiles" "$FX/.workflow/specs/001-demo"
+cat > "$FX/.workflow/model-map.yaml" <<'M'
+implementation:
+  tier: strong
+  claude: opus
+  codex: "<alias>"
+retrieval:
+  tier: cheap
+  claude: haiku
 M
 cat > "$FX/.workflow/profiles/frontend-react.md" <<'M'
 # Profile: frontend-react
@@ -89,11 +84,13 @@ if [ $rc = 0 ] && jq -e --arg hdr "$HDR" '
 then ok "valid implementation launch -> allow + full updatedInput"; else ko "valid implementation" "rc=$rc out=$out"; fi
 [ "$(printf '%s' "$out" | wc -l | tr -d ' ')" -le 1 ] && ok "single-line stdout" || ko "stdout" "multi-line"
 
-# 3b legacy Task tool name, retrieval (no profile, prompt unchanged)
+# 3b retrieval (no profile, prompt unchanged); any other tool name passes untouched
 RH=$'```yaml launch-header\ntask_type: retrieval\nspec_dir: .workflow/specs/001-demo\n```\nPull docs.'
-run "$(payload Task retrieval "$RH" "$FX")"
+run "$(payload Agent retrieval "$RH" "$FX")"
 jq -e --arg p "$RH" '.hookSpecificOutput.permissionDecision=="allow" and .hookSpecificOutput.updatedInput.prompt==$p and .hookSpecificOutput.updatedInput.model=="haiku"' <<<"$out" >/dev/null \
-  && ok "legacy Task + retrieval: prompt unchanged, model set" || ko "Task retrieval" "$out"
+  && ok "retrieval: prompt unchanged, model set" || ko "Agent retrieval" "$out"
+run "$(payload Task retrieval "$RH" "$FX")"
+[ "$rc" = 0 ] && [ -z "$out" ] && ok "a tool other than Agent: exit 0, no output" || ko "other tool" "rc=$rc out=$out"
 
 # 4 missing header deny
 run "$(payload Agent implementation "Just do it" "$FX")"
@@ -105,35 +102,30 @@ run "$(payload Agent integration "$HDR" "$FX")"
 jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.permissionDecisionReason|test("disagrees"))' <<<"$out" >/dev/null \
   && ok "task_type mismatch -> deny" || ko "mismatch" "$out"
 
-# 5 model unresolved deny (fact-lookup has no model-map)
+# 5 model unresolved deny (fact-lookup has no row in the model map)
 FH=$'```yaml launch-header\ntask_type: fact-lookup\nspec_dir: .workflow/specs/001-demo\n```\nq'
 run "$(payload Agent fact-lookup "$FH" "$FX")"
 jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.permissionDecisionReason|test("00.14"))' <<<"$out" >/dev/null \
   && ok "model unresolved -> deny 00.14" || ko "00.14" "$out"
 
-# 5b: the review-lessons lens launch
-cat > "$FX/.workflow/model-map/review-lessons.md" <<'M'
----
-tier: cheap
-claude: haiku
-codex: gpt-6-luna
----
-# review-lessons
-M
-LH=$'```yaml launch-header\ntask_type: review-lessons\nspec_dir: .workflow/specs/001-demo\n```\nReview pass 1 of .workflow/specs/001-demo. Write the review-findings block to your pass file and return the summary block.'
-run "$(payload Agent review-lessons "$LH" "$FX")"
+# 5b: a Phase 4 lens launch (review-standards)
+cp "$FX/.workflow/model-map.yaml" "$T/model-map.before"
+yq -i '.review-standards = {"tier": "cheap", "claude": "haiku", "codex": "gpt-6-luna"}' "$FX/.workflow/model-map.yaml"
+LH=$'```yaml launch-header\ntask_type: review-standards\nspec_dir: .workflow/specs/001-demo\n```\nReview pass 1 of .workflow/specs/001-demo. Write the review-findings block to your pass file and return the summary block.'
+run "$(payload Agent review-standards "$LH" "$FX")"
 jq -e --arg p "$LH" '.hookSpecificOutput.permissionDecision=="allow" and .hookSpecificOutput.updatedInput.model=="haiku"
-  and .hookSpecificOutput.updatedInput.subagent_type=="review-lessons" and .hookSpecificOutput.updatedInput.prompt==$p' <<<"$out" >/dev/null \
-  && ok "JRN-005 review-lessons with a header -> allow, model haiku from the model map" || ko "JRN-005 review-lessons allow" "rc=$rc out=$out"
-mv "$FX/.workflow/model-map/review-lessons.md" "$T/review-lessons.model-map.md"
-run "$(payload Agent review-lessons "$LH" "$FX")"
+  and .hookSpecificOutput.updatedInput.subagent_type=="review-standards" and .hookSpecificOutput.updatedInput.prompt==$p' <<<"$out" >/dev/null \
+  && ok "JRN-005 review-standards with a header -> allow, model haiku from the model map" || ko "JRN-005 review-standards allow" "rc=$rc out=$out"
+cp "$FX/.workflow/model-map.yaml" "$T/model-map.with-lens"
+cp "$T/model-map.before" "$FX/.workflow/model-map.yaml"
+run "$(payload Agent review-standards "$LH" "$FX")"
 jq -e '.hookSpecificOutput.permissionDecision=="deny" and (.hookSpecificOutput.permissionDecisionReason|test("00.14"))' <<<"$out" >/dev/null \
-  && ok "JRN-005 review-lessons with no model-map entry -> deny 00.14" || ko "JRN-005 review-lessons 00.14" "rc=$rc out=$out"
-mv "$T/review-lessons.model-map.md" "$FX/.workflow/model-map/review-lessons.md"
-LH_NO_SPEC=$'```yaml launch-header\ntask_type: review-lessons\n```\nReview pass 1.'
-run "$(payload Agent review-lessons "$LH_NO_SPEC" "$FX")"
+  && ok "JRN-005 review-standards with no model-map row -> deny 00.14" || ko "JRN-005 review-standards 00.14" "rc=$rc out=$out"
+cp "$T/model-map.with-lens" "$FX/.workflow/model-map.yaml"
+LH_NO_SPEC=$'```yaml launch-header\ntask_type: review-standards\n```\nReview pass 1.'
+run "$(payload Agent review-standards "$LH_NO_SPEC" "$FX")"
 jq -e '.hookSpecificOutput.permissionDecision=="deny"' <<<"$out" >/dev/null \
-  && ok "JRN-005 review-lessons header without spec_dir -> deny" || ko "JRN-005 review-lessons no spec_dir" "rc=$rc out=$out"
+  && ok "JRN-005 review-standards header without spec_dir -> deny" || ko "JRN-005 review-standards no spec_dir" "rc=$rc out=$out"
 
 # 6 resolve env error deny (yq missing: PATH without yq)
 NOYQ=$T/noyq; mkdir -p "$NOYQ"; for b in bash jq git cat sed tr grep mktemp rm dirname head awk env wc; do ln -sf "$(command -v $b)" "$NOYQ/$b"; done

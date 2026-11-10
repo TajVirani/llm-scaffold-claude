@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Suite: check-write.sh (feature-workflow/scripts): Tier A.
-# Covers: Tier A writes per step (the glossary, rules.md, capabilities.md, ADRs, profiles new and existing), sub-agent
-#   denials, the newest marker across specs in flight, no feature in flight, and a missing yq; JRN-004: the review-lessons
-#   file allowed at 5.7 only (denied at 0.3.7, 5.3, 4.9 and 0.1.4, and to a sub-agent at 5.7).
+# Covers: Tier A writes per step (the glossary, rules.md, capabilities.md, ADRs, profiles new and existing, and an existing profile
+#   with a `TODO:` toolchain value at 3.3-3.5 only, and then only in its Toolchain section), sub-agent
+#   denials, the newest marker across specs in flight (by seq; by updated_at only for markers without seq, which are older), no feature in flight, and a missing yq; JRN-004: the review-lessons
+#   file allowed at 5.7 only (denied at 0.3.7, 5.3, 4.1 and 0.1.4, and to a sub-agent at 5.7).
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
 # shellcheck disable=SC2329,SC1010,SC2016  # helpers run indirectly via t and bash -c; "done" is a status word; backticks in printf fixtures
 # shellcheck source=../lib/common.sh
@@ -24,7 +25,7 @@ export TEST_BASH SRC
 git_init_repo "$F/repo"
 R=$F/repo
 cd "$R" || exit 1
-mkdir -p .workflow/specs/001-alpha .workflow/specs/002-beta .workflow/cache .workflow/decisions/adr .workflow/profiles
+mkdir -p .workflow/specs/001-alpha .workflow/specs/002-beta .workflow/decisions/adr .workflow/profiles
 cp "$SRC/assets/spec.md" .workflow/specs/001-alpha/spec.md
 cp "$SRC/assets/spec.md" .workflow/specs/002-beta/spec.md
 cp "$SRC/assets/tasks.md" .workflow/specs/001-alpha/tasks.md
@@ -52,7 +53,7 @@ yq --front-matter=process -i '.status="in-progress"' "$R/$G/spec.md"
 ST step $G 5.3 >/dev/null
 
 echo "== check-write: Tier A"
-sleep 1; ST step $B 5.1 >/dev/null
+ST step $B 5.1 >/dev/null
 t "GLOSSARY at 5.1 deny (newest marker)"    2 CW --cwd "$R" --path .workflow/GLOSSARY.md
 for s in 0.2.3 0.3.15 0.4.3 5.3; do ST step $B $s >/dev/null; t ".workflow/GLOSSARY.md at $s allow" 0 CW --cwd "$R" --path .workflow/GLOSSARY.md; t "deep .workflow/GLOSSARY-MAP.md at $s allow" 0 CW --cwd "$R" --path a/GLOSSARY-MAP.md; done
 for s in 0.3.7 5.7; do ST step $B $s >/dev/null; t ".workflow/GLOSSARY.md at $s deny" 2 CW --cwd "$R" --path .workflow/GLOSSARY.md; t "src/x/GLOSSARY.md at $s deny" 2 CW --cwd "$R" --path src/x/GLOSSARY.md; t ".workflow/rules.md at $s allow" 0 CW --cwd "$R" --path .workflow/rules.md; t "adr at $s allow" 0 CW --cwd "$R" --path .workflow/decisions/adr/0002-y.md; t "existing profile edit at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/frontend.md; t "new profile at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/new.md; done
@@ -61,6 +62,25 @@ ST step $B 5.3 >/dev/null
 t "existing profile edit at 5.3 allow" 0 CW --cwd "$R" --path .workflow/profiles/frontend.md
 t "new profile at 5.3 allow"          0 CW --cwd "$R" --path .workflow/profiles/new.md
 t "existing profile at 5.3 sub-agent deny"  2 CW --cwd "$WT" --path "$WT/.workflow/profiles/frontend.md" --agent impl
+# A profile whose Toolchain block still holds a TODO: placeholder can be fixed during implementation, when run-toolchain.sh refuses it.
+printf '# Profile: todo\n## Toolchain\n```yaml\nlint: ""\ntest: "TODO: the test command"\n```\n' > .workflow/profiles/todo.md
+printf '# Profile: prose\nTODO: a note outside the Toolchain block.\n## Toolchain\n```yaml\ntest: "true"\n```\n' > .workflow/profiles/prose.md
+for s in 3.3 3.4 3.5; do
+  ST step $B $s >/dev/null
+  t "profile with a TODO: toolchain value at $s allow" 0 CW --cwd "$R" --path .workflow/profiles/todo.md
+  t "profile without a TODO: toolchain value at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/frontend.md
+  t "profile with TODO: only outside the Toolchain block at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/prose.md
+  t "new profile at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/todo2.md
+done
+ST step $B 3.5 >/dev/null
+# The proposed content: the TODO: value filled in alone, and the same fill plus a changed line outside the Toolchain section.
+printf '# Profile: todo\n## Toolchain\n```yaml\nlint: ""\ntest: "tests/run.sh"\n```\n' > "$WORK/todo-filled.md"
+printf '# Profile: todo, reworded\n## Toolchain\n```yaml\nlint: ""\ntest: "tests/run.sh"\n```\n' > "$WORK/todo-widened.md"
+t "profile at 3.5: filling the TODO: value alone allow" 0 CW --cwd "$R" --path .workflow/profiles/todo.md --proposed "$WORK/todo-filled.md"
+t "profile at 3.5: a change outside the Toolchain section deny" 2 CW --cwd "$R" --path .workflow/profiles/todo.md --proposed "$WORK/todo-widened.md"
+t "profile with a TODO: toolchain value at 3.5 sub-agent deny" 2 CW --cwd "$WT" --path "$WT/.workflow/profiles/todo.md" --agent impl
+for s in 3.2 3.6; do ST step $B $s >/dev/null; t "profile with a TODO: toolchain value at $s deny" 2 CW --cwd "$R" --path .workflow/profiles/todo.md; done
+rm -f .workflow/profiles/todo.md .workflow/profiles/prose.md
 for s in 0.2.3 0.3.15 0.4.3; do
   ST step $B $s >/dev/null
   for p in .workflow/capabilities.md .workflow/rules.md .workflow/decisions/adr/0002-y.md; do t "$p at $s deny" 2 CW --cwd "$R" --path $p; done
@@ -90,10 +110,21 @@ t "new profile at 3.1 deny"                 2 CW --cwd "$R" --path .workflow/pro
 t "deep .workflow/GLOSSARY.md at 3.1 deny"      2 CW --cwd "$R" --path src/billing/GLOSSARY.md
 t "deep .workflow/GLOSSARY-MAP.md at 3.1 deny"  2 CW --cwd "$R" --path a/b/c/GLOSSARY-MAP.md
 t "deny message points at proposals.md"     0 bash -c "CW --cwd '$R' --path .workflow/rules.md 2>&1 | grep -q '.workflow/specs/002-beta/proposals.md'"
-t "--only tier-a ignores spec.md"           0 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md --only tier-a
-t "--only spec ignores GLOSSARY"            0 CW --cwd "$R" --path .workflow/GLOSSARY.md --only spec
-sleep 1; ST step $G 0.3.15 >/dev/null
+ST step $G 0.3.15 >/dev/null
 t "newest marker (gamma 0.3.15) wins"       0 CW --cwd "$R" --path .workflow/GLOSSARY.md
+echo "== newest marker by seq, not by time"
+# Both markers carry the same updated_at, so only seq can tell which was set last.
+same_at() { sed -i.bak 's/^updated_at: .*/updated_at: "2026-01-01T00:00:00Z"/' "$R/.workflow/specs/$1/.step" && rm -f "$R/.workflow/specs/$1/.step.bak"; }
+ST step $G 0.3.15 >/dev/null; ST step $B 3.1 >/dev/null; same_at 002-beta; same_at 003-gamma
+t "same updated_at: the higher seq (beta 3.1) wins" 2 CW --cwd "$R" --path .workflow/GLOSSARY.md
+ST step $B 3.1 >/dev/null; ST step $G 0.3.15 >/dev/null; same_at 002-beta; same_at 003-gamma
+t "same updated_at: the higher seq (gamma 0.3.15) wins" 0 CW --cwd "$R" --path .workflow/GLOSSARY.md
+# drop_seq SPEC AT : turn the marker into one written before seq existed, set at AT.
+drop_seq() { sed -i.bak -e '/^seq:/d' -e "s/^updated_at: .*/updated_at: \"$2\"/" "$R/.workflow/specs/$1/.step" && rm -f "$R/.workflow/specs/$1/.step.bak"; }
+ST step $B 3.1 >/dev/null; drop_seq 003-gamma 2099-01-01T00:00:00Z
+t "a marker without seq is older than one with it, whatever its time (beta 3.1 wins)" 2 CW --cwd "$R" --path .workflow/GLOSSARY.md
+drop_seq 002-beta 2026-01-01T00:00:00Z
+t "two markers without seq: the later updated_at (gamma 0.3.15) wins" 0 CW --cwd "$R" --path .workflow/GLOSSARY.md
 unmark 003-gamma; unmark 002-beta
 t "in flight but no markers deny"           2 CW --cwd "$R" --path .workflow/GLOSSARY.md
 yq --front-matter=process -i '.status="done"' "$R/$B/spec.md"; yq --front-matter=process -i '.status="done"' "$R/$G/spec.md"
@@ -120,7 +151,7 @@ lessons_at() { t "JRN-004 setup: .step set to $1" 0 ST step $LS "$1" --cwd "$LR"
 lessons_at 5.7
 t "JRN-004 review-lessons.md at 5.7 allow" 0 CW --cwd "$LR" --path .workflow/review-lessons.md
 t "JRN-004 review-lessons.md at 5.7 sub-agent deny" 2 CW --cwd "$LR" --path .workflow/review-lessons.md --agent impl
-for s in 0.3.7 5.3 4.9 0.1.4; do
+for s in 0.3.7 5.3 4.1 0.1.4; do
   lessons_at $s
   t "JRN-004 review-lessons.md at $s deny" 2 CW --cwd "$LR" --path .workflow/review-lessons.md
   err=$(CW --cwd "$LR" --path .workflow/review-lessons.md 2>&1 >/dev/null)

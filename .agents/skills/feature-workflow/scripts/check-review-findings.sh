@@ -2,8 +2,8 @@
 # File: Helper script (not a hook): check the shape of one Phase 4 lens's review-findings file and print a bounded table of it.
 # Purpose: Triage (4.4) reads each lens's findings through this script instead of reading the whole block, so a malformed block is
 #   caught before triage and the orchestrator sees one header line and one row per finding. The script only reads the file.
-#   Lens: the file's `lens` field, which is required and must be review-standards, review-end-state, review-targets, review-lessons or
-#   review-combined; when the file name is a lens name (`<lens>.yaml`), the two must agree. The lens sets the id prefix (RS, RE, RT, RL, RC)
+#   Lens: the file's `lens` field, which is required and must be review-standards, review-end-state, review-targets or
+#   review-combined; when the file name is a lens name (`<lens>.yaml`), the two must agree. The lens sets the id prefix (RS, RE, RT, RC)
 #   and the allowed categories.
 #   Pass: the file's `pass` field when present, else the `pass-<n>` directory the file sits in
 #   (`.workflow/specs/NNN-slug/artifacts/review/pass-<n>/<lens>.yaml`); when both are present they must agree.
@@ -13,11 +13,10 @@
 # Shape rules (each failure is one line on stdout, `<field>: <problem>`, the field written as `findings[<i>].<key>`,
 #   `measurements[<i>].<key>` or a top-level key):
 #   - lens as above; status is done or blocked; findings is a list.
-#   - findings ids are unique and match <PFX>-<n> (RS for review-standards, RE for review-end-state, RT for review-targets, RL for review-lessons,
+#   - findings ids are unique and match <PFX>-<n> (RS for review-standards, RE for review-end-state, RT for review-targets,
 #     RC for review-combined).
-#   - category is one the lens may use: review-standards standard, rule, profile, placement, naming, smell; review-end-state
-#     missing, unasked, wrong; review-targets target; review-lessons lesson; review-combined any of those but target; any lens
-#     discovered-work.
+#   - category is one the lens may use: review-standards standard, rule, profile, placement, naming, smell, lesson; review-end-state
+#     missing, unasked, wrong; review-targets target; review-combined any of those but target; any lens discovered-work.
 #   - a discovered-work finding has kind (bug, requirement, refactor, scope-expansion, decision), summary, evidence,
 #     blocker_assessment (blocks-this-task, can-wait) and reason, all non-empty.
 #   - any other finding has severity (high, medium, low), confidence an integer from 80 to 100 (lower is never reported),
@@ -74,10 +73,9 @@ path_pass() {
 # Definitions both programs share: the lens table and small value helpers.
 read -r -d '' JQ_DEFS <<'JQ' || true
 def lenses: {
-  "review-standards": {prefix: "RS", categories: ["standard", "rule", "profile", "placement", "naming", "smell"]},
+  "review-standards": {prefix: "RS", categories: ["standard", "rule", "profile", "placement", "naming", "smell", "lesson"]},
   "review-end-state": {prefix: "RE", categories: ["missing", "unasked", "wrong"]},
   "review-targets":   {prefix: "RT", categories: ["target"]},
-  "review-lessons":   {prefix: "RL", categories: ["lesson"]},
   "review-combined":  {prefix: "RC", categories: ["missing", "unasked", "wrong", "standard", "rule", "profile", "placement", "naming", "smell", "lesson"]}
 };
 def text: if . == null then "" else tostring end;
@@ -96,7 +94,7 @@ read -r -d '' JQ_CHECK <<'JQ' || true
 def check_root($path_lens; $path_pass):
   (file_lens as $lens
    | if $lens == "" then "lens: missing"
-     elif (lenses | has($lens)) | not then "lens: '\($lens)' is not review-standards, review-end-state, review-targets, review-lessons or review-combined"
+     elif (lenses | has($lens)) | not then "lens: '\($lens)' is not review-standards, review-end-state, review-targets or review-combined"
      elif (lenses | has($path_lens)) and $path_lens != $lens then "lens: '\($lens)' does not match the file name \($path_lens).yaml"
      else empty end),
   (if has("pass") then

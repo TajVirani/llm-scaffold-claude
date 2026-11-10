@@ -1,6 +1,6 @@
 ---
 name: module-audit
-description: "Phase 0 owning-module audit (step 0.4.6). Deep-reads the one module that owns the change and returns reuse, gap and constraint findings, plus interface additions, for codebase-map.md, cited file:line. Launch once the owning module is settled (0.3.3-0.3.4) and data-model classification is done (0.4.4), before the 0.4.7 conflict check. Reads only that module's paths. Not for cross-module context (use retrieval) or single questions (use fact-lookup)."
+description: "Phase 0 owning-module audit (step 0.4.6). Deep-reads the one module that owns the change and returns reuse, gap and constraint findings, plus interface additions, for codebase-map.md, cited file:line. Launch once the owning module is settled (0.3.3-0.3.4): beside the first questioning round when the footprint is plainly too big for the light path, otherwise once data-model classification is done (0.4.4); always before the 0.4.7 conflict check. Reads only that module's paths. Not for cross-module context (use retrieval) or single questions (use fact-lookup)."
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -71,13 +71,13 @@ Owning module: <name>
 ## Not found
 
 - <what you looked for>: <paths searched>. Reported by module-audit.
-- cache disagrees with code: <extract in codebase-map.md> vs `<path:line>`. Reported by module-audit.
+- extract disagrees with code: <extract in codebase-map.md> vs `<path:line>`. Reported by module-audit.
 ```
 
 ## Never
 
 - Fix, redesign or fold in anything outside the change's scope: report it under `Out of scope noticed` (`None.` when empty).
-- Write or edit any file, including `codebase-map.md` and anything under `.workflow/cache/`. A cache that disagrees with the code is a stamp problem, fixed by regeneration: report it, do not correct it.
+- Write or edit any file, including `codebase-map.md`. An extract that disagrees with the code is reported, not corrected: the main session fixes it.
 - Ask the stakeholder anything.
 - Read other modules, other specs, Tier A docs or profiles.
 - Report a finding without a `path:line` source.

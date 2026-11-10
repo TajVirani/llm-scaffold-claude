@@ -3,8 +3,8 @@
 # Covers: the header line and finding table for three real pass-1 lens files (standards, end-state, targets with no targets),
 #   a targets file with measurements, a failed target and discovered work, the pass taken from the file over the path,
 #   one malformed file per shape rule (exit 1, the message names the field), two errors in one file,
-#   JRN-003: the review-lessons pass file for a repeated lesson (one high RL-1 lesson row) and with no findings, and an RS- id,
-#   a confidence of 70 and a lesson finding under review-standards each refused naming the field,
+#   JRN-003: the review-standards pass file for a repeated lesson (one high RS-1 lesson row), and an RL- id, a confidence of 70,
+#   a lesson finding under review-end-state and a file with lens review-lessons each refused naming the field,
 #   the review-combined pass file (RC- ids, end-state, standards and lesson categories together; a target category or an RE- id
 #   refused), the proof rule (a medium or high finding without evidence.reproduction or evidence.basis refused naming evidence;
 #   a reproduction alone, or a low finding without evidence, accepted),
@@ -189,7 +189,7 @@ cp "$P1/review-standards.yaml" "$P1/review-end-state.yaml" "$P_BASE/"
 cp "$P2/review-targets.yaml" "$P_BASE/"
 
 bad lens-missing review-standards 'del(.lens)' "lens: missing"
-bad lens-unknown review-standards '.lens = "review-style"' "lens: 'review-style' is not review-standards, review-end-state, review-targets, review-lessons or review-combined"
+bad lens-unknown review-standards '.lens = "review-style"' "lens: 'review-style' is not review-standards, review-end-state, review-targets or review-combined"
 bad lens-not-file-name review-standards '.lens = "review-end-state" | .findings = []' "lens: 'review-end-state' does not match the file name review-standards.yaml"
 bad pass-not-integer review-standards '.pass = "one"' "pass: 'one' is not a positive integer"
 bad pass-not-directory review-standards '.pass = 2' "pass: 2 does not match the directory pass-1"
@@ -202,7 +202,7 @@ bad finding-not-mapping review-standards '.findings[0] = "RS-1"' "findings[0]: n
 bad id-prefix review-standards '.findings[0].id = "RE-1"' "findings[0].id: 'RE-1' does not match RS-<n>"
 bad id-missing review-end-state 'del(.findings[0].id)' "findings[0].id: '' does not match RE-<n>"
 bad id-duplicate review-standards '.findings[1].id = "RS-1"' "findings: id RS-1 appears 2 times"
-bad category review-standards '.findings[0].category = "missing"' "findings[0].category: 'missing' is not one of standard, rule, profile, placement, naming, smell, discovered-work"
+bad category review-standards '.findings[0].category = "missing"' "findings[0].category: 'missing' is not one of standard, rule, profile, placement, naming, smell, lesson, discovered-work"
 bad category-end-state review-end-state '.findings[0] = {"id": "RE-1", "category": "rule", "severity": "low", "confidence": 90, "location": "a.sh:1", "claim": "c"}' "findings[0].category: 'rule' is not one of missing, unasked, wrong, discovered-work"
 bad category-targets review-targets '.findings[0].category = "smell"' "findings[0].category: 'smell' is not one of target, discovered-work"
 bad severity review-standards '.findings[0].severity = "critical"' "findings[0].severity: 'critical' is not high, medium or low"
@@ -258,15 +258,15 @@ eq "two errors: exit 1" "$RC" 1
 eq "two errors: both lines" "$OUT" "status: 'finished' is not done or blocked
 findings[0].severity: 'critical' is not high, medium or low"
 
-# --- The review-lessons lens file the lens writes for a change that repeats lesson RL-001
+# --- The review-standards file the lens writes for a change that repeats lesson RL-001
 PL="$WORK/lessons-spec/artifacts/review/pass-1"
-expected_lens_block "$PL/review-lessons.yaml"
-run_crf "$PL/review-lessons.yaml"
+expected_lens_block "$PL/review-standards.yaml"
+run_crf "$PL/review-standards.yaml"
 eq "JRN-003 lessons: exit 0" "$RC" 0
 check "JRN-003 lessons: header counts one high finding" \
-  '[[ $(line 1) == "lens: review-lessons  pass: 1  findings: 1 (high 1, medium 0, low 0)  "* ]]' "$OUT"
-check "JRN-003 lessons: one RL-1 lesson row, high, confidence 90, in the diff" \
-  '[[ $(line 3) == "$(row RL-1 lesson high 90 "src/report.sh:$REPORT_REPEAT_LINE")$TAB"* ]]' "$OUT"
+  '[[ $(line 1) == "lens: review-standards  pass: 1  findings: 1 (high 1, medium 0, low 0)  "* ]]' "$OUT"
+check "JRN-003 lessons: one RS-1 lesson row, high, confidence 90, in the diff" \
+  '[[ $(line 3) == "$(row RS-1 lesson high 90 "src/report.sh:$REPORT_REPEAT_LINE")$TAB"* ]]' "$OUT"
 eq "JRN-003 lessons: no other finding rows" "$(wc -l <<<"$OUT" | tr -d ' ')" 3
 
 # names_field NAME FILE FIELD : the script exits 1 on FILE with one line, naming FIELD.
@@ -276,16 +276,19 @@ names_field() {
   eq "$1: exit 1" "$RC" 1
   eq "$1: one line naming $field" "$(grep -c . <<<"$OUT"):${OUT%%: *}" "1:$field"
 }
-mkdir -p "$WORK/bad/lessons-rs-id/pass-1" "$WORK/bad/lessons-confidence/pass-1" "$WORK/bad/lesson-under-standards/pass-1"
-yq '.findings[0].id = "RS-1"' "$PL/review-lessons.yaml" >"$WORK/bad/lessons-rs-id/pass-1/review-lessons.yaml"
-names_field "JRN-003 lessons: an RS- id" "$WORK/bad/lessons-rs-id/pass-1/review-lessons.yaml" "findings[0].id"
-yq '.findings[0].confidence = 70' "$PL/review-lessons.yaml" >"$WORK/bad/lessons-confidence/pass-1/review-lessons.yaml"
-names_field "JRN-003 lessons: confidence 70" "$WORK/bad/lessons-confidence/pass-1/review-lessons.yaml" "findings[0].confidence"
-yq '.lens = "review-standards" | .findings[0].id = "RS-1"' "$PL/review-lessons.yaml" \
-  >"$WORK/bad/lesson-under-standards/pass-1/review-standards.yaml"
-names_field "JRN-003 a lesson finding under review-standards" "$WORK/bad/lesson-under-standards/pass-1/review-standards.yaml" "findings[0].category"
+mkdir -p "$WORK/bad/lessons-rl-id/pass-1" "$WORK/bad/lessons-confidence/pass-1" "$WORK/bad/lesson-under-end-state/pass-1" \
+  "$WORK/bad/lessons-lens/pass-1"
+yq '.findings[0].id = "RL-1"' "$PL/review-standards.yaml" >"$WORK/bad/lessons-rl-id/pass-1/review-standards.yaml"
+names_field "JRN-003 lessons: an RL- id" "$WORK/bad/lessons-rl-id/pass-1/review-standards.yaml" "findings[0].id"
+yq '.findings[0].confidence = 70' "$PL/review-standards.yaml" >"$WORK/bad/lessons-confidence/pass-1/review-standards.yaml"
+names_field "JRN-003 lessons: confidence 70" "$WORK/bad/lessons-confidence/pass-1/review-standards.yaml" "findings[0].confidence"
+yq '.lens = "review-end-state" | .findings[0].id = "RE-1"' "$PL/review-standards.yaml" \
+  >"$WORK/bad/lesson-under-end-state/pass-1/review-end-state.yaml"
+names_field "JRN-003 a lesson finding under review-end-state" "$WORK/bad/lesson-under-end-state/pass-1/review-end-state.yaml" "findings[0].category"
+yq '.lens = "review-lessons" | .findings[0].id = "RL-1"' "$PL/review-standards.yaml" >"$WORK/bad/lessons-lens/pass-1/review-lessons.yaml"
+names_field "the retired review-lessons lens" "$WORK/bad/lessons-lens/pass-1/review-lessons.yaml" "lens"
 
-# --- The combined lens of the light and small paths: one RC- file holding end-state, standards and lesson findings
+# --- The combined lens of the light path: one RC- file holding end-state, standards and lesson findings
 PC="$WORK/combined/pass-1"
 mkdir -p "$PC"
 cat >"$PC/review-combined.yaml" <<'Y'
@@ -342,12 +345,6 @@ names_field "combined: a target finding" "$WORK/bad/combined-target/pass-1/revie
 yq '.findings[0].id = "RE-1"' "$PC/review-combined.yaml" >"$WORK/bad/combined-prefix/pass-1/review-combined.yaml"
 names_field "combined: an RE- id" "$WORK/bad/combined-prefix/pass-1/review-combined.yaml" "findings[0].id"
 
-mkdir -p "$WORK/lessons-clean/pass-1"
-yq '.findings = []' "$PL/review-lessons.yaml" >"$WORK/lessons-clean/pass-1/review-lessons.yaml"
-run_crf "$WORK/lessons-clean/pass-1/review-lessons.yaml"
-eq "JRN-003 lessons, no findings: exit 0" "$RC" 0
-check "JRN-003 lessons, no findings: header counts none" \
-  '[[ $(line 1) == "lens: review-lessons  pass: 1  findings: 0 (high 0, medium 0, low 0)  "* ]]' "$OUT"
 
 # --- Exit 2: usage, missing file, YAML that does not parse
 run_crf

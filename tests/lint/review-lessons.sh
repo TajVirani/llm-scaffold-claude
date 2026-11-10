@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Suite: lint of the review-lessons asset set: the lessons-file template and its oracles, the review-lessons agent and where it
-#   is listed, and its step row.
+# Suite: lint of the review-lessons asset set: the lessons-file template and its oracles, and the standards lens that checks
+#   the lessons.
 # Covers: JRN-008: the template exists, its own validate: command accepts it and its next-id: command prints RL-001, and
 #   project-setup's file table creates .workflow/review-lessons.md from it. JRN-006: a file with RL-001 validates and its next id
 #   is RL-002, retiring the entry keeps the id taken, and each broken entry (retired without enforced_by, a repeated id, empty
-#   paths, an absolute path, a bad origin_spec, a bad date, lessons not a list) fails validation. The agent definition's
-#   frontmatter, its install-manifest line and agent count, its PROVENANCE.md line, README.md naming it with the other lenses,
-#   the Codex toml generated for it, and the 4.9 row of steps.tsv right after 4.3. Reads the repo; writes only to a scratch dir.
-# shellcheck disable=SC2016,SC2329  # check expressions are single-quoted and eval'd on purpose; helpers run inside them
+#   paths, an absolute path, a bad origin_spec, a bad date, lessons not a list) fails validation. review-standards reads the
+#   lessons file, the pitfalls, the retrospectives' process lessons and the spec's accepted gaps, and carries the lesson category
+#   and lesson: field; the review-lessons agent, its manifest line, README entry, Codex toml and 4.9 step row are gone, and the
+#   manifest's agent count still matches. Reads the repo; writes only to a scratch dir.
+# shellcheck disable=SC2016,SC2329,SC2034  # check expressions are single-quoted and eval'd on purpose; helpers and variables are read inside them
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 # shellcheck source=../fixtures/review-lessons.sh
@@ -16,7 +17,7 @@ preflight
 new_workdir
 
 TEMPLATE=$REPO_ROOT/$LESSONS_TEMPLATE_REL
-AGENT=$AGENTS_SRC/agents/review-lessons.md
+STANDARDS=$AGENTS_SRC/agents/review-standards.md
 MANIFEST=$AGENTS_SRC/install-manifest.txt
 FILES_TABLE=$AGENTS_SRC/skills/project-setup/modules/files.md
 TSV=$FW_SKILL/references/steps.tsv
@@ -64,30 +65,24 @@ for case in retired-no-enforced-by duplicate-id empty-paths absolute-path bad-or
   check "JRN-006 validate: refuses $case" 'rejects "$L/$case.md"' "$(run_template_command validate "$L/$case.md" 2>&1)"
 done
 
-echo "== the review-lessons agent and where it is listed"
-check "agents/review-lessons.md exists" '[ -f "$AGENT" ]' "$AGENT"
-fm() { yq --front-matter=extract "$1" "$AGENT" 2>/dev/null; }
-eq "frontmatter keys are exactly name, description, tools" "$(fm 'keys | join(",")')" "name,description,tools"
-eq "name is review-lessons" "$(fm '.name')" "review-lessons"
-eq "tools are Read, Grep, Glob, Bash" "$(fm '.tools')" "Read, Grep, Glob, Bash"
-check "description starts with the step it runs at" '[[ $(fm ".description") == "Phase 4 review lens (workflow step 4.9)"* ]]' "$(fm '.description')"
-
-check "install-manifest.txt lists agents/review-lessons.md" 'grep -qx "agents/review-lessons.md" "$MANIFEST"'
+echo "== the standards lens checks the lessons; no lessons lens is left"
+check "review-standards reads .workflow/review-lessons.md" 'grep -q "\`.workflow/review-lessons.md\`" "$STANDARDS"'
+check "review-standards reads the pitfalls and the retrospectives' process lessons" \
+  'grep -q "decisions/pitfalls.md" "$STANDARDS" && grep -q "Process lessons" "$STANDARDS"'
+check "review-standards lists the lesson category and the lesson: field" \
+  'grep -q "| lesson | discovered-work" "$STANDARDS" && grep -qE "^    lesson: \"RL-001\"" "$STANDARDS"'
+check "review-standards reads the spec's accepted gaps" 'grep -q "Assumptions.*Non-goals.*Known gaps" "$STANDARDS"'
+check "agents/review-lessons.md is gone" '[ ! -e "$AGENTS_SRC/agents/review-lessons.md" ]'
+check "install-manifest.txt does not list agents/review-lessons.md" '! grep -qx "agents/review-lessons.md" "$MANIFEST"'
 agents_header=$(grep -E '^# --- Agents \([0-9]+\)$' "$MANIFEST")
 eq "the Agents header counts the agent lines" "$(grep -oE '[0-9]+' <<<"$agents_header")" "$(grep -c '^agents/' "$MANIFEST")"
-check "PROVENANCE.md has a line for agents/review-lessons.md" 'grep -q "agents/review-lessons.md" "$REPO_ROOT/PROVENANCE.md"'
-check "README.md names review-lessons beside the other three lenses" \
-  'grep -E "review-standards" "$REPO_ROOT/README.md" | grep -E "review-end-state" | grep -E "review-targets" | grep -q "review-lessons"'
+check "README.md does not name a review-lessons lens" '! grep -q "\`review-lessons\`" "$REPO_ROOT/README.md"'
+check "steps.tsv has no 4.9 row" '! grep -qE "^4\.9	" "$TSV"'
 
 copy_agents "$WORK/codex"
 t "generate-codex-agents.sh runs on a fixture copy" 0 "$WORK/codex/.agents/hooks/generate-codex-agents.sh"
-check "it emits review_lessons.toml" '[ -f "$WORK/codex/.codex/agents/review_lessons.toml" ]'
-check "the toml is named review_lessons" 'grep -qx "name = \"review_lessons\"" "$WORK/codex/.codex/agents/review_lessons.toml" 2>/dev/null'
-
-echo "== steps.tsv row"
-row49=$(grep -E '^4\.9	' "$TSV")
-eq "4.9 is phase 4 on the full path (the light path runs the combined review)" "$(cut -f2,3 <<<"$row49")" "$(printf '4\tfull')"
-eq "4.9 comes right after 4.3" "$(grep -v '^#' "$TSV" | cut -f1 | grep -A1 -x '4\.3' | tail -n 1)" "4.9"
+check "it emits no review_lessons.toml" '[ ! -e "$WORK/codex/.codex/agents/review_lessons.toml" ]'
+check "it emits review_standards.toml" '[ -f "$WORK/codex/.codex/agents/review_standards.toml" ]'
 
 shellcheck_files "shellcheck: review-lessons suite and fixtures" "$TESTS_DIR/lint/review-lessons.sh" "$TESTS_DIR/fixtures/review-lessons.sh"
 finish

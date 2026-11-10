@@ -11,7 +11,7 @@ List what the feature produced so every later step works from artifacts rather t
 | `.workflow/specs/NNN-slug/report.md` | Test output, targets against measured values, known gaps, evidence links |
 | `.workflow/specs/NNN-slug/tasks.md` | Each task's `status` (read with `yq --front-matter=extract '.tasks[] \| [.id, .status] \| @tsv'`) |
 | `.workflow/specs/NNN-slug/design-log.md` | Triage entries from each review pass (finding ids, verdicts, routes), decisions and their reversals, deep dives |
-| `.workflow/specs/NNN-slug/proposals.md` | What 5.3 approved, modified or rejected |
+| `.workflow/specs/NNN-slug/proposals.md` | What the stakeholder approved, modified or rejected at 5.5 |
 | `.workflow/specs/NNN-slug/artifacts/` | Toolchain output per task, browser evidence per journey |
 | `.workflow/specs/work-backlog/NNN-slug.md`, and `.workflow/deferred/*.md` whose `origin_spec` is this spec | What the stakeholder kept for later, and what was shelved, and why |
 | Git, from `baseline_revision` to `HEAD` | `git log --oneline <baseline>..HEAD` and `git diff --stat <baseline>..HEAD`: commits and change volume |
@@ -38,7 +38,7 @@ Fill the document's **Measurements** table from the spec folder and git. Each nu
 ```bash
 S=.workflow/specs/NNN-slug
 git log --reverse --format=%cI <range> | sed -n '1p;$p'          # Elapsed: first and last commit time
-grep -cE 'Answer:|^- (Approval|PR description|Backlog [^:]*|Going-in concerns):' "$S/design-log.md"   # Waits: answers recorded
+grep -cE 'Answer:|^- (Approval|PR description|Proposals|Backlog [^:]*|Retrospective lessons|Concerns for the retrospective):' "$S/design-log.md"   # Waits: answers recorded
 for k in implementation mini-review integration; do printf '%s %s\n' "$k" "$(ls "$S"/artifacts/*/"$k"*.yaml 2>/dev/null | wc -l)"; done
 printf 'review lenses %s\n' "$(ls "$S"/artifacts/review/pass-*/*.yaml 2>/dev/null | wc -l)"
 jq -r 'select((.reused_from // .task_id) == .task_id) | .results[] | select(.key == "test" and .reused_from == null and .status != "skipped") | .status' "$S"/artifacts/*/toolchain.json | sort | uniq -c   # Harness runs

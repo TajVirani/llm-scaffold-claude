@@ -1,3 +1,8 @@
+---
+# true when the workflow's Phase 4 review already judges what this check does; pr-quality then skips it on a
+# branch whose spec is in-review or done. Delete the key, or the whole block, when the review does not cover it.
+covered_by_review: false
+---
 # <Check name>
 
 <!-- Template for a project check. Copy to .workflow/pr-quality/<check-name>.md in your project and fill it in.

@@ -5,7 +5,7 @@
 #   wave's merges, so task branches fork with current workflow data and the spec branch holds it beside the merged code.
 #   Staged: the spec folder, the work-backlog, and everything else under the workflow root except other spec and initiative folders
 #   (a draft spec or an initiative is committed by its own flow, on its own branch). Gitignored local state (.step, .worktrees/,
-#   .spec-worktrees/, .handoff/, .cache-staging/, .standards-staging/) stays out: git add skips ignored files, and a run where one of them is
+#   .spec-worktrees/, .handoff/, .standards-staging/) stays out: git add skips ignored files, and a run where one of them is
 #   not ignored is refused. Only these paths are committed:
 #   anything else already staged in the index is left staged.
 # Usage:
@@ -68,7 +68,7 @@ done
 
 # Local state must be gitignored: git add cannot exclude an ignored path, so a missing ignore block is refused, never committed.
 leak=$(git -C "$ROOT" ls-files -o --exclude-standard -- "$SPEC_DIR/.step" "$WF_WORKTREES" "$WF_SPEC_WORKTREES" "$WF_HANDOFF" \
-  "$WF_CACHE_STAGING" "$WF_STANDARDS_STAGING")
+  "$WF_STANDARDS_STAGING")
 [[ -z "$leak" ]] || die "local state is not gitignored: ${leak%%$'\n'*}; restore the workflow block in .gitignore (install.sh writes it)"
 PATHS=()
 

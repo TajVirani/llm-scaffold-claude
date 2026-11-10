@@ -3,13 +3,15 @@
 #   listed, profile-mini-review, and the feature-workflow modules that route findings (discovered-work, review-triage,
 #   deferred-handoff, sign-off 5.5 and 5.9, the Phase 3 step files: setup, the wave loop with its discovered-work section,
 #   shared core, gates and finish) and the backlog list template.
-# Covers: proof before escalation: the end-state, standards, lessons and combined lenses may run probes only in a scratch
+# Covers: proof before escalation: the end-state, standards and combined lenses may run probes only in a scratch
 #   worktree made with `git worktree add --detach` under `mktemp -d`, keep no read-only-only rule, keep no plain 80 drop rule,
 #   and carry `reproduction` in their finding evidence; mini-review has the same scratch rule and a `not_checked` list;
-#   review-lessons reads the spec's Assumptions and Non-goals and scores an accepted gap 0. Discovered work is assessed in
+#   review-standards reads the spec's Assumptions and Non-goals and scores a lesson repeat the spec accepts 0. Discovered work is assessed in
 #   the order unproven, current work, blocker, for the stakeholder (convoluted, scope-expanding, out of scope), with one
 #   batched ask and nothing filed without a ruling; triage has no defer route and no maybe-false verdict, and its 4.8 step
-#   writes no shelf file; deferred-handoff appends to a matching shelf file without asking; sign-off 5.5 asks one question
+#   writes no shelf file; readable-code breaches: the mini-review judges R1 to R5 and gives each breach its exact fix, the
+#   3.8 gate patches a readable-code fix itself with no relaunch, the standards and combined lenses report every R1 and R3
+#   breach, and triage always routes one to patch; deferred-handoff appends to a matching shelf file without asking; sign-off 5.5 asks one question
 #   over the list. One backlog list per spec: 00.26 appends a line to .workflow/specs/work-backlog/NNN-slug.md, and the line
 #   check in assets/work-backlog.md accepts its own example and well-formed lines and names a line with another status, no
 #   evidence or no id. The review-combined agent: frontmatter, description, its manifest line and agent count, PROVENANCE,
@@ -42,7 +44,7 @@ section() {
 }
 
 echo "== lenses prove their findings and may run code outside the checkout"
-for lens in review-end-state review-standards review-lessons review-combined; do
+for lens in review-end-state review-standards review-combined; do
   f=$AGENTS/$lens.md
   check "$lens has a Running code section with a detached scratch worktree under mktemp -d" \
     'section "$f" "Running code" | grep -q "git worktree add --detach" && section "$f" "Running code" | grep -q "mktemp -d"' "$f"
@@ -52,10 +54,10 @@ for lens in review-end-state review-standards review-lessons review-combined; do
   check "$lens finding evidence has a reproduction field" 'grep -q "^      reproduction: " "$f"'
   check "$lens sends an unproven suspicion to one not_checked line" 'grep -q "could not prove" "$f"'
 done
-check "review-lessons reads the spec's Assumptions and Non-goals" \
-  'grep -q "Accepted gaps.*Assumptions.*Non-goals" "$AGENTS/review-lessons.md"'
-check "review-lessons scores a gap the spec accepted 0" \
-  'grep -qE "^- 0: .*spec accepts this gap" "$AGENTS/review-lessons.md" && grep -q "Set accepted gaps aside" "$AGENTS/review-lessons.md"'
+check "review-standards reads the spec's Assumptions and Non-goals" \
+  'grep -q "Accepted gaps.*Assumptions.*Non-goals" "$AGENTS/review-standards.md"'
+check "review-standards scores a lesson the spec accepted as a gap 0" \
+  'grep -qE "^- 0: .*the spec accepts as a gap" "$AGENTS/review-standards.md" && grep -q "Set accepted gaps aside" "$AGENTS/review-standards.md"'
 MINI=$AGENTS/profile-mini-review.md
 check "profile-mini-review runs probes in a detached scratch worktree of the task" 'grep -q "worktree add --detach" "$MINI"'
 check "profile-mini-review keeps no read-only paragraph" '! grep -q "^\*\*Read-only\.\*\*" "$MINI"'
@@ -72,7 +74,7 @@ check "the assessment asks unproven, current work, blocker, then for the stakeho
   "unproven=$p_unproven current=$p_current blocker=$p_blocker ask=$p_ask"
 check "the stakeholder classes are convoluted, scope-expanding and out of scope" \
   'grep -q "\*\*convoluted\*\*" <<<"$ASSESS" && grep -q "\*\*scope-expanding\*\*" <<<"$ASSESS" && grep -q "\*\*out of scope\*\*" <<<"$ASSESS"'
-check "a waiting item is asked at the next ask or at 5.5 at the latest" 'grep -q "at 5.5 at the latest" "$DW"'
+check "a waiting item is asked at the next blocking ask or at the sign-off ask (5.5) at the latest" 'grep -q "next blocking ask" "$DW" && grep -q "at the sign-off ask (5.5) at the latest" "$DW"'
 check "discovered-work has one batched ask with fold in, keep for later and drop" \
   'section "$DW" "00.25 Batched ask" | grep -q "fold in" && section "$DW" "00.25 Batched ask" | grep -qi "keep for later" && section "$DW" "00.25 Batched ask" | grep -q "Drop"'
 check "nothing is filed without a ruling" \
@@ -93,6 +95,41 @@ check "triage step 7 writes the Gaps line" 'section "$TRIAGE" "7. " | grep -q "G
 handoff_uses=$(section "$HANDOFF" "Write" | grep '^Used at ')
 check "deferred-handoff's Write names no 4.8 among the steps it is used at" \
   '[ -n "$handoff_uses" ] && ! grep -q "4\.8" <<<"$handoff_uses"' "$handoff_uses"
+
+echo "== readable code: judged at 3.7, patched without a launch, always patched at Phase 4"
+RC_REF=$FW_SKILL/references/readable-code.md
+STANDARDS=$AGENTS/review-standards.md
+check "readable-code.md names four checks, the mini-review among them" \
+  'grep -q "^Four checks apply these rules" "$RC_REF" && grep -q "^- \*\*Mini-review (3.7)\.\*\*" "$RC_REF"'
+check "readable-code.md calls an accurate restating comment a breach" 'grep -q "is a breach (R3), even when it is accurate" "$RC_REF"'
+check "readable-code.md calls a generic name a breach" 'grep -q "A generic name is a breach (R1)" "$RC_REF"'
+check "readable-code.md keeps a comment that gives a reason" 'grep -q "never flag a comment for existing" "$RC_REF"'
+check "readable-code.md has a bad and a good naming example" \
+  'grep -q "^- Bad: \`data = load" "$RC_REF" && grep -q "^- Good: \`invoices = load" "$RC_REF"'
+check "readable-code.md routes R1 and R3 to patch at 4.1 and 4.10" \
+  '[ "$(grep -cE "^\| R[13] \|.*always routed to patch \|$" "$RC_REF")" -eq 2 ]'
+check "the mini-review description names the readable-code lines" \
+  'yq --front-matter=extract ".description" "$MINI" | grep -q "readable-code lines R1-R5"'
+check "the mini-review reads the Checking at 3.7 lines" 'grep -q "\"Checking at 3.7\" lines join the end of the checklist" "$MINI"'
+check "the mini-review lists every breach with one of the four fix forms" \
+  'grep -q "list every breach in the diff in this one pass" "$MINI" && grep -q "rename <old> to <new>" "$MINI" && grep -q "^      - location: " "$MINI"'
+check "the mini-review result numbers the readable-code lines R1-R5" 'grep -q "# checklist position, or R1-R5" "$MINI"'
+check "the implementer's readable-code lines are re-judged at 3.7" \
+  'grep -q "The mini-review re-judges every line, the readable-code ones included" "$AGENTS/implementation.md"'
+check "the 3.8 gate patches a readable-code breach without a launch" \
+  'grep -q "A readable-code breach never costs a launch" "$GATES" && grep -q "^- \*\*Patch\.\*\* Every item on the fix list is patchable" "$GATES"'
+check "the 3.8 gate reruns the toolchain after a rename" 'grep -q "a rename is a code change, so \`test\` runs too" "$GATES"'
+check "the 3.8 gate records what it applied" 'grep -q "yq -i '"'"'.patched = " "$GATES"'
+check "a mixed fix list has the readable-code fixes applied before the relaunch" \
+  'grep -q "first apply the patchable items yourself" "$GATES"'
+check "review-standards reports every R1 and R3 breach at 80 or above" \
+  'grep -q "Report every R1 and R3 breach you find, scored 80 or above" "$STANDARDS"'
+check "review-combined reports every R1 and R3 breach, never dropped as a nitpick" \
+  'grep -q "every R1 breach.*never dropped as a nitpick" "$COMBINED"'
+check "triage never dismisses an R1 or R3 breach as noise" 'grep -q "R3 breach (a comment that says what the code does) is never noise" "$TRIAGE"'
+check "triage routes every R1 or R3 breach to patch" 'grep -q "Every proven R1 or R3 breach of \`readable-code.md\` routes here" "$TRIAGE"'
+check "triage applies readable-code entries itself even at the rework ceiling" \
+  'awk "/^### 6.4 /{on=1;next} on&&/^### /{exit} on" "$TRIAGE" | grep -q "a readable-code breach is never left open as a gap"'
 
 echo "== sign-off: one question over the list"
 S55=$(section "$SIGN_OFF" "5.5 ")

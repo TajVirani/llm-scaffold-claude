@@ -16,7 +16,7 @@ Create files lazily: only when you have something to write. Write them from the 
 
 ## Set the step before a Tier A write
 
-`.workflow/GLOSSARY.md` and `.workflow/decisions/` are Tier A. Inside a feature (a `.workflow/specs/NNN-slug/` folder is in flight), set the step marker before each write so `tier-a-write-guard` allows it:
+`.workflow/GLOSSARY.md` and `.workflow/decisions/` are Tier A. Inside a feature (a `.workflow/specs/NNN-slug/` folder is in flight), set the step marker before each write so `workflow-write-guard` allows it:
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug <node-id>
@@ -42,7 +42,7 @@ If the guard denies a write, stop and report the denial with the agreed text. Wr
 | 0.3.14 | An answer introduces a new or conflicting term | 0.3.15 |
 | 0.4.2 | A new concept has no canonical name | 0.4.3 |
 
-At each gate, agree the term inline with the stakeholder, who is already in the conversation:
+First sort each raised term. **Clear:** one canonical term is plainly right: the request means an existing glossary entry, or it names a new concept for which neither the glossary nor the code holds a competing term. Take your recommended entry and do not ask: assume and log it as `.agents/skills/feature-workflow/references/conventions.md` ("Asking the stakeholder") says, then write it (step 6). **Open:** the term conflicts with an existing entry, two existing terms compete for the concept, or its meaning is a choice only the stakeholder can make. Agree an open term inline with the stakeholder, who is already in the conversation:
 
 1. **Challenge against the glossary.** When a term conflicts with `.workflow/GLOSSARY.md`, say so at once: "Your glossary defines 'cancellation' as X, but you seem to mean Y. Which is it?"
 2. **Sharpen fuzzy language.** For a vague or overloaded term, propose a precise canonical term: "You're saying 'account': do you mean the Customer or the User? Those are different things."
@@ -51,7 +51,7 @@ At each gate, agree the term inline with the stakeholder, who is already in the 
 5. **Propose the entry.** Give the canonical term, a one or two sentence definition and the `_Avoid_` aliases, with your recommendation. The stakeholder confirms or corrects it.
 6. **Write it now.** Set the step, then update `.workflow/GLOSSARY.md` per the format. Capture each term as it is agreed rather than batching.
 
-The gate is done when every term it raised is either in `.workflow/GLOSSARY.md` as agreed, or the stakeholder confirmed it means an existing entry.
+The gate is done when every term it raised is in `.workflow/GLOSSARY.md` as agreed or assumed, or is confirmed or assumed to mean an existing entry.
 
 ### Glossary only
 
@@ -89,6 +89,6 @@ Inside a feature, the guard admits ADR writes only at 0.3.7 (and at 5.3 and 5.7,
 
 ## Done
 
-- Every term raised at a gate is agreed and written, or confirmed as an existing entry.
+- Every term raised at a gate is agreed or assumed and written, or confirmed or assumed to mean an existing entry; every assumed term has its Assumed entry in the feature's `design-log.md`.
 - Every ADR written passes the three-part test and follows ADR-FORMAT.md; every superseded ADR is marked and unchanged otherwise.
 - No Tier A write happened without the matching step set.

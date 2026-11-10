@@ -19,7 +19,7 @@
 # Report: the profile's descriptive Toolchain key `e2e_report` (default test-results/e2e-results.json), relative to the run directory.
 #   A report older than 15 minutes is stale (the run crashed before writing one): nothing is filed.
 # Spec: --spec-dir from a run-toolchain.sh command; otherwise the in-flight spec in .workflow/specs/*/ (status ready-for-dev, in-progress, in-review
-#   or blocked; .workflow/specs/work-backlog/ skipped) whose .step has the latest updated_at; a single in-flight spec without .step also counts.
+#   or blocked; .workflow/specs/work-backlog/ skipped) whose .step is the newest (highest seq; updated_at for a marker without seq); a single in-flight spec without .step also counts.
 # Destination (spec checkout): .workflow/specs/NNN-slug/artifacts/<task-id>/ for a run-toolchain.sh run (earlier evidence of this hook in that
 #   directory is replaced, as toolchain.txt is), else .workflow/specs/NNN-slug/artifacts/e2e-<run-id>/, run-id = UTC timestamp + short HEAD sha.
 #   Inside: <JRN-###>/ (or untagged/ for a failing test without a journey tag) holding <name>[-retry<r>][-<k>].<ext> (k on a name clash),
@@ -191,7 +191,9 @@ if [ -z "$spec_abs" ]; then
     st=$(yq --front-matter=extract '.status // ""' "$s" 2>/dev/null || true)
     case "$st" in ready-for-dev | in-progress | in-review | blocked) ;; *) continue ;; esac
     at=""
-    [ ! -f "$d/.step" ] || at=$(yq '.updated_at // ""' "$d/.step" 2>/dev/null || true)
+    [ ! -f "$d/.step" ] || at=$(wf_marker_order_key "$d/.step")
+    # A marker with neither seq nor updated_at says nothing about when it was set, as if it were absent.
+    [ "$at" != "0:" ] || at=""
     if [ -z "$at" ]; then nostep=$d; n_nostep=$((n_nostep + 1)); continue; fi
     if [ -z "$best_at" ] || [[ "$at" > "$best_at" ]]; then best=$d best_at=$at; fi
   done

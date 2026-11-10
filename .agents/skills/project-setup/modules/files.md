@@ -10,10 +10,9 @@ All workflow data lives under one committed folder, `.workflow/`; create it firs
 | `.workflow/decisions/pitfalls.md` | `A/docs/decisions/pitfalls.md` | Copy as is. The comment holds the entry shape the retrospective follows at 5.7. |
 | `.workflow/review-lessons.md` | `.agents/skills/feature-workflow/assets/review-lessons.md` | Copy as is. The header holds the entry rules and the commands the retrospective follows at 5.7; a project set up before this file existed gets it from the retrospective at its next 5.7. |
 | `.workflow/deferred/.gitkeep` | none | Create an empty file so git keeps `.workflow/deferred/`. `.workflow/deferred/archive/` is created when the first item is archived (00.9). |
-| `.workflow/agent-overrides.yaml` | `A/agent-overrides.yaml` | Copy as is: comments only, no entries. |
 | `.workflow/profiles/TEMPLATE.md` | `A/profiles/TEMPLATE.md` | Copy as is (00.16). Profiles are filled from it in [profiles.md](profiles.md). |
 
-There is no `.workflow/decisions/status.md`. `.workflow/decisions/adr/` and `.workflow/decisions/retrospectives/` are created when their first file is written. `.workflow/cache/` and `.workflow/specs/` are created by the flow.
+There is no `.workflow/decisions/status.md`. `.workflow/decisions/adr/` and `.workflow/decisions/retrospectives/` are created when their first file is written. `.workflow/specs/` is created by the flow.
 
 Write Tier A files under `.workflow/` with Write or Edit, so the guard sees each write.
 
@@ -27,7 +26,7 @@ Default to one root `.workflow/GLOSSARY.md`. Only when step 2 found monorepo sig
 
 ## PR template
 
-Only when `.workflow/rules.md` was created now. A kept rules.md is never touched; its `pr_template` changes through a proposal at sign-off (5.2, approved at 5.3).
+Only when `.workflow/rules.md` was created now. A kept rules.md is never touched; its `pr_template` changes through a proposal at sign-off (5.2, approved at 5.5 and applied at 5.3).
 
 1. Look for host PR/MR templates at these paths only: `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md` and `.gitlab/merge_request_templates/*.md`.
 2. None found: ask nothing. The commented `pr_template` line stays, so the key reads its default, `workflow`.

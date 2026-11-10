@@ -32,7 +32,7 @@ focus: <one area>            # optional, e.g. errors or layering
     .agents/skills/feature-workflow/scripts/resolve-launch.sh --host codex --task-type standards-discovery --no-header
   ```
 
-  Exit 2 naming **00.14** means no model is set for `standards-discovery`: add `.workflow/model-map/standards-discovery.md` (or an `.workflow/agent-overrides.yaml` entry) and re-run.
+  Exit 2 naming **00.14** means no model is set for `standards-discovery`: add a `standards-discovery` row to `.workflow/model-map.yaml` and re-run.
 
 Done when every scope has an agent running.
 

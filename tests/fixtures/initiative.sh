@@ -36,12 +36,12 @@ large_path_repo() {
   local p=$1
   git_init_repo "$p"
   copy_agents "$p"
-  mkdir -p "$p/.workflow/specs" "$p/.workflow/model-map" "$p/.workflow/deferred"
+  mkdir -p "$p/.workflow/specs" "$p/.workflow/deferred"
   cp "$p/.agents/skills/project-setup/assets/docs/rules.md" "$p/.workflow/rules.md"
   printf '# Glossary\n' >"$p/.workflow/GLOSSARY.md"
   local type
   for type in research fact-lookup; do
-    printf -- '---\ntier: cheap\nclaude: haiku\ncodex: gpt-mini\n---\n# %s\n' "$type" >"$p/.workflow/model-map/$type.md"
+    printf '%s:\n  tier: cheap\n  claude: haiku\n  codex: gpt-mini\n  why: x\n' "$type" >>"$p/.workflow/model-map.yaml"
   done
   printf '%s\n' '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' >"$p/.gitignore"
   git_commit_all "$p" "fixture: project"
@@ -92,8 +92,8 @@ Spec: [spec.md](spec.md)
 EOF
   printf '# Codebase map: %s\n\nModules touched: several.\n' "$3" >"$p/$dir/codebase-map.md"
   printf -- '---\norigin_spec: %s\ncreated: 2026-10-21\n---\n# Shelved idea\n' "$dir" >"$p/.workflow/deferred/shelved-idea.md"
-  printf -- '---\norigin_spec: .workflow/specs/000-earlier\norigin_step: "3.4"\ndiscovered_at: 2026-10-20\nstatus: promoted\npromoted_to: %s\nkind: requirement\n---\n# Seeded the draft\n' \
-    "$dir" >"$p/.workflow/specs/work-backlog/000-earlier-disc-001.md"
+  printf '# Work backlog: 000-earlier\n\n- [promoted] B1 requirement (3.4): Seeded the draft. Evidence: the origin spec design log. -> %s\n' \
+    "$dir" >"$p/.workflow/specs/work-backlog/000-earlier.md"
 }
 
 seed_initiative() {

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# File: Fixture builders and oracles for the review-lessons suites (the lessons file, the lens's pass file, the live-run repo).
+# File: Fixture builders and oracles for the review-lessons suites (the lessons file, the standards lens's pass file for a
+#   repeated lesson, the live-run repo).
 #   Sourced after lib/common.sh; defines variables and functions only. bash 3.2 compatible.
 # Provides:
 #   RL001_ID, RL001_SYMPTOM, RL001_PATHS, RL001_ORIGIN_SPEC, RL001_DATE   the fixture lesson, the only lesson text the harness uses
@@ -11,8 +12,8 @@
 #   review_lessons_file FILE [ENTRY...]   writes a lessons file whose list holds the given entries (lessons: [] when none)
 #   REPORT_REPEAT, REPORT_CLEAN    the two versions of src/report.sh: one repeats RL-001, one checks the file first
 #   REPORT_REPEAT_LINE             the line of REPORT_REPEAT that repeats the lesson
-#   review_lessons_repo DIR [repeat|clean]   self-contained git repo for a live lens run (DIR is the caller's, never removed here)
-#   expected_lens_block FILE [BASE HEAD]     writes the pass file the lens should write for the repeat repo
+#   review_lessons_repo DIR [repeat|clean]   self-contained git repo for a live review-standards run (DIR is the caller's, never removed here)
+#   expected_lens_block FILE [BASE HEAD]     writes the review-standards pass file the lens should write for the repeat repo
 #   template_command NAME [TEMPLATE]         prints the validate: or next-id: command from the template's header comment
 #   run_template_command NAME FILE [TEMPLATE] runs that command on FILE; exit 127 with a message when it is missing
 # shellcheck disable=SC2034,SC2016  # the variables are read by the suites that source this file; $1 in the scripts is literal
@@ -80,23 +81,15 @@ review_lessons_repo() {
   esac
   git_init_repo "$p"
   copy_agents "$p"
-  mkdir -p "$p/.workflow/decisions" "$p/.workflow/model-map" "$p/.workflow/specs/001-fixture"
+  mkdir -p "$p/.workflow/decisions" "$p/.workflow/specs/001-fixture"
   cp "$p/.agents/skills/project-setup/assets/docs/rules.md" "$p/.workflow/rules.md"
   cp "$p/.agents/skills/project-setup/assets/docs/decisions/pitfalls.md" "$p/.workflow/decisions/pitfalls.md"
-  cat >"$p/.workflow/model-map/review-lessons.md" <<'M'
----
-# Lowest-precedence model source: .workflow/agent-overrides.yaml, then the agent definition's models key, then this file.
-tier: cheap
-claude: haiku
-codex: gpt-6-luna
----
-# review-lessons
-
-## Why this model
-
-Compares a diff against a short list of recorded lessons; a cheap model is enough.
-
-## Observations
+  cat >"$p/.workflow/model-map.yaml" <<'M'
+review-standards:
+  tier: cheap
+  claude: haiku
+  codex: gpt-6-luna
+  why: Judges a diff against written standards and recorded lessons.
 M
   review_lessons_file "$p/.workflow/review-lessons.md" "$(lesson_rl001)"
   printf '%s\n' '.workflow/specs/*/.step' >"$p/.gitignore"
@@ -119,13 +112,13 @@ expected_lens_block() {
   local base=${2:-1111111111111111111111111111111111111111} head=${3:-2222222222222222222222222222222222222222}
   mkdir -p "$(dirname "$file")"
   cat >"$file" <<EOF
-lens: review-lessons
+lens: review-standards
 status: done
 blocked_reason: ""
 baseline_revision: "$base"
 head: "$head"
 findings:
-  - id: RL-1
+  - id: RS-1
     category: lesson
     lesson: $RL001_ID
     severity: high

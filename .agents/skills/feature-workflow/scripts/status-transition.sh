@@ -19,7 +19,7 @@
 #       overwritten (exit 2) unless the value is identical. --step names the node (required: 1.1 | 0.3.20 for --spec-branch,
 #       3.1 for --impl-base) and is written to .step. Refused (exit 2) while the spec is done.
 #   status-transition.sh step <spec-dir> <node-id> [--cwd <dir>]
-#       Step-only mode: set .step before a guarded write (spec.md: 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 4.8, 5.1, 5.3, 5.9, 00.29;
+#       Step-only mode: set .step before a guarded write (spec.md: 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9, 00.29;
 #       tasks.md: 2.5, 0.3.20; .workflow/specs/work-backlog/: 00.26, 5.9, 0.1.4; glossaries: 0.2.3, 0.3.15, 0.4.3, 5.3; other Tier A: 0.3.7, 5.3, 5.7; new profile: 00.19 — see check-write.sh).
 #       Any node id of the form N(.N)* is accepted, including 00.21-00.29, 2.6, 3.15, 3.16 and 5.9. `step <dir> 0.1.4` works before
 #       spec.md exists (the folder must exist), so 0.1.4 can create spec.md with Write.
@@ -78,13 +78,15 @@
 # .step format (YAML, written only here; read by check-write.sh):
 #   step: "<node-id>"
 #   updated_at: "<UTC ISO-8601, e.g. 2026-10-15T12:00:00Z>"
+#   seq: <n>                      # one more than the highest seq among the checkout's spec and initiative markers; readers
+#                                 #   pick the newest marker by seq (lib/workflow-paths.sh wf_marker_order_key), not by time
 #   blocked_from: "<status>"      # present only while spec status is blocked
 #
 # Exit codes: 0 done; 1 usage or environment error (missing yq, not a git repo, missing file, schema failure, or a tasks.md
 #   schema validator yq cannot run, reported with yq's own error text); 2 illegal transition (deny), matching check-write.sh and resolve-launch.sh,
 #   or a set-task --issue value that is neither an https URL nor null.
 # Called by: the step files (discovery, verification-setup, task-breakdown, implementation-setup, implementation-waves, implementation-finish, review-triage, sign-off), domain-modeling and retrospective before guarded writes.
-# Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; spec-single-writer-guard rejects status edits made by Write/Edit. The deny rule Edit(.workflow/specs/*/.step) stops file tools forging the marker. The marker is accident prevention, not security. install.sh / project-setup add `.workflow/specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place).
+# Notes: Runs via Bash, so the Write/Edit guard hooks do not intercept it; workflow-write-guard rejects status edits made by Write/Edit. The deny rule Edit(.workflow/specs/*/.step) stops file tools forging the marker. The marker is accident prevention, not security. install.sh / project-setup add `.workflow/specs/*/.step` to the target's .gitignore. Requires git and mikefarah yq v4 (--front-matter=process edits frontmatter in place).
 # Sources: first-party; tasks.md validator from feature-workflow/assets/tasks.md. Pattern: skills/data-structure-audit/scripts/audit_scope.sh (sub-commands, git anchoring).
 
 set -euo pipefail
@@ -141,6 +143,7 @@ write_marker() {
   {
     printf 'step: "%s"\n' "$step"
     printf 'updated_at: "%s"\n' "$(utc_now)"
+    printf 'seq: %s\n' "$(wf_next_marker_seq "${file%/"$WF_SPECS"/*}")"
     [[ -n "$from" ]] && printf 'blocked_from: "%s"\n' "$from"
   } >"$tmp"
   mv -f "$tmp" "$file"

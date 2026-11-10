@@ -1,3 +1,7 @@
+---
+# The Phase 4 standards lens checks commit subjects against rules.md, so pr-quality skips this on a spec branch in review or done.
+covered_by_review: true
+---
 # Commit hygiene
 <!-- verified_at_commit: 0a662df5d1046bd2984be858e813992a7fb36eb7 -->
 

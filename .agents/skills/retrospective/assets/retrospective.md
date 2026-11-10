@@ -4,7 +4,7 @@ date: YYYY-MM-DD
 verdict: accepted
 ---
 <!--
-File: Template for .workflow/decisions/retrospectives/NNN-slug.md, one per shipped feature. Written by the `retrospective` skill at 5.7 with the stakeholder present; no `status` field lives here.
+File: Template for .workflow/decisions/retrospectives/NNN-slug.md, one per shipped feature. Drafted by the `retrospective` skill as .workflow/specs/NNN-slug/retrospective-draft.md before the sign-off ask (5.5) and moved here at 5.7; a standalone run writes it here directly. No `status` field lives here. In a draft, each candidate lesson carries `proposed L<n>` where its destination goes.
 
 How to fill it in:
   - Frontmatter: `spec` is the spec folder (.workflow/specs/NNN-slug). `verdict` is one of `accepted`, `accepted-with-open-items`, `rejected`, and matches the "Acceptance verdict" section. A gate that acts on the verdict reads this frontmatter, so keep both in sync. Add no other machine-read fields.
@@ -92,16 +92,11 @@ Notes about this feature worth keeping that are not process lessons. They are ap
 
 ## Model observations
 
-Which model did well or badly on which task type. Proposals go to exactly one place per agent type and host:
+Which model did well or badly on which task type. Each observation is appended as one dated line to that task type's `observations` list in `.workflow/model-map.yaml`; an agreed alias change edits the same row. Never edit `.agents/agents/*.md` in a target project: definitions are scaffold-owned and overwritten on reinstall.
 
-- the agent definition (`.agents/agents/<type>.md`) pins a model for that host in `models.<host>`: propose an entry in `<project>/agent-overrides.yaml`;
-- otherwise: propose an entry in the `## Observations` section of `.workflow/model-map/<task-type>.md` (dated, one line). Leave its "Why this model" body and frontmatter unchanged.
-
-Never edit `.agents/agents/*.md` in a target project: definitions are scaffold-owned and overwritten on reinstall.
-
-| Task type | Host | Observation | Proposal | Goes to |
-| --- | --- | --- | --- | --- |
-| <e.g. implementation> | claude / codex | <what happened, with evidence> | <alias change, or "none"> | .workflow/agent-overrides.yaml / .workflow/model-map/<type>.md |
+| Task type | Host | Observation | Alias change |
+| --- | --- | --- | --- |
+| <e.g. implementation> | claude / codex | <what happened, with evidence> | <new alias, or "none"> |
 
 ## Action items
 

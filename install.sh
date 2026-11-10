@@ -20,19 +20,35 @@
 #      VERSION file is rewritten only when the version or file list changes, so a re-run changes nothing.
 #   3. Claude, --host claude|all: <target>/.claude/{skills,agents,output-styles} symlinks to ../.agents/<dir>, and
 #      .agents/hooks/claude-settings.template.json merged into <target>/.claude/settings.json:
+#      hook commands an earlier template wired and this payload no longer ships removed (with any group left empty),
 #      hook commands missing under an event appended in the template's group, a differing matcher on an existing group
-#      resolved as "Hook matchers" says, permissions.deny unioned, user keys kept,
+#      resolved as "Hook matchers" says, permissions.allow and permissions.deny unioned after the entries earlier
+#      templates wrote for retired scripts and paths are removed, user keys kept,
 #      a different user outputStyle or statusLine kept with a warning.
 #   4. Codex, --host codex|all: runs generate-codex-agents.sh in the target (.codex/agents/*.toml),
 #      merges codex-hooks.template.json into .codex/hooks.json (same hook and matcher rules) and codex-config.template.toml into
 #      .codex/config.toml. yq v4 reads TOML but cannot write tables, so the
 #      config is edited through marker blocks that later runs refresh in place; user text outside them is never rewritten.
-#      The tui block sets the built-in Codex status line; a [tui] table the user already has is kept with a warning.
-#   5. <target>/.gitignore: .workflow/specs/*/.step, .workflow/initiatives/*/.step, .workflow/.cache-staging/, .workflow/.worktrees/,
+#      The tui block sets the built-in Codex status line; a [tui] table the user already has is kept with a warning. The
+#      default-permissions and permissions-workflow blocks older runs wrote are removed.
+#   5. <target>/.gitignore: .workflow/specs/*/.step, .workflow/initiatives/*/.step, .workflow/.worktrees/,
 #      .workflow/.spec-worktrees/ (the worktrees specs run in), .workflow/.handoff/ and .workflow/.standards-staging/ in a marker
 #      block, since they hold local, in-progress state. Paths come from .agents/lib/workflow-paths.sh.
-#   Never creates or touches .workflow/: every project-owned file (GLOSSARY.md, rules.md, agent-overrides.yaml, model-map/,
-#   profiles/, decisions/, deferred/, specs/, ...) lives there and is created by the project-setup skill; nor the project's own docs/ and e2e/.
+#   6. Older workflow data: .workflow/ is project-owned (GLOSSARY.md, rules.md, model-map.yaml, profiles/, decisions/, deferred/,
+#      specs/, ...) and created by the project-setup skill. install.sh creates nothing there; it only converts a format this payload
+#      no longer reads, keeping every value. A .workflow/model-map/ folder (one <type>.md per task type) and agent-overrides.yaml
+#      become .workflow/model-map.yaml (an override wins over the folder's value; the template's rows for task types the folder
+#      lacks are added; the task types whose agents the payload no longer ships get no row), unless model-map.yaml exists already, which is then kept with a warning. Each per-item backlog file
+#      .workflow/specs/work-backlog/<NNN-slug>-disc-<###>.md is removed: an open one becomes a `- [open] B<n>` line on its spec's
+#      list <NNN-slug>.md (its kind, origin step, Problem and Evidence), and a closed one is dropped. The project's own docs/ and
+#      e2e/ are never touched.
+#   7. Retired items (the tables after the paths below; a later retirement is one more table entry): generated leftovers are
+#      removed (.workflow/cache/, .workflow/.cache-staging/, the settings entries, Codex blocks and .gitignore lines above);
+#      keys no script reads are dropped where nothing is lost (small_path from in-flight specs, which keep light_path: true,
+#      cache_stamps from their codebase maps, graph_extractor from profiles; never a spec in the Done folder); anything that
+#      would move or rewrite a project record is reported with the command that settles it (a done spec outside the Done
+#      folder, an unfinished task with no task branch, a review lesson or shelf item naming a retired path). The run that
+#      removes or converts something ends with a short "Upgrade from an older install" summary; a later run prints none.
 #   Scaffold-only files (PLAN/, tests/, assetlist.md, checklist.md, PROVENANCE.md, CHANGELOG.md, upstream-lineage.json, scripts/,
 #   wayfinder-comparison.html, testprompt.md, the scaffold repo's own .workflow/, this script) are outside .agents/ and never copied.
 # Hook matchers: on every hook event, an existing group that runs a command of a template group under a matcher that does
@@ -62,10 +78,9 @@
 #   given.
 # Conflicts: every check runs before anything is written. Without --force, install.sh refuses (exit 1, nothing written) when
 #   .claude/{skills,agents,output-styles} is a real directory or a symlink elsewhere, a settings/hooks key has the wrong type or
-#   a different value, .codex/config.toml has a different [permissions.workflow], or a marker block is damaged. With --force
+#   a different value, or a marker block is damaged. With --force
 #   a real directory is moved aside to <name>.backup-<timestamp>, a wrong symlink is replaced, conflicting JSON keys take the
-#   template value, outputStyle, statusLine and default_permissions are overwritten, and a hand-written [permissions.workflow] that
-#   differs is left as is with a warning (it cannot be rewritten safely). --force does not change hook matchers: they follow
+#   template value, and outputStyle and statusLine are overwritten. --force does not change hook matchers: they follow
 #   "Hook matchers". Unparseable JSON or TOML always refuses.
 # Exit: 0 installed (or dry-run clean); 1 refused because of a conflict; 2 usage or preflight error (including a --matchers
 #   value other than merge, replace or keep).
@@ -83,7 +98,43 @@ CODEX_HOOKS_TPL=$SRC/hooks/codex-hooks.template.json
 CODEX_CONFIG_TPL=$SRC/hooks/codex-config.template.toml
 # shellcheck source=.agents/lib/workflow-paths.sh
 . "$SRC/lib/workflow-paths.sh"
-GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_INITIATIVES/*/.step" "$WF_CACHE_STAGING/" "$WF_WORKTREES/" "$WF_SPEC_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/")
+
+# Retired items: what earlier installs or the earlier flow left in a project and this payload no longer uses. An upgrade
+# removes or converts each one, or reports it when that would move or rewrite a project record. To retire something more,
+# add one entry to the table for its kind; the code that applies a table never changes. Payload files and Codex agent files
+# need no entry: the VERSION list and generate-codex-agents.sh remove what the payload no longer ships.
+# Hook commands earlier templates wired; the settings merge removes them, and the template group with the same matcher
+# takes the place of a group left empty.
+# shellcheck disable=SC2016 # the commands keep $CLAUDE_PROJECT_DIR for Claude Code to expand
+RETIRED_HOOK_COMMANDS='["\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/spec-single-writer-guard.sh","\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/tier-a-write-guard.sh","\"$CLAUDE_PROJECT_DIR\"/.agents/hooks/tier-b-write-guard.sh"]'
+# permissions.allow and permissions.deny entries earlier templates wrote; the settings merge removes them.
+RETIRED_PERMISSIONS="[
+  \"Bash(.agents/skills/regenerate-caches/scripts/cache-stamp-check.sh:*)\",
+  \"Bash(.agents/skills/regenerate-caches/scripts/check-staged-cache.sh:*)\",
+  \"Bash(.agents/skills/regenerate-caches/scripts/publish-cache.sh:*)\",
+  \"Edit($WF_DIR/cache/**)\",
+  \"Edit(docs/cache/**)\",
+  \"Edit(specs/*/.step)\"]"
+# Marker blocks earlier runs wrote into .codex/config.toml; removed.
+RETIRED_CODEX_BLOCKS="default-permissions permissions-workflow"
+# Task types whose agents the payload no longer ships; their old model map files are not carried into the model table.
+RETIRED_TASK_TYPES="cache-regeneration review-lessons"
+# Generated folders under the workflow folder that nothing reads or writes any more; removed with what they hold.
+RETIRED_WORKFLOW_DIRS="$WF_DIR/cache $WF_DIR/.cache-staging"
+# Keys no script reads any more, one "<where> <file glob> <key>" row each; the key line (and the lines indented under it)
+# is dropped from the file's frontmatter or from a yaml block in it. <where> is spec (each spec folder at the top level of
+# the specs folder that is not done; the Done folder is a closed record and never touched) or profile (the profiles folder).
+RETIRED_KEYS="spec spec.md small_path
+spec codebase-map.md cache_stamps
+profile *.md graph_extractor"
+# Paths the payload or the flow no longer has. A review lesson not yet retired whose paths lie inside one, or a shelf item
+# that names one, is reported for the human to retire or edit. A folder ends in /.
+RETIRED_PATHS="$WF_DIR/cache/ $WF_DIR/.cache-staging/ $WF_DIR/model-map/ $WF_DIR/agent-overrides.yaml
+.agents/skills/regenerate-caches/ .agents/agents/cache-regeneration.md .agents/agents/review-lessons.md
+.agents/hooks/_guard-common.sh .agents/hooks/spec-single-writer-guard.sh .agents/hooks/tier-a-write-guard.sh
+.agents/hooks/tier-b-write-guard.sh .agents/skills/feature-workflow/assets/work-item.md
+.agents/skills/project-setup/assets/agent-overrides.yaml .agents/skills/project-setup/assets/model-map/"
+GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_INITIATIVES/*/.step" "$WF_WORKTREES/" "$WF_SPEC_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/")
 SHIM_DIRS="skills agents output-styles"
 
 die() { echo "install.sh: error: $*" >&2; exit 2; }
@@ -168,6 +219,7 @@ tmp=$(mktemp -d "${TMPDIR:-/tmp}/scaffold-install.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
 
 REFUSALS=()
+CFG_RETIRED=() N_TOML=0
 WARNINGS=()
 refuse() { REFUSALS+=("$1"); }
 warn() { WARNINGS+=("$1"); }
@@ -263,7 +315,8 @@ fi
 # cannot serve them all: when it runs only template commands it is removed, so the append below puts each command back
 # under its own template group with the template's hook object; otherwise it is kept. Each of these outcomes records one
 # matcher warning, except a change answered at the prompt. Then the template's groups are appended, minus hook commands
-# already present under that event (idempotent).
+# already present under that event (idempotent); a template group goes instead into the place of a group under the same
+# matcher that the removal of retired hooks left empty, and any group still empty is dropped.
 # permissions.allow and permissions.deny are de-duplicated unions. Other template keys are set when absent; equal values are no-ops;
 # outputStyle or statusLine that differs is kept with a warning (overwritten with --force); any other difference is a conflict.
 # shellcheck disable=SC2016  # jq program, not shell
@@ -273,7 +326,12 @@ def merge_groups($cur; $new):
   reduce $new[] as $g ($cur;
     cmds as $have
     | [ $g.hooks[] | select(.command as $c | any($have[]; . == $c) | not) ] as $miss
-    | if ($miss | length) == 0 then . else . + [ $g | .hooks = $miss ] end);
+    | if ($miss | length) == 0 then . else
+        # A group the retired hooks left empty, under the same matcher, takes the template group in its place.
+        (first(range(0; length) as $k | select(.[$k] | type == "object" and (.hooks | type) == "array" and (.hooks | length) == 0
+          and .matcher == $g.matcher) | $k) // null) as $slot
+        | if $slot == null then . + [ $g | .hooks = $miss ] else .[$slot] = ($g | .hooks = $miss) end
+      end);
 def group_cmds: [ (.hooks? // [])[]? | objects | .command? | strings ];
 def hook_name: if type == "object" and (.command | type) == "string" then .command else tojson end;
 def hook_names: [ (.hooks? // [])[]? | hook_name ];
@@ -342,6 +400,15 @@ def split_or_keep($ev; $i; $g; $all_tcmds; $count):
     else
       .matcher_warnings += ["\($what) and hooks of your own, so no one matcher fits them all; kept as it is. Its hooks: \($g | hook_names | join(", "))"]
     end;
+# A hook command an earlier template shipped and this one does not: its script is no longer in the payload, so the hook is removed.
+# A group left with no hooks keeps its place until the template groups are merged in, then goes if none took it.
+def is_retired: type == "object" and (.command | type) == "string" and (.command as $c | any($retired[]; . == $c));
+def drop_retired($ev):
+  .retired_removed += [ .out.hooks[$ev][]? | objects | (.hooks? // [])[]? | select(is_retired) | "hooks.\($ev) \(.command)" ]
+  | .out.hooks[$ev] |= [ .[]? | if type == "object" and (.hooks | type) == "array" then .hooks |= map(select(is_retired | not)) else . end ];
+def drop_empty_groups: [ .[] | select(type != "object" or (.hooks | type) != "array" or (.hooks | length) > 0) ];
+# A permissions entry an earlier template wrote and this one does not.
+def is_retired_permission: . as $p | any($retired_permissions[]; . == $p);
 def resolve_matchers($ev):
   $t.hooks[$ev] as $tgroups
   | ([ $tgroups[] | group_cmds[] ]) as $all_tcmds
@@ -372,7 +439,7 @@ def keyrule($p; $v; $label):
     else .conflicts += ["\($label): your value \($cur | tojson) differs from the template value \($v | tojson)"] end;
 . as $u
 | if ($u | type) != "object" then {fatal: "the top level is not a JSON object"} else
-  {out: $u, conflicts: [], warnings: [], matcher_warnings: [], questions: []}
+  {out: $u, conflicts: [], warnings: [], matcher_warnings: [], questions: [], retired_removed: []}
   | if $t.hooks == null then . else
       (if badtype(.out.hooks | type; "object") then
          if $force then .warnings += ["hooks: not an object; replaced (--force)"] | .out.hooks = {}
@@ -383,7 +450,7 @@ def keyrule($p; $v; $label):
             if badtype(.out.hooks[$ev] | type; "array") then
               if $force then .warnings += ["hooks.\($ev): not an array; replaced (--force)"] | .out.hooks[$ev] = $t.hooks[$ev]
               else .conflicts += ["hooks.\($ev): is a \(.out.hooks[$ev] | type), expected an array"] end
-            else resolve_matchers($ev) | .out.hooks[$ev] = merge_groups(.out.hooks[$ev] // []; $t.hooks[$ev]) end)
+            else drop_retired($ev) | resolve_matchers($ev) | .out.hooks[$ev] = (merge_groups(.out.hooks[$ev] // []; $t.hooks[$ev]) | drop_empty_groups) end)
         end
     end
   | if $t.permissions == null then . else
@@ -396,7 +463,11 @@ def keyrule($p; $v; $label):
             if badtype(.out.permissions[$e.key] | type; "array") then
               if $force then .warnings += ["permissions.\($e.key): not an array; replaced (--force)"] | .out.permissions[$e.key] = $e.value
               else .conflicts += ["permissions.\($e.key): is a \(.out.permissions[$e.key] | type), expected an array"] end
-            else .out.permissions[$e.key] = (reduce $e.value[] as $d ((.out.permissions[$e.key] // []); if any(.[]; . == $d) then . else . + [$d] end)) end
+            else
+              .retired_removed += [ (.out.permissions[$e.key] // [])[] | select(is_retired_permission) | "permissions.\($e.key) \(.)" ]
+              | .out.permissions[$e.key] = (reduce $e.value[] as $d ((.out.permissions[$e.key] // []) | map(select(is_retired_permission | not));
+                  if any(.[]; . == $d) then . else . + [$d] end))
+            end
           else keyrule(["permissions", $e.key]; $e.value; "permissions.\($e.key)") end)
       end
     end
@@ -408,7 +479,8 @@ def keyrule($p; $v; $label):
 # question key to merge, replace or keep) as the replies to the matcher questions.
 run_merge() {
   jq --argjson t "$(cat "$1")" --argjson force "$([ "$force" -eq 1 ] && echo true || echo false)" \
-    --arg matchers "$matcher_mode" --argjson answers "$3" "$JQ_MERGE" "$2"
+    --arg matchers "$matcher_mode" --argjson answers "$3" --argjson retired "$RETIRED_HOOK_COMMANDS" \
+    --argjson retired_permissions "$RETIRED_PERMISSIONS" "$JQ_MERGE" "$2"
 }
 
 # write_if_changed RESULT DEST OUT : write RESULT's merged settings to OUT, or leave OUT absent when DEST would not change.
@@ -421,10 +493,12 @@ write_if_changed() {
 
 # merge_json NAME TEMPLATE DEST OUT : plan the merge of TEMPLATE into DEST; the result goes to OUT. Records refusals and
 # warnings. Leaves OUT absent when DEST would not change. In ask mode the matcher questions go to OUT.questions, one JSON
-# object per line, and those groups stay as they are until ask_matchers has the answers.
+# object per line, and those groups stay as they are until ask_matchers has the answers. Each retired hook or permissions
+# entry the merge removes goes to OUT.retired, one "<key> <entry>" line each.
 merge_json() {
   local name=$1 tpl=$2 dest=$3 out=$4 res
   rm -f "$out" "$out.questions"
+  : >"$out.retired"
   if [ ! -e "$dest" ]; then
     jq . "$tpl" >"$out"
     return
@@ -443,6 +517,7 @@ merge_json() {
   # plan that has the answers.
   while IFS= read -r m; do [ -z "$m" ] || warn "$name: $m"; done < <(jq -r '.warnings[], if (.questions | length) == 0 then .matcher_warnings[] else empty end' <<<"$res")
   jq -c '.questions[]' <<<"$res" >"$out.questions"
+  jq -r '.retired_removed[]' <<<"$res" >"$out.retired"
   write_if_changed "$res" "$dest" "$out"
 }
 
@@ -520,6 +595,15 @@ block_replace() {
     skip { next }
     { print }' "$1"
 }
+# block_remove FILE NAME : print FILE without the block and the one blank line after it.
+block_remove() {
+  awk -v b="$(mark_begin "$2")" -v e="$(mark_end "$2")" '
+    $0 == b { skip = 1; next }
+    skip && $0 == e { skip = 0; gap = 1; next }
+    skip { next }
+    gap && $0 == "" { gap = 0; next }
+    { gap = 0; print }' "$1"
+}
 # block_append FILE NAME CONTENT_FILE : print FILE (may be absent) with the block appended.
 block_append() {
   if [ -s "$1" ]; then
@@ -561,71 +645,33 @@ if [ "$want_codex" -eq 1 ]; then
   fi
   merge_json .codex/hooks.json "$CODEX_HOOKS_TPL" "$T/.codex/hooks.json" "$tmp/hooks.json"
 
-  # config.toml: three marker blocks. "default-permissions" holds the top-level key (inserted at the top, before any
-  # table); "permissions-workflow" holds the template's [permissions.*] tables and "tui" its [tui] table (both appended at the end).
+  # config.toml: one marker block, "tui", holding the template's [tui] table (appended at the end). The blocks older
+  # installs wrote (RETIRED_CODEX_BLOCKS) are dropped.
   CFG=$T/.codex/config.toml
   rm -f "$tmp/config.toml"
-  dp_want=$(yq -p toml -o json -I=0 '.default_permissions' "$CODEX_CONFIG_TPL")
-  wf_want=$(yq -p toml -o json -I=0 '.permissions.workflow' "$CODEX_CONFIG_TPL")
-  printf 'default_permissions = %s\n' "$dp_want" >"$tmp/cfg.top"
   tui_want=$(yq -p toml -o json -I=0 '.tui' "$CODEX_CONFIG_TPL")
-  awk '/^[[:space:]]*\[tui\][[:space:]]*$/ { exit } f || /^[[:space:]]*\[/ { f = 1; print }' "$CODEX_CONFIG_TPL" | awk '/^[[:space:]]*$/ { n++; next } { while (n > 0) { print ""; n-- } print }' >"$tmp/cfg.tables"
   awk 'f || /^[[:space:]]*\[tui\][[:space:]]*$/ { f = 1; print }' "$CODEX_CONFIG_TPL" >"$tmp/cfg.tui"
   if [ ! -e "$CFG" ]; then
     {
       echo "# Codex project config. install.sh manages the marked blocks (see the scaffold's .codex/README.md); add your own settings outside them."
-      block_text default-permissions "$tmp/cfg.top"
-      echo
-      block_text permissions-workflow "$tmp/cfg.tables"
-      echo
       block_text tui "$tmp/cfg.tui"
     } >"$tmp/config.toml"
   elif ! cur_json=$(yq -p toml -o json -I=0 '.' "$CFG" 2>/dev/null); then
     refuse ".codex/config.toml: not valid TOML; fix it first (--force does not override this)"
   else
     cp "$CFG" "$tmp/cfg.work"
-    st_top=$(block_state "$CFG" default-permissions)
-    st_tab=$(block_state "$CFG" permissions-workflow)
     st_tui=$(block_state "$CFG" tui)
     cfg_ok=1
-    for st in "$st_top" "$st_tab" "$st_tui"; do
-      [ "$st" != damaged ] || { refuse ".codex/config.toml: a workflow-2.0 marker block is damaged (unmatched or repeated markers); repair it by hand"; cfg_ok=0; }
+    for blk in tui $RETIRED_CODEX_BLOCKS; do
+      [ "$(block_state "$CFG" "$blk")" != damaged ] || cfg_ok=0
     done
+    [ "$cfg_ok" -eq 1 ] || refuse ".codex/config.toml: a workflow-2.0 marker block is damaged (unmatched or repeated markers); repair it by hand"
     if [ "$cfg_ok" -eq 1 ]; then
-      # default_permissions
-      if [ "$st_top" = present ]; then
-        block_replace "$tmp/cfg.work" default-permissions "$tmp/cfg.top" >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
-      else
-        dp_cur=$(jq -c '.default_permissions // null' <<<"$cur_json")
-        if [ "$dp_cur" = null ]; then
-          { block_text default-permissions "$tmp/cfg.top"; echo; cat "$tmp/cfg.work"; } >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
-        elif [ "$dp_cur" != "$dp_want" ]; then
-          if [ "$force" -eq 1 ]; then
-            awk -v repl="$(cat "$tmp/cfg.top")" '
-              !t && /^[[:space:]]*\[/ { t = 1 }
-              !t && !done && /^[[:space:]]*default_permissions[[:space:]]*=/ { print repl; done = 1; next }
-              { print }' "$tmp/cfg.work" >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
-            warn ".codex/config.toml: default_permissions $dp_cur replaced with $dp_want (--force)"
-          else
-            warn ".codex/config.toml: keeping your default_permissions $dp_cur; the workflow's hard write limits need $dp_want (re-run with --force to set it)"
-          fi
-        fi
-      fi
-      # [permissions.workflow]
-      if [ "$st_tab" = present ]; then
-        block_replace "$tmp/cfg.work" permissions-workflow "$tmp/cfg.tables" >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
-      else
-        wf_cur=$(jq -c '.permissions.workflow // null' <<<"$cur_json")
-        if [ "$wf_cur" = null ]; then
-          block_append "$tmp/cfg.work" permissions-workflow "$tmp/cfg.tables" >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
-        elif [ "$(jq -S . <<<"$wf_cur")" != "$(jq -S . <<<"$wf_want")" ]; then
-          if [ "$force" -eq 1 ]; then
-            warn ".codex/config.toml: your [permissions.workflow] differs from the template and was left as is; reconcile it by hand with .agents/hooks/codex-config.template.toml"
-          else
-            refuse ".codex/config.toml: [permissions.workflow] exists and differs from the template; reconcile it with .agents/hooks/codex-config.template.toml (--force leaves it as is and continues)"
-          fi
-        fi
-      fi
+      for old in $RETIRED_CODEX_BLOCKS; do
+        [ "$(block_state "$tmp/cfg.work" "$old")" = present ] || continue
+        block_remove "$tmp/cfg.work" "$old" >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
+        CFG_RETIRED+=("$old")
+      done
       # [tui] status_line. A [tui] table or tui.* key the user wrote is never rewritten, even with --force.
       if [ "$st_tui" = present ]; then
         block_replace "$tmp/cfg.work" tui "$tmp/cfg.tui" >"$tmp/cfg.next" && mv "$tmp/cfg.next" "$tmp/cfg.work"
@@ -654,15 +700,236 @@ fi
 # ---------------------------------------------------------------------------------------------------------- .gitignore plan
 GI=$T/.gitignore
 rm -f "$tmp/gitignore"
+: >"$tmp/gi.retired"
 printf '%s\n' "${GI_ENTRIES[@]}" >"$tmp/gi.block"
 case "$(block_state "$GI" gitignore)" in
   absent) block_append "$GI" gitignore "$tmp/gi.block" >"$tmp/gitignore" ;;
   present)
     block_replace "$GI" gitignore "$tmp/gi.block" >"$tmp/gi.next"
     cmp -s "$tmp/gi.next" "$GI" || mv "$tmp/gi.next" "$tmp/gitignore"
+    # The lines an earlier run wrote in the block that this payload no longer ignores, for the upgrade summary.
+    awk -v b="$(mark_begin gitignore)" -v e="$(mark_end gitignore)" '$0 == e { exit } f; $0 == b { f = 1 }' "$GI" |
+      grep -vxF -f "$tmp/gi.block" >"$tmp/gi.retired" || true # grep finds nothing when every line is still wanted
     ;;
   damaged) refuse ".gitignore: the workflow-2.0 marker block is damaged (unmatched or repeated markers); repair it by hand" ;;
 esac
+
+# ---------------------------------------------------------------------------------------------- older workflow data plan
+# The workflow folder is project-owned. install.sh changes it only to convert a format this payload no longer reads, keeping every value.
+OLD_MODEL_MAP_DIR=$WF_DIR/model-map
+OLD_AGENT_OVERRIDES=$WF_DIR/agent-overrides.yaml
+MODEL_MAP_TPL=$SRC/skills/project-setup/assets/model-map.yaml
+
+# convert_model_map OUT : write to OUT the model table that the old one-file-per-type model map folder and agent-overrides.yaml
+#   hold (an override wins over the folder, as it did), plus each task type the template has and the folder lacks, copied from
+#   the template. A retired task type's file is left out. Prints the added types, one per line; 1 when a file cannot be read.
+convert_model_map() {
+  local f type frontmatter why obs rows='{}' overrides='{}' template_rows
+  for f in "$T/$OLD_MODEL_MAP_DIR"/*.md; do
+    [ -f "$f" ] || continue
+    type=$(basename "$f" .md)
+    [ "$type" != TEMPLATE ] || continue
+    case " $RETIRED_TASK_TYPES " in *" $type "*) continue ;; esac
+    frontmatter=$(yq --front-matter=extract -o=json -I=0 '{"tier": .tier, "claude": .claude, "codex": .codex}' "$f") || return 1
+    why=$(awk '/^## /{ on = ($0 ~ /^## Why this model/); next } on && NF && !/^<!--/' "$f" | tr '\n' ' ' | sed 's/ *$//') || return 1
+    obs=$(awk '/^## /{ on = ($0 ~ /^## Observations/); next } on && /^- /{ sub(/^- /, ""); print }' "$f" | jq -R . | jq -s -c .) || return 1
+    rows=$(jq -c --arg t "$type" --argjson fm "$frontmatter" --arg why "$why" --argjson obs "$obs" '.[$t] = ($fm | with_entries(select(.value != null)))
+      + (if $why == "" then {} else {why: $why} end) + (if ($obs | length) > 0 then {observations: $obs} else {} end)' <<<"$rows") || return 1
+  done
+  if [ -f "$T/$OLD_AGENT_OVERRIDES" ]; then
+    overrides=$(yq -o=json -I=0 '. // {}' "$T/$OLD_AGENT_OVERRIDES") || return 1
+  fi
+  template_rows=$(yq -o=json -I=0 '.' "$MODEL_MAP_TPL") || return 1
+  # Only a filled claude or codex string overrides; empty values and <...> placeholders were unset before too.
+  rows=$(jq -c --argjson ov "$overrides" '. * ($ov | with_entries(select(.value | type == "object")
+      | .value |= with_entries(select((.key == "claude" or .key == "codex") and (.value | type) == "string"
+        and (.value | test("^\\s*(<.*>)?\\s*$") | not))))
+      | with_entries(select(.value | length > 0)))' <<<"$rows") || return 1
+  jq -r --argjson have "$rows" 'keys[] | select(. as $k | $have | has($k) | not)' <<<"$template_rows" || return 1
+  rows=$(jq -c --argjson tpl "$template_rows" --arg retired "$RETIRED_TASK_TYPES" '. as $have
+    | ($tpl | with_entries(select(.key as $k | $have | has($k) | not))) + $have
+    | delpaths([$retired | split(" ")[] | [.]]) | to_entries | sort_by(.key) | from_entries' <<<"$rows") || return 1
+  { awk '!/^#/ { exit } 1' "$MODEL_MAP_TPL"; yq -p json -o yaml -P '.' <<<"$rows"; } >"$1" || return 1
+}
+
+# convert_backlog_items DIR : copy into DIR each backlog list that a per-item backlog file of the same spec feeds, with every
+#   open item added as a line; an item that is not open is dropped. Prints "<item file> -> <list>#B<n>" or "<item file> (<status>)"
+#   per item file; 1 when a file cannot be read.
+convert_backlog_items() {
+  local f name origin status list n kind node problem evidence
+  for f in "$T/$WF_WORK_BACKLOG"/*-disc-*.md; do
+    [ -f "$f" ] || continue
+    name=${f##*/}
+    origin=${name%-disc-*}
+    status=$(yq --front-matter=extract '.status // ""' "$f") || return 1
+    if [ "$status" != open ]; then
+      printf '%s (%s)\n' "$name" "${status:-no status}"
+      continue
+    fi
+    list=$1/$origin.md
+    if [ ! -f "$list" ] && [ -f "$T/$WF_WORK_BACKLOG/$origin.md" ]; then cp "$T/$WF_WORK_BACKLOG/$origin.md" "$list" || return 1; fi
+    [ -f "$list" ] || printf '# Work backlog: %s\n\n' "$origin" >"$list" || return 1
+    n=$(sed -n 's/^- \[[a-z-]*\] B\([0-9][0-9]*\) .*/\1/p' "$list" | sort -n | tail -n 1)
+    n=$((${n:-0} + 1))
+    kind=$(yq --front-matter=extract '.kind // "bug"' "$f") || return 1
+    node=$(yq --front-matter=extract '.origin_step // "0"' "$f") || return 1
+    problem=$(awk '/^## /{ on = ($0 == "## Problem"); next } on && NF { printf "%s%s", sep, $0; sep = " " }' "$f")
+    [ -n "$problem" ] || problem=$(sed -n 's/^# //p' "$f" | head -n 1)
+    evidence=$(awk '/^## /{ on = ($0 == "## Evidence"); next } on && /^- / { sub(/^- /, ""); sub(/\.$/, ""); printf "%s%s", sep, $0; sep = "; " }' "$f")
+    printf -- '- [open] B%s %s (%s): %s. Evidence: %s\n' "$n" "$kind" "$node" "${problem%.}" "${evidence:-none recorded in the item file}" >>"$list" || return 1
+    printf '%s -> %s#B%s\n' "$name" "$origin.md" "$n"
+  done
+}
+
+MM_CONVERT=0 MM_ADDED=""
+if [ -d "$T/$OLD_MODEL_MAP_DIR" ]; then
+  if [ -e "$T/$WF_MODEL_MAP" ]; then
+    warn "$OLD_MODEL_MAP_DIR/ is no longer read and $WF_MODEL_MAP already exists, so the folder was not converted; move any value you still need into $WF_MODEL_MAP and delete it"
+  elif MM_ADDED=$(convert_model_map "$tmp/model-map.yaml"); then
+    MM_CONVERT=1
+  else
+    refuse "$OLD_MODEL_MAP_DIR/: a file there could not be read; fix it, or move its values into $WF_MODEL_MAP by hand"
+  fi
+elif [ -f "$T/$OLD_AGENT_OVERRIDES" ]; then
+  warn "$OLD_AGENT_OVERRIDES is no longer read; move any model it sets into $WF_MODEL_MAP and delete it"
+fi
+mkdir -p "$tmp/backlog"
+BL_PLAN=$(convert_backlog_items "$tmp/backlog") || refuse "$WF_WORK_BACKLOG/: a per-item backlog file could not be read; fix its frontmatter, or move it onto its spec's list by hand"
+
+# The retired items under the workflow folder, from the tables at the top. A rewritten file is staged under $WD at its
+# repo-relative path and copied in only when it differs; each change gets a WD_NOTES line, each finding left for the human
+# a LEFT line with the command that settles it.
+WD=$tmp/wfdata
+WD_DIRS=() WD_NOTES=() LEFT=()
+
+# drop_yaml_key KEY FILE : print FILE without each line that starts with KEY: (and the indented lines under it) in its
+#   frontmatter or in a ```yaml block. A frontmatter left with no key goes too, with the blank line after it.
+# shellcheck disable=SC2329 # called through wd_rewrite
+drop_yaml_key() {
+  awk -v key="$1:" '
+    NR == 1 && $0 == "---" { fm = 1; next }
+    fm && $0 == "---" {
+      fm = 0
+      if (kept || !dropped) { print "---"; printf "%s", buf; print "---" } else gap = 1
+      next
+    }
+    !fm && /^```yaml/ { y = 1; print; next }
+    y && /^```/ { y = 0; print; next }
+    (fm || y) && skip && /^[[:space:]]+[^[:space:]]/ { next }
+    { skip = 0 }
+    (fm || y) && index($0, key) == 1 { skip = 1; dropped = 1; next }
+    fm { buf = buf $0 "\n"; if ($0 !~ /^[[:space:]]*(#.*)?$/) kept = 1; next }
+    gap { gap = 0; if ($0 == "") next }
+    { print }
+    END { if (fm) { print "---"; printf "%s", buf } }' "$2"
+}
+
+# set_light_path FILE : print FILE with light_path: true in its frontmatter, the line replaced or added before the closing ---.
+# shellcheck disable=SC2329 # called through wd_rewrite
+set_light_path() {
+  awk 'NR == 1 && $0 == "---" { fm = 1; print; next }
+    fm && /^light_path:/ { sub(/^light_path:[[:space:]]*[^#[:space:]]*/, "light_path: true"); set = 1 }
+    fm && $0 == "---" { if (!set) print "light_path: true"; fm = 0 }
+    { print }' "$1"
+}
+
+# wd_rewrite REL NOTE CMD... : run CMD with the staged copy of the project file REL as its last argument (made on first use)
+#   and keep what it prints as the new copy; NOTE goes to WD_NOTES when the text changes. 1 when a step fails.
+wd_rewrite() {
+  local rel=$1 note=$2 copy=$WD/$1
+  shift 2
+  if [ ! -f "$copy" ]; then mkdir -p "$(dirname "$copy")" && cp "$T/$rel" "$copy" || return 1; fi
+  "$@" "$copy" >"$copy.next" || return 1
+  if cmp -s "$copy" "$copy.next"; then rm -f "$copy.next"; return 0; fi
+  mv "$copy.next" "$copy" || return 1
+  WD_NOTES+=("$note")
+}
+
+# retire_keys WHERE DIR : drop each RETIRED_KEYS key of WHERE from the files its row names in DIR (repo-relative).
+retire_keys() {
+  local where glob key f
+  while read -r where glob key; do
+    [ "$where" = "$1" ] || continue
+    # shellcheck disable=SC2231 # the row's file part is a glob, so it stays unquoted
+    for f in "$T/$2"/$glob; do
+      [ -f "$f" ] || continue
+      wd_rewrite "$2/${f##*/}" "drop $key from $2/${f##*/}" drop_yaml_key "$key" || return 1
+    done
+  done <<<"$RETIRED_KEYS"
+}
+
+# within_retired_path GLOB : print the RETIRED_PATHS entry that the part of GLOB before its first wildcard lies in; nothing
+#   when it lies in none.
+within_retired_path() {
+  local p fixed=${1%%[\*\?\[]*}
+  for p in $RETIRED_PATHS; do
+    case "$p" in
+      */) case "$fixed" in "$p"* | "${p%/}") printf '%s\n' "$p"; return 0 ;; esac ;;
+      *) [ "$fixed" != "$p" ] || { printf '%s\n' "$p"; return 0; } ;;
+    esac
+  done
+}
+
+# plan_retired_specs : a spec at the top level of the specs folder that is done is reported for move-to-done.sh; one in
+#   flight loses its retired keys (a small_path: true spec keeps the route it took as light_path: true), and each of its
+#   unfinished tasks with no task branch is reported. 1 when a file cannot be read.
+plan_retired_specs() {
+  local d rel st open id tst file stem
+  for d in "$T/$WF_SPECS"/*/; do
+    rel=$WF_SPECS/$(basename "$d")
+    [ "$rel" != "$WF_SPECS_DONE" ] && [ "$rel" != "$WF_WORK_BACKLOG" ] && [ -f "$d/spec.md" ] || continue
+    st=$(yq --front-matter=extract '.status // ""' "$d/spec.md") || return 1
+    if [ "$st" = "done" ]; then
+      LEFT+=("$rel is done but not in the Done folder; on a branch other than the main branch, run: .agents/skills/feature-workflow/scripts/move-to-done.sh $rel")
+      continue
+    fi
+    if [ "$(yq --front-matter=extract '.small_path == true and .light_path != true' "$d/spec.md")" = true ]; then
+      wd_rewrite "$rel/spec.md" "set light_path: true in $rel/spec.md, the route its small_path: true took" set_light_path || return 1
+    fi
+    retire_keys spec "$rel" || return 1
+    [ -f "$d/tasks.md" ] || continue
+    open=$(yq --front-matter=extract '.tasks[]? | select(.branch == null and (.status == "pending" or .status == "in-progress" or .status == "blocked"))
+      | .id + " " + .status + " " + (.file // "")' "$d/tasks.md") || return 1
+    while read -r id tst file; do
+      [ -n "$id" ] || continue
+      stem=${file##*/}
+      stem=${stem%.md}
+      LEFT+=("$rel/tasks.md: task $id ($tst) has no task branch, and every task now runs on one; give it one with: yq --front-matter=process -i '(.tasks[] | select(.id == \"$id\")).branch = \"task/${rel##*/}/${stem:-T<nn>-<slug>}\"' $rel/tasks.md")
+    done <<<"$open"
+  done
+}
+
+# plan_retired_mentions : report each review lesson not yet retired with a path inside a RETIRED_PATHS entry, and each
+#   shelf item (not archived) that names one. 1 when the lessons file cannot be read.
+plan_retired_mentions() {
+  local paths id glob hit f p
+  if [ -f "$T/$WF_REVIEW_LESSONS" ]; then
+    # shellcheck disable=SC2016 # yq expression, not shell
+    paths=$(awk '/^```yaml/ { f = 1; next } /^```/ { f = 0 } f' "$T/$WF_REVIEW_LESSONS" |
+      yq '.lessons[]? | select(.retired == null) | .id as $id | .paths[]? | $id + " " + .') || return 1
+    while read -r id glob; do
+      [ -n "$glob" ] || continue
+      hit=$(within_retired_path "$glob")
+      [ -n "$hit" ] || continue
+      LEFT+=("$WF_REVIEW_LESSONS: $id names $glob, inside $hit, which the workflow no longer has; retire the lesson or change its paths, then check the file with: .agents/skills/feature-workflow/scripts/review-lessons.sh validate $WF_REVIEW_LESSONS")
+    done <<<"$paths"
+  fi
+  for f in "$T/$WF_DEFERRED"/*.md; do
+    [ -f "$f" ] || continue
+    for p in $RETIRED_PATHS; do
+      grep -qF -- "$p" "$f" || continue
+      LEFT+=("$WF_DEFERRED/${f##*/} names $p, which the workflow no longer has; edit the item, or if it no longer applies remove it with: git rm $WF_DEFERRED/${f##*/}")
+      break
+    done
+  done
+}
+
+for p in $RETIRED_WORKFLOW_DIRS; do
+  [ ! -e "$T/$p" ] && [ ! -L "$T/$p" ] || WD_DIRS+=("$p")
+done
+plan_retired_specs || refuse "$WF_SPECS/: a spec.md or tasks.md frontmatter could not be read; fix it and run install.sh again"
+retire_keys profile "$WF_PROFILES" || refuse "$WF_PROFILES/: a profile could not be read or staged"
+plan_retired_mentions || refuse "$WF_REVIEW_LESSONS: its lessons block could not be read; fix it and run install.sh again"
 
 # ------------------------------------------------------------------------------------------------------------- report plan
 mode="Installing"
@@ -773,6 +1040,7 @@ if [ "$want_codex" -eq 1 ]; then
     sed -n 's/^  //p' "$gen_out" | grep -E '^(create|update|remove) ' | while IFS= read -r line; do
       act "${line%% *} .codex/agents/${line#* }"
     done
+    N_TOML=$(sed -n 's/^  //p' "$gen_out" | grep -c '^remove ' || true) # grep -c exits 1 when it counts none
     if [ "$dry" -eq 0 ]; then
       bash "$gen" || die "generate-codex-agents.sh failed"
     fi
@@ -787,6 +1055,74 @@ if [ -f "$tmp/gitignore" ]; then
   write_file "$tmp/gitignore" "$GI" ".gitignore ($(printf '%s, ' "${GI_ENTRIES[@]}" | sed 's/, $//'))"
 else
   echo "  up to date"
+fi
+
+# ---------------------------------------------------------------------------------------------- older workflow data
+WD_CHANGED=0
+[ "$MM_CONVERT" -eq 0 ] && [ -z "$BL_PLAN" ] && [ "${#WD_DIRS[@]}" -eq 0 ] && [ "${#WD_NOTES[@]}" -eq 0 ] || WD_CHANGED=1
+if [ "$WD_CHANGED" -eq 1 ]; then
+  echo "Workflow data ($WF_DIR/, older formats this payload no longer reads):"
+fi
+for p in ${WD_DIRS[@]+"${WD_DIRS[@]}"}; do
+  act "remove $p/, which nothing reads or writes any more"
+  [ "$dry" -eq 1 ] || rm -rf "${T:?}/$p"
+done
+for n in ${WD_NOTES[@]+"${WD_NOTES[@]}"}; do act "$n"; done
+if [ "$dry" -eq 0 ] && [ "${#WD_NOTES[@]}" -gt 0 ]; then
+  (cd "$WD" && find . -type f ! -name '*.next') | while IFS= read -r f; do
+    cmp -s "$WD/$f" "$T/$f" || cp "$WD/$f" "$T/$f" || die "cannot write $f"
+  done
+fi
+if [ "$MM_CONVERT" -eq 1 ]; then
+  act "convert $OLD_MODEL_MAP_DIR/ and $OLD_AGENT_OVERRIDES into $WF_MODEL_MAP"
+  [ -z "$MM_ADDED" ] || act "add the template's row for $(printf '%s' "$MM_ADDED" | tr '\n' ' ' | sed 's/ $//; s/ /, /g') to $WF_MODEL_MAP"
+  if [ "$dry" -eq 0 ]; then
+    cp "$tmp/model-map.yaml" "$T/$WF_MODEL_MAP"
+    rm -rf "${T:?}/$OLD_MODEL_MAP_DIR"
+    rm -f "$T/$OLD_AGENT_OVERRIDES"
+  fi
+fi
+if [ -n "$BL_PLAN" ]; then
+  while IFS= read -r line; do
+    case "$line" in
+      *' -> '*) act "move $WF_WORK_BACKLOG/${line%% -> *} onto $WF_WORK_BACKLOG/${line#* -> }" ;;
+      *) act "remove $WF_WORK_BACKLOG/${line%% *}, a closed item ${line#* }" ;;
+    esac
+    [ "$dry" -eq 1 ] || rm -f "$T/$WF_WORK_BACKLOG/${line%% *}"
+  done <<<"$BL_PLAN"
+  if [ "$dry" -eq 0 ]; then
+    for f in "$tmp/backlog"/*.md; do
+      [ ! -f "$f" ] || cp "$f" "$T/$WF_WORK_BACKLOG/${f##*/}"
+    done
+  fi
+fi
+
+# ------------------------------------------------------------------------------------------------------- upgrade summary
+# One short account of the retired items: what was removed, what was converted, and what is left for the human, each with
+# the command that settles it. It is printed by the run that removes or converts something (and its dry run), so a run on
+# a project with nothing retired, or a second run, prints nothing.
+SUM_REMOVED=() SUM_CONVERTED=()
+n=$(grep -c '^remove ' "$tmp/payload.plan" || true) # grep -c exits 1 when it counts none
+[ "$n" -eq 0 ] || SUM_REMOVED+=("$n payload file(s) the scaffold no longer ships")
+[ "$N_TOML" -eq 0 ] || SUM_REMOVED+=("$N_TOML Codex agent file(s) of retired agents")
+for s in .claude/settings.json:settings.json .codex/hooks.json:hooks.json; do
+  [ -s "$tmp/${s#*:}.retired" ] || continue
+  SUM_REMOVED+=("$(grep -c '^hooks\.' "$tmp/${s#*:}.retired" || true) hook and $(grep -c '^permissions\.' "$tmp/${s#*:}.retired" || true) permission entries from ${s%%:*} that name retired scripts or paths")
+done
+[ "${#CFG_RETIRED[@]}" -eq 0 ] || SUM_REMOVED+=("the ${CFG_RETIRED[*]} block(s) from .codex/config.toml")
+[ ! -s "$tmp/gi.retired" ] || SUM_REMOVED+=("the .gitignore line(s) $(tr '\n' ' ' <"$tmp/gi.retired" | sed 's/ $//')")
+for p in ${WD_DIRS[@]+"${WD_DIRS[@]}"}; do SUM_REMOVED+=("$p/"); done
+[ "$MM_CONVERT" -eq 0 ] || SUM_CONVERTED+=("the model map folder and agent-overrides.yaml into $WF_MODEL_MAP")
+[ -z "$BL_PLAN" ] || SUM_CONVERTED+=("$(grep -c ' -> ' <<<"$BL_PLAN" || true) open per-item backlog file(s) into list lines, $(grep -vc ' -> ' <<<"$BL_PLAN" || true) closed one(s) dropped")
+[ "${#WD_NOTES[@]}" -eq 0 ] || SUM_CONVERTED+=("${#WD_NOTES[@]} retired key(s) in in-flight specs and profiles (listed above)")
+if [ "${#SUM_REMOVED[@]}" -gt 0 ] || [ "${#SUM_CONVERTED[@]}" -gt 0 ]; then
+  echo "Upgrade from an older install:"
+  [ "${#SUM_REMOVED[@]}" -eq 0 ] || echo "  removed: $(printf '%s; ' "${SUM_REMOVED[@]}" | sed 's/; $//')"
+  [ "${#SUM_CONVERTED[@]}" -eq 0 ] || echo "  converted: $(printf '%s; ' "${SUM_CONVERTED[@]}" | sed 's/; $//')"
+  if [ "${#LEFT[@]}" -gt 0 ]; then
+    echo "  left for you (install.sh does not move or rewrite project records):"
+    for l in "${LEFT[@]}"; do echo "    - $l"; done
+  fi
 fi
 
 # --------------------------------------------------------------------------------------------------------------- warnings
@@ -810,6 +1146,7 @@ fi
 changed=".agents/"
 [ "$want_claude" -eq 0 ] || changed="$changed, .claude/"
 [ "$want_codex" -eq 0 ] || changed="$changed, .codex/"
+[ "$WD_CHANGED" -eq 0 ] || changed="$changed, $WF_DIR/"
 echo "  Review and commit the changes ($changed, .gitignore)."
-echo "  Run the project-setup skill in the target to create $WF_DIR/ (GLOSSARY.md, rules.md, profiles/, model-map/, agent-overrides.yaml and the rest)."
+echo "  Run the project-setup skill in the target to create $WF_DIR/ (GLOSSARY.md, rules.md, profiles/, model-map.yaml and the rest)."
 exit 0

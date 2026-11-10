@@ -22,7 +22,7 @@ Used at 0.3.17 (outside agreed scope), 3.14 (light-path suite gap), and for a di
    | `created` | today, `date -u +%F` | same | same |
    | `severity` | delete the key | delete the key | the verified triage severity (`high`, `medium` or `low`) for a review finding; else delete the key |
    | **Mode** | HITL when a human must decide; AFK when an agent can act alone | AFK unless the suite needs a human choice | as the item needs |
-   | **Origin** | `0.3.17 scope decision` + design-log entry | `3.14 suite gap` | `shelf request` + the step it was asked at, the triage row `F<n>` or the backlog line or item file, and its Discovered work entry; Problem and Evidence copied from the item |
+   | **Origin** | `0.3.17 scope decision` + design-log entry | `3.14 suite gap` | `shelf request` + the step it was asked at, the triage row `F<n>` or the backlog line, and its Discovered work entry; Problem and Evidence copied from the item |
 
    Write it to these rules:
    - **Durable.** Describe behaviour, interfaces and contracts. File paths and line numbers appear only under Evidence, each with the commit it was true at (`git rev-parse HEAD`).
@@ -37,7 +37,7 @@ Used at 0.3.17 (outside agreed scope), 3.14 (light-path suite gap), and for a di
    .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug <0.3.17 | 3.14 | 5.9>
    ```
 
-   At 0.3.17 also add the item to **Non-goals**. At 3.14 the orchestrator adds the **Known gaps** line in the same write. At 5.9 sign-off also takes the item off the backlog (its line deleted, or an older item file set `moved-to-deferred` with the link). A shelf request at any other step is not added to `deferred`; its log line is the record. On Codex, check the write first (see the conventions' [Host notes](../references/conventions.md#host-notes)).
+   At 0.3.17 also add the item to **Non-goals**. At 3.14 the orchestrator adds the **Known gaps** line in the same write. At 5.9 sign-off also takes the item off the backlog (its line deleted). A shelf request at any other step is not added to `deferred`; its log line is the record. On Codex, check the write first (see the conventions' [Host notes](../references/conventions.md#host-notes)).
 5. **Log it** in `design-log.md` with the matching entry shape: a **Scope decision** entry at 0.3.17 (with HITL or AFK), a one-line note at 3.14, and for a shelf request the item's `Ruling:` line naming the file.
 
 Done when every item the caller handed over is a file under `.workflow/deferred/` (or a Later requests line), listed in `spec.md` `deferred` where step 4 applies, and logged in `design-log.md`.

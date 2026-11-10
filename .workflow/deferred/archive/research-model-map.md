@@ -1,6 +1,7 @@
 ---
 origin_spec: .workflow/specs/done/001-large-path
 created: 2026-10-22
+superseded_by: PLAN/workflow-simplify-fix.md
 ---
 
 # A model for the research task type in this repo

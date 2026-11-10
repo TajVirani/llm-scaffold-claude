@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # File: Sourced helper (not a hook, not executable on its own): the one home for which repo paths count as tests.
-# Purpose: The size-budget count and the flow entry candidates must agree on which files are tests, so the default test
+# Purpose: One definition of which files are tests for the size-budget count: the default test
 #   patterns, the reading of each work profile's Toolchain `test_patterns` and the path matcher live here once.
 # Usage (from a skill script): . "$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../../lib/test-paths.sh"
 #   Use `cd -P` so a path reached through the .claude/skills symlink still resolves into .agents/.
