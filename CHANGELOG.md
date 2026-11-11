@@ -55,6 +55,9 @@ Resets the repository for workflow 2.0 (2026-09-14) and includes the build-out t
 - **`skills-lock.json` (D79).** No vendored skills remain (D78), so the lock file is gone; upstream commits live in `upstream-lineage.json` and the frontmatter lint treats every skill as first-party.
 - **Athena-specific content in `pr-quality`, `deps-audit` and `deps-update` (D79).** Removed outright rather than made project-owned: `pr-quality` (now 1.3.0) `seam-conformance` reads `docs/rules.md` § Ownership and `docs/cache/modules.md`; `deps-*` take commands from the work profile's Toolchain block and workspaces from the root `package.json`.
 
+### Fixed
+- **`open-task-pr.sh` recorded a GitLab error line as the MR URL.** `glab mr list` prints a table with no URL, so a reworked task whose MR was still open fell through to `glab mr create`, whose 409 error quotes an API URL that became the task's `pr`. The GitLab branch now reads `web_url` from `--output json`, accepts only `/-/merge_requests/<n>` links, and on a 409 that names `!<n>` reuses that MR.
+
 ### Migration
 - No upgrade path from 1.x. Consumers on the 1.x wiki scaffold should stay on the `main` history from before the workflow 2.0 merge: `efb9263` is the last 1.x commit (the 1.3.3 release is `769973f`); workflow 2.0 is a fresh start.
 - **Upgrade note (D75).** Projects that got `.agents/skills/design-pattern-doc/conventions.md`, or pr-quality's `modules/legend-state-review.md` / `modules/project-pitfalls.md`, from an earlier install will have them pruned on upgrade. Copy them first to `.workflow/design-pattern-doc/conventions.md` / `.workflow/pr-quality/`; the athena originals were removed from this repo (git history has them).

@@ -234,9 +234,13 @@ for cli in gh glab; do
 echo "$cli \$*" >> "$STUBLOG"
 case "\$1 \$2" in
   "auth status") [ -z "\${STUB_NOAUTH:-}" ] ;;
-  "pr list"|"mr list") [ -z "\${STUB_EXISTING:-}" ] || echo "\$STUB_EXISTING" ;;
+  "pr list") [ -z "\${STUB_EXISTING:-}" ] || echo "\$STUB_EXISTING" ;;
+  "mr list") if [ -n "\${STUB_EXISTING:-}" ]; then echo "[{\\"web_url\\": \\"\$STUB_EXISTING\\"}]"; else echo "[]"; fi ;;
   "pr create") echo "Creating pull request..."; echo "https://github.com/o/r/pull/12" ;;
-  "mr create") echo "Creating merge request"; echo "!5 T2: cart total (task/007-shop/T02-cart)"; echo " https://gitlab.com/o/r/-/merge_requests/5" ;;
+  "mr create")
+    if [ -n "\${STUB_MR_ERROR:-}" ]; then echo "POST https://gitlab.com/api/v4/projects/o%2Fr/merge_requests: \$STUB_MR_ERROR" >&2; exit 1; fi
+    echo "Creating merge request"; echo "!5 T2: cart total (task/007-shop/T02-cart)"; echo " https://gitlab.com/o/r/-/merge_requests/5" ;;
+  "mr view") echo "{\\"web_url\\": \\"https://gitlab.com/o/r/-/merge_requests/\$3\\"}" ;;
 esac
 EOF
   chmod +x "$P/bin/$cli"
@@ -267,6 +271,12 @@ git -C "$P" remote set-url origin git@gitlab.com:o/r.git
 out=$(OTP $SPECD T2 --cwd "$P" 2>/dev/null)
 eq "glab: url printed" "$out" "https://gitlab.com/o/r/-/merge_requests/5"
 check "glab: create args" 'grep -q "^glab mr create --target-branch spec/007-shop --source-branch task/007-shop/T02-cart" "$STUBLOG"' "$(cat "$STUBLOG")"
+out=$(STUB_EXISTING="https://gitlab.com/o/r/-/merge_requests/9" OTP $SPECD T2 --cwd "$P" 2>/dev/null)
+eq "glab: existing MR reused from the JSON list" "$out" "https://gitlab.com/o/r/-/merge_requests/9"
+out=$(STUB_MR_ERROR="409 {message: [Another open merge request already exists for this source branch: !7]}" OTP $SPECD T2 --cwd "$P" 2>/dev/null)
+eq "glab: 409 reuses the MR it names" "$out" "https://gitlab.com/o/r/-/merge_requests/7"
+out=$(STUB_MR_ERROR="500 Internal Server Error" OTP $SPECD T2 --cwd "$P" 2>/dev/null)
+eq "glab: an error quoting an API URL is skipped, not recorded" "$out" "skipped: glab did not return a PR/MR URL"
 git -C "$P" remote set-url origin https://example.org/o/r.git
 out=$(OTP $SPECD T2 --cwd "$P" 2>/dev/null)
 eq "unknown host -> task_review reads local, skipped with the reason" "$out" "skipped: task_review is pr, read as local: the origin remote https://example.org/o/r.git is neither on GitHub nor on GitLab"

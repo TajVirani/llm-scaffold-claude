@@ -26,7 +26,8 @@
 #     --cwd, --dry-run as in task mode. The caller reads task_review; this mode does not.
 # Host choice: the shared wf_origin_host (lib/workflow-paths.sh) reads the `origin` remote; github -> gh (gh pr create --base
 #   <base> --head <head>), gitlab -> glab (glab mr create --target-branch <base> --source-branch <head> --yes); anything else -> skipped.
-#   An existing open PR/MR for the same head and base is reused (its URL is printed; nothing new is created).
+#   An existing open PR/MR for the same head and base is reused (its URL is printed; nothing new is created). On GitLab, a create
+#   refused with 409 "already exists for this source branch: !<n>" reuses !<n>; an error line is never printed as the URL.
 # Spec branch (task mode): spec.md `spec_branch`, else spec/<NNN-slug>.
 # PR title (task mode) "T<n>: <title>"; body names the task file and, when present, artifacts/<task-id>/mini-review.yaml.
 # stdout: one line, the PR/MR URL or `skipped: <reason>` (with --dry-run, the commands and then `dry-run: ...`). Details on stderr.
@@ -36,7 +37,7 @@
 #   arguments mixed in, a --record directory outside the initiatives root or without initiative.md, --cwd outside a git repository).
 # Called by: modules/implementation-waves.md (3.16) when rules-setting.sh task_review prints pr or pr-blocking (task mode);
 #   modules/large-path.md (6.11 and 6.13, the initiative merge into main) under the same settings (generic mode).
-# Notes: Requires git; mikefarah yq v4 in task mode and for --record; gh or glab only for the matching host. Pushing the branches is
+# Notes: Requires git; mikefarah yq v4 in task mode, for --record and on GitLab; gh or glab only for the matching host. Pushing the branches is
 #   covered by the stakeholder's task_review setting (standing consent). Never force-pushes. bash 3.2 compatible.
 # Sources: first-party; host-to-CLI choice mirrors the glab skill and the sign-off PR step.
 
@@ -183,8 +184,19 @@ if [[ $CLI == gh ]]; then
   PR=$(cd "$ROOT" && gh pr list --head "$PR_HEAD" --base "$PR_BASE" --state open --json url --jq '.[0].url // empty' 2>/dev/null | first_url)
   [[ -n "$PR" ]] || PR=$(cd "$ROOT" && gh pr create --base "$PR_BASE" --head "$PR_HEAD" --title "$PR_TITLE" --body "$PR_BODY" 2>&1 | first_url)
 else
-  PR=$(cd "$ROOT" && glab mr list --source-branch "$PR_HEAD" --target-branch "$PR_BASE" 2>/dev/null | first_url)
-  [[ -n "$PR" ]] || PR=$(cd "$ROOT" && glab mr create --target-branch "$PR_BASE" --source-branch "$PR_HEAD" --title "$PR_TITLE" --description "$PR_BODY" --yes 2>&1 | first_url)
+  # glab's table output carries no URL and its errors quote API URLs, so read web_url from JSON and accept only MR web links.
+  mr_web_url() { grep -Eo 'https?://[^[:space:]]+/-/merge_requests/[0-9]+' | tail -n 1; }
+  PR=$(cd "$ROOT" && glab mr list --source-branch "$PR_HEAD" --target-branch "$PR_BASE" --output json 2>/dev/null \
+    | yq -p json '.[0].web_url // ""' 2>/dev/null | mr_web_url)
+  if [[ -z "$PR" ]]; then
+    created=$(cd "$ROOT" && glab mr create --target-branch "$PR_BASE" --source-branch "$PR_HEAD" --title "$PR_TITLE" --description "$PR_BODY" --yes 2>&1) || true
+    PR=$(printf '%s\n' "$created" | mr_web_url)
+    # A 409 names the MR already open for this source branch (another target, or one the list missed): reuse it.
+    existing=$(printf '%s\n' "$created" | sed -n 's/.*already exists for this source branch: !\([0-9][0-9]*\).*/\1/p' | head -n 1)
+    if [[ -z "$PR" && -n "$existing" ]]; then
+      PR=$(cd "$ROOT" && glab mr view "$existing" --output json 2>/dev/null | yq -p json '.web_url // ""' 2>/dev/null | mr_web_url)
+    fi
+  fi
 fi
 [[ -n "$PR" ]] || skip "$CLI did not return a PR/MR URL"
 
