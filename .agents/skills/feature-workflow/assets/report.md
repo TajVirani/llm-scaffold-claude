@@ -60,6 +60,7 @@ Behaviour verification: <what was exercised end to end against the running build
 
 - Review passes: <n> (rework ceiling 5) · Findings: <n> patched, <n> left open as known gaps, <n> dismissed with reason (see design-log.md triage entries)
 - Follow-up review recommended: <yes / no, with the reason>
+- Size budget: <tasks> of <max_tasks> tasks, <changed_files> of <max_changed_files> changed files (budget-check.sh at 5.4) · <within | over: first logged at 3.15 in design-log.md>
 
 ## Known gaps
 

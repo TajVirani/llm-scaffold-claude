@@ -14,7 +14,9 @@
 #   its five lines. The retrospective drafts into retrospective-draft.md and reads at finish the lines the Sign-off shape
 #   writes. The term gate, shelf match, Targets thresholds and agent decisions assume and log; the first questioning round
 #   carries the deeper prompt's questions and may launch module-audit; Phase 1 asks the breakdown quiz while its build runs;
-#   the hitl pause launches the rest of the wave first. Reads the repo; writes nothing.
+#   the hitl pause launches the rest of the wave first. The step files' tracker calls on the spec's own issues are not asked
+#   (labels still are); a finished step or phase is not a stop; 2.3 assumes the test seams and the breakdown quiz offers them
+#   for veto; 1.4 starts the e2e build itself. Reads the repo; writes nothing.
 # shellcheck disable=SC2016,SC2034  # check expressions are single-quoted and eval'd on purpose, and read variables shellcheck cannot see
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -60,6 +62,15 @@ check "the next blocking ask offers every assumption for veto" 'grep "next block
 check "launch before asking: every sub-agent whose input does not depend on the answer" \
   'grep "Launch before asking" <<<"$ASKING" | grep -q "does not depend on its answer"'
 check "launch before asking launches nothing an answer could invalidate" 'grep -q "Launch nothing an answer could invalidate" <<<"$ASKING"'
+check "the step files' tracker calls on the spec's own issues are not asked" \
+  'grep "are not asked" <<<"$ASKING" | grep "create-task" | grep "fill" | grep -q "move"'
+check "creating the spec's own issue (create-spec at 0.1.1) is not asked" \
+  'grep "are not asked" <<<"$ASKING" | grep -q "create-spec. at 0.1.1 through .next-spec-number.sh."'
+check "creating labels still asks, and a tracker call exiting 1 or 2 still stops" \
+  'grep "creating labels still is" <<<"$ASKING" | grep -q "exits 1 or 2 still stops"'
+check "the hard-to-reverse list no longer names a tracker" '! grep "hard to reverse" <<<"$ASKING" | grep -q "a tracker"'
+check "a finished step or phase is not a stop" \
+  'grep "A finished step or phase is not a stop" <<<"$ASKING" | grep -q "Go straight on to the next step file"'
 
 echo "== every link to the rule names its anchor"
 LINKS=$(grep -rhoE 'conventions\.md#[a-z0-9-]+' "$FW_SKILL" "$AGENTS_SRC/skills/domain-modeling" | sort -u)
@@ -70,6 +81,9 @@ echo "== design-log shapes"
 check "the Assumed shape has its step, question, answer taken and why safe" \
   'section "$DESIGN_LOG" "YYYY-MM-DD Assumed:" | grep -q "^- Question:" && section "$DESIGN_LOG" "YYYY-MM-DD Assumed:" | grep -q "^- Answer taken:" && section "$DESIGN_LOG" "YYYY-MM-DD Assumed:" | grep -q "^- Why safe to assume:" && section "$DESIGN_LOG" "YYYY-MM-DD Assumed:" | grep -q "^- Step:"'
 check "the Breakdown quiz shape exists" 'section "$DESIGN_LOG" "YYYY-MM-DD Breakdown quiz" | grep -q "^- Asked at:"'
+check "the Breakdown quiz shape offers the assumed seams for veto" \
+  'section "$DESIGN_LOG" "YYYY-MM-DD Breakdown quiz" | grep "^- Offered for veto:" | grep -q "2.3 seams"'
+check "the Breakdown quiz shape asks no seam question of its own" '! section "$DESIGN_LOG" "YYYY-MM-DD Breakdown quiz" | grep -q "^- Seams"'
 SIGN_SHAPE=$(section "$DESIGN_LOG" "YYYY-MM-DD Sign-off")
 for line in "Offered for veto" Approval "PR description" Proposals Ruling "Retrospective lessons" "Concerns for the retrospective"; do
   check "the Sign-off shape has a $line line" 'grep -q "^- $line:" <<<"$SIGN_SHAPE"'
@@ -130,6 +144,20 @@ echo "== assume and log in the step files"
 check "the term gate assumes a clear term and asks an open one" \
   'section "$DOMAIN" "Term gates" | grep "Clear:" | grep -q "assume and log"'
 check "the shelf match at 0.2.6 assumes a clear match" 'grep "Shelf match" "$MODULES/discovery.md" | grep -q "assume and log"'
+check "2.1 logs the seams as one Assumed entry before the quiz is sent" \
+  'section "$MODULES/task-breakdown.md" "2.1 " | grep "Before you send it, pick each slice.s seam by the \[2.3\]" | grep -q "one \*\*Assumed\*\* entry"'
+check "2.3 asks nothing and logs again only for a seam Phase 1 changed" \
+  'section "$MODULES/task-breakdown.md" "2.3 " | grep "Do not ask: 2.1 picked the seams" | grep -q "only for a seam Phase 1 changed"'
+check "verification-setup 1.2 logs the seams before its quiz is sent" \
+  'section "$MODULES/verification-setup.md" "1.2 " | grep -q "the 2.3 seams logged as assumptions before it is sent"'
+check "a seam that needs an interface change still loops back at 2.3" \
+  'section "$MODULES/task-breakdown.md" "2.3 " | grep -q "draft --step 2.3"'
+check "the 2.1 quiz carries the seams as assumptions, not a question" \
+  'section "$MODULES/task-breakdown.md" "2.1 " | grep -q "the 2.3 seams come only as those assumptions"'
+check "1.4 starts the e2e serve command itself and never asks who starts it" \
+  'section "$MODULES/verification-setup.md" "1.4 " | grep "serve" | grep "serve_ready" | grep "120 s" | grep -q "Never ask who starts the build"'
+check "1.4 starts nothing when serve_ready already answers" \
+  'section "$MODULES/verification-setup.md" "1.4 " | grep -q "if it already answers, some other process would be tested, so start nothing"'
 check "Targets thresholds are assumed and logged at 1.1" \
   'section "$MODULES/verification-setup.md" "1.1 " | grep "threshold" | grep -q "assume and log"'
 check "an agent blocked on a decision that changes neither scope nor intent is resumed with an assumption" \

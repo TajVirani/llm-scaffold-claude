@@ -19,7 +19,7 @@ flowchart TD
 
     subgraph DiscWork["Discovered work - scope-creep guardrail, run in the main session"]
         dwAssess{"Assess each report first: unproven, current work, blocker, or for the stakeholder?"}
-        dwBlock["00.21 - Block: blockers and size-budget reports only; spec blocked at the current step, blocked_condition discovered work or size budget"]
+        dwBlock["00.21 - Block: blockers only; spec blocked at the current step, blocked_condition discovered work"]
         dwPresent["00.22 - Present every blocker in one call: problem, evidence, assessment, recommendation; the ask also carries the 00.25 batched question"]
         gDwBlocker{"00.23 - Blocker? The stakeholder may overrule"}
         gDwDiscovery{"00.24 - Go to discovery to address it?"}
@@ -27,7 +27,6 @@ flowchart TD
         dwWrite["00.26 - Add the backlog line: match by concept against the shelf and the open backlog lines; a match gets one line, otherwise a new B-numbered line"]
         dwItem[/"00.27 - .workflow/specs/work-backlog/NNN-slug.md: one backlog list per spec, one line per item: [open] Bn kind (origin node): problem. Evidence"/]
         dwResume["00.28 - Resume: restore the status from blocked_from; the current work continues unchanged"]
-        gDwBudget{"00.29 - Size budget crossed: split, re-scope or approve the overrun?"}
     end
 
     subgraph ModelMap[".workflow/model-map.yaml - the model table, read by the launcher only"]
@@ -126,7 +125,7 @@ flowchart TD
         gSeams{"2.3 - Interfaces under test agreed?"}
         gCore{"2.4 - Modifies shared core code?"}
         gTaskBudget{"2.6 - Task count and predicted files within the size budget?"}
-        tasks[/"2.5 - tasks.md index (tasks YAML array, waves table, dependency graph) + one tasks/Tnn-slug.md per task; Phase 1 tests assigned; task tracker issues filed"/]
+        tasks[/"2.5 - tasks.md index (tasks YAML array, waves table, dependency graph) + one tasks/Tnn-slug.md per task; Phase 1 tests assigned"/]
     end
 
     subgraph P3["Phase 3 - Implementation"]
@@ -355,8 +354,8 @@ flowchart TD
     gCore -->|"Yes: flag touches_core"| tasks
     gCore -->|"No"| tasks
     tasks -->|"budget written to spec.md"| gTaskBudget
-    gTaskBudget -->|"Yes: commit the breakdown on the spec branch"| orch
-    gTaskBudget -->|"No"| dwBlock
+    gTaskBudget -->|"Yes: file the task tracker issues, then commit the breakdown on the spec branch"| orch
+    gTaskBudget -->|"No: back to the 2.1 quiz with a split proposal; never a block"| cut
     dRules -.->|"defines shared core"| gCore
     dataModel -.->|"orders migration work"| cut
     spec -.->|"entry point for every later session"| cut
@@ -372,7 +371,7 @@ flowchart TD
     gMini -->|"Yes"| waveMerge
     waveMerge -->|"once per wave"| gWaveBudget
     gWaveBudget -->|"Yes"| gSuites
-    gWaveBudget -->|"No"| dwBlock
+    gWaveBudget -->|"No: a Size budget overrun entry, once per spec; the build goes on"| gSuites
     gSuites -->|"Yes"| gGreen
     gSuites -->|"No: light path only"| skipSuites
     skipSuites -->|"records the gap"| defFile
@@ -470,7 +469,6 @@ flowchart TD
     dwAssess -->|"For the stakeholder: logged as to ask; the work continues"| gDwAsk
     dwBlock -->|"running tasks finish their gates; no new launches, merges or budget checks; later blockers join this prompt"| dwPresent
     dwPresent -->|"discovered work"| gDwBlocker
-    dwPresent -->|"size budget"| gDwBudget
     dwPresent -.->|"carries the batched question"| gDwAsk
     gDwBlocker -->|"Yes"| gDwDiscovery
     gDwBlocker -->|"No: keep it for later"| dwWrite
@@ -485,10 +483,7 @@ flowchart TD
     dwWrite --> dwItem
     dwWrite -->|"a shelf match: one Later requests line"| defFile
     dwWrite -->|"a blocked spec"| dwResume
-    gDwBudget -->|"Split: remaining work to the backlog list; pending tasks split-out"| dwWrite
-    gDwBudget -->|"Re-scope: status draft"| answerable
-    gDwBudget -->|"Approve the overrun: budget raised for this spec"| dwResume
-    gDwBudget -.->|"overrun and reason"| dlog
+    cut -->|"predicted over budget: Split as proposed, each piece a budget-split backlog line"| dwWrite
     dwResume -->|"status restored from blocked_from"| spec
     retro -->|"agreed lessons, pitfalls, review lessons"| dLog
     retro -->|"what this feature taught"| dlog
@@ -510,7 +505,7 @@ flowchart TD
     class retrieve,libs,audit,lookup,harness,browser,impl,integrator,miniReview,aStd,aReq,aTargets,aCombined agent
     class dContext,dCap,dRules,dLog,folder,map,dlog,dataModel,vplan,adrDoc,harnessDoc,tasks,defFile,dwItem,defArchive,evidence,modelFile,pTemplate,pFile doc
     class setup external
-    class gTrivial,gModel,gProfile,gFromDef,gTerm0,gDup,gPlace,gADR,gAny,gDefer,gTerm1,gScope,gOpen,gLight,gTerm2,gConflict,gReady,gHarness,gSpecifiable,gSeams,gCore,gTool,gMini,gSuites,gGreen,gE2E,gRoute,gThird,gRounds,gApprove,dwAssess,gDwBlocker,gDwDiscovery,gDwAsk,gDwBudget,gTaskBudget,gWaveBudget gate
+    class gTrivial,gModel,gProfile,gFromDef,gTerm0,gDup,gPlace,gADR,gAny,gDefer,gTerm1,gScope,gOpen,gLight,gTerm2,gConflict,gReady,gHarness,gSpecifiable,gSeams,gCore,gTool,gMini,gSuites,gGreen,gE2E,gRoute,gThird,gRounds,gApprove,dwAssess,gDwBlocker,gDwDiscovery,gDwAsk,gTaskBudget,gWaveBudget gate
     class spec index
     class convert,lgEnter,lgWriteBack,lgFrontier,lgAsk,lgSlices,lgLog,lgEmit,lgPlanned,lgMerge,lgReopen stage
     class lgLaunch agent

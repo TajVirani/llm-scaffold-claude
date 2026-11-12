@@ -1,6 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter. An initiative keeps the same log at .workflow/initiatives/NNN-slug/design-log.md: conversion moves the spec's log there and replaces its `Spec:` line with `Initiative: [initiative.md](initiative.md)`.
-Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4), discovery-impact (0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.29 rulings), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off (5.5 Sign-off entry, 5.6, 5.9) / retrospective (5.7), any step that assumes an answer (an Assumed entry, references/conventions.md "Asking the stakeholder"), verification-setup (1.2, a Breakdown quiz asked while Phase 1 builds), the handoff skill on resume (a `Main moved since handoff` entry; its shape is in that skill's Resume step 3) and the large path (Conversion at 0.3.23; Initiative round at 6.8 and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
+Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4), discovery-impact (0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.28 rulings), implementation-waves (3.15, a Size budget overrun entry), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off (5.5 Sign-off entry, 5.6, 5.9) / retrospective (5.7), any step that assumes an answer (an Assumed entry, references/conventions.md "Asking the stakeholder"), verification-setup (1.2, a Breakdown quiz asked while Phase 1 builds), the handoff skill on resume (a `Main moved since handoff` entry; its shape is in that skill's Resume step 3) and the large path (Conversion at 0.3.23; Initiative round at 6.8 and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
 
 Rules:
   - Append only. Never edit or delete an earlier entry. A reversal is a new entry that names what it supersedes; the old entry stays.
@@ -163,8 +163,8 @@ Still researching: <IQ<n> (<task_type>)>, or "none".
 - Asked at: <1.2, beside the harness build | 2.1>
 - Slices: <approved as shown | changed: "<stakeholder's words, verbatim>">
 - Edges, parallel_with and hitl modes: <approved | changed: "<verbatim>">
-- Seams (2.3): <agreed | not agreed: <which slice and why>>
-- Budget: <project defaults | agreed: max_tasks <n>, max_changed_files <n>, "<verbatim>">
+- Offered for veto: <Assumed entry titles, the 2.3 seams among them; vetoed: <titles> | none>
+- Size: <within the project defaults: <t> tasks, <f> predicted files | over (<t> tasks, <f> predicted files against <max_tasks> / <max_changed_files>): split as proposed (B<n>, ...) | kept as one spec, budget raised to max_tasks <n>, max_changed_files <n>>
 - Decision: **D<n>** <the breakdown as approved, one line>
 
 ## YYYY-MM-DD Triage, review pass <n>
@@ -177,18 +177,18 @@ Still researching: <IQ<n> (<task_type>)>, or "none".
 
 Failed lenses: none
 Gaps: <each not_verifiable requirement or unmeasured target, its lens and what would settle it | none>
-Outcome: <rework k of 5 | loop back (4.5 decision needed) | loop back (4.6 third pass) | loop back (00.24 discovered work) | loop back (00.29 budget re-scope) | blocked (4.7) | open items, to sign-off | clean, to sign-off>
+Outcome: <rework k of 5 | loop back (4.5 decision needed) | loop back (4.6 third pass) | loop back (00.24 discovered work) | blocked (4.7) | open items, to sign-off | clean, to sign-off>
 
-<!-- `Failed lenses:` is "none" or the lens ids that errored or returned nothing usable. `Gaps:` is written at 4.8 and read by the 5.4 report. `Outcome:` is appended once the pass is decided (4.5-4.8); review-triage counts these lines for the pass number and the rework ceiling, so keep the wording. The two discovered-work loop backs (`00.24 discovered work`, `00.29 budget re-scope`) are also written as the last line of a Discovered work entry when the loop back did not come from a triage pass. -->
+<!-- `Failed lenses:` is "none" or the lens ids that errored or returned nothing usable. `Gaps:` is written at 4.8 and read by the 5.4 report. `Outcome:` is appended once the pass is decided (4.5-4.8); review-triage counts these lines for the pass number and the rework ceiling, so keep the wording. The discovered-work loop back (`00.24 discovered work`) is also written as the last line of a Discovered work entry when the loop back did not come from a triage pass. -->
 
 ## YYYY-MM-DD Discovered work: <slug>
 
-<!-- 00.21-00.29. Work found outside the agreed scope and the size-budget halt. Use one of the records below; the first is the full entry, the others are short. An item waiting for the stakeholder's batched question takes the full entry with the ruling "to ask (<class>)"; its answer comes later as a `Ruling:` line in the entry of the ask that carried it (the Sign-off entry at 5.5). -->
+<!-- 00.21-00.28. Work found outside the agreed scope. Use one of the records below; the first is the full entry, the others are short. An item waiting for the stakeholder's batched question takes the full entry with the ruling "to ask (<class>)"; its answer comes later as a `Ruling:` line in the entry of the ask that carried it (the Sign-off entry at 5.5). -->
 
-- Found at: step <n> by <agent or reviewer>. Kind: bug / requirement / refactor / scope-expansion / decision / budget-split
+- Found at: step <n> by <agent or reviewer>. Kind: bug / requirement / refactor / scope-expansion / decision
 - Problem and evidence: <one line; the reproduction (command and output, or failing test) or the quoted rule line with `path:line`>
-- Assessment and ruling: blocker; <to discovery (spec back to draft) | stays blocked, human resolves | kept for later | dropped | split | re-scoped | overrun approved> / to ask (<convoluted | scope-expanding | out of scope>), recommended <fold in | keep for later | drop> because <reason>
-- Backlog line: [work-backlog/<NNN-slug>.md](../work-backlog/<NNN-slug>.md) B<n> (only once kept or split)
+- Assessment and ruling: blocker; <to discovery (spec back to draft) | stays blocked, human resolves | kept for later | dropped> / to ask (<convoluted | scope-expanding | out of scope>), recommended <fold in | keep for later | drop> because <reason>
+- Backlog line: [work-backlog/<NNN-slug>.md](../work-backlog/<NNN-slug>.md) B<n> (only once kept)
 
 Ruling on a waiting item (00.25, written in the entry of the ask that carried it), one line per item:
 
@@ -202,9 +202,11 @@ Duplicate discovered work (00.26, matched a shelf file or an open backlog line b
 
 - Duplicate discovered work: <slug> matches <file or list line>; <Later requests line appended | existing line stands | not appended, item of <its origin spec>>.
 
-Approved budget overrun (00.29 Approve):
+## YYYY-MM-DD Size budget overrun
 
-- Approved budget overrun: <max_tasks | max_changed_files> reached <n> against <limit>. Reason: "<stakeholder's words>". Budget raised to <new value> for this spec only (spec.md `budget`).
+<!-- 3.15, once per spec: the first wave whose budget-check.sh exits 2. Not a stop and not asked; a later wave adds nothing. Sign-off reports the final figures (5.4). -->
+
+- Wave <n>: <tasks | changed_files> <n> against <limit> (budget-check.sh, basis impl_base_revision). Build continues.
 
 ## YYYY-MM-DD Sign-off: stakeholder approval (5.5)
 

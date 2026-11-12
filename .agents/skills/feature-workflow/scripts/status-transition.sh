@@ -19,11 +19,11 @@
 #       overwritten (exit 2) unless the value is identical. --step names the node (required: 1.1 | 0.3.20 for --spec-branch,
 #       3.1 for --impl-base) and is written to .step. Refused (exit 2) while the spec is done.
 #   status-transition.sh step <spec-dir> <node-id> [--cwd <dir>]
-#       Step-only mode: set .step before a guarded write (spec.md: 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9, 00.29;
+#       Step-only mode: set .step before a guarded write (spec.md: 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9;
 #       tasks.md: 2.5, 0.3.20; .workflow/specs/work-backlog/: 00.26, 5.9, 0.1.4; glossaries: 0.2.3, 0.3.15, 0.4.3, 5.3; other Tier A: 0.3.7, 5.3, 5.7; new profile: 00.19 — see check-write.sh).
-#       Any node id of the form N(.N)* is accepted, including 00.21-00.29, 2.6, 3.15, 3.16 and 5.9. `step <dir> 0.1.4` works before
+#       Any node id of the form N(.N)* is accepted, including 00.21-00.28, 2.6, 3.15, 3.16 and 5.9. `step <dir> 0.1.4` works before
 #       spec.md exists (the folder must exist), so 0.1.4 can create spec.md with Write.
-#       While blocked, step mode keeps blocked_from, so the discovered-work protocol can write at 00.26 / 00.29 and still resume at 00.28.
+#       While blocked, step mode keeps blocked_from, so the discovered-work protocol can write at 00.26 and still resume at 00.28.
 #   <spec-dir> is `.workflow/specs/NNN-slug` (relative to the project root, or an absolute path ending in it).
 # Worktrees: spec.md, tasks.md and .step are always read and written in the spec checkout, found with lib/workflow-paths.sh
 #   wf_project_root from --cwd (default: $PWD): the checkout --cwd is in, or the one an agent worktree sits in. Gitignored .step
@@ -45,13 +45,11 @@
 #   draft | ready-for-dev | in-progress |     blocked        any node (default: the       any halt; --blocked <condition> required; the prior
 #     in-review                                              current .step)               status is kept in .step as blocked_from. At 4.7 the
 #                                                                                         caller blocks only with high-severity findings open.
-#                                                                                         At 00.21 (discovered work or a crossed size budget)
-#                                                                                         the condition must read "discovered work: <slug>"
-#                                                                                         or "size budget: <what>"
-#   blocked (any blocked_from)                draft          00.24 | 00.29 (required)     discovered-work blocker sent to discovery (00.24), or a
-#                                                                                         budget re-scope (00.29): back to 0.3.8.
-#                                                                                         00.24 needs blocked_condition "discovered work: ...",
-#                                                                                         00.29 needs "size budget: ..."; otherwise exit 2
+#                                                                                         At 00.21 (discovered work) the condition must read
+#                                                                                         "discovered work: <slug>"
+#   blocked (any blocked_from)                draft          00.24 (required)             discovered-work blocker sent to discovery: back to
+#                                                                                         0.3.8. Needs blocked_condition "discovered work: ...";
+#                                                                                         otherwise exit 2
 #   blocked (blocked_from in-review)          in-review      5.1 | 00.28 (required)       a spec blocked at 4.7 is unblocked at sign-off;
 #                                                                                         00.28 resumes review after the discovered-work protocol, since
 #                                                                                         discovered work found during review can be resolved
@@ -70,7 +68,7 @@
 #   pending | in-progress -> blocked; blocked -> pending | in-progress; done -> in-progress only with --step 4.7 (rework after review),
 #   3.9 or 3.11 (a merged task that fails the harness or journey gate is reopened); done -> blocked only with --step 3.9 or 3.11.
 #   Tasks become done after the wave merge at 3.16 (set-task ... --status done --step 3.16; --step stays optional).
-#   pending -> split-out only with --step 00.29: the task's work moved to a work-backlog item at a budget split. split-out is terminal.
+#   split-out (written by an older workflow version when a task's work moved to the backlog) is terminal: no transition enters or leaves it.
 #   set-task works while the spec is blocked (running tasks finish their gates mid-wave); --step then keeps blocked_from in .step.
 #   Exception: `--status done --step 3.16` (the wave merge) is refused (exit 2) while the spec is blocked; merges wait until 00.28.
 #   Task records carry no blocked_condition key, so --blocked is refused in set-task mode.
@@ -272,9 +270,6 @@ if [[ "$MODE" == "set-task" ]]; then
       "done>in-progress")
         in_list "$OPT_STEP" "4.7 3.9 3.11" \
           || illegal "task $TASK_ID in $SPEC_DIR: 'done' -> 'in-progress' is allowed only for rework at 4.7 or a failed gate at 3.9 / 3.11 (pass --step)" ;;
-      "pending>split-out")
-        [[ "$OPT_STEP" == "00.29" ]] \
-          || illegal "task $TASK_ID in $SPEC_DIR: 'pending' -> 'split-out' is allowed only at a budget split (pass --step 00.29)" ;;
       "done>blocked")
         in_list "$OPT_STEP" "3.9 3.11" \
           || illegal "task $TASK_ID in $SPEC_DIR: 'done' -> 'blocked' is allowed only when a merged task fails gate 3.9 or 3.11 (pass --step)" ;;
@@ -416,8 +411,8 @@ if [[ "$NEW" == "blocked" ]]; then
     || die "entering blocked needs --blocked \"<what a human must decide or do>\""
   if [[ "$OPT_STEP" == "00.21" ]]; then
     case "$OPT_BLOCKED" in
-      "discovered work: "?*|"size budget: "?*) ;;
-      *) die "at 00.21 the condition must read \"discovered work: <slug>\" or \"size budget: <what>\"" ;;
+      "discovered work: "?*) ;;
+      *) die "at 00.21 the condition must read \"discovered work: <slug>\"" ;;
     esac
   fi
 else
@@ -453,16 +448,15 @@ NEW_FROM=""
 if [[ "$CUR" == "blocked" ]]; then
   [[ "$NEW" != "blocked" ]] || reject "already blocked"
   [[ "$NEW" != "done" ]] || reject "done is set only from in-review at 5.7"
-  if [[ "$NEW" == "draft" && ( "$OPT_STEP" == "00.24" || "$OPT_STEP" == "00.29" ) ]]; then
-    # A discovered-work blocker goes to discovery (00.24), or a budget re-scope (00.29), whatever blocked_from is,
-    # but only when the blocked_condition was set by that protocol at 00.21.
+  if [[ "$NEW" == "draft" && "$OPT_STEP" == "00.24" ]]; then
+    # A discovered-work blocker goes to discovery whatever blocked_from is, but only when the blocked_condition was set
+    # by that protocol at 00.21.
     BCOND=$(yq --front-matter=extract '.blocked_condition // ""' "$SPEC") || die "cannot read blocked_condition of $SPEC"
-    if [[ "$OPT_STEP" == "00.24" ]]; then want="discovered work: "; else want="size budget: "; fi
-    [[ "$BCOND" == "$want"* ]] \
-      || reject "draft at $OPT_STEP needs a blocked_condition starting with '$want' (set at 00.21), but it is '${BCOND:-<none>}'. 00.24 sends discovered work to discovery and 00.29 re-scopes a crossed size budget"
+    [[ "$BCOND" == "discovered work: "* ]] \
+      || reject "draft at 00.24 needs a blocked_condition starting with 'discovered work: ' (set at 00.21), but it is '${BCOND:-<none>}'"
   elif [[ -n "$MARK_FROM" ]]; then
     [[ "$NEW" == "$MARK_FROM" ]] \
-      || reject "leaving blocked returns to the status held before it ('$MARK_FROM'), or to draft at 00.24 / 00.29"
+      || reject "leaving blocked returns to the status held before it ('$MARK_FROM'), or to draft at 00.24"
   else
     printf '%s: warning: %s has no blocked_from in .step; accepting %s\n' "$PROG" "$SPEC_DIR" "$NEW" >&2
   fi

@@ -1,6 +1,6 @@
 # Phase 2: Task breakdown
 
-You cut the spec into **tracer-bullet** tasks and write them as the `tasks.md` index plus one task file each, every task with its seam, module, predicted files, size, mode and blocking edges. You are done when the stakeholder has approved the breakdown and its waves, every slice is specifiable and has an agreed seam, every predicted-file overlap is an edge or an approved `parallel_with`, `tasks.md` passes the schema validator with a wave for every task and a task file for every record, the files are committed on the spec branch, and the task count and predicted files are within the spec's size budget (or the stakeholder decided what to do about it).
+You cut the spec into **tracer-bullet** tasks and write them as the `tasks.md` index plus one task file each, every task with its seam, module, predicted files, size, mode and blocking edges. You are done when the stakeholder has approved the breakdown and its waves, every slice is specifiable and has a seam the quiz kept, every predicted-file overlap is an edge or an approved `parallel_with`, `tasks.md` passes the schema validator with a wave for every task and a task file for every record, the files are committed on the spec branch, and the task count and predicted files are within the spec's size budget.
 
 Everything here runs in the main session at spec status `ready-for-dev`. Call the scripts from the project root exactly as written below, with the repo-relative `.agents/skills/feature-workflow/scripts/` prefix (sandboxed projects exclude these exact command lines). Mark the phase as you enter it (`.agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 2.1`) so a resumed session returns here.
 
@@ -26,16 +26,15 @@ Draft the slices:
 
 **Discovered work.** Breaking the spec down can surface work the spec did not agree to: a bug in the code a slice would build on, a refactor the agreed slices do not need, a slice that would spread into another module, a decision nobody here can make. Prefactoring the spec's own capabilities need is a slice; anything else is not. Never add it as a slice: load [discovered-work.md](discovered-work.md) with origin node `2.1`. It assesses the item first. An item that is no blocker is routed at once (one log line, or a `to ask` entry for the stakeholder's batched question): continue the breakdown. The breakdown quiz is a blocking ask, so it carries that batched question (00.25). A blocker goes through 00.21: continue the breakdown after 00.28 (or follow it to discovery).
 
-**Quiz the stakeholder.** Verification setup asks this quiz while the Phase 1 builds run ([1.2](verification-setup.md#12-harness-and-ci-checks)): when `design-log.md` already holds a **Breakdown quiz** entry, take its answers and ask again only about what Phase 1 changed (a Phase 1 test no slice turns green, a discovered-work item that reshapes a slice). Otherwise ask it now. Present the breakdown as a numbered list, each entry with title, blocked by, what it delivers end to end, module, seam (2.3), capability and predicted files, followed by the waves table (the `## Waves` table of `assets/tasks.md`: wave, task, size points with files and lines, mode, overlaps and how each was settled). Ask whether the granularity is right, whether each edge genuinely gates its task, whether any slice should merge or split (every L first), whether each `hitl` task really needs a human, and whether any overlap edge may become an approved `parallel_with`. Iterate until they approve. Ask 2.2 and 2.3 in the same rounds, and the size budget for 2.5:
+**Quiz the stakeholder.** Verification setup asks this quiz while the Phase 1 builds run ([1.2](verification-setup.md#12-harness-and-ci-checks)): when `design-log.md` already holds a **Breakdown quiz** entry, take its answers and ask again only about what Phase 1 changed (a Phase 1 test no slice turns green, a discovered-work item that reshapes a slice). Otherwise ask it now. Before you send it, pick each slice's seam by the [2.3](#23-interfaces-under-test-agreed) rules and log the set as one **Assumed** entry, so the quiz's "Keep these assumptions?" question offers it for veto. Present the breakdown as a numbered list, each entry with title, blocked by, what it delivers end to end, module, seam (2.3), capability and predicted files, followed by the waves table (the `## Waves` table of `assets/tasks.md`: wave, task, size points with files and lines, mode, overlaps and how each was settled). Ask whether the granularity is right, whether each edge genuinely gates its task, whether any slice should merge or split (every L first), whether each `hitl` task really needs a human, and whether any overlap edge may become an approved `parallel_with`. Iterate until they approve. Ask 2.2 in the same rounds; the 2.3 seams come only as those assumptions. The size budget is never asked: 2.5 writes the project defaults.
 
-- Propose the project defaults from the `## Size budget` block of `.workflow/rules.md`:
+**Predicted over budget?** Before you send the quiz, total the draft yourself: the slice count, and the sum of each slice's predicted `files` less its predicted entries that are tests (the profiles' `test_patterns`). Compare them with the project defaults (no block: 10 tasks, 30 changed files):
 
-  ```bash
-  awk '/^## /{f=($0 ~ /^## Size budget[[:space:]]*$/); next} f && /^```ya?ml/{y=1; next} y && /^```/{exit} y' .workflow/rules.md | yq -o=json '.size_budget'
-  ```
+```bash
+awk '/^## /{f=($0 ~ /^## Size budget[[:space:]]*$/); next} f && /^```ya?ml/{y=1; next} y && /^```/{exit} y' .workflow/rules.md | yq -o=json '.size_budget'
+```
 
-  No block: propose the `spec.md` template values (10 tasks, 30 changed files).
-- The stakeholder may agree other values for this spec; log the agreed budget as a decision in `design-log.md`. A breakdown already over the default is not quietly absorbed: keep the default, and let 2.6 put split, re-scope or approve to them.
+Over either limit, the quiz carries one more question with both figures and a split proposal: the slices that leave as separate pieces of work (none that a capability's success line, a journey or a Phase 1 test needs, and none a staying slice depends on) and the figures after the split. Options: "Split as proposed (Recommended)": each piece leaves the draft and becomes one line on this spec's backlog list through [00.26](discovered-work.md#0026-add-the-backlog-line), kind `budget-split`, origin node the step you are at (1.2, 2.1 or 2.6). "Keep as one spec": 2.5 raises the budget to the predicted figures. When no slice can leave, recommend Keep. Log the answer as the Breakdown quiz entry's `Size:` line.
 
 **Done when:** the stakeholder has approved the list and the waves table, every slice has predicted files, size and mode, and no wave holds an overlap without an approved `parallel_with`.
 
@@ -51,7 +50,7 @@ A slice is specifiable when its acceptance criteria can be written from `spec.md
 
 ## 2.3 Interfaces under test agreed?
 
-For each slice, propose its seam: the public interface its tests will drive. Prefer an existing seam to a new one, the highest seam that reaches the behaviour, and as few seams across the feature as possible. Give each proposed seam one line on what it catches and what it misses, and confirm the set with the stakeholder. No test is written at an unagreed seam.
+Each slice's seam is the public interface its tests will drive. Prefer an existing seam to a new one, the highest seam that reaches the behaviour, and as few seams across the feature as possible. Do not ask: 2.1 picked the seams by these rules before the quiz and logged them as one **Assumed** entry ([conventions](../references/conventions.md#asking-the-stakeholder)), each with one line on what it catches and what it misses. Log a new Assumed entry only for a seam Phase 1 changed; the next blocking ask offers it. No test is written at a vetoed seam.
 
 **No** (the seam needs an interface change discovery has not settled): set status `draft` and load `modules/questioning-loop.md` with the seam question:
 
@@ -78,7 +77,7 @@ A slice that must change a path matching them gets `touches_core: true`, and its
    .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 2.5
    ```
 
-2. **Write the budget into `spec.md`.** Edit its frontmatter `budget:` line (Edit, never Bash) to the agreed values, `budget: {max_tasks: <n>, max_changed_files: <n>}`. Leave `status` and every other key alone. Step 2.5 admits this write; on Codex run `.agents/skills/feature-workflow/scripts/check-write.sh --cwd "$PWD" --path .workflow/specs/NNN-slug/spec.md --proposed <file with the new content>` first.
+2. **Write the budget into `spec.md`.** Edit its frontmatter `budget:` line (Edit, never Bash) to the project defaults read at 2.1, `budget: {max_tasks: <n>, max_changed_files: <n>}`, without asking. When the Breakdown quiz entry's `Size:` line says the stakeholder kept an over-budget breakdown as one spec, raise each limit it crossed to the predicted figure, for this spec only; that line is its log. Leave `status` and every other key alone. Step 2.5 admits this write; on Codex run `.agents/skills/feature-workflow/scripts/check-write.sh --cwd "$PWD" --path .workflow/specs/NNN-slug/spec.md --proposed <file with the new content>` first.
 
 3. **Write the task files**, one per slice, never one combined file: `.workflow/specs/NNN-slug/tasks/T<nn>-<slug>.md` from `assets/task.md`, numbered `T01`, `T02`, ... in dependency order (blockers first), `<slug>` kebab-case from the title. Each holds what to build, seam, acceptance criteria, predicted files, Phase 1 tests (step 5), size, mode and notes; delete the template comment.
 
@@ -100,31 +99,33 @@ A slice that must change a path matching them gets `touches_core: true`, and its
    - **Exit 0 with implied edges:** 2.1 missed an overlap. Add each implied edge to the record's `depends_on` (or take the pair back to the stakeholder for `parallel_with`), write the files again and re-run this step.
    - **Exit 2:** a cycle, an unknown id or a duplicate id (reason on stderr): fix the edges in 2.1 and write the files again. Exit 1 is an environment error: stop and report it.
 
-8. **File the task issues.** Once the waves are settled, for each task in id order, file its tracker issue under the spec's issue and record the URL it prints, then add the task file's Tracker issue line (`assets/task.md` says where). On `skipped: no tracker` record and add nothing; a task that already holds an `issue` is not filed again.
+Task issues are not filed here: a split at 2.6 can still remove tasks, so they are filed once 2.6 passes.
 
-   ```bash
-   .agents/skills/issue-tracking/scripts/issue-tracker.sh create-task "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" .workflow/specs/NNN-slug/tasks/T<nn>-<slug>.md
-   .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T<n> --issue <the printed URL>
-   ```
-
-**Done when:** `spec.md` carries `budget`, the validator prints `true`, every record's task file exists, `task-waves.sh` exits 0 with no implied edges and no warnings, every Phase 1 test is in exactly one task's `tests`, and with a tracker every task record holds its `issue`. Then 2.6.
-
-After a 00.29 split the tasks that left are `split-out` in `tasks.md` (set by discovered-work through `set-task`); do not rewrite the files. Run 2.6 again; `budget` stays as it is.
+**Done when:** `spec.md` carries `budget`, the validator prints `true`, every record's task file exists, `task-waves.sh` exits 0 with no implied edges and no warnings, and every Phase 1 test is in exactly one task's `tests`. Then 2.6.
 
 ## 2.6 Within the size budget (task count and predicted files)?
 
-Two checks before any code is written: the task count, and the sum of the predicted `size.files` of the tasks that are not `split-out`, less each task's `predicted_files` entries that are tests (the profiles' `test_patterns`), against `max_changed_files`.
+One check before any code is written: the task count, and the sum of the predicted `size.files` of the tasks less each task's `predicted_files` entries that are tests (the profiles' `test_patterns`), against `budget`. Nothing is counted from git here.
 
 ```bash
 .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 2.6
-.agents/skills/feature-workflow/scripts/budget-check.sh --spec-dir .workflow/specs/NNN-slug
 .agents/skills/feature-workflow/scripts/budget-check.sh --spec-dir .workflow/specs/NNN-slug --predicted
 ```
 
-Each prints `{max_tasks, tasks, max_changed_files, changed_files, over[], source, basis, target, merge_base, excluded, files, test_files}`; with `--predicted`, `changed_files` is the predicted sum less predicted tests (`basis: "predicted"`, `excluded.tests` the files subtracted, `test_files` the test entries). Act on the worse exit of the two.
+It prints `{max_tasks, tasks, max_changed_files, changed_files, over[], source, basis, target, merge_base, excluded, files, test_files}`, with `changed_files` the predicted sum less predicted tests (`basis: "predicted"`, `excluded.tests` the files subtracted, `test_files` the test entries).
 
-- **Exit 0 (within):** commit the breakdown on the spec branch so every task branch forks with its task file: `git add .workflow/specs/NNN-slug && git commit -m "Tasks for NNN-slug"` (only spec-folder files; the size budget never counts them). Then load `modules/implementation-setup.md`.
-- **Exit 2 (over):** load [discovered-work.md](discovered-work.md) at 00.21 with origin node `2.6`, condition `size budget: <tasks> tasks, max_tasks <max_tasks>` or `size budget: <n> predicted files, max_changed_files <max>` (name each entry in `over`), and the JSON as evidence. It runs 00.29: Split marks the tasks that leave `split-out` and returns here, Re-scope goes to discovery, Approve raises the budget and returns here; run 2.6 again, then commit and load implementation-setup.
+- **Exit 0 (within):** file the task issues, then commit.
+  1. **File the task issues.** Set step 2.5, since the task file's Tracker issue line is a task-file write. For each task in id order, file its tracker issue under the spec's issue and record the URL it prints, then add the task file's Tracker issue line (`assets/task.md` says where). On `skipped: no tracker` record and add nothing; a task that already holds an `issue` is not filed again. Then set step 2.6 again.
+
+     ```bash
+     .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 2.5
+     .agents/skills/issue-tracking/scripts/issue-tracker.sh create-task "$(yq --front-matter=extract '.tracker_issue // ""' .workflow/specs/NNN-slug/spec.md)" .workflow/specs/NNN-slug/tasks/T<nn>-<slug>.md
+     .agents/skills/feature-workflow/scripts/status-transition.sh set-task .workflow/specs/NNN-slug T<n> --issue <the printed URL>
+     .agents/skills/feature-workflow/scripts/status-transition.sh step .workflow/specs/NNN-slug 2.6
+     ```
+
+  2. **Commit** the breakdown on the spec branch so every task branch forks with its task file: `git add .workflow/specs/NNN-slug && git commit -m "Tasks for NNN-slug"` (only spec-folder files; the size budget never counts them). Then load `modules/implementation-setup.md`.
+- **Exit 2 (over):** the 2.1 total missed something; never block. When the Breakdown quiz entry's `Size:` line already says kept as one spec, do not ask again: set step 2.5, raise `budget` in `spec.md` to the JSON figures, log that as an **Assumed** entry, and run 2.6 again. Otherwise take the figures back to the [2.1 quiz](#21-split-into-vertical-slices) as its split proposal, write the answer at 2.5, then run 2.6 again.
 - **Exit 1:** stop and report the environment error; never skip the check.
 
-**Done when:** both `budget-check.sh` runs exited 0 (or the stakeholder approved the overrun at 00.29) and the breakdown is committed on the spec branch.
+**Done when:** `budget-check.sh --predicted` exited 0, with a tracker every task record holds its `issue`, and the breakdown is committed on the spec branch.

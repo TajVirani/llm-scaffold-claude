@@ -2,7 +2,8 @@
 # Suite: status-transition.sh (feature-workflow/scripts): spec status transitions.
 # Covers: spec status transitions and the .step marker, blocked/discovered-work paths,
 #   ready-for-dev -> draft at 0.6 only before Phase 1,
-#   blocked -> draft at 00.24 / 00.29 only for the matching blocked_condition, no 3.16 merge while blocked,
+#   blocked -> draft at 00.24 only for a discovered-work blocked_condition, no size-budget block at 00.21 and an older
+#   size-budget block resumed through the generic route, no 3.16 merge while blocked,
 #   a fresh clone with no blocked_from, worktree resolution, a merged task reopened at 3.9 / 3.11. JRN-006: each spec folder
 #   form gives the exit code and message it gave before the shared normaliser.
 # Env: TEST_BASH=<bash binary> runs the scripts under another bash (default: bash).
@@ -164,7 +165,7 @@ yq --front-matter=process -i '.spec_branch = "" | .baseline_revision = "abc123"'
 t "ready->draft at 0.6 with baseline"       2 ST status $E draft --step 0.6
 t "ready->draft at 2.2 still allowed"       0 ST status $E draft --step 2.2
 
-echo "== status-transition: discovered work and size budget"
+echo "== status-transition: discovered work"
 D=.workflow/specs/006-delta
 mkdir -p "$R/$D"; cp "$SRC/assets/spec.md" "$R/$D/spec.md"; cp "$R/$A/tasks.md" "$R/$D/tasks.md"
 t "delta init"                              0 ST status $D draft
@@ -184,27 +185,30 @@ t "blocked->ready at 00.28 illegal"         2 ST status $D ready-for-dev --step 
 t "blocked->in-progress at 00.28 (resume)"  0 ST status $D in-progress --step 00.28
 eq ".step = 00.28" "$(step 006-delta)" 00.28
 eq "condition removed at 00.28" "$(yq --front-matter=extract 'has("blocked_condition")' "$R/$D/spec.md")" false
-t "00.21 size budget"                       0 ST status $D blocked --step 00.21 --blocked "size budget: changed files 34 > 30"
-t "step 00.29 while blocked"                0 ST step $D 00.29
-t "spec.md write at 00.29 allow (budget)"   0 CW --cwd "$R" --path $D/spec.md
-t "blocked(size budget)->draft at 00.24 refused" 2 ST status $D draft --step 00.24
+t "00.21 size budget refused"               1 ST status $D blocked --step 00.21 --blocked "size budget: changed files 34 > 30"
+eq "not blocked after refused size budget" "$(status 006-delta)" in-progress
+# An older workflow version blocked at 00.21 with a size-budget condition; that spec must still resume.
+yq --front-matter=process -i '.status = "blocked" | .blocked_condition = "size budget: 12 tasks, max_tasks 10"' "$R/$D/spec.md"
+printf 'step: "00.21"\nupdated_at: "2026-01-01T00:00:00Z"\nseq: 1\nblocked_from: "in-progress"\n' >"$R/$D/.step"
+t "old size budget: step 00.29"             0 ST step $D 00.29
+t "old size budget: spec.md write at 00.29 denied" 2 CW --cwd "$R" --path $D/spec.md
+t "old size budget: draft at 00.29 refused" 2 ST status $D draft --step 00.29
+t "old size budget: draft at 00.24 refused" 2 ST status $D draft --step 00.24
 t "00.24 refusal names the condition"       0 bash -c "ST status $D draft --step 00.24 2>&1 | grep -q \"discovered work: \""
 eq "still blocked after refused 00.24" "$(status 006-delta)" blocked
-t "blocked->draft at 00.29 (re-scope)"      0 ST status $D draft --step 00.29
-eq "status draft after re-scope" "$(status 006-delta)" draft
-t "draft->draft at 00.24 illegal (not blocked)" 2 ST status $D draft --step 00.24
-t "delta ready again"                       0 ST status $D ready-for-dev --step 0.6
-t "ready->blocked at 2.6 budget"            0 ST status $D blocked --step 00.21 --blocked "size budget: 12 tasks > 10"
-if grep -q '^blocked_from: "ready-for-dev"$' "$R/$D/.step"; then eq "blocked_from ready-for-dev" ok ok; else eq "blocked_from ready-for-dev" bad ok; fi
-t "blocked->ready at 00.28 (approve)"       0 ST status $D ready-for-dev --step 00.28
+t "old size budget: resumes to blocked_from at 00.28" 0 ST status $D in-progress --step 00.28
+eq "old size budget: condition removed" "$(yq --front-matter=extract 'has("blocked_condition")' "$R/$D/spec.md")" false
 t "delta in-progress"                       0 ST status $D in-progress
 t "00.21 again"                             0 ST status $D blocked --step 00.21 --blocked "discovered work: auth-bug"
 t "blocked(discovered work)->draft at 00.29 refused" 2 ST status $D draft --step 00.29
-t "00.29 refusal names the condition"       0 bash -c "ST status $D draft --step 00.29 2>&1 | grep -q \"size budget: \""
 t "blocked->draft at 00.24 (to discovery)"  0 ST status $D draft --step 00.24
 eq ".step = 00.24" "$(step 006-delta)" 00.24
 if grep -q blocked_from "$R/$D/.step"; then eq "blocked_from cleared at 00.24" bad ok; else eq "blocked_from cleared at 00.24" ok ok; fi
+t "draft->draft at 00.24 illegal (not blocked)" 2 ST status $D draft --step 00.24
 t "delta ready"                             0 ST status $D ready-for-dev --step 0.6
+t "ready->blocked at 1.4"                   0 ST status $D blocked --step 1.4 --blocked "harness cannot be made to fail a known-bad build"
+if grep -q '^blocked_from: "ready-for-dev"$' "$R/$D/.step"; then eq "blocked_from ready-for-dev" ok ok; else eq "blocked_from ready-for-dev" bad ok; fi
+t "blocked->ready-for-dev (resolved)"       0 ST status $D ready-for-dev
 t "delta in-progress"                       0 ST status $D in-progress
 t "delta in-review"                         0 ST status $D in-review --step 3.11
 t "in-review->blocked at 00.21"             0 ST status $D blocked --step 00.21 --blocked "discovered work: review-find"
@@ -218,7 +222,7 @@ t "in-review->blocked 00.21"                0 ST status $D blocked --step 00.21 
 t "blocked(in-review)->draft at 00.24"      0 ST status $D draft --step 00.24
 t "delta ready"                             0 ST status $D ready-for-dev --step 0.6
 t "delta in-progress"                       0 ST status $D in-progress
-for n in 00.21 00.22 00.23 00.24 00.25 00.26 00.27 00.28 00.29 2.6 3.15 3.16 5.9; do t "step-only accepts $n" 0 ST step $D $n; eq "marker $n" "$(step 006-delta)" "$n"; done
+for n in 00.21 00.22 00.23 00.24 00.25 00.26 00.27 00.28 2.6 3.15 3.16 5.9; do t "step-only accepts $n" 0 ST step $D $n; eq "marker $n" "$(step 006-delta)" "$n"; done
 t "fresh clone: blocked"                    0 ST status $D blocked --step 00.21 --blocked "discovered work: y"
 unmark 006-delta
 t "fresh clone: in-review at 00.28 (warn)"  0 ST status $D in-review --step 00.28
@@ -256,20 +260,21 @@ eq ".step left at 00.21" "$(step 008-eta)" 00.21
 eq "spec still blocked" "$(status 008-eta)" blocked
 t "set-task gate relaunch while blocked"    0 ST set-task $H T1 --status in-progress --step 3.7
 if grep -q '^blocked_from: "in-progress"$' "$R/$H/.step"; then eq "blocked_from kept by set-task --step" ok ok; else eq "blocked_from kept by set-task --step" bad ok; fi
-for n in 00.26 00.29; do t "step $n while blocked" 0 ST step $H $n; if grep -q '^blocked_from: "in-progress"$' "$R/$H/.step"; then eq "blocked_from kept at $n" ok ok; else eq "blocked_from kept at $n" bad ok; fi; done
+t "step 00.26 while blocked" 0 ST step $H 00.26
+if grep -q '^blocked_from: "in-progress"$' "$R/$H/.step"; then eq "blocked_from kept at 00.26" ok ok; else eq "blocked_from kept at 00.26" bad ok; fi
 t "eta resume 00.28"                        0 ST status $H in-progress --step 00.28
 t "set-task done at 3.16 after unblock"     0 ST set-task $H T1 --status done --step 3.16
 t "eta in-review"                           0 ST status $H in-review --step 3.11
 t "eta 00.21 at 4.4 (review)"               0 ST status $H blocked --step 00.21 --blocked "discovered work: from-review"
 t "eta in-review at 00.28"                  0 ST status $H in-review --step 00.28
 ST status $H draft --step 4.5 >/dev/null; ST status $H ready-for-dev --step 0.6 >/dev/null
-t "eta budget block from ready (2.6)"       0 ST status $H blocked --step 00.21 --blocked "size budget: 12 tasks > 10"
-t "size budget re-scope via 00.24 refused"  2 ST status $H draft --step 00.24
-t "re-scope via draft --step 00.29 (2.6)"   0 ST status $H draft --step 00.29
-ST status $H ready-for-dev --step 0.6 >/dev/null; ST status $H in-progress >/dev/null
-t "eta budget block at 3.15"                0 ST status $H blocked --step 00.21 --blocked "size budget: changed files 31 > 30"
-t "re-scope via draft --step 00.29 (3.15)"  0 ST status $H draft --step 00.29
-eq "eta draft" "$(status 008-eta)" draft
+# An older size-budget block at 2.6 resumes to ready-for-dev at 00.28, which the router sends to task-breakdown 2.6.
+yq --front-matter=process -i '.status = "blocked" | .blocked_condition = "size budget: 12 tasks, max_tasks 10"' "$R/$H/spec.md"
+printf 'step: "00.21"\nupdated_at: "2026-01-01T00:00:00Z"\nseq: 1\nblocked_from: "ready-for-dev"\n' >"$R/$H/.step"
+t "old 2.6 size budget block: re-scope at 00.29 refused" 2 ST status $H draft --step 00.29
+t "old 2.6 size budget block: resumes at 00.28"          0 ST status $H ready-for-dev --step 00.28
+eq "eta ready-for-dev" "$(status 008-eta)" ready-for-dev
+eq ".step = 00.28" "$(step 008-eta)" 00.28
 
 echo "== JRN-006 spec folder forms"
 folder_fixture_repo "$F/folders"

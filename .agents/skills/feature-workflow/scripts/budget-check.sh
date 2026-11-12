@@ -12,12 +12,12 @@
 #     --cwd       where the changed files are counted (a task worktree or feature branch). Default: the spec checkout's HEAD.
 #                 The spec checkout is located from --cwd, or from $PWD when --cwd is absent.
 # Budget source, first found wins (each source must give both keys as non-negative integers, or the script exits 1):
-#   spec     spec.md frontmatter `budget: {max_tasks, max_changed_files}` (written at 2.5 / 0.3.20, raised at 00.29)
+#   spec     spec.md frontmatter `budget: {max_tasks, max_changed_files}` (written at 2.5 / 0.3.20)
 #   rules    .workflow/rules.md: the first fenced yaml block under `## Size budget`, key `size_budget: {max_tasks, max_changed_files}`
 #   default  max_tasks 10, max_changed_files 30 (chosen by the user)
 # Counts:
-#   tasks          records in the tasks.md frontmatter `tasks:` array, excluding `split-out` ones (their work moved to the backlog at a
-#                  00.29 split), so 2.6 does not trip again after a split.
+#   tasks          records in the tasks.md frontmatter `tasks:` array, excluding `split-out` ones (records an older workflow version
+#                  wrote when a task's work moved to the backlog).
 #   changed_files  the files a reviewer sees in the feature's PR/MR, minus tests. A file counts when it is in all three:
 #                    1. the PR/MR file set: `git diff --name-only $(git merge-base HEAD <target>) HEAD`, so changes caught up by merging
 #                       the target branch into the spec branch drop out (`excluded.merge_base`);
@@ -28,23 +28,22 @@
 #                  names, else main), as the local branch and origin/<name>, whichever exist (the merge-base considers both).
 #                  Neither ref exists, or no merge-base: the PR/MR set is replaced by the step-2 diff, `merge_base` is null and `note`
 #                  says so (caught-up changes then count).
-#                  impl_base_revision unset: step 2 uses baseline_revision, with a warning on stderr and in `note` (Phase 1 files then count).
-#                  Neither set: changed files are not counted; changed_files is null and `note` says why.
+#                  impl_base_revision unset (before 3.1): changed files are not counted; changed_files is null and `note` says why.
 #                  With --predicted: the sum of size.files, less each record's predicted_files entries that are tests (no git diff).
 #   tests          a path is a test when it matches a pattern of `test_patterns` in a profile's Toolchain block (.workflow/profiles/*.md,
 #                  TEMPLATE.md skipped). A profile without the key, or with [], contributes the defaults
 #                  (`wf_default_test_patterns` in .agents/lib/test-paths.sh). No profiles: the defaults. A pattern ending in / matches a folder of that name at any depth; one with another / is
 #                  matched against the whole repo-relative path; any other pattern is matched against the file name (shell glob).
 # stdout: one JSON object {max_tasks, tasks, max_changed_files, changed_files, over: ["tasks"|"changed_files"...], source: "spec"|"rules"|"default",
-#   basis: "predicted"|"impl_base_revision"|"baseline_revision"|null, target: <branch>|null, merge_base: <sha>|null,
+#   basis: "predicted"|"impl_base_revision"|null, target: <branch>|null, merge_base: <sha>|null,
 #   excluded: {tests, spec_backlog, harness_only, merge_base}|null, files: [counted paths]|null, test_files: [excluded test paths]|null}
-#   plus `note` when changed files were not counted or the count fell back. A count is over when it is greater than its maximum.
+#   plus `note` when changed files were not counted or the merge-base was missing. A count is over when it is greater than its maximum.
 #   excluded figures not computed in a mode are null (spec_backlog, harness_only and merge_base with --predicted; merge_base on the
 #   fallback). With --predicted, test_files lists the test entries of predicted_files and files is null.
-# Exit codes: 0 within budget; 2 over budget (the caller runs 00.21 with blocked_condition "size budget: <what>", then 00.29);
-#   1 usage or environment error (missing yq/jq, not a git repo, missing file, malformed budget or test_patterns, unknown baseline commit,
-#   invalid main_branch).
-# Called by: step files task-breakdown (2.6) and implementation-waves (3.15); discovered-work at 00.29 after an approved overrun.
+# Exit codes: 0 within budget; 2 over budget (2.6 returns to the breakdown quiz; 3.15 logs the overrun and carries on);
+#   1 usage or environment error (missing yq/jq, not a git repo, missing file, malformed budget or test_patterns, unknown
+#   impl_base_revision commit, invalid main_branch).
+# Called by: step files task-breakdown (2.6, --predicted), implementation-waves (3.15) and sign-off (5.4).
 # Notes: Requires git, jq and mikefarah yq v4. bash 3.2 compatible. Reads main_branch through rules-setting.sh (same folder).
 # Sources: first-party; formats from project-setup/assets/docs/rules.md "Size budget"; feature-workflow/assets/spec.md `budget`. Spec checkout, spec folder and test paths: .agents/lib/workflow-paths.sh and .agents/lib/test-paths.sh.
 
@@ -207,27 +206,17 @@ if [[ $PREDICTED -eq 1 ]]; then
   EXCLUDED_JSON=$(jq -n -c --argjson t $((raw - n)) '{tests:$t, spec_backlog:null, harness_only:null, merge_base:null}')
   TESTS_JSON=$(json_lines "$(sorted_paths "$test_entries")")
 fi
-IMPL=$(yq --front-matter=extract '.impl_base_revision // ""' "$SPEC") || die "cannot read the frontmatter of $SPEC"
-[[ "$IMPL" != "null" ]] || IMPL=""
-BASE=$(yq --front-matter=extract '.baseline_revision // ""' "$SPEC") || die "cannot read the frontmatter of $SPEC"
+BASE=$(yq --front-matter=extract '.impl_base_revision // ""' "$SPEC") || die "cannot read the frontmatter of $SPEC"
 [[ "$BASE" != "null" ]] || BASE=""
-BASE_KEY=impl_base_revision
-if [[ $PREDICTED -eq 1 ]]; then
-  BASE=""
-elif [[ -n "$IMPL" ]]; then
-  BASE=$IMPL
-elif [[ -n "$BASE" ]]; then
-  BASE_KEY=baseline_revision
-  warn "impl_base_revision is not set in spec.md (3.1); counted from baseline_revision, so Phase 1 harness and suite files count too"
-fi
 if [[ $PREDICTED -eq 1 ]]; then
   :
 elif [[ -z "$BASE" ]]; then
-  add_note "neither impl_base_revision (3.1) nor baseline_revision (1.1, or 3.1 on the light path) is captured in spec.md yet; changed files not counted"
+  # Before 3.1 the spec branch holds Phase 1 work and anything merged in, so no count would mean the feature's files.
+  add_note "impl_base_revision (3.1) is not captured in spec.md yet; changed files not counted"
 else
-  BASIS="\"$BASE_KEY\""
+  BASIS='"impl_base_revision"'
   git -C "$COUNT_DIR" rev-parse --verify --quiet "${BASE}^{commit}" >/dev/null \
-    || die "$BASE_KEY $BASE is not a commit in $COUNT_DIR"
+    || die "impl_base_revision $BASE is not a commit in $COUNT_DIR"
   since_base=$(git -C "$COUNT_DIR" diff --name-only "$BASE..HEAD") || die "git diff failed in $COUNT_DIR"
   since_base=$(sorted_paths "$since_base")
 
@@ -240,11 +229,11 @@ else
   done
   merge_base=""
   if [[ -z "$target_refs" ]]; then
-    warn "target branch $TARGET not found (neither $TARGET nor origin/$TARGET exists locally); counted $BASE_KEY..HEAD without the merge-base, so changes merged in from $TARGET count too"
+    warn "target branch $TARGET not found (neither $TARGET nor origin/$TARGET exists locally); counted impl_base_revision..HEAD without the merge-base, so changes merged in from $TARGET count too"
   else
     # shellcheck disable=SC2086 # one or two ref names, split on purpose
     merge_base=$(git -C "$COUNT_DIR" merge-base HEAD $target_refs 2>/dev/null) \
-      || { merge_base=""; warn "HEAD has no merge-base with $TARGET; counted $BASE_KEY..HEAD without the merge-base, so changes merged in from $TARGET count too"; }
+      || { merge_base=""; warn "HEAD has no merge-base with $TARGET; counted impl_base_revision..HEAD without the merge-base, so changes merged in from $TARGET count too"; }
   fi
   if [[ -n "$merge_base" ]]; then
     MB_JSON="\"$merge_base\""

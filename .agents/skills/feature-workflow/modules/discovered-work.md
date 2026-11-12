@@ -1,6 +1,6 @@
-# Discovered work (00.21–00.29)
+# Discovered work (00.21–00.28)
 
-Work found outside the agreed scope while a feature is under way is **never** folded into the current `spec.md` or `tasks.md` on your own. A new requirement, a bug found along the way, a needed refactor, scope spreading into another module, a decision nobody in the session can answer, or a crossed size budget all come here. Every report is proven by whoever raised it. You route each one by what it needs: a fix the worker makes now, a stop for a **blocker**, or one batched question to the stakeholder. Nothing is filed without the stakeholder's ruling; what they keep becomes one line on this spec's backlog list. You run in the main session; agents only report (`discovered-work` return status, finding kind or `out_of_scope_noticed`) and never fix.
+Work found outside the agreed scope while a feature is under way is **never** folded into the current `spec.md` or `tasks.md` on your own. A new requirement, a bug found along the way, a needed refactor, scope spreading into another module, or a decision nobody in the session can answer all come here. Every report is proven by whoever raised it. You route each one by what it needs: a fix the worker makes now, a stop for a **blocker**, or one batched question to the stakeholder. Nothing is filed without the stakeholder's ruling; what they keep becomes one line on this spec's backlog list. You run in the main session; agents only report (`discovered-work` return status, finding kind or `out_of_scope_noticed`) and never fix.
 
 Not for Phase 0: an out-of-scope item raised while framing goes through the scope gate 0.3.16–0.3.17 to `.workflow/deferred/` ([deferred-handoff](deferred-handoff.md)).
 
@@ -10,20 +10,18 @@ Not for Phase 0: an out-of-scope item raised while framing goes through the scop
 
 Before loading this module, the caller holds:
 
-| Field | Discovered work | Size budget |
-| --- | --- | --- |
-| Origin node | the node it was found at (1.2, 1.3, 2.1, 3.2, 3.4, 3.7, 4.4, ...) | 2.6 or 3.15 |
-| Found by | the agent and its return, or the reviewer finding `F<n>` | `budget-check.sh` |
-| Problem | one or two sentences | which limit, the count and the limit |
-| Evidence | the proof: a command and its output, a failing test, or a quoted rule, spec or checklist line with the `path:line` that breaks it | the `budget-check.sh` JSON |
-| Kind | `bug` \| `requirement` \| `refactor` \| `scope-expansion` \| `decision` | `budget-split` (used only if you split) |
-| Agent's assessment | the return's `blocker_assessment` (`blocks-this-task` or `can-wait`) and `reason`, or the caller's own assessment | none |
+| Field | Value |
+| --- | --- |
+| Origin node | the node it was found at (1.2, 1.3, 2.1, 3.2, 3.4, 3.7, 4.4, ...) |
+| Found by | the agent and its return, or the reviewer finding `F<n>` |
+| Problem | one or two sentences |
+| Evidence | the proof: a command and its output, a failing test, or a quoted rule, spec or checklist line with the `path:line` that breaks it |
+| Kind | `bug` \| `requirement` \| `refactor` \| `scope-expansion` \| `decision`; `budget-split` only for a piece split off in the breakdown quiz (00.26) |
+| Agent's assessment | the return's `blocker_assessment` (`blocks-this-task` or `can-wait`) and `reason`, or the caller's own assessment |
 
 Keep these in the session until the report is routed or, for a blocker, until 00.28: the `--step` calls below overwrite the step marker, so the origin node lives here and, once decided, in the design-log entry.
 
 ## Assess each report first
-
-A size-budget report skips this section and goes to [00.21](#0021-block).
 
 Take each discovered-work report through these questions in order. The agent's assessment is your starting point, not the answer; the first question that fits routes the report:
 
@@ -48,15 +46,13 @@ Done when every report has a route and its reason.
 
 ## 00.21 Block
 
-Blockers and size-budget reports only.
+Blockers only.
 
 1. Pick a slug: two to four lowercase kebab-case words naming the problem (`stale-cache-on-retry`).
 2. Block the spec. The script keeps the prior status in `.step` as `blocked_from`.
 
    ```bash
    ST status .workflow/specs/NNN-slug blocked --step 00.21 --blocked "discovered work: <slug>"
-   # size budget:
-   ST status .workflow/specs/NNN-slug blocked --step 00.21 --blocked "size budget: <what>"   # e.g. "size budget: 12 tasks, max_tasks 10"
    ```
 
    Exit 2 (illegal transition, e.g. the spec is already `blocked`): another report is already being handled; add this one to the same 00.22 presentation instead of blocking again.
@@ -66,7 +62,7 @@ Done when the spec is `blocked` with the condition and nothing new is launching.
 
 ## 00.22 Present
 
-Present every blocker and size-budget report that has arrived, together. For each, tell the stakeholder, in this order:
+Present every blocker that has arrived, together. For each, tell the stakeholder, in this order:
 
 1. **Problem**, in plain words, without the implementation approach.
 2. **Evidence**: the reproduction or the quoted line with its `path:line`.
@@ -78,7 +74,6 @@ Then ask one question per report whose options are the routes, recommended optio
 | Condition | Options (each maps to a node) |
 | --- | --- |
 | `discovered work:` | Blocker, go to discovery (00.24 Yes) · Blocker, keep the spec blocked until I resolve it (00.24 No) · Not a blocker, keep it for later (00.26) · Not a blocker, drop it (00.25 drop) |
-| `size budget:` | Split: remaining work to the backlog list (00.29 Split) · Re-scope through discovery (00.29 Re-scope) · Approve the overrun for this spec (00.29 Approve) |
 
 This is a blocking ask, so it also carries the [batched ask](#0025-batched-ask) for every item waiting, and opens with the assumptions not yet offered for veto ([conventions](../references/conventions.md#asking-the-stakeholder)).
 
@@ -130,7 +125,7 @@ Done when every waiting item has a `Ruling:` line and its outcome is carried out
 
 ## 00.26 Add the backlog line
 
-Used for an item the stakeholder kept (at 00.22, at a batched ask, or at 5.9 from the 5.5 rulings) and for a size-budget split (00.29). The list is `.workflow/specs/work-backlog/NNN-slug.md`, one per spec, from [../assets/work-backlog.md](../assets/work-backlog.md).
+Used for an item the stakeholder kept (at 00.22, at a batched ask, or at 5.9 from the 5.5 rulings) and for a piece split off in the breakdown quiz (kind `budget-split`, [task-breakdown 2.1](task-breakdown.md#21-split-into-vertical-slices)). The list is `.workflow/specs/work-backlog/NNN-slug.md`, one per spec, from [../assets/work-backlog.md](../assets/work-backlog.md).
 
 1. **Set the step.** The work-backlog write guard admits a write only while the origin spec's `.step` is 00.26 or 5.9; while the spec is `blocked`, step mode keeps `blocked_from`. At 5.9 the step is already set.
 
@@ -157,37 +152,10 @@ Used for an item the stakeholder kept (at 00.22, at a batched ask, or at 5.9 fro
    ```
 
    On Codex, run `.agents/skills/feature-workflow/scripts/check-write.sh --cwd "$PWD" --path .workflow/specs/work-backlog/NNN-slug.md` before the write and write only on exit 0. Then run the line check from the template's comment; it must print nothing.
-4. **Log it:** the item's `Ruling:` line names the line (`kept for later (B<n>)`); a split item gets its **Discovered work** entry with the line.
+4. **Log it:** the item's `Ruling:` line names the line (`kept for later (B<n>)`); a split piece is named in the **Breakdown quiz** entry.
 5. **Leave.** Set the caller's step back (`ST step .workflow/specs/NNN-slug <origin node>`; for a spec that is `blocked`, go to 00.28 instead) and return with what was written or appended.
 
 The line waits on the list. The next spec that picks it up starts from it ([discovery](discovery.md#seeded-from-a-work-item)).
-
-## 00.29 Size budget crossed
-
-- **Split.** The work this spec still needs for its capabilities' success lines stays; the remaining `pending` tasks leave the spec. A task that stays may not depend on one that leaves.
-  1. Add one line per piece through [00.26](#0026-add-the-backlog-line) with kind `budget-split` and the task ids it takes over after its node: `(00.29, split out of T<n>, T<m>)`.
-  2. Mark each of those tasks, one call per task:
-
-     ```bash
-     ST set-task .workflow/specs/NNN-slug T<n> --status split-out --step 00.29
-     ```
-
-  3. Log the decision, then 00.28. The orchestrator never launches a `split-out` task.
-
-  If what is left no longer meets a capability's success line, this is a re-scope, not a split.
-- **Re-scope.** Log the decision (ending the entry with `Outcome: loop back (00.29 budget re-scope)`, see [Record the decision](#record-the-decision)), then return to discovery as 00.24 Yes does, with the budget crossing and the proposed reduction as the first frontier question. The step is `00.29`, so the questioning loop seeds from the budget crossing:
-
-  ```bash
-  ST status .workflow/specs/NNN-slug draft --step 00.29
-  ```
-
-- **Approve the overrun.** Raise the budget for this spec only, then 00.28:
-
-  ```bash
-  ST step .workflow/specs/NNN-slug 00.29
-  ```
-
-  Edit the `budget:` line in the `spec.md` frontmatter (Edit, never Bash; leave `status` and `blocked_condition` alone) to the agreed value, and append the "Approved budget overrun" record to `design-log.md` with the stakeholder's reason verbatim. On Codex, run `check-write.sh --cwd "$PWD" --path .workflow/specs/NNN-slug/spec.md --proposed <file with the new content>` first.
 
 ## 00.28 Resume
 
@@ -206,16 +174,14 @@ Every report gets exactly one design-log record (full shapes in [../assets/desig
 
 - The one-line **Unproven report** record for a report with no proof.
 - No record here for **current work**: the fix round or the triage row records it.
-- A **Discovered work** entry for a blocker, a `to ask` item and a split: found at `<origin node>` by whom, kind, problem and evidence, the assessment, and the ruling (`to ask (<class>)` with the recommendation until it is asked). The answer arrives later as a `Ruling:` line in the entry of the ask that carried it, and a kept item names its backlog line there.
-- The one-line duplicate record for an item matched at 00.26 step 2; the overrun record for 00.29 Approve.
+- A **Discovered work** entry for a blocker and a `to ask` item: found at `<origin node>` by whom, kind, problem and evidence, the assessment, and the ruling (`to ask (<class>)` with the recommendation until it is asked). The answer arrives later as a `Ruling:` line in the entry of the ask that carried it, and a kept item names its backlog line there.
+- The one-line duplicate record for an item matched at 00.26 step 2.
 
 **00.24 Yes, from any phase**: end the entry with the line `Outcome: loop back (00.24 discovered work)`. review-triage counts `loop back` outcome lines to restart its pass count, so a loop back from Phases 1–3 must leave one too. Exception: when the origin node is `4.4`, review-triage 6.0 writes that same line under its triage pass; leave it out of the Discovered work entry so it is not written twice.
 
-**00.29 Re-scope** ends its entry the same way with `Outcome: loop back (00.29 budget re-scope)`. Its origin is always 2.6 or 3.15, never a triage pass, so it is always written here.
-
 ## Resuming a blocked spec here
 
-The router loads this module for a `blocked` spec whose `blocked_condition` starts `discovered work:` or `size budget:`.
+The router loads this module for a `blocked` spec whose `blocked_condition` starts `discovered work:`.
 
 1. Read the condition from `spec.md`, `blocked_from` from `.step`, and the newest **Discovered work** entry for that slug in `design-log.md`.
 2. **The entry says "stays blocked, human resolves"** (00.24 No): ask whether the condition is resolved. Yes → [00.28](#0028-resume), then route again by status. No → stop.
@@ -227,5 +193,5 @@ A spec that is not `blocked` but whose `.step` reads `00.26` was adding a backlo
 
 - **Unproven, current work or for the stakeholder:** the report has its route and record; the spec's status never changed, nothing was written outside `design-log.md`, and the caller has its step back.
 - **Kept for later:** the item is one well-formed `- [open]` line on `.workflow/specs/work-backlog/NNN-slug.md`, or one appended Later requests line on the matching shelf file, with its `Ruling:` line.
-- **Blocker or size budget:** the spec left `blocked` through 00.24 (`draft`) or 00.28 (`blocked_from`), or stays `blocked` by the stakeholder's choice with its condition shown; every report has exactly one design-log record; every kept or split item is a backlog line, and every split task is `split-out`.
-- Nothing was added to the current `spec.md` or `tasks.md`; a raised `budget` is the only spec.md change, made at 00.29.
+- **Blocker:** the spec left `blocked` through 00.24 (`draft`) or 00.28 (`blocked_from`), or stays `blocked` by the stakeholder's choice with its condition shown; every report has exactly one design-log record; every kept item is a backlog line.
+- Nothing was added to the current `spec.md` or `tasks.md`.

@@ -17,7 +17,7 @@ The rules every feature-workflow step file follows, for a spec and for an initia
 
   | File | Allowed steps |
   | --- | --- |
-  | `spec.md` | 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9, 00.29 |
+  | `spec.md` | 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9 |
   | `tasks.md` and `tasks/T<nn>-<slug>.md` (create or replace) | 0.3.20, 2.5; afterwards task records only through `set-task` |
   | `.workflow/specs/work-backlog/**` | 00.26, 5.9, 0.1.4 (marking a seeded item `promoted`) |
   | `.workflow/initiatives/NNN-slug/initiative.md` | 6.1, 6.7, 6.9 (the initiative's own `.step`, set with `initiative-transition.sh step`) |
@@ -36,9 +36,10 @@ The rules every feature-workflow step file follows, for a spec and for an initia
 
 ## Asking the stakeholder
 
-- **Only blocking questions wait.** A question blocks when its answer changes the scope or intent of the work, or when the action it gates is hard to reverse: a merge to the main branch, a publish, a delete, a migration, or anything outside the repo (a tracker, a remote, another system). Ask a blocking question and wait for the answer.
+- **Only blocking questions wait.** A question blocks when its answer changes the scope or intent of the work, or when the action it gates is hard to reverse: a merge to the main branch, a publish, a delete, a migration, or anything outside the repo (a remote, another system). Ask a blocking question and wait for the answer. The tracker calls a step file names on the spec's own issues (`issue-tracker.sh` `create-spec` at 0.1.1 through `next-spec-number.sh`, `create-task`, `fill`, `move`) are not asked; creating labels still is (`issue-tracking` skill, Tracker setup step 4), and a call that exits 1 or 2 still stops ([Tracker calls](#status-step-marker-and-guarded-writes)).
 - **Assume and log the rest.** Any other question has a recommended answer you would give anyway. Take it at once; do not ask. If you cannot recommend one answer, it blocks. Append an **Assumed** entry to `design-log.md` (shape in [../assets/design-log.md](../assets/design-log.md)): the question, the answer taken, and why it was safe to assume. A step that says "assume and log" points here.
 - **Offer every assumption for veto.** Open the next blocking ask with each **Assumed** entry no `Offered for veto:` line names yet, one line each, as its first question: "Keep these assumptions?", with "Keep them all (Recommended)"; a veto names the entry. List them with `grep -n '^## .* Assumed: \|^- Offered for veto: ' .workflow/specs/NNN-slug/design-log.md`, and log `- Offered for veto: <titles>; vetoed: <titles | none>` in the entry of that ask. A veto is a change at that point, handled the way that step handles any change the stakeholder asks for.
+- **A finished step or phase is not a stop.** Go straight on to the next step file unless a blocking ask or the step itself says to wait.
 - **Launch before asking.** Before you send a blocking ask, launch every sub-agent whose input does not depend on its answer, and start any long check that can run meanwhile, so the stakeholder's time to answer is not idle time. Launch nothing an answer could invalidate: work that reads a term, a scope or a design the question is still deciding waits for the answer. Step files name the launches this applies to.
 
 ## Progress line

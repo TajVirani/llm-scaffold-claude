@@ -4,7 +4,7 @@
 #   prose wording. JRN-001: discovery 0.1.1 calls next-spec-number.sh and 0.1.4 names `tracker_issue`. JRN-005: an
 #   `issue-tracker.sh fill` call at 0.3.19, at 0.6 (ready-for-dev on the full path), at 0.3.20 (ready-for-dev on the light
 #   path) and in a sign-off step (5.1-5.9).
-#   JRN-006: 2.5 and 0.3.20 each file the task issues with `issue-tracker.sh create-task` and record them with
+#   JRN-006: 2.6 and 0.3.20 each file the task issues with `issue-tracker.sh create-task` and record them with
 #   `set-task ... --issue`. JRN-007: `issue-tracker.sh move ... in_progress` at 3.1 (the spec's issue) and 3.3 (a task's),
 #   `move ... done` at 3.16 (a merged task) and 5.8 (the spec, on a local merge), and the reopen `move ... in_progress` at
 #   3.9, 3.11 and 4.7, where a task goes back to work. JRN-014: project-setup's SKILL.md or modules run
@@ -111,8 +111,8 @@ SIGN_OFF_TEXT=$(for id in 5.1 5.2 5.3 5.4 5.5 5.6 5.7 5.8 5.9; do step_text "$id
 check "JRN-005 a sign-off step (5.1-5.9) calls issue-tracker.sh fill" 'calls_in "$SIGN_OFF_TEXT" "$FILL"' \
   "no sign-off step has a line matching $FILL"
 
-echo "== JRN-006: task issues are filed and recorded at breakdown"
-for id in 2.5 0.3.20; do
+echo "== JRN-006: task issues are filed and recorded once the breakdown is within budget"
+for id in 2.6 0.3.20; do
   expect_call "JRN-006 $id files each task issue with issue-tracker.sh create-task" "$id" "$CREATE_TASK"
   expect_call "JRN-006 $id records each task issue with set-task --issue" "$id" "$SET_ISSUE"
 done

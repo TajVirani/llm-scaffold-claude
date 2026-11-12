@@ -2,7 +2,7 @@
 # Suite: status-transition.sh (feature-workflow/scripts): task records and spec keys.
 # Covers: set-task transitions, work_type and capability rules, the tasks.md validator and its copy in assets/tasks.md,
 #   a validator yq cannot run (exit 1 with yq's diagnostic, nothing written),
-#   split-out tasks and backlog seeding at 0.1.4, task bodies under tasks/, record fields, set-task --pr, set-spec
+#   no transition into split-out, an older split-out record read and kept terminal, backlog seeding at 0.1.4, task bodies under tasks/, record fields, set-task --pr, set-spec
 #   (spec_branch, impl_base_revision) and budget-check.sh --predicted over the task records.
 #   JRN-006 (spec 00014): set-task --issue records an https URL as the task's issue, refuses a non-URL with exit 2 keeping the
 #   recorded value, clears it with null, and the tasks.md validator refuses an issue field that is not a URL.
@@ -162,17 +162,17 @@ asset_validator() { awk '/yq --front-matter=extract -e .$/{f=1; next} f && /^  .
 script_validator() { awk "/^TASKS_VALIDATOR='\$/{f=1; next} f && /^'\$/{exit} f" "$SRC/scripts/status-transition.sh"; }
 eq "validator: assets/tasks.md == status-transition.sh" "$(asset_validator | sed 's/[[:space:]]*$//')" "$(script_validator | sed 's/[[:space:]]*$//')"
 t "template tasks.md passes validator w/ split-out" 0 yq --front-matter=extract -e "$(script_validator)" "$R/$K/tasks.md"
-t "kappa budget block"                      0 ST status $K blocked --step 00.21 --blocked "size budget: 12 tasks > 10"
+t "size budget block at 00.21 refused"      1 ST status $K blocked --step 00.21 --blocked "size budget: 12 tasks > 10"
 t "T2 pending->split-out without step"      2 ST set-task $K T2 --status split-out
 t "T2 pending->split-out at 2.6 illegal"    2 ST set-task $K T2 --status split-out --step 2.6
-t "T2 pending->split-out at 00.29"    0 ST set-task $K T2 --status split-out --step 00.29
-eq "T2 split-out written" "$(yq --front-matter=extract '.tasks[1].status' "$R/$K/tasks.md")" split-out
-if grep -q '^blocked_from: "ready-for-dev"$' "$R/$K/.step"; then eq "blocked_from kept by split" ok ok; else eq "blocked_from kept by split" bad ok; fi
+t "T2 pending->split-out at 00.29 refused"  2 ST set-task $K T2 --status split-out --step 00.29
+# An older workflow version wrote split-out records at a budget split; they stay readable and terminal.
+yq --front-matter=process -i '.tasks[1].status = "split-out"' "$R/$K/tasks.md"
+t "kappa T1 pending->in-progress beside an old split-out" 0 ST set-task $K T1 --status in-progress
+eq "old split-out kept" "$(yq --front-matter=extract '.tasks[1].status' "$R/$K/tasks.md")" split-out
 t "split-out terminal (->pending)"          2 ST set-task $K T2 --status pending --step 00.29
 t "split-out terminal (->in-progress)"      2 ST set-task $K T2 --status in-progress --step 3.9
-t "kappa T1 pending->in-progress"           0 ST set-task $K T1 --status in-progress
-t "in-progress->split-out at 00.29 illegal" 2 ST set-task $K T1 --status split-out --step 00.29
-t "kappa resume 00.28"                      0 ST status $K ready-for-dev --step 00.28
+t "in-progress->split-out illegal"          2 ST set-task $K T1 --status split-out --step 00.29
 cp "$R/$K/tasks.md" "$F/kappa-tasks.md"
 yq --front-matter=process -i '.tasks += [{"id":"T3","title":"x","status":"split-out","capability":"CAP-001","depends_on":[],"touches_core":false,"work_type":null,"module":"m","seam":"s"}]' "$R/$K/tasks.md"
 yq --front-matter=process -i '.budget = {"max_tasks": 1, "max_changed_files": 30}' "$R/$K/spec.md"

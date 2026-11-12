@@ -111,7 +111,7 @@ shared_core:
 
 ## Size budget
 
-Soft per-spec limits, copied into each spec's `budget` frontmatter when `tasks.md` is written (2.5, or 0.3.20 on the light path). Crossing either one pauses the work for a human decision (split, re-scope or approve the overrun). `max_changed_files` limits the review load on whoever approves the feature's PR/MR, so it counts only what that reviewer sees, minus tests: changes merged in from `main_branch` drop out by the merge-base, the Phase 1 harness and suite count only when Phase 3 changes them again, and test files (each profile's `test_patterns`) are reported apart. Changed only at 5.3.
+Soft per-spec limits, copied into each spec's `budget` frontmatter when `tasks.md` is written (2.5, or 0.3.20 on the light path). They keep a spec's tasks scoped and never stop in-scope work: a breakdown predicted over them is offered a split in the breakdown quiz (kept as one spec, the budget is raised for that spec), and an overrun during the build is logged and reported at sign-off. `max_changed_files` limits the review load on whoever approves the feature's PR/MR, so it counts only what that reviewer sees, minus tests: changes merged in from `main_branch` drop out by the merge-base, the Phase 1 harness and suite count only when Phase 3 changes them again, and test files (each profile's `test_patterns`) are reported apart. Changed only at 5.3.
 
 ```yaml
 size_budget:

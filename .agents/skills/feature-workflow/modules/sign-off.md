@@ -53,6 +53,7 @@ Write `.workflow/specs/NNN-slug/report.md` from `assets/report.md`. The Write to
 - **Known gaps**: everything under `## Known gaps` in spec.md (light-path suite gaps from 3.14; open findings from 5.1), the `Gaps:` line of each triage pass, the lenses' `not_checked` items, and unmeasured targets. A skipped gate is a gap, never a pass.
 - **Deferred**: every file in spec.md `deferred`, with its severity when it has one.
 - **Open items**: the discovered-work items waiting for the stakeholder's ruling (`modules/discovered-work.md`, 00.25), one line each with its class and recommendation.
+- **Size budget**: the figures of `.agents/skills/feature-workflow/scripts/budget-check.sh --spec-dir .workflow/specs/NNN-slug` (its `files` list is the one this step cites): tasks and changed files against their limits, and whether either is over. Exit 2 here is the expected "over" result to report, not an error; exit 1 is an error to fix.
 
 For a one-task spec (every light-path spec): write `report.md` as these five lines instead of the template, under the same evidence rules: run the harness through `run-toolchain.sh` as above and link every result.
 
@@ -60,7 +61,7 @@ For a one-task spec (every light-path spec): write `report.md` as these five lin
   ```markdown
   # Report: <feature title>
 
-  - **Changed:** <what is different, in one sentence>; files: <the `files` list of budget-check.sh>; `<baseline_revision>`..`<head sha>`.
+  - **Changed:** <what is different, in one sentence>; files: <the `files` list of budget-check.sh>; size budget: <within | over: <n> of <max> changed files>; `<baseline_revision>`..`<head sha>`.
   - **Tests:** <the harness summary line> ([toolchain.txt](artifacts/sign-off-5.4/toolchain.txt)); <the 3.13–3.14 suite gap, or "both suites ran">.
   - **Findings:** <n> patched, <n> left open as known gaps, <n> dismissed over <n> review passes; failed review: <none | the review>. Detail in design-log.md.
   - **Known gaps:** <spec.md Known gaps, and the review's not_checked and not_verifiable lines, one phrase each | None.>
@@ -103,7 +104,7 @@ This is the one question sign-off puts to the stakeholder: it covers the work, t
    grep -n '^- \[open\]' .workflow/specs/work-backlog/NNN-slug.md 2>/dev/null
    ```
 
-3. **Present a short summary:** what changed, the verification and review result, what was deferred, the most important gap and the retrospective's draft verdict, with links to `report.md`, `proposals.md` and `retrospective-draft.md`. Then show the full text of `.workflow/specs/NNN-slug/pr-body.md`, as 5.8 will publish it apart from the spec path the move rewrites.
+3. **Present a short summary:** what changed, the verification and review result, what was deferred, the most important gap, a size budget the report shows over (with its figures) and the retrospective's draft verdict, with links to `report.md`, `proposals.md` and `retrospective-draft.md`. Then show the full text of `.workflow/specs/NNN-slug/pr-body.md`, as 5.8 will publish it apart from the spec path the move rewrites.
 4. **Ask, in this order.** First the assumptions not yet offered for veto, as [conventions](../references/conventions.md#asking-the-stakeholder) says, when there are any. Then:
    1. "Do you approve the work and this PR description?" with "Approve both (Recommended)", "Approve the work; change the PR description" (with the changes) and "No: change requested" (with the change).
    2. The proposals, asked only when `proposals.md` has a row. List every row as `P<n>`, its target (the file it writes) and a one-phrase gist, link `proposals.md` for the full text, and ask "Approve every proposal as written, or name exceptions?" with "Approve all (Recommended)". Exceptions are one per line:

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Suite: budget-check.sh (feature-workflow/scripts).
 # Covers: the size budget source (spec, rules.md block, default) and its errors, the PR/MR file set (merge-base with the
-#   target, origin/<target>, fallback to impl_base..HEAD), worktree --cwd, spec folder and backlog exclusion, harness and
+#   target, origin/<target>, fallback to impl_base..HEAD), no count before impl_base_revision is set, worktree --cwd, spec folder and backlog exclusion, harness and
 #   test exclusion (profile test_patterns), --predicted, and refusals (unknown revisions, missing tasks.md, no git, no yq).
 #   JRN-006: each spec folder form (relative, absolute in the main checkout or a worktree, run from a worktree, bare,
 #   absolute elsewhere, outside git) gives the exit code and message it gave before the shared normaliser.
@@ -88,9 +88,9 @@ BASE_SHA=$(git -C "$R" rev-parse HEAD)
 # The feature works on its spec branch; main stays at the baseline as the PR/MR target.
 git -C "$R" switch -q -c spec/007-eps
 yq --front-matter=process -i ".baseline_revision = \"$BASE_SHA\"" "$R/$E/spec.md"
-out=$(jb --spec-dir $E); eq "baseline=HEAD: 0 changed" "$(jq -r .changed_files <<<"$out")" 0
-eq "baseline only: fallback note" "$(jq -r '.note' <<<"$out" | grep -c 'impl_base_revision is not set')" 1
-eq "baseline only: basis" "$(jq -r .basis <<<"$out")" baseline_revision
+out=$(jb --spec-dir $E); eq "baseline only: changed files not counted" "$(jq -r .changed_files <<<"$out")" null
+eq "baseline only: note names impl_base_revision" "$(jq -r '.note' <<<"$out" | grep -c 'impl_base_revision (3.1) is not captured')" 1
+eq "baseline only: basis null" "$(jq -r .basis <<<"$out")" null
 yq --front-matter=process -i ".impl_base_revision = \"$BASE_SHA\"" "$R/$E/spec.md"
 out=$(jb --spec-dir $E); eq "impl_base=HEAD: 0 changed" "$(jq -r .changed_files <<<"$out")" 0
 eq "impl_base: no note" "$(jq -r 'has("note")' <<<"$out")" false
@@ -173,8 +173,16 @@ t "malformed test_patterns -> 1"            1 BC --spec-dir $E --predicted
 yq --front-matter=process -i 'del(.tasks[].size) | del(.tasks[].predicted_files)' "$R/$E/tasks.md"
 yq --front-matter=process -i '.impl_base_revision = "deadbeef"' "$R/$E/spec.md"
 t "unknown impl_base -> 1"                  1 BC --spec-dir $E
-yq --front-matter=process -i 'del(.impl_base_revision) | .baseline_revision = "deadbeef"' "$R/$E/spec.md"
-t "unknown baseline (fallback) -> 1"        1 BC --spec-dir $E
+# Before 3.1 the baseline is never a count base: 3 files changed on the spec branch (over max 2) are not counted.
+yq --front-matter=process -i "del(.impl_base_revision) | .baseline_revision = \"$BASE_SHA\"" "$R/$E/spec.md"
+t "impl_base unset, files over: within (not counted)" 0 BC --spec-dir $E
+out=$(jb --spec-dir $E)
+eq "impl_base unset: changed_files null, over empty" "$(jq -c '[.changed_files, .over, .basis]' <<<"$out")" '[null,[],null]'
+eq "impl_base unset: no stderr warning" "$(BC --spec-dir $E 2>&1 >/dev/null)" ""
+yq --front-matter=process -i '.budget.max_tasks = 1' "$R/$E/spec.md"
+t "impl_base unset, tasks over -> 2"        2 BC --spec-dir $E
+yq --front-matter=process -i '.budget.max_tasks = 5 | .baseline_revision = "deadbeef"' "$R/$E/spec.md"
+t "unknown baseline not read -> 0"          0 BC --spec-dir $E
 yq --front-matter=process -i ".baseline_revision = \"$BASE_SHA\" | .impl_base_revision = \"$BASE_SHA\"" "$R/$E/spec.md"
 mv "$R/$E/tasks.md" "$F/eps-tasks.md"
 t "missing tasks.md -> 1"                   1 BC --spec-dir $E
