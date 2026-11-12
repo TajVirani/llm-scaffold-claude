@@ -142,6 +142,17 @@ make_fixture_repo() {
   git_commit_all "$1" init
 }
 
+# install_gitignore_lines : print the lines install.sh writes into a target project's .gitignore, read from install.sh itself,
+#   so a fixture ignores every workflow file the installed block would, including any line the block gains later.
+install_gitignore_lines() {
+  (
+    # shellcheck source=../../.agents/lib/workflow-paths.sh
+    . "$AGENTS_SRC/lib/workflow-paths.sh"
+    eval "$(grep '^GI_ENTRIES=' "$REPO_ROOT/install.sh")"
+    printf '%s\n' "${GI_ENTRIES[@]}"
+  )
+}
+
 # Exported locations of the components under test.
 FW_SKILL="$AGENTS_SRC/skills/feature-workflow"
 HOOKS_DIR="$AGENTS_SRC/hooks"
