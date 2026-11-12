@@ -26,9 +26,8 @@ The three facts (all must be clean for the light path):
   ST step .workflow/specs/NNN-slug 0.3.20
   # Read the project defaults from .workflow/rules.md "## Size budget":
   awk '/^## /{f=($0 ~ /^## Size budget[[:space:]]*$/); next} f && /^```ya?ml/{y=1; next} y && /^```/{exit} y' .workflow/rules.md | yq -o=json '.size_budget'
-  # Edit the spec.md frontmatter line to `budget: {max_tasks: <n>, max_changed_files: <n>}` with those values,
-  # unless the stakeholder agreed other values (log them in design-log.md). No block in rules.md: keep the template's 10 / 30.
-  # Leave status and every other key alone.
+  # Edit the spec.md frontmatter line to `budget: {max_tasks: <n>, max_changed_files: <n>}` with those values, without asking.
+  # No block in rules.md: keep the template's 10 / 30. Leave status and every other key alone.
   # Write .workflow/specs/NNN-slug/tasks/T01-<slug>.md from ../assets/task.md (what to build, seam,
   #   acceptance criteria from the capability's success line, predicted files, size, mode, notes).
   # Read the Shared core paths, for the task record's touches_core:

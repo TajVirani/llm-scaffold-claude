@@ -28,8 +28,9 @@
 #     exists and is not checked out, else from the working tree, else from origin/initiative/NNN-slug; never by switching branches.
 #     An initiative.md that cannot be read is listed as unreadable, and one found in none of those places as missing; neither is skipped.
 #   - The text ends with the next action: load the feature-workflow skill for the chosen spec, which routes by spec.md status; a blocked spec
-#     needs its blocked_condition resolved by a human first; an initiative resumes through feature-workflow's large path.
-#   - A blocked spec whose blocked_condition starts with `discovered work:` or `size budget:` is flagged "discovered-work prompt pending".
+#     needs its blocked_condition resolved by a human first (except a size budget one); an initiative resumes through feature-workflow's large path.
+#   - A blocked spec whose blocked_condition starts with `discovered work:` is flagged "discovered-work prompt pending"; one starting
+#     `size budget:` (an older version) is flagged as resuming without a ruling.
 #   - .workflow/specs/work-backlog/ is not a spec folder and is skipped by the scan. Its open items are summarised as a count plus up to 5 names,
 #     and alone are enough to produce output: each `- [open] B<n> ...` line of a spec's backlog list <NNN-slug>.md (named <NNN-slug>.md#B<n>).
 #     A list may be named old_<NNN-slug>.md, the name adopting an issue tracker gives a Done spec's list, matching the names the write guard
@@ -248,7 +249,8 @@ for spec in ${specs[@]+"${specs[@]}"}; do
     [ -n "$status" ] || status="(none)"
     entry="- $slug$where: status $status; $(step_text "$dir/.step")"
     case "$bc" in
-      "discovered work:"* | "size budget:"*) entry+="; discovered-work prompt pending (the user has not yet answered it)" ;;
+      "discovered work:"*) entry+="; discovered-work prompt pending (the user has not yet answered it)" ;;
+      "size budget:"*) entry+="; size-budget block from an older version: resumes without a ruling" ;;
     esac
     [ -z "$bc" ] || entry+="; blocked_condition: $bc"
   fi
@@ -308,7 +310,7 @@ if [ $((listed + omitted + i_n)) -eq 0 ]; then
   exit 0
 fi
 if [ $((listed + omitted)) -gt 0 ]; then
-  text+="Offer the user to resume one of these. To resume, load the feature-workflow skill for that spec: it reads the spec.md status and loads the module for that phase, continuing from the current step. A spec that runs in another checkout is resumed there: move the session into that checkout first (on Claude Code, the EnterWorktree tool with its path; elsewhere, reopen the session in it). A blocked spec needs its blocked_condition resolved by a human first; for a discovered work or size budget condition, the pending prompt is answered in the feature-workflow discovered-work module."
+  text+="Offer the user to resume one of these. To resume, load the feature-workflow skill for that spec: it reads the spec.md status and loads the module for that phase, continuing from the current step. A spec that runs in another checkout is resumed there: move the session into that checkout first (on Claude Code, the EnterWorktree tool with its path; elsewhere, reopen the session in it). A blocked spec needs a human to resolve its blocked_condition first, unless it is a size budget one; a discovered work prompt is answered in the feature-workflow discovered-work module."
   [ "$i_n" -eq 0 ] || text+=" $INITIATIVE_RESUME"
 else
   text+="Offer the user to resume one of these. $INITIATIVE_RESUME"

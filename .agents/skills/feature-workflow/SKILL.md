@@ -58,7 +58,7 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 
 | Status | `.step` / condition | Load | Resume at |
 | --- | --- | --- | --- |
-| `draft` | step in 0.3.8–0.3.19, or a loop-back step (0.6, 2.2, 2.3, 4.5, 4.6, 5.6, 00.24, 00.29) | [questioning-loop](modules/questioning-loop.md) | 0.3.8 (recompute the frontier from `design-log.md`) |
+| `draft` | step in 0.3.8–0.3.19, or a loop-back step (0.6, 2.2, 2.3, 4.5, 4.6, 5.6, 00.24; 00.29 from an older version) | [questioning-loop](modules/questioning-loop.md) | 0.3.8 (recompute the frontier from `design-log.md`) |
 | `draft` | step 0.3.20, or in 0.4.x or 0.5.x | [discovery-impact](modules/discovery-impact.md) | the step in `.step` |
 | `draft` | any other step, or no marker | [discovery](modules/discovery.md) | the step in `.step`; 0.1.6 when there is none |
 | `ready-for-dev` | `light_path: true` | [implementation-setup](modules/implementation-setup.md) | 3.1 |
@@ -70,7 +70,8 @@ cat .workflow/specs/NNN-slug/.step 2>/dev/null   # step, updated_at, blocked_fro
 | `in-review` | any task record `in-progress` (a rework under way), whatever the step | [implementation-waves](modules/implementation-waves.md) | its Rework entry (4.7): relaunch the reopened tasks, then back to review-triage |
 | `in-review` | step in 5.x | sign-off | the step in `.step` (order 5.1, 5.2, 5.4, 5.5, then 5.3, 5.9, 5.7, 5.8) |
 | `in-review` | otherwise | review-triage | the 4.x step in `.step`, else 4.1 (4.10 on the light path) |
-| `blocked` | `blocked_condition` starts `discovered work:` or `size budget:` | [discovered-work](modules/discovered-work.md) | its "Resuming a blocked spec here" section (00.22 or 00.28) |
+| `blocked` | `blocked_condition` starts `discovered work:` | [discovered-work](modules/discovered-work.md) | its "Resuming a blocked spec here" section (00.22 or 00.28) |
+| `blocked` | `blocked_condition` starts `size budget:` (an older version) | none; no ruling needed | [Blocked](#blocked): back to `blocked_from` at 00.28 |
 | `blocked` | any other condition | none until a human resolves it | see [Blocked](#blocked) |
 | `done` | any | none | Read it as context only, from `.workflow/specs/done/NNN-slug/` once 5.8 has moved it. A new change to a finished feature is new work: size it. |
 
@@ -82,7 +83,7 @@ Tell the stakeholder where you are resuming, led by the [progress line](referenc
 
 `blocked` is a routing signal: work stops until a human acts.
 
-A `discovered work:` or `size budget:` condition belongs to [discovered-work](modules/discovered-work.md), which resumes the 00.21–00.29 protocol. For any other condition:
+A `discovered work:` condition belongs to [discovered-work](modules/discovered-work.md), which resumes the 00.21–00.28 protocol. A `size budget:` condition, left by an older workflow version, needs no ruling: return to `blocked_from` with `.agents/skills/feature-workflow/scripts/status-transition.sh status .workflow/specs/NNN-slug <blocked_from> --step 00.28`, then route again by the table. For any other condition:
 
 1. Show `blocked_condition` from `spec.md` and `blocked_from` from `.step`, and ask the stakeholder to resolve the condition.
 2. Once they confirm it is resolved:

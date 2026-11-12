@@ -8,7 +8,7 @@ Three lenses review the whole change independently (one combined review on the l
 
 Phase 4 runs once per **pass**. Read `.workflow/specs/NNN-slug/design-log.md` before launching anything:
 
-- **Pass number** `n`: the count of `Triage, review pass` entries written since the last `Outcome: loop back (...)` line of any kind, plus one: a triage pass's own (4.5, 4.6, 00.24) or the one a Discovered work entry ends with (`00.24 discovered work`, `00.29 budget re-scope`). A loop back to 0.3.8 starts a new review cycle at pass 1.
+- **Pass number** `n`: the count of `Triage, review pass` entries written since the last `Outcome: loop back (...)` line of any kind, plus one: a triage pass's own (4.5, 4.6, 00.24) or the one a Discovered work entry ends with (`00.24 discovered work`). A loop back to 0.3.8 starts a new review cycle at pass 1.
 - **Rework used**: the count of `Outcome: rework` lines in the whole file. The ceiling is 5, and it never resets.
 - **Next finding id**: the highest `F<n>` in the file plus one. Finding ids are unique across the feature.
 

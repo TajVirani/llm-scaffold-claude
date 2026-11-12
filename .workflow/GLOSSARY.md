@@ -175,11 +175,11 @@ Work found outside a spec's agreed scope while the feature is under way. Agents 
 _Avoid_: Scope creep, side quest
 
 **Work backlog**:
-The project-level folder of discovered work the user kept for later: one list per spec, one line per item, each a candidate next feature. Nothing goes on it without the user's ruling.
+The project-level folder of discovered work the user kept for later, and of pieces a size-budget split moved out of a spec: one list per spec, one line per item, each a candidate next feature. Nothing goes on it without the user's ruling.
 _Avoid_: Deferred shelf, issue tracker
 
 **Size budget**:
-The soft limit on a spec's task count and changed-file count. The changed-file count is the review load of the feature's PR/MR: files a reviewer sees against the main branch that changed since Phase 3 began, minus tests. Crossing it stops the work for a ruling: split, re-scope or approve the overrun.
+The soft limit on a spec's task count and changed-file count. The changed-file count is the review load of the feature's PR/MR: files a reviewer sees against the main branch that changed since Phase 3 began, minus tests. It keeps a spec's tasks scoped and never stops in-scope work: a breakdown predicted over it is offered a split in the breakdown quiz, and an overrun during the build is logged and reported at sign-off.
 _Avoid_: Quota, cap
 
 ## Relationships
@@ -187,7 +187,7 @@ _Avoid_: Quota, cap
 - A **Work type** has exactly one **Work profile**; a launch's **Work profile** is chosen from the task's **Work type**.
 - A **Task type** is resolved to a model through the **Model map**, using the **Launch header**.
 - **Discovered work** the user keeps for later becomes one line on its spec's list in the **Work backlog**; out-of-scope items found during discovery go through a **Deferred handoff** instead.
-- A crossed **Size budget** is handled like **Discovered work**.
+- A **Size budget** split agreed in the breakdown quiz puts each piece that leaves on its spec's list in the **Work backlog**.
 - The **Deeper prompt** is the input from which the questioning loop computes its first **Frontier**.
 - Each task has one **Task file** and one **Task branch**, on every path; every **Task branch** forks from and merges into the spec's one **Spec branch**.
 - A **Large path** runs on exactly one **Initiative** and emits one or more specs; each emitted spec takes the **Light path** or the **Full path**.

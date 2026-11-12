@@ -99,8 +99,8 @@ t "spec.md from worktree, main session"     0 CW --cwd "$WT" --path "$WT/.workfl
 t "spec.md worktree sub-agent deny"         2 CW --cwd "$WT" --path "$WT/.workflow/specs/002-beta/spec.md" --agent a1
 ST step $B 0.3.7 >/dev/null
 t "spec.md at 0.3.7 deny"                   2 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md
-for s in 1.2 2.6 3.3 3.11 3.15 3.16 4.5 4.7 4.8 5.7 00.19 00.21 00.26 00.28; do ST step $B $s >/dev/null; t "spec.md at $s deny" 2 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
-for s in 0.1.4 0.3.17 0.3.20 1.1 2.5 3.1 3.14 4.6 5.3 5.9 00.29; do ST step $B $s >/dev/null; t "spec.md at $s allow (widened)" 0 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
+for s in 1.2 2.6 3.3 3.11 3.15 3.16 4.5 4.7 4.8 5.7 00.19 00.21 00.26 00.28 00.29; do ST step $B $s >/dev/null; t "spec.md at $s deny" 2 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
+for s in 0.1.4 0.3.17 0.3.20 1.1 2.5 3.1 3.14 4.6 5.3 5.9; do ST step $B $s >/dev/null; t "spec.md at $s allow (widened)" 0 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
 for s in 0.1.6 0.5.1 5.1; do ST step $B $s >/dev/null; t "spec.md at $s allow" 0 CW --cwd "$R" --path .workflow/specs/002-beta/spec.md; done
 t "spec.md of feature without marker deny"  2 CW --cwd "$R" --path .workflow/specs/004-new/spec.md
 cp "$R/$B/spec.md" "$F/proposed-ok.md"; echo "more" >> "$F/proposed-ok.md"

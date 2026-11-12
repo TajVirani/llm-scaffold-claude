@@ -23,7 +23,7 @@
 #                                                   in-flight scan below ignore it.
 #   spec     .workflow/specs/*/.step                          deny always. Only status-transition.sh writes the marker.
 #   spec     .workflow/specs/*/spec.md                        deny sub-agents. Main session: allow only when that spec's .step names
-#                                                   0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9 or 00.29,
+#                                                   0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3 or 5.9,
 #                                                   and (with --proposed) status/blocked_condition are unchanged (a new file must say status: draft).
 #   spec     .workflow/specs/*/tasks.md,                      deny sub-agents. Main session: allow only when that spec's .step names 2.5 or 0.3.20
 #            .workflow/specs/*/tasks/** (per-task bodies,    (creating or replacing the file); otherwise point at status-transition.sh set-task,
@@ -68,9 +68,9 @@ PROG=check-write.sh
 # spec.md writers by step: 0.1.6/0.3.19/0.5.1/5.1 (the core spec steps), 0.1.4 (creation), 0.3.17 (deferred[]),
 # 1.1 and 3.1 (baseline_revision: full path at 1.1, light path at 3.1), 3.14 (Known gaps, deferred[]),
 # 4.6 (followup_review_recommended), 5.3 (provisional capability ids rewritten),
-# 0.3.20 and 2.5 (budget written with tasks.md), 00.29 (budget raised after an approved overrun),
+# 0.3.20 and 2.5 (budget written with tasks.md),
 # 5.9 (a backlog item moved to the deferred shelf adds to deferred[]).
-SPEC_STEPS="0.1.4 0.1.6 0.3.17 0.3.19 0.3.20 0.5.1 1.1 2.5 3.1 3.14 4.6 5.1 5.3 5.9 00.29"
+SPEC_STEPS="0.1.4 0.1.6 0.3.17 0.3.19 0.3.20 0.5.1 1.1 2.5 3.1 3.14 4.6 5.1 5.3 5.9"
 TASKS_STEPS="2.5 0.3.20"
 BACKLOG_STEPS="00.26 5.9"                         # work-backlog items (origin spec's .step)
 BACKLOG_SEED_STEP="0.1.4"                         # newest .step of any spec (new spec seeded from an item)

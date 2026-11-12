@@ -4,7 +4,7 @@
 # Covers: audit block / loop counter / give-up / evidence in the checkout an isolation worktree sits in, phase-1 and malformed headers,
 #   a passing self-run reused by the stop audit;
 #   rules.md -> boundary config sync (block on parse error, missing yq, worktree); resume offer listing,
-#   discovered-work and size-budget prompts, work-backlog count (the open lines of each spec's backlog list), output cap.
+#   discovered-work prompts (an older size-budget block flagged as resuming without a ruling), work-backlog count (the open lines of each spec's backlog list), output cap.
 # The three share one fixture project, so the sections run in order.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -263,7 +263,9 @@ bl() { printf -- '---\nstatus: blocked\nblocked_condition: "%s"\n---\n' "$1" > "
 bl "discovered work: login-bug"
 check "discovered work blocked -> prompt pending" 'grep -q "002-dw: status blocked.*discovered-work prompt pending.*blocked_condition: discovered work: login-bug" <<<"$ctx"' "$ctx"
 bl "size budget: 12 tasks"
-check "size budget blocked -> prompt pending" 'grep -q "discovered-work prompt pending" <<<"$ctx"' "$ctx"
+check "an older size budget block has no pending prompt and resumes without a ruling" \
+  '! grep -q "002-dw.*prompt pending" <<<"$ctx" && grep -q "002-dw: .*size-budget block from an older version: resumes without a ruling.*blocked_condition: size budget: 12 tasks" <<<"$ctx"' "$ctx"
+check "the resume text says a size budget condition needs no ruling" 'grep -q "unless it is a size budget one" <<<"$ctx"' "$ctx"
 bl "intent gap"
 check "other blocked condition -> no pending note" '! grep -q "002-dw.*prompt pending" <<<"$ctx"' "$ctx"
 { printf '%s\n\n' "# Work backlog: 001-demo"

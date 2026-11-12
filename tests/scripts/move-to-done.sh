@@ -159,19 +159,20 @@ OTHER_LIST="$P/.workflow/specs/work-backlog/013-beta.md"
 printf '%s\n' "# Work backlog: 012-alpha" "" \
   "- [open] B1 bug (4.4): A suite hangs when stdin is a terminal. Evidence: bash tests/run-all.sh </dev/tty: no exit after 60 s." \
   "- [promoted] B2 requirement (3.7): Reports cannot be exported. Evidence: spec.md CAP-002 names no export. -> .workflow/specs/014-gamma" \
-  "- [open] B3 budget-split (00.29, split out of T4, T5): The export task. Evidence: budget-check.sh over by 2 files." >"$LIST"
+  "- [open] B3 budget-split (00.29, split out of T4, T5): The export task. Evidence: budget-check.sh over by 2 files." \
+  "- [open] B7 budget-split (2.1): The import slice, split off in the breakdown quiz. Evidence: predicted 12 tasks against max_tasks 10." >"$LIST"
 printf '%s\n' "# Work backlog: 013-beta" "" "- [in-progress] B1 bug (4.4): x. Evidence: y." >"$OTHER_LIST"
 mtd "$P" --check "$DONE_SPEC"
-eq "D105 --check passes with open, promoted and split lines on the spec's list" "$RC" 0
+eq "D105 --check passes with open, promoted and split lines (an older 00.29 split and a breakdown-quiz split) on the spec's list" "$RC" 0
 printf '%s\n' "- [in-progress] B4 bug (4.4): A probe fails. Evidence: bash probe.sh exits 1." "- B5 a note with no status" \
   "- [open] B6 bug (4.4): Says what is wrong but gives no proof." >>"$LIST"
 mtd "$P" --check "$DONE_SPEC"
 check "D105 --check names a list line with a status outside open and promoted" \
-  '[[ $RC == 1 && $OUT == *"open: backlog line .workflow/specs/work-backlog/012-alpha.md:6 (in-progress)"* ]]' "rc=$RC: $OUT"
+  '[[ $RC == 1 && $OUT == *"open: backlog line .workflow/specs/work-backlog/012-alpha.md:7 (in-progress)"* ]]' "rc=$RC: $OUT"
 check "D105 --check names a line with no status, and an open line with no evidence, as malformed" \
-  '[[ $OUT == *"012-alpha.md:7 (malformed)"* && $OUT == *"012-alpha.md:8 (malformed)"* ]]' "$OUT"
+  '[[ $OUT == *"012-alpha.md:8 (malformed)"* && $OUT == *"012-alpha.md:9 (malformed)"* ]]' "$OUT"
 check "D105 --check names no well-formed line and nothing from another spec's list" \
-  '[[ $OUT != *"012-alpha.md:3"* && $OUT != *"012-alpha.md:4"* && $OUT != *"012-alpha.md:5"* && $OUT != *013-beta.md* ]]' "$OUT"
+  '[[ $OUT != *"012-alpha.md:3"* && $OUT != *"012-alpha.md:4"* && $OUT != *"012-alpha.md:5"* && $OUT != *"012-alpha.md:6"* && $OUT != *013-beta.md* ]]' "$OUT"
 rm -f "$LIST" "$OTHER_LIST"
 
 git_commit_all "$P" "fixture: every record of 012-alpha closed"

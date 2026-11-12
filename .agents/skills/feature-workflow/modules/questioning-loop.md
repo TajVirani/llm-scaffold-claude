@@ -19,7 +19,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
    | 4.5 / 4.6 | review-triage | `ST status .workflow/specs/NNN-slug draft --step 4.5` or `--step 4.6` | The triage finding `F<n>` that needs a decision, or the upstream problem the third pass exposed |
    | 5.6 | the router (5.6) | `ST status .workflow/specs/NNN-slug draft --step 5.6` | The stakeholder's change request, verbatim |
    | 00.24 | discovered-work | `ST status .workflow/specs/NNN-slug draft --step 00.24` (from `blocked` only) | The discovered problem and its evidence, from the newest **Discovered work** entry in `design-log.md` |
-   | 00.29 (budget re-scope) | discovered-work | `ST status .workflow/specs/NNN-slug draft --step 00.29` (from `blocked` only) | The size-budget crossing and the reduction the stakeholder wants, from the newest **Discovered work** entry in `design-log.md` |
+   | 00.29 (a budget re-scope by an older workflow version) | none | none (already `draft`) | The size-budget crossing and the reduction the stakeholder wants, from the newest **Discovered work** entry in `design-log.md` |
 
 ## The round
 

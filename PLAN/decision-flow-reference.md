@@ -17,7 +17,7 @@ Several parts of this flow are adapted from other projects. When building the wo
 | **anti-slop**: https://github.com/dmmulroy/anti-slop | The principle behind 3.5: reject low-evidence code mechanically before any agent reviews it. Its Oxlint rule set is the starting point for every TypeScript or JavaScript profile's lint. | `project-setup` fetches the rules at a pinned commit at setup time instead of bundling them (D42), as a step inside that skill, not a call to upstream's install skill (D10). Each profile's toolchain names the rules it turns on. |
 | **Diagram.md** (this project) | The original stage spine. | Not kept in the repo. |
 
-Our own contributions: the placement-before-requirements gate (0.3.3); the three inline term gates (0.2.2, 0.3.14, 0.4.2); the shelf, `.workflow/deferred/`, with one file per concept, back-links and archival (00.8–00.10); the defer-to-deep-dive option (0.3.12–0.3.13); the known-bad-build test for both suites (1.4); the model table and launch validation (00.11–00.14); work profiles injected by work type, with a tool audit and then a mini-review (00.16–00.20, 3.5–3.8); `spec.md` as the feature map with one writer; the discovered-work protocol (00.21–00.29); the one sign-off ask (5.5).
+Our own contributions: the placement-before-requirements gate (0.3.3); the three inline term gates (0.2.2, 0.3.14, 0.4.2); the shelf, `.workflow/deferred/`, with one file per concept, back-links and archival (00.8–00.10); the defer-to-deep-dive option (0.3.12–0.3.13); the known-bad-build test for both suites (1.4); the model table and launch validation (00.11–00.14); work profiles injected by work type, with a tool audit and then a mini-review (00.16–00.20, 3.5–3.8); `spec.md` as the feature map with one writer; the discovered-work protocol (00.21–00.28); the one sign-off ask (5.5).
 
 ## Build inventory
 
@@ -51,7 +51,7 @@ A spec folder is `.workflow/specs/NNN-slug/`. From 1.1 on (0.3.20 on the light p
 
 | File | Node | Written at | Notes |
 | --- | --- | --- | --- |
-| `spec.md` | 0.1.4 | 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9, 00.29 | Frontmatter: `status`, `tracker_issue`, `light_path`, `spec_branch`, `baseline_revision`, `impl_base_revision`, `budget`, `deferred`, `followup_review_recommended`, `blocked_condition`, `origin` (a seeded backlog line), `initiative` (a spec an initiative emitted). `status` and `blocked_condition` change only through `status-transition.sh`. |
+| `spec.md` | 0.1.4 | 0.1.4, 0.1.6, 0.3.17, 0.3.19, 0.3.20, 0.5.1, 1.1, 2.5, 3.1, 3.14, 4.6, 5.1, 5.3, 5.9 | Frontmatter: `status`, `tracker_issue`, `light_path`, `spec_branch`, `baseline_revision`, `impl_base_revision`, `budget`, `deferred`, `followup_review_recommended`, `blocked_condition`, `origin` (a seeded backlog line), `initiative` (a spec an initiative emitted). `status` and `blocked_condition` change only through `status-transition.sh`. |
 | `.step` (gitignored) | — | every step change, by `status-transition.sh` only | The current step, a timestamp, a `seq` number that orders markers (D125), and `blocked_from` while the spec is `blocked`. Read by the write guard. Never written with Write or Edit. |
 | `codebase-map.md` | 0.2.6 | 0.2.6, 0.4.6, and a later library evaluation | Agent extracts only: affected area, relevant code, seams and interfaces, prior decisions, library options (or one `Not evaluated:` line), module audit, not found. |
 | `design-log.md` | 0.3.21 | every round and event | Append-only. Entry shapes in `.agents/skills/feature-workflow/assets/design-log.md`: Deeper prompt, Questioning round, Deep dive, Placement, Scope decision, Assumed, Impact classification, Breakdown quiz, Discovered work, Triage review pass, Sign-off, Origin. |
@@ -144,14 +144,14 @@ Called by the step files and the hooks. Each lives in the `scripts/` folder of t
 | `open-task-pr.sh` | Pushes a task branch and opens its PR/MR into the spec branch, per `task_review`. | 3.16, 6.11 |
 | `rules-setting.sh` | Reads one setting from the `## Workflow settings` block of `.workflow/rules.md`. | 1.1, 3.16, 5.4, 5.8 |
 | `task-waves.sh` | Derives the waves from `tasks.md`, with predicted-file overlaps as implied edges. | 2.5 |
-| `budget-check.sh` | Read-only. Compares the task count and the changed or predicted files with the spec's `budget` (D58, D85, D87); exit 2 when over. | 2.6, 3.15 |
+| `budget-check.sh` | Read-only. Compares the task count and the changed or predicted files with the spec's `budget` (D58, D85, D87); exit 2 when over. | 2.6 (`--predicted`), 3.15, 5.4 |
 | `check-review-findings.sh` | Checks one lens's pass file and prints a bounded table of its findings (D93). | 4.4 |
 | `review-lessons.sh` | Checks `.workflow/review-lessons.md` against its entry rules, or prints the next id. | 5.7 |
 | `check-pr-body.sh` | Checks the shape of `pr-body.md`. | 5.4, 5.8 |
 | `move-to-done.sh` | `--check` lists open task records and backlog lines; without it, moves the spec into the Done folder, deletes `.step` and rewrites the spec's path in the `.workflow/` files that name it. | 5.7, 5.8 |
 | `step-progress.sh` | Prints the progress line for a step from `steps.tsv` (D84). | all counted steps |
 | `check-comments.sh` | The comment lint for shell files (D106). | 3.5 (shell profiles) |
-| `.agents/skills/issue-tracking/scripts/issue-tracker.sh` | Files, fills and moves tracker issues; prints `skipped: no tracker` without one. | 0.1.1, 0.3.19, 0.3.20, 0.6, 2.5, 3.1, 3.3, 3.16, 5.8 |
+| `.agents/skills/issue-tracking/scripts/issue-tracker.sh` | Files, fills and moves tracker issues; prints `skipped: no tracker` without one. | 0.1.1, 0.3.19, 0.3.20, 0.6, 2.6, 3.1, 3.3, 3.16, 5.8 |
 | `.agents/skills/domain-modeling/scripts/term-list.sh` | Prints the glossary term list, or one entry. | 0.2.1 |
 | `.agents/skills/project-setup/scripts/generate-boundary-config.sh` | Turns the `rules.md` YAML blocks into import-boundary config (D20). | 00.3, 5.3 |
 
@@ -182,7 +182,7 @@ The workflow's entry points are skills only (D27). `feature-workflow` is the rou
 
 **Numbering**
 
-- `00.x`: persistent artifacts that outlive any single feature, and the shared processes around them (the shelf 00.8–00.10, the model table 00.11–00.14, profiles 00.16–00.20, discovered work 00.21–00.29).
+- `00.x`: persistent artifacts that outlive any single feature, and the shared processes around them (the shelf 00.8–00.10, the model table 00.11–00.14, profiles 00.16–00.20, discovered work 00.21–00.28).
 - `0.0.x`: intake, before a feature folder exists.
 - `0.x.y`: Phase 0, substage `x`, node `y`; `0.6` is the Phase 0 exit gate.
 - `1.x` to `5.x`: Phases 1 to 5.
@@ -254,18 +254,18 @@ Three stores are keyed by "what kind of work is this". They answer different que
 
 | Status | Set at | Meaning |
 | --- | --- | --- |
-| `draft` | 0.1.4; again on every loop back to 0.3.8 (0.6 before 1.1 starts, 2.2, 2.3, 4.5, 4.6, 5.6, 00.24, 00.29) (D49) | Discovery under way. |
+| `draft` | 0.1.4; again on every loop back to 0.3.8 (0.6 before 1.1 starts, 2.2, 2.3, 4.5, 4.6, 5.6, 00.24) (D49) | Discovery under way. |
 | `ready-for-dev` | 0.6 or 0.3.20 | Discovery complete enough to build. |
 | `in-progress` | 3.1 | Implementation under way. |
 | `in-review` | 3.11, or 3.14 on a light path missing a suite; 5.1 from `blocked` (D47) | Review and sign-off under way. |
 | `done` | 5.7, from `in-review` only | Approved, retrospective recorded; 5.8 then moves the folder to the Done folder. |
 | `blocked` | any halt, with `blocked_condition` | Cannot safely continue without a human. |
 
-`blocked` is a routing signal. Conditions include: the rework ceiling hit with verified high findings open (4.7; otherwise the spec stays `in-review`, D48); suites that cannot be made to fail (1.4); a task whose work type has no profile and no human to define one (00.19); a Phase 1 build or task that cannot work inside its worktree; a blocker or a crossed size budget while the discovered-work protocol runs (00.21).
+`blocked` is a routing signal. Conditions include: the rework ceiling hit with verified high findings open (4.7; otherwise the spec stays `in-review`, D48); suites that cannot be made to fail (1.4); a task whose work type has no profile and no human to define one (00.19); a Phase 1 build or task that cannot work inside its worktree; a blocker while the discovered-work protocol runs (00.21).
 
-**Legal spec transitions** (enforced by `status-transition.sh`): `draft` → `ready-for-dev` (0.6, 0.3.20); `ready-for-dev` → `in-progress` (3.1); `in-progress` → `in-review` (3.11, 3.14); `ready-for-dev` or `in-review` → `draft` on a loop back (D49); `in-review` → `blocked` (4.7); any status → `blocked` on another halt, with `blocked_from` in `.step`; `blocked` → `in-review` at 5.1; `blocked` → `draft` at 00.24 or 00.29; `blocked` → the status in `blocked_from` once a human resolves the condition (00.28); `in-review` → `done` (5.7). There is no `in-progress` → `draft`: Phase 3 reaches discovery only through a blocker at 00.24.
+**Legal spec transitions** (enforced by `status-transition.sh`): `draft` → `ready-for-dev` (0.6, 0.3.20); `ready-for-dev` → `in-progress` (3.1); `in-progress` → `in-review` (3.11, 3.14); `ready-for-dev` or `in-review` → `draft` on a loop back (D49); `in-review` → `blocked` (4.7); any status → `blocked` on another halt, with `blocked_from` in `.step`; `blocked` → `in-review` at 5.1; `blocked` → `draft` at 00.24; `blocked` → the status in `blocked_from` once a human resolves the condition (00.28); `in-review` → `done` (5.7). There is no `in-progress` → `draft`: Phase 3 reaches discovery only through a blocker at 00.24.
 
-**Task statuses** (written only by `set-task`, D45): `pending` → `in-progress` at 3.3; `in-progress` → `done` at the 3.16 merge; `done` → `in-progress` only for a 3.9 or 3.11 failure or a 4.7 rework; any open status → `blocked` on a halt and back once resolved; `pending` → `split-out` (terminal) at 00.29 (D68). Nothing launches, counts or reviews a `split-out` task.
+**Task statuses** (written only by `set-task`, D45): `pending` → `in-progress` at 3.3; `in-progress` → `done` at the 3.16 merge; `done` → `in-progress` only for a 3.9 or 3.11 failure or a 4.7 rework; any open status → `blocked` on a halt and back once resolved; `split-out` (terminal) is no longer set, but records an older version wrote at a budget split are still read (D68). Nothing launches, counts or reviews a `split-out` task.
 
 ## Asking the stakeholder
 
@@ -277,7 +277,7 @@ Three stores are keyed by "what kind of work is this". They answer different que
 - **Launch before asking.** Before a blocking ask, every sub-agent whose input does not depend on the answer is launched, so the wait is not idle: retrieval beside the 0.2.2 term gate, fact lookups and an early module audit beside the 0.3.11 round, the 1.2 build beside the breakdown quiz, the rest of a wave before a `hitl` pause.
 - **Ride on an ask that happens anyway.** The deeper prompt's agreement and questions ride on the first round; the 0.3.19 summary rides on the last round; discovered-work items wait for the next blocking ask (00.25); sign-off asks once, at 5.5.
 
-## Discovered work: the scope-creep guardrail (00.21–00.29)
+## Discovered work: the scope-creep guardrail (00.21–00.28)
 
 *(Ours; D56–D58, D96, D102, D105.)* Work found outside the agreed scope while the feature is under way (a new requirement, a bug found along the way, a needed refactor, scope spreading into another module, a decision nobody in the session can answer) is never folded into the current spec or tasks. It is found in Phases 1–4. Agents report it, as a `discovered-work` status, finding category or `out_of_scope_noticed` line, and never fix it; the main session runs the protocol in `.agents/skills/feature-workflow/modules/discovered-work.md`. Out-of-scope work raised in Phase 0 goes through the scope gate 0.3.16–0.3.17 to the shelf instead.
 
@@ -288,13 +288,11 @@ Three stores are keyed by "what kind of work is this". They answer different que
 3. **Blocker?** A success line or a journey cannot be met without it, or continuing builds on something known to be wrong: **00.21**.
 4. **For the stakeholder.** Everything else that is proven (convoluted, scope-expanding or out of scope) gets a Discovered work entry with the ruling `to ask` and a recommendation, and the work continues at once.
 
-A size-budget report (2.6, 3.15) skips the assessment and goes straight to 00.21.
-
-The blocker path: **00.21** blocks the spec with `blocked_condition: "discovered work: <slug>"` or `"size budget: <what>"`; running tasks finish their gates, and nothing new launches or merges. **00.22** presents every blocker that has arrived in one call (problem, evidence, assessment, recommendation), together with the batched question and the assumptions not yet offered. **00.23** the stakeholder may overrule the assessment. **00.24** Yes sends the spec to discovery (`blocked` → `draft`, the problem is the first frontier question); No leaves it `blocked` until a human resolves it. Overruled to not a blocker, it is kept (00.26) or dropped. **00.28** restores the status in `blocked_from` and the work continues unchanged.
+The blocker path: **00.21** blocks the spec with `blocked_condition: "discovered work: <slug>"`; running tasks finish their gates, and nothing new launches or merges. **00.22** presents every blocker that has arrived in one call (problem, evidence, assessment, recommendation), together with the batched question and the assumptions not yet offered. **00.23** the stakeholder may overrule the assessment. **00.24** Yes sends the spec to discovery (`blocked` → `draft`, the problem is the first frontier question); No leaves it `blocked` until a human resolves it. Overruled to not a blocker, it is kept (00.26) or dropped. **00.28** restores the status in `blocked_from` and the work continues unchanged.
 
 The `to ask` path: **00.25** asks one question over every waiting item at the next blocking ask the session makes (a 00.22 presentation, a questioning round, the breakdown quiz, a `hitl` pause), or at the sign-off ask (5.5) at the latest. Each item is folded in (a scope change through 5.6 or the next round), kept for later (00.26) or dropped. **00.26** matches a kept item by concept against the shelf and every open backlog line: a shelf match gets one Later requests line, a match on this spec's list adds nothing, and no match appends a `B<n>` line to this spec's list, **00.27**. A shelf file is written only when the stakeholder asks for one.
 
-**00.29** handles a crossed size budget: Split (the remaining work becomes backlog lines through 00.26 and the pending tasks become `split-out`), Re-scope (`draft`, back to 0.3.8), or Approve the overrun (the spec's `budget` is raised, with the reason in `design-log.md`); Split and Approve then run 00.28.
+**The size budget is not discovered work.** It is never asked and never blocks: a breakdown predicted over it gets a split proposal in the 2.1 breakdown quiz (split pieces become `budget-split` backlog lines through 00.26; kept as one spec, 2.5 raises the budget), 2.6 runs only the predicted check and returns to that quiz when over, and an overrun at 3.15 is logged once and reported at sign-off (5.4).
 
 **Backlog versus shelf.** The shelf, `.workflow/deferred/` (00.8–00.10), holds work ruled out of scope during discovery (0.3.17), suite gaps (3.14), and items the stakeholder explicitly asked to shelve. The backlog, `.workflow/specs/work-backlog/` (00.27), holds work found while building that the stakeholder kept for later. A backlog line becomes a spec when sign-off starts it at 5.9 or the stakeholder picks it later: the new spec's 0.1.4 records `origin:` and marks the line `promoted`.
 
@@ -304,7 +302,7 @@ Fourteen nodes are sub-agent launches: 0.2.4, 0.2.5, 0.3.10, 0.4.6, 1.2, 1.3, 3.
 
 ## The questioning loop
 
-*(Matt Pocock, grilling; defer-to-deep-dive is ours.)* Nodes 0.3.8–0.3.19. Gates that route back into 0.3.8: 0.4.7, 0.6, 2.2, 2.3, 4.5, 4.6, 5.6, 00.24 and 00.29. Loop-backs skip 0.3.22, which runs on first entry only (D73). One pass computes the frontier, asks all of it in one round with recommended answers and a defer option, processes the answers, and recomputes or exits. A small request usually needs one round, with the 0.3.19 summary as its last question (D122).
+*(Matt Pocock, grilling; defer-to-deep-dive is ours.)* Nodes 0.3.8–0.3.19. Gates that route back into 0.3.8: 0.4.7, 0.6, 2.2, 2.3, 4.5, 4.6, 5.6 and 00.24. Loop-backs skip 0.3.22, which runs on first entry only (D73). One pass computes the frontier, asks all of it in one round with recommended answers and a defer option, processes the answers, and recomputes or exits. A small request usually needs one round, with the 0.3.19 summary as its last question (D122).
 
 ## Sizing
 
@@ -368,8 +366,8 @@ The one place a Tier A document enters a sub-agent's context whole. The hook ins
 
 ### Discovered work
 
-**00.21 — Block** · **00.22 — Present** · **00.23 — Blocker?** · **00.24 — Back to discovery?** · **00.25 — Batched ask** · **00.26 — Add the backlog line** · **00.27 — Backlog list** · **00.28 — Resume** · **00.29 — Size budget: split, re-scope or approve**
-See the Discovered work section above. Every report gets exactly one design-log record: an Unproven line, a Discovered work entry with its ruling, a duplicate line, or an overrun record; current work is recorded by its fix round or triage row.
+**00.21 — Block** · **00.22 — Present** · **00.23 — Blocker?** · **00.24 — Back to discovery?** · **00.25 — Batched ask** · **00.26 — Add the backlog line** · **00.27 — Backlog list** · **00.28 — Resume**
+See the Discovered work section above. Every report gets exactly one design-log record: an Unproven line, a Discovered work entry with its ruling, or a duplicate line; current work is recorded by its fix round or triage row.
 
 ---
 
@@ -419,7 +417,7 @@ The Phase 1 builds pass `work_type` explicitly in the header, the one exception 
 
 ## Phase 2 — Task breakdown
 
-**2.1 — Split into vertical slices** *(Matt Pocock)*: each slice in one module, with predicted files, a size (S, M or L; L is a split signal) and a mode (`afk` or `hitl`); a predicted-file overlap within a wave becomes an edge unless the stakeholder approves `parallel_with`. The quiz shows the waves table, carries 2.2, 2.3 and the budget, and is a blocking ask, so it also carries the batched discovered-work question. · **2.2 — Specifiable?** (No → `draft`, back to 0.3.8) · **2.3 — Interfaces under test agreed?** (No → `draft`, back to 0.3.8) · **2.4 — Modifies shared core?** (a request for `integration`) · **2.5 — Write tasks.md**: the budget into `spec.md`, one task file per slice, the index, every Phase 1 test assigned to exactly one task, the waves from `task-waves.sh`, and each task's tracker issue · **2.6 — Within the size budget?** (task count and predicted files, `budget-check.sh`). Yes → commit the breakdown on the spec branch. No → 00.21.
+**2.1 — Split into vertical slices** *(Matt Pocock)*: each slice in one module, with predicted files, a size (S, M or L; L is a split signal) and a mode (`afk` or `hitl`); a predicted-file overlap within a wave becomes an edge unless the stakeholder approves `parallel_with`. The quiz shows the waves table, carries 2.2, offers the assumed 2.3 seams for veto, proposes a split when the draft is predicted over the size budget (never asks the budget itself), and is a blocking ask, so it also carries the batched discovered-work question. · **2.2 — Specifiable?** (No → `draft`, back to 0.3.8) · **2.3 — Interfaces under test agreed?** (seams assumed and logged; No → `draft`, back to 0.3.8) · **2.4 — Modifies shared core?** (a request for `integration`) · **2.5 — Write tasks.md**: the project-default budget into `spec.md` (raised when the quiz kept an over-budget breakdown as one spec), one task file per slice, the index, every Phase 1 test assigned to exactly one task, and the waves from `task-waves.sh` · **2.6 — Within the size budget?** (task count and predicted files, `budget-check.sh --predicted`). Yes → file each task's tracker issue, then commit the breakdown on the spec branch. No → back to the 2.1 quiz with a split proposal, never a block.
 
 ---
 
@@ -453,7 +451,7 @@ When every failing item is a readable-code or wording fix, the orchestrator appl
 Once every task in the wave has passed 3.8, in task-id order: a task PR/MR per `task_review` (`pr` by default, non-blocking; `pr-blocking` waits; `local` none), the artifacts gate, a `--no-ff` merge into the spec branch, the task set `done` and its tracker issue moved, the task branch and worktree removed, then the wave's workflow data committed (D85, D112). Held while the spec is `blocked`.
 
 **3.15 — Within the size budget?**
-After each wave's merges, `budget-check.sh` counts the changed files a reviewer of the feature's PR would see since `impl_base_revision`, tests apart (D85, D87). No → 00.21.
+After each wave's merges, `budget-check.sh` counts the changed files a reviewer of the feature's PR would see since `impl_base_revision`, tests apart (D85, D87). No → a Size budget overrun entry, once per spec, and the build goes on; sign-off reports the figures (5.4).
 
 **3.13 — Both suites exist?**
 Always yes on the full path. On the light path, a missing suite skips only its own gate.
