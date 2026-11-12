@@ -1,0 +1,58 @@
+status: "done"
+summary: "The harness for spec 00015 is in place and red by design against a worktree-setup.sh interface stub (six calls, placeholder output, exit 0, no git work). Run it with tests/run-all.sh, or one suite at a time with --suite scripts/worktree-setup, --suite scripts/spec-worktree, --suite scripts/run-toolchain, --suite lint/worktree-setup-docs. New suites: scripts/worktree-setup (36 failing assertions, 14 passing) and lint/worktree-setup-docs (19 failing, 21 passing). Extended suites: scripts/spec-worktree (7 new failing assertions; every earlier case still passes, 73 passed) and scripts/run-toolchain (10 new failing assertions; every earlier case still passes, 118 passed). Every failure is on an assertion; none is a missing file, syntax error or setup error. There is no CI in this project (tests/run-all.sh run by hand is the whole gate) and no coverage tool, so none was built."
+task_id: "phase-1-test-harness"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_phase_1_test_harness"
+branch: "wf/00015-worktree-provisioning/s00015_phase_1_test_harness"
+base_commit: "aea4e6ebc531a649e09ff3f34d241fb48cabe9e1"
+head_commit: "8107349ea323f9de674f28811f4ad4d30aa00749"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/worktree-setup.sh"
+  - "tests/lib/common.sh"
+  - "tests/scripts/worktree-setup.sh"
+  - "tests/scripts/spec-worktree.sh"
+  - "tests/scripts/run-toolchain.sh"
+  - "tests/lint/worktree-setup-docs.sh"
+  - "tests/README.md"
+tests_added:
+  - {file: "tests/scripts/worktree-setup.sh", test: "the three new settings default to an empty value and worktree_setup reads the set command", kind: "behaviour"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "env in the main checkout prints 0, main, 0 and the main checkout twice", kind: "edge"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "JRN-001 create and agent copy .env and app.local as regular files, run worktree_setup with slot 1, s001, 100, keep git status empty, env gives the spec's values", kind: "behaviour"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "JRN-001 a symlink match arrives as its target; a tracked match and an unignored match are not copied; setup stdout stays off create's stdout; agent reuses an existing worktree", kind: "edge"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "JRN-003 check and setup refuse a link into the main checkout, inside node_modules, or into another worktree; pass a link outside the repo and a tracked internal link", kind: "negative"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "JRN-007 scratch detached at an older commit, copy list and setup applied with the spec's slot, remove --force removes it", kind: "behaviour"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "remove --force is refused for an agent worktree; plain remove removes it", kind: "negative"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "JRN-004 slots 1 and 2, a freed slot taken again, a re-run keeps the slot", kind: "behaviour"}
+  - {file: "tests/scripts/spec-worktree.sh", test: "JRN-002 no settings and no copy list: nothing copied, git status empty, agent prints only its worktree", kind: "behaviour"}
+  - {file: "tests/scripts/spec-worktree.sh", test: "JRN-006 a failing worktree_setup exits 1 with its message on stderr, the worktree registered; create again after the fix sets it up", kind: "negative"}
+  - {file: "tests/scripts/spec-worktree.sh", test: "JRN-005 remove runs services_down in the spec worktree with its values; a failing one is reported and removal goes on", kind: "behaviour"}
+  - {file: "tests/scripts/run-toolchain.sh", test: "JRN-005 services_up once before test or e2e with the isolation values, none when skipped or on a reuse hit, from an agent worktree in its spec worktree, a failure fails the run with output in the evidence", kind: "behaviour"}
+  - {file: "tests/scripts/run-toolchain.sh", test: "JRN-003 a link into the main checkout fails the run before any key; a link outside passes", kind: "negative"}
+  - {file: "tests/lint/worktree-setup-docs.sh", test: "JRN-008 no raw git worktree add or remove; creations name worktree-setup.sh agent or scratch; the coding agents carry the never-by-hand rule", kind: "behaviour"}
+evidence:
+  red: "bash tests/scripts/worktree-setup.sh; RESULT passed=14 failed=36, e.g. FAIL JRN-001 agent prints only the new worktree: got=0:worktree PLACEHOLDER want=0:worktree <spec worktree>/.workflow/.worktrees/s001_t1. bash tests/scripts/spec-worktree.sh; passed=73 failed=7 (FAIL JRN-006 create exits 1 when worktree_setup fails: got=0 want=1). bash tests/scripts/run-toolchain.sh; passed=118 failed=10 (FAIL the main checkout's keys get slot 0, instance main and offset 0: got=lint unset unset unset|). bash tests/lint/worktree-setup-docs.sh; passed=21 failed=19 (FAIL JRN-008 implementation-waves.md runs no raw git worktree add or remove)."
+  green: "Phase 1: green waits for the tasks. Every pre-existing case in tests/scripts/spec-worktree.sh and tests/scripts/run-toolchain.sh passes; the only failures are the new assertions."
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00015-worktree-provisioning --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>; status pass (lint pass, test skipped as Phase 1 requires)"
+  toolchain: ".workflow/specs/00015-worktree-provisioning/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+considered_not_built:
+  - "A slot-file path in the tests: the constant does not exist yet, so the tests read the slot through worktree-setup.sh env, and the fixtures build their .gitignore from install.sh GI_ENTRIES (new install_gitignore_lines helper) so the slot file will be ignored once the task adds its line."
+  - "Fixing the setup command by editing rules.md on the spec branch: the JRN-006 and JRN-005 commands read flag files outside the project instead, so the tests do not depend on which checkout's rules.md the script reads."
+  - "Changing tests/lint/agent-worktree-docs.sh: outside this brief; see discovered_work."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: "requirement"
+    summary: "tests/lint/agent-worktree-docs.sh (spec 006, JRN-008) requires verification-setup.md and implementation-shared-core.md to create agent worktrees with a raw `git worktree add .workflow/.worktrees/<name> -b wf/... spec/...` and remove them with `git worktree remove`. The new lint/worktree-setup-docs suite requires the opposite, so the task that rewrites those step files will turn those older checks red unless it also changes them to accept worktree-setup.sh agent and remove."
+    evidence: "tests/lint/agent-worktree-docs.sh:97-110 (CREATE='git worktree add [^ ]*\\.workflow/\\.worktrees/[^ ]+ -b wf/[^ ]+ spec/' and the 'removes the agent worktree after the merge' check on git worktree remove)"
+    blocker_assessment: "can-wait"
+    reason: "Nothing fails yet. The doc-rewrite task needs those checks updated in the same change, so the task breakdown should give it tests/lint/agent-worktree-docs.sh as well."
+self_review:
+  - {item: 1, verdict: "pass", note: "No network: the setup, services_up and services_down commands are marker scripts written into the new_workdir temp dir (tests/scripts/worktree-setup.sh marker.sh, spec-worktree.sh setup-cmd.sh and down-cmd.sh, run-toolchain.sh key.sh and up-cmd.sh)"}
+  - {item: 2, verdict: "pass", note: "The new stub worktree-setup.sh is covered by tests/scripts/worktree-setup.sh, which ends with shellcheck_files over the stub and the suite itself"}
+  - {item: 3, verdict: "pass", note: "All fixtures live under WORK or T from new_workdir; flag files and logs stay outside the fixture repos; no committed fixture; install_gitignore_lines reads install.sh only"}
+  - {item: R1, verdict: "pass", note: "Helpers are named for what they do: regular_copy, env_line, expected_env, draft_in_q, raw_worktree_commands, no_hand_setup_rule, install_gitignore_lines, calls, RV"}
+  - {item: R2, verdict: "pass", note: "Flag-file commands and the outside-the-project marker log each carry the reason (no commit on the spec branch, no change to the hashed tree, kept out of git status)"}
+  - {item: R3, verdict: "pass", note: "Body comments give reasons only; the function header comments follow the suite's existing NAME ARGS : convention"}
+  - {item: R4, verdict: "pass", note: "tool-covered by check-comments.sh in the lint key, which passes; no changed comment points at a docs path or URL"}
+  - {item: R5, verdict: "pass", note: "Comments use plain words; JRN ids sit in test names and Suite headers, where the brief asks for them"}
+  - {item: comment-lint, verdict: "pass", note: "check-comments.sh over every changed and new file, the stub included, exits 0"}

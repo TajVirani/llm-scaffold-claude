@@ -185,3 +185,29 @@ Agreement: agreed in Questioning round 1
 | `project-setup`, `project-standards`, profile template | extend | Ask for and document the settings, the copy list and the throwaway-database rule |
 | `install.sh` `GI_ENTRIES`, `.gitignore`, install manifest, Claude settings template | extend | The slot file is ignored; the new script is installed and allowed |
 | `check-worktree-scope.sh`, `worktree-write-guard.sh` | unchanged | The guard's path rule stays as it is |
+
+## 2026-11-12 Assumed: the seam each task is tested at
+
+- Step: 2.1
+- Question: Which public interface do each task's tests drive?
+- Answer taken:
+  - T1 settings keys: the `rules-setting.sh <key>` command line. Catches a wrong default or a rejected value; misses how callers use the value.
+  - T2 worktree setup script: the `worktree-setup.sh` command line in a throwaway repository. Catches wrong files, slots, links and exit codes; misses a real project's setup command.
+  - T3 spec worktree: the `spec-worktree.sh create` and `remove` command line. Catches a skipped setup, changed stdout and a missed `services_down`; misses the step files that call it.
+  - T4 toolchain run: the `run-toolchain.sh` command line and its evidence files. Catches a missing link check, missing isolation values and a wrong `services_up` call; misses the stop-audit hook that calls it.
+  - T5 install: `install.sh` run against a fixture target, and the settings templates read as data. Catches a missing ignore line or allow rule; misses a live host.
+  - T6 to T10 documents: the lint suites over the document text. They catch a raw worktree command or a missing rule; they miss whether an agent follows the text.
+- Why safe to assume: each is an existing seam with an existing suite, and the highest one that reaches the behaviour. A veto moves a task's tests before any is written.
+
+## 2026-11-12 Assumed: targets that are not measured
+
+- Step: 1.1
+- Question: What threshold do the performance and line-coverage targets take?
+- Answer taken: neither is measured. The cost of setup with nothing declared is one `git worktree add` and three file checks, proven unchanged by JRN-002; no bash coverage tool is installed, so the script-coverage target stands in, as in earlier specs.
+- Why safe to assume: neither changes what is built. A veto adds a row to the Targets table.
+
+## 2026-11-12 Phase 1 notes
+
+- 1.2 discovered-work report (requirement, can-wait): `tests/lint/agent-worktree-docs.sh:97-110` expects the raw worktree add and remove wording that JRN-008 removes. Assessed as current work, not outside the scope: the task that rewrites the step files (T6) updates those checks in the same change.
+- 1.3 not run: no `e2e-browser` profile; every journey is a harness suite.
+- 1.4: the merged suites are red on the known-bad build, 72 new failures, all assertions ([record.md](artifacts/phase-1-known-bad/record.md)).

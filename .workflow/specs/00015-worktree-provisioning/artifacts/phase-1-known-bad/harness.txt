@@ -1,0 +1,292 @@
+== scripts/budget-check
+tests/run-all.sh: child setpgid (68336 to 68336): Operation not permitted
+== scripts/check-comments
+== scripts/check-merge-artifacts
+== scripts/check-pr-body
+== scripts/check-review-findings
+== scripts/check-task-result
+== scripts/check-write-paths
+== scripts/check-write-tier-a
+== scripts/commit-workflow-data
+== scripts/generate-boundary-config
+== scripts/generate-codex-agents
+== scripts/initiative-conversion
+== scripts/initiative-emission
+== scripts/initiative-merge
+== scripts/initiative-transition
+== scripts/install-claude-settings
+== scripts/install-codex-config
+== scripts/install-codex-tui
+== scripts/install-hosts
+== scripts/install-old-format
+== scripts/install-payload
+== scripts/install-upgrade
+== scripts/install-workflow-data
+== scripts/issue-tracking-setup
+== scripts/issue-tracking
+== scripts/lib-test-paths
+== scripts/lib-workflow-paths
+== scripts/move-to-done
+== scripts/next-spec-number
+== scripts/resolve-launch-initiative
+== scripts/resolve-launch
+== scripts/review-lessons
+== scripts/run-all-selection
+== scripts/run-toolchain
+FAIL the main checkout's keys get slot 0, instance main and offset 0
+       got=lint unset unset unset| want=lint 0 main 0|
+FAIL JRN-005 services_up runs once, in the spec worktree, after lint and before test, and every key gets the isolation values
+       got=0:lint unset unset unset|test unset unset unset| want=0:lint 1 s007 100|up /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.atWAIZ/fx/svc/.workflow/.spec-worktrees/007-svc 1 s007 100|test 1 s007 100|
+FAIL JRN-005 the services_up run is in the evidence
+       rc=1 want=0: 
+FAIL JRN-005 services_up runs before e2e when test is skipped
+       got=lint unset unset unset|e2e unset unset unset| want=lint 1 s007 100|up /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.atWAIZ/fx/svc/.workflow/.spec-worktrees/007-svc 1 s007 100|e2e 1 s007 100|
+FAIL JRN-005 one services_up call serves both test and e2e
+       got=lint unset unset unset|test unset unset unset|e2e unset unset unset| want=lint 1 s007 100|up /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.atWAIZ/fx/svc/.workflow/.spec-worktrees/007-svc 1 s007 100|test 1 s007 100|e2e 1 s007 100|
+FAIL JRN-005 no services_up when test is skipped and e2e is not asked for
+       got=lint unset unset unset| want=lint 1 s007 100|
+FAIL JRN-005 from an agent worktree, services_up runs in its spec worktree and the keys get the spec's values
+       got=lint unset unset unset|test unset unset unset| want=lint 1 s007 100|up /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.atWAIZ/fx/svc/.workflow/.spec-worktrees/007-svc 1 s007 100|test 1 s007 100|
+FAIL JRN-005 a failing services_up fails the run and the test key does not run
+       rc=0 lint unset unset unset|test unset unset unset|
+FAIL JRN-005 the failing services_up output is in the evidence
+       rc=1 want=0: 
+FAIL JRN-003 a link into the main checkout fails the run, naming the link, before any key runs
+       rc=0 calls=lint unset unset unset|test unset unset unset| {
+== scripts/sign-off-pr
+== scripts/spec-worktree
+FAIL JRN-002 worktree-setup.sh agent prints only the new worktree
+       got=0:worktree PLACEHOLDER want=0:worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.EqwvF7/proj/.workflow/.spec-worktrees/001-alpha/.workflow/.worktrees/s001_plain
+FAIL JRN-002 the agent worktree holds no copied file and nothing git would list
+FAIL JRN-006 create exits 1 when worktree_setup fails
+       got=0 want=1
+FAIL JRN-006 the setup command's message is on stderr
+FAIL JRN-006 the second create set the worktree up
+FAIL JRN-005 remove ran services_down in the spec worktree with its isolation values
+FAIL JRN-005 a failing services_down is reported and the removal goes on
+       rc=0 removed worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.EqwvF7/settings/.workflow/.spec-worktrees/006-zeta
+== scripts/status-transition-specs
+== scripts/status-transition-tasks
+== scripts/step-progress
+== scripts/task-breakdown
+== scripts/term-list
+== scripts/tracker-adoption
+== scripts/upstream-diff
+== scripts/worktree-setup
+FAIL worktree_setup defaults to an empty value
+       got=1: want=0:
+FAIL services_up defaults to an empty value
+       got=1: want=0:
+FAIL services_down defaults to an empty value
+       got=1: want=0:
+FAIL worktree_setup reads the command rules.md sets
+       got= want=bash /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.TXxc0g/marker.sh setup
+FAIL env in the main checkout prints 0, main, 0 and the main checkout twice
+       got=export WF_SLOT=PLACEHOLDER
+FAIL JRN-001 the spec worktree holds .env as a regular file equal to the main checkout's
+FAIL JRN-001 another ignored copy-list match is copied
+FAIL JRN-001 a copy-list match that is a symlink arrives as the file it points to
+FAIL JRN-001 worktree_setup ran in the spec worktree with slot 1, s001 and offset 100
+FAIL JRN-001 env in the spec worktree prints its isolation values
+       got=export WF_SLOT=PLACEHOLDER
+FAIL JRN-001 agent prints only the new worktree
+       got=0:worktree PLACEHOLDER want=0:worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.TXxc0g/proj/.workflow/.spec-worktrees/001-alpha/.workflow/.worktrees/s001_t1
+FAIL JRN-001 the agent worktree is on its branch
+       got= want=task/001-alpha/T01-a
+FAIL JRN-001 the agent branch forks from the spec branch
+       got= want=4522847f716626a07c5b602fe17a0befc244ddbb
+FAIL JRN-001 the agent worktree holds .env as a regular file equal to the main checkout's
+FAIL JRN-001 worktree_setup ran in the agent worktree with the spec's slot
+FAIL JRN-001 a tracked copy-list match is not copied, and setup leaves git status empty
+       fatal: cannot change to '/private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.TXxc0g/proj/.workflow/.spec-worktrees/001-alpha/.workflow/.worktrees/s001_t1': No such file or directory
+FAIL JRN-001 env in the agent worktree gives the spec's values
+       got=export WF_SLOT=PLACEHOLDER
+FAIL JRN-001 agent again reuses the worktree that exists
+       got=0:worktree PLACEHOLDER want=0:worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.TXxc0g/proj/.workflow/.spec-worktrees/001-alpha/.workflow/.worktrees/s001_t1
+FAIL JRN-003 check refuses .env linked to the main checkout's, naming it
+       rc=0 
+FAIL JRN-003 setup refuses it too
+       rc=0 
+FAIL JRN-003 a link inside a dependency folder that resolves into the main checkout is refused
+       rc=0 
+FAIL JRN-007 scratch prints only the new worktree
+       got=0:worktree PLACEHOLDER want=0:worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.TXxc0g/proj/.workflow/.spec-worktrees/001-alpha/.workflow/.worktrees/s001_known_bad
+FAIL JRN-007 the scratch worktree is detached at that commit
+FAIL JRN-007 the copy list is applied
+FAIL JRN-007 worktree_setup ran there with the spec's slot
+FAIL JRN-007 env in the scratch worktree gives the spec's values
+       got=export WF_SLOT=PLACEHOLDER
+FAIL JRN-007 remove --force prints the removed scratch worktree
+       got=0:removed worktree PLACEHOLDER want=0:removed worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.TXxc0g/proj/.workflow/.spec-worktrees/001-alpha/.workflow/.worktrees/s001_known_bad
+FAIL remove --force is refused for an agent worktree, which stays
+       rc=0 removed worktree PLACEHOLDER
+FAIL remove of the agent worktree prints it
+       got=0:removed worktree PLACEHOLDER want=0:removed worktree /private/var/folders/10/9wl4khq91mzfnffng9cntk4c0000gp/T/scaffold-test.TXxc0g/proj/.workflow/.spec-worktrees/001-alpha/.workflow/.worktrees/s001_t1
+FAIL JRN-004 the first spec worktree holds slot 1
+       got=PLACEHOLDER want=1
+FAIL JRN-004 the second spec worktree holds slot 2
+       got=PLACEHOLDER:PLACEHOLDER want=2:200
+FAIL JRN-004 worktree_setup ran in the second spec worktree with slot 2 and s002
+FAIL JRN-003 a link into another worktree of the same repository is refused
+       rc=0 
+FAIL JRN-004 a spec worktree created after the first was removed takes the freed slot 1
+       got=PLACEHOLDER want=1
+FAIL JRN-004 the second spec worktree keeps slot 2
+       got=PLACEHOLDER want=2
+FAIL JRN-004 setup run again keeps the slot it holds
+       got=PLACEHOLDER want=2
+== hooks/audit-agent-worktrees
+== hooks/audit-sync-resume
+== hooks/block-destructive-git
+== hooks/codex-adapters
+== hooks/codex-pre-spawn-initiative
+== hooks/codex-shim
+== hooks/evidence-capture
+== hooks/initiative-write-guards
+== hooks/pre-launch
+== hooks/session-start-initiatives
+== hooks/worktree-guard
+== hooks/write-guards
+== lint/affected-area
+== lint/agent-worktree-docs
+== lint/comments
+== lint/done-folder-docs
+== lint/frontmatter
+== lint/install-matcher-docs
+== lint/issue-tracking-docs
+== lint/light-path-defaults
+== lint/md-links
+== lint/pr-quality-docs
+== lint/review-escalation-docs
+== lint/review-lessons
+== lint/shared-rule-homes
+== lint/shared-tracker-logic
+== lint/size-budget-docs
+== lint/stakeholder-asks-docs
+== lint/step-list
+FAIL every file path the decision flow, assetlist.md and checklist.md name exists
+       got=checklist.md:328: .workflow/.worktrees/
+== lint/step-routing
+== lint/symlinks
+== lint/upstream-lineage
+== lint/workflow-load-size
+== lint/worktree-setup-docs
+FAIL JRN-008 skills/feature-workflow/modules/implementation-finish.md runs no raw git worktree add or remove
+       30: then `git worktree remove <path>` for each remaining implementation or integration worktree under `.workflow/.worktrees/`
+FAIL JRN-008 skills/feature-workflow/modules/implementation-shared-core.md runs no raw git worktree add or remove
+       10: git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
+FAIL JRN-008 skills/feature-workflow/modules/implementation-waves.md runs no raw git worktree add or remove
+       73: git worktree add .workflow/.worktrees/<task_name> -b <branch> spec/NNN-slug
+FAIL JRN-008 skills/feature-workflow/modules/sign-off.md runs no raw git worktree add or remove
+       259: then `git worktree remove <path>` for each one under `.workflow/.worktrees/` this feature created).
+FAIL JRN-008 skills/feature-workflow/modules/verification-setup.md runs no raw git worktree add or remove
+       65: git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
+FAIL JRN-008 agents/profile-mini-review.md runs no raw git worktree add or remove
+       55: scratch=$(mktemp -d) && git -C <worktree> worktree add --detach "$scratch/wt" HEAD    # run the probe with git -C "$scratch/wt" or a cd inside one Bash command
+FAIL JRN-008 agents/review-combined.md runs no raw git worktree add or remove
+       39: scratch=$(mktemp -d) && git worktree add --detach "$scratch/wt" HEAD    # run the probe with git -C "$scratch/wt" or a cd inside one Bash command
+FAIL JRN-008 agents/review-end-state.md runs no raw git worktree add or remove
+       35: scratch=$(mktemp -d) && git worktree add --detach "$scratch/wt" HEAD    # run the probe with git -C "$scratch/wt" or a cd inside one Bash command
+FAIL JRN-008 agents/review-standards.md runs no raw git worktree add or remove
+       44: scratch=$(mktemp -d) && git worktree add --detach "$scratch/wt" HEAD    # run the probe with git -C "$scratch/wt" or a cd inside one Bash command
+FAIL JRN-008 verification-setup.md creates its agent worktree with worktree-setup.sh agent
+       rc=1 want=0: 
+FAIL JRN-008 verification-setup.md creates its scratch worktree with worktree-setup.sh scratch
+       rc=1 want=0: 
+FAIL JRN-008 implementation-waves.md creates its agent worktree with worktree-setup.sh agent
+       rc=1 want=0: 
+FAIL JRN-008 implementation-shared-core.md creates its agent worktree with worktree-setup.sh agent
+       rc=1 want=0: 
+FAIL JRN-008 profile-mini-review.md creates its scratch worktree with worktree-setup.sh scratch
+       rc=1 want=0: 
+FAIL JRN-008 review-end-state.md creates its scratch worktree with worktree-setup.sh scratch
+       rc=1 want=0: 
+FAIL JRN-008 review-standards.md creates its scratch worktree with worktree-setup.sh scratch
+       rc=1 want=0: 
+FAIL JRN-008 review-combined.md creates its scratch worktree with worktree-setup.sh scratch
+       rc=1 want=0: 
+FAIL JRN-008 implementation.md says never to install, copy or link into a worktree by hand
+FAIL JRN-008 integration.md says never to install, copy or link into a worktree by hand
+
+== summary
+PASS scripts/budget-check                   passed=81   failed=0   skipped=0   xfail=0   25s
+PASS scripts/check-comments                 passed=30   failed=0   skipped=0   xfail=0   2s
+PASS scripts/check-merge-artifacts          passed=23   failed=0   skipped=0   xfail=0   9s
+PASS scripts/check-pr-body                  passed=47   failed=0   skipped=0   xfail=0   10s
+PASS scripts/check-review-findings          passed=134  failed=0   skipped=0   xfail=0   8s
+PASS scripts/check-task-result              passed=149  failed=0   skipped=0   xfail=0   20s
+PASS scripts/check-write-paths              passed=180  failed=0   skipped=0   xfail=0   58s
+PASS scripts/check-write-tier-a             passed=135  failed=0   skipped=0   xfail=0   64s
+PASS scripts/commit-workflow-data           passed=34   failed=0   skipped=0   xfail=0   7s
+PASS scripts/generate-boundary-config       passed=72   failed=0   skipped=0   xfail=0   7s
+PASS scripts/generate-codex-agents          passed=44   failed=0   skipped=0   xfail=0   20s
+PASS scripts/initiative-conversion          passed=28   failed=0   skipped=0   xfail=0   7s
+PASS scripts/initiative-emission            passed=22   failed=0   skipped=0   xfail=0   5s
+PASS scripts/initiative-merge               passed=63   failed=0   skipped=0   xfail=0   21s
+PASS scripts/initiative-transition          passed=80   failed=0   skipped=0   xfail=0   12s
+PASS scripts/install-claude-settings        passed=82   failed=0   skipped=0   xfail=0   76s
+PASS scripts/install-codex-config           passed=24   failed=0   skipped=0   xfail=0   39s
+PASS scripts/install-codex-tui              passed=8    failed=0   skipped=0   xfail=0   25s
+PASS scripts/install-hosts                  passed=17   failed=0   skipped=0   xfail=0   37s
+PASS scripts/install-old-format             passed=12   failed=0   skipped=0   xfail=0   43s
+PASS scripts/install-payload                passed=54   failed=0   skipped=0   xfail=0   43s
+PASS scripts/install-upgrade                passed=140  failed=0   skipped=0   xfail=0   175s
+PASS scripts/install-workflow-data          passed=66   failed=0   skipped=0   xfail=0   58s
+PASS scripts/issue-tracking-setup           passed=27   failed=0   skipped=0   xfail=0   11s
+PASS scripts/issue-tracking                 passed=67   failed=0   skipped=0   xfail=0   30s
+PASS scripts/lib-test-paths                 passed=39   failed=0   skipped=0   xfail=0   5s
+PASS scripts/lib-workflow-paths             passed=196  failed=0   skipped=0   xfail=0   18s
+PASS scripts/move-to-done                   passed=96   failed=0   skipped=0   xfail=0   54s
+PASS scripts/next-spec-number               passed=29   failed=0   skipped=0   xfail=0   9s
+PASS scripts/resolve-launch-initiative      passed=19   failed=0   skipped=0   xfail=0   5s
+PASS scripts/resolve-launch                 passed=96   failed=0   skipped=0   xfail=0   21s
+PASS scripts/review-lessons                 passed=48   failed=0   skipped=0   xfail=0   8s
+PASS scripts/run-all-selection              passed=80   failed=0   skipped=0   xfail=0   52s
+FAIL scripts/run-toolchain                  passed=118  failed=10  skipped=0   xfail=0   77s
+PASS scripts/sign-off-pr                    passed=38   failed=0   skipped=0   xfail=0   5s
+FAIL scripts/spec-worktree                  passed=73   failed=7   skipped=0   xfail=0   24s
+PASS scripts/status-transition-specs        passed=240  failed=0   skipped=0   xfail=0   39s
+PASS scripts/status-transition-tasks        passed=165  failed=0   skipped=0   xfail=0   37s
+PASS scripts/step-progress                  passed=73   failed=0   skipped=0   xfail=0   5s
+PASS scripts/task-breakdown                 passed=144  failed=0   skipped=0   xfail=0   30s
+PASS scripts/term-list                      passed=53   failed=0   skipped=0   xfail=0   9s
+PASS scripts/tracker-adoption               passed=58   failed=0   skipped=0   xfail=0   61s
+PASS scripts/upstream-diff                  passed=36   failed=0   skipped=0   xfail=0   6s
+FAIL scripts/worktree-setup                 passed=14   failed=36  skipped=0   xfail=0   8s
+PASS hooks/audit-agent-worktrees            passed=23   failed=0   skipped=0   xfail=0   5s
+PASS hooks/audit-sync-resume                passed=60   failed=0   skipped=0   xfail=0   67s
+PASS hooks/block-destructive-git            passed=145  failed=0   skipped=0   xfail=0   13s
+PASS hooks/codex-adapters                   passed=97   failed=0   skipped=0   xfail=0   28s
+PASS hooks/codex-pre-spawn-initiative       passed=17   failed=0   skipped=0   xfail=0   7s
+PASS hooks/codex-shim                       passed=34   failed=0   skipped=0   xfail=0   18s
+PASS hooks/evidence-capture                 passed=50   failed=0   skipped=0   xfail=0   16s
+PASS hooks/initiative-write-guards          passed=21   failed=0   skipped=0   xfail=0   11s
+PASS hooks/pre-launch                       passed=21   failed=0   skipped=0   xfail=0   11s
+PASS hooks/session-start-initiatives        passed=30   failed=0   skipped=0   xfail=0   15s
+PASS hooks/worktree-guard                   passed=250  failed=0   skipped=0   xfail=0   108s
+PASS hooks/write-guards                     passed=90   failed=0   skipped=0   xfail=0   41s
+PASS lint/affected-area                     passed=6    failed=0   skipped=0   xfail=0   2s
+PASS lint/agent-worktree-docs               passed=65   failed=0   skipped=0   xfail=0   2s
+PASS lint/comments                          passed=2    failed=0   skipped=0   xfail=0   1s
+PASS lint/done-folder-docs                  passed=16   failed=0   skipped=0   xfail=0   0s
+PASS lint/frontmatter                       passed=39   failed=0   skipped=0   xfail=0   5s
+PASS lint/install-matcher-docs              passed=20   failed=0   skipped=0   xfail=0   1s
+PASS lint/issue-tracking-docs               passed=27   failed=0   skipped=0   xfail=0   6s
+PASS lint/light-path-defaults               passed=30   failed=0   skipped=0   xfail=0   1s
+PASS lint/md-links                          passed=6    failed=0   skipped=0   xfail=0   4s
+PASS lint/pr-quality-docs                   passed=23   failed=0   skipped=0   xfail=0   2s
+PASS lint/review-escalation-docs            passed=86   failed=0   skipped=0   xfail=0   4s
+PASS lint/review-lessons                    passed=31   failed=0   skipped=0   xfail=0   7s
+PASS lint/shared-rule-homes                 passed=24   failed=0   skipped=0   xfail=0   4s
+PASS lint/shared-tracker-logic              passed=5    failed=0   skipped=0   xfail=0   4s
+PASS lint/size-budget-docs                  passed=45   failed=0   skipped=0   xfail=0   0s
+PASS lint/stakeholder-asks-docs             passed=78   failed=0   skipped=0   xfail=0   1s
+FAIL lint/step-list                         passed=35   failed=1   skipped=0   xfail=0   16s
+PASS lint/step-routing                      passed=26   failed=0   skipped=0   xfail=0   7s
+PASS lint/symlinks                          passed=41   failed=0   skipped=0   xfail=0   1s
+PASS lint/upstream-lineage                  passed=13   failed=0   skipped=0   xfail=0   3s
+PASS lint/workflow-load-size                passed=14   failed=0   skipped=0   xfail=0   3s
+FAIL lint/worktree-setup-docs               passed=21   failed=19  skipped=0   xfail=0   1s
+TOTAL passed=4725 failed=73 skipped=0 xfail=0 (78 suites)
+FAILED suites: scripts/run-toolchain scripts/spec-worktree scripts/worktree-setup lint/step-list lint/worktree-setup-docs
+exit 1

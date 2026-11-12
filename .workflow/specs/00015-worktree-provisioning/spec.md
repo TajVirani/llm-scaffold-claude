@@ -1,7 +1,7 @@
 ---
 status: ready-for-dev
-baseline_revision: ""
-spec_branch: ""
+baseline_revision: "aea4e6ebc531a649e09ff3f34d241fb48cabe9e1"
+spec_branch: "spec/00015-worktree-provisioning"
 impl_base_revision: ""
 light_path: false
 followup_review_recommended: false
