@@ -141,14 +141,14 @@ out=$(INST "$A" 2>&1)
 check "re-run reports up to date" 'printf "%s" "$out" | grep -q "up to date"'
 
 echo "== an upgrade adds the slot file line to an older gitignore block"
-U=$WORK/older-block
-new_target "$U"
-t "a first install exits 0" 0 INST "$U" --host claude
-grep -vxF '.workflow/.slot' "$U/.gitignore" >"$WORK/older.gitignore" && mv "$WORK/older.gitignore" "$U/.gitignore"
-check "the fixture's block lacks the slot file line" '! grep -qxF ".workflow/.slot" "$U/.gitignore"'
-t "the upgrade exits 0" 0 INST "$U" --host claude
-eq "the upgraded block holds the slot file line once" "$(grep -cxF '.workflow/.slot' "$U/.gitignore")" 1
-eq "the upgraded block holds the same lines as GI_ENTRIES" "$(gitignore_block "$U/.gitignore")" "$(install_gitignore_lines)"
+OLDER_TARGET=$WORK/older-block
+new_target "$OLDER_TARGET"
+t "a first install exits 0" 0 INST "$OLDER_TARGET" --host claude
+grep -vxF '.workflow/.slot' "$OLDER_TARGET/.gitignore" >"$WORK/older.gitignore" && mv "$WORK/older.gitignore" "$OLDER_TARGET/.gitignore"
+check "the fixture's block lacks the slot file line" '! grep -qxF ".workflow/.slot" "$OLDER_TARGET/.gitignore"'
+t "the upgrade exits 0" 0 INST "$OLDER_TARGET" --host claude
+eq "the upgraded block holds the slot file line once" "$(grep -cxF '.workflow/.slot' "$OLDER_TARGET/.gitignore")" 1
+eq "the upgraded block holds the same lines as GI_ENTRIES" "$(gitignore_block "$OLDER_TARGET/.gitignore")" "$(install_gitignore_lines)"
 
 echo "== lint"
 shellcheck_files "shellcheck: install.sh" "$REPO_ROOT/install.sh"
