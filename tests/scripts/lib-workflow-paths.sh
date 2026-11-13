@@ -79,6 +79,8 @@ git -C "$FOLDER_REPO" worktree add -q "$FOLDER_REPO/.claude/worktrees/agent-1" -
 mkdir -p "$FOLDER_REPO/.workflow/.worktrees/plain" "$WORK/lookalike/.workflow/.worktrees"
 git_init_repo "$WORK/lookalike/.workflow/.worktrees/solo"
 eq "WF_SPEC_WORKTREES is .workflow/.spec-worktrees" "$(bash -c '. "$1"; printf %s "$WF_SPEC_WORKTREES"' _ "$LIB")" ".workflow/.spec-worktrees"
+eq "WF_SLOT_FILE is .workflow/.slot" "$(bash -c '. "$1"; printf %s "$WF_SLOT_FILE"' _ "$LIB")" ".workflow/.slot"
+eq "WF_COPY_LIST is .worktreeinclude" "$(bash -c '. "$1"; printf %s "$WF_COPY_LIST"' _ "$LIB")" ".worktreeinclude"
 eq "wf_project_root from the main checkout prints its root" "$(stdout_and_status wf_project_root "$FOLDER_REPO")" "0|$FOLDER_REPO"
 eq "wf_project_root from a sub-folder prints the checkout root" "$(stdout_and_status wf_project_root "$FOLDER_REPO/sub/dir")" "0|$FOLDER_REPO"
 eq "wf_project_root from an agent worktree prints the checkout it sits in" "$(stdout_and_status wf_project_root "$FOLDER_WT")" "0|$FOLDER_REPO"
