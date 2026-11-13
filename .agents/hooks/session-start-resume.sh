@@ -5,11 +5,14 @@
 #     checkout a spec can run in: the session's own, each worktree on a spec/* branch (the spec worktrees) and the main checkout
 #   - List the initiatives still to resume (large-path subjects that plan several specs), from the working tree or their initiative/* branch
 #   - Offer to resume at the recorded step via feature-workflow
-#   - List session handoffs in .workflow/.handoff/*.md (written by the handoff skill) so a fresh session can pick one up
+#   - List session handoffs in .workflow/.handoff/*.md (written by the handoff skill in each run's own checkout) so a fresh session
+#     can pick one up and tell its own from another run's
 # Triggers/inputs: SessionStart JSON on stdin (any `source`: startup, resume, clear, compact; all get the offer, since a cleared or compacted
 #   context has lost it). Paths from the payload `cwd`. Specs and their gitignored .step markers are read in
-#   each checkout above (lib/workflow-paths.sh wf_project_root for the session's own; `git worktree list` for the rest); the backlog,
-#   initiatives and handoffs in the main checkout (wf_main_root).
+#   each checkout above (lib/workflow-paths.sh wf_project_root for the session's own; `git worktree list` for the rest); the backlog
+#   and initiatives in the main checkout (wf_main_root). Handoffs are read in the session's own checkout (the top level of `cwd`:
+#   the main checkout, a spec worktree, or an isolation or agent worktree), then, from the main checkout, in each spec worktree,
+#   and from any other checkout, in the main checkout only.
 # Behaviour:
 #   - No spec.md with a status other than `done`, no initiative to resume, no open backlog item and no session handoff: exit 0, no output.
 #   - Each non-done spec (draft, ready-for-dev, in-progress, in-review, blocked; sorted by folder name within each checkout, the session's
@@ -35,8 +38,11 @@
 #     and alone are enough to produce output: each `- [open] B<n> ...` line of a spec's backlog list <NNN-slug>.md (named <NNN-slug>.md#B<n>).
 #     A list may be named old_<NNN-slug>.md, the name adopting an issue tracker gives a Done spec's list, matching the names the write guard
 #     accepts in work-backlog/. Other files there are ignored.
-#   - Session handoffs (.workflow/.handoff/*.md at the main checkout, newest first by mtime): up to 3 listed with frontmatter created, spec and goal
-#     (or "frontmatter unreadable"), the rest counted; alone they are enough to produce output, and the text names the handoff skill's Resume.
+#   - Session handoffs (.workflow/.handoff/*.md in each checkout above, any file name, never the folder's .gitignore): the own checkout's
+#     first as `- .workflow/.handoff/<name>`, then the other checkouts' as `- <absolute path>`, each group newest first by mtime. A file
+#     is the own checkout's only when it is in <own checkout>/.workflow/.handoff/, since spec worktrees sit inside the main checkout.
+#     Up to 3 listed in total with frontmatter created, spec and goal (or "frontmatter unreadable"), each cut at 300 characters, the rest
+#     counted; alone they are enough to produce output, and the text names the handoff skill's Resume.
 #   - The text is capped below the 10,000-character additionalContext limit: specs past the cap are counted, not listed.
 # Outputs/handoff: {"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"<resume offer>"}} or nothing; exit 0 always.
 # Wiring: claude-settings.template.json (merged into <target>/.claude/settings.json by install.sh): SessionStart.
@@ -66,12 +72,13 @@ if main=$(wf_main_root "$root" 2>/dev/null); then root=$main; fi
 if spec_root=$(wf_project_root "$here" 2>/dev/null); then here=$spec_root; fi
 
 shopt -s nullglob
+spec_worktrees=$({ git -C "$root" worktree list --porcelain 2>/dev/null || true; } |
+  awk '/^worktree /{ wt = substr($0, 10) } /^branch refs\/heads\/spec\//{ print wt }')
 # Specs run in their own worktrees, so each checkout that can hold one is scanned: this session's, then every worktree on a spec
 #   branch, then the main checkout. A spec folder seen in an earlier checkout is not listed again.
 checkouts=$( {
   printf '%s\n' "$here"
-  { git -C "$root" worktree list --porcelain 2>/dev/null || true; } |
-    awk '/^worktree /{ wt = substr($0, 10) } /^branch refs\/heads\/spec\//{ print wt }'
+  [ -z "$spec_worktrees" ] || printf '%s\n' "$spec_worktrees"
   printf '%s\n' "$root"
 } | awk '!seen[$0]++')
 specs=()
@@ -86,7 +93,19 @@ while IFS= read -r checkout; do
   done
 done <<<"$checkouts"
 backlog=("$root/$WF_WORK_BACKLOG"/*.md)
-handoffs=("$root/$WF_HANDOFF"/*.md)
+# Each run writes its handoff in the checkout it ran in, so this session's own checkout (the top level of its cwd, even an
+#   isolation or agent worktree) comes first. The main checkout also sees every spec worktree's handoffs; any other checkout
+#   sees only the main checkout's, so a run never picks up a sibling worktree's handoff.
+own_checkout=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || own_checkout=""
+[ -n "$own_checkout" ] || own_checkout=$(cd "$cwd" && pwd)
+own_handoffs=("$own_checkout/$WF_HANDOFF"/*.md)
+if [ "$own_checkout" = "$root" ]; then other_checkouts=$spec_worktrees; else other_checkouts=$root; fi
+other_handoffs=()
+while IFS= read -r checkout; do
+  [ -n "$checkout" ] && [ "$checkout" != "$own_checkout" ] || continue
+  other_handoffs+=("$checkout/$WF_HANDOFF"/*.md)
+done <<<"$other_checkouts"
+h_total=$(( ${#own_handoffs[@]} + ${#other_handoffs[@]} ))
 
 # An initiative in exploration is committed only on its own branch, so a checkout on main finds it through the branch names.
 initiative_names=$(
@@ -97,7 +116,7 @@ initiative_names=$(
       | sed -n 's|^initiative/\([^/]*\)$|\1|p; s|^origin/initiative/\([^/]*\)$|\1|p'
   } | sort -u
 )
-[ "${#specs[@]}" -gt 0 ] || [ "${#backlog[@]}" -gt 0 ] || [ "${#handoffs[@]}" -gt 0 ] || [ -n "$initiative_names" ] || exit 0
+[ "${#specs[@]}" -gt 0 ] || [ "${#backlog[@]}" -gt 0 ] || [ "$h_total" -gt 0 ] || [ -n "$initiative_names" ] || exit 0
 command -v yq >/dev/null 2>&1 || exit 0
 
 # Fast prefilter (no yq): the raw `status:` value of the frontmatter, quotes and comment stripped. Used to skip `done` specs cheaply and
@@ -111,15 +130,28 @@ raw_status() {
 # JSON array on stdin (from yq) -> one value per line; null -> "", whitespace runs folded so each value stays on one line.
 lines() { jq -r 'if type == "array" then .[] else error("not an array") end | if . == null then "" else tostring | gsub("\\s+"; " ") end'; }
 
-# Session handoffs (written by the handoff skill): newest first, 3 listed, the rest counted. Read first so the spec list
-# cap leaves room for them.
-htext="" h_n=0
-if [ "${#handoffs[@]}" -gt 0 ]; then
+# newest_first FILE... : FILE paths one per line, newest first by mtime; nothing for no FILE.
+newest_first() {
+  [ "$#" -gt 0 ] || return 0
   # shellcheck disable=SC2012  # names come from the handoff skill (kebab-case); ls -t is the portable mtime sort
+  ls -1t "$@"
+}
+
+# Session handoffs (written by the handoff skill): the own checkout's, then the others', each group newest first; 3 listed,
+# the rest counted. Read first so the spec list cap leaves room for them.
+htext="" h_n=0
+HANDOFF_HEADER="Session handoffs (written by the handoff skill in the checkout each run worked in): this checkout's first as $WF_HANDOFF/<name>, then the other checkouts' by absolute path; newest first within each:"
+if [ "$h_total" -gt 0 ]; then
   while IFS= read -r h; do
+    [ -n "$h" ] || continue
     h_n=$((h_n + 1))
     [ "$h_n" -le 3 ] || continue
-    entry="- $WF_HANDOFF/$(basename "$h")"
+    # A spec worktree sits inside the main checkout, so only a file in the own checkout's handoff folder is the session's own,
+    #   and gets the short path it can open from where it is.
+    case "$h" in
+      "$own_checkout/$WF_HANDOFF/"*) entry="- $WF_HANDOFF/$(basename "$h")" ;;
+      *) entry="- $h" ;;
+    esac
     if hf=$(yq --front-matter=extract -o=json -I=0 '[.goal, .spec, .created]' "$h" 2>/dev/null | lines); then
       goal="" hspec="" created=""
       { IFS= read -r goal; IFS= read -r hspec; IFS= read -r created; } <<<"$hf" || true
@@ -130,10 +162,13 @@ if [ "${#handoffs[@]}" -gt 0 ]; then
       entry+=": frontmatter unreadable; open it to read the handoff."
     fi
     htext+=${entry:0:300}$'\n'
-  done < <(ls -1t "${handoffs[@]}")
+  done < <(
+    newest_first ${own_handoffs[@]+"${own_handoffs[@]}"}  # bash 3.2 treats an empty array as unset under set -u
+    newest_first ${other_handoffs[@]+"${other_handoffs[@]}"}
+  )
   [ "$h_n" -le 3 ] || htext+="- ... and $((h_n - 3)) older not listed.
 "
-  LIMIT=$((LIMIT - ${#htext}))
+  LIMIT=$((LIMIT - ${#HANDOFF_HEADER} - ${#htext}))
 fi
 
 # step_text MARKER : "current step <id> (since <time>)" from a .step marker, "no .step marker", or "step marker unreadable".
@@ -300,7 +335,7 @@ if [ "$open_n" -gt 0 ]; then
 "
 fi
 if [ "$h_n" -gt 0 ]; then
-  text+="Session handoffs in $WF_HANDOFF/ (newest first, written by the handoff skill):
+  text+="$HANDOFF_HEADER
 $htext"
 fi
 INITIATIVE_RESUME="To resume an initiative, load the feature-workflow skill and name the initiative: it routes to the large path (modules/large-path.md), which reads the initiative where it lives (its branch or main) and continues from its current step."
