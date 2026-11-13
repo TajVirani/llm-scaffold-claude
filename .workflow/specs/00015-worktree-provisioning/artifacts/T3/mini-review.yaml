@@ -1,0 +1,69 @@
+verdict: "pass"
+task_id: "T3"
+work_type: "shell-scripts"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t3@4ed07cf0d15c6f38b044190329c090840e51bd19..HEAD"
+tool_output: ".workflow/specs/00015-worktree-provisioning/artifacts/T3/toolchain.json"
+items:
+  - n: 1
+    verdict: "pass"
+    location: "worktree-setup.sh:98, worktree-setup.sh:125, worktree-setup.sh:239, spec-worktree.sh:43"
+    note: "New workflow paths are built from workflow-paths.sh (WF_SLOT_FILE, WF_COPY_LIST, WF_WORKTREES, WF_SPEC_WORKTREES via wf_path). Only comments name .workflow/.slot and .workflow/.worktrees; no path string is spelled out in code."
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to"
+    note: "No hook file is changed; the logic lives in the skill scripts."
+  - n: 3
+    verdict: "pass"
+    location: "worktree-setup.sh:61-66 (registered_worktrees), worktree-setup.sh:201, worktree-setup.sh:232, worktree-setup.sh:207, spec-worktree.sh:76-82, spec-worktree.sh:87-100"
+    note: "Every command substitution or check that can fail carries || die or feeds a set_up_worktree or stop_services caller that reports it. The only non-fatal path, the documented best-effort stop in stop_services, prints a message. The break in physical_target after a readlink cannot fail, since the -L test runs first."
+  - n: 4
+    verdict: "pass"
+    location: "worktree-setup.sh:201-207 (registered_worktrees under set -o pipefail), worktree-setup.sh:107, worktree-setup.sh:153-154, spec-worktree.sh:82, spec-worktree.sh:90-93"
+    note: "Functions run on the left of || (set_up_worktree, registered_worktree, registered_worktrees, physical_target) either carry their own || die or are guarded by pipefail, so a failing git or cp call still stops the script."
+  - n: 5
+    verdict: "pass"
+    location: "worktree-setup.sh:54-56, worktree-setup.sh:164, worktree-setup.sh:216, spec-worktree.sh:76-82"
+    note: "The codes used are 0, 1 and 2 only, and the Exit header lines cover the refusals (1) and the usage or environment errors (2) that the new code raises."
+  - n: 6
+    verdict: "pass"
+    location: "worktree-setup.sh:48, worktree-setup.sh:50, spec-worktree.sh:43, spec-worktree.sh:45"
+    note: "Sibling paths resolve from BASH_SOURCE through cd -P in both scripts."
+  - n: 7
+    verdict: "pass"
+    location: "worktree-setup.sh:1-45 (header block)"
+    note: "The header keeps the helper shape (File, Purpose, Usage, stdout, Exit, Called by, Notes, Sources). It carries no decision or task IDs."
+  - n: 8
+    verdict: "pass"
+    location: "worktree-setup.sh:1-50, spec-worktree.sh:40, tests/scripts/worktree-setup.sh:1-30"
+    note: "The files are existing files that keep set -euo pipefail and [[ ]] syntax. The new test lines reuse the file's existing check, t and eq helpers."
+  - n: 9
+    verdict: "pass"
+    location: "worktree-setup.sh:53-56, worktree-setup.sh:61-217 (each new function), spec-worktree.sh:76-90"
+    note: "Every new function has its name ARGS what-it-does line. The diff adds no shellcheck disable directive; the only new directive is a source hint."
+  - n: R1
+    verdict: "pass"
+    location: "worktree-setup.sh:170-185, worktree-setup.sh:189-217"
+    note: "Names say what they hold: LINK, WORKTREES, owner, target, folder, held, candidate, prune. The loop variable path in owning_worktree and check_links is a worktree path and fits its context."
+  - n: R2
+    verdict: "pass"
+    location: "worktree-setup.sh:155-156, worktree-setup.sh:249, worktree-setup.sh:252, worktree-setup.sh:257, spec-worktree.sh:91, tests/scripts/worktree-setup.sh:553"
+    note: "Each added comment that explains a trade-off gives the reason (stdout held back, tracked copy avoided, untracked-file refusal, link check ordering, resumed setup kept)."
+  - n: R3
+    verdict: "pass"
+    location: "worktree-setup.sh:202, worktree-setup.sh:155-156, spec-worktree.sh:91"
+    note: "The comment at worktree-setup.sh:202 gives why nested worktrees are pruned (they are checked on their own), and the others give reasons, so none only restates the code."
+  - n: R4
+    verdict: "tool-covered"
+    location: "worktree-setup.sh:1-45, spec-worktree.sh:12-33"
+    note: "Covered by the lint key comment lint (.agents/skills/feature-workflow/scripts/check-comments.sh), which passed. No changed comment points at a docs path or internal URL."
+  - n: R5
+    verdict: "pass"
+    location: "worktree-setup.sh:153-156, spec-worktree.sh:76-90"
+    note: "The shorthand (slot, copy list, services_down, worktree_setup, isolation values) is defined in the file header and in the rules-setting.sh settings it names."
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh: confirmed WF_SLOT_FILE, WF_COPY_LIST, WF_WORKTREES and WF_SPEC_WORKTREES are defined (lines 114-117)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: read the R1-R5 rules and the 3.7 checks"
+not_checked:
+  - "registered_worktree (worktree-setup.sh:67) turns a failing git worktree list into the message 'exists but is not a git worktree' at add_agent. The die still fires, so the item passes; running add_agent with git broken would settle whether the message matters."
+  - "physical_target (worktree-setup.sh:172) uses readlink then break. The -L test before it makes the failure unreachable; not probed."
+out_of_scope_noticed: []

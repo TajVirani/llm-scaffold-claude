@@ -1,0 +1,17 @@
+== lint: git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh
+== lint exit 0
+
+== test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --covering-file "$WF_CHANGED_FILES_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
+== scripts/install-claude-settings
+== scripts/next-spec-number
+== scripts/spec-worktree
+== scripts/worktree-setup
+
+== summary
+PASS scripts/install-claude-settings        passed=88   failed=0   skipped=0   xfail=0   46s
+PASS scripts/next-spec-number               passed=29   failed=0   skipped=0   xfail=0   4s
+PASS scripts/spec-worktree                  passed=81   failed=0   skipped=0   xfail=0   15s
+PASS scripts/worktree-setup                 passed=59   failed=0   skipped=0   xfail=0   11s
+TOTAL passed=257 failed=0 skipped=0 xfail=0 (4 suites)
+== test exit 0
+
