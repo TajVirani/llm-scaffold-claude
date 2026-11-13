@@ -1,11 +1,11 @@
 ---
-status: in-progress
+status: in-review
 baseline_revision: "0900278de2857d40567e08e21a3d9c2ba10f94b0"
 spec_branch: "spec/00016-per-run-handoffs"
 impl_base_revision: "f297896c689ad954ae7df6e9fbdbb8b336bdd4d3"
 light_path: false
 followup_review_recommended: false
-deferred: []
+deferred: [".workflow/deferred/browser-suite.md"]
 tracker_issue: ""
 budget: {max_tasks: 10, max_changed_files: 30}
 ---
@@ -45,3 +45,8 @@ A session working in a spec worktree hands off and the main checkout is untouche
 - Design log: [design-log.md](design-log.md)
 - Data model: [data-model.md](data-model.md)
 - Verification plan: [verification-plan.md](verification-plan.md)
+- Tasks: [tasks.md](tasks.md)
+
+## Known gaps
+
+- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)

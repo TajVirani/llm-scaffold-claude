@@ -200,3 +200,5 @@ Agreement: agreed in Questioning round 1
 - Assessment and ruling: to ask (out of scope), recommended keep for later because it predates this spec, touches neither of its modules and no journey needs it. For this spec's gates the folder is created empty in each task worktree (it is ignored), so the lint check runs as it does in the spec checkout.
 
 - 2026-11-12 3.16: task PRs skipped for T1 and T2 (`open-task-pr.sh`: gh not installed); both merged locally, `pr` stays null.
+
+- 2026-11-12 3.14: browser gate skipped; no e2e-browser profile. Added a Later requests line to [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md).
