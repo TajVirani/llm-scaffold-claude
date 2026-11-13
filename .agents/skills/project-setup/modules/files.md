@@ -6,7 +6,7 @@ All workflow data lives under one committed folder, `.workflow/`; create it firs
 | --- | --- | --- |
 | `.workflow/GLOSSARY.md` | `A/GLOSSARY.md` | Replace `{Context name}` and the one-line description with the human's answer. Leave the comment block: `domain-modeling` deletes it when the first term is added. |
 | `.workflow/capabilities.md` | `A/docs/capabilities.md` | Delete the example `CAP-001` row, so the table has its header only. 5.3 numbers the first real capability `CAP-001` (highest + 1). |
-| `.workflow/rules.md` | `A/docs/rules.md` | Copy as is, then ask the PR template question (see "PR template" below). `project-standards` fills the rest at step 6 of the skill (see "Rules" below). |
+| `.workflow/rules.md` | `A/docs/rules.md` | Copy as is, then ask the PR template question and the worktree setup questions (see "PR template" and "Worktree setup" below). `project-standards` fills the rest at step 6 of the skill (see "Rules" below). |
 | `.workflow/decisions/pitfalls.md` | `A/docs/decisions/pitfalls.md` | Copy as is. The comment holds the entry shape the retrospective follows at 5.7. |
 | `.workflow/review-lessons.md` | `.agents/skills/feature-workflow/assets/review-lessons.md` | Copy as is. The header holds the entry rules and the commands the retrospective follows at 5.7; a project set up before this file existed gets it from the retrospective at its next 5.7. |
 | `.workflow/deferred/.gitkeep` | none | Create an empty file so git keeps `.workflow/deferred/`. `.workflow/deferred/archive/` is created when the first item is archived (00.9). |
@@ -33,9 +33,25 @@ Only when `.workflow/rules.md` was created now. A kept rules.md is never touched
 3. One or more found: ask once which template the sign-off PR/MR description follows. Offer each found path, repo-relative, plus `workflow` (the workflow's own ten-section template), and lead with your recommendation.
 4. Write the answer into the `## Workflow settings` block of `.workflow/rules.md`: replace the commented `# pr_template: workflow` line with `pr_template: <answer>`, keeping its trailing comment. Then check it reads back: `.agents/skills/feature-workflow/scripts/rules-setting.sh pr_template` prints the answer.
 
-This is the one write to `.workflow/rules.md` that bypasses the `project-standards` ledger. The file is a fresh, unfilled copy, the human picks the value directly from the offered choices, and the key is a workflow setting rather than a project standard, so a ledger row would only repeat the same question.
+This answer and the worktree setup answers below are the only writes to `.workflow/rules.md` that bypass the `project-standards` ledger. The file is a fresh, unfilled copy, the human picks each value directly, and each key is a workflow setting rather than a project standard, so a ledger row would only repeat the same question.
 
-Done when every file in the table exists, either created now or kept, and a created rules.md holds the `pr_template` answer when a host template was found.
+## Worktree setup
+
+Only when `.workflow/rules.md` was created now; a kept rules.md changes through a 5.3 proposal. The workflow builds each spec in its own worktree. Worktree setup makes each new one ready to run and test without anyone copying files or starting services by hand: it copies in the gitignored files the project names, runs the project's setup command, and starts and stops the services its tests need. Explain that in one sentence, then ask the four questions below together. For each, lead with your recommendation from what step 2 found, and accept "none".
+
+1. **Copy list**: which gitignored files a worktree needs, as gitignore-style patterns (e.g. `.env`, `config/*.local.yaml`). Only files the project's `.gitignore` ignores are copied, and they are copied as regular files, never links; a tracked file is never copied. Recommend the gitignored config files the repo holds, or none.
+2. **`worktree_setup`**: the command that makes a new worktree ready, e.g. the dependency install for the lockfile found (`pnpm install --frozen-lockfile`). Recommend none when the project has nothing to install.
+3. **`services_up`**: the command that starts what the `test` and `e2e` commands need (database, cache), using ports, container names and database names derived from `WF_PORT_OFFSET` and `WF_INSTANCE`, so the dev database is never touched. It must be safe to run when the services are already up. Recommend none when the tests need no services.
+4. **`services_down`**: the command that stops what `services_up` started. Recommend none when `services_up` is none.
+
+Write the answers:
+
+- A copy list: write `.worktreeinclude` at the repository root, one pattern per line, and tell the human to commit it with the rest. "None": write no file. When `.worktreeinclude` already exists, keep it, report it as "kept" and leave question 1 out.
+- Each command: replace its commented `# <key>: ""` line in the `## Workflow settings` block with `<key>: '<command>'` (YAML single quotes; a `'` inside the command is written `''`), keeping its trailing comment, then check it reads back: `.agents/skills/feature-workflow/scripts/rules-setting.sh <key>` prints the command. "None": the commented line stays, so the key reads empty and nothing runs.
+
+A project that answers "none" to all four behaves as it did before worktree setup existed: the workflow only adds each worktree.
+
+Done when every file in the table exists, either created now or kept, a created rules.md holds the `pr_template` answer when a host template was found and each worktree setup command the human gave, and `.worktreeinclude` exists when the human named files to copy.
 
 ## Tracker
 
