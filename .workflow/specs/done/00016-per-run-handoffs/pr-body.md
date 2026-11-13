@@ -25,7 +25,7 @@ No tracker issue yet: the workflow does not create one when a spec starts.
 
 ## Special things to note
 
-- Report: [report.md](.workflow/specs/00016-per-run-handoffs/report.md). Task PRs: none; `gh` is not installed, so T1 and T2 were merged locally.
+- Report: [report.md](.workflow/specs/done/00016-per-run-handoffs/report.md). Task PRs: none; `gh` is not installed, so T1 and T2 were merged locally.
 - The browser gate was skipped: this repo has no browser suite ([.workflow/deferred/browser-suite.md](.workflow/deferred/browser-suite.md)).
 - Not checked in a live session: that a session started inside a spec worktree gets that worktree's path as its `cwd`, which the offer relies on. The suite proves the order only against a built fixture.
 - None of the three targets could be measured by a command; the offer's size cap and exit code are asserted by the suite.

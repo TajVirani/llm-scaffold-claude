@@ -6,14 +6,14 @@ Spec: [spec.md](spec.md)
 
 - Step: 0.2.2
 - Question: What is the canonical term for the file the handoff skill writes: **Session handoff**, or another name?
-- Answer taken: **Session handoff**, written to [.workflow/GLOSSARY.md](../../GLOSSARY.md) at 0.2.3. The handoff skill and the session-start hook already use it; the glossary held only **Deferred handoff**.
+- Answer taken: **Session handoff**, written to [.workflow/GLOSSARY.md](../../../GLOSSARY.md) at 0.2.3. The handoff skill and the session-start hook already use it; the glossary held only **Deferred handoff**.
 - Why safe to assume: it names an existing concept with the name the code already uses, and no glossary entry competes. Undone by editing the one glossary entry.
 
 ## 2026-11-12 Assumed: placement across the handoff skill, the hooks and the installer
 
 - Step: 0.3.4
 - Question: The change touches more than one module. Which module owns what: the handoff skill (`standalone-skills`), the session-start hook (`hooks`), the path constant (`lib`) and the ignore entry (`installer`)?
-- Answer taken: each part stays in the module that owns it today. The handoff skill owns where and how a session handoff is written and resumed; `hooks` owns the session-start offer; `lib` keeps `WF_HANDOFF`; `installer` keeps the `.gitignore` block. The handoff skill keeps its commands inline, because `standalone-skills` may depend on no module ([.workflow/rules.md](../../rules.md) Ownership).
+- Answer taken: each part stays in the module that owns it today. The handoff skill owns where and how a session handoff is written and resumed; `hooks` owns the session-start offer; `lib` keeps `WF_HANDOFF`; `installer` keeps the `.gitignore` block. The handoff skill keeps its commands inline, because `standalone-skills` may depend on no module ([.workflow/rules.md](../../../rules.md) Ownership).
 - Why safe to assume: it moves no code between modules and adds no dependency, so no ADR or rule is in conflict (0.3.5) and the three-part ADR test fails (not hard to reverse). Undone by moving the affected text.
 
 ## 2026-11-12 Deeper prompt
@@ -36,7 +36,7 @@ Spec: [spec.md](spec.md)
 
 **Gotchas:** asked in the first questioning ask
 
-**Not asked for:** building the loop in which an agent hands off, resets its context and reloads by itself (the stakeholder says agents "will eventually" do this); moving the main-checkout lookup onto `wf_main_root` ([.workflow/deferred/main-checkout-resolver.md](../../deferred/main-checkout-resolver.md)).
+**Not asked for:** building the loop in which an agent hands off, resets its context and reloads by itself (the stakeholder says agents "will eventually" do this); moving the main-checkout lookup onto `wf_main_root` ([.workflow/deferred/main-checkout-resolver.md](../../../deferred/main-checkout-resolver.md)).
 
 **Original request:** "Handoff issues. Writing a handoff breaks the rule for writing a file to main. Handoffs however should never be checked in or tracked. We need a folder in the workflow folder where handoffs can be written to, is git ignored (by the setup script or added later) and where runs can write handoffs so that work can continue. Handoffs are interesting in that I could have multiple agents running that will eventually auto handle creating a handoff, resetting their context, and loading the specific handoff."
 
@@ -129,7 +129,7 @@ Facts looked up instead of asked (0.3.10): None.
 
 **Gotchas:** none known
 
-**Not asked for:** building that loop; moving the main-checkout lookup onto `wf_main_root` ([.workflow/deferred/main-checkout-resolver.md](../../deferred/main-checkout-resolver.md)).
+**Not asked for:** building that loop; moving the main-checkout lookup onto `wf_main_root` ([.workflow/deferred/main-checkout-resolver.md](../../../deferred/main-checkout-resolver.md)).
 
 **Original request:** "Handoff issues. Writing a handoff breaks the rule for writing a file to main. Handoffs however should never be checked in or tracked. We need a folder in the workflow folder where handoffs can be written to, is git ignored (by the setup script or added later) and where runs can write handoffs so that work can continue. Handoffs are interesting in that I could have multiple agents running that will eventually auto handle creating a handoff, resetting their context, and loading the specific handoff."
 
@@ -201,7 +201,7 @@ Agreement: agreed in Questioning round 1
 
 - 2026-11-12 3.16: task PRs skipped for T1 and T2 (`open-task-pr.sh`: gh not installed); both merged locally, `pr` stays null.
 
-- 2026-11-12 3.14: browser gate skipped; no e2e-browser profile. Added a Later requests line to [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md).
+- 2026-11-12 3.14: browser gate skipped; no e2e-browser profile. Added a Later requests line to [.workflow/deferred/browser-suite.md](../../../deferred/browser-suite.md).
 
 ## 2026-11-12 Triage, review pass 1
 

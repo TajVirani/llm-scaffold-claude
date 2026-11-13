@@ -37,7 +37,7 @@ Spec: [spec.md](spec.md)
 | --- | --- | --- | --- | --- |
 | Session-start offer size with handoffs in several checkouts | performance | under 10,000 characters of `additionalContext` | Not measurable outside a fixture: it needs a repo with spec worktrees and handoffs, which only the suite builds; the cap check in `tests/hooks/audit-sync-resume.sh` is extended to cover it | spec.md Constraints (the offer stays inside its size cap) |
 | Errors | error | the hook exits 0 for every input | Not measurable as a number: asserted per case by the suite | `.agents/hooks/session-start-resume.sh` header (exit 0 always) |
-| Coverage | coverage | none set | Not measurable: no bash line-coverage tool is installed ([.workflow/deferred/bash-line-coverage.md](../../deferred/bash-line-coverage.md)) | assumed (design-log.md) |
+| Coverage | coverage | none set | Not measurable: no bash line-coverage tool is installed ([.workflow/deferred/bash-line-coverage.md](../../../deferred/bash-line-coverage.md)) | assumed (design-log.md) |
 
 ## Suites
 

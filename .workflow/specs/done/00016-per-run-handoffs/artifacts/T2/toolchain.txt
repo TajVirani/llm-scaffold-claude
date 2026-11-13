@@ -2,6 +2,6 @@
 == lint exit 0
 
 == test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --covering-file "$WF_CHANGED_FILES_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
-(not run: passed in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/specs/00016-per-run-handoffs/artifacts/T2/toolchain.txt on a tree that differs only in comments and docs)
+(not run: passed in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/specs/done/00016-per-run-handoffs/artifacts/T2/toolchain.txt on a tree that differs only in comments and docs)
 == test exit 0
 

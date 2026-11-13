@@ -2,7 +2,7 @@ verdict: fail
 task_id: T2
 work_type: shell-scripts
 diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_t2@4e5e86b0ab3fa7a34d501da533a8c6fd125e8c9a..HEAD
-tool_output: .workflow/specs/00016-per-run-handoffs/artifacts/T2/toolchain.json
+tool_output: .workflow/specs/done/00016-per-run-handoffs/artifacts/T2/toolchain.json
 items:
   - n: 1
     verdict: pass

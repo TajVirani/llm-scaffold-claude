@@ -24,7 +24,7 @@ A session that runs in a spec worktree writes its session handoff into `.workflo
 
 ## Constraints
 
-- The handoff skill stays self-contained: `standalone-skills` may depend on no module, so its commands stay inline ([.workflow/rules.md](../../rules.md) Ownership).
+- The handoff skill stays self-contained: `standalone-skills` may depend on no module, so its commands stay inline ([.workflow/rules.md](../../../rules.md) Ownership).
 - The folder stays `.workflow/.handoff/` (`WF_HANDOFF`); the install.sh ignore block and this repo's `.gitignore` keep their entry.
 - The session-start offer stays inside its size cap and still says not to resume unasked.
 - A handoff already in a main checkout's `.workflow/.handoff/` under an old name is still listed and can be resumed.
@@ -32,7 +32,7 @@ A session that runs in a spec worktree writes its session handoff into `.workflo
 ## Non-goals
 
 - The loop in which an agent hands off, resets its context and reloads by itself. An outer orchestrator will start the fresh session and name the handoff path; this spec only makes that possible (design-log D2).
-- Moving the handoff skill's main-checkout lookup onto `wf_main_root`: shelved in [.workflow/deferred/main-checkout-resolver.md](../../deferred/main-checkout-resolver.md).
+- Moving the handoff skill's main-checkout lookup onto `wf_main_root`: shelved in [.workflow/deferred/main-checkout-resolver.md](../../../deferred/main-checkout-resolver.md).
 - Changing what a handoff holds, beyond what its location and name need.
 
 ## Success signal
@@ -49,4 +49,4 @@ A session working in a spec worktree hands off and the main checkout is untouche
 
 ## Known gaps
 
-- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)
+- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../../deferred/browser-suite.md)

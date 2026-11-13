@@ -55,7 +55,7 @@ Behaviour verification: Runtime behaviour was not exercised in a live session: t
 
 ## Known gaps
 
-- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)
+- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../../deferred/browser-suite.md)
 - Targets: none of the three Targets rows could be measured by a command (table above).
 - Not verifiable by the review: whether a live SessionStart payload's `cwd` for a session started in a spec worktree is the worktree path. Settled by starting a real session there and reading the offer.
 - Not checked by the review: a session in an agent worktree lists its own handoffs and the main checkout's, not its spec worktree's; the spec does not ask for that case.
@@ -63,7 +63,7 @@ Behaviour verification: Runtime behaviour was not exercised in a live session: t
 
 ## Deferred
 
-- [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md): the missing browser suite; this spec added one Later requests line.
+- [.workflow/deferred/browser-suite.md](../../../deferred/browser-suite.md): the missing browser suite; this spec added one Later requests line.
 
 ## Open items
 

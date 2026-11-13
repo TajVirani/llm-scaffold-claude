@@ -27,8 +27,8 @@ tests_added:
 evidence:
   red: "bash tests/scripts/handoff-skill.sh -> 'FAIL JRN-001 Locate section holds one bash block naming .gitignore' (SKILL.md ### 1. Locate has no single bash block naming .gitignore ...), RESULT passed=0 failed=11; bash tests/hooks/audit-sync-resume.sh -> 'FAIL JRN-004 worktree session lists its own handoff first, by its path in the checkout' (only the main checkout's fix-login.md listed), RESULT passed=59 failed=7"
   green: "Against a scratch copy of tests/ and .agents/ with a sketched Locate block, Resume wording and hook change: handoff-skill RESULT passed=11 failed=0; audit-sync-resume RESULT passed=66 failed=0"
-  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00016-per-run-handoffs --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>; test skipped by caller (Phase 1)"
-  toolchain: ".workflow/specs/00016-per-run-handoffs/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00016-per-run-handoffs --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>; test skipped by caller (Phase 1)"
+  toolchain: ".workflow/specs/done/00016-per-run-handoffs/artifacts/phase-1-test-harness/toolchain.txt (pass)"
 considered_not_built:
   - "A check that the Locate block works outside git (root is $PWD): the data model states it, but no journey names it; left to the task's own tests."
   - "The isolation worktree case: the existing check from .claude/worktrees/wt now expects the main checkout's handoff by absolute path, as the brief asks. The hook's current own-checkout lookup (wf_project_root) maps an isolation worktree to the checkout it sits in, so the task must use the session's top level for the handoff scan to pass it."

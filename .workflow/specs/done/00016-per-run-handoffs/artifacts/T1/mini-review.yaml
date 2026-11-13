@@ -2,7 +2,7 @@ verdict: pass
 task_id: T1
 work_type: agent-docs
 diff: worktree@dee519a579048e9f2f71d12117dde408e0c9ab1b..HEAD
-tool_output: .workflow/specs/00016-per-run-handoffs/artifacts/T1/toolchain.json
+tool_output: .workflow/specs/done/00016-per-run-handoffs/artifacts/T1/toolchain.json
 items:
   - n: 1
     verdict: not-applicable

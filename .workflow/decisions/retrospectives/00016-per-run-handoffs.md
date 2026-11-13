@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/00016-per-run-handoffs
+spec: .workflow/specs/done/00016-per-run-handoffs
 date: 2026-11-12
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/00016-per-run-handoffs/spec.md` (capabilities: CAP-015)
-- Report: `.workflow/specs/00016-per-run-handoffs/report.md`
+- Spec: `.workflow/specs/done/00016-per-run-handoffs/spec.md` (capabilities: CAP-015)
+- Report: `.workflow/specs/done/00016-per-run-handoffs/report.md`
 - Tasks: 2 done, 0 split out
 - Evidence available: `spec.md`, `verification-plan.md`, `report.md`, `tasks.md`, `design-log.md` (one triage entry), `proposals.md` (P1, approved), `artifacts/` (T1, T2, phase-1-test-harness, phase-1-known-bad, gate-3.9-w1, gate-3.9-r1, sign-off-5.4, review/pass-1), `.workflow/specs/work-backlog/00016-per-run-handoffs.md` (B1), `.workflow/deferred/browser-suite.md`, git `0900278..a486359`, `.workflow/review-lessons.md`, the previous retrospective `00014-tracker-issue-spec-ids.md`
 - Evidence missing: session logs (not read)

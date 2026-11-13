@@ -15,8 +15,8 @@ tests_added:
 evidence:
   red: "No red run: the rework strengthens a check over existing, already-correct behaviour (the random suffix). Confirmed the stub takes effect: PATH=<stub dir>:$PATH bash -c 'echo x--$(date -u +%Y%m%dT%H%M%SZ)' printed x--20260101T120000Z."
   green: "tests/run-all.sh --suite scripts/handoff-skill --suite lint/upstream-lineage --suite lint/frontmatter; PASS scripts/handoff-skill 12/12, lint/frontmatter 39/39, lint/upstream-lineage 13/13"
-  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00016-per-run-handoffs --task-id T1 --cwd <worktree>; test (scoped) pass"
-  toolchain: ".workflow/specs/00016-per-run-handoffs/artifacts/T1/toolchain.txt (pass)"
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00016-per-run-handoffs --task-id T1 --cwd <worktree>; test (scoped) pass"
+  toolchain: ".workflow/specs/done/00016-per-run-handoffs/artifacts/T1/toolchain.txt (pass)"
 considered_not_built:
   - "Rewording the suite header comment for JRN-003: it still reads true (two runs for one spec) and the brief limited the change to three patches."
 profile_wrong: null

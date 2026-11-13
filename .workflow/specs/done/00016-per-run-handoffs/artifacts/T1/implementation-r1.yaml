@@ -10,8 +10,8 @@ tests_added: []
 evidence:
   red: "tests/run-all.sh --suite scripts/handoff-skill; FAIL scripts/handoff-skill passed=0 failed=11 (Locate has no single bash block naming .gitignore; Resume section lacks: without asking)"
   green: "tests/run-all.sh --suite scripts/handoff-skill --suite lint/frontmatter; PASS scripts/handoff-skill passed=11 failed=0; PASS lint/frontmatter passed=39 failed=0"
-  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00016-per-run-handoffs --task-id T1 --cwd <worktree>; scoped test TOTAL passed=1034 failed=1 (29 suites), the one failure lint/step-list"
-  toolchain: ".workflow/specs/00016-per-run-handoffs/artifacts/T1/toolchain.txt (fail)"
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00016-per-run-handoffs --task-id T1 --cwd <worktree>; scoped test TOTAL passed=1034 failed=1 (29 suites), the one failure lint/step-list"
+  toolchain: ".workflow/specs/done/00016-per-run-handoffs/artifacts/T1/toolchain.txt (fail)"
 considered_not_built:
   - "Calling wf_main_root or a shared script from the Locate block: the skill may depend on no other module, so the block stays inline."
   - "Creating an empty .workflow/.worktrees/ in the task worktree to quiet lint/step-list: it would hide the real path check rather than fix it."

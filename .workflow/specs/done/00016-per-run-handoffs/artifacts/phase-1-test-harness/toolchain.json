@@ -1,12 +1,12 @@
 {
   "status": "pass",
-  "task_id": "gate-3.9-r1",
+  "task_id": "phase-1-test-harness",
   "work_type": "test-harness",
-  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/profiles/test-harness.md",
-  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs",
-  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/specs/00016-per-run-handoffs/artifacts/gate-3.9-r1",
-  "tree": "4ef46d905059eeab52fb6b1f92d0f5039ea0de91",
-  "ran": 2,
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_phase_1_test_harness/.workflow/profiles/test-harness.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_phase_1_test_harness",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/specs/done/00016-per-run-handoffs/artifacts/phase-1-test-harness",
+  "tree": "cd3b178a9af6a728eb2f0ad6c38c2a86f1b0fef2",
+  "ran": 1,
   "results": [
     {
       "key": "lint",
@@ -37,10 +37,12 @@
     },
     {
       "key": "test",
-      "command": "tests/run-all.sh",
-      "status": "pass",
-      "exit_code": 0
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "skipped by caller"
     }
   ],
-  "digest": ""
+  "digest": "",
+  "reused_from": "phase-1-test-harness"
 }
