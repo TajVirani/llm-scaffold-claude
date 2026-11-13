@@ -10,7 +10,7 @@
 #   reads workflow without a Workflow settings block or the key (with a default note on stderr), reads workflow, prints the
 #   host template path back, refuses a missing file, an absolute, `..`, leading-dash or non-.md path, `project` and `other`
 #   with exit 1 naming the value, refuses a path value when --cwd is outside git, and reads workflow from the project-setup
-#   rules.md template.
+#   rules.md template. The same template carries worktree_setup, services_up and services_down as commented lines that read empty.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -223,6 +223,19 @@ pt_out=$(GIT_CEILING_DIRECTORIES=$WORK RS pr_template --cwd "$PT_OUTSIDE_GIT" --
 pt_rc=$?
 eq "JRN-004 pr_template path with --cwd outside git -> 1 saying so" "$pt_rc:$(grep -qi git <<<"$pt_out" && echo said)" "1:said"
 eq "JRN-004 the project-setup rules.md template reads pr_template workflow" "$(RS pr_template --rules "$RULES_T" 2>/dev/null)" workflow
+# The template ships each command setting as a commented line inside the settings block, so a project that answers "none"
+# keeps today's behaviour, and removing the "# " gives a line that still parses and reads empty.
+settings_block() { awk '/^## /{ insec = ($0 == "## Workflow settings"); next } insec && /^```/{ n++; next } insec && n == 1' "$1"; }
+for key in worktree_setup services_up services_down; do
+  eq "the project-setup rules.md template reads $key as empty" "$(RS "$key" --rules "$RULES_T" 2>/dev/null; echo ":$?")" "
+:0"
+  eq "the project-setup rules.md template carries a commented $key line in its settings block" \
+    "$(settings_block "$RULES_T" | grep -c "^# $key: \"\"")" 1
+  sed "s/^# $key: /$key: /" "$RULES_T" > "$WORK/uncommented.md"
+  eq "the project-setup rules.md template's $key line uncommented reads empty" \
+    "$(RS "$key" --rules "$WORK/uncommented.md" 2>/dev/null; echo ":$?")" "
+:0"
+done
 # generate-boundary-config ignores the section (reads Ownership and Shared core only)
 GB=$WORK/gb; mkdir -p "$GB/.workflow"; cp "$RULES_T" "$GB/.workflow/rules.md"
 printf '\n## Workflow settings\n\n```yaml\ntask_review: pr-blocking\n```\n' >> "$GB/.workflow/rules.md"

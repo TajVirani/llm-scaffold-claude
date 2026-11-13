@@ -61,7 +61,9 @@ size_budget:
 
 ## Workflow settings
 
-Optional. How the orchestrator reviews each task branch before merging it into the spec branch at 3.16, the branch each feature's PR/MR targets, and the template its description follows. Delete the section, or a key, to keep the default. Changed only at 5.3, except `pr_template`, which project-setup also writes when it creates this file.
+Optional. How the orchestrator reviews each task branch before merging it into the spec branch at 3.16, the branch each feature's PR/MR targets, the template its description follows, and the worktree setup commands. Delete the section, or a key, to keep the default. Changed only at 5.3, except `pr_template` and the three worktree setup commands, which project-setup also writes when it creates this file.
+
+The worktree setup commands are one shell command each, run with `bash -c`; empty runs nothing. Each receives the isolation values `WF_SLOT` (the spec's number among live spec worktrees, 0 in the main checkout), `WF_INSTANCE` (`s<NNN>`, or `main`), `WF_PORT_OFFSET` (slot × 100), `WF_MAIN_ROOT` and `WF_SPEC_ROOT`. The workflow sets nothing project-specific: the project's own commands turn these values into ports, container names and database names, so two specs and the main checkout never share them.
 
 ```yaml
 task_review: pr   # pr (default): open a PR/MR into the spec branch as a non-blocking review record, merge locally and continue
@@ -72,6 +74,14 @@ task_review: pr   # pr (default): open a PR/MR into the spec branch as a non-blo
 # pr_template: workflow   # the template the sign-off PR/MR description follows. workflow (default): the workflow's own ten-section
                           # template. Or a repo-relative path to the project's host template, ending in .md and present in the
                           # repo (e.g. .github/pull_request_template.md). Read with rules-setting.sh pr_template.
+# worktree_setup: ""   # makes a new worktree ready (e.g. installs dependencies). Runs in each new spec, agent and scratch worktree,
+                       # after the gitignored files named in .worktreeinclude are copied in, with the isolation values set. A non-zero
+                       # exit fails worktree setup. Read with rules-setting.sh worktree_setup.
+# services_up: ""      # starts the services the test and e2e commands need, on ports, container names and database names derived
+                       # from the isolation values. Runs in the spec worktree before a test or e2e toolchain key that will run. Must be
+                       # safe to run when the services are already up. A non-zero exit fails the toolchain run.
+# services_down: ""    # stops what services_up started. Runs in the spec worktree, with the isolation values set, when the spec
+                       # worktree is removed; a non-zero exit is reported and the removal goes on.
 ```
 
 ## Cross-cutting policy
