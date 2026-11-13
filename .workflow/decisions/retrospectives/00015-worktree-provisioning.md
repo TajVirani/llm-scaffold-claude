@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/00015-worktree-provisioning
+spec: .workflow/specs/done/00015-worktree-provisioning
 date: 2026-11-12
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/00015-worktree-provisioning/spec.md` (capabilities: CAP-015)
-- Report: `.workflow/specs/00015-worktree-provisioning/report.md`
+- Spec: `.workflow/specs/done/00015-worktree-provisioning/spec.md` (capabilities: CAP-015)
+- Report: `.workflow/specs/done/00015-worktree-provisioning/report.md`
 - Tasks: 9 done, 0 split out (`tasks.md` frontmatter)
 - Evidence available:
   - `spec.md`, `verification-plan.md`, `report.md`, `tasks.md`, `design-log.md` (one triage entry, review pass 1, and the Sign-off entry) and `proposals.md` (P1, approved);

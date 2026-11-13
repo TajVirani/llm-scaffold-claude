@@ -1,0 +1,58 @@
+verdict: "pass"
+task_id: "T3"
+work_type: "shell-scripts"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t3@27e5d6f6e419f964c3cb731e95e6c8b3567f68ac..HEAD"
+tool_output: ".workflow/specs/done/00015-worktree-provisioning/artifacts/T3/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "worktree-setup.sh and tests/scripts/worktree-setup.sh add no .workflow/ path in a script; the test fixture SETUP_ENV at tests/scripts/worktree-setup.sh:26 is under $WORK"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no hook file in the diff"
+  - n: 3
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/worktree-setup.sh:159-164"
+  - n: 4
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/scripts/worktree-setup.sh:159"
+  - n: 5
+    verdict: "not-applicable"
+    location: "no exit code added or changed; the exit 2 at worktree-setup.sh:159 follows the header # Exit: block at lines 35-38"
+  - n: 6
+    verdict: "not-applicable"
+    location: "no sibling path added in the diff"
+  - n: 7
+    verdict: "not-applicable"
+    location: "worktree-setup.sh:1-44 header unchanged; its Purpose still matches run_worktree_setup taking the five isolation values"
+  - n: 8
+    verdict: "pass"
+    location: "worktree-setup.sh:45-48 set -euo pipefail and [[ ]] unchanged; tests/scripts/worktree-setup.sh keeps its existing [ ] check syntax"
+  - n: 9
+    verdict: "not-applicable"
+    location: "no function added in the diff and no shellcheck directive added"
+  - n: "R1"
+    verdict: "pass"
+    location: "tests/scripts/worktree-setup.sh:26 SETUP_ENV, tests/scripts/worktree-setup.sh:126-127 eq check"
+  - n: "R2"
+    verdict: "pass"
+    location: "no workaround or trade-off added; the eval change at worktree-setup.sh:159 needs no comment"
+  - n: "R3"
+    verdict: "pass"
+    location: "tests/scripts/worktree-setup.sh:26-27 marker comment; the trailing clause so the two can be compared gives a reason, so the comment stays"
+  - n: "R4"
+    verdict: "tool-covered"
+    location: "tests/scripts/worktree-setup.sh:2-8 (header Covers line), tests/scripts/worktree-setup.sh:26-27"
+    note: "covered by the lint key's check-comments.sh; I also ran check-comments.sh on tests/scripts/worktree-setup.sh and it exits 0. No changed comment points at a docs/ path or an internal URL."
+  - n: "R5"
+    verdict: "pass"
+    location: "tests/scripts/worktree-setup.sh:2-8, tests/scripts/worktree-setup.sh:26-27"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: rules R1 to R5 and the Checking section"
+  - ".agents/skills/feature-workflow/scripts/worktree-setup.sh: whole file, to judge run_worktree_setup, print_isolation_values and the # Exit: block"
+  - ".workflow/specs/done/00015-worktree-provisioning/artifacts/T3/toolchain.json and implementation.yaml: tool coverage and the implementer's self-review"
+not_checked:
+  - "item 4: eval \"$(print_isolation_values)\" || exit 2 guards eval's status, not the substitution's. If printf failed, eval would run an empty or partial string and return 0. printf with %q on set variables cannot realistically fail, so no failure is proven."
+  - "R3 judgement at tests/scripts/worktree-setup.sh:26-27: the first clause restates the printf block below. Passed because the trailing clause gives the reason; a stricter reader could cut it to the reason alone."
+  - "toolchain lint glob covers .agents and scripts/ only, so the test file gets no comment lint in the toolchain; the check-comments run above was my own probe."
+out_of_scope_noticed: []

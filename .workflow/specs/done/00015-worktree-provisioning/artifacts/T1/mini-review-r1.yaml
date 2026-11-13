@@ -1,0 +1,61 @@
+verdict: fail
+task_id: T1
+work_type: shell-scripts
+diff: worktree s00015_t1 @ bb5f8b387ab038f4a9650001dea0048ba0b2306e..HEAD
+tool_output: .workflow/specs/done/00015-worktree-provisioning/artifacts/T1/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: 'no code in the diff the item applies to; no new .workflow/ path is added in rules-setting.sh or tests/scripts/task-breakdown.sh'
+  - n: 2
+    verdict: not-applicable
+    location: 'no hook file in the diff'
+  - n: 3
+    verdict: pass
+    location: 'rules-setting.sh:138,146 (default_out prints a stderr note before the default); the new sequence and map case uses the same path, covered by tests/scripts/task-breakdown.sh:136-150'
+  - n: 4
+    verdict: pass
+    location: 'no code in the diff the item applies to; the added lines at rules-setting.sh:101 and 149 are not writes or checks inside a substitution or loop guarded by || die'
+  - n: 5
+    verdict: not-applicable
+    location: 'no exit code is added or changed in the diff; the Exit codes header at rules-setting.sh:33-34 is unchanged'
+  - n: 6
+    verdict: not-applicable
+    location: 'the diff does not touch the BASH_SOURCE sibling-path line'
+  - n: 7
+    verdict: pass
+    location: 'rules-setting.sh:1-24; the header keeps its shape and the added lines at 13 and 27-29 carry no decision or task id'
+  - n: 8
+    verdict: pass
+    location: 'no new file; rules-setting.sh:101 and 149 use [[ ]]; tests/scripts/task-breakdown.sh:127-150 keeps the existing eq and t helpers'
+  - n: 9
+    verdict: not-applicable
+    location: 'the diff adds no function; setting_spec at rules-setting.sh:61-68 is edited in its body and comment only'
+  - n: R1
+    verdict: pass
+    location: 'rules-setting.sh:53 KNOWN_KEYS, rules-setting.sh:101 DEFAULT, tests/scripts/task-breakdown.sh:128 YAML_CMD; each name says what it holds'
+  - n: R2
+    verdict: pass
+    location: 'rules-setting.sh:56-58 gives the reason the @empty token exists (a space-split spec cannot carry an empty string)'
+  - n: R3
+    verdict: pass
+    location: 'tests/scripts/task-breakdown.sh:128 decodes the escaped $-quoted literal on the next line; it does not restate the code'
+  - n: R4
+    verdict: tool-covered
+    location: 'rules-setting.sh:1-29 and tests/scripts/task-breakdown.sh:127-150 (changed comments, all checked by the lint)'
+    note: 'covered by the lint key comment lint (.agents/skills/feature-workflow/scripts/check-comments.sh); no changed comment points at a docs path or internal URL'
+  - n: R5
+    verdict: fail
+    location: 'rules-setting.sh:27'
+    note: 'the phrase copy-list is project shorthand, undefined in this script and absent from GLOSSARY.md; the term is WF_COPY_LIST (.worktreeinclude) in workflow-paths.sh:21-22. Replace the words with plain text.'
+    fixes:
+      - location: 'rules-setting.sh:27'
+        fix: 'replace: #   worktree_setup  a shell command         ""        worktree setup: run in each new worktree after the gitignored files named in .worktreeinclude are copied in'
+read_outside_diff:
+  - 'rules-setting.sh (whole file, worktree): sibling code for emit, default_out and the allowed-value loop'
+  - 'references/readable-code.md: R1 to R5 and the Checking table'
+  - 'workflow-paths.sh:21-22 and :117: definition of WF_COPY_LIST, the term used at rules-setting.sh:27'
+  - 'GLOSSARY.md: searched for copy-list; no entry'
+not_checked: []
+out_of_scope_noticed: []
+patched: ab3f2f0317f5eeb5a4482c3a8f171bf25a548433

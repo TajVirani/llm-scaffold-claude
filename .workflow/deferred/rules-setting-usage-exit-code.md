@@ -1,5 +1,5 @@
 ---
-origin_spec: .workflow/specs/00015-worktree-provisioning
+origin_spec: .workflow/specs/done/00015-worktree-provisioning
 created: 2026-11-12
 ---
 
@@ -7,7 +7,7 @@ created: 2026-11-12
 
 **Summary:** The script that reads a project's workflow settings exits 1 on a usage error, where its sibling scripts exit 2.
 **Mode:** HITL
-**Origin:** [00015-worktree-provisioning](../specs/00015-worktree-provisioning/spec.md), 0.3.17 scope decision, design-log entry 2026-11-12 Scope decision: usage exit code of the settings reader
+**Origin:** [00015-worktree-provisioning](../specs/done/00015-worktree-provisioning/spec.md), 0.3.17 scope decision, design-log entry 2026-11-12 Scope decision: usage exit code of the settings reader
 
 ## Goal
 
@@ -27,7 +27,7 @@ The module audit for worktree setup noticed the difference while listing the exi
 
 ## Decisions already made
 
-- Shelved, not folded into worktree setup (design-log Scope decision in [.workflow/specs/00015-worktree-provisioning/design-log.md](../specs/00015-worktree-provisioning/design-log.md)).
+- Shelved, not folded into worktree setup (design-log Scope decision in [.workflow/specs/done/00015-worktree-provisioning/design-log.md](../specs/done/00015-worktree-provisioning/design-log.md)).
 
 ## Evidence
 

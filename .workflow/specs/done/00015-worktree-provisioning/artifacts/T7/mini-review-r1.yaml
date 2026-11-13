@@ -1,0 +1,44 @@
+verdict: "fail"
+task_id: "T7"
+work_type: "agent-docs"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t7@0a38442db5c707b432a65beacf5d7eaf1fc882ba..HEAD"
+tool_output: ".workflow/specs/done/00015-worktree-provisioning/artifacts/T7/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to"
+    note: "The diff touches coverage.md (a table cell), tests/README.md and a new suite; no SKILL.md description is added or changed."
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to"
+    note: "The diff adds no agent definition."
+  - n: "R1"
+    verdict: "fail"
+    location: "tests/lint/standards-coverage-docs.sh:34, tests/lint/standards-coverage-docs.sh:35, tests/lint/standards-coverage-docs.sh:50, tests/lint/standards-coverage-docs.sh:51"
+    note: "The name item is on the R1 generic list, and a telling name is available: the value is one checklist requirement (its label and needles), so a reader of has_item must trace the code to learn what item holds."
+    fixes:
+      - location: "tests/lint/standards-coverage-docs.sh:34, tests/lint/standards-coverage-docs.sh:35, tests/lint/standards-coverage-docs.sh:50, tests/lint/standards-coverage-docs.sh:51"
+        fix: "rename item to requirement"
+  - n: "R2"
+    verdict: "pass"
+    location: "tests/lint/standards-coverage-docs.sh:9"
+    note: "The shellcheck disable directive carries a reason; no other workaround or trade-off in the diff needs one."
+  - n: "R3"
+    verdict: "pass"
+    location: "tests/lint/standards-coverage-docs.sh:18, tests/lint/standards-coverage-docs.sh:27, tests/lint/standards-coverage-docs.sh:32"
+    note: "The comments give argument formats and return contracts (what ITEMS entries hold, the output shape of every_work_type_row, the has_item arguments), which the code does not state on its own; none narrates the next line."
+  - n: "R4"
+    verdict: "pass"
+    location: "tests/lint/standards-coverage-docs.sh:2, tests/lint/standards-coverage-docs.sh:3"
+    note: "Body comments cite no ID, path or doc; the spec ID appears only in the # Suite and # Covers header block, which R4 treats as the interface doc. check-comments.sh passed in the toolchain."
+  - n: "R5"
+    verdict: "pass"
+    location: "tests/lint/standards-coverage-docs.sh:2, tests/lint/standards-coverage-docs.sh:18, tests/lint/standards-coverage-docs.sh:27, tests/lint/standards-coverage-docs.sh:32"
+    note: "Comments use short plain sentences; the terms they use (isolation values, work profile, Every work type row) are named in the coverage row itself."
+read_outside_diff:
+  - "tests/lint/worktree-setup-docs.sh: header convention, its Covers line names JRN-008, so a task or requirement ID in the header block is the existing pattern"
+  - "tests/lint/size-budget-docs.sh: header convention, its Covers line names the checked rule in plain words"
+not_checked:
+  - "Whether a spec ID (spec 00015) in the # Covers header line is allowed by R4; the header is treated as interface doc, and the sibling suite does the same with JRN-008. Settle by reading the readable-code.md header exemption wording against the project's comment lint."
+out_of_scope_noticed: []
+patched: a669162d64dba62161ee6848136787ad509f6f26

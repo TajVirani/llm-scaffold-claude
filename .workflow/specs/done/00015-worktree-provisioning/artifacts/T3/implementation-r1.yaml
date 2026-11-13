@@ -1,0 +1,52 @@
+status: "done"
+summary: "worktree-setup.sh now implements agent, scratch, setup, check, env and remove: it gives each spec worktree a slot, copies the ignored copy-list files from the main checkout as regular files, runs worktree_setup with the five isolation values, and refuses symlinks into another checkout. spec-worktree.sh create runs setup on the first run and on a re-run. It prints its two stdout lines first, then exits with setup's code if setup fails. remove checks the worktree is clean, then runs services_down with the isolation values and carries on when that command fails."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t3"
+branch: "task/00015-worktree-provisioning/T03-worktree-setup-script"
+base_commit: "4ed07cf0d15c6f38b044190329c090840e51bd19"
+head_commit: "fcfecc1e767fa5161be9a8f41c1f107a95f1eb40"
+files_changed:
+  - ".agents/skills/feature-workflow/scripts/worktree-setup.sh"
+  - ".agents/skills/feature-workflow/scripts/spec-worktree.sh"
+  - "tests/scripts/worktree-setup.sh"
+  - "tests/scripts/spec-worktree.sh"
+tests_added:
+  - {file: "tests/scripts/worktree-setup.sh", test: "setup run again keeps a copied file the worktree has changed since", kind: "edge"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "setup does not write a copy-list file through a link already in its place, and the link check names it", kind: "negative"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "setup of the main checkout itself -> exit 1", kind: "negative"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "setup of a folder in no git repository -> exit 2", kind: "negative"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "env in a spec worktree with no slot file takes the lowest free slot", kind: "edge"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "env in the next one takes the slot after it, so the first kept its slot", kind: "edge"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "a second env in the first prints the same slot", kind: "edge"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "remove refuses an agent worktree with an untracked file, which stays", kind: "negative"}
+  - {file: "tests/scripts/spec-worktree.sh", test: "remove refuses a spec worktree with an untracked file before services_down runs", kind: "negative"}
+  - {file: "tests/scripts/worktree-setup.sh", test: "eval of env's lines gives back both roots holding the space", kind: "edge"}
+evidence:
+  red: "Phase 1: tests/run-all.sh --suite scripts/worktree-setup; FAIL passed=18 failed=32 (e.g. FAIL env in the main checkout prints 0, main, 0 and the main checkout twice). Each added case was seen failing against a temporary break in the script, undone by hand afterwards (git diff on .agents was empty after). Run A broke six behaviours at once: always copy over an existing file; worktree_of exits 1 instead of 2; the slot file is not written; plain remove uses --force; env prints %s instead of %q; spec-worktree.sh drops its clean check. It gave FAIL for: setup run again keeps a copied file..., setup of a folder in no git repository -> exit 2, remove refuses an agent worktree with an untracked file..., env in the next one takes the slot after it..., eval of env's lines gives back both roots holding the space, and remove refuses a spec worktree with an untracked file before services_down runs. Run B broke one behaviour, copying through a symlink in the target's place: FAIL setup does not write a copy-list file through a link.... Run C dropped the main-checkout refusal: FAIL setup of the main checkout itself -> exit 1. The lowest-free and same-slot env cases are proved together with the 'next one' case. Run A broke them all at once, but only the 'next one' assertion failed, because only it can tell whether the slot was kept."
+  green: "tests/run-all.sh --suite scripts/worktree-setup; PASS passed=59 failed=0. tests/run-all.sh --suite scripts/spec-worktree; PASS passed=81 failed=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00015-worktree-provisioning --task-id T3 --cwd <worktree>; status pass, test scoped own=2 changed=4 exit 0"
+  toolchain: ".workflow/specs/done/00015-worktree-provisioning/artifacts/T3/toolchain.txt (pass)"
+considered_not_built:
+  - "Refreshing copied files on a re-run: setup keeps a file the worktree already has, so it never overwrites the worktree's own edits and never writes through a symlink. A changed .env in the main checkout therefore does not reach an existing worktree."
+  - "setup on the main checkout is refused (exit 1); the contract does not say what it should do there."
+  - "A worktree that is neither the main checkout nor a spec worktree nor inside one: env and setup exit 2 rather than guess its isolation values."
+discovered_work: []
+profile_wrong: null
+scope_expansion: null
+blocked: null
+self_review:
+  - {item: 1, verdict: "pass", note: "worktree-setup.sh builds the slot file, copy list and agent worktree folder with wf_path and WF_SLOT_FILE, WF_COPY_LIST, WF_WORKTREES, WF_SPEC_WORKTREES; no .workflow/ is spelled out in the code"}
+  - {item: 2, verdict: "not-applicable", note: "no hook changed"}
+  - {item: 3, verdict: "pass", note: "every git, cp, mkdir and write step ends in || die. A failing services_down and an unreadable env are reported on stderr (spec-worktree.sh stop_services) because the contract says the removal goes on"}
+  - {item: 4, verdict: "pass", note: "the subshells on the left of || (run_worktree_setup, stop_services) carry cd || exit 2; worktree_of and named_worktree die inside their command substitutions, and their assignments stop the script under set -e"}
+  - {item: 5, verdict: "pass", note: "worktree-setup.sh uses 0/1/2 as its # Exit: says. In spec-worktree.sh # Exit:, a failed setup is now listed under exit 1 and passes worktree-setup.sh's code through"}
+  - {item: 6, verdict: "pass", note: "SCRIPT_DIR and the workflow-paths.sh source use cd -P from BASH_SOURCE"}
+  - {item: 7, verdict: "pass", note: "the File/Purpose/Usage/stdout/Exit/Called by/Notes/Sources header is in both files, with no decision or task ids"}
+  - {item: 8, verdict: "pass", note: "worktree-setup.sh is kebab-case, executable, runs under set -euo pipefail and uses [[ ]]; spec-worktree.sh keeps its [[ ]]"}
+  - {item: 9, verdict: "pass", note: "each new function (resolve_roots, read_or_take_slot, copy_listed_files, check_links, set_up_worktree, stop_services and the rest) has its usage line; no new disable= directives"}
+  - {item: R1, verdict: "pass", note: "names say what each thing holds: setup_command, down_command, isolation_values, owning_worktree, physical_target, read_or_take_slot"}
+  - {item: R2, verdict: "pass", note: "the reasons for keeping existing copies, holding back setup stdout, copying only untracked and ignored files, and the explicit clean check before services_down are commented"}
+  - {item: R3, verdict: "pass", note: "body comments give reasons only"}
+  - {item: R4, verdict: "pass", note: "tool-covered by check-comments.sh (exit 0 on both files); no comment points at a doc"}
+  - {item: R5, verdict: "pass", note: "plain words; no shorthand"}
+  - {item: comment-lint, verdict: "pass", note: "check-comments.sh on all four changed files exits 0"}

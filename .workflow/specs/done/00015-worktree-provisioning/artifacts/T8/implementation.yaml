@@ -1,0 +1,43 @@
+status: done
+summary: "The four reviewers (profile-mini-review, review-end-state, review-standards, review-combined) now make and remove their probe worktree with worktree-setup.sh scratch/remove --force under a collision-free name, with no mktemp folder and no raw git worktree command. implementation.md and integration.md each carry one sentence saying the worktree arrives set up, is never patched by hand (no install, copy or link), and a missing piece is reported as blocked. review-targets saves the worktree-setup.sh env values to OUT/isolation.env, loads them before serve and every measurement, expands serve_ready with them, and takes its services from services_up. tests/lint/review-escalation-docs.sh checks the new wording."
+task_id: "T8"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t8"
+branch: "task/00015-worktree-provisioning/T08-agent-definitions"
+base_commit: "829ac4cbdc3114476917071ffaa58261ad30424d"
+head_commit: "2568372e021a50688af5cf5a8a8166ff7a4e00a6"
+files_changed:
+  - ".agents/agents/implementation.md"
+  - ".agents/agents/integration.md"
+  - ".agents/agents/profile-mini-review.md"
+  - ".agents/agents/review-combined.md"
+  - ".agents/agents/review-end-state.md"
+  - ".agents/agents/review-standards.md"
+  - ".agents/agents/review-targets.md"
+  - "tests/lint/review-escalation-docs.sh"
+tests_added:
+  - {file: "tests/lint/review-escalation-docs.sh", test: "<lens> has a Running code section that makes its scratch worktree with worktree-setup.sh scratch (end-state, standards, combined; replaces the git worktree add / mktemp check; seen failing first)", kind: behaviour}
+  - {file: "tests/lint/review-escalation-docs.sh", test: "<lens> removes its scratch worktree with worktree-setup.sh remove --force (replaces the git worktree remove check; seen failing first)", kind: behaviour}
+  - {file: "tests/lint/review-escalation-docs.sh", test: "profile-mini-review runs probes in a scratch worktree of the task's head made with worktree-setup.sh scratch (replaces the worktree add --detach check; seen failing first)", kind: behaviour}
+  - {file: "tests/lint/review-escalation-docs.sh", test: "review-targets saves the isolation values from worktree-setup.sh env and loads them before serve (new; written after the doc edit, confirmed failing against the base text)", kind: behaviour}
+  - {file: "tests/lint/review-escalation-docs.sh", test: "review-targets takes its services from services_up and starts none itself (new; written after the doc edit, confirmed failing against the base text)", kind: behaviour}
+evidence:
+  red: "tests/run-all.sh --suite lint/worktree-setup-docs: passed=30 failed=10 (the 10 agent-definition checks); tests/run-all.sh --suite lint/review-escalation-docs after updating its checks: passed=79 failed=7 (FAIL review-end-state has a Running code section that makes its scratch worktree with worktree-setup.sh scratch, and six alike). The two review-targets checks were added after the doc edit; git show HEAD:.agents/agents/review-targets.md | grep -c 'isolation.env\\|Services come from' printed 0, so both fail at base."
+  green: "lint/worktree-setup-docs 40/40 passed; lint/review-escalation-docs 88/88 passed; lint/frontmatter 39/39; lint/md-links 6/6; lint/agent-worktree-docs 67/67"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00015-worktree-provisioning --task-id T8 --cwd $PWD: status pass; scoped test 1189 passed, 0 failed (28 suites)"
+  toolchain: ".workflow/specs/done/00015-worktree-provisioning/artifacts/T8/toolchain.txt (pass)"
+considered_not_built:
+  - "a mktemp folder for probe scripts in the reviewers: the acceptance criteria rule out any mktemp in the scratch rule, and a probe script can sit in the scratch worktree itself"
+  - "editing the review-targets description to mention isolation values: it stays accurate (still starts with serve, polls serve_ready, stops the build), so the frontmatter was left alone"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "no skill description added or changed; only agent bodies under .agents/agents/ changed"}
+  - {item: 2, verdict: not-applicable, note: "no new agent; existing agents changed only in body text, frontmatter untouched"}
+  - {item: R1, verdict: pass, note: "worktree names say whose they are (s<NNN>_scratch_review_end_state, s<NNN>_scratch_mini_review_t<N>); env file named isolation.env; test variable TARGETS matches the existing COMBINED/MINI style"}
+  - {item: R2, verdict: pass, note: "review-targets says why serve_ready is expanded (it may name a port built from the values) and why values load before serve (so the build listens on this spec's port)"}
+  - {item: R3, verdict: pass, note: "no comment restates code; the only added comments are the suite header lines in tests/lint/review-escalation-docs.sh:6-9, which describe what the suite covers"}
+  - {item: R4, verdict: pass, note: "no decision, task or journey id in a comment; the doc links to launching.md are prose pointers in agent definitions, not code comments"}
+  - {item: R5, verdict: pass, note: "plain sentences; <NNN>, <N> and <head> are each defined where used (profile-mini-review.md, review-*.md Running code)"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the 8 changed files exited 0"}
