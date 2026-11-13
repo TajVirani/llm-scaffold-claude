@@ -214,3 +214,14 @@ Agreement: agreed in Questioning round 1
 Failed lenses: none
 Gaps: review-targets: the three Targets rows are not measurable (offer size and exit 0 are asserted by the suite; no coverage tool); review-end-state: whether a live SessionStart payload's `cwd` for a session started in a spec worktree is the worktree path, settled by starting a real session there and reading the offer.
 Outcome: rework 1 of 5
+
+## 2026-11-12 Sign-off: stakeholder approval (5.5)
+
+- Offered for veto: no assumptions
+- Approval: yes
+- PR description: approved as shown
+- Proposals: all approved
+- Ruling: step-list-lint-in-agent-worktree: kept for later (B1). Asked at 5.5.
+- Retrospective lessons: no candidates
+- Concerns for the retrospective: none ("Nothing in particular")
+- Follow-up: none

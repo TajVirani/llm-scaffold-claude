@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Handoff skill writes per-run session handoffs in the session's checkout"
     status: done
-    capability: CAP-NEW-per-run-handoffs
+    capability: CAP-015
     depends_on: []
     touches_core: false
     work_type: agent-docs
@@ -21,7 +21,7 @@ tasks:
   - id: T2
     title: "Session-start offer lists session handoffs per checkout"
     status: done
-    capability: CAP-NEW-per-run-handoffs
+    capability: CAP-015
     depends_on: []
     touches_core: false
     work_type: shell-scripts

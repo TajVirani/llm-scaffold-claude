@@ -1,5 +1,5 @@
 ---
-status: in-review
+status: done
 baseline_revision: "0900278de2857d40567e08e21a3d9c2ba10f94b0"
 spec_branch: "spec/00016-per-run-handoffs"
 impl_base_revision: "f297896c689ad954ae7df6e9fbdbb8b336bdd4d3"
@@ -18,7 +18,7 @@ A session that runs in a spec worktree writes its session handoff into `.workflo
 
 ## Capabilities
 
-- **CAP-NEW-per-run-handoffs** Per-run session handoffs
+- **CAP-015** Per-run session handoffs
   - **intent:** A session writes its session handoff into its own checkout under a name no other run uses, and a fresh session resumes from the one handoff it is given.
   - **success:** From a spec worktree the handoff skill's commands create the file under that worktree's `.workflow/.handoff/` and nothing in the main checkout; `git status --porcelain` shows no handoff file with or without the install.sh ignore block; two handoffs for the same spec made in the same second have different names; the session-start offer lists the session's own checkout first and names each handoff's path.
 
