@@ -22,7 +22,7 @@ Line test: a line stays only if removing it would change what the agent does. A 
 
 ```yaml
 # Command keys, run by run-toolchain.sh at 3.5 in this order: lint, typecheck, format, boundary, test. Exact command per key; "" when not applicable. e2e is not run at 3.5: the orchestrator runs it at 3.10 via run-toolchain.sh `--e2e` (or the suite command); evidence-capture only collects the artifacts.
-# test and e2e use a throwaway database, never the dev one, on the ports, container names and database names derived from $WF_PORT_OFFSET and $WF_INSTANCE; services_up in .workflow/rules.md § Workflow settings starts what they need before they run.
+# test and e2e use a throwaway database, never the dev one, on the ports, container names and database names derived from $WF_PORT_OFFSET and $WF_INSTANCE. The services_up setting starts what they need before the first of them runs.
 lint: ""        # e.g. oxlint -c .oxlintrc.json
 typecheck: ""   # e.g. tsc --noEmit
 format: ""      # a check command, e.g. prettier --check .
