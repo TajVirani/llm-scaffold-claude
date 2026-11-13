@@ -2,7 +2,8 @@
 # Suite: worktree-setup.sh (feature-workflow/scripts): setting up spec, agent and scratch worktrees in one fixture project that
 #   declares a setup command and a copy list (.worktreeinclude).
 # Covers: JRN-001: spec-worktree.sh create and worktree-setup.sh agent each leave the copy-list files as regular files equal to the
-#   main checkout's and run worktree_setup there with WF_SLOT, WF_INSTANCE and WF_PORT_OFFSET; a tracked match, a match git does not
+#   main checkout's and run worktree_setup there with WF_SLOT, WF_INSTANCE and WF_PORT_OFFSET, the five values it gets equal to
+#   what env prints for the same worktree; a tracked match, a match git does not
 #   ignore and the setup command's stdout are left out; a match that is a symlink arrives as the file it points to; setup leaves
 #   `git status --short` empty; env gives the isolation values, and 0, main, 0 in the main checkout; agent reuses a worktree that
 #   exists; remove --force is refused for an agent worktree. JRN-003 (the check half): check and setup refuse a link into the main
@@ -22,12 +23,18 @@ new_workdir
 P=$WORK/proj
 S=.agents/skills/feature-workflow/scripts
 LOG=$WORK/marker.log
+SETUP_ENV=$WORK/setup-env
 make_fixture_repo "$P"
+mkdir -p "$SETUP_ENV"
 
-# The marker command lives outside the project, so its log never shows in a worktree's git status.
+# The marker command lives outside the project, so its log never shows in a worktree's git status. Besides the log line it keeps
+#   the five values it was given, per worktree folder name, in the shape env prints them, so the two can be compared.
 cat >"$WORK/marker.sh" <<M
 #!/usr/bin/env bash
 printf '%s %s %s %s %s\n' "\$1" "\$(pwd -P)" "\${WF_SLOT:-unset}" "\${WF_INSTANCE:-unset}" "\${WF_PORT_OFFSET:-unset}" >>'$LOG'
+printf 'export WF_SLOT=%q\nexport WF_INSTANCE=%q\nexport WF_PORT_OFFSET=%q\nexport WF_MAIN_ROOT=%q\nexport WF_SPEC_ROOT=%q\n' \
+  "\${WF_SLOT:-unset}" "\${WF_INSTANCE:-unset}" "\${WF_PORT_OFFSET:-unset}" "\${WF_MAIN_ROOT:-unset}" "\${WF_SPEC_ROOT:-unset}" \
+  >'$SETUP_ENV'/"\$(basename "\$(pwd -P)")"
 echo "marker stdout from \$1"
 M
 { install_gitignore_lines; printf '%s\n' .env '*.local' node_modules/; } >"$P/.gitignore"
@@ -119,6 +126,8 @@ check "JRN-001 worktree_setup ran in the agent worktree with the spec's slot" \
 check "JRN-001 a tracked copy-list match is not copied, and setup leaves git status empty" \
   '[ -d "$AG" ] && [ -z "$(git -C "$AG" status --short 2>&1)" ]' "$(git -C "$AG" status --short 2>&1)"
 eq "JRN-001 env in the agent worktree gives the spec's values" "$(WS "$P" env "$AG" 2>/dev/null)" "$(expected_env 1 s001 100 "$P" "$WA")"
+eq "worktree_setup was given, value for value, the five values env prints for the same worktree" \
+  "$(cat "$SETUP_ENV/s001_t1" 2>&1)" "$(WS "$P" env "$AG" 2>/dev/null)"
 out=$(WS "$WA" agent s001_t1 task/001-alpha/T01-a 2>/dev/null); rc=$?
 eq "JRN-001 agent again reuses the worktree that exists" "$rc:$out" "0:worktree $AG"
 git -C "$P" checkout -q -- tracked.local
