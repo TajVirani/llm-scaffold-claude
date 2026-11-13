@@ -9,7 +9,10 @@
 #   checkout, one inside a dependency folder and one into another worktree, and pass a link outside the repository and a tracked
 #   link inside the worktree. JRN-004: two spec worktrees hold slots 1 and 2, and one created after the first is removed takes 1.
 #   JRN-007: scratch adds a detached worktree at an older commit, set up with the spec's slot, and remove --force takes it away.
-#   The three new settings read through rules-setting.sh with default "". Usage errors; shellcheck.
+#   The three new settings read through rules-setting.sh with default "". Setup run again keeps a copied file the worktree changed
+#   and never writes through a link in a copy target's place; setup of the main checkout exits 1 and of a folder outside git 2;
+#   remove refuses an agent worktree with an untracked file; env in spec worktrees with no slot file takes and keeps the lowest
+#   free slots; env's lines eval back to a root path holding a space. Usage errors; shellcheck.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -92,6 +95,15 @@ eq "JRN-001 setup left no untracked file git does not ignore" "$(git -C "$WA" st
 eq "JRN-001 env in the spec worktree prints its isolation values" "$(WS "$P" env "$WA" 2>/dev/null)" \
   "$(expected_env 1 s001 100 "$P" "$WA")"
 
+echo "== setup run again, and setup of what is not a spec worktree"
+echo 'SECRET=edited in the worktree' >"$WA/.env"
+out=$(WS "$WA" setup "$WA" 2>&1); rc=$?
+check "setup run again keeps a copied file the worktree has changed since" \
+  '[ $rc -eq 0 ] && [ "$(cat "$WA/.env")" = "SECRET=edited in the worktree" ]' "rc=$rc $out"
+cp "$P/.env" "$WA/.env"
+t "setup of the main checkout itself -> exit 1" 1 bash "$P/$S/worktree-setup.sh" setup "$P"
+t "setup of a folder in no git repository -> exit 2" 2 bash "$P/$S/worktree-setup.sh" setup "$WORK"
+
 echo "== JRN-001: an agent worktree inside the spec worktree"
 # A changed working copy in the main checkout shows whether a tracked copy-list match was copied over the committed one.
 echo 'changed in main' >"$P/tracked.local"
@@ -132,6 +144,17 @@ out=$(WS "$WA" check "$WA" 2>&1); rc=$?
 check "JRN-003 a link inside a dependency folder that resolves into the main checkout is refused" \
   '[ $rc -eq 1 ] && grep -q "node_modules/pkg/config.env" <<<"$out"' "rc=$rc $out"
 rm -rf "$WA/node_modules"
+# The link points at an ignored file in the main checkout that is not on the copy list, so a write through it would show there.
+mkdir -p "$P/node_modules"
+echo 'decoy' >"$P/node_modules/decoy"
+rm -f "$WA/app.local"
+ln -s "$P/node_modules/decoy" "$WA/app.local"
+out=$(WS "$WA" setup "$WA" 2>&1); rc=$?
+check "setup does not write a copy-list file through a link already in its place, and the link check names it" \
+  '[ $rc -eq 1 ] && grep -q "app\.local" <<<"$out" && [ -L "$WA/app.local" ] && [ "$(cat "$P/node_modules/decoy")" = decoy ]' "rc=$rc $out"
+rm -f "$WA/app.local"
+cp "$P/app.local" "$WA/app.local"
+rm -rf "$P/node_modules"
 
 echo "== JRN-007: a scratch worktree at an older commit"
 SC=$WA/.workflow/.worktrees/s001_known_bad
@@ -151,6 +174,11 @@ check "JRN-007 the scratch worktree is gone, from disk and from git's list" \
 
 echo "== remove: an agent worktree"
 WS "$WA" agent s001_t1 task/001-alpha/T01-a >/dev/null 2>&1
+echo 'work in progress' >"$AG/untracked.txt"
+out=$(WS "$WA" remove s001_t1 2>&1); rc=$?
+check "remove refuses an agent worktree with an untracked file, which stays" \
+  '[ $rc -eq 1 ] && [ -f "$AG/untracked.txt" ]' "rc=$rc $out"
+rm -f "$AG/untracked.txt"
 out=$(WS "$WA" remove s001_t1 --force 2>&1); rc=$?
 check "remove --force is refused for an agent worktree, which stays" '[ $rc -eq 1 ] && [ -d "$AG" ]' "rc=$rc $out"
 out=$(WS "$WA" remove s001_t1 2>/dev/null); rc=$?
@@ -181,6 +209,19 @@ eq "JRN-004 a spec worktree created after the first was removed takes the freed 
 eq "JRN-004 the second spec worktree keeps slot 2" "$(env_line "$WB" WF_SLOT)" 2
 SW create .workflow/specs/002-beta >/dev/null 2>&1
 eq "JRN-004 setup run again keeps the slot it holds" "$(env_line "$WB" WF_SLOT)" 2
+
+echo "== env in spec worktrees that hold no slot file yet"
+rm -f "$WB/.workflow/.slot" "$WC/.workflow/.slot"
+eq "env in a spec worktree with no slot file takes the lowest free slot" "$(env_line "$WB" WF_SLOT)" 1
+eq "env in the next one takes the slot after it, so the first kept its slot" "$(env_line "$WC" WF_SLOT)" 2
+eq "a second env in the first prints the same slot" "$(env_line "$WB" WF_SLOT)" 1
+
+echo "== env of a root whose path holds a space"
+SPACED="$WORK/with space"
+git_init_repo "$SPACED"
+out=$(bash "$P/$S/worktree-setup.sh" env "$SPACED" 2>&1); rc=$?
+eq "eval of env's lines gives back both roots holding the space" \
+  "$rc:$(eval "$out" 2>/dev/null; printf '%s|%s' "${WF_MAIN_ROOT:-}" "${WF_SPEC_ROOT:-}")" "0:$SPACED|$SPACED"
 
 echo "== usage"
 t "no call -> exit 2" 2 bash "$P/$S/worktree-setup.sh"
