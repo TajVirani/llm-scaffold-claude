@@ -39,7 +39,7 @@ The three facts (all must be clean for the light path):
   #   file: tasks/T01-<slug>.md, branch: task/NNN-slug/T01-<slug>, predicted_files, size, mode, parallel_with: [], pr: null
   # and a one-row Waves table; validate it with the yq validator in ../assets/tasks.md (prints true).
   # Spec branch in its own worktree off the main branch; the first commit carries the spec folder and discovery's other workflow data.
-  .agents/skills/feature-workflow/scripts/spec-worktree.sh create .workflow/specs/NNN-slug   # prints `worktree <path>`; a loop-back finds it and changes nothing
+  .agents/skills/feature-workflow/scripts/spec-worktree.sh create .workflow/specs/NNN-slug   # prints `worktree <path>`; a loop-back finds it and only runs its setup again
   # Move the session into <path> (Claude Code: the EnterWorktree tool with that path; other hosts: reopen the session there).
   # In the spec worktree: Edit the spec.md frontmatter line to `spec_branch: spec/NNN-slug`.
   # File T1's tracker issue under the spec's issue and record the URL it prints, then add the task file's Tracker issue
@@ -53,7 +53,7 @@ The three facts (all must be clean for the light path):
 
   A task that already holds an `issue` is not filed again.
 
-  `spec-worktree.sh create` prints `worktree <path>` and `baseline <sha>`; exit 1 names what to fix first, as at [1.1](verification-setup.md#11-measurable-targets-and-the-baseline). T1 gets its task branch and worktree at wave start and merges `--no-ff` at 3.16, as a full-path task does; a `mode: hitl` T1 still gets the 3.3 pause.
+  `spec-worktree.sh create` prints `worktree <path>` and `baseline <sha>`, then sets the spec worktree up with `worktree-setup.sh setup`, on a re-run too; exit 1 names what to fix first, as at [1.1](verification-setup.md#11-measurable-targets-and-the-baseline), and after a failed setup running `create` again finishes it. `spec-worktree.sh remove` at sign-off runs the project's `services_down` before the worktree goes. T1 gets its task branch and worktree at wave start and merges `--no-ff` at 3.16, as a full-path task does; a `mode: hitl` T1 still gets the 3.3 pause.
 
   If `tasks.md` already exists (a loop-back on a light-path spec), keep it: its task records change only through `set-task`. If the revised goal needs work the existing task does not cover, take the full path instead. Then [offer a fresh session](#offer-a-fresh-session) and load [implementation-setup](implementation-setup.md) at 3.1 (it captures `baseline_revision` and `impl_base_revision` there).
 - **`light_path: false` (full path).** Continue at 0.4.

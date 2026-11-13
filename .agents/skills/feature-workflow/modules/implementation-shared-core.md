@@ -7,10 +7,10 @@ Before launching the wave, collect its shared-core change requests: the **Notes*
 **The integration worktree.** Before launching a batch, from the spec checkout, create its worktree on a `wf/` branch off the spec-branch tip. `<name>` is `s<NNN>_integration_<enc(work_type)>`, for example `s007_integration_web` (`enc` lowercases and turns every character outside `[a-z0-9]` into `_`), the name the worktree guard finds it by:
 
 ```bash
-git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug
+.agents/skills/feature-workflow/scripts/worktree-setup.sh agent <name> wf/NNN-slug/<name>
 ```
 
-`.workflow/.worktrees/` is gitignored. Name the worktree's absolute path in the brief as the directory the agent works in. A resumed batch or a fix round reuses the worktree. The merge removes it, so a later batch of the same work type creates it again off the new spec-branch tip.
+It adds the worktree under `.workflow/.worktrees/` (gitignored), sets it up and prints `worktree <absolute path>`; a failed setup stops the step, as [The agent worktree is ready](../references/launching.md#the-agent-worktree-is-ready) says. Name that path in the brief as the directory the agent works in. A resumed batch or a fix round reuses the worktree. The merge removes it, so a later batch of the same work type creates it again off the new spec-branch tip.
 
 When a batch returns, check its result file ([Reading a result file](implementation-waves.md#evidence-and-the-ledger)) and route on the printed table:
 
@@ -27,7 +27,7 @@ When a batch returns, check its result file ([Reading a result file](implementat
   ```bash
   .agents/skills/feature-workflow/scripts/check-merge-artifacts.sh --spec-dir .workflow/specs/NNN-slug --rev wf/NNN-slug/<name>
   git merge --no-ff -m "Merge integration-<work_type>" wf/NNN-slug/<name>
-  git worktree remove .workflow/.worktrees/<name>
+  .agents/skills/feature-workflow/scripts/worktree-setup.sh remove <name>
   git branch -d wf/NNN-slug/<name>
   ```
 

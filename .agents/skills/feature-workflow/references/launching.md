@@ -21,6 +21,10 @@ spec_dir: .workflow/specs/007-csv-export
 - Launch independent agents in one message so they run in parallel. No nested launches.
 - A deny that names **00.14** means no model is configured for that task type: tell the stakeholder, record the model they choose as that task type's row in `.workflow/model-map.yaml` (tier, `claude`, `codex`, why), and relaunch. A deny that names **00.19** means a coding launch has no profile: the step file that launches it handles it.
 
+## The agent worktree is ready
+
+Every agent and scratch worktree is created and removed with `.agents/skills/feature-workflow/scripts/worktree-setup.sh` (`agent`, `scratch`, `remove`), never with a raw git worktree command; the step that needs one names the call. The script sets the worktree up before it prints `worktree <path>`: it copies the project's gitignored files, runs the project's `worktree_setup` command and checks that no symlink reaches back into the main checkout or another worktree. So a launched agent's worktree is already set up. Say in every coding brief that the agent never installs, copies or links anything into its worktree by hand, and that a worktree that is not ready (a missing dependency, a bad link the toolchain names) is reported as `blocked` with what it saw, not repaired. When the create call exits non-zero, the step stops there and shows the command's output: launch nothing in that worktree, and run the same call again only once the cause it names (often the project's `worktree_setup` command) is fixed.
+
 ## Claude Code
 
 Call the Agent tool with `subagent_type: <task type>` and the prompt = header + task. Leave `model` unset and the profile out: `hooks/pre-launch.sh` resolves both through `resolve-launch.sh`, inserts any profile after the header, and denies a malformed launch.

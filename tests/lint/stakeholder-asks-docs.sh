@@ -16,7 +16,8 @@
 #   carries the deeper prompt's questions and may launch module-audit; Phase 1 asks the breakdown quiz while its build runs;
 #   the hitl pause launches the rest of the wave first. The step files' tracker calls on the spec's own issues are not asked
 #   (labels still are); a finished step or phase is not a stop; 2.3 assumes the test seams and the breakdown quiz offers them
-#   for veto; 1.4 starts the e2e build itself. Reads the repo; writes nothing.
+#   for veto; 1.4 runs the browser suite through run-toolchain.sh, which starts the services, and never asks who starts the
+#   build. Reads the repo; writes nothing.
 # shellcheck disable=SC2016,SC2034  # check expressions are single-quoted and eval'd on purpose, and read variables shellcheck cannot see
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -154,10 +155,10 @@ check "a seam that needs an interface change still loops back at 2.3" \
   'section "$MODULES/task-breakdown.md" "2.3 " | grep -q "draft --step 2.3"'
 check "the 2.1 quiz carries the seams as assumptions, not a question" \
   'section "$MODULES/task-breakdown.md" "2.1 " | grep -q "the 2.3 seams come only as those assumptions"'
-check "1.4 starts the e2e serve command itself and never asks who starts it" \
-  'section "$MODULES/verification-setup.md" "1.4 " | grep "serve" | grep "serve_ready" | grep "120 s" | grep -q "Never ask who starts the build"'
-check "1.4 starts nothing when serve_ready already answers" \
-  'section "$MODULES/verification-setup.md" "1.4 " | grep -q "if it already answers, some other process would be tested, so start nothing"'
+check "1.4 runs the browser suite through the toolchain, which starts the services, and never asks who starts the build" \
+  'section "$MODULES/verification-setup.md" "1.4 " | grep "run-toolchain\.sh" | grep -- "--e2e" | grep "services_up" | grep -q "never ask who starts the build"'
+check "1.4 starts no serve command by hand" \
+  '! section "$MODULES/verification-setup.md" "1.4 " | grep -qE "start .serve. yourself|poll .serve_ready."'
 check "Targets thresholds are assumed and logged at 1.1" \
   'section "$MODULES/verification-setup.md" "1.1 " | grep "threshold" | grep -q "assume and log"'
 check "an agent blocked on a decision that changes neither scope nor intent is resumed with an assumption" \
