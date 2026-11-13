@@ -1,0 +1,47 @@
+status: "done"
+summary: "Every step file now creates and removes agent and scratch worktrees with worktree-setup.sh (agent, scratch, remove); 1.4 and 3.10 run the browser suite through run-toolchain.sh, which starts the services, instead of starting serve by hand; sign-off 5.8 and discovery-impact 0.3.20 say spec-worktree.sh sets up on create and runs services_down on remove. launching.md holds the one rule that a launched agent's worktree is already set up and a failed setup stops the step. Outside the predicted files: tests/lint/stakeholder-asks-docs.sh (its two 1.4 serve checks asserted the old behaviour) and a trim of implementation-waves.md to keep the implementation resume under its 55000-byte limit."
+task_id: "T5"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t5"
+branch: "task/00015-worktree-provisioning/T05-step-files"
+base_commit: "0a38442db5c707b432a65beacf5d7eaf1fc882ba"
+head_commit: "a608c92a57d83938f5d1888cc84d5d17da192e2e"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/verification-setup.md"
+  - ".agents/skills/feature-workflow/modules/implementation-shared-core.md"
+  - ".agents/skills/feature-workflow/modules/implementation-waves.md"
+  - ".agents/skills/feature-workflow/modules/implementation-finish.md"
+  - ".agents/skills/feature-workflow/modules/sign-off.md"
+  - ".agents/skills/feature-workflow/modules/discovery-impact.md"
+  - ".agents/skills/feature-workflow/references/launching.md"
+  - "tests/lint/agent-worktree-docs.sh"
+  - "tests/lint/stakeholder-asks-docs.sh"
+tests_added:
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "JRN-008 verification-setup.md creates the Phase 1 agent worktree with worktree-setup.sh on a wf/ branch", kind: "behaviour"}
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "JRN-008 implementation-shared-core.md creates the integration agent worktree with worktree-setup.sh on a wf/ branch", kind: "behaviour"}
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "JRN-008 implementation-waves.md creates each task worktree with worktree-setup.sh on the record's branch", kind: "behaviour"}
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "JRN-008 implementation-waves.md removes each merged task worktree with worktree-setup.sh", kind: "behaviour"}
+  - {file: "tests/lint/agent-worktree-docs.sh", test: "JRN-008 <doc> removes the agent worktree with worktree-setup.sh after the merge (verification-setup.md, implementation-shared-core.md)", kind: "behaviour"}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "1.4 runs the browser suite through the toolchain, which starts the services, and never asks who starts the build", kind: "behaviour"}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "1.4 starts no serve command by hand", kind: "negative"}
+evidence:
+  red: "tests/run-all.sh --suite lint/agent-worktree-docs; all six changed agent-worktree-docs checks failed first (e.g. 'FAIL JRN-008 verification-setup.md creates the Phase 1 agent worktree with worktree-setup.sh on a wf/ branch', passed=61 failed=6). tests/run-all.sh --suite lint/worktree-setup-docs failed 19 (step-file and agent cases). The two stakeholder-asks checks were rewritten after the toolchain run showed the old ones failing on the new text; the negative one matches the base text (grep count 1), so it would fail on the old wording."
+  green: "tests/run-all.sh --suite lint/agent-worktree-docs: passed=67 failed=0; lint/worktree-setup-docs: passed=30 failed=10, every failure an agent-definition case (agents/*.md, owned by T8), every skills/feature-workflow case passing; lint/stakeholder-asks-docs passed=78; lint/workflow-load-size passed=14; lint/step-list passed=36; lint/md-links passed=6; lint/shared-rule-homes passed=24"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00015-worktree-provisioning --task-id T5 --cwd <worktree>; status pass (lint pass, test scoped pass, 9 changed files, 2 excluded selectors). The first run failed on lint/stakeholder-asks-docs (2) and lint/workflow-load-size (resume 55187 > 55000); both fixed."
+  toolchain: ".workflow/specs/00015-worktree-provisioning/artifacts/T5/toolchain.txt (pass)"
+considered_not_built:
+  - "steps.tsv edit: no step title changed, so the step list needs no row change (lint/step-list passes)."
+  - "A link to the launching rule from implementation-waves.md: dropped to keep the implementation resume under its 55000-byte limit; the 3.3 launch already reads launching.md, where the rule lives."
+  - "Settings allow rule for git worktree add: not in this task; I saw no T2 report on it, so the orchestrator should check whether .claude/settings.json and the Codex config still allow it."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "not-applicable", note: "No skill description added or changed."}
+  - {item: 2, verdict: "not-applicable", note: "No new agent."}
+  - {item: R1, verdict: "pass", note: "Lint check names say what each asserts, e.g. agent-worktree-docs.sh 'implementation-waves.md removes each merged task worktree with worktree-setup.sh'."}
+  - {item: R2, verdict: "pass", note: "The --force on the known-bad remove says why (the fault injection leaves changes), verification-setup.md 1.4."}
+  - {item: R3, verdict: "pass", note: "The changed suite header comments describe coverage, not the next line."}
+  - {item: R4, verdict: "pass", note: "Only the # Suite: header blocks changed (JRN ids already there are allowed); no body comment cites a doc or id."}
+  - {item: R5, verdict: "pass", note: "Plain wording in the step texts and comments."}
+  - {item: comment-lint, verdict: "pass", note: "check-comments.sh over tests/lint/agent-worktree-docs.sh and tests/lint/stakeholder-asks-docs.sh printed nothing; it skips the markdown files."}

@@ -1,0 +1,6 @@
+.agents/skills/project-setup/SKILL.md
+.agents/skills/project-setup/assets/docs/rules.md
+.agents/skills/project-setup/assets/profiles/TEMPLATE.md
+.agents/skills/project-setup/modules/files.md
+.agents/skills/project-setup/modules/profiles.md
+tests/scripts/task-breakdown.sh

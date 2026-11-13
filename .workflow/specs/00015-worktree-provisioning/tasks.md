@@ -54,7 +54,7 @@ tasks:
     issue: null
   - id: T4
     title: "Toolchain run starts services"
-    status: pending
+    status: done
     capability: CAP-NEW-worktree-setup
     depends_on: [T3]
     touches_core: false
@@ -72,7 +72,7 @@ tasks:
     issue: null
   - id: T5
     title: "Step files name the script"
-    status: pending
+    status: done
     capability: CAP-NEW-worktree-setup
     depends_on: [T3]
     touches_core: false
@@ -89,7 +89,7 @@ tasks:
     issue: null
   - id: T6
     title: "Project setup asks for it"
-    status: pending
+    status: done
     capability: CAP-NEW-worktree-setup
     depends_on: [T3]
     touches_core: false
@@ -106,7 +106,7 @@ tasks:
     issue: null
   - id: T7
     title: "Standards coverage"
-    status: pending
+    status: done
     capability: CAP-NEW-worktree-setup
     depends_on: [T3]
     touches_core: false

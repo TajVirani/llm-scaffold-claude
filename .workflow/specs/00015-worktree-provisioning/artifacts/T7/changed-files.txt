@@ -1,0 +1,3 @@
+.agents/skills/project-standards/assets/coverage.md
+tests/README.md
+tests/lint/standards-coverage-docs.sh

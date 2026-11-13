@@ -1,0 +1,2 @@
+.agents/skills/feature-workflow/scripts/run-toolchain.sh
+tests/scripts/run-toolchain.sh

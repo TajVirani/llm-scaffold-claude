@@ -1,0 +1,42 @@
+status: "done"
+summary: "run-toolchain.sh now runs worktree-setup.sh check on --cwd first (a bad link is exit 1 naming the link, no key run, no evidence), exports the five isolation values from worktree-setup.sh env to every key and to services_up, and runs services_up once in the spec worktree before the first test or e2e key that really runs, recorded as a services_up section and result; a failing services_up fails the run and test and e2e are skipped. --reuse-check skips the link check and env because it must run and write nothing."
+task_id: "T4"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t4"
+branch: "task/00015-worktree-provisioning/T04-toolchain-services"
+base_commit: "0a38442db5c707b432a65beacf5d7eaf1fc882ba"
+head_commit: "a26db1f710cfef888fc0d5c6edad15edd5cf449a"
+files_changed: [".agents/skills/feature-workflow/scripts/run-toolchain.sh", "tests/scripts/run-toolchain.sh"]
+tests_added:
+  - {file: "tests/scripts/run-toolchain.sh", test: "a refused link check writes no evidence", kind: "negative"}
+  - {file: "tests/scripts/run-toolchain.sh", test: "a failing services_up is tried once and neither test nor e2e runs", kind: "edge"}
+  - {file: "tests/scripts/run-toolchain.sh", test: "a failing services_up is a failed result and the keys that need it are skipped", kind: "negative"}
+  - {file: "tests/scripts/run-toolchain.sh", test: "a worktree outside any spec worktree has no isolation values, so nothing runs and the exit is 2", kind: "negative"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/run-toolchain; at base: FAIL the 10 Phase 1 cases (e.g. 'FAIL JRN-005 services_up runs once, in the spec worktree, after lint and before test, ...'), passed=118 failed=10; the 4 added cases also run against the base script (copied back temporarily): passed=118 failed=14"
+  green: "tests/run-all.sh --suite scripts/run-toolchain; PASS scripts/run-toolchain passed=128 failed=0, then 132/132 with the added cases"
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00015-worktree-provisioning --task-id T4 --cwd <worktree>; exit 0, TOTAL passed=918 failed=0 (9 suites)"
+  toolchain: ".workflow/specs/00015-worktree-provisioning/artifacts/T4/toolchain.txt (pass)"
+considered_not_built:
+  - "Link check under --reuse-check: skipped, because its exit 1 would read as a reuse miss and env may write the slot file, while --reuse-check promises to run and write nothing."
+  - "Writing a toolchain.json for a refused link check: left out; the stop audit takes the reason from stderr on exit 1, and the contract says nothing runs."
+  - "Reading services_up on every run: read only when a test or e2e key will run, so an unreadable setting cannot fail a lint-only run."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "pass", note: "no .workflow/ path spelled in run-toolchain.sh; rules and slot paths stay inside worktree-setup.sh and rules-setting.sh"}
+  - {item: 2, verdict: "not-applicable", note: "no hook changed"}
+  - {item: 3, verdict: "pass", note: "check exit 1 prints the links and exits 1; any other check, env, rules-setting or temp-file failure reaches die"}
+  - {item: 4, verdict: "pass", note: "run_key's evidence append carries its own || die; run_key is not called on the left of ||"}
+  - {item: 5, verdict: "pass", note: "exit 1 for a refused link check and a failing services_up, 2 for missing isolation values or an unreadable setting, both in # Exit:"}
+  - {item: 6, verdict: "pass", note: "worktree-setup.sh and rules-setting.sh resolved from BASH_SOURCE with cd -P (setup_script)"}
+  - {item: 7, verdict: "pass", note: "helper header keeps its shape; new Link check and Services paragraphs, Exit and Requires updated"}
+  - {item: 8, verdict: "pass", note: "edited file keeps its [ ] test syntax; no new file"}
+  - {item: 9, verdict: "pass", note: "run_key and add_failure each have their # name ARGS : line; no new shellcheck directive"}
+  - {item: R1, verdict: "pass", note: "names say their purpose: iso_env, services_root, services_state, run_key, add_failure"}
+  - {item: R2, verdict: "pass", note: "comments give the why: why --reuse-check skips the check, why values stay out of the parent env, why services_up is read lazily"}
+  - {item: R3, verdict: "pass", note: "the shared run block is one function used by keys and services_up, no duplicated run code"}
+  - {item: R4, verdict: "pass", note: "tool-covered by check-comments.sh; no changed comment points at another document"}
+  - {item: R5, verdict: "pass", note: "no unexplained shorthand in new comments"}
+  - {item: comment-lint, verdict: "pass", note: "check-comments.sh on both changed files printed nothing"}
