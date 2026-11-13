@@ -2369,12 +2369,12 @@
       "commit_basis": "blob-match",
       "changes": [
         "took: compact the session for a fresh agent, name skills to load, reference artifacts instead of duplicating, redact, tailor to the argument",
-        "location moved from $TMPDIR to a gitignored .workflow/.handoff/ in the main checkout (install.sh's .gitignore block), listed by session-start-resume.sh",
+        "location moved from $TMPDIR to a new file per run in .workflow/.handoff/ of the session's own checkout, kept out of git by the folder's own .gitignore, listed per checkout by session-start-resume.sh",
         "spec state (spec.md status, .step, design-log) is pointed to, never copied; added Resume steps and a template in assets/",
         "model-invoked, host-neutral"
       ],
       "why": "D77/D78: first-party owner of session handoff that a fresh session and the resume offer can find.",
-      "reviewed_at": "2026-10-19"
+      "reviewed_at": "2026-11-12"
     },
     {
       "path": ".agents/skills/writing-for-agents/SKILL.md",
