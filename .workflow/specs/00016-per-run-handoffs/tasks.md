@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-per-run-handoffs
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "standalone-skills"
     seam: "The Locate command block and the Resume wording of .agents/skills/handoff/SKILL.md"
     file: tasks/T01-handoff-skill-per-run.md
@@ -24,7 +24,7 @@ tasks:
     capability: CAP-NEW-per-run-handoffs
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "hooks"
     seam: "SessionStart hook I/O of .agents/hooks/session-start-resume.sh"
     file: tasks/T02-session-start-handoff-list.md
