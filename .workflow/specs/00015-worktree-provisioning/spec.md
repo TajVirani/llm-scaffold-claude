@@ -7,6 +7,7 @@ light_path: false
 followup_review_recommended: false
 deferred: [.workflow/deferred/rules-setting-usage-exit-code.md]
 tracker_issue: ""
+budget: {max_tasks: 10, max_changed_files: 37}
 ---
 
 # Worktree provisioning

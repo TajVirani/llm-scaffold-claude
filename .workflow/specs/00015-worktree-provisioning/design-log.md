@@ -211,3 +211,24 @@ Agreement: agreed in Questioning round 1
 - 1.2 discovered-work report (requirement, can-wait): `tests/lint/agent-worktree-docs.sh:97-110` expects the raw worktree add and remove wording that JRN-008 removes. Assessed as current work, not outside the scope: the task that rewrites the step files (T6) updates those checks in the same change.
 - 1.3 not run: no `e2e-browser` profile; every journey is a harness suite.
 - 1.4: the merged suites are red on the known-bad build, 72 new failures, all assertions ([record.md](artifacts/phase-1-known-bad/record.md)).
+
+## 2026-11-12 Breakdown quiz
+
+- Asked at: 1.2, beside the harness build
+- Slices: approved as shown: "Questions look fine"
+- Edges, parallel_with and hitl modes: approved; no `parallel_with`, no `hitl` task
+- Offered for veto: "the seam each task is tested at", "targets that are not measured"; vetoed: none
+- Size: over (10 tasks, 37 predicted files against 10 / 30): kept as one spec, budget raised to max_tasks 10, max_changed_files 37
+- Decision: **D8** ten tasks in four waves, the setup script kept as one large task, built as one spec
+
+## 2026-11-12 Assumed: the breakdown follows the Phase 1 suites
+
+- Step: 2.5
+- Question: A Phase 1 test is a whole suite and belongs to one task. Three suites need more than one of the approved tasks to pass. Which task owns each, and what changes?
+- Answer taken: nine tasks in four waves, the same work and the same files as D8.
+  - `tests/scripts/worktree-setup.sh` and `tests/scripts/spec-worktree.sh` both create a spec worktree through `spec-worktree.sh create`, so the setup script cannot pass its own suite without that change. The spec-worktree task folds into the setup script task (T3).
+  - The suites check that setup leaves `git status` empty, reading the ignore lines from `install.sh`. The install task (T2) therefore moves to wave 1, before the setup script, and carries the shared-core request for the two path constants.
+  - `tests/lint/worktree-setup-docs.sh` covers the step files and the agent definitions. The agent-definitions task (T8) owns it and runs after the step-files task (T5).
+  - `tests/scripts/run-toolchain.sh` goes to the toolchain task (T4), which runs after T3.
+  - `.codex/README.md` names the raw worktree command; the root-docs task (T9) updates it.
+- Why safe to assume: no work is added or dropped and no decision changes; only the order and the grouping follow from how the suites were cut. A veto regroups the task files before any is launched.
