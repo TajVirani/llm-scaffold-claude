@@ -22,6 +22,10 @@ _Avoid_: Naming check
 Shelving an out-of-scope item as one file in `.workflow/deferred/` with a back-link to its originating spec, so a later feature can pick it up.
 _Avoid_: Parking lot, TODO list
 
+**Session handoff**:
+One local, uncommitted file that a fresh session reads to carry on the work of a session that ended or reset its context. It holds what the conversation knew that no artifact records, and points to the rest.
+_Avoid_: Handoff alone (clash with **Deferred handoff**), handover, session notes
+
 **Review lesson**:
 A lesson a retrospective recorded for the Phase 4 review: a symptom to look for in a set of paths, with the spec it came from and the date, one entry per lesson in the project's review-lessons file (**Tier A**). The standards lens (`review-standards`), or the combined review on the light path, checks every change against them. A lesson a rule, a lint or a profile checklist line already enforces is not one.
 _Avoid_: Pitfall, watch item, recurrence check, review rule
