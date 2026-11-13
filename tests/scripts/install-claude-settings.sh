@@ -8,7 +8,8 @@
 #   (four rules, at the top of the template's deny list, its other deny entries as on main), and an install into an empty
 #   target or over a user deny entry, and its re-run, leave each rule and the user entry in the target once. An upgrade
 #   removes the allow and deny entries an earlier template wrote for retired scripts and paths, keeps the user's own, says
-#   so in its summary, and a re-run changes and prints nothing more.
+#   so in its summary, and a re-run changes and prints nothing more. The template and this repo's settings allow
+#   worktree-setup.sh, keep git worktree list and no longer allow git worktree add.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Env: TEST_BASH=<bash binary> runs install.sh under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -198,6 +199,16 @@ out=$(INST "$RP" --host claude 2>&1)
 eq "a re-run exits 0" "$?" 0
 eq "a re-run changes nothing" "$(snap "$RP")" "$before"
 check "a re-run prints no summary" '! grep -q "^Upgrade from an older install" <<<"$out"' "$out"
+
+echo "== worktree setup script allowed in place of a raw git worktree add"
+# allow_count SETTINGS ENTRY : how many times ENTRY appears in the permissions.allow list of SETTINGS.
+allow_count() { jq --arg e "$2" '[.permissions.allow[]? | select(. == $e)] | length' "$1"; }
+for pair in "the settings template|$TEMPLATE" "this repo's .claude/settings.json|$REPO_ROOT/.claude/settings.json"; do
+  label=${pair%%|*} settings=${pair#*|}
+  eq "$label allows worktree-setup.sh once" "$(allow_count "$settings" 'Bash(.agents/skills/feature-workflow/scripts/worktree-setup.sh:*)')" 1
+  eq "$label no longer allows git worktree add" "$(allow_count "$settings" 'Bash(git worktree add:*)')" 0
+  eq "$label still allows git worktree list" "$(allow_count "$settings" 'Bash(git worktree list:*)')" 1
+done
 
 echo "== lint"
 shellcheck_files "shellcheck: this suite" "${BASH_SOURCE[0]}"

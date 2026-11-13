@@ -2,9 +2,11 @@
 # Suite: install.sh (repo root): preflight and the --host all payload.
 # Covers: preflight errors (not a git repo, sub-directory, bad --host, manifest line matching nothing); a fresh install
 #   for --host all (payload = manifest expansion exactly, VERSION stamp, .claude symlinks, settings.json = template,
-#   .codex/agents generated, hooks.json = template, config.toml parses to the template, .gitignore block); vendored and
+#   .codex/agents generated, hooks.json = template, config.toml parses to the template, .gitignore block with the slot
+#   file line built from its path constant); this repo's .gitignore block equal to GI_ENTRIES; vendored and
 #   scaffold-only files absent from the target; executable hooks; context-bridge.cjs shipped and wired as statusLine and
-#   run in a "type": "module" target; idempotent re-run (no byte changes, VERSION kept).
+#   run in a "type": "module" target; idempotent re-run (no byte changes, VERSION kept); an upgrade adding the slot file
+#   line to an older block.
 # The scaffold under test is a copy of this repo's install.sh and .agents/ inside the fixture, so the repo is never written.
 # Env: TEST_BASH=<bash binary> runs install.sh under another bash (default: bash).
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
@@ -73,9 +75,14 @@ t "generated agents are current (--check)" 0 "$TEST_BASH" "$A/.agents/hooks/gene
 check "hooks.json equals the Codex template" '[ "$(jq -S . "$A/.codex/hooks.json")" = "$(jq -S . "$SC/.agents/hooks/codex-hooks.template.json")" ]'
 check "config.toml parses to the template values" '[ "$(yq -p toml -o json -I=0 . "$A/.codex/config.toml")" = "$(yq -p toml -o json -I=0 . "$SC/.agents/hooks/codex-config.template.toml")" ]'
 eq "config.toml sets the Codex context bar" "$(yq -p toml -o json -I=0 .tui.status_line "$A/.codex/config.toml")" '["model-with-reasoning","context-remaining","current-dir","git-branch"]'
-for p in '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.worktrees/' '.workflow/.spec-worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/'; do
+for p in '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.worktrees/' '.workflow/.spec-worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/' '.workflow/.slot'; do
   check ".gitignore has $p" 'grep -qxF -- "$p" "$A/.gitignore"'
 done
+check "GI_ENTRIES builds the slot file line from its path constant" 'grep "^GI_ENTRIES=" "$SC/install.sh" | grep -qF "\"\$WF_SLOT_FILE\""'
+check "the install.sh header names the slot file among the ignored paths" 'sed -n "/^#   5\. /,/^#   6\. /p" "$SC/install.sh" | grep -qF ".workflow/.slot"'
+# gitignore_block FILE : the lines between the scaffold's gitignore markers in FILE.
+gitignore_block() { sed -n '/^# >>> workflow-2.0 scaffold: gitignore/,/^# <<< workflow-2.0 scaffold: gitignore/{/^# /d;p;}' "$1"; }
+eq "this repo's .gitignore block holds the same lines as GI_ENTRIES" "$(gitignore_block "$REPO_ROOT/.gitignore")" "$(install_gitignore_lines)"
 check "install creates no .workflow/" '[ ! -e "$A/.workflow" ]'
 check "path helper installed" '[ -f "$A/.agents/lib/workflow-paths.sh" ]'
 eq "installed wf_path resolves the initiatives root" "$("$TEST_BASH" -c '. "$1/.agents/lib/workflow-paths.sh" && wf_path "$1" "$WF_INITIATIVES"' _ "$A")" "$A/.workflow/initiatives"
@@ -132,6 +139,16 @@ t "re-run --host all" 0 INST "$A" --host all
 eq "re-run changes nothing (VERSION included)" "$(snap "$A")" "$before"
 out=$(INST "$A" 2>&1)
 check "re-run reports up to date" 'printf "%s" "$out" | grep -q "up to date"'
+
+echo "== an upgrade adds the slot file line to an older gitignore block"
+U=$WORK/older-block
+new_target "$U"
+t "a first install exits 0" 0 INST "$U" --host claude
+grep -vxF '.workflow/.slot' "$U/.gitignore" >"$WORK/older.gitignore" && mv "$WORK/older.gitignore" "$U/.gitignore"
+check "the fixture's block lacks the slot file line" '! grep -qxF ".workflow/.slot" "$U/.gitignore"'
+t "the upgrade exits 0" 0 INST "$U" --host claude
+eq "the upgraded block holds the slot file line once" "$(grep -cxF '.workflow/.slot' "$U/.gitignore")" 1
+eq "the upgraded block holds the same lines as GI_ENTRIES" "$(gitignore_block "$U/.gitignore")" "$(install_gitignore_lines)"
 
 echo "== lint"
 shellcheck_files "shellcheck: install.sh" "$REPO_ROOT/install.sh"

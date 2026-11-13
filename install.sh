@@ -32,8 +32,9 @@
 #      The tui block sets the built-in Codex status line; a [tui] table the user already has is kept with a warning. The
 #      default-permissions and permissions-workflow blocks older runs wrote are removed.
 #   5. <target>/.gitignore: .workflow/specs/*/.step, .workflow/initiatives/*/.step, .workflow/.worktrees/,
-#      .workflow/.spec-worktrees/ (the worktrees specs run in), .workflow/.handoff/ and .workflow/.standards-staging/ in a marker
-#      block, since they hold local, in-progress state. Paths come from .agents/lib/workflow-paths.sh.
+#      .workflow/.spec-worktrees/ (the worktrees specs run in), .workflow/.handoff/, .workflow/.standards-staging/ and
+#      .workflow/.slot (the slot number a spec worktree records) in a marker block, since they hold local, in-progress state.
+#      Paths come from .agents/lib/workflow-paths.sh.
 #   6. Older workflow data: .workflow/ is project-owned (GLOSSARY.md, rules.md, model-map.yaml, profiles/, decisions/, deferred/,
 #      specs/, ...) and created by the project-setup skill. install.sh creates nothing there; it only converts a format this payload
 #      no longer reads, keeping every value. A .workflow/model-map/ folder (one <type>.md per task type) and agent-overrides.yaml
@@ -134,7 +135,7 @@ RETIRED_PATHS="$WF_DIR/cache/ $WF_DIR/.cache-staging/ $WF_DIR/model-map/ $WF_DIR
 .agents/hooks/_guard-common.sh .agents/hooks/spec-single-writer-guard.sh .agents/hooks/tier-a-write-guard.sh
 .agents/hooks/tier-b-write-guard.sh .agents/skills/feature-workflow/assets/work-item.md
 .agents/skills/project-setup/assets/agent-overrides.yaml .agents/skills/project-setup/assets/model-map/"
-GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_INITIATIVES/*/.step" "$WF_WORKTREES/" "$WF_SPEC_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/")
+GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_INITIATIVES/*/.step" "$WF_WORKTREES/" "$WF_SPEC_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/" "$WF_SLOT_FILE")
 SHIM_DIRS="skills agents output-styles"
 
 die() { echo "install.sh: error: $*" >&2; exit 2; }
