@@ -24,7 +24,7 @@
 #                                                     the target of the feature's PR/MR; scripts/budget-check.sh (3.15 count)
 #   pr_template   workflow | a path         workflow  sign-off 5.2 and 5.4: the body the feature's PR/MR is written from, the
 #                                                     workflow's own template or the project's (path below)
-#   worktree_setup  a shell command         ""        worktree setup: run in each new worktree after the copy-list files arrive
+#   worktree_setup  a shell command         ""        worktree setup: run in each new worktree after the gitignored files named in .worktreeinclude are copied in
 #   services_up     a shell command         ""        the toolchain run: start the spec worktree's services before test or e2e
 #   services_down   a shell command         ""        spec worktree removal: stop the spec worktree's services
 #   A shell command is any scalar, printed whole (spaces, quotes, &&); absent or empty prints an empty line.
