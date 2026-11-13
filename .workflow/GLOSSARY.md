@@ -124,6 +124,10 @@ _Avoid_: Spec clone, feature worktree
 The checkout that holds one spec's step marker, `artifacts/` and agent worktrees, and where the orchestrator's session works: its **Spec worktree**, or the main checkout for a spec started before spec worktrees. Scripts find it with `wf_project_root` in `.agents/lib/workflow-paths.sh`, which maps an **Agent worktree** to the checkout it sits in (D111).
 _Avoid_: Main checkout (only the repository's first worktree), project root (ambiguous)
 
+**Session worktree**:
+A git worktree the host creates for one whole session, outside the workflow, such as Claude Code desktop's `.claude/worktrees/<name>` on a `claude/<name>` branch. It is neither the main checkout, a **Spec worktree** nor an **Agent worktree**; a session in one resumes a spec by moving into that spec's **Spec worktree**.
+_Avoid_: Isolation worktree (Claude Code's `isolation: "worktree"` for one sub-agent launch), desktop worktree, Claude worktree
+
 **Task branch**:
 The short-lived branch `task/NNN-slug/Tnn-<slug>` one implementer works on, on both paths, in its own **Agent worktree** under the **Spec checkout**'s `.workflow/.worktrees/`, forked from the **Spec branch** tip at wave start, merged back `--no-ff` and deleted after the merge (D85, D111).
 _Avoid_: Worktree branch, feature branch
