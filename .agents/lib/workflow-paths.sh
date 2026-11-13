@@ -16,6 +16,10 @@
 #   wf_path <root> <rel>   prints <root>/<rel> (root's trailing slash dropped); e.g. wf_path "$ROOT" "$WF_SPECS"
 #   WF_SPEC_WORKTREES      the folder of spec worktrees in the main checkout (".workflow/.spec-worktrees"): spec NNN-slug runs
 #                          in <main checkout>/.workflow/.spec-worktrees/NNN-slug, on its spec branch
+#   WF_SLOT_FILE           the gitignored one-line file holding a spec worktree's slot number (".workflow/.slot"), read and
+#                          written as <spec worktree root>/$WF_SLOT_FILE; the value is also its .gitignore line
+#   WF_COPY_LIST           the tracked file at the repository root listing, one gitignore-style pattern per line, the
+#                          gitignored files to copy into a new worktree (".worktreeinclude"), read as <main checkout>/$WF_COPY_LIST
 #   WF_ISOLATION_WORKTREES the folder Claude Code puts its own `isolation: "worktree"` launches in (".claude/worktrees")
 #   wf_main_root <dir>     prints the main checkout root for <dir>, inside the repo or one of its worktrees; status 1
 #                          and the reason on stderr when <dir> is not inside a git repository. Only for what is really the
@@ -109,6 +113,8 @@ WF_STANDARDS_STAGING="$WF_DIR/.standards-staging"
 WF_HANDOFF="$WF_DIR/.handoff"
 WF_WORKTREES="$WF_DIR/.worktrees"
 WF_SPEC_WORKTREES="$WF_DIR/.spec-worktrees"
+WF_SLOT_FILE="$WF_DIR/.slot"
+WF_COPY_LIST=".worktreeinclude"
 WF_ISOLATION_WORKTREES=".claude/worktrees"
 WF_DATA_STRUCTURE_AUDIT_STATE="$WF_DIR/data-structure-audit-state.jsonl"
 

@@ -49,11 +49,11 @@ A failing R item carries `fixes`, one entry per breach, each with its `location`
 
 **Out of scope noticed.** A problem you proved in passing that no checklist item covers goes in `out_of_scope_noticed`, with `kind`, `summary`, `evidence`, `blocker_assessment` and `reason`. Its `evidence` is the proof: the command and its output, a failing test, or a quoted rule line with the `file:line` that breaks it. Set `blocker_assessment: blocks-this-task` when the problem sits on lines or files this diff changes: the orchestrator sends it back to the implementer with the fix round. Set `can-wait` for anything elsewhere. A suspicion you could not prove is one `not_checked` line, never an entry. An entry never changes the verdict, and you never raise it as a `fail`.
 
-**Running code.** Your Bash use is `git diff`, `git show` and `git log`, the one heredoc that writes your result file, and probes that prove a failure or an entry. A probe is one test file or one command, never the project's whole test suite or its full `test` command: the toolchain already ran, and the wave gate runs the whole suite. Run a probe only outside the task worktree, in a scratch worktree of its head or a directory under `mktemp -d`, and remove the scratch worktree before you return:
+**Running code.** Your Bash use is `git diff`, `git show` and `git log`, the one heredoc that writes your result file, and probes that prove a failure or an entry. A probe is one test file or one command, never the project's whole test suite or its full `test` command: the toolchain already ran, and the wave gate runs the whole suite. Run a probe only outside the task worktree, in your own scratch worktree of its head, and remove the scratch worktree before you return. Make and remove it with `worktree-setup.sh` from the spec checkout, so it is set up like the task's worktree ([The agent worktree is ready](../skills/feature-workflow/references/launching.md#the-agent-worktree-is-ready)). `<head>` is what `git -C <worktree> rev-parse HEAD` prints, `<NNN>` is the spec number in `spec_dir` and `<N>` the number in `task_id`, so mini-reviews of two tasks running at once never share a scratch worktree:
 
 ```bash
-scratch=$(mktemp -d) && git -C <worktree> worktree add --detach "$scratch/wt" HEAD    # run the probe with git -C "$scratch/wt" or a cd inside one Bash command
-git -C <worktree> worktree remove --force "$scratch/wt" && rm -rf "$scratch"
+.agents/skills/feature-workflow/scripts/worktree-setup.sh scratch s<NNN>_scratch_mini_review_t<N> <head>    # prints `worktree <path>`; run each probe with a cd into that path inside one Bash command
+.agents/skills/feature-workflow/scripts/worktree-setup.sh remove s<NNN>_scratch_mini_review_t<N> --force
 ```
 
 You leave the task worktree, the spec checkout's working tree, the index, branches and the rest of the spec folder untouched.

@@ -9,7 +9,12 @@
 #   again on a code line, a shebang, a trailing comment, a mode change or a file of another kind, and never without --reuse),
 #   and changed-file scoping (an agent worktree off the spec branch gets its committed, uncommitted, deleted and untracked changes
 #   in WF_CHANGED_FILES, WF_CHANGED_FILES_FILE and WF_CHANGED_BASE and a `changed` count; the spec checkout, a worktree on the spec
-#   branch, a missing spec branch or a profile without test_scoped runs `test` whole).
+#   branch, a missing spec branch or a profile without test_scoped runs `test` whole). JRN-005: run from a spec worktree or its
+#   agent worktree, every key gets that spec's WF_SLOT, WF_INSTANCE and WF_PORT_OFFSET (0, main, 0 in the main checkout), and
+#   services_up runs once in the spec worktree before the first test or e2e key that runs, never when both are skipped or on a
+#   reuse hit; a failing services_up fails the run before test, with its output in the evidence. JRN-003: a link into the main
+#   checkout fails the run, naming it, before any key, and writes no evidence; a link outside the repository passes. A failing
+#   services_up skips both test and e2e after one call, and a worktree outside any spec worktree exits 2 with nothing run.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -376,6 +381,88 @@ eq changed-no-test-scoped-runs-test "$rc:$(tail -n 1 "$M3"):$(jq -c '.results[] 
 git -C "$C" branch -q -D spec/003-c
 out=$(CH --task-id T1 --cwd "$CW" 2>/dev/null)
 eq no-spec-branch-runs-full "$(tail -n 1 "$M3"):$(jq -c '.results[] | select(.key=="test") | has("changed")' <<<"$out")" full:false
+
+echo "== JRN-003 and JRN-005: the link check, the isolation values and services_up, run from a spec worktree"
+V=$T/svc
+make_fixture_repo "$V"
+SVC_LOG=$T/svc.log
+# The service command reads a flag file outside the project, so a test breaks it without changing the tree the reuse check hashes.
+UP_FAILS=$T/up-fails
+cat >"$T/key.sh" <<M
+#!/usr/bin/env bash
+echo "\$1 \${WF_SLOT:-unset} \${WF_INSTANCE:-unset} \${WF_PORT_OFFSET:-unset}" >>'$SVC_LOG'
+M
+cat >"$T/up-cmd.sh" <<M
+#!/usr/bin/env bash
+echo "up \$(pwd -P) \${WF_SLOT:-unset} \${WF_INSTANCE:-unset} \${WF_PORT_OFFSET:-unset}" >>'$SVC_LOG'
+if [ -e '$UP_FAILS' ]; then echo 'services_up failed: port 5432 is taken' >&2; exit 5; fi
+M
+{ install_gitignore_lines; echo .env; } >"$V/.gitignore"
+mkdir -p "$V/.workflow/profiles" "$V/.workflow/specs/007-svc"
+printf '## Toolchain\n```yaml\nlint: "bash %s lint"\ntest: "bash %s test"\ne2e: "bash %s e2e"\n```\n' "$T/key.sh" "$T/key.sh" "$T/key.sh" \
+  >"$V/.workflow/profiles/svc.md"
+printf '## Workflow settings\n\n```yaml\nservices_up: "bash %s"\n```\n' "$T/up-cmd.sh" >"$V/.workflow/rules.md"
+git_commit_all "$V" "fixture: services"
+echo 'SECRET=main' >"$V/.env"
+echo 'outside' >"$T/outside.env"
+echo '# Spec' >"$V/.workflow/specs/007-svc/spec.md"
+(cd "$V" && bash .agents/skills/feature-workflow/scripts/spec-worktree.sh create .workflow/specs/007-svc) >/dev/null 2>&1
+WV=$V/.workflow/.spec-worktrees/007-svc
+# RV CWD ARGS... : run the toolchain for spec 007-svc under the svc profile from CWD, with a fresh call log.
+RV() { local cwd=$1; shift; rm -f "$SVC_LOG"; "$RT" --spec-dir .workflow/specs/007-svc --work-type svc --cwd "$cwd" "$@"; }
+# calls : the logged key and service calls of the last run, joined by |.
+calls() { if [ -f "$SVC_LOG" ]; then tr '\n' '|' <"$SVC_LOG"; fi; }
+SVC_EV=$WV/.workflow/specs/007-svc/artifacts
+
+RV "$V" --task-id M1 --skip test >/dev/null 2>&1
+eq "the main checkout's keys get slot 0, instance main and offset 0" "$(calls)" "lint 0 main 0|"
+out=$(RV "$WV" --task-id V1 2>/dev/null); rc=$?
+eq "JRN-005 services_up runs once, in the spec worktree, after lint and before test, and every key gets the isolation values" \
+  "$rc:$(calls)" "0:lint 1 s007 100|up $WV 1 s007 100|test 1 s007 100|"
+t "JRN-005 the services_up run is in the evidence" 0 grep -q services_up "$SVC_EV/V1/toolchain.txt"
+RV "$WV" --task-id V2 --e2e --skip test >/dev/null 2>&1
+eq "JRN-005 services_up runs before e2e when test is skipped" "$(calls)" "lint 1 s007 100|up $WV 1 s007 100|e2e 1 s007 100|"
+RV "$WV" --task-id V3 --e2e >/dev/null 2>&1
+eq "JRN-005 one services_up call serves both test and e2e" "$(calls)" "lint 1 s007 100|up $WV 1 s007 100|test 1 s007 100|e2e 1 s007 100|"
+RV "$WV" --task-id V4 --skip test >/dev/null 2>&1
+eq "JRN-005 no services_up when test is skipped and e2e is not asked for" "$(calls)" "lint 1 s007 100|"
+out=$(RV "$WV" --task-id V1 --reuse 2>/dev/null)
+check "JRN-005 no services_up on a reuse hit" '[ -n "$(jq -r ".reused_from // empty" <<<"$out")" ] && [ -z "$(calls)" ]' "$(calls) $out"
+AV=$WV/.workflow/.worktrees/s007_t1
+git -C "$WV" worktree add -q "$AV" -b task/007-svc/T1 spec/007-svc
+RV "$AV" --task-id V5 >/dev/null 2>&1
+eq "JRN-005 from an agent worktree, services_up runs in its spec worktree and the keys get the spec's values" \
+  "$(calls)" "lint 1 s007 100|up $WV 1 s007 100|test 1 s007 100|"
+git -C "$WV" worktree remove --force "$AV"
+touch "$UP_FAILS"
+out=$(RV "$WV" --task-id V6 2>/dev/null); rc=$?
+check "JRN-005 a failing services_up fails the run and the test key does not run" \
+  '[ $rc -eq 1 ] && [ "$(jq -r .status <<<"$out")" = fail ] && ! grep -q "^test " "$SVC_LOG"' "rc=$rc $(calls)"
+t "JRN-005 the failing services_up output is in the evidence" 0 grep -q "port 5432 is taken" "$SVC_EV/V6/toolchain.txt"
+rm -f "$UP_FAILS"
+rm -f "$WV/.env"
+ln -s "$V/.env" "$WV/.env"
+out=$(RV "$WV" --task-id V7 2>&1); rc=$?
+check "JRN-003 a link into the main checkout fails the run, naming the link, before any key runs" \
+  '[ $rc -eq 1 ] && grep -q "\.env" <<<"$out" && [ -z "$(calls)" ]' "rc=$rc calls=$(calls) $out"
+rm -f "$WV/.env"
+ln -s "$T/outside.env" "$WV/.env"
+out=$(RV "$WV" --task-id V8 2>&1); rc=$?
+eq "JRN-003 a link to a file outside the repository passes" "$rc" 0
+t "a refused link check writes no evidence" 0 test ! -e "$SVC_EV/V7/toolchain.json"
+rm -f "$WV/.env"
+touch "$UP_FAILS"
+out=$(RV "$WV" --task-id V9 --e2e 2>/dev/null); rc=$?
+eq "a failing services_up is tried once and neither test nor e2e runs" "$rc:$(calls)" "1:lint 1 s007 100|up $WV 1 s007 100|"
+eq "a failing services_up is a failed result and the keys that need it are skipped" \
+  "$(jq -c '[.results[] | select(.key == "services_up" or .key == "test" or .key == "e2e") | [.key, .status]]' <<<"$out")" \
+  '[["services_up","fail"],["test","skipped"],["e2e","skipped"]]'
+rm -f "$UP_FAILS"
+git -C "$V" worktree add -q "$T/svc-loose" -b loose
+out=$(RV "$T/svc-loose" --task-id V10 2>&1); rc=$?
+check "a worktree outside any spec worktree has no isolation values, so nothing runs and the exit is 2" \
+  '[ $rc -eq 2 ] && [ -z "$(calls)" ]' "rc=$rc calls=$(calls) $out"
+git -C "$V" worktree remove --force "$T/svc-loose"
 
 # The modules that read `tree` describe it as the script builds it: rules.md and the profiles count, so a 5.3 edit to them re-runs.
 # shellcheck disable=SC2034  # read inside the eval'd check strings below

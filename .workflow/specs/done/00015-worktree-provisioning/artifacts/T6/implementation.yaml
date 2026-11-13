@@ -1,0 +1,39 @@
+status: "done"
+summary: "The project-setup rules template now carries commented worktree_setup, services_up and services_down lines (when each runs, the five isolation values, that the project derives ports, container names and database names, services_up idempotent) that rules-setting.sh reads as empty. files.md asks the copy list and the three commands with a recommendation and 'none', writing .worktreeinclude only when files are named; the profile template and profiles.md say test and e2e use a throwaway database on WF_PORT_OFFSET-derived ports started by services_up. SKILL.md was updated (outside predicted files, inside the module) so its step 3 and ledger-exception lines match files.md."
+task_id: "T6"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t6"
+branch: "task/00015-worktree-provisioning/T06-project-setup"
+base_commit: "0a38442db5c707b432a65beacf5d7eaf1fc882ba"
+head_commit: "543283675981cd49a5b217f99d13151d2667ca7d"
+files_changed:
+  - ".agents/skills/project-setup/SKILL.md"
+  - ".agents/skills/project-setup/assets/docs/rules.md"
+  - ".agents/skills/project-setup/assets/profiles/TEMPLATE.md"
+  - ".agents/skills/project-setup/modules/files.md"
+  - ".agents/skills/project-setup/modules/profiles.md"
+  - "tests/scripts/task-breakdown.sh"
+tests_added:
+  - {file: "tests/scripts/task-breakdown.sh", test: "the project-setup rules.md template reads <key> as empty (worktree_setup, services_up, services_down)", kind: "behaviour"}
+  - {file: "tests/scripts/task-breakdown.sh", test: "the project-setup rules.md template carries a commented <key> line in its settings block (x3)", kind: "behaviour"}
+  - {file: "tests/scripts/task-breakdown.sh", test: "the project-setup rules.md template's <key> line uncommented reads empty (x3)", kind: "edge"}
+evidence:
+  red: "tests/run-all.sh --suite scripts/task-breakdown; FAIL the project-setup rules.md template carries a commented worktree_setup line in its settings block (also services_up, services_down): passed=160 failed=3. The 'reads as empty' and 'uncommented reads empty' cases passed before the change, since an absent key also reads empty; the commented-line cases are the ones seen failing first."
+  green: "tests/run-all.sh --suite scripts/task-breakdown; passed=163 failed=0"
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00015-worktree-provisioning --task-id T6 --cwd <worktree>; test (scoped) pass, TOTAL passed=2336 failed=0 (44 suites)"
+  toolchain: ".workflow/specs/done/00015-worktree-provisioning/artifacts/T6/toolchain.txt (pass)"
+considered_not_built:
+  - "Updating this repo's own .workflow/rules.md and .workflow/profiles/TEMPLATE.md copies: Tier A files written by the orchestrator, not this task."
+  - "A test over files.md or profiles.md text: the task's seam for them is the documents as loaded text, checked by the existing lint suites, which pass."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "not-applicable", note: "No skill description is added or changed; SKILL.md edits are body lines 13, 43, 45, 116 only."}
+  - {item: 2, verdict: "not-applicable", note: "No agent definition added."}
+  - {item: R1, verdict: "pass", note: "tests/scripts/task-breakdown.sh: settings_block and uncommented.md name what they hold."}
+  - {item: R2, verdict: "pass", note: "The test's comment says why the commented line must still parse when uncommented."}
+  - {item: R3, verdict: "pass", note: "No comment restates code; the rules.md yaml comments are user-facing settings documentation in the template's established form."}
+  - {item: R4, verdict: "pass", note: "No comment cites a decision, journey or task id."}
+  - {item: R5, verdict: "pass", note: "Plain wording throughout; glossary term 'Worktree setup' used, no 'provisioning' or 'bootstrap'."}
+  - {item: comment-lint, verdict: "pass", note: "check-comments.sh over the six changed files exited 0."}

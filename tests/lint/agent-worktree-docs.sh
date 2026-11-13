@@ -5,8 +5,9 @@
 #   worktrees for Phase 1 and integration launches, and the artifacts merge gate.
 # Covers: JRN-008: no line tells the orchestrator to launch an agent with `isolation: "worktree"` (a sentence saying never to is
 #   fine) and no isolation fallback is left; Phase 1 and integration agent worktrees are created with
-#   `git worktree add .workflow/.worktrees/<name> -b wf/NNN-slug/<name> spec/NNN-slug`, their wf/ branch is merged with no
-#   isolation result branch (worktreeBranch) to read, and worktree and branch are removed after the merge; check-merge-artifacts.sh
+#   `worktree-setup.sh agent <name> wf/NNN-slug/<name>` and task worktrees with `worktree-setup.sh agent <task_name> <branch>`,
+#   their wf/ branch is merged with no isolation result branch (worktreeBranch) to read, and the worktree is removed with
+#   `worktree-setup.sh remove <name>` and its branch deleted after the merge; check-merge-artifacts.sh
 #   runs before each merge site (1.2 and 1.3, 3.2 integration, 3.16 task) with --rev and is never piped; the light path makes no
 #   detached task worktree and no fast-forward merge (its task branch merges --no-ff like any other);
 #   both agent briefs write their result file to an absolute spec-checkout path. JRN-009: assetlist.md gives the stop audit's
@@ -94,18 +95,22 @@ done
 
 echo "== agent worktrees: created off the spec branch, merged, removed (JRN-008)"
 # shellcheck disable=SC2034  # read inside the eval'd check strings below
-CREATE='git worktree add [^ ]*\.workflow/\.worktrees/[^ ]+ -b wf/[^ ]+ spec/'
-check "JRN-008 verification-setup.md creates the Phase 1 agent worktree on a wf/ branch off the spec branch" \
+CREATE='worktree-setup\.sh agent [^ ]+ wf/[^ `]+'
+check "JRN-008 verification-setup.md creates the Phase 1 agent worktree with worktree-setup.sh on a wf/ branch" \
   '[ -n "$(lines "$VS" "$CREATE")" ]'
-check "JRN-008 implementation-shared-core.md creates the integration agent worktree on a wf/ branch off the spec branch" \
+check "JRN-008 implementation-shared-core.md creates the integration agent worktree with worktree-setup.sh on a wf/ branch" \
   '[ -n "$(lines "$SHARED_CORE" "$CREATE")" ]'
+check "JRN-008 implementation-waves.md creates each task worktree with worktree-setup.sh on the record's branch" \
+  '[ -n "$(lines "$WAVES" "worktree-setup\.sh agent <task_name> <branch>")" ]'
+check "JRN-008 implementation-waves.md removes each merged task worktree with worktree-setup.sh" \
+  '[ -n "$(lines "$WAVES" "worktree-setup\.sh remove <task_name>")" ]'
 check "JRN-008 verification-setup.md names a phase_1 agent worktree" '[ -n "$(lines "$VS" "s<?NNN>?_phase_1_|s[0-9]+_phase_1_")" ]'
 check "JRN-008 implementation-shared-core.md names an integration agent worktree" \
   '[ -n "$(lines "$SHARED_CORE" "s<?NNN>?_integration_|s[0-9]+_integration_")" ]'
 for doc in "$VS" "$SHARED_CORE"; do
   check "JRN-008 ${doc##*/} merges the agent's wf/ branch" '[ -n "$(lines "$doc" "git merge" | grep "wf/")" ]'
-  check "JRN-008 ${doc##*/} removes the agent worktree after the merge" \
-    '[ -n "$(lines "$doc" "git worktree remove[^\`]*\\.workflow/\\.worktrees/")" ]'
+  check "JRN-008 ${doc##*/} removes the agent worktree with worktree-setup.sh after the merge" \
+    '[ -n "$(lines "$doc" "worktree-setup\.sh remove <name>")" ]'
   check "JRN-008 ${doc##*/} deletes the agent's wf/ branch after the merge" '[ -n "$(lines "$doc" "git branch -[dD] [^\`]*wf/")" ]'
 done
 

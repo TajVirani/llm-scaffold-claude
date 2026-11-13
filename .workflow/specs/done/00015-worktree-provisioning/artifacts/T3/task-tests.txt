@@ -1,0 +1,2 @@
+tests/scripts/worktree-setup.sh
+tests/scripts/spec-worktree.sh

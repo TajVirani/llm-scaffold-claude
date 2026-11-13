@@ -1,0 +1,2 @@
+.agents/skills/feature-workflow/scripts/worktree-setup.sh
+tests/scripts/worktree-setup.sh

@@ -136,6 +136,10 @@ _Avoid_: Ticket, task section
 The git worktree under the **Spec checkout**'s `.workflow/.worktrees/<name>` that the orchestrator creates for one coding launch (a Phase 3 task, a Phase 1 build or an integration batch), named `s<NNN>_t<N>`, `s<NNN>_phase_1_<work type>` or `s<NNN>_integration_<work type>`. The worktree guard confines the agent to it.
 _Avoid_: Task worktree (Phase 1 and integration are not tasks), named worktree, isolation worktree (Claude Code's own `isolation: "worktree"`)
 
+**Worktree setup**:
+The scripted step that creates a **Spec worktree** or an **Agent worktree** and makes it ready to run and test: the project's dependencies installed, its gitignored config copied in, and the spec's isolation values set.
+_Avoid_: Provisioning, bootstrap (names the greenfield bootstrap order), environment setup
+
 **Result file**:
 The one YAML file a coding or review sub-agent (implementation, integration, profile-mini-review) writes under `<spec_dir>/artifacts/<id>/` in the **Spec checkout**, holding its structured result for the orchestrator to check by script. Not a Phase 4 lens's pass file.
 _Avoid_: Return file, output file, result block (the block is its content)

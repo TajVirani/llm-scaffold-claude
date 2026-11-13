@@ -1,0 +1,6 @@
+.agents/lib/workflow-paths.sh
+.agents/skills/feature-workflow/scripts/rules-setting.sh
+.agents/skills/feature-workflow/scripts/run-toolchain.sh
+.agents/skills/feature-workflow/scripts/spec-worktree.sh
+.agents/skills/feature-workflow/scripts/worktree-setup.sh
+install.sh

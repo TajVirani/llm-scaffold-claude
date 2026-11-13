@@ -66,10 +66,12 @@ check "light path counts steps in phases 0, 3, 4 and 5" '[[ "$(counts light)" =~
 # Every file path the design records name exists. The awk prints "<file>:<line>: <path>" for each path-like token, skipping
 # placeholders (a token that runs into <, {, * or $, or names NNN), records (assetlist's Decisions and Open questions), a "### " section whose first bullet says Removed (D<n>),
 # and lines that mark a removal. Paths under skills/, agents/, hooks/ and lib/ are relative to .agents/ (assetlist's form).
-# Allowed below: target-project paths and examples, which do not exist in this repo; a folder allows what is under it.
+# Allowed below: target-project paths and examples, which do not exist in this repo, and gitignored local state, which is
+# absent from a fresh worktree; a folder allows what is under it.
 NAMED_PATH_ALLOW='.agents/VERSION
 .codex/config.toml
 .codex/hooks.json
+.workflow/.worktrees/
 .workflow/GLOSSARY-MAP.md
 .workflow/data-structure-audit-state.jsonl
 .workflow/design-pattern-doc/

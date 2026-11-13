@@ -1,0 +1,43 @@
+verdict: fail
+task_id: "T6"
+work_type: "agent-docs"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t6@0a38442db5c707b432a65beacf5d7eaf1fc882ba..HEAD"
+tool_output: ".workflow/specs/done/00015-worktree-provisioning/artifacts/T6/toolchain.json"
+items:
+  - n: 1
+    verdict: not-applicable
+    location: ".agents/skills/project-setup/SKILL.md:2-3"
+    note: "The diff changes no frontmatter line of any SKILL.md; the project-setup description is untouched (hunks start at line 10)."
+  - n: 2
+    verdict: not-applicable
+    location: "no new agent file in the diff"
+    note: "The diff adds no file under .agents/agents/."
+  - n: R1
+    verdict: pass
+    location: "tests/scripts/task-breakdown.sh:225-237"
+    note: "New names settings_block, key and uncommitted.md say what they hold."
+  - n: R2
+    verdict: pass
+    location: "tests/scripts/task-breakdown.sh:225-226"
+    note: "The added comment gives the reason the test keeps the commented-line form."
+  - n: R3
+    verdict: pass
+    location: "tests/scripts/task-breakdown.sh:225-226, tests/scripts/task-breakdown.sh:13"
+    note: "Both added comments give a reason or describe the test contract; neither restates the next line."
+  - n: R4
+    verdict: fail
+    location: ".agents/skills/project-setup/assets/profiles/TEMPLATE.md:25"
+    note: "The added comment names the workflow path .workflow/rules.md, which R4 forbids in comments; a reader of the shipped profile cannot follow it. (rule candidate)"
+    fixes:
+      - location: ".agents/skills/project-setup/assets/profiles/TEMPLATE.md:25"
+        fix: "replace: # test and e2e use a throwaway database, never the dev one, on the ports, container names and database names derived from $WF_PORT_OFFSET and $WF_INSTANCE. The services_up setting starts what they need before the first of them runs."
+  - n: R5
+    verdict: pass
+    location: "tests/scripts/task-breakdown.sh:225-226"
+    note: "Plain English; no project shorthand beyond the setting names the template defines."
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: rule text for R1-R5 and the 3.7 checking lines"
+  - ".workflow/specs/done/00015-worktree-provisioning/artifacts/T6/toolchain.json: confirmed lint and scoped test passed"
+not_checked: []
+out_of_scope_noticed: []
+patched: 543283675981cd49a5b217f99d13151d2667ca7d

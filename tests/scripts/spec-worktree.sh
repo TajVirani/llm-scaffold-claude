@@ -9,7 +9,11 @@
 #   only; session-start-resume.sh lists both specs from the main checkout and from a spec worktree, naming where each runs, and so does the router's
 #   own listing (Find the state) from a spec worktree; the sign-off local merge run from a spec worktree lands on main in the main checkout; remove refuses an unmerged branch, a branch the main checkout's HEAD lacks and a nested
 #   agent worktree, then removes the worktree and deletes the merged branch; create refusals (mid-merge, from another spec's
-#   worktree, a checkout on the spec branch, no spec.md, usage) and a repeat create that changes nothing; shellcheck.
+#   worktree, a checkout on the spec branch, no spec.md, usage) and a repeat create that changes nothing. JRN-002: with no setup
+#   command and no copy list, create and worktree-setup.sh agent copy nothing and leave git status empty. JRN-006: a failing
+#   worktree_setup makes create exit 1 with its message on stderr and the worktree registered, and create again once it is fixed
+#   sets the worktree up. JRN-005: remove runs services_down in the spec worktree with its isolation values, and a failing one is
+#   reported without stopping the removal, while a spec worktree with an untracked file is refused before services_down runs. The fixture's .gitignore is the block install.sh writes; shellcheck.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -27,8 +31,7 @@ script() { local name=$1; shift; bash "$P/$S/$name" "$@"; }
 step_of() { sed -n 's/^step: "\(.*\)"$/\1/p' "$1"; }
 
 # The workflow block install.sh writes, a profile with a trivial toolchain and a committed glossary.
-printf '%s\n' '.workflow/specs/*/.step' '.workflow/initiatives/*/.step' '.workflow/.worktrees/' \
-  '.workflow/.spec-worktrees/' '.workflow/.handoff/' '.workflow/.standards-staging/' >"$P/.gitignore"
+install_gitignore_lines >"$P/.gitignore"
 mkdir -p "$P/.workflow/profiles" "$P/src"
 printf '# Profile: shell\n## Toolchain\n\n```yaml\nlint: "true"\ntypecheck: ""\nformat: ""\nboundary: ""\ntest: "true"\n```\n' \
   >"$P/.workflow/profiles/shell.md"
@@ -36,6 +39,9 @@ printf '# Glossary\n' >"$P/.workflow/GLOSSARY.md"
 echo 'code' >"$P/src/app.sh"
 git_commit_all "$P" "fixture: project"
 MAIN_HEAD=$(git -C "$P" rev-parse HEAD)
+# A gitignored .env in the main checkout that a project with no copy list must not see copied anywhere.
+echo '.env' >>"$P/.git/info/exclude"
+echo 'SECRET=main' >"$P/.env"
 
 # draft_spec NNN-SLUG STEP : a spec folder discovery left uncommitted in the main checkout, its .step at STEP.
 draft_spec() {
@@ -73,6 +79,17 @@ check "a repeat create changes nothing and prints the same worktree" '[ $rc -eq 
 out=$(cd "$WA" && bash "$S/spec-worktree.sh" create .workflow/specs/001-alpha 2>&1); rc=$?
 check "a repeat create from inside the spec worktree prints it too" \
   '[ $rc -eq 0 ] && grep -qx "worktree $WA" <<<"$out" && [ "$(step_of "$WA/.workflow/specs/001-alpha/.step")" = 1.1 ]' "rc=$rc $out"
+
+echo "== JRN-002: a project that declares no setup command and no copy list"
+check "JRN-002 create copied no file into the spec worktree" '[ ! -e "$WA/.env" ]'
+eq "JRN-002 the spec worktree holds no untracked file git does not ignore" "$(git -C "$WA" status --short 2>&1)" ""
+PLAIN=$WA/.workflow/.worktrees/s001_plain
+out=$(cd "$WA" && bash "$S/worktree-setup.sh" agent s001_plain task/001-alpha/plain 2>/dev/null); rc=$?
+eq "JRN-002 worktree-setup.sh agent prints only the new worktree" "$rc:$out" "0:worktree $PLAIN"
+check "JRN-002 the agent worktree holds no copied file and nothing git would list" \
+  '[ -d "$PLAIN" ] && [ ! -e "$PLAIN/.env" ] && [ -z "$(git -C "$PLAIN" status --short 2>&1)" ]'
+(cd "$WA" && bash "$S/worktree-setup.sh" remove s001_plain) >/dev/null 2>&1
+git -C "$P" branch -q -D task/001-alpha/plain 2>/dev/null
 
 echo "== create: spec 002-beta beside it"
 out=$(SW create .workflow/specs/002-beta 2>&1); rc=$?
@@ -213,6 +230,74 @@ t "no mode -> exit 2" 2 bash "$P/$S/spec-worktree.sh" .workflow/specs/003-gamma 
 t "an unknown mode -> exit 2" 2 bash "$P/$S/spec-worktree.sh" move .workflow/specs/003-gamma --cwd "$P"
 t "not a spec folder -> exit 2" 2 bash "$P/$S/spec-worktree.sh" create docs/x --cwd "$P"
 t "outside git -> exit 2" 2 bash "$P/$S/spec-worktree.sh" create .workflow/specs/003-gamma --cwd "$WORK"
+
+echo "== a project that declares a setup command and services_down"
+Q=$WORK/settings
+make_fixture_repo "$Q"
+SETUP_LOG=$WORK/setup.log
+DOWN_LOG=$WORK/down.log
+# The commands read flag files outside the project, so a test fixes or breaks them without a commit on the spec branch.
+SETUP_FIXED=$WORK/setup-fixed
+DOWN_FAILS=$WORK/down-fails
+cat >"$WORK/setup-cmd.sh" <<M
+#!/usr/bin/env bash
+if [ ! -e '$SETUP_FIXED' ]; then echo 'setup failed: the database image is missing' >&2; exit 3; fi
+echo "setup \$(pwd -P) \${WF_SLOT:-unset} \${WF_INSTANCE:-unset}" >>'$SETUP_LOG'
+echo 'setup stdout'
+M
+cat >"$WORK/down-cmd.sh" <<M
+#!/usr/bin/env bash
+echo "down \$(pwd -P) \${WF_SLOT:-unset} \${WF_INSTANCE:-unset}" >>'$DOWN_LOG'
+if [ -e '$DOWN_FAILS' ]; then echo 'services_down failed: a container is busy' >&2; exit 4; fi
+M
+{ install_gitignore_lines; echo .env; } >"$Q/.gitignore"
+echo .env >"$Q/.worktreeinclude"
+mkdir -p "$Q/.workflow"
+printf '## Workflow settings\n\n```yaml\nworktree_setup: "bash %s"\nservices_down: "bash %s"\n```\n' \
+  "$WORK/setup-cmd.sh" "$WORK/down-cmd.sh" >"$Q/.workflow/rules.md"
+git_commit_all "$Q" "fixture: settings"
+echo 'SECRET=main' >"$Q/.env"
+SQ() { (cd "$Q" && bash "$S/spec-worktree.sh" "$@"); }
+# draft_in_q NNN-SLUG : a spec folder discovery left uncommitted in the settings project's main checkout.
+draft_in_q() { mkdir -p "$Q/.workflow/specs/$1" && cp "$Q/$S/../assets/spec.md" "$Q/.workflow/specs/$1/spec.md"; }
+
+echo "== JRN-006: a failing setup command, then fixed"
+draft_in_q 005-eps
+# shellcheck disable=SC2034  # read inside the eval'd check strings below
+WE=$Q/.workflow/.spec-worktrees/005-eps
+out=$(SQ create .workflow/specs/005-eps 2>"$WORK/create.err"); rc=$?
+eq "JRN-006 create exits 1 when worktree_setup fails" "$rc" 1
+check "JRN-006 the setup command's message is on stderr" 'grep -q "the database image is missing" "$WORK/create.err"' "$(cat "$WORK/create.err")"
+check "JRN-006 stdout holds nothing but the worktree and baseline lines" \
+  '! grep -qv -e "^worktree " -e "^baseline " <<<"$out"' "$out"
+check "JRN-006 the spec worktree is registered, so create can finish it" 'git -C "$Q" worktree list --porcelain | grep -qxF "worktree $WE"'
+touch "$SETUP_FIXED"
+out=$(SQ create .workflow/specs/005-eps 2>&1); rc=$?
+check "JRN-006 create again exits 0 and prints the worktree" '[ $rc -eq 0 ] && grep -qx "worktree $WE" <<<"$out"' "rc=$rc $out"
+check "JRN-006 the setup command's stdout does not reach create's stdout" '! grep -q "setup stdout" <<<"$out"' "$out"
+check "JRN-006 the second create set the worktree up" \
+  'grep -qx "setup $WE 1 s005" "$SETUP_LOG" 2>/dev/null && [ -f "$WE/.env" ] && [ ! -L "$WE/.env" ]' "$(cat "$SETUP_LOG" 2>/dev/null)"
+
+echo "== JRN-005: remove runs services_down in the spec worktree"
+git -C "$Q" merge -q --no-ff -m "Merge spec/005-eps" spec/005-eps
+echo 'left behind' >"$WE/untracked.txt"
+out=$(SQ remove .workflow/specs/005-eps 2>&1); rc=$?
+check "remove refuses a spec worktree with an untracked file before services_down runs" \
+  '[ $rc -eq 1 ] && [ -d "$WE" ] && [ ! -s "$DOWN_LOG" ]' "rc=$rc $out $(cat "$DOWN_LOG" 2>/dev/null)"
+rm -f "$WE/untracked.txt"
+out=$(SQ remove .workflow/specs/005-eps 2>&1); rc=$?
+check "JRN-005 remove exits 0 and removes the spec worktree" '[ $rc -eq 0 ] && grep -qx "removed worktree $WE" <<<"$out"' "rc=$rc $out"
+check "JRN-005 remove ran services_down in the spec worktree with its isolation values" \
+  'grep -qx "down $WE 1 s005" "$DOWN_LOG" 2>/dev/null' "$(cat "$DOWN_LOG" 2>/dev/null)"
+draft_in_q 006-zeta
+# shellcheck disable=SC2034  # read inside the eval'd check strings below
+WZ=$Q/.workflow/.spec-worktrees/006-zeta
+SQ create .workflow/specs/006-zeta >/dev/null 2>&1
+git -C "$Q" merge -q --no-ff -m "Merge spec/006-zeta" spec/006-zeta
+touch "$DOWN_FAILS"
+out=$(SQ remove .workflow/specs/006-zeta 2>&1); rc=$?
+check "JRN-005 a failing services_down is reported and the removal goes on" \
+  '[ $rc -eq 0 ] && [ ! -e "$WZ" ] && grep -q "a container is busy" <<<"$out"' "rc=$rc $out"
 
 shellcheck_files "shellcheck: spec-worktree.sh" "$AGENTS_SRC/skills/feature-workflow/scripts/spec-worktree.sh"
 check "spec-worktree.sh is executable" '[ -x "$AGENTS_SRC/skills/feature-workflow/scripts/spec-worktree.sh" ]'

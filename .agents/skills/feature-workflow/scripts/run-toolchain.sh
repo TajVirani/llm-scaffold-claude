@@ -72,19 +72,31 @@
 #   trailing comment on a code line, any other path, or a candidate tree git no longer holds counts as code. The result is copied as
 #   above with `reason` "no code changed since that run"; the other keys (lint and the rest) run on the new text. So a wording patch
 #   runs the lints and no tests.
+# Link check and isolation values (not with --tree-hash or --reuse-check, which run nothing): after the arguments are checked and before
+#   the profile is read, worktree-setup.sh check runs on --cwd; a symlink there into another checkout of this repository prints each bad link on stderr and exits 1 with no
+#   key run and no evidence written. Then worktree-setup.sh env gives the isolation values of the spec worktree --cwd belongs to
+#   (WF_SLOT, WF_INSTANCE, WF_PORT_OFFSET, WF_MAIN_ROOT, WF_SPEC_ROOT; 0, main, 0 and the main checkout twice there), exported to
+#   every command below and to services_up. A folder that is neither the main checkout nor a spec worktree nor inside one exits 2.
+# Services: when a test or e2e key will really run (not skipped, not served from reuse), the services_up setting (rules-setting.sh,
+#   read from the spec worktree) is read, and when it is declared it runs once with `bash -c` in the spec worktree, just before the
+#   first such key. Its run is recorded like a key (`== services_up` section, a services_up result). When it fails the run fails and
+#   test and e2e are not run (status skipped, reason "services_up failed"). services_down is never run here. With no services_up the
+#   run is as without this step.
 # Commands: keys lint, typecheck, format, boundary, test (then e2e) from the profile's Toolchain yaml block, run in that order with `bash -c` in --cwd.
 #   `test` is the harness command that 3.5 runs and the 3.9 gate reuses.
 #   Empty or absent keys are skipped. All commands run even after a failure so one block reply lists every failure. Other keys are ignored,
 #   (test_scoped only replaces test, see Test scoping), including the non-command keys `serve` and `serve_ready` (review-targets uses them at 4.3) and `config` / `rule_set`: never run.
 # Evidence (spec checkout, never the agent worktree, so it survives worktree removal): <spec-dir>/artifacts/<task-id>/toolchain.txt (combined output, one section per key),
 #   toolchain.json (the summary below) and toolchain-digest.txt (failure digest; present only on failure).
-# stdout: one JSON object {status: pass|fail, task_id, work_type, profile, cwd, evidence_dir, tree, ran, results:[{key, command, status: pass|fail|skipped|unscoped, exit_code, reason?, scoped?, own?, excluded?, changed?, reused_from?}], digest, warnings?, reused_from?}.
+# stdout: one JSON object (services_up output goes to toolchain.txt, never here) {status: pass|fail, task_id, work_type, profile, cwd, evidence_dir, tree, ran, results:[{key, command, status: pass|fail|skipped|unscoped, exit_code, reason?, scoped?, own?, excluded?, changed?, reused_from?}], digest, warnings?, reused_from?}.
 #   digest is "" on pass; on failure it is bounded text suitable as a SubagentStop block reason. The digest is also printed to stderr on failure.
 #   With --tree-hash, stdout is the 40-hex tree hash alone. With --reuse-check, stdout is the hit's task id alone, or nothing.
-# Exit: 0 all run commands passed (or a reuse hit, or --tree-hash printed); 1 at least one failed, or --reuse-check found no hit;
-#   2 usage or config error, including --cwd outside a git repository and a key that would run whose value still starts with
-#   `TODO:` (the message names the profile file and the key; nothing runs) (message on stderr, no JSON).
-# Requires: bash, jq, mikefarah yq v4, git.
+# Exit: 0 all run commands passed (or a reuse hit, or --tree-hash printed); 1 at least one failed (services_up included), the link
+#   check refused --cwd (no JSON), or --reuse-check found no hit;
+#   2 usage or config error, including --cwd outside a git repository, --cwd with no isolation values, an unreadable services_up
+#   setting, and a key that would run whose value still starts with `TODO:` (the message names the profile file and the key;
+#   nothing runs) (message on stderr, no JSON).
+# Requires: bash, jq, mikefarah yq v4, git; worktree-setup.sh and rules-setting.sh beside this script.
 
 set -euo pipefail
 
@@ -168,6 +180,26 @@ yq --version 2>&1 | grep -q 'mikefarah' || die "yq is not mikefarah yq v4"
 
 # Spec checkout: gitignored state and evidence live there, not in the agent worktree the commands run in.
 spec_root=$(wf_project_root "$cwd" 2>/dev/null) || die "--cwd is not inside a git repository: $cwd"
+
+# The link check and the isolation values belong to worktree-setup.sh; --reuse-check runs and writes nothing, so it skips both
+# (env may take the spec worktree's slot).
+setup_script=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)/worktree-setup.sh
+iso_env="" services_root=""
+if [ "$reuse_check" -eq 0 ]; then
+  link_rc=0
+  link_report=$(bash "$setup_script" check "$cwd" 2>&1 >/dev/null) || link_rc=$?
+  if [ "$link_rc" -eq 1 ]; then
+    printf '%s\n' "$link_report" >&2
+    echo "run-toolchain.sh: refused: $cwd holds a link into another checkout of this repository; nothing ran" >&2
+    exit 1
+  fi
+  [ "$link_rc" -eq 0 ] || die "the link check could not run on $cwd: $link_report"
+  setup_err=$(mktemp "${TMPDIR:-/tmp}/run-toolchain-setup.XXXXXX") || die "cannot create a temporary file"
+  iso_env=$(bash "$setup_script" env "$cwd" 2>"$setup_err") || die "cannot read the isolation values of $cwd: $(tr '\n' ' ' <"$setup_err")"
+  rm -f "$setup_err"
+  # The values stay out of this script's own environment; each command gets them in its own subshell.
+  services_root=$(eval "$iso_env" && printf '%s' "$WF_SPEC_ROOT") || die "cannot read the isolation values of $cwd"
+fi
 
 case "$spec_dir" in
   /*) spec_abs=$spec_dir ;;
@@ -370,9 +402,59 @@ if [ "$reuse" -eq 1 ] || [ "$reuse_check" -eq 1 ]; then
   done
 fi
 
+# services_up is read only when a test or e2e key will really run, so a run without one never needs the setting.
+services_cmd="" services_state=""
+for i in "${!keys[@]}"; do
+  case "${keys[$i]}" in test|e2e) ;; *) continue ;; esac
+  [ -z "${plan_skip[$i]}" ] && [ -z "${plan_reused[$i]}" ] || continue
+  setting_err=$(mktemp "${TMPDIR:-/tmp}/run-toolchain-setting.XXXXXX") || die "cannot create a temporary file"
+  services_cmd=$(bash "$(dirname "$setup_script")/rules-setting.sh" services_up --cwd "$services_root" 2>"$setting_err") \
+    || die "cannot read services_up for $services_root: $(tr '\n' ' ' <"$setting_err")"
+  rm -f "$setting_err"
+  break
+done
+
 mkdir -p "$evidence_dir" || die "cannot create $evidence_dir"
 : > "$evidence_dir/toolchain.txt"
 results='[]' digest="" ran=0 failed=0
+
+# run_key KEY CMD DIR : run CMD with `bash -c` in DIR with the isolation values (and the test scoping values for KEY test), append its
+#   section to toolchain.txt and count it; sets key_rc and leaves the output in key_log for the caller to read and remove.
+run_key() {
+  local key=$1 cmd=$2 dir=$3
+  key_log=$(mktemp "${TMPDIR:-/tmp}/run-toolchain-log.XXXXXX") || die "cannot create a temporary file"
+  set +e
+  (
+    cd "$dir" || exit 125
+    eval "$iso_env" || exit 125
+    if [ "$key" = test ]; then
+      WF_EXCLUDE_TESTS=$(printf '%s' "$excl_list" | tr '\n' ' ') WF_TASK_TESTS=$(printf '%s' "$own_list" | tr '\n' ' ')
+      WF_CHANGED_FILES=$(printf '%s' "$changed_list" | tr '\n' ' ') WF_CHANGED_BASE=$changed_base
+      WF_EXCLUDE_TESTS_FILE=$evidence_dir/excluded-tests.txt WF_TASK_TESTS_FILE=$evidence_dir/task-tests.txt WF_CHANGED_FILES_FILE=$evidence_dir/changed-files.txt
+      { [ -z "$excl_list" ] || printf '%s\n' "$excl_list"; } > "$WF_EXCLUDE_TESTS_FILE"
+      { [ -z "$own_list" ] || printf '%s\n' "$own_list"; } > "$WF_TASK_TESTS_FILE"
+      { [ -z "$changed_list" ] || printf '%s\n' "$changed_list"; } > "$WF_CHANGED_FILES_FILE"
+      WF_TASK_ID=$task_id WF_IMPL_BASE=$impl_base
+      export WF_EXCLUDE_TESTS WF_TASK_TESTS WF_CHANGED_FILES WF_CHANGED_BASE WF_EXCLUDE_TESTS_FILE WF_TASK_TESTS_FILE WF_CHANGED_FILES_FILE WF_TASK_ID WF_IMPL_BASE
+    fi
+    bash -c "$cmd"
+  ) >"$key_log" 2>&1
+  key_rc=$?
+  set -e
+  ran=$((ran + 1))
+  {
+    printf '== %s: %s\n' "$key" "$cmd"
+    cat "$key_log"
+    printf '== %s exit %d\n\n' "$key" "$key_rc"
+  } >> "$evidence_dir/toolchain.txt" || die "cannot write $evidence_dir/toolchain.txt"
+}
+
+# add_failure KEY CMD : count KEY as failed and add its exit code and the tail of key_log to the digest.
+add_failure() {
+  failed=$((failed + 1))
+  digest+=$(printf '[%s] %s exited %d. Last %d lines:\n%s\n\n' "$1" "$2" "$key_rc" "$tail_n" "$(tail -n "$tail_n" "$key_log" | cut -c1-500)")$'\n'
+}
+
 for i in "${!keys[@]}"; do
   key=${keys[$i]} cmd=${plan_cmd[$i]} scoped=${plan_scoped[$i]} unscoped=${plan_unscoped[$i]}
   if [ -n "${plan_skip[$i]}" ]; then
@@ -385,38 +467,35 @@ for i in "${!keys[@]}"; do
     results=$(jq -c --argjson r "${plan_reused[$i]}" '. + [$r | del(.reused_txt)]' <<<"$results")
     continue
   fi
-  log=$(mktemp)
-  set +e
-  (
-    cd "$cwd" || exit 125
-    if [ "$key" = test ]; then
-      WF_EXCLUDE_TESTS=$(printf '%s' "$excl_list" | tr '\n' ' ') WF_TASK_TESTS=$(printf '%s' "$own_list" | tr '\n' ' ')
-      WF_CHANGED_FILES=$(printf '%s' "$changed_list" | tr '\n' ' ') WF_CHANGED_BASE=$changed_base
-      WF_EXCLUDE_TESTS_FILE=$evidence_dir/excluded-tests.txt WF_TASK_TESTS_FILE=$evidence_dir/task-tests.txt WF_CHANGED_FILES_FILE=$evidence_dir/changed-files.txt
-      { [ -z "$excl_list" ] || printf '%s\n' "$excl_list"; } > "$WF_EXCLUDE_TESTS_FILE"
-      { [ -z "$own_list" ] || printf '%s\n' "$own_list"; } > "$WF_TASK_TESTS_FILE"
-      { [ -z "$changed_list" ] || printf '%s\n' "$changed_list"; } > "$WF_CHANGED_FILES_FILE"
-      WF_TASK_ID=$task_id WF_IMPL_BASE=$impl_base
-      export WF_EXCLUDE_TESTS WF_TASK_TESTS WF_CHANGED_FILES WF_CHANGED_BASE WF_EXCLUDE_TESTS_FILE WF_TASK_TESTS_FILE WF_CHANGED_FILES_FILE WF_TASK_ID WF_IMPL_BASE
-    fi
-    bash -c "$cmd"
-  ) >"$log" 2>&1
-  rc=$?
-  set -e
-  ran=$((ran + 1))
-  {
-    printf '== %s: %s\n' "$key" "$cmd"
-    cat "$log"
-    printf '== %s exit %d\n\n' "$key" "$rc"
-  } >> "$evidence_dir/toolchain.txt"
+  case "$key" in
+    test|e2e)
+      # One services_up call serves every key that needs the services; it runs in the spec worktree, whichever worktree --cwd is.
+      if [ -n "$services_cmd" ] && [ -z "$services_state" ]; then
+        run_key services_up "$services_cmd" "$services_root"
+        if [ "$key_rc" -eq 0 ]; then services_state=up st=pass
+        else services_state=failed st=fail; add_failure services_up "$services_cmd"
+        fi
+        rm -f "$key_log"
+        results=$(jq -c --arg c "$services_cmd" --arg s "$st" --argjson r "$key_rc" \
+          '. + [{key:"services_up", command:$c, status:$s, exit_code:$r}]' <<<"$results")
+      fi
+      if [ "$services_state" = failed ]; then
+        printf '== %s: %s\n(not run: services_up failed)\n== %s not run\n\n' "$key" "$cmd" "$key" >> "$evidence_dir/toolchain.txt"
+        results=$(jq -c --arg k "$key" --arg c "$cmd" '. + [{key:$k, command:$c, status:"skipped", exit_code:null, reason:"services_up failed"}]' <<<"$results")
+        continue
+      fi
+      ;;
+  esac
+  run_key "$key" "$cmd" "$cwd"
+  rc=$key_rc log=$key_log
   if [ "$rc" -eq 0 ]; then st=pass
   elif [ "$unscoped" -eq 1 ]; then
     st=unscoped
     warnings=$(jq -c --arg m "test failed (exit $rc) but could not be scoped: $n_excl Phase 1 test selector(s) belong to unfinished tasks and the profile has no test_scoped key; not counted as a failure. Add test_scoped to $profile." '. + [$m]' <<<"$warnings")
     printf 'run-toolchain.sh: warning: %s\n' "$(jq -r '.[-1]' <<<"$warnings")" >&2
   else
-    st=fail; failed=$((failed + 1))
-    digest+=$(printf '[%s] %s exited %d. Last %d lines:\n%s\n\n' "$key" "$cmd" "$rc" "$tail_n" "$(tail -n "$tail_n" "$log" | cut -c1-500)")$'\n'
+    st=fail
+    add_failure "$key" "$cmd"
   fi
   rm -f "$log"
   chg=""

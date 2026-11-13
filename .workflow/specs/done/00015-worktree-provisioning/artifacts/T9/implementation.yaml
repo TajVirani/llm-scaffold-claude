@@ -1,0 +1,30 @@
+status: done
+summary: "README.md has a new Worktree setup section covering the copy list (.worktreeinclude), the worktree_setup, services_up and services_down commands, the five isolation values, the link check, and the rule that a project declaring nothing behaves as before. Its .gitignore list now names .workflow/.slot. .agents/README.md names worktree-setup.sh, AGENTS.md names the slot file, the Codex notes create worktrees with worktree-setup.sh agent, and CHANGELOG.md has one entry. This task changes documents only and adds no test. lint/md-links, lint/symlinks, lint/frontmatter, lint/shared-rule-homes, lint/step-list and lint/workflow-load-size cover the files, and all of them pass."
+task_id: T9
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t9"
+branch: "task/00015-worktree-provisioning/T09-root-docs"
+base_commit: "829ac4cbdc3114476917071ffaa58261ad30424d"
+head_commit: "07d01a2a73b84c783a2be12008c5d2b6a4f4eed9"
+files_changed: ["README.md", ".agents/README.md", "AGENTS.md", ".codex/README.md", "CHANGELOG.md"]
+tests_added: []
+evidence:
+  red: "Documents-only task, so there is no red test. The first toolchain run failed in lint/workflow-load-size: 'implementation resume 55043 bytes > limit 55000'. The cause was writing AGENTS.md's .gitignore list with full .workflow/ paths. The list went back to its short form plus `.slot`."
+  green: "tests/run-all.sh --suite lint/md-links, lint/symlinks, lint/frontmatter, lint/shared-rule-homes, lint/step-list and lint/workflow-load-size all PASS (6, 41, 39, 24, 36 and 14 passed)."
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00015-worktree-provisioning --task-id T9 --cwd $PWD; status pass (lint pass, test pass)"
+  toolchain: ".workflow/specs/done/00015-worktree-provisioning/artifacts/T9/toolchain.txt (pass)"
+considered_not_built:
+  - "Full .workflow/ paths in AGENTS.md's .gitignore line: they would match GI_ENTRIES literally, but they push the implementation-resume load past its 55000-byte limit. The short form the line already used was kept, with `.slot` added."
+  - "Rewording README.md's one-line description of the implementation agent: no acceptance criterion asks for it."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "The diff adds or changes no skill description."}
+  - {item: 2, verdict: not-applicable, note: "The diff adds no agent."}
+  - {item: R1, verdict: pass, note: "Names follow the scripts and the glossary: worktree setup, isolation values, link check, spec worktree, agent worktree."}
+  - {item: R2, verdict: pass, note: "The diff has no code comments, only documentation prose."}
+  - {item: R3, verdict: pass, note: "Plain sentences with one idea each. Each name is explained on first use (README.md Worktree setup section, .agents/README.md bullet)."}
+  - {item: R4, verdict: pass, note: "No decision ids or .workflow/ record citations were added. The words provisioning, bootstrap and environment setup do not appear in the new text."}
+  - {item: R5, verdict: pass, note: "Each statement was checked against the worktree-setup.sh and run-toolchain.sh headers, spec-worktree.sh, the rules.md template, files.md and launching.md."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the five changed files printed nothing."}

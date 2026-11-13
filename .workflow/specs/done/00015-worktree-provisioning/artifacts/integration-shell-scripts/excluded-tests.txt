@@ -1,0 +1,4 @@
+tests/scripts/worktree-setup.sh
+tests/scripts/spec-worktree.sh
+tests/scripts/run-toolchain.sh
+tests/lint/worktree-setup-docs.sh

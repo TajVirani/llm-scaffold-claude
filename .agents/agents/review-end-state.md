@@ -29,11 +29,11 @@ The launch header with `spec_dir`, and a one-line task naming the review pass ("
 
 ## Running code
 
-Prove a suspicion by running it: a command, a test, a short probe script. Run it only in a scratch worktree of `HEAD` or a directory under `mktemp -d`, never in the checkout or a task worktree, and remove the scratch worktree before you return:
+Prove a suspicion by running it: a command, a test, a short probe script. Run it only in your own scratch worktree of `HEAD`, never in the checkout or a task worktree, and remove the scratch worktree before you return. Make and remove it with `worktree-setup.sh` from the spec checkout, so it is set up like the spec's own worktree ([The agent worktree is ready](../skills/feature-workflow/references/launching.md#the-agent-worktree-is-ready)). `<NNN>` is the spec number in `spec_dir`; the name carries your lens, so two reviewers running at once never share a scratch worktree:
 
 ```bash
-scratch=$(mktemp -d) && git worktree add --detach "$scratch/wt" HEAD    # run the probe with git -C "$scratch/wt" or a cd inside one Bash command
-git worktree remove --force "$scratch/wt" && rm -rf "$scratch"
+.agents/skills/feature-workflow/scripts/worktree-setup.sh scratch s<NNN>_scratch_review_end_state    # prints `worktree <path>`; run each probe with a cd into that path inside one Bash command
+.agents/skills/feature-workflow/scripts/worktree-setup.sh remove s<NNN>_scratch_review_end_state --force
 ```
 
 Record each run in the finding's `evidence.reproduction`: the command and the output lines that show the outcome.

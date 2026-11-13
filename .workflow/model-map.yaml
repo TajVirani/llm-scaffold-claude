@@ -26,6 +26,7 @@ implementation:
     - '2026-10-30 (claude, spec 008-pr-description-template): T4 built beyond its task file (a 5.5 hash check and a separate PR-description approval; the stakeholder removed one and kept the other, D17, D18); T2 was resumed once to add tests for behaviour beyond Phase 1; T1 needed one behaviour fix round. No alias change.'
     - '2026-11-02 (claude, spec 009-slim-workflow-context): wrote `self_review[].item` as a quoted string in T1 and T2 (wave 1) and again in T1, T9 and T10 (rework 1), each fixed in one resume (backlog B2); every rework converged in one launch. No alias change.'
     - '2026-11-03 (claude opus, spec 00014-tracker-issue-spec-ids): 10 tasks; 3 behaviour fix rounds (T3, T5, T8) and 5 wording rounds, each converging in one launch; wave-1 agents (T1, T2, T3) wrote quoted `self_review[].item` until the brief named the unquoted form; T8 first skipped negative tests ("tests/ is outside the module") and added 16 on one resume. No alias change.'
+    - '2026-11-12 (claude opus, spec 00015-worktree-provisioning): nine tasks and one rework, each converging in one launch; gate 3.4 sent T1 and T3 back for listing no tests of their own, and T2 correctly returned discovered work for a lint that failed in every new worktree. No alias change.'
 integration:
   tier: strong
   claude: opus
@@ -53,6 +54,7 @@ profile-mini-review:
     - '2026-10-30 (claude, spec 00010-worktree-guard-followups): caught real wording faults (T2: a missing reason comment, journey ids on changed suite-header lines) and reported three real out-of-scope bugs in the guard (later shelved); one T1 result file held unquoted YAML and needed a resume. No alias change.'
     - '2026-10-31 (claude, spec 007-done-folder): caught real faults (unchecked writes under suspended `set -e` three times in T5, the sweep''s partial state, a missing reason comment), but wrote an unreadable result file twice (missing `location` fields; an unquoted `: ` in a note), each needing a resume, and twice again reported a false `toolchain.json` tree mismatch. No alias change.'
     - '2026-11-02 (claude, spec 009-slim-workflow-context): its full re-review of T1 in rework 1 caught a missing `# die MSG :` comment that four earlier rounds had passed, and T1 round 1 again asked for single-bracket tests in a new file (as in 008; profile line clarified at 5.3, P4); one result file missed an item `location` and needed a resume. No alias change.'
+    - '2026-11-12 (claude haiku, spec 00015-worktree-provisioning): ten reviews; four failed on one real name or comment fault each, with fix text applied without a fix round; two result files failed their shape check and needed a resume, none after the brief asked for quoted values checked with yq. No alias change.'
 research:
   tier: strong
   claude: opus

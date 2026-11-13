@@ -1,0 +1,9 @@
+.agents/skills/feature-workflow/modules/discovery-impact.md
+.agents/skills/feature-workflow/modules/implementation-finish.md
+.agents/skills/feature-workflow/modules/implementation-shared-core.md
+.agents/skills/feature-workflow/modules/implementation-waves.md
+.agents/skills/feature-workflow/modules/sign-off.md
+.agents/skills/feature-workflow/modules/verification-setup.md
+.agents/skills/feature-workflow/references/launching.md
+tests/lint/agent-worktree-docs.sh
+tests/lint/stakeholder-asks-docs.sh

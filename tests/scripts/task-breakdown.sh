@@ -10,7 +10,7 @@
 #   reads workflow without a Workflow settings block or the key (with a default note on stderr), reads workflow, prints the
 #   host template path back, refuses a missing file, an absolute, `..`, leading-dash or non-.md path, `project` and `other`
 #   with exit 1 naming the value, refuses a path value when --cwd is outside git, and reads workflow from the project-setup
-#   rules.md template.
+#   rules.md template. The same template carries worktree_setup, services_up and services_down as commented lines that read empty.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -124,6 +124,31 @@ printf '## Workflow settings\n\n```yaml\nmain_branch: "-x"\n```\n' > "$WORK/r.md
 t "main_branch invalid -> 1"       1 RS main_branch --rules "$WORK/r.md"
 printf '## Workflow settings\n\n```yaml\nmain_branch: "@branch"\n```\n' > "$WORK/r.md"
 t "main_branch @branch (the spec token, not a branch name) -> 1" 1 RS main_branch --rules "$WORK/r.md"
+echo "== rules-setting.sh command settings"
+# The YAML single-quoted form of: cd "my dir" && echo 'up' && make dev
+YAML_CMD=$'\'cd "my dir" && echo \'\'up\'\' && make dev\''
+for key in worktree_setup services_up services_down; do
+  printf '## Workflow settings\n\n```yaml\n%s: %s\n```\n' "$key" "$YAML_CMD" > "$WORK/r.md"
+  eq "$key prints a command with spaces, quotes and && whole" "$(RS "$key" --rules "$WORK/r.md")" \
+    "cd \"my dir\" && echo 'up' && make dev"
+done
+printf '## Workflow settings\n\n```yaml\ntask_review:\n  - local\n```\n' > "$WORK/r.md"
+eq "task_review given a sequence prints its default" "$(RS task_review --rules "$WORK/r.md" 2>/dev/null; echo ":$?")" "pr
+:0"
+eq "task_review given a sequence notes the default on stderr" "$(RS task_review --rules "$WORK/r.md" 2>&1 >/dev/null)" \
+  "rules-setting.sh: task_review is not set under '## Workflow settings' in $WORK/r.md; using the default task_review=pr"
+printf '## Workflow settings\n\n```yaml\nservices_up:\n  - make up\n```\n' > "$WORK/r.md"
+eq "services_up given a sequence prints its empty default" "$(RS services_up --rules "$WORK/r.md" 2>/dev/null; echo ":$?")" "
+:0"
+eq "services_up given a sequence notes the default on stderr" "$(RS services_up --rules "$WORK/r.md" 2>&1 >/dev/null)" \
+  "rules-setting.sh: services_up is not set under '## Workflow settings' in $WORK/r.md; using the default services_up="
+printf '## Workflow settings\n\n```yaml\nservices_up:\n  run: make up\n```\n' > "$WORK/r.md"
+eq "services_up given a map prints its empty default" "$(RS services_up --rules "$WORK/r.md" 2>/dev/null; echo ":$?")" "
+:0"
+eq "services_up given a map notes the default on stderr" "$(RS services_up --rules "$WORK/r.md" 2>&1 >/dev/null)" \
+  "rules-setting.sh: services_up is not set under '## Workflow settings' in $WORK/r.md; using the default services_up="
+eq "the unknown-key message names every key" "$(RS nope --rules "$WORK/r.md" 2>&1)" \
+  "rules-setting.sh: unknown setting 'nope' (known: task_review, main_branch, pr_template, worktree_setup, services_up, services_down)"
 MB=$WORK/mb; git_init_repo "$MB"; git_commit_all "$MB" init
 eq "main_branch default main without origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" main
 git -C "$MB" update-ref refs/remotes/origin/develop HEAD; git -C "$MB" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/develop
@@ -198,6 +223,19 @@ pt_out=$(GIT_CEILING_DIRECTORIES=$WORK RS pr_template --cwd "$PT_OUTSIDE_GIT" --
 pt_rc=$?
 eq "JRN-004 pr_template path with --cwd outside git -> 1 saying so" "$pt_rc:$(grep -qi git <<<"$pt_out" && echo said)" "1:said"
 eq "JRN-004 the project-setup rules.md template reads pr_template workflow" "$(RS pr_template --rules "$RULES_T" 2>/dev/null)" workflow
+# The template ships each command setting as a commented line inside the settings block, so a project that answers "none"
+# keeps today's behaviour, and removing the "# " gives a line that still parses and reads empty.
+settings_block() { awk '/^## /{ insec = ($0 == "## Workflow settings"); next } insec && /^```/{ n++; next } insec && n == 1' "$1"; }
+for key in worktree_setup services_up services_down; do
+  eq "the project-setup rules.md template reads $key as empty" "$(RS "$key" --rules "$RULES_T" 2>/dev/null; echo ":$?")" "
+:0"
+  eq "the project-setup rules.md template carries a commented $key line in its settings block" \
+    "$(settings_block "$RULES_T" | grep -c "^# $key: \"\"")" 1
+  sed "s/^# $key: /$key: /" "$RULES_T" > "$WORK/uncommented.md"
+  eq "the project-setup rules.md template's $key line uncommented reads empty" \
+    "$(RS "$key" --rules "$WORK/uncommented.md" 2>/dev/null; echo ":$?")" "
+:0"
+done
 # generate-boundary-config ignores the section (reads Ownership and Shared core only)
 GB=$WORK/gb; mkdir -p "$GB/.workflow"; cp "$RULES_T" "$GB/.workflow/rules.md"
 printf '\n## Workflow settings\n\n```yaml\ntask_review: pr-blocking\n```\n' >> "$GB/.workflow/rules.md"

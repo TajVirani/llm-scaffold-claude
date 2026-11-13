@@ -1,0 +1,92 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "aea4e6ebc531a649e09ff3f34d241fb48cabe9e1"
+head: "2241bce3a5e4fff2f99f991bfe6b84fb21f53f76"
+measurements:
+  - target: "Worktree setup with nothing declared adds no work"
+    kind: performance
+    threshold: "not measured"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "Cannot be measured as a number: the verification plan gives no command (JRN-002 proves the behaviour is unchanged)."
+  - target: "Script lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -co --exclude-standard -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh 'scripts/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh"
+    measured: "0 shellcheck findings, check-comments clean"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/00015-worktree-provisioning/artifacts/review/pass-1/targets/script-lint-clean.txt"
+    reason: "Run as plain steps (file list saved to script-lint-files.nul, then xargs over it) because the sandbox refused the piped form; same tools and file set."
+  - target: "Harness lint clean"
+    kind: errors
+    threshold: "exit 0; 0 shellcheck findings"
+    command: "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh"
+    measured: "0 shellcheck findings, check-comments clean"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/00015-worktree-provisioning/artifacts/review/pass-1/targets/harness-lint-clean.txt"
+    reason: "Run as plain steps over the saved file list (harness-lint-files.nul), same as script lint."
+  - target: "Agent-docs lint clean"
+    kind: errors
+    threshold: "exit 0; each lint suite reports 0 failed"
+    command: "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage"
+    measured: "frontmatter 0 failed, step-list 0 failed, symlinks 0 failed, upstream-lineage 0 failed"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/00015-worktree-provisioning/artifacts/review/pass-1/targets/agent-docs-lint-clean.txt"
+    reason: ""
+  - target: "Every script this spec adds or changes has a suite"
+    kind: coverage
+    threshold: "0 printed"
+    command: "git diff --name-only --diff-filter=AM \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/00015-worktree-provisioning/spec.md)\"..HEAD -- '.agents/hooks/*.sh' '.agents/lib/*.sh' '.agents/skills/*/scripts/*.sh' install.sh | while read -r f; do grep -rqF -- \"$(basename \"$f\")\" tests/ || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "0"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/done/00015-worktree-provisioning/artifacts/review/pass-1/targets/every-script-this-spec-adds-or-changes-has-a-suite.txt"
+    reason: "Run as plain steps: the changed-file list came from the diff output and the grep loop ran over it; the loop printed no unnamed scripts."
+  - target: "Every new .agents/ file is in PROVENANCE.md"
+    kind: coverage
+    threshold: "0 printed"
+    command: "git diff --name-only --diff-filter=A \"$(yq --front-matter=extract '.baseline_revision' .workflow/specs/done/00015-worktree-provisioning/spec.md)\"..HEAD -- .agents | while read -r f; do grep -qF -- \"${f#.agents/}\" PROVENANCE.md || echo \"$f\"; done | wc -l | tr -d ' '"
+    measured: "1"
+    result: fail
+    exit_code: 0
+    raw_output: ".workflow/specs/done/00015-worktree-provisioning/artifacts/review/pass-1/targets/every-new-agents-file-is-in-provenance-md.txt"
+    reason: "Exit 0 is the wc exit of the pipeline; the printed count 1 is the measure and misses the threshold 0. The unnamed file is .agents/skills/feature-workflow/scripts/worktree-setup.sh (PROVENANCE names it only inside the feature-workflow row, not by the path the command greps). Run as plain steps over the saved lists."
+  - target: "Line coverage of changed shell code"
+    kind: coverage
+    threshold: "not measured"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "Cannot be measured: no bash coverage tool is installed (the script-coverage target and the test-harness checklist at 3.7 stand in)."
+findings:
+  - id: RT-1
+    category: target
+    severity: high
+    confidence: 100
+    location: "verification-plan.md#targets: Every new .agents/ file is in PROVENANCE.md"
+    claim: "Every new .agents/ file is in PROVENANCE.md measured 1, threshold 0: .agents/skills/feature-workflow/scripts/worktree-setup.sh is not named by its path in PROVENANCE.md"
+    consequence: "The build does not meet a target the spec committed to (source: .workflow/rules.md § Cross-cutting policy (PROVENANCE))."
+    evidence:
+      basis: ".workflow/specs/done/00015-worktree-provisioning/artifacts/review/pass-1/targets/every-new-agents-file-is-in-provenance-md.txt"
+      diff: ""
+    suggested_fix: ""
+checked:
+  - "Script lint clean"
+  - "Harness lint clean"
+  - "Agent-docs lint clean"
+  - "Every script this spec adds or changes has a suite"
+  - "Every new .agents/ file is in PROVENANCE.md"
+  - "serve in profiles shell-scripts, test-harness, agent-docs: serve and serve_ready both empty; no build started"
+not_checked:
+  - "Worktree setup with nothing declared adds no work: not measurable: no command in the verification plan"
+  - "Line coverage of changed shell code: not measurable: no bash coverage tool is installed"
+  - "no serve in the profiles for shell-scripts, agent-docs: no build started"

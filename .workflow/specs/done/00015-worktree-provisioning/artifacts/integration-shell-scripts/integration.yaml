@@ -1,0 +1,28 @@
+status: "done"
+summary: "Added two path constants to .agents/lib/workflow-paths.sh: WF_SLOT_FILE (.workflow/.slot) and WF_COPY_LIST (.worktreeinclude), each with a line in the header comment's API list. A test case for each was written first in tests/scripts/lib-workflow-paths.sh, failed before the change and passes after it. Both requests are in one commit because their edits share the same lines of both files."
+work_type: "shell-scripts"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_integration_shell_scripts"
+branch: "wf/00015-worktree-provisioning/s00015_integration_shell_scripts"
+base_commit: "b80df48cfb82c9598f4dc573d291ddbe83f3829f"
+head_commit: "19819da15c54b56a5e68edab568e7dcac9b2903a"
+requests:
+  - n: 1
+    verdict: "applied"
+    reason: "New constant in shared core (.agents/lib/**); adds to the interface without changing anything existing."
+    interface: "WF_SLOT_FILE=\"$WF_DIR/.slot\" (value .workflow/.slot) in .agents/lib/workflow-paths.sh; repo-relative, works as a .gitignore line as it stands and as <spec worktree root>/$WF_SLOT_FILE"
+    awaiting_contract: []
+    tests: ["tests/scripts/lib-workflow-paths.sh: WF_SLOT_FILE is .workflow/.slot"]
+  - n: 2
+    verdict: "applied"
+    reason: "New constant in shared core (.agents/lib/**); adds to the interface without changing anything existing."
+    interface: "WF_COPY_LIST=\".worktreeinclude\" in .agents/lib/workflow-paths.sh; repo-relative, read as <main checkout root>/$WF_COPY_LIST"
+    awaiting_contract: []
+    tests: ["tests/scripts/lib-workflow-paths.sh: WF_COPY_LIST is .worktreeinclude"]
+files_changed: [".agents/lib/workflow-paths.sh", "tests/scripts/lib-workflow-paths.sh"]
+evidence:
+  toolchain: ".workflow/specs/done/00015-worktree-provisioning/artifacts/integration-shell-scripts/toolchain.txt (pass)"
+  tests: "tests/run-all.sh --suite scripts/lib-workflow-paths before the change: passed=196 failed=2 (the two new cases); after: passed=198 failed=0. Scoped toolchain test: 5 suites, passed=741 failed=0."
+  callers_checked: ["no existing callers: both constants are new; the scoped suites covering workflow-paths.sh (check-task-result, install-payload, lib-workflow-paths, worktree-guard, write-guards) pass"]
+profile_wrong: null
+blocked: null
+discovered_work: []

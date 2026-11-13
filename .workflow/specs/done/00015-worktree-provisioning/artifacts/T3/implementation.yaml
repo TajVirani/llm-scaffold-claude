@@ -1,0 +1,36 @@
+status: done
+summary: "run_worktree_setup now takes the five isolation values from print_isolation_values (eval in the setup subshell) instead of its own export line, so every consumer has one source; behaviour is unchanged. A new test checks that the values worktree_setup receives equal, value for value, what env prints for the same agent worktree, WF_MAIN_ROOT and WF_SPEC_ROOT included."
+task_id: "T3"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t3"
+branch: "task/00015-worktree-provisioning/T03-worktree-setup-script"
+base_commit: "27e5d6f6e419f964c3cb731e95e6c8b3567f68ac"
+head_commit: "1f09da141d262bad5dee9e8fd0cf2fe5b9fd465f"
+files_changed: [".agents/skills/feature-workflow/scripts/worktree-setup.sh", "tests/scripts/worktree-setup.sh"]
+tests_added:
+  - {file: "tests/scripts/worktree-setup.sh", test: "worktree_setup was given, value for value, the five values env prints for the same worktree", kind: behaviour}
+evidence:
+  red: "The new case passed on the unchanged code because the two copies agreed. To see it fail I temporarily set WF_SPEC_ROOT=$MAIN_ROOT in the old export line: tests/run-all.sh --suite scripts/worktree-setup; FAIL worktree_setup was given, value for value, the five values env prints for the same worktree (59 passed, 1 failed; no older check caught it). A temporary WF_PORT_OFFSET=$((SLOT * 10)) also failed it, along with four older marker checks."
+  green: "tests/run-all.sh --suite scripts/worktree-setup; 60 passed, 0 failed. tests/run-all.sh --suite scripts/spec-worktree; 81 passed, 0 failed."
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00015-worktree-provisioning --task-id T3 --cwd <worktree>; test pass (scoped, 2 own suites)"
+  toolchain: ".workflow/specs/done/00015-worktree-provisioning/artifacts/T3/toolchain.txt (pass)"
+considered_not_built: []
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "no new .workflow/ path in the script"}
+  - {item: 2, verdict: not-applicable, note: "no hook changed"}
+  - {item: 3, verdict: pass, note: "worktree-setup.sh run_worktree_setup: eval failure exits 2 in the subshell, which reaches die via setup_status"}
+  - {item: 4, verdict: pass, note: "the eval in the subshell carries its own || exit 2"}
+  - {item: 5, verdict: not-applicable, note: "no exit code changed"}
+  - {item: 6, verdict: not-applicable, note: "no sibling path added"}
+  - {item: 7, verdict: not-applicable, note: "header block unchanged; the suite's Covers line extended"}
+  - {item: 8, verdict: not-applicable, note: "no new file; edited files keep [[ ]] and [ ] as they had"}
+  - {item: 9, verdict: not-applicable, note: "no new function or shellcheck directive"}
+  - {item: R1, verdict: pass, note: "SETUP_ENV names the folder of values handed to worktree_setup"}
+  - {item: R2, verdict: pass, note: "the marker comment gives why it records values per worktree"}
+  - {item: R3, verdict: pass, note: "one-line change, follows the module's pattern"}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh; no comment points at another document"}
+  - {item: R5, verdict: pass, note: "no shorthand added"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over both changed files exits 0"}

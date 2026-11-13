@@ -10,7 +10,7 @@
 #     --rules  read this file instead (tests and drafts). No git is needed, except that a pr_template path is still checked against the
 #              checkout found from --cwd.
 # Section format: the first fenced ```yaml block under the heading `## Workflow settings` (exact text, trailing spaces allowed); the
-#   block is a YAML map of setting -> scalar.
+#   block is a YAML map of setting -> scalar. A sequence or map value is not read: the default is printed.
 # Settings:
 #   key           values                    default   used by
 #   task_review   pr | pr-blocking | local  pr        implementation-waves 3.16 (task PR/MR as a non-blocking review record, a
@@ -24,6 +24,10 @@
 #                                                     the target of the feature's PR/MR; scripts/budget-check.sh (3.15 count)
 #   pr_template   workflow | a path         workflow  sign-off 5.2 and 5.4: the body the feature's PR/MR is written from, the
 #                                                     workflow's own template or the project's (path below)
+#   worktree_setup  a shell command         ""        worktree setup: run in each new worktree after the gitignored files named in .worktreeinclude are copied in
+#   services_up     a shell command         ""        the toolchain run: start the spec worktree's services before test or e2e
+#   services_down   a shell command         ""        spec worktree removal: stop the spec worktree's services
+#   A shell command is any scalar, printed whole (spaces, quotes, &&); absent or empty prints an empty line.
 #   main_branch default: the branch `origin/HEAD` points at (`git symbolic-ref refs/remotes/origin/HEAD`, `origin/` dropped), else main.
 #     With --rules (no git) the default is main.
 #   pr_template path: repo-relative, ends in .md, holds no `..`, starts with neither / nor -, and names a file that exists under the
@@ -46,15 +50,18 @@ set -euo pipefail
 PROG=rules-setting.sh
 HEADING="Workflow settings"
 die() { printf '%s: %s\n' "$PROG" "$1" >&2; exit 1; }
-usage() { echo "usage: rules-setting.sh <key> [--cwd <dir>] [--rules <path>]   (keys: task_review, main_branch, pr_template)" >&2; exit 1; }
+KNOWN_KEYS="task_review, main_branch, pr_template, worktree_setup, services_up, services_down"
+usage() { echo "usage: rules-setting.sh <key> [--cwd <dir>] [--rules <path>]   (keys: $KNOWN_KEYS)" >&2; exit 1; }
 
 # setting_spec <key> -> "<default> <allowed values...>"; the allowed value "@branch" accepts any valid branch name, "@template_path"
-#   any valid template path whose file exists in the checkout.
+#   any valid template path whose file exists in the checkout, "@command" any scalar. The default "@empty" stands for the empty
+#   string, which a space-split spec cannot carry.
 setting_spec() {
   case "$1" in
     task_review) echo "pr pr pr-blocking local" ;;
     main_branch) echo "main @branch" ;;
     pr_template) echo "workflow workflow @template_path" ;;
+    worktree_setup|services_up|services_down) echo "@empty @command" ;;
     *) return 1 ;;
   esac
 }
@@ -87,10 +94,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 [[ -n "$KEY" ]] || usage
-SPEC=$(setting_spec "$KEY") || die "unknown setting '$KEY' (known: task_review, main_branch, pr_template)"
+SPEC=$(setting_spec "$KEY") || die "unknown setting '$KEY' (known: $KNOWN_KEYS)"
 # shellcheck disable=SC2086 # split the spec on purpose
 set -- $SPEC
 DEFAULT=$1; shift
+[[ "$DEFAULT" != "@empty" ]] || DEFAULT=""
 ALLOWED="$*"
 
 if [[ -z "$RULES" ]]; then
@@ -138,7 +146,7 @@ val=$(printf '%s\n' "$block" | K=$KEY yq '.[strenv(K)] // "" | select(tag != "!!
 [[ -n "$val" ]] || default_out "$KEY is not set under '## $HEADING' in $RULES"
 for a in $ALLOWED; do
   # An @-token stands for a class of values, so a value spelled like the token itself is never a literal match.
-  if [[ "$a" != @* && "$a" == "$val" ]] || { [[ "$a" == "@branch" ]] && valid_branch_name "$val"; }; then emit "$val"; fi
+  if [[ "$a" != @* && "$a" == "$val" ]] || { [[ "$a" == "@branch" ]] && valid_branch_name "$val"; } || [[ "$a" == "@command" ]]; then emit "$val"; fi
   if [[ "$a" == "@template_path" ]] && valid_template_path "$val"; then
     [[ -n "$ROOT" ]] || find_checkout_root "$KEY is '$val' and its file is checked in the checkout"
     [[ -f "$ROOT/$val" ]] || die "$KEY in '## $HEADING' of $RULES is '$val'; no such file in the checkout $ROOT"
