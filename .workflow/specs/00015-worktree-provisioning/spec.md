@@ -1,8 +1,8 @@
 ---
-status: ready-for-dev
+status: in-progress
 baseline_revision: "aea4e6ebc531a649e09ff3f34d241fb48cabe9e1"
 spec_branch: "spec/00015-worktree-provisioning"
-impl_base_revision: ""
+impl_base_revision: "3eb23c84fea45e1e1f9583bc2f54af6fc6fa4a9c"
 light_path: false
 followup_review_recommended: false
 deferred: [.workflow/deferred/rules-setting-usage-exit-code.md]

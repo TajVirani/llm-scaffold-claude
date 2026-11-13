@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-worktree-setup
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "rules-setting.sh <key> command line, driven by the settings cases of tests/scripts/worktree-setup.sh"
     file: tasks/T01-settings-keys.md
@@ -23,7 +23,7 @@ tasks:
     capability: CAP-NEW-worktree-setup
     depends_on: []
     touches_core: true
-    work_type: null
+    work_type: shell-scripts
     module: "installer"
     seam: "install.sh run against a fixture target, and the settings template read as data"
     file: tasks/T02-install-and-allow.md
@@ -40,7 +40,7 @@ tasks:
     capability: CAP-NEW-worktree-setup
     depends_on: [T1, T2]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "worktree-setup.sh and spec-worktree.sh command lines in a throwaway repository"
     file: tasks/T03-worktree-setup-script.md
@@ -58,7 +58,7 @@ tasks:
     capability: CAP-NEW-worktree-setup
     depends_on: [T3]
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "feature-workflow"
     seam: "run-toolchain.sh command line and its evidence files"
     file: tasks/T04-toolchain-services.md
@@ -76,7 +76,7 @@ tasks:
     capability: CAP-NEW-worktree-setup
     depends_on: [T3]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "the step files and the launching reference as loaded text, checked by the docs lint suites"
     file: tasks/T05-step-files.md
@@ -93,7 +93,7 @@ tasks:
     capability: CAP-NEW-worktree-setup
     depends_on: [T3]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "project-setup"
     seam: "the shipped rules template read by rules-setting.sh, and the project-setup documents as loaded text"
     file: tasks/T06-project-setup.md
@@ -110,7 +110,7 @@ tasks:
     capability: CAP-NEW-worktree-setup
     depends_on: [T3]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "project-standards"
     seam: "assets/coverage.md as loaded text, checked by a lint case over its rows"
     file: tasks/T07-standards-coverage.md
@@ -127,7 +127,7 @@ tasks:
     capability: CAP-NEW-worktree-setup
     depends_on: [T3, T5]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "agents"
     seam: "the agent definitions as loaded text, checked by tests/lint/worktree-setup-docs.sh"
     file: tasks/T08-agent-definitions.md
@@ -145,7 +145,7 @@ tasks:
     capability: CAP-NEW-worktree-setup
     depends_on: [T2, T4, T5, T6, T7]
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "root-docs"
     seam: "the root documents as text, checked by lint/md-links"
     file: tasks/T09-root-docs.md
