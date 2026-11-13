@@ -27,8 +27,17 @@ The launch header with `spec_dir`, and a one-line task naming the review pass ("
 | Work types | `<spec_dir>/tasks.md` frontmatter, `tasks[].work_type` |
 | Start and ready | `.workflow/profiles/<work_type>.md`, the yaml block under `## Toolchain`: `serve` (start command) and `serve_ready` (URL to poll) |
 | Revisions | `yq --front-matter=extract '.baseline_revision' <spec_dir>/spec.md` (read only this key) and `git rev-parse HEAD` |
+| Isolation values | `.agents/skills/feature-workflow/scripts/worktree-setup.sh env "$PWD"` from the project root: the spec's `WF_SLOT`, `WF_INSTANCE`, `WF_PORT_OFFSET`, `WF_MAIN_ROOT` and `WF_SPEC_ROOT` as `export` lines |
 
-`OUT` is `<spec_dir>/artifacts/review/pass-<n>/targets`, with `<n>` from the task line. Create it with `mkdir -p` before anything else. Your **pass file** is `<spec_dir>/artifacts/review/pass-<n>/review-targets.yaml`, beside `OUT`.
+`OUT` is `<spec_dir>/artifacts/review/pass-<n>/targets`, with `<n>` from the task line. Create it with `mkdir -p` before anything else, then save the isolation values beside your output, so every snippet below loads the same ones:
+
+```bash
+.agents/skills/feature-workflow/scripts/worktree-setup.sh env "$PWD" > "$OUT/isolation.env"
+```
+
+The project turns these values into its ports, so `serve`, `serve_ready` and the measurement commands reach this spec's build and never another spec's or the main checkout's. Your **pass file** is `<spec_dir>/artifacts/review/pass-<n>/review-targets.yaml`, beside `OUT`.
+
+**Services come from `services_up`.** The database, cache or other services the build needs are started by the project's `services_up` setting, which the toolchain run starts before its `test` key and never stops; the wave gate (3.9) has run it on this spec. Start no service yourself. A build that cannot reach one is a `blocked` result with what `serve-<k>.log` shows.
 
 ## Method
 
@@ -49,15 +58,21 @@ Read the Toolchain yaml block of each profile named in `tasks.md` (extract it as
 
 Run these snippets with `bash`, from the project root (the shell may not be bash; wrap each in `bash -c '…' _ <args>` as shown). Record every PID you start, because step 5 must stop each one.
 
-1. **Nothing is already answering.** Poll `serve_ready` once. If it answers before you start anything, you would measure some other process: start nothing, set `status: blocked` with `blocked_reason: "<url> already answers before serve started"`, and go to step 6.
-2. **Start** in its own process group, so the stop takes its children too:
+1. **Expand `serve_ready`** with the isolation values, since it may name a port built from them (`$((3000 + WF_PORT_OFFSET))`), and use the URL it prints wherever the steps below poll `serve_ready`:
 
    ```bash
-   bash -c 'set -m; nohup bash -c "$1" > "$2/serve-$3.log" 2>&1 < /dev/null & echo $! > "$2/serve-$3.pid"' _ "<serve>" "$OUT" "<k>"
+   bash -c '. "$1"; eval "printf \"%s\n\" \"$2\""' _ "$OUT/isolation.env" "<serve_ready>"
+   ```
+
+2. **Nothing is already answering.** Poll `serve_ready` once. If it answers before you start anything, you would measure some other process: start nothing, set `status: blocked` with `blocked_reason: "<url> already answers before serve started"`, and go to step 6.
+3. **Start** in its own process group with the isolation values loaded, so the build listens on this spec's port and the stop takes its children too:
+
+   ```bash
+   bash -c '. "$2/isolation.env"; set -m; nohup bash -c "$1" > "$2/serve-$3.log" 2>&1 < /dev/null & echo $! > "$2/serve-$3.pid"' _ "<serve>" "$OUT" "<k>"
    ```
 
    `<k>` is 1, 2, … per pair.
-3. **Wait** for `serve_ready` to answer with any HTTP status (curl's `000` means no answer), up to 120 seconds:
+4. **Wait** for `serve_ready` to answer with any HTTP status (curl's `000` means no answer), up to 120 seconds:
 
    ```bash
    bash -c 'for ((i=0; i<120; i+=2)); do c=$(curl -s -o /dev/null --max-time 2 -w "%{http_code}" "$1" || true); [ "$c" != "000" ] && { echo "ready ${i}s HTTP $c"; exit 0; }; sleep 2; done; echo "not ready after 120s"; exit 1' _ "<serve_ready>"
@@ -70,10 +85,10 @@ Run these snippets with `bash`, from the project root (the shell may not be bash
 For each measurable row, in table order:
 
 1. **Check the tool exists** (`command -v` on the program the command starts, or the `npx` package's local install in `node_modules/.bin`). Missing: `not_measurable`, reason "<tool> not available". Never estimate.
-2. **Run the command exactly as written**, once, from the project root, saving stdout and stderr and the exit code:
+2. **Run the command exactly as written**, once, from the project root with the isolation values loaded, saving stdout and stderr and the exit code:
 
    ```bash
-   bash -c '<command>' > "$OUT/<slug>.txt" 2>&1; echo "exit: $?" >> "$OUT/<slug>.txt"
+   bash -c '. "$1"; <command>' _ "$OUT/isolation.env" > "$OUT/<slug>.txt" 2>&1; echo "exit: $?" >> "$OUT/<slug>.txt"
    ```
 
    Set the Bash tool timeout to its maximum for load and Lighthouse runs.

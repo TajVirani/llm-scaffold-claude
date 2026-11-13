@@ -4,8 +4,10 @@
 #   deferred-handoff, sign-off 5.5 and 5.9, the Phase 3 step files: setup, the wave loop with its discovered-work section,
 #   shared core, gates and finish) and the backlog list template.
 # Covers: proof before escalation: the end-state, standards and combined lenses may run probes only in a scratch
-#   worktree made with `git worktree add --detach` under `mktemp -d`, keep no read-only-only rule, keep no plain 80 drop rule,
+#   worktree named for the lens, made with `worktree-setup.sh scratch` and removed with `worktree-setup.sh remove --force`
+#   (no mktemp folder), keep no read-only-only rule, keep no plain 80 drop rule,
 #   and carry `reproduction` in their finding evidence; mini-review has the same scratch rule and a `not_checked` list;
+#   review-targets runs serve with the isolation values from `worktree-setup.sh env` and starts no service (services_up does);
 #   review-standards reads the spec's Assumptions and Non-goals and scores a lesson repeat the spec accepts 0. Discovered work is assessed in
 #   the order unproven, current work, blocker, for the stakeholder (convoluted, scope-expanding, out of scope), with one
 #   batched ask and nothing filed without a ruling; triage has no defer route and no maybe-false verdict, and its 4.8 step
@@ -46,9 +48,10 @@ section() {
 echo "== lenses prove their findings and may run code outside the checkout"
 for lens in review-end-state review-standards review-combined; do
   f=$AGENTS/$lens.md
-  check "$lens has a Running code section with a detached scratch worktree under mktemp -d" \
-    'section "$f" "Running code" | grep -q "git worktree add --detach" && section "$f" "Running code" | grep -q "mktemp -d"' "$f"
-  check "$lens removes its scratch worktree" 'section "$f" "Running code" | grep -q "git worktree remove"'
+  check "$lens has a Running code section that makes its scratch worktree with worktree-setup.sh scratch" \
+    'section "$f" "Running code" | grep -q "worktree-setup\.sh scratch s<NNN>_scratch_${lens//-/_}" && ! section "$f" "Running code" | grep -q "mktemp"' "$f"
+  check "$lens removes its scratch worktree with worktree-setup.sh remove --force" \
+    'section "$f" "Running code" | grep -q "worktree-setup\.sh remove s<NNN>_scratch_${lens//-/_} --force"'
   check "$lens keeps no read-only-only rule" '! grep -q "Run only read-only commands" "$f"'
   check "$lens keeps no plain 80 drop rule" '! grep -q "Drop every finding under 80" "$f"'
   check "$lens finding evidence has a reproduction field" 'grep -q "^      reproduction: " "$f"'
@@ -58,8 +61,14 @@ check "review-standards reads the spec's Assumptions and Non-goals" \
   'grep -q "Accepted gaps.*Assumptions.*Non-goals" "$AGENTS/review-standards.md"'
 check "review-standards scores a lesson the spec accepted as a gap 0" \
   'grep -qE "^- 0: .*the spec accepts as a gap" "$AGENTS/review-standards.md" && grep -q "Set accepted gaps aside" "$AGENTS/review-standards.md"'
+TARGETS=$AGENTS/review-targets.md
+check "review-targets saves the isolation values from worktree-setup.sh env and loads them before serve" \
+  'grep -q "worktree-setup\.sh env \"\$PWD\" > \"\$OUT/isolation.env\"" "$TARGETS" && grep -q "bash -c '"'"'\. \"\$2/isolation.env\"; set -m; nohup" "$TARGETS"'
+check "review-targets takes its services from services_up and starts none itself" \
+  'grep -q "^\*\*Services come from \`services_up\`\.\*\*" "$TARGETS" && grep -q "Start no service yourself" "$TARGETS"'
 MINI=$AGENTS/profile-mini-review.md
-check "profile-mini-review runs probes in a detached scratch worktree of the task" 'grep -q "worktree add --detach" "$MINI"'
+check "profile-mini-review runs probes in a scratch worktree of the task's head made with worktree-setup.sh scratch" \
+  'grep -q "worktree-setup\.sh scratch s<NNN>_scratch_mini_review_t<N> <head>" "$MINI" && grep -q "worktree-setup\.sh remove s<NNN>_scratch_mini_review_t<N> --force" "$MINI" && ! grep -q "mktemp" "$MINI"'
 check "profile-mini-review keeps no read-only paragraph" '! grep -q "^\*\*Read-only\.\*\*" "$MINI"'
 check "profile-mini-review result has a not_checked list" 'grep -q "^not_checked: \[\]" "$MINI"'
 check "profile-mini-review marks a proven problem on the task's own lines blocks-this-task" \
