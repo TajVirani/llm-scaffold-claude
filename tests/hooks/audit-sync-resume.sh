@@ -4,7 +4,9 @@
 # Covers: audit block / loop counter / give-up / evidence in the checkout an isolation worktree sits in, phase-1 and malformed headers,
 #   a passing self-run reused by the stop audit;
 #   rules.md -> boundary config sync (block on parse error, missing yq, worktree); resume offer listing,
-#   discovered-work prompts (an older size-budget block flagged as resuming without a ruling), work-backlog count (the open lines of each spec's backlog list), output cap.
+#   discovered-work prompts (an older size-budget block flagged as resuming without a ruling), work-backlog count (the open lines of each spec's backlog list), output cap;
+#   session handoffs across checkouts: the session's own first by their relative path, others by absolute path (JRN-004 from a
+#   spec worktree, JRN-005 from the main checkout, old names listed, the folder's .gitignore never).
 # The three share one fixture project, so the sections run in order.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -312,7 +314,7 @@ hand() { # name goal spec [created]
 mkdir -p "$P/.workflow/.handoff"; printf '*\n' > "$P/.workflow/.handoff/.gitignore"
 hand fix-login "Fix the login redirect" ""
 out=$(ss "$WT"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
-check "handoff only (empty .workflow/specs/), worktree cwd -> listed from main checkout" 'grep -q "^- .workflow/.handoff/fix-login.md (created 2026-10-19T10:00:00Z): Fix the login redirect$" <<<"$ctx" && ! grep -q "In-flight" <<<"$ctx" && grep -q "load the handoff skill" <<<"$ctx" && ! grep -q "gitignore" <<<"$ctx"' "$ctx"
+check "handoff only (empty .workflow/specs/), worktree cwd -> listed from main checkout by its absolute path" 'grep -qxF -- "- $P/.workflow/.handoff/fix-login.md (created 2026-10-19T10:00:00Z): Fix the login redirect" <<<"$ctx" && ! grep -q "In-flight" <<<"$ctx" && grep -q "load the handoff skill" <<<"$ctx" && ! grep -q "gitignore" <<<"$ctx"' "$ctx"
 rm -rf "$P/.workflow/specs"
 out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
 check "no .workflow/specs/ directory, handoff present -> still offered" 'grep -q "fix-login.md" <<<"$ctx"' "$ctx"
@@ -330,6 +332,54 @@ check "unreadable handoff flagged; 5 handoffs -> 3 listed, 2 counted" 'grep -q "
 rm -rf "$P/.workflow/.handoff" "$P/.workflow/specs/005-live"
 out=$(ss "$P")
 check "no handoffs and no specs -> nothing" '[ -z "$out" ]' "$out"
+
+echo "== session-start-resume: session handoffs across checkouts"
+ALPHA_WT=$P/.workflow/.spec-worktrees/007-alpha
+BETA_WT=$P/.workflow/.spec-worktrees/008-beta
+git worktree add -q "$ALPHA_WT" -b spec/007-alpha 2>/dev/null
+git worktree add -q "$BETA_WT" -b spec/008-beta 2>/dev/null
+hand_in() { # checkout name goal mtime
+  mkdir -p "$1/.workflow/.handoff"
+  printf '*\n' > "$1/.workflow/.handoff/.gitignore"
+  printf -- '---\ngoal: "%s"\nspec: ""\nstep_at_handoff: ""\ncreated: 2026-11-12T10:00:00Z\n---\n# Handoff\n' "$3" > "$1/.workflow/.handoff/$2.md"
+  touch -t "$4" "$1/.workflow/.handoff/$2.md"
+}
+handoff_entries() { grep '^- .*\.workflow/\.handoff/' <<<"$ctx"; }
+ALPHA_NAME=007-alpha--20261112T100000Z-ab12
+BETA_NAME=008-beta--20261112T120000Z-cd34
+hand_in "$ALPHA_WT" "$ALPHA_NAME" "Finish the alpha export" 202611121000
+hand_in "$P" fix-login "Fix the login redirect" 202611121100
+hand_in "$BETA_WT" "$BETA_NAME" "Start the beta import" 202611121200
+
+out=$(ss "$ALPHA_WT"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out"); entries=$(handoff_entries)
+check "JRN-004 worktree session lists its own handoff first, by its path in the checkout" \
+  '[ "$(sed -n 1p <<<"$entries")" = "- .workflow/.handoff/$ALPHA_NAME.md (created 2026-11-12T10:00:00Z): Finish the alpha export" ]' "$ctx"
+check "JRN-004 worktree session lists the main checkout's newer handoff second, by its absolute path" \
+  '[ "$(sed -n 2p <<<"$entries")" = "- $P/.workflow/.handoff/fix-login.md (created 2026-11-12T10:00:00Z): Fix the login redirect" ]' "$ctx"
+check "JRN-004 worktree session does not list another spec worktree's handoff" \
+  '[ "$(grep -c . <<<"$entries")" = 2 ] && ! grep -q "$BETA_NAME" <<<"$ctx"' "$ctx"
+
+out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out"); entries=$(handoff_entries)
+check "JRN-005 main session lists its old-name handoff first, then each spec worktree's newest first by absolute path" \
+  '[ "$entries" = "- .workflow/.handoff/fix-login.md (created 2026-11-12T10:00:00Z): Fix the login redirect
+- $BETA_WT/.workflow/.handoff/$BETA_NAME.md (created 2026-11-12T10:00:00Z): Start the beta import
+- $ALPHA_WT/.workflow/.handoff/$ALPHA_NAME.md (created 2026-11-12T10:00:00Z): Finish the alpha export" ]' "$ctx"
+check "JRN-005 main session never lists a .gitignore and still says not to resume unasked" \
+  '[ -n "$entries" ] && grep -q "$ALPHA_NAME" <<<"$entries" && ! grep -q "\.handoff/\.gitignore" <<<"$ctx" && grep -q "Do not resume unasked." <<<"$ctx"' "$ctx"
+long_goal=$(printf 'g%.0s' $(seq 1 400))
+hand_in "$ALPHA_WT" 007-alpha--20261112T130000Z-ef56 "$long_goal" 202611121300
+hand_in "$ALPHA_WT" 007-alpha--20261112T140000Z-gh78 "$long_goal" 202611121400
+out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
+# shellcheck disable=SC2034  # entries is read inside the eval'd check expression below
+entries=$(handoff_entries)
+check "JRN-005 five handoffs across checkouts: own first, 3 listed, 2 counted, entries cut at 300 chars, context under 10000" \
+  '[ "$(grep -c . <<<"$entries")" = 3 ] && [ "$(sed -n 1p <<<"$entries" | cut -c1-35)" = "- .workflow/.handoff/fix-login.md (" ] \
+    && [ "$(sed -n 2p <<<"$entries" | cut -d" " -f2)" = "$ALPHA_WT/.workflow/.handoff/007-alpha--20261112T140000Z-gh78.md" ] \
+    && grep -qxF -- "- ... and 2 older not listed." <<<"$ctx" && ! grep -q "$(printf "g%.0s" $(seq 1 300))" <<<"$ctx" && [ ${#ctx} -lt 10000 ]' "${#ctx}: $ctx"
+git worktree remove --force "$ALPHA_WT"
+git worktree remove --force "$BETA_WT"
+git branch -q -D spec/007-alpha spec/008-beta
+rm -rf "$P/.workflow/.handoff"
 
 
 shellcheck_files "shellcheck: audit/sync/resume hooks" "$H/post-implementation-audit.sh" "$H/rules-boundary-config-sync.sh" "$H/session-start-resume.sh"

@@ -1,0 +1,40 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "0900278de2857d40567e08e21a3d9c2ba10f94b0"
+head: "dee519a579048e9f2f71d12117dde408e0c9ab1b"
+measurements:
+  - target: "Session-start offer size with handoffs in several checkouts"
+    kind: performance
+    threshold: "under 10,000 characters of `additionalContext`"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "Not measurable outside a fixture: needs a repo with spec worktrees and handoffs, which only the suite builds; verification-plan.md gives no command."
+  - target: "Errors"
+    kind: error
+    threshold: "the hook exits 0 for every input"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "Not measurable as a number: verification-plan.md asserts it per case in the suite and gives no command."
+  - target: "Coverage"
+    kind: coverage
+    threshold: "none set"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "Not measurable: no bash line-coverage tool is installed (.workflow/deferred/bash-line-coverage.md); no threshold set and no command given."
+findings: []
+checked: []
+not_checked:
+  - "Session-start offer size with handoffs in several checkouts: not measurable: needs a repo with spec worktrees and handoffs, which only the suite builds"
+  - "Errors: not measurable: asserted per case by the suite, no numeric command"
+  - "Coverage: not measurable: no bash line-coverage tool installed; no threshold set"
+  - "serve: both profiles (agent-docs, shell-scripts) set serve to empty, so no build was started and no PID was recorded"

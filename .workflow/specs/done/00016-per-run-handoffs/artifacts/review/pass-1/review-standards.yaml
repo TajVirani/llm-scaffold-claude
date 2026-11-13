@@ -1,0 +1,45 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "0900278de2857d40567e08e21a3d9c2ba10f94b0"
+head: "dee519a579048e9f2f71d12117dde408e0c9ab1b"
+findings:
+  - id: RS-1
+    category: naming
+    severity: low
+    confidence: 88
+    location: ".agents/skills/handoff/SKILL.md:21"
+    claim: "The new Locate step names the checkout kind 'a task worktree', an _Avoid_ alias for the glossary term Agent worktree."
+    consequence: "An agent reading the skill meets a non-canonical term for the worktree it runs in (Phase 1 and integration worktrees are not tasks), so the skill's wording drifts from the glossary the other skills and hooks use."
+    evidence:
+      basis: ".workflow/GLOSSARY.md, Agent worktree: \"_Avoid_: Task worktree (Phase 1 and integration are not tasks), named worktree, isolation worktree\""
+      diff: "+2. **Root, folder and file name.** The handoff goes in `.workflow/.handoff/` of the checkout the session works in (a spec worktree, a task worktree or the main checkout), never in another checkout."
+    suggested_fix: "Replace 'a task worktree' with 'an agent worktree' in .agents/skills/handoff/SKILL.md line 21."
+  - id: RS-2
+    category: rule
+    severity: low
+    confidence: 80
+    location: "upstream-lineage.json:2372"
+    claim: "The lineage entry for .agents/skills/handoff/SKILL.md still records the handoff location as the main checkout, protected by install.sh's .gitignore block; this change moved it to the session's own checkout with a folder-own .gitignore and did not update the entry."
+    consequence: "Whoever next reviews a vendor update of the handoff skill (the rules.md lineage process) reads a wrong description of our local changes and may judge an upstream change against a location the skill no longer uses."
+    evidence:
+      basis: ".workflow/rules.md Cross-cutting policy: \"Every first-party asset derived from upstream ... gets an upstream-lineage.json entry: kind ..., upstream repo, path and commit, `changes`, `why`, `reviewed_at`.\" The entry's changes line reads: \"location moved from $TMPDIR to a gitignored .workflow/.handoff/ in the main checkout (install.sh's .gitignore block), listed by session-start-resume.sh\""
+      diff: "-1. **Root and folder.** Handoffs live in `.workflow/.handoff/` at the main checkout, where the session-start hook looks, even when you work in a worktree.\n+   The folder's own `.gitignore` keeps every handoff out of git, even where the project's `.gitignore` has no entry for it."
+    suggested_fix: "Update that changes line to say the handoff is written per run in .workflow/.handoff/ of the session's own checkout, kept out of git by the folder's own .gitignore, and listed per checkout by session-start-resume.sh; bump reviewed_at."
+checked:
+  - "Diff 0900278de2857d40567e08e21a3d9c2ba10f94b0...dee519a579048e9f2f71d12117dde408e0c9ab1b excluding .workflow/specs/done/00016-per-run-handoffs (8 files, 12 commits)"
+  - ".workflow/specs/done/00016-per-run-handoffs/spec.md: baseline_revision, Non-goals, Known gaps (no Assumptions section present)"
+  - ".workflow/specs/done/00016-per-run-handoffs/tasks.md frontmatter: T1 agent-docs, T2 shell-scripts"
+  - "AGENTS.md (CLAUDE.md is an @AGENTS.md import); no CODING_STANDARDS.md or CONTRIBUTING.md in the repo"
+  - ".workflow/rules.md, all sections"
+  - ".workflow/profiles/agent-docs.md, .workflow/profiles/shell-scripts.md, .workflow/profiles/test-harness.md (tests/ changed in Phase 1 and the gate)"
+  - ".workflow/specs/done/00016-per-run-handoffs/design-log.md 'Assumed: placement across the handoff skill, the hooks and the installer' (no ADR link; used as the placement record): every part stays in its owning module; the diff moves nothing across modules and adds no dependency"
+  - ".workflow/GLOSSARY.md (only glossary in the repo; no GLOSSARY-MAP.md)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: new comments in session-start-resume.sh, audit-sync-resume.sh and handoff-skill.sh each give a reason or are the required usage line; no R1/R3 breach found"
+  - "Toolchain output read: artifacts/T1/toolchain.json (lint pass, test pass), artifacts/T2/toolchain.json (lint pass, test pass), artifacts/gate-3.9-w1/toolchain.json (test-harness lint pass, full tests/run-all.sh pass), artifacts/phase-1-test-harness/toolchain.json (lint pass)"
+  - ".workflow/review-lessons.md: live lessons RL-001..RL-006, RL-008, RL-009 compared. RL-003 (handoff SKILL.md matches its paths): the skill has no script and its Resume prose matches the hook's new offer; RL-004 (handoff assets/handoff.md): names only .workflow/.handoff/, which every target project has; RL-006 (tests/**): handoff-skill.sh expects root = the spec worktree and checks the main checkout has no handoff folder, and audit-sync-resume.sh separates own/main/sibling worktree paths, so the placeholders are not collapsed; RL-001, RL-002, RL-005, RL-008, RL-009: no file in the diff matches their paths or the mistake"
+  - ".workflow/decisions/pitfalls.md: all entries read against the diff; 'Name no .workflow/ path in an installed asset' not repeated (.workflow/.handoff/ exists in target projects by design); none repeated"
+  - ".workflow/decisions/retrospectives/*.md Process lessons tables (13 files): none repeated; new suite tests/scripts/handoff-skill.sh is committed 100644 like the other suites and run through bash"
+  - ".agents/hooks/session-start-resume.sh: own_checkout and wf_main_root both come from git, so the own-vs-main comparison holds through symlinked paths; cwd is validated before use"
+not_checked:
+  - "Suspicion: the Resume step of handoff SKILL.md now repeats the Locate root command instead of pointing to it (Duplicated Code); one line, and no written standard requires the pointer, so below 80. Settled by a stakeholder view on whether doc command blocks must have one home."

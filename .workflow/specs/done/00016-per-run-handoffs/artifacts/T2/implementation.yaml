@@ -1,0 +1,42 @@
+status: "done"
+summary: "The SessionStart offer now lists the session handoffs of the session's own checkout first (the top level of cwd: main checkout, spec worktree, isolation or agent worktree) as .workflow/.handoff/<name>. It then lists the other checkouts' handoffs by absolute path: each spec worktree's from the main checkout, the main checkout's from any other checkout. Each group is newest first, 3 entries are listed in total and the rest are counted. The handoff section header now counts against the character cap, and the hook header and the claude-settings.template.md SessionStart row describe the per-checkout scan."
+task_id: "T2"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_t2"
+branch: "task/00016-per-run-handoffs/T02-session-start-handoff-list"
+base_commit: "4e5e86b0ab3fa7a34d501da533a8c6fd125e8c9a"
+head_commit: "e5de03e016afb4fa8312cabb356afb8c6edda3b6"
+files_changed: [".agents/hooks/session-start-resume.sh", ".agents/hooks/claude-settings.template.md"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite hooks/audit-sync-resume at base: passed=59 failed=7, e.g. FAIL JRN-004 worktree session lists its own handoff first, by its path in the checkout; FAIL handoff only (empty .workflow/specs/), worktree cwd -> listed from main checkout by its absolute path"
+  green: "tests/run-all.sh --suite hooks/audit-sync-resume: passed=66 failed=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00016-per-run-handoffs --task-id T2 --cwd <worktree>: lint exit 0, test exit 0 (TOTAL passed=963 failed=0, 26 suites). The first run failed 'cap holds with handoffs listed' (10082 chars, because the longer handoff header was not counted in the limit), so the header is now subtracted from the limit. That run also failed lint/step-list, which has nothing to do with this diff (see discovered_work)."
+  toolchain: ".workflow/specs/done/00016-per-run-handoffs/artifacts/T2/toolchain.txt (pass)"
+considered_not_built:
+  - "New tests: the Phase 1 checks in tests/hooks/audit-sync-resume.sh already cover each acceptance criterion (own first, others by absolute path, no sibling worktree, 3 cap with count, 300-char cut, .gitignore never listed, unreadable flagged, nothing with no input). A non-git cwd with a handoff and a garbage payload were checked by hand: both list the handoff and exit 0."
+  - "Changing the spec scan's checkout list: it still uses wf_project_root, so an isolation worktree's specs come from the checkout it sits in. Only the handoff scan uses the top level of cwd, as the task asks."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: "bug"
+    summary: "lint/step-list fails in a fresh agent worktree because checklist.md:328 names .workflow/.worktrees/, which is a gitignored folder that does not exist until something creates it. The check passes only after another suite has created the folder during the same run."
+    evidence: "First toolchain run in the T2 worktree: 'FAIL every file path the decision flow, assetlist.md and checklist.md name exists  got=checklist.md:328: .workflow/.worktrees/' (tests/lint/step-list.sh:117). The empty folder .workflow/.worktrees then appeared at 21:18 during that run. The rerun of tests/run-all.sh --suite lint/step-list passed 36/36."
+    blocker_assessment: "can-wait"
+    reason: "The check depends on the environment, not on code. It passes in the spec and main checkouts and after one run, and the diff does not touch checklist.md or the lint."
+self_review:
+  - {item: 1, verdict: pass, note: "New handoff paths are built from WF_HANDOFF (session-start-resume.sh own_handoffs/other_handoffs and the case pattern); no .workflow/ literal in code"}
+  - {item: 2, verdict: pass, note: "The hook is still the one owner of the resume scan; no new business logic was moved into a hook from a skill"}
+  - {item: 3, verdict: pass, note: "git toplevel failure falls back to cwd; the hook keeps exit 0 for every input, as its header documents"}
+  - {item: 4, verdict: not-applicable, note: "No new write or check under a caller's || die"}
+  - {item: 5, verdict: not-applicable, note: "Exit codes unchanged"}
+  - {item: 6, verdict: pass, note: "The sibling lib is still sourced via BASH_SOURCE with cd -P (unchanged)"}
+  - {item: 7, verdict: pass, note: "The hook header keeps Goals/Triggers/Behaviour/Outputs/Wiring/Notes/Sources; the edited lines name no decision ids"}
+  - {item: 8, verdict: pass, note: "The edited file keeps its single-bracket test syntax"}
+  - {item: 9, verdict: pass, note: "newest_first has its '# newest_first FILE... : ...' line; the moved SC2012 directive keeps its reason"}
+  - {item: R1, verdict: pass, note: "Names say what they hold: own_checkout, own_handoffs, other_checkouts, other_handoffs, h_total, HANDOFF_HEADER, spec_worktrees"}
+  - {item: R2, verdict: pass, note: "The empty-array guard carries its bash 3.2 reason; the case on the handoff folder says why a path prefix of the checkout is not enough"}
+  - {item: R3, verdict: pass, note: "The comments give reasons (why own comes first, why siblings are excluded), not what the line does"}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh (lint exit 0); no changed comment points at a document"}
+  - {item: R5, verdict: pass, note: "Plain words; 'spec worktree', 'isolation worktree' and 'checkout' are glossary terms"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over both changed files: exit 0, no lines listed"}

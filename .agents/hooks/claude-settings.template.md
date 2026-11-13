@@ -6,7 +6,7 @@ The Claude Code settings fragment that `install.sh` merges into `<target>/.claud
 
 | Event | Matcher | Script | Timeout (s) | Why | Refs |
 | --- | --- | --- | --- | --- | --- |
-| `SessionStart` | (none: all sources) | `session-start-resume.sh` | 10 | Offers to resume an in-flight spec. The script can read `source` from the payload if it should skip `compact`. | 5.6; D22 |
+| `SessionStart` | (none: all sources) | `session-start-resume.sh` | 10 | Offers to resume an in-flight spec, an initiative or a session handoff. Handoffs are listed per checkout: the session's own checkout first, then (from the main checkout) each spec worktree's or (from any other checkout) the main checkout's. The script can read `source` from the payload if it should skip `compact`. | 5.6; D22 |
 | `PreToolUse` | `Bash` | `block-destructive-git.sh` | 10 | Blocks destructive git commands. Same entry as this repo's own settings. | — |
 | `PreToolUse` | `Agent` | `pre-launch.sh` | 30 | Validates the ```` ```yaml launch-header ```` block (D37), resolves model and profile, returns `updatedInput`. | 00.11–00.14, 00.18–00.20; D13, D31, D33, D35 |
 | `PreToolUse` | `Write\|Edit\|NotebookEdit` | `workflow-write-guard.sh` | 10 | Accident-prevention write guard for spec.md, tasks.md, the step markers, the work-backlog, the Done folder and Tier A: one `check-write.sh` call covers every path class. Its deny wins over any allow (verified 2.1.300). There is no `MultiEdit` tool. | 0.1.4; Tier A; D16 |
