@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Settings keys"
     status: done
-    capability: CAP-015
+    capability: CAP-016
     depends_on: []
     touches_core: false
     work_type: shell-scripts
@@ -20,7 +20,7 @@ tasks:
   - id: T2
     title: "Install and allow the worktree setup script"
     status: done
-    capability: CAP-015
+    capability: CAP-016
     depends_on: []
     touches_core: true
     work_type: shell-scripts
@@ -37,7 +37,7 @@ tasks:
   - id: T3
     title: "Worktree setup script"
     status: done
-    capability: CAP-015
+    capability: CAP-016
     depends_on: [T1, T2]
     touches_core: false
     work_type: shell-scripts
@@ -55,7 +55,7 @@ tasks:
   - id: T4
     title: "Toolchain run starts services"
     status: done
-    capability: CAP-015
+    capability: CAP-016
     depends_on: [T3]
     touches_core: false
     work_type: shell-scripts
@@ -73,7 +73,7 @@ tasks:
   - id: T5
     title: "Step files name the script"
     status: done
-    capability: CAP-015
+    capability: CAP-016
     depends_on: [T3]
     touches_core: false
     work_type: agent-docs
@@ -90,7 +90,7 @@ tasks:
   - id: T6
     title: "Project setup asks for it"
     status: done
-    capability: CAP-015
+    capability: CAP-016
     depends_on: [T3]
     touches_core: false
     work_type: agent-docs
@@ -107,7 +107,7 @@ tasks:
   - id: T7
     title: "Standards coverage"
     status: done
-    capability: CAP-015
+    capability: CAP-016
     depends_on: [T3]
     touches_core: false
     work_type: agent-docs
@@ -124,7 +124,7 @@ tasks:
   - id: T8
     title: "Agent definitions"
     status: done
-    capability: CAP-015
+    capability: CAP-016
     depends_on: [T3, T5]
     touches_core: false
     work_type: agent-docs
@@ -142,7 +142,7 @@ tasks:
   - id: T9
     title: "Root docs and changelog"
     status: done
-    capability: CAP-015
+    capability: CAP-016
     depends_on: [T2, T4, T5, T6, T7]
     touches_core: false
     work_type: agent-docs

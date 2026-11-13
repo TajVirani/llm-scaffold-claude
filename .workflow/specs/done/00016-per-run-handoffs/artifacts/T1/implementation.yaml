@@ -1,0 +1,34 @@
+status: "done"
+summary: "Review pass 1 rework: the handoff skill says agent worktree, the upstream-lineage entry for the handoff skill describes the per-run handoff in the session's own checkout (reviewed_at 2026-11-12), and the JRN-003 check runs both Locate runs with a stub date that pins the timestamp, asserting equal timestamps and different names."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_t1"
+branch: "task/00016-per-run-handoffs/T01-handoff-skill-per-run"
+base_commit: "dee519a579048e9f2f71d12117dde408e0c9ab1b"
+head_commit: "ecda52d841062a9d50177818a0803e173ad61493"
+files_changed:
+  - ".agents/skills/handoff/SKILL.md"
+  - "upstream-lineage.json"
+  - "tests/scripts/handoff-skill.sh"
+tests_added:
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-003 with the clock fixed both runs carry the same timestamp", kind: "edge"}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-003 two runs for 007-alpha in the same second give two different names", kind: "behaviour"}
+evidence:
+  red: "No red run: the rework strengthens a check over existing, already-correct behaviour (the random suffix). Confirmed the stub takes effect: PATH=<stub dir>:$PATH bash -c 'echo x--$(date -u +%Y%m%dT%H%M%SZ)' printed x--20260101T120000Z."
+  green: "tests/run-all.sh --suite scripts/handoff-skill --suite lint/upstream-lineage --suite lint/frontmatter; PASS scripts/handoff-skill 12/12, lint/frontmatter 39/39, lint/upstream-lineage 13/13"
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00016-per-run-handoffs --task-id T1 --cwd <worktree>; test (scoped) pass"
+  toolchain: ".workflow/specs/done/00016-per-run-handoffs/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Rewording the suite header comment for JRN-003: it still reads true (two runs for one spec) and the brief limited the change to three patches."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: "not-applicable", note: "No skill description added or changed; SKILL.md edit is body line 21 only."}
+  - {item: 2, verdict: "not-applicable", note: "No agent added."}
+  - {item: "R1", verdict: "pass", note: "New names FIXED_CLOCK, TIME_FIELD, first_time, second_time say what they hold (tests/scripts/handoff-skill.sh JRN-003 block)."}
+  - {item: "R2", verdict: "pass", note: "One comment added, giving the why of the date stub; no decision or task ids."}
+  - {item: "R3", verdict: "pass", note: "Stub is inline in the suite's temp workdir; no new helpers beyond what the check needs."}
+  - {item: "R4", verdict: "fixed", note: "A timestamp_of helper called only in eval'd strings tripped shellcheck SC2329; replaced with precomputed first_time/second_time."}
+  - {item: "R5", verdict: "pass", note: "Lineage line and SKILL.md wording use glossary terms (agent worktree, checkout)."}
+  - {item: "comment-lint", verdict: "pass", note: "check-comments.sh over the three changed files exited 0."}

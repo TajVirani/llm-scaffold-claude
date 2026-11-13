@@ -18,7 +18,7 @@ The workflow creates spec worktrees and agent worktrees with a plain `git worktr
 
 ## Capabilities
 
-- **CAP-015** Worktree setup
+- **CAP-016** Worktree setup
   - **intent:** The workflow creates every spec worktree, agent worktree and scratch worktree through one script that makes it ready to run and test, and it starts and stops the services a test run needs, so no agent or stakeholder sets up or starts an environment by hand.
   - **success:** In a project that declares a setup command, a copy list and service commands, a newly created spec worktree and agent worktree hold the copied gitignored files as real files, the setup command has run with the spec's isolation values, `run-toolchain.sh` runs `services_up` before `test` and `--e2e`, removing the spec worktree runs `services_down`, two specs hold different slots, and a symlink into the main checkout fails both worktree setup and the toolchain run.
 

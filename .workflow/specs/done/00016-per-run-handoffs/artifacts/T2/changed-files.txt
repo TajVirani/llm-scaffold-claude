@@ -1,0 +1,2 @@
+.agents/hooks/claude-settings.template.md
+.agents/hooks/session-start-resume.sh

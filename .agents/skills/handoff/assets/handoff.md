@@ -7,7 +7,7 @@ affected_paths: []       # repo-relative paths whose drift resume reports: the s
 created: YYYY-MM-DDTHH:MM:SSZ
 ---
 <!--
-File: Template for .workflow/.handoff/<NNN-slug | topic>.md, a session handoff (skills/handoff). Lives in .workflow/.handoff/ at the main checkout; install.sh's .gitignore block keeps it out of git.
+File: Template for .workflow/.handoff/<NNN-slug | topic>--<YYYYMMDDTHHMMSSZ>-<4 random chars>.md, a session handoff (skills/handoff). Lives in .workflow/.handoff/ of the checkout the session works in, one new file per run; the folder's own .gitignore (holding *) keeps it out of git.
 Read by: hooks/session-start-resume.sh (frontmatter goal, spec, created; read with mikefarah yq v4 --front-matter=extract) and by the resuming session (everything; main_sha and affected_paths drive the Resume drift check).
 Writing rules: one line per fact; point to an artifact (path, sha, URL) instead of copying it; in a spec, status, step, scope, decisions and tasks stay in spec.md, .step, design-log.md and tasks.md. `none` for an empty section. No secrets. Add no other frontmatter keys. Delete this comment in the finished file.
 -->

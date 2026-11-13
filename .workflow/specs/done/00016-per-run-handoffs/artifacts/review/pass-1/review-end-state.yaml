@@ -1,0 +1,37 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "0900278de2857d40567e08e21a3d9c2ba10f94b0"
+head: "dee519a579048e9f2f71d12117dde408e0c9ab1b"
+findings:
+  - id: RE-1
+    category: wrong
+    severity: low
+    confidence: 85
+    location: "tests/scripts/handoff-skill.sh:84"
+    claim: "The JRN-003 check runs the Locate block twice one after the other, without fixing the clock, so it does not prove that two names made in the same second differ."
+    consequence: "If the two runs fall in different seconds, the timestamps alone make the names differ and the check passes even when the random suffix is broken. A later regression in the suffix could go unnoticed by whoever maintains the handoff skill. The code itself is correct: a 4-char random suffix plus an existence loop."
+    evidence:
+      basis: "verification-plan.md Journeys JRN-003: '1. Run the name command twice for `007-alpha` with the clock fixed.' Expected: 'Two different names, both of the documented shape'"
+      diff: "tests/scripts/handoff-skill.sh: 'run_locate \"$SAME_SECOND\" 007-alpha' is called twice with no stubbed date on PATH; the suffix is never checked separately from the timestamp"
+    suggested_fix: "Put a stub date command that prints a fixed time first on PATH for both runs, and assert the timestamps match while the names differ."
+checked:
+  - "Diff base resolved; diff read in full (8 files outside the spec folder: session-start-resume.sh, claude-settings.template.md, handoff SKILL.md and asset template, browser-suite.md deferred note, tests/README.md, two test suites); 12 commits reviewed"
+  - "CAP-NEW-per-run-handoffs success, part 1 (file under the worktree, nothing in main): the Locate block resolves the top level of the session's own checkout. The JRN-001 test passes in a scratch copy of HEAD (scripts/handoff-skill 11/11 passed)."
+  - "CAP success, part 2 (no handoff in status output, with or without the ignore block): the Locate block writes a '*' .gitignore into the folder. JRN-002 passes."
+  - "CAP success, part 3 (same-second names differ): the name is <stem>--<UTC time>-<4 random a-z0-9>.md with an existence loop. JRN-003 passes; see RE-1 for the clock gap in the check."
+  - "CAP success, part 4 (offer lists own checkout first with paths): my probe under /tmp, a symlinked macOS path, built a main checkout with an old-name handoff and a spec worktree with a new-name one. From main, the own short path came first, then the worktree's absolute path. From the worktree, its own short path came first, then main's absolute path. No duplicates, and the paths were correct."
+  - "Constraint: the handoff skill stays self-contained. Its commands are inline and it sources no module."
+  - "Constraint: WF_HANDOFF is unchanged. The install.sh comment and the repo .gitignore line 13 '.workflow/.handoff/' keep their entry, and the diff does not touch them."
+  - "Constraint: size cap. HANDOFF_HEADER length is now subtracted from LIMIT, and entries are cut at 300 characters. JRN-005 cap checks pass (hooks/audit-sync-resume 66/66 passed)."
+  - "Constraint: the offer still says 'Do not resume unasked' (seen in the probe output)."
+  - "Constraint: an old-name handoff in main is still listed (probe and JRN-005), and the Resume section says old names resume the same way."
+  - "Non-goals: there is no auto-reload loop, no move onto wf_main_root in the skill, and the template frontmatter is unchanged (only the comment line changed). Nothing unasked found."
+  - "End-state objectives 1-6, each against the diff and the tests above. JRN-006 wording is present: 'resumed without asking' and 'delete the handoff you resumed from'."
+  - "Journeys JRN-001..JRN-006: the test suites named in the plan pass in a scratch copy of HEAD."
+  - "Artifacts read: T1/toolchain.json (pass), T2/toolchain.json (pass), gate-3.9-w1/toolchain.json (pass) and gate-3.9-w1/toolchain.txt (TOTAL passed=4699 failed=0, 77 suites)"
+  - "Other docs that mention handoffs (feature-workflow SKILL.md:16,52, verification-setup.md:30, discovery-impact.md:123, GLOSSARY.md:25) do not state the old main-checkout location, so they do not contradict the change"
+not_verifiable:
+  - "Whether a live Claude Code SessionStart payload's cwd for a session started in a spec worktree is the worktree path. The hook relies on it. Check in a real session that the offer lists the worktree's handoffs first."
+not_checked:
+  - "A session in a task or agent worktree (.worktrees/ inside a spec worktree) lists only its own handoffs and the main checkout's, not its spec worktree's. The spec does not ask for that case, so it is not reported. If the stakeholder wants it, it needs a spec ruling."

@@ -1,0 +1,64 @@
+verdict: fail
+task_id: T2
+work_type: shell-scripts
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_t2@4e5e86b0ab3fa7a34d501da533a8c6fd125e8c9a..HEAD
+tool_output: .workflow/specs/done/00016-per-run-handoffs/artifacts/T2/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:101, .agents/hooks/session-start-resume.sh:106
+  - n: 2
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:101-108
+  - n: 3
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:75-76, .agents/hooks/session-start-resume.sh:99-100
+  - n: 4
+    verdict: not-applicable
+    location: no write or check in the diff runs under a caller's || die or || exit
+  - n: 5
+    verdict: not-applicable
+    location: no exit code is added or changed in the diff
+  - n: 6
+    verdict: not-applicable
+    location: the diff adds no sibling path; the existing BASH_SOURCE source line is unchanged
+  - n: 7
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:1-12, .agents/hooks/session-start-resume.sh:38-45
+  - n: 8
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:68, .agents/hooks/session-start-resume.sh:99-100
+  - n: 9
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:133 (newest_first shape line), .agents/hooks/session-start-resume.sh:136 (SC2012 directive with reason)
+  - n: R1
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:75, .agents/hooks/session-start-resume.sh:99, .agents/hooks/session-start-resume.sh:101, .agents/hooks/session-start-resume.sh:102, .agents/hooks/session-start-resume.sh:103, .agents/hooks/session-start-resume.sh:108, .agents/hooks/session-start-resume.sh:143
+  - n: R2
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:96-98, .agents/hooks/session-start-resume.sh:136, .agents/hooks/session-start-resume.sh:149-150, .agents/hooks/session-start-resume.sh:166
+  - n: R3
+    verdict: fail
+    location: .agents/hooks/session-start-resume.sh:140-141
+    note: The first clause restates what the block lists (own checkout first, then others, newest first, 3 listed). The reason after it, that the spec list cap must leave room, is the part worth keeping. The code would behave the same with the wording below.
+    fixes:
+      - location: .agents/hooks/session-start-resume.sh:140-141
+        fix: |-
+          replace: Read the handoffs before the spec list, so the spec list's cap leaves room for them.
+  - n: R4
+    location: .agents/hooks/session-start-resume.sh:96-166
+    verdict: tool-covered
+    note: lint key (check-comments.sh over both changed files, exit 0) covers R4; no changed body comment points at a document.
+  - n: R5
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:96-98, .agents/hooks/session-start-resume.sh:140-150
+read_outside_diff:
+  - ".agents/lib/workflow-paths.sh:109: confirmed WF_HANDOFF is defined there, so the handoff paths are built from the shared variable"
+  - ".agents/skills/handoff: listed the skill folder; it has no scripts directory, so no skill script owns handoff listing and the hook's resume scan is the only owner (item 2)"
+  - ".agents/hooks/session-start-resume.sh:57-75: checked set -euo pipefail and the cwd fallback, so the new fallbacks at lines 99-100 cannot fail under set -e"
+  - ".workflow/GLOSSARY.md:119-137: checked Spec worktree, Agent worktree and the isolation worktree avoid-entry for R5"
+not_checked:
+  - "Comment at session-start-resume.sh:96-97 says 'an isolation or agent worktree'; GLOSSARY.md lists 'isolation worktree' under _Avoid_ in favour of Agent worktree. Whether 'agent worktree' alone covers Claude's isolation worktree needs the glossary owner to settle; not a checklist line and not a proven R5 breach, so not a fail."
+  - "Implementer's discovered_work (lint/step-list fails in a fresh worktree because checklist.md:328 names a gitignored folder): reported by the implementer, not reproduced here; it sits outside this diff."
+out_of_scope_noticed: []
+patched: e5de03e016afb4fa8312cabb356afb8c6edda3b6

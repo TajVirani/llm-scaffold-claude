@@ -8,7 +8,7 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/done/00015-worktree-provisioning/spec.md` (capabilities: CAP-015)
+- Spec: `.workflow/specs/done/00015-worktree-provisioning/spec.md` (capabilities: CAP-016)
 - Report: `.workflow/specs/done/00015-worktree-provisioning/report.md`
 - Tasks: 9 done, 0 split out (`tasks.md` frontmatter)
 - Evidence available:
@@ -40,7 +40,7 @@ Judged on the merged spec branch at `886a32c`, all tasks together.
 
 | Spec item (end state, acceptance, target) | Met | Evidence |
 | --- | --- | --- |
-| CAP-015: one script creates every agent worktree and scratch worktree and sets up every spec worktree; services start before a test run and stop on removal | yes, in fixture projects | report.md § Capabilities; `review-end-state.yaml` (16 checks, 0 findings) |
+| CAP-016: one script creates every agent worktree and scratch worktree and sets up every spec worktree; services start before a test run and stop on removal | yes, in fixture projects | report.md § Capabilities; `review-end-state.yaml` (16 checks, 0 findings) |
 | Constraint: a project that declares nothing behaves as before | yes | JRN-002, `scripts/spec-worktree` in `gate-3.9-r1/toolchain.txt` |
 | Constraint: the scaffold sets nothing project-specific; it hands over a slot, an instance name and a port offset | yes | `review-end-state.yaml`, "no project-specific values" |
 | Constraint: copies are never links, and only gitignored files are copied | yes | JRN-001 cases; `review-end-state.yaml`, "copies never links" |

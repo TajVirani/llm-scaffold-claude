@@ -10,7 +10,7 @@ One script, `worktree-setup.sh`, now creates every agent worktree and scratch wo
 
 | Capability | Result | Evidence |
 | --- | --- | --- |
-| CAP-015 Worktree setup | PASS | [E1], [E2], [E3] |
+| CAP-016 Worktree setup | PASS | [E1], [E2], [E3] |
 
 ## Tests and CI
 

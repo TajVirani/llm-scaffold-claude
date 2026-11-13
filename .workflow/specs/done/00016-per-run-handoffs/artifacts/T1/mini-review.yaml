@@ -1,0 +1,37 @@
+verdict: pass
+task_id: T1
+work_type: agent-docs
+diff: worktree@dee519a579048e9f2f71d12117dde408e0c9ab1b..HEAD
+tool_output: .workflow/specs/done/00016-per-run-handoffs/artifacts/T1/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: ""
+    note: "No skill description is added or changed; the diff touches SKILL.md body line 21 only (.agents/skills/handoff/SKILL.md:21)."
+  - n: 2
+    verdict: not-applicable
+    location: ""
+    note: "The diff adds no agent under .agents/agents/."
+  - n: R1
+    verdict: pass
+    location: "tests/scripts/handoff-skill.sh:83, tests/scripts/handoff-skill.sh:97, tests/scripts/handoff-skill.sh:98, tests/scripts/handoff-skill.sh:99"
+  - n: R2
+    verdict: pass
+    location: "tests/scripts/handoff-skill.sh:82"
+  - n: R3
+    verdict: pass
+    location: "tests/scripts/handoff-skill.sh:82"
+  - n: R4
+    verdict: pass
+    location: "tests/scripts/handoff-skill.sh:82"
+  - n: R5
+    verdict: pass
+    location: "tests/scripts/handoff-skill.sh:82"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: rule text for R1 to R5 and the Checking at 3.7 lines"
+  - ".workflow/profiles/agent-docs.md: mini-review checklist and agent-docs language rules"
+  - ".agents/skills/handoff/SKILL.md: lines 1-40, to confirm the description frontmatter is unchanged"
+  - "tests/scripts/handoff-skill.sh: lines 60-120, to read the JRN-003 block in context"
+  - ".agents/agents/: directory listing, to confirm no agent was added"
+not_checked: []
+out_of_scope_noticed: []

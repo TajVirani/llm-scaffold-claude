@@ -1,0 +1,3 @@
+# Work backlog: 00016-per-run-handoffs
+
+- [open] B1 bug (3.4): `lint/step-list` fails in any agent or scratch worktree, because it requires every path `checklist.md` names to exist and `checklist.md:328` names `.workflow/.worktrees/`, an ignored folder that exists only in a checkout that holds agent worktrees, so the agent-docs lint cannot pass at 3.5 there until the folder is created by hand. Evidence: `run-toolchain.sh --task-id T1` in `.workflow/.worktrees/s00016_t1` printed `FAIL every file path the decision flow, assetlist.md and checklist.md name exists got=checklist.md:328: .workflow/.worktrees/` (`tests/lint/step-list.sh:117`).

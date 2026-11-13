@@ -1,0 +1,48 @@
+status: done
+summary: "Phase 1 tests for spec 00016. Harness command: tests/run-all.sh (scoped: tests/run-all.sh --suite scripts/handoff-skill --suite hooks/audit-sync-resume). CI check: none. New suite tests/scripts/handoff-skill.sh: 'JRN-001 Locate section holds one bash block naming .gitignore', 'JRN-001 worktree run: root is the spec worktree', 'JRN-001 worktree run: the handoff folder and its .gitignore holding * are under the worktree', 'JRN-001 worktree run: file is a new <stem>--<time>-<suffix>.md under the worktree's folder', 'JRN-001 worktree run: the main checkout has no .workflow/.handoff/' (JRN-001); 'JRN-002 written handoff and its folder are invisible to git status' (JRN-002); 'JRN-003 two runs for 007-alpha give two different names', 'JRN-003 both names have the <stem>--<UTC time>-<4 chars>.md shape' (JRN-003); 'JRN-006 Resume section says a handoff named by path is resumed without asking', 'JRN-006 Resume section says to delete the handoff you resumed from' (JRN-006); 'shellcheck: handoff skill Locate block' (JRN-001 to JRN-003 block hygiene). In tests/hooks/audit-sync-resume.sh: 'JRN-004 worktree session lists its own handoff first, by its path in the checkout', 'JRN-004 worktree session lists the main checkout's newer handoff second, by its absolute path', 'JRN-004 worktree session does not list another spec worktree's handoff' (JRN-004); 'JRN-005 main session lists its old-name handoff first, then each spec worktree's newest first by absolute path', 'JRN-005 main session never lists a .gitignore and still says not to resume unasked', 'JRN-005 five handoffs across checkouts: own first, 3 listed, 2 counted, entries cut at 300 chars, context under 10000' (JRN-005); existing check renamed to 'handoff only (empty .workflow/specs/), worktree cwd -> listed from main checkout by its absolute path' (contract 2). All 18 fail now on assertions; every other check in both suites still passes (handoff-skill 0/11, audit-sync-resume 59 pass / 7 fail). Against a scratch copy with a sketched Locate block, Resume wording and hook change, both suites passed in full (11/11, 66/66)."
+task_id: "phase-1-test-harness"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_phase_1_test_harness"
+branch: "wf/00016-per-run-handoffs/s00016_phase_1_test_harness"
+base_commit: "0900278de2857d40567e08e21a3d9c2ba10f94b0"
+head_commit: "e02656d5dd38ce9c324139e6d966c149c6c2cadc"
+files_changed: ["tests/scripts/handoff-skill.sh", "tests/hooks/audit-sync-resume.sh", "tests/README.md"]
+tests_added:
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-001 Locate section holds one bash block naming .gitignore", kind: behaviour}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-001 worktree run: root is the spec worktree", kind: behaviour}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-001 worktree run: the handoff folder and its .gitignore holding * are under the worktree", kind: behaviour}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-001 worktree run: file is a new <stem>--<time>-<suffix>.md under the worktree's folder", kind: behaviour}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-001 worktree run: the main checkout has no .workflow/.handoff/", kind: negative}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-002 written handoff and its folder are invisible to git status", kind: behaviour}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-003 two runs for 007-alpha give two different names", kind: edge}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-003 both names have the <stem>--<UTC time>-<4 chars>.md shape", kind: behaviour}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-006 Resume section says a handoff named by path is resumed without asking", kind: behaviour}
+  - {file: "tests/scripts/handoff-skill.sh", test: "JRN-006 Resume section says to delete the handoff you resumed from", kind: behaviour}
+  - {file: "tests/scripts/handoff-skill.sh", test: "shellcheck: handoff skill Locate block", kind: behaviour}
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "JRN-004 worktree session lists its own handoff first, by its path in the checkout", kind: behaviour}
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "JRN-004 worktree session lists the main checkout's newer handoff second, by its absolute path", kind: behaviour}
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "JRN-004 worktree session does not list another spec worktree's handoff", kind: negative}
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "JRN-005 main session lists its old-name handoff first, then each spec worktree's newest first by absolute path", kind: behaviour}
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "JRN-005 main session never lists a .gitignore and still says not to resume unasked", kind: negative}
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "JRN-005 five handoffs across checkouts: own first, 3 listed, 2 counted, entries cut at 300 chars, context under 10000", kind: edge}
+evidence:
+  red: "bash tests/scripts/handoff-skill.sh -> 'FAIL JRN-001 Locate section holds one bash block naming .gitignore' (SKILL.md ### 1. Locate has no single bash block naming .gitignore ...), RESULT passed=0 failed=11; bash tests/hooks/audit-sync-resume.sh -> 'FAIL JRN-004 worktree session lists its own handoff first, by its path in the checkout' (only the main checkout's fix-login.md listed), RESULT passed=59 failed=7"
+  green: "Against a scratch copy of tests/ and .agents/ with a sketched Locate block, Resume wording and hook change: handoff-skill RESULT passed=11 failed=0; audit-sync-resume RESULT passed=66 failed=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00016-per-run-handoffs --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>; test skipped by caller (Phase 1)"
+  toolchain: ".workflow/specs/done/00016-per-run-handoffs/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+considered_not_built:
+  - "A check that the Locate block works outside git (root is $PWD): the data model states it, but no journey names it; left to the task's own tests."
+  - "The isolation worktree case: the existing check from .claude/worktrees/wt now expects the main checkout's handoff by absolute path, as the brief asks. The hook's current own-checkout lookup (wf_project_root) maps an isolation worktree to the checkout it sits in, so the task must use the session's top level for the handoff scan to pass it."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "No network or external tool beyond git, jq, yq and shellcheck; the skill block runs only git, mkdir, date and file writes inside the temp dirs"}
+  - {item: 2, verdict: pass, note: "No script changed; tests/scripts/handoff-skill.sh ends with a shellcheck_files assertion over the extracted Locate block, and audit-sync-resume.sh keeps its shellcheck_files over the hooks"}
+  - {item: 3, verdict: pass, note: "Every fixture (proj, plain, same-second repos, spec worktrees) is under $WORK from new_workdir; nothing committed, no absolute or home path"}
+  - {item: R1, verdict: pass, note: "Names say what they hold: LOCATE_BLOCK, run_locate, SPEC_WT, ALPHA_WT/BETA_WT, hand_in, handoff_entries, resume_section, NAME_SHAPE"}
+  - {item: R2, verdict: pass, note: "The SC2034/SC2016 disables carry their reason (variables read inside eval'd check strings)"}
+  - {item: R3, verdict: pass, note: "Helper comments give the contract (arguments, what is set, status), not a restatement of each line"}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh in the lint key (passed); no comment points at a doc path or URL"}
+  - {item: R5, verdict: pass, note: "Comments in plain words; journey ids appear only in the # Suite/# Covers headers and check labels"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over tests/scripts/handoff-skill.sh and tests/hooks/audit-sync-resume.sh exit 0"}
