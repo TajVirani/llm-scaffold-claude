@@ -236,3 +236,14 @@ Agreement: agreed in Questioning round 1
 ## 2026-11-12 Merge route
 
 - `task_review` in `.workflow/rules.md` reads `pr`. The stakeholder ruled for this spec: "merge locally, no PRs". Every task merges locally at 3.16 with no push and no PR; `pr` stays null on every task record.
+
+## 2026-11-12 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 (RS-1) | review-standards | The setup command gets its five isolation values from a second copy of the logic instead of the one function every other consumer uses | `.agents/skills/feature-workflow/scripts/worktree-setup.sh:117-120,159` | low | Read at both places: `print_isolation_values` (117-120) and the `export WF_SLOT=… WF_PORT_OFFSET=$((SLOT * 100)) …` line in `run_worktree_setup` (159) build the same values. Developer harm: a later change to the values would reach the toolchain keys and `services_down` but not `worktree_setup`. | patch (T3) |
+| F2 (RT-1) | review-targets | The asset-coverage target measured 1 against a threshold of 0: the new script is not named by its path in `PROVENANCE.md` | `verification-plan.md` § Targets | false | `grep -c 'worktree-setup.sh' PROVENANCE.md` prints 1: line 11 names the script in the feature-workflow row, under that row's `skills/feature-workflow/` path, in the bare-name form every other shared script there uses. The rule (`.workflow/rules.md:142`, update `PROVENANCE.md` in the same change) is met. The target's command greps for a path form the file never uses. | none (dismissed: the file is recorded; the measuring command was stricter than the file's convention) |
+
+Failed lenses: none
+Gaps: the success signal (a spec built start to sign-off in a project that declares its setup, a second spec beside it on its own ports) needs a live run in such a project (review-end-state); whether agents follow the never-install-copy-or-link rule shows only in a live run (review-end-state); two spec worktrees created at the same instant may take one slot, accepted in the data model, a parallel-create probe would settle whether it matters (review-end-state); a stop audit on a worktree holding a link into the main checkout exits 1 with no evidence file, and the agent is told to report the link, not repair it, so the audit may block the same stop three times before it gives up, a stop-audit run on such a fixture would settle it (review-standards); `worktree-setup.sh` and `spec-worktree.sh` drop the settings reader's stderr and die with a generic message (review-standards, under its confidence bar); "worktree setup with nothing declared adds no work" and line coverage of changed shell code are not measurable (review-targets); the asset-coverage command in the Targets table needs the bare-name form to measure what the rule asks (F2)
+Outcome: rework 1 of 5

@@ -1,0 +1,29 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "aea4e6ebc531a649e09ff3f34d241fb48cabe9e1"
+head: "2241bce3a5e4fff2f99f991bfe6b84fb21f53f76"
+findings: []
+checked:
+  - "Diff pinned: diff aea4e6e...2241bce excluding the spec folder, 51 files, +1331/-128; log of 46 commits read"
+  - "CAP-NEW-worktree-setup intent and success: worktree-setup.sh (agent, scratch, setup, check, env, remove) creates and sets up agent and scratch worktrees; spec-worktree.sh create calls worktree-setup.sh setup after printing its two stdout lines; remove runs services_down after its refusals pass and before the worktree is removed; run-toolchain.sh runs the link check and env, then services_up once in the spec worktree before the first test or e2e key that really runs"
+  - "Constraint, nothing declared behaves as today: copy_listed_files returns when .worktreeinclude is absent or empty, run_worktree_setup returns on an empty setting, run-toolchain reads services_up only when test or e2e will run and skips it when empty; JRN-002 cases in tests/scripts/spec-worktree.sh pass"
+  - "Constraint, no project-specific values: only WF_SLOT, WF_INSTANCE (s<NNN> or main), WF_PORT_OFFSET (slot x 100), WF_MAIN_ROOT and WF_SPEC_ROOT are handed over"
+  - "Constraint, copies never links and only ignored files: untracked files matching .worktreeinclude, filtered by check-ignore against the project's ignore rules, copied with cp -L / cp -RL; tracked matches and non-ignored matches are skipped (JRN-001 cases)"
+  - "Constraint, one set of services per spec, started only for a key that runs: services_up runs in WF_SPEC_ROOT from agent worktrees too; not run when test is skipped or served from reuse (JRN-005 cases)"
+  - "Constraint, a failing setup stops with its output and no fallback: run_worktree_setup prints the held stdout to stderr and exits 1; spec-worktree.sh create propagates the code and leaves the worktree registered for a re-run (JRN-006 cases)"
+  - "Constraint, bash 3.2 plus the version-control tool and yq only: worktree-setup.sh uses find, cp, sed and rules-setting.sh (yq) beside the version-control tool; no other tool"
+  - "Non-goals: no target-project file is in the diff; no container or VM per worktree; dev-database tests only addressed as wording in project-setup TEMPLATE.md and project-standards coverage.md; rules-setting.sh usage exit code is still 1 (deferred item untouched)"
+  - "End-state objectives 1-8 compared against the code and the JRN cases; objective 8 against tests/lint/worktree-setup-docs.sh and an rg over modules/, references/launching.md and .agents/agents/ for raw worktree add/remove: only worktree-setup.sh calls and one negated sentence remain"
+  - "JRN-001, JRN-003, JRN-004, JRN-007: tests/scripts/worktree-setup.sh cases titled by journey id read; suite rerun in a scratch worktree of HEAD: passed=59 failed=0"
+  - "JRN-002, JRN-005 (remove half), JRN-006: tests/scripts/spec-worktree.sh rerun: passed=81 failed=0"
+  - "JRN-003 and JRN-005 (toolchain half, incl. --e2e, skipped, reuse, failing services_up, agent worktree): tests/scripts/run-toolchain.sh rerun: passed=132 failed=0"
+  - "JRN-008: tests/lint/worktree-setup-docs.sh rerun: passed=40 failed=0"
+  - "artifacts/gate-3.9-w4/toolchain.json (status pass, lint and test pass) and toolchain.txt (TOTAL passed=4859 failed=0, 79 suites, lint/worktree-setup-docs passed=40)"
+  - "Step files that create or remove worktrees: verification-setup.md, implementation-waves.md, implementation-shared-core.md, implementation-finish.md, sign-off.md, discovery-impact.md, references/launching.md (coding briefs carry the no-improvising rule); agent definitions implementation.md, integration.md, profile-mini-review.md, review-combined.md, review-end-state.md, review-standards.md, review-targets.md"
+not_verifiable:
+  - "Success signal (a spec built from start to sign-off in a project that declares its setup, with a second spec beside it on its own ports) can only be shown by a live run in a target project that has declared worktree_setup, services_up, services_down and .worktreeinclude; the orchestrator should confirm on the first such project run"
+  - "Agents actually following the no-install/copy/link rule is behavioural; the docs say it (JRN-008) but only a live run shows it"
+not_checked:
+  - "Browser journey evidence: not applicable, the verification plan has no e2e-browser profile and every journey is a harness suite"
+  - "Two spec worktrees set up at the same instant may take the same slot (documented in the worktree-setup.sh header); not probed, and the spec does not ask for concurrent creation; a parallel-create probe would settle whether it matters"
