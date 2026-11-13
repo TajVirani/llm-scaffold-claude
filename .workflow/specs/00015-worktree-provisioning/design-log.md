@@ -247,3 +247,20 @@ Agreement: agreed in Questioning round 1
 Failed lenses: none
 Gaps: the success signal (a spec built start to sign-off in a project that declares its setup, a second spec beside it on its own ports) needs a live run in such a project (review-end-state); whether agents follow the never-install-copy-or-link rule shows only in a live run (review-end-state); two spec worktrees created at the same instant may take one slot, accepted in the data model, a parallel-create probe would settle whether it matters (review-end-state); a stop audit on a worktree holding a link into the main checkout exits 1 with no evidence file, and the agent is told to report the link, not repair it, so the audit may block the same stop three times before it gives up, a stop-audit run on such a fixture would settle it (review-standards); `worktree-setup.sh` and `spec-worktree.sh` drop the settings reader's stderr and die with a generic message (review-standards, under its confidence bar); "worktree setup with nothing declared adds no work" and line coverage of changed shell code are not measurable (review-targets); the asset-coverage command in the Targets table needs the bare-name form to measure what the rule asks (F2)
 Outcome: rework 1 of 5
+
+## 2026-11-12 Discovered work: resume-load-headroom
+
+- Found at: step 3.4 by the implementation agents of T5 and T9. Kind: refactor
+- Problem and evidence: the text an implementation resume loads is a few bytes under the 55,000-byte limit `lint/workflow-load-size` enforces. T5's first wording measured 55,187 bytes and T9's 55,043, and both trimmed wording to fit (artifacts/T5/implementation.yaml, artifacts/T9/implementation.yaml), so the next change to `AGENTS.md` or `modules/implementation-waves.md` will fail that lint.
+- Assessment and ruling: to ask (out of scope), recommended keep for later because the limit holds today and making room means cutting or moving text this spec did not agree to change
+
+## 2026-11-12 Sign-off: stakeholder approval (5.5)
+
+- Offered for veto: "the breakdown follows the Phase 1 suites", and the ruling that the lint failing in every new worktree was current work fixed in T2; vetoed: none
+- Approval: yes: "Approve both (Recommended)"
+- PR description: approved as shown
+- Proposals: all approved
+- Ruling: resume-load-headroom: keep for later (kept for later (B1), [work-backlog/00015-worktree-provisioning.md](../work-backlog/00015-worktree-provisioning.md))
+- Retrospective lessons: recorded as drafted
+- Concerns for the retrospective: none
+- Follow-up: none

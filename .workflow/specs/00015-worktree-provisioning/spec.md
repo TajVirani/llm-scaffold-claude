@@ -1,5 +1,5 @@
 ---
-status: in-review
+status: done
 baseline_revision: "aea4e6ebc531a649e09ff3f34d241fb48cabe9e1"
 spec_branch: "spec/00015-worktree-provisioning"
 impl_base_revision: "3eb23c84fea45e1e1f9583bc2f54af6fc6fa4a9c"
@@ -18,7 +18,7 @@ The workflow creates spec worktrees and agent worktrees with a plain `git worktr
 
 ## Capabilities
 
-- **CAP-NEW-worktree-setup** Worktree setup
+- **CAP-015** Worktree setup
   - **intent:** The workflow creates every spec worktree, agent worktree and scratch worktree through one script that makes it ready to run and test, and it starts and stops the services a test run needs, so no agent or stakeholder sets up or starts an environment by hand.
   - **success:** In a project that declares a setup command, a copy list and service commands, a newly created spec worktree and agent worktree hold the copied gitignored files as real files, the setup command has run with the spec's isolation values, `run-toolchain.sh` runs `services_up` before `test` and `--e2e`, removing the spec worktree runs `services_down`, two specs hold different slots, and a symlink into the main checkout fails both worktree setup and the toolchain run.
 
@@ -44,7 +44,9 @@ In a project that declares its setup, a spec is built and tested from start to s
 
 ## Assumptions
 
-- The design assumptions are the Assumed entries in [design-log.md](design-log.md), offered for veto and kept in Questioning round 1 (D5).
+- The design assumptions are the Assumed entries in [design-log.md](design-log.md), offered for veto and kept in Questioning round 1 (D5). The test seams and the unmeasured targets were offered and kept in the Breakdown quiz (D8).
+- As built, `spec-worktree.sh create` adds the spec worktree and then calls `worktree-setup.sh setup` on it; `worktree-setup.sh` adds agent worktrees and scratch worktrees itself. Every worktree is set up by the one script, as the data model settled.
+- `worktree-setup.sh env` gives a spec worktree that has no slot yet the lowest free one, so a spec worktree created before this change gets its slot on first use.
 
 ## Links
 
