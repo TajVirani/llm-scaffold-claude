@@ -1,0 +1,33 @@
+verdict: "pass"
+task_id: "T8"
+work_type: "agent-docs"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t8@829ac4cbdc3114476917071ffaa58261ad30424d..HEAD"
+tool_output: ".workflow/specs/00015-worktree-provisioning/artifacts/T8/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: no SKILL.md frontmatter description is added or changed (diff touches only agents/*.md and tests/lint/review-escalation-docs.sh)"
+  - n: 2
+    verdict: "not-applicable"
+    location: "no code in the diff the item applies to: no new agent file is added; the diff edits existing agent definitions only"
+  - n: "R1"
+    verdict: "pass"
+    location: "tests/lint/review-escalation-docs.sh:64 (TARGETS=$AGENTS/review-targets.md), .agents/agents/review-targets.md:35 (isolation.env), .agents/agents/profile-mini-review.md:55 (s<NNN>_scratch_mini_review_t<N>); names say what they hold"
+  - n: "R2"
+    verdict: "pass"
+    location: "no workaround or trade-off comment added in the diff; .agents/agents/review-targets.md:40 gives the reason services are not started by the reviewer"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/agents/profile-mini-review.md:55 inline shell comment says what the command prints and how to call it, which is usage guidance, not a restatement of the line; no comment restates the code"
+  - n: "R4"
+    verdict: "pass"
+    location: "tests/lint/review-escalation-docs.sh:6-7 (header Covers lines) and the .agents/agents/*.md additions name no decision ID, spec or task ID inside a code comment; s<NNN> and <N> are placeholders"
+  - n: "R5"
+    verdict: "pass"
+    location: "tests/lint/review-escalation-docs.sh:6-7 and .agents/agents/review-targets.md:40 use plain English; no undefined project shorthand in added comments"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/scripts/worktree-setup.sh:52, 336-362: confirmed the scratch, remove and env subcommands the new prose calls exist with matching argument counts"
+  - ".agents/skills/feature-workflow/references/readable-code.md: read in full for the R1-R5 rules and the Checking section"
+not_checked:
+  - "Whether the new services_up claim in review-targets.md:40 matches the agent-docs profile toolchain; would need the profile's services_up setting read, which is outside this checklist"
+out_of_scope_noticed: []

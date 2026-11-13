@@ -123,7 +123,7 @@ tasks:
     issue: null
   - id: T8
     title: "Agent definitions"
-    status: pending
+    status: done
     capability: CAP-NEW-worktree-setup
     depends_on: [T3, T5]
     touches_core: false
@@ -141,7 +141,7 @@ tasks:
     issue: null
   - id: T9
     title: "Root docs and changelog"
-    status: pending
+    status: done
     capability: CAP-NEW-worktree-setup
     depends_on: [T2, T4, T5, T6, T7]
     touches_core: false

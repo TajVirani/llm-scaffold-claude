@@ -1,0 +1,5 @@
+.agents/README.md
+.codex/README.md
+AGENTS.md
+CHANGELOG.md
+README.md
