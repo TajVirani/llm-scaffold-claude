@@ -1,0 +1,9 @@
+.agents/hooks/claude-settings.template.json
+.claude/settings.json
+.gitignore
+PROVENANCE.md
+assetlist.md
+install.sh
+tests/lint/step-list.sh
+tests/scripts/install-claude-settings.sh
+tests/scripts/install-payload.sh

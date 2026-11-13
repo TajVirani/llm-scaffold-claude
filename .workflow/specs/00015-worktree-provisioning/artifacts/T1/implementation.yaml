@@ -1,0 +1,47 @@
+status: done
+summary: "rules-setting.sh now reads worktree_setup, services_up and services_down: each prints its command whole (spaces, quotes, &&), or an empty line when the key is absent. A sequence or map value falls back to the default with the same note the existing keys give. The usage and unknown-key messages list all six keys from one KNOWN_KEYS list. As the coordinator asked at gate 3.4, new cases in tests/scripts/task-breakdown.sh prove the whole-command, non-scalar and unknown-key behaviour."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t1"
+branch: "task/00015-worktree-provisioning/T01-settings-keys"
+base_commit: "bb5f8b387ab038f4a9650001dea0048ba0b2306e"
+head_commit: "ab3f2f0317f5eeb5a4482c3a8f171bf25a548433"
+files_changed: [".agents/skills/feature-workflow/scripts/rules-setting.sh", "tests/scripts/task-breakdown.sh"]
+tests_added:
+  - {file: "tests/scripts/task-breakdown.sh", test: "worktree_setup prints a command with spaces, quotes and && whole", kind: edge}
+  - {file: "tests/scripts/task-breakdown.sh", test: "services_up prints a command with spaces, quotes and && whole", kind: edge}
+  - {file: "tests/scripts/task-breakdown.sh", test: "services_down prints a command with spaces, quotes and && whole", kind: edge}
+  - {file: "tests/scripts/task-breakdown.sh", test: "task_review given a sequence prints its default", kind: negative}
+  - {file: "tests/scripts/task-breakdown.sh", test: "task_review given a sequence notes the default on stderr", kind: negative}
+  - {file: "tests/scripts/task-breakdown.sh", test: "services_up given a sequence prints its empty default", kind: negative}
+  - {file: "tests/scripts/task-breakdown.sh", test: "services_up given a sequence notes the default on stderr", kind: negative}
+  - {file: "tests/scripts/task-breakdown.sh", test: "services_up given a map prints its empty default", kind: negative}
+  - {file: "tests/scripts/task-breakdown.sh", test: "services_up given a map notes the default on stderr", kind: negative}
+  - {file: "tests/scripts/task-breakdown.sh", test: "the unknown-key message names every key", kind: negative}
+evidence:
+  red: "tests/run-all.sh --suite scripts/worktree-setup at the base commit: FAIL worktree_setup defaults to an empty value (got=1: want=0:), same for services_up and services_down, and FAIL worktree_setup reads the command rules.md sets (got= want=bash .../marker.sh setup). The task-breakdown cases were added after the code, at the coordinator's gate 3.4 request, so they passed on their first run. Running them against the base script was blocked by the session's git and worktree guards. At base each new key exits 1 as an unknown setting (shown above), so all but the two task_review reference cases would fail."
+  green: "tests/run-all.sh --suite scripts/task-breakdown: 154/154 passed (144 before plus 10 new). tests/run-all.sh --suite scripts/worktree-setup: the four settings cases pass; the rest stays red for T3."
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00015-worktree-provisioning --task-id T1 --cwd <worktree>; exit 0; lint pass; test pass, scoped to 4 suites: 250 passed, 0 failed"
+  toolchain: ".workflow/specs/00015-worktree-provisioning/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Rejecting a multi-line block scalar command: the data model says one shell command but sets no rule against newlines, so any scalar is accepted"
+  - "Making a sequence value exit 1: the existing keys print the default for a sequence value, so the new keys do the same"
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "no new .workflow/ path in code"}
+  - {item: 2, verdict: not-applicable, note: "no hook changed"}
+  - {item: 3, verdict: pass, note: "an unknown key still reaches die() with KNOWN_KEYS; no new error path"}
+  - {item: 4, verdict: not-applicable, note: "no new write or check inside a loop or command substitution guarded by ||"}
+  - {item: 5, verdict: pass, note: "exit codes unchanged; the new keys exit 0 when read"}
+  - {item: 6, verdict: pass, note: "the BASH_SOURCE cd -P sourcing is untouched"}
+  - {item: 7, verdict: pass, note: "the helper header keeps Purpose/Usage/Exit/Sources; the Settings table lists the three new keys"}
+  - {item: 8, verdict: pass, note: "both edited files keep their existing test syntax"}
+  - {item: 9, verdict: pass, note: "no new function; the setting_spec usage comment covers @command and @empty"}
+  - {item: R1, verdict: pass, note: "the names KNOWN_KEYS, @command, @empty and YAML_CMD say what each holds"}
+  - {item: R2, verdict: pass, note: "the setting_spec comment explains @empty (a space-split spec cannot carry an empty string); the test comment shows the plain command behind YAML_CMD"}
+  - {item: R3, verdict: pass, note: "one list of key names replaces two copies kept by hand"}
+  - {item: R4, verdict: pass, note: "covered by check-comments.sh, which exits 0 on both files; no comment points at another document"}
+  - {item: R5, verdict: pass, note: "no shorthand in the changed comments"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh exits 0 on rules-setting.sh and tests/scripts/task-breakdown.sh"}

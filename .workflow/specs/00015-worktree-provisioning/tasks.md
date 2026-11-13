@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Settings keys"
-    status: pending
+    status: done
     capability: CAP-NEW-worktree-setup
     depends_on: []
     touches_core: false
@@ -19,7 +19,7 @@ tasks:
     issue: null
   - id: T2
     title: "Install and allow the worktree setup script"
-    status: pending
+    status: done
     capability: CAP-NEW-worktree-setup
     depends_on: []
     touches_core: true

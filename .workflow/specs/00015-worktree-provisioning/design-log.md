@@ -232,3 +232,7 @@ Agreement: agreed in Questioning round 1
   - `tests/scripts/run-toolchain.sh` goes to the toolchain task (T4), which runs after T3.
   - `.codex/README.md` names the raw worktree command; the root-docs task (T9) updates it.
 - Why safe to assume: no work is added or dropped and no decision changes; only the order and the grouping follow from how the suites were cut. A veto regroups the task files before any is launched.
+
+## 2026-11-12 Merge route
+
+- `task_review` in `.workflow/rules.md` reads `pr`. The stakeholder ruled for this spec: "merge locally, no PRs". Every task merges locally at 3.16 with no push and no PR; `pr` stays null on every task record.
