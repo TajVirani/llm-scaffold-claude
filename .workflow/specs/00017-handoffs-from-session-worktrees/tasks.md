@@ -6,7 +6,7 @@ tasks:
     capability: CAP-015
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: shell-scripts
     module: "hooks"
     seam: "session-start-resume.sh stdin payload {cwd} -> additionalContext; handoff SKILL.md Resume text"
     file: tasks/T01-session-worktree-offer.md

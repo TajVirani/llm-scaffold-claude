@@ -1,8 +1,8 @@
 ---
-status: draft
-baseline_revision: ""
-spec_branch: ""
-impl_base_revision: ""
+status: in-progress
+baseline_revision: "317fdd0f82a86dd95ef360fd59d5ea9dbc8f5575"
+spec_branch: spec/00017-handoffs-from-session-worktrees
+impl_base_revision: "317fdd0f82a86dd95ef360fd59d5ea9dbc8f5575"
 light_path: true
 followup_review_recommended: false
 deferred: []
