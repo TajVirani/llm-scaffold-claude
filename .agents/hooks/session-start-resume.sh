@@ -137,8 +137,7 @@ newest_first() {
   ls -1t "$@"
 }
 
-# Session handoffs (written by the handoff skill): the own checkout's, then the others', each group newest first; 3 listed,
-# the rest counted. Read first so the spec list cap leaves room for them.
+# Read the handoffs before the spec list, so the spec list's cap leaves room for them.
 htext="" h_n=0
 HANDOFF_HEADER="Session handoffs (written by the handoff skill in the checkout each run worked in): this checkout's first as $WF_HANDOFF/<name>, then the other checkouts' by absolute path; newest first within each:"
 if [ "$h_total" -gt 0 ]; then
