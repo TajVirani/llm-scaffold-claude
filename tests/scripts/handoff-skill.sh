@@ -79,14 +79,28 @@ echo "== JRN-003 two runs, one spec, same second"
 SAME_SECOND=$WORK/same-second
 git_init_repo "$SAME_SECOND"
 git_commit_all "$SAME_SECOND" init
-run_locate "$SAME_SECOND" 007-alpha
+# A stub date first on PATH pins the UTC timestamp, so both runs fall in the same second and only the suffix can differ.
+FIXED_CLOCK=$WORK/fixed-clock
+mkdir -p "$FIXED_CLOCK"
+cat > "$FIXED_CLOCK/date" <<'STUB'
+#!/usr/bin/env bash
+if [ "$*" = "-u +%Y%m%dT%H%M%SZ" ]; then echo 20260101T120000Z; else exec /bin/date "$@"; fi
+STUB
+chmod +x "$FIXED_CLOCK/date"
+PATH="$FIXED_CLOCK:$PATH" run_locate "$SAME_SECOND" 007-alpha
 first_file=$LOC_FILE
 [ -z "$first_file" ] || : > "$first_file"
-run_locate "$SAME_SECOND" 007-alpha
+PATH="$FIXED_CLOCK:$PATH" run_locate "$SAME_SECOND" 007-alpha
 second_file=$LOC_FILE
 first_name=$(basename "${first_file:-unset}")
 second_name=$(basename "${second_file:-unset}")
-check "JRN-003 two runs for 007-alpha give two different names" \
+TIME_FIELD='s/^.*--\([0-9]\{8\}T[0-9]\{6\}Z\)-.*$/\1/p'
+first_time=$(sed -n "$TIME_FIELD" <<<"$first_name")
+second_time=$(sed -n "$TIME_FIELD" <<<"$second_name")
+check "JRN-003 with the clock fixed both runs carry the same timestamp" \
+  '[ -n "$first_time" ] && [ "$first_time" = "$second_time" ]' \
+  "first=$first_name second=$second_name"
+check "JRN-003 two runs for 007-alpha in the same second give two different names" \
   '[ -n "$first_file" ] && [ -n "$second_file" ] && [ "$first_name" != "$second_name" ]' "first=$first_name second=$second_name"
 check "JRN-003 both names have the <stem>--<UTC time>-<4 chars>.md shape" \
   'grep -qE "$NAME_SHAPE" <<<"$first_name" && grep -qE "$NAME_SHAPE" <<<"$second_name"' "first=$first_name second=$second_name"

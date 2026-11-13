@@ -18,7 +18,7 @@ A **session handoff** is one file a fresh session reads to carry on the work: wh
    yq --front-matter=extract '.status' .workflow/specs/NNN-slug/spec.md; cat .workflow/specs/NNN-slug/.step 2>/dev/null
    ```
 
-2. **Root, folder and file name.** The handoff goes in `.workflow/.handoff/` of the checkout the session works in (a spec worktree, a task worktree or the main checkout), never in another checkout. Set `stem` to the spec folder name (`NNN-slug`) for spec work, or to the topic (kebab-case, two to four words) otherwise, then run:
+2. **Root, folder and file name.** The handoff goes in `.workflow/.handoff/` of the checkout the session works in (a spec worktree, an agent worktree or the main checkout), never in another checkout. Set `stem` to the spec folder name (`NNN-slug`) for spec work, or to the topic (kebab-case, two to four words) otherwise, then run:
 
    ```bash
    root=$(git rev-parse --show-toplevel 2>/dev/null) || root=$PWD
