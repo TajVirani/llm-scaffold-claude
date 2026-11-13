@@ -31,8 +31,8 @@ every_work_type_row() {
 
 # has_item SENTENCES ITEM : true when one line of SENTENCES holds every fixed string the ITEM lists after its label.
 has_item() {
-  local sentences=$1 item=$2 needles needle line hit
-  IFS='|' read -r -a needles <<<"$item"
+  local sentences=$1 requirement=$2 needles needle line hit
+  IFS='|' read -r -a needles <<<"$requirement"
   while IFS= read -r line; do
     hit=1
     for needle in "${needles[@]:1}"; do
@@ -47,8 +47,8 @@ ROW=$(every_work_type_row "$COVERAGE")
 
 echo "== the Every work type row asks each worktree and test-isolation item, with its destination"
 check "coverage.md has one Every work type row" '[ "$(grep -c "^| Every work type |" "$COVERAGE")" = 1 ]'
-for item in "${ITEMS[@]}"; do
-  check "the row asks ${item%%|*} and names where it goes" 'has_item "$ROW" "$item"'
+for requirement in "${ITEMS[@]}"; do
+  check "the row asks ${requirement%%|*} and names where it goes" 'has_item "$ROW" "$requirement"'
 done
 
 shellcheck_files "shellcheck: this suite" "${BASH_SOURCE[0]}"
