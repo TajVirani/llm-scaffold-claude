@@ -13,7 +13,7 @@
 #   command and no copy list, create and worktree-setup.sh agent copy nothing and leave git status empty. JRN-006: a failing
 #   worktree_setup makes create exit 1 with its message on stderr and the worktree registered, and create again once it is fixed
 #   sets the worktree up. JRN-005: remove runs services_down in the spec worktree with its isolation values, and a failing one is
-#   reported without stopping the removal. The fixture's .gitignore is the block install.sh writes; shellcheck.
+#   reported without stopping the removal, while a spec worktree with an untracked file is refused before services_down runs. The fixture's .gitignore is the block install.sh writes; shellcheck.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -280,6 +280,11 @@ check "JRN-006 the second create set the worktree up" \
 
 echo "== JRN-005: remove runs services_down in the spec worktree"
 git -C "$Q" merge -q --no-ff -m "Merge spec/005-eps" spec/005-eps
+echo 'left behind' >"$WE/untracked.txt"
+out=$(SQ remove .workflow/specs/005-eps 2>&1); rc=$?
+check "remove refuses a spec worktree with an untracked file before services_down runs" \
+  '[ $rc -eq 1 ] && [ -d "$WE" ] && [ ! -s "$DOWN_LOG" ]' "rc=$rc $out $(cat "$DOWN_LOG" 2>/dev/null)"
+rm -f "$WE/untracked.txt"
 out=$(SQ remove .workflow/specs/005-eps 2>&1); rc=$?
 check "JRN-005 remove exits 0 and removes the spec worktree" '[ $rc -eq 0 ] && grep -qx "removed worktree $WE" <<<"$out"' "rc=$rc $out"
 check "JRN-005 remove ran services_down in the spec worktree with its isolation values" \
