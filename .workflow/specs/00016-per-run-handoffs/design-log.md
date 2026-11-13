@@ -168,3 +168,27 @@ Agreement: agreed in Questioning round 1
 - Question: D5 lists the session's own checkout first. Which other checkouts follow?
 - Answer taken: a session in the main checkout also sees each spec worktree's handoffs, found through `git worktree list` as the spec scan finds them; a session in a spec worktree sees its own and then the main checkout's, not other worktrees'.
 - Why safe to assume: it is D5 made exact, using the list the hook already builds ([codebase-map.md](codebase-map.md), Module audit, hooks). Undone by changing the list the handoff scan walks.
+
+## 2026-11-12 Assumed: no numeric targets beyond the offer's size cap
+
+- Step: 1.1
+- Question: Which performance, error and coverage thresholds does this spec carry?
+- Answer taken: the existing 10,000-character cap on the session-start offer, and exit 0 for every input; no coverage threshold.
+- Why safe to assume: the change adds file globs and text to one hook and rewrites prose in one skill; the cap and the exit code are the hook's existing contract, and the repo has no coverage tool. Undone by adding a row to the Targets table.
+
+## 2026-11-12 Assumed: the seams the tasks are tested at
+
+- Step: 2.3
+- Question: Which public interface do each slice's tests drive?
+- Answer taken: the handoff skill slice is tested at the Locate command block of `.agents/skills/handoff/SKILL.md`, run as written, plus the literal Resume wording. It catches a wrong folder, name or ignore file; it misses whether an agent follows the prose around the block. The session-start slice is tested at the SessionStart hook's input and output (payload `cwd` in, `additionalContext` out), the existing seam of `tests/hooks/audit-sync-resume.sh`. It catches wrong order, paths and caps; it misses how a host shows the text.
+- Why safe to assume: both are the highest existing seams that reach the behaviour, and no interface changes to make them testable. Undone by moving a test.
+
+## 2026-11-12 Breakdown quiz
+
+- Asked at: 1.2, beside the harness build
+- Breakdown: T1 Handoff skill writes per-run handoffs in the session's checkout (standalone-skills; seam: the Locate command block and the Resume wording; S, 2 files, ~60 lines; afk; blocked by none). T2 Session-start offer lists handoffs per checkout (hooks; seam: SessionStart hook I/O; S, 2 files, ~50 lines; afk; blocked by none). Wave 1: T1, T2; no overlap.
+- Granularity, edges, splits, hitl, overlaps: "Yes, two parallel tasks (Recommended)"
+- Specifiable (2.2): yes, every acceptance criterion comes from spec.md, D5-D8 and the journeys.
+- Offered for veto: no numeric targets beyond the offer's size cap, the seams the tasks are tested at, which rules.md names the main branch for the drift check, the hook's doc row is part of the hook change, which checkouts a session's offer covers; vetoed: none
+- Size: within the project defaults: 2 tasks, 4 predicted files
+- Decision: **D10** Two tasks in one wave: T1 (handoff skill) and T2 (session-start offer), run in parallel.

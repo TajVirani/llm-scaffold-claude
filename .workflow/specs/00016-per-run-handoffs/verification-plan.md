@@ -15,12 +15,12 @@ Spec: [spec.md](spec.md)
 
 | Id | Journey | Proves | Steps | Expected outcome | Check |
 | --- | --- | --- | --- | --- | --- |
-| JRN-001 | Hand off from a spec worktree | CAP-NEW-per-run-handoffs | 1. Build a repo with a main checkout and a spec worktree. 2. Extract the Locate commands from the handoff skill and run them in the worktree. 3. List both checkouts. | The folder, its `.gitignore` and the named path are under the worktree; the main checkout is unchanged | MISSING |
-| JRN-002 | Handoff stays out of git with no ignore block | CAP-NEW-per-run-handoffs | 1. Build a repo with no workflow `.gitignore` block. 2. Run the Locate commands and create a handoff file. 3. Run `git status --porcelain`. | No line names `.workflow/.handoff/` | MISSING |
-| JRN-003 | Two runs, one spec, same second | CAP-NEW-per-run-handoffs | 1. Run the name command twice for `007-alpha` with the clock fixed. | Two different names, both of the documented shape | MISSING |
-| JRN-004 | Offer from a spec worktree | CAP-NEW-per-run-handoffs | 1. Put one handoff in the spec worktree and one in the main checkout. 2. Run the session-start hook with the worktree as cwd. | The worktree's handoff is listed first; both entries carry a path that exists from the worktree | MISSING |
-| JRN-005 | Offer from the main checkout | CAP-NEW-per-run-handoffs | 1. Put a new-name handoff in a spec worktree, an old-name handoff and a `.gitignore` in the main checkout's folder. 2. Run the session-start hook with the main checkout as cwd. | Both handoffs are listed with their paths; `.gitignore` is not; the 3-listed cap and the count hold across checkouts | MISSING |
-| JRN-006 | Resume rules are written down | CAP-NEW-per-run-handoffs | 1. Read the handoff skill's Resume section. | It states resume-by-path without asking and delete-after-successor | MISSING |
+| JRN-001 | Hand off from a spec worktree | CAP-NEW-per-run-handoffs | 1. Build a repo with a main checkout and a spec worktree. 2. Extract the Locate commands from the handoff skill and run them in the worktree. 3. List both checkouts. | The folder, its `.gitignore` and the named path are under the worktree; the main checkout is unchanged | `JRN-001` checks in `tests/scripts/handoff-skill.sh` |
+| JRN-002 | Handoff stays out of git with no ignore block | CAP-NEW-per-run-handoffs | 1. Build a repo with no workflow `.gitignore` block. 2. Run the Locate commands and create a handoff file. 3. Run `git status --porcelain --untracked-files=all`. | No line names `.workflow/.handoff/` | `JRN-002` check in `tests/scripts/handoff-skill.sh` |
+| JRN-003 | Two runs, one spec, same second | CAP-NEW-per-run-handoffs | 1. Run the name command twice for `007-alpha` with the clock fixed. | Two different names, both of the documented shape | `JRN-003` checks in `tests/scripts/handoff-skill.sh` |
+| JRN-004 | Offer from a spec worktree | CAP-NEW-per-run-handoffs | 1. Put one handoff in the spec worktree and one in the main checkout. 2. Run the session-start hook with the worktree as cwd. | The worktree's handoff is listed first; both entries carry a path that exists from the worktree | `JRN-004` checks in `tests/hooks/audit-sync-resume.sh` |
+| JRN-005 | Offer from the main checkout | CAP-NEW-per-run-handoffs | 1. Put a new-name handoff in a spec worktree, an old-name handoff and a `.gitignore` in the main checkout's folder. 2. Run the session-start hook with the main checkout as cwd. | Both handoffs are listed with their paths; `.gitignore` is not; the 3-listed cap and the count hold across checkouts | `JRN-005` checks in `tests/hooks/audit-sync-resume.sh` |
+| JRN-006 | Resume rules are written down | CAP-NEW-per-run-handoffs | 1. Read the handoff skill's Resume section. | It states resume-by-path without asking and delete-after-successor | `JRN-006` checks in `tests/scripts/handoff-skill.sh` |
 
 ## Fixtures and oracles
 
@@ -33,8 +33,15 @@ Spec: [spec.md](spec.md)
 
 ## Targets
 
-<!-- 1.1. -->
+| Target | Kind | Threshold | How measured (exact command) | Source of the threshold |
+| --- | --- | --- | --- | --- |
+| Session-start offer size with handoffs in several checkouts | performance | under 10,000 characters of `additionalContext` | Not measurable outside a fixture: it needs a repo with spec worktrees and handoffs, which only the suite builds; the cap check in `tests/hooks/audit-sync-resume.sh` is extended to cover it | spec.md Constraints (the offer stays inside its size cap) |
+| Errors | error | the hook exits 0 for every input | Not measurable as a number: asserted per case by the suite | `.agents/hooks/session-start-resume.sh` header (exit 0 always) |
+| Coverage | coverage | none set | Not measurable: no bash line-coverage tool is installed ([.workflow/deferred/bash-line-coverage.md](../../deferred/bash-line-coverage.md)) | assumed (design-log.md) |
 
 ## Suites
 
-<!-- 1.2-1.4. -->
+| Suite | Profile key | Command (copied from the profile) | CI check | Known-bad-build evidence (1.4) |
+| --- | --- | --- | --- | --- |
+| Harness | `test` | `tests/run-all.sh` | none | `artifacts/phase-1-known-bad/record.md` |
+| Browser | `e2e` | none: the project has no e2e profile | none | not applicable |

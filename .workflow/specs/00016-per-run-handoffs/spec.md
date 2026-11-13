@@ -1,7 +1,7 @@
 ---
 status: ready-for-dev
-baseline_revision: ""
-spec_branch: ""
+baseline_revision: "0900278de2857d40567e08e21a3d9c2ba10f94b0"
+spec_branch: "spec/00016-per-run-handoffs"
 impl_base_revision: ""
 light_path: false
 followup_review_recommended: false
