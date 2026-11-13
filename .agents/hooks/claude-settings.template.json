@@ -115,7 +115,6 @@
       "Bash(git merge-base:*)",
       "Bash(git branch --show-current)",
       "Bash(git worktree list:*)",
-      "Bash(git worktree add:*)",
       "Bash(yq --version)",
       "Bash(yq --front-matter=extract:*)",
       "Bash(yq -o=tsv:*)",
@@ -128,7 +127,8 @@
       "Bash(.agents/skills/feature-workflow/scripts/task-waves.sh:*)",
       "Bash(.agents/skills/feature-workflow/scripts/resolve-launch.sh:*)",
       "Bash(.agents/skills/feature-workflow/scripts/rules-setting.sh:*)",
-      "Bash(.agents/skills/feature-workflow/scripts/run-toolchain.sh:*)"
+      "Bash(.agents/skills/feature-workflow/scripts/run-toolchain.sh:*)",
+      "Bash(.agents/skills/feature-workflow/scripts/worktree-setup.sh:*)"
     ],
     "deny": [
       "Bash(yq *--front-matter=extract* -i*)",

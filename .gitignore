@@ -12,4 +12,5 @@
 .workflow/.spec-worktrees/
 .workflow/.handoff/
 .workflow/.standards-staging/
+.workflow/.slot
 # <<< workflow-2.0 scaffold: gitignore <<<
