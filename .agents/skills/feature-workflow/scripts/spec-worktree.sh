@@ -12,17 +12,23 @@
 #     Creates spec/NNN-slug off the main branch (rules-setting.sh main_branch) by switching that checkout to it, commits the workflow
 #     data there with commit-workflow-data.sh ("Spec NNN-slug": the spec folder, the work-backlog and the rest of the workflow root
 #     except other spec and initiative folders), switches the checkout back to the branch (or detached commit) it was on, adds the
-#     spec worktree on the spec branch and moves .step into it. When spec/NNN-slug already exists (a resumed run), only the last two.
-#     When the spec worktree already exists on the spec branch, nothing changes.
-#     stdout: `worktree <absolute path>` and `baseline <sha>`, the spec branch's first commit (its oldest commit not on the main branch).
+#     spec worktree on the spec branch, moves .step into it and sets it up with worktree-setup.sh setup (slot, copy list,
+#     worktree_setup, link check), whose output goes to stderr. When spec/NNN-slug already exists (a resumed run), only the last
+#     three. When the spec worktree already exists on the spec branch, only the setup runs again, which finishes one that failed.
+#     stdout: `worktree <absolute path>` and `baseline <sha>`, the spec branch's first commit (its oldest commit not on the main branch),
+#     printed before the setup runs, so they are there when it fails too.
 #   spec-worktree.sh remove <spec-dir> [--cwd <dir>]
 #     <spec-dir>  the spec folder, at the top level of the specs folder or in its Done folder; only its NNN-slug name is used.
 #     Sign-off (5.8), after the spec branch has merged into the main branch (local, or origin/<main>): removes the spec worktree and
-#     deletes spec/NNN-slug with `git branch -d`, the safe delete. Run it from outside the spec worktree (the main checkout).
+#     deletes spec/NNN-slug with `git branch -d`, the safe delete. Run it from outside the spec worktree (the main checkout). Once
+#     the refusals pass and before the worktree goes, runs the project's services_down (rules-setting.sh) with `bash -c` in the
+#     spec worktree, its isolation values (worktree-setup.sh env) exported and its output on stderr; a failing one is reported and
+#     the removal goes on.
 #     stdout: `removed worktree <path>` (when there was one) and `deleted branch spec/NNN-slug` (when there was one).
 # Exit: 0 done (or nothing to do); 1 refused, nothing removed or switched: create while the checkout is mid-merge, cherry-pick or
 #   revert, on the spec branch already, inside another spec's worktree, or cannot switch (git's reason follows), or the spec branch
-#   is checked out in another checkout; remove while the spec branch is not merged into the main branch, or not into what
+#   is checked out in another checkout, or setting up the spec worktree failed (worktree-setup.sh's code; the worktree stays
+#   registered, and create run again finishes it); remove while the spec branch is not merged into the main branch, or not into what
 #   `git branch -d` judges it by (its upstream, else the main checkout's HEAD), the spec worktree has uncommitted or untracked
 #   changes, or an agent worktree is still registered inside it; 2 usage or environment error (bad arguments, not a git repository,
 #   spec.md missing, a git step failing part-way, with what to do next).
@@ -67,6 +73,36 @@ move_step() {
   rmdir "$from" 2>/dev/null || printf '%s: kept %s: it still holds files git ignores\n' "$PROG" "$from" >&2
 }
 
+# set_up_worktree : run worktree-setup.sh setup on the spec worktree, its output on stderr, since callers parse create's stdout;
+#   exit with its code when it fails, after the two stdout lines, leaving the worktree registered so create run again finishes it.
+set_up_worktree() {
+  local setup_status=0
+  bash "$SCRIPT_DIR/worktree-setup.sh" setup "$WT" >&2 || setup_status=$?
+  [[ $setup_status -eq 0 ]] ||
+    die "the spec worktree $WT is added, but setting it up failed (above); fix the cause, then run create again" "$setup_status"
+}
+
+# stop_services : run the project's services_down in the spec worktree with its isolation values; a failure is reported and
+#   the removal goes on, so a stuck service never keeps a merged spec's worktree alive.
+stop_services() {
+  local down_command isolation_values down_status=0
+  down_command=$(bash "$SCRIPT_DIR/rules-setting.sh" services_down --cwd "$WT" 2>/dev/null) ||
+    die "cannot read services_down (rules-setting.sh services_down failed)"
+  [[ -n "$down_command" ]] || return 0
+  if ! isolation_values=$(bash "$SCRIPT_DIR/worktree-setup.sh" env "$WT"); then
+    printf '%s: cannot read the isolation values of %s, so services_down did not run; removing the worktree anyway\n' "$PROG" "$WT" >&2
+    return 0
+  fi
+  (
+    cd "$WT" || exit 2
+    eval "$isolation_values"
+    exec bash -c "$down_command"
+  ) >&2 || down_status=$?
+  if [[ $down_status -ne 0 ]]; then
+    printf '%s: services_down failed with exit %s in %s; removing the worktree anyway\n' "$PROG" "$down_status" "$WT" >&2
+  fi
+}
+
 # create : the create mode in the header.
 create() {
   local prev rc out
@@ -75,6 +111,7 @@ create() {
     [[ "$(git -C "$WT" branch --show-current)" == "$BRANCH" ]] || die "the spec worktree $WT is not on $BRANCH" 1
     move_step
     printf 'worktree %s\nbaseline %s\n' "$WT" "$(baseline)"
+    set_up_worktree
     return 0
   fi
   [[ "$ROOT" != "$MAIN_ROOT/$WF_SPEC_WORKTREES"/* ]] ||
@@ -108,6 +145,7 @@ create() {
   out=$(git -C "$MAIN_ROOT" worktree add -q "$WT" "$BRANCH" 2>&1) || die "cannot add the spec worktree $WT: $out" 1
   move_step
   printf 'worktree %s\nbaseline %s\n' "$WT" "$(baseline)"
+  set_up_worktree
 }
 
 # remove : the remove mode in the header.
@@ -128,6 +166,10 @@ remove() {
   if registered_worktree "$WT"; then
     nested=$(git -C "$MAIN_ROOT" worktree list --porcelain | awk -v p="worktree $WT/" 'index($0, p) == 1 { print substr($0, 10) }')
     [[ -z "$nested" ]] || die "agent worktrees are still registered inside $WT: ${nested//$'\n'/, }; remove them first" 1
+    # Checked here, not left to git worktree remove, so services_down runs only once the worktree can really go.
+    out=$(git -C "$WT" status --porcelain 2>&1) || die "cannot read the status of $WT: $out"
+    [[ -z "$out" ]] || die "the spec worktree $WT has uncommitted or untracked changes; commit or remove them first" 1
+    stop_services
     out=$(git -C "$MAIN_ROOT" worktree remove "$WT" 2>&1) || die "cannot remove the spec worktree $WT: $out" 1
     echo "removed worktree $WT"
   fi
