@@ -124,6 +124,31 @@ printf '## Workflow settings\n\n```yaml\nmain_branch: "-x"\n```\n' > "$WORK/r.md
 t "main_branch invalid -> 1"       1 RS main_branch --rules "$WORK/r.md"
 printf '## Workflow settings\n\n```yaml\nmain_branch: "@branch"\n```\n' > "$WORK/r.md"
 t "main_branch @branch (the spec token, not a branch name) -> 1" 1 RS main_branch --rules "$WORK/r.md"
+echo "== rules-setting.sh command settings"
+# The YAML single-quoted form of: cd "my dir" && echo 'up' && make dev
+YAML_CMD=$'\'cd "my dir" && echo \'\'up\'\' && make dev\''
+for key in worktree_setup services_up services_down; do
+  printf '## Workflow settings\n\n```yaml\n%s: %s\n```\n' "$key" "$YAML_CMD" > "$WORK/r.md"
+  eq "$key prints a command with spaces, quotes and && whole" "$(RS "$key" --rules "$WORK/r.md")" \
+    "cd \"my dir\" && echo 'up' && make dev"
+done
+printf '## Workflow settings\n\n```yaml\ntask_review:\n  - local\n```\n' > "$WORK/r.md"
+eq "task_review given a sequence prints its default" "$(RS task_review --rules "$WORK/r.md" 2>/dev/null; echo ":$?")" "pr
+:0"
+eq "task_review given a sequence notes the default on stderr" "$(RS task_review --rules "$WORK/r.md" 2>&1 >/dev/null)" \
+  "rules-setting.sh: task_review is not set under '## Workflow settings' in $WORK/r.md; using the default task_review=pr"
+printf '## Workflow settings\n\n```yaml\nservices_up:\n  - make up\n```\n' > "$WORK/r.md"
+eq "services_up given a sequence prints its empty default" "$(RS services_up --rules "$WORK/r.md" 2>/dev/null; echo ":$?")" "
+:0"
+eq "services_up given a sequence notes the default on stderr" "$(RS services_up --rules "$WORK/r.md" 2>&1 >/dev/null)" \
+  "rules-setting.sh: services_up is not set under '## Workflow settings' in $WORK/r.md; using the default services_up="
+printf '## Workflow settings\n\n```yaml\nservices_up:\n  run: make up\n```\n' > "$WORK/r.md"
+eq "services_up given a map prints its empty default" "$(RS services_up --rules "$WORK/r.md" 2>/dev/null; echo ":$?")" "
+:0"
+eq "services_up given a map notes the default on stderr" "$(RS services_up --rules "$WORK/r.md" 2>&1 >/dev/null)" \
+  "rules-setting.sh: services_up is not set under '## Workflow settings' in $WORK/r.md; using the default services_up="
+eq "the unknown-key message names every key" "$(RS nope --rules "$WORK/r.md" 2>&1)" \
+  "rules-setting.sh: unknown setting 'nope' (known: task_review, main_branch, pr_template, worktree_setup, services_up, services_down)"
 MB=$WORK/mb; git_init_repo "$MB"; git_commit_all "$MB" init
 eq "main_branch default main without origin/HEAD" "$(RS main_branch --cwd "$MB" 2>/dev/null)" main
 git -C "$MB" update-ref refs/remotes/origin/develop HEAD; git -C "$MB" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/develop
