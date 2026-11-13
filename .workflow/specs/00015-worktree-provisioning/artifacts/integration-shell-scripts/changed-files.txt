@@ -1,0 +1,2 @@
+.agents/lib/workflow-paths.sh
+tests/scripts/lib-workflow-paths.sh
