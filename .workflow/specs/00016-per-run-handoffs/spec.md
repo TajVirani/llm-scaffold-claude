@@ -7,6 +7,7 @@ light_path: false
 followup_review_recommended: false
 deferred: []
 tracker_issue: ""
+budget: {max_tasks: 10, max_changed_files: 30}
 ---
 
 # Per-run session handoffs
