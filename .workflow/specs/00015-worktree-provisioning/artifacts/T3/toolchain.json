@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t3/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/.worktrees/s00015_t3",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00015-worktree-provisioning/.workflow/specs/00015-worktree-provisioning/artifacts/T3",
-  "tree": "35064bc1ea72eef8e92561e9506138d587f9b471",
+  "tree": "7c1171ac524ff171d75f967076c1ce83206ac29d",
   "ran": 2,
   "results": [
     {
@@ -42,8 +42,8 @@
       "exit_code": 0,
       "scoped": true,
       "own": 2,
-      "excluded": 2,
-      "changed": 4
+      "excluded": 0,
+      "changed": 2
     }
   ],
   "digest": "",

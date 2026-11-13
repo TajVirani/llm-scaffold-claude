@@ -36,7 +36,7 @@ tasks:
     issue: null
   - id: T3
     title: "Worktree setup script"
-    status: in-progress
+    status: done
     capability: CAP-NEW-worktree-setup
     depends_on: [T1, T2]
     touches_core: false

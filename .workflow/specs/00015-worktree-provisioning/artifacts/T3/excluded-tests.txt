@@ -1,2 +1,0 @@
-tests/scripts/run-toolchain.sh
-tests/lint/worktree-setup-docs.sh
