@@ -13,7 +13,8 @@
 #   agent worktree, every key gets that spec's WF_SLOT, WF_INSTANCE and WF_PORT_OFFSET (0, main, 0 in the main checkout), and
 #   services_up runs once in the spec worktree before the first test or e2e key that runs, never when both are skipped or on a
 #   reuse hit; a failing services_up fails the run before test, with its output in the evidence. JRN-003: a link into the main
-#   checkout fails the run, naming it, before any key; a link outside the repository passes.
+#   checkout fails the run, naming it, before any key, and writes no evidence; a link outside the repository passes. A failing
+#   services_up skips both test and e2e after one call, and a worktree outside any spec worktree exits 2 with nothing run.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -448,6 +449,20 @@ rm -f "$WV/.env"
 ln -s "$T/outside.env" "$WV/.env"
 out=$(RV "$WV" --task-id V8 2>&1); rc=$?
 eq "JRN-003 a link to a file outside the repository passes" "$rc" 0
+t "a refused link check writes no evidence" 0 test ! -e "$SVC_EV/V7/toolchain.json"
+rm -f "$WV/.env"
+touch "$UP_FAILS"
+out=$(RV "$WV" --task-id V9 --e2e 2>/dev/null); rc=$?
+eq "a failing services_up is tried once and neither test nor e2e runs" "$rc:$(calls)" "1:lint 1 s007 100|up $WV 1 s007 100|"
+eq "a failing services_up is a failed result and the keys that need it are skipped" \
+  "$(jq -c '[.results[] | select(.key == "services_up" or .key == "test" or .key == "e2e") | [.key, .status]]' <<<"$out")" \
+  '[["services_up","fail"],["test","skipped"],["e2e","skipped"]]'
+rm -f "$UP_FAILS"
+git -C "$V" worktree add -q "$T/svc-loose" -b loose
+out=$(RV "$T/svc-loose" --task-id V10 2>&1); rc=$?
+check "a worktree outside any spec worktree has no isolation values, so nothing runs and the exit is 2" \
+  '[ $rc -eq 2 ] && [ -z "$(calls)" ]' "rc=$rc calls=$(calls) $out"
+git -C "$V" worktree remove --force "$T/svc-loose"
 
 # The modules that read `tree` describe it as the script builds it: rules.md and the profiles count, so a 5.3 edit to them re-runs.
 # shellcheck disable=SC2034  # read inside the eval'd check strings below
