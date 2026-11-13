@@ -156,7 +156,7 @@ run_worktree_setup() {
   #   to their own, and a chatty setup command would bury the lines they print.
   (
     cd "$worktree" || exit 2
-    export WF_SLOT=$SLOT WF_INSTANCE=$INSTANCE WF_PORT_OFFSET=$((SLOT * 100)) WF_MAIN_ROOT=$MAIN_ROOT WF_SPEC_ROOT=$SPEC_ROOT
+    eval "$(print_isolation_values)" || exit 2
     exec bash -c "$setup_command"
   ) >"$SCRATCH/setup-stdout" || setup_status=$?
   if [[ $setup_status -ne 0 ]]; then
