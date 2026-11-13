@@ -1,0 +1,35 @@
+verdict: pass
+task_id: T1
+work_type: agent-docs
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_t1@4e5e86b0ab3fa7a34d501da533a8c6fd125e8c9a..HEAD
+tool_output: .workflow/specs/00016-per-run-handoffs/artifacts/T1/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/skills/handoff/SKILL.md:3 (description keeps the clause "Use when the user asks to hand off, pause or end a session, ..." after the new location sentence)
+  - n: 2
+    verdict: not-applicable
+    location: no agent file is added or changed in the diff (only .agents/skills/handoff/SKILL.md and .agents/skills/handoff/assets/handoff.md)
+  - n: R1
+    verdict: pass
+    location: .agents/skills/handoff/SKILL.md:24-30 (root, handoff_dir, suffix, file, stem all name what they hold; file is the handoff path and is used as $file at SKILL.md:69, so it stays)
+  - n: R2
+    verdict: pass
+    location: .agents/skills/handoff/SKILL.md:35 (the reason for the folder's own .gitignore and the new-file-per-run rule is given in prose; no body comment in the bash block needs a reason)
+  - n: R3
+    verdict: pass
+    location: no comment added in the bash blocks of .agents/skills/handoff/SKILL.md; the only comment in the diff is the template header at .agents/skills/handoff/assets/handoff.md:9-13, which describes the file and does not restate a line
+  - n: R4
+    verdict: pass
+    location: .agents/skills/handoff/assets/handoff.md:9-13 (the File header block names .workflow/.handoff/ and hooks/session-start-resume.sh; this is the file's interface header, which R4 allows, and the block is deleted from every finished handoff)
+  - n: R5
+    verdict: pass
+    location: .agents/skills/handoff/SKILL.md:35 and .agents/skills/handoff/SKILL.md:69 (short plain sentences; no project shorthand in the added prose or template header)
+read_outside_diff:
+  - ".workflow/specs/00016-per-run-handoffs/artifacts/T1/toolchain.json: which toolchain keys ran and passed (lint pass, test pass, typecheck/format/boundary skipped)"
+  - ".workflow/specs/00016-per-run-handoffs/artifacts/T1/toolchain.txt: confirmed lint/step-list PASS at line 10 and lint exit 0 at line 22"
+  - ".workflow/specs/00016-per-run-handoffs/artifacts/T1/implementation.yaml: the implementer self_review, checked item by item against the diff"
+  - ".agents/skills/feature-workflow/references/readable-code.md: rules R1 to R5, the Checking section and the Checking at 3.7 lines"
+not_checked:
+  - "implementation.yaml summary and discovered_work say the lint key fails on lint/step-list, but toolchain.json and toolchain.txt record lint as pass with exit 0; the orchestrator should trust the toolchain files, and the implementer report is stale or wrong on this point. Settled by re-reading toolchain.txt, which was done for this review and is not a finding against the diff."
+out_of_scope_noticed: []

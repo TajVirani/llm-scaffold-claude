@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Handoff skill writes per-run session handoffs in the session's checkout"
-    status: pending
+    status: done
     capability: CAP-NEW-per-run-handoffs
     depends_on: []
     touches_core: false
@@ -20,7 +20,7 @@ tasks:
     issue: null
   - id: T2
     title: "Session-start offer lists session handoffs per checkout"
-    status: pending
+    status: done
     capability: CAP-NEW-per-run-handoffs
     depends_on: []
     touches_core: false

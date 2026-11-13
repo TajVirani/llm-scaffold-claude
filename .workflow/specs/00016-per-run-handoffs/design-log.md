@@ -192,3 +192,11 @@ Agreement: agreed in Questioning round 1
 - Offered for veto: no numeric targets beyond the offer's size cap, the seams the tasks are tested at, which rules.md names the main branch for the drift check, the hook's doc row is part of the hook change, which checkouts a session's offer covers; vetoed: none
 - Size: within the project defaults: 2 tasks, 4 predicted files
 - Decision: **D10** Two tasks in one wave: T1 (handoff skill) and T2 (session-start offer), run in parallel.
+
+## 2026-11-12 Discovered work: step-list-lint-in-agent-worktree
+
+- Found at: step 3.4 by implementation T1 (`artifacts/T1/implementation.yaml`), and seen in the 1.4 scratch worktree. Kind: bug
+- Problem and evidence: `lint/step-list` fails in any agent or scratch worktree: `tests/lint/step-list.sh:117` requires every path `checklist.md` names to exist, and `checklist.md:328` names `.workflow/.worktrees/`, an ignored folder that exists only in a checkout that holds agent worktrees. Reproduction: `run-toolchain.sh --task-id T1` in `s00016_t1` prints `FAIL every file path the decision flow, assetlist.md and checklist.md name exists got=checklist.md:328: .workflow/.worktrees/`.
+- Assessment and ruling: to ask (out of scope), recommended keep for later because it predates this spec, touches neither of its modules and no journey needs it. For this spec's gates the folder is created empty in each task worktree (it is ignored), so the lint check runs as it does in the spec checkout.
+
+- 2026-11-12 3.16: task PRs skipped for T1 and T2 (`open-task-pr.sh`: gh not installed); both merged locally, `pr` stays null.

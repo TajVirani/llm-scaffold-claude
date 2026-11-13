@@ -1,0 +1,35 @@
+status: discovered-work
+summary: "The handoff skill's Locate block now writes a per-run file <stem>--<UTC time>-<4 chars>.md into .workflow/.handoff/ of the session's own checkout and drops a .gitignore holding * there; Resume takes a handoff named by path without asking, deletes it once its successor is written, and sets its own root for the drift check. scripts/handoff-skill (11/11) and lint/frontmatter pass and the work is committed; the toolchain's lint key fails only on lint/step-list, which flags checklist.md:328 naming .workflow/.worktrees/, a gitignored folder that does not exist inside any task worktree. That file and suite are untouched by this task."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_t1"
+branch: "task/00016-per-run-handoffs/T01-handoff-skill-per-run"
+base_commit: "4e5e86b0ab3fa7a34d501da533a8c6fd125e8c9a"
+head_commit: "e369a53e2a7fdf4150c71352fad2c16148eb9bb6"
+files_changed: [".agents/skills/handoff/SKILL.md", ".agents/skills/handoff/assets/handoff.md"]
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/handoff-skill; FAIL scripts/handoff-skill passed=0 failed=11 (Locate has no single bash block naming .gitignore; Resume section lacks: without asking)"
+  green: "tests/run-all.sh --suite scripts/handoff-skill --suite lint/frontmatter; PASS scripts/handoff-skill passed=11 failed=0; PASS lint/frontmatter passed=39 failed=0"
+  suite: "bash <spec>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00016-per-run-handoffs --task-id T1 --cwd <worktree>; scoped test TOTAL passed=1034 failed=1 (29 suites), the one failure lint/step-list"
+  toolchain: ".workflow/specs/00016-per-run-handoffs/artifacts/T1/toolchain.txt (fail)"
+considered_not_built:
+  - "Calling wf_main_root or a shared script from the Locate block: the skill may depend on no other module, so the block stays inline."
+  - "Creating an empty .workflow/.worktrees/ in the task worktree to quiet lint/step-list: it would hide the real path check rather than fix it."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: bug
+    summary: "lint/step-list fails in every task worktree because checklist.md:328 names .workflow/.worktrees/, a gitignored folder that exists only in the spec checkout holding task worktrees, so the agent-docs lint key cannot pass at 3.5 in any agent worktree."
+    evidence: "run-toolchain.sh --task-id T1 in s00016_t1: 'FAIL every file path the decision flow, assetlist.md and checklist.md name exists / got=checklist.md:328: .workflow/.worktrees/' (tests/lint/step-list.sh:117); 'ls -d .workflow/.worktrees' in the worktree: No such file or directory; git diff 4e5e86b -- checklist.md tests/lint is empty."
+    blocker_assessment: can-wait
+    reason: "The task's behaviour is complete and its own suites pass; the failure comes from an unchanged file and the worktree layout, and the whole harness at the 3.9 gate runs in the spec checkout, where the folder exists. It does block a clean toolchain run and stop audit in every agent worktree until step-list allows the path or checklist.md stops naming it."
+self_review:
+  - {item: 1, verdict: pass, note: "SKILL.md frontmatter description keeps its 'Use when ...' clause after the new location sentence"}
+  - {item: 2, verdict: not-applicable, note: "no agent added or changed"}
+  - {item: R1, verdict: pass, note: "Locate block names handoff_dir, suffix, file, root; no generic names"}
+  - {item: R2, verdict: pass, note: "the prose under the block says why the folder carries its own .gitignore"}
+  - {item: R3, verdict: pass, note: "no comments added in the bash blocks"}
+  - {item: R4, verdict: pass, note: "no decision ids or workflow doc paths in comments; the template comment names only the handoff folder, its interface"}
+  - {item: R5, verdict: pass, note: "plain wording in Locate, step 4, Resume and the template comment"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over SKILL.md and assets/handoff.md exits 0"}
