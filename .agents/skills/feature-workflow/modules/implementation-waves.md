@@ -70,10 +70,10 @@ After 3.2's merges, commit the workflow data you have written since the last com
 
 ```bash
 .agents/skills/feature-workflow/scripts/commit-workflow-data.sh .workflow/specs/NNN-slug -m "Workflow data for NNN-slug: wave <N> start"
-git worktree add .workflow/.worktrees/<task_name> -b <branch> spec/NNN-slug
+.agents/skills/feature-workflow/scripts/worktree-setup.sh agent <task_name> <branch>
 ```
 
-A worktree that already exists (resume, fix round, rework) is reused. Integration worktrees are created at 3.2, in `modules/implementation-shared-core.md`.
+It sets the worktree up and prints `worktree <path>`; one that exists (resume, fix round, rework) is reused. Integration worktrees are created at 3.2, in `modules/implementation-shared-core.md`.
 
 ### 3.3 Launch the wave
 
@@ -123,7 +123,7 @@ When every task of the wave has passed 3.8 (or is blocked), take the passing tas
    The light path merges its task branch the same way, `--no-ff`, so `git log` names T1 by its merge as on the full path.
 
    Merge only on gate exit 0. Exit 1 prints each path under `artifacts/` that the task adds, changes or deletes: resume the implementer with those lines to drop that change from its commits (its result file belongs in the spec checkout only), then run the gate again; the tasks after it in id order wait. Exit 2 is a usage or environment error: fix the cause and run it again.
-3. **Clean up.** With `pr` or `pr-blocking`, push the spec branch so the PR/MR shows as merged. Then, on both paths, `git worktree remove .workflow/.worktrees/<task_name>` and `git branch -d <branch>` (the safe delete: the branch is merged). The next wave forks from the new spec-branch tip.
+3. **Clean up.** With `pr` or `pr-blocking`, push the spec branch so the PR/MR shows as merged. Then, on both paths, `.agents/skills/feature-workflow/scripts/worktree-setup.sh remove <task_name>` and `git branch -d <branch>` (the safe delete: the branch is merged). The next wave forks from the new spec-branch tip.
 4. **Commit the workflow data.** Once the wave's merges are done, commit what the wave wrote under `.workflow/` (task records, gate evidence under `artifacts/`, `design-log.md`, deferred items, decisions) on the spec branch, so it sits beside the merged code:
 
    ```bash
