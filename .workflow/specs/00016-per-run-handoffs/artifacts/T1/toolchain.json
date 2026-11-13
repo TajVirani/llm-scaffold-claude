@@ -5,7 +5,7 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_t1/.workflow/profiles/agent-docs.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/.worktrees/s00016_t1",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00016-per-run-handoffs/.workflow/specs/00016-per-run-handoffs/artifacts/T1",
-  "tree": "7ed444791b526be4cefa2826d6e19865ca811e6f",
+  "tree": "4ef46d905059eeab52fb6b1f92d0f5039ea0de91",
   "ran": 2,
   "results": [
     {
@@ -42,9 +42,10 @@
       "exit_code": 0,
       "scoped": true,
       "own": 1,
-      "excluded": 1,
-      "changed": 2
+      "excluded": 0,
+      "changed": 3
     }
   ],
-  "digest": ""
+  "digest": "",
+  "reused_from": "T1"
 }

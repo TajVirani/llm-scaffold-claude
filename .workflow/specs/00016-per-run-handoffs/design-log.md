@@ -202,3 +202,15 @@ Agreement: agreed in Questioning round 1
 - 2026-11-12 3.16: task PRs skipped for T1 and T2 (`open-task-pr.sh`: gh not installed); both merged locally, `pr` stays null.
 
 - 2026-11-12 3.14: browser gate skipped; no e2e-browser profile. Added a Later requests line to [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md).
+
+## 2026-11-12 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 (RS-1) | review-standards | The Locate step says "a task worktree", an alias the glossary tells us to avoid for **Agent worktree** | `.agents/skills/handoff/SKILL.md:21` | low | `.workflow/GLOSSARY.md`, Agent worktree: "_Avoid_: Task worktree"; the line reads "(a spec worktree, a task worktree or the main checkout)" | patch (T1) |
+| F2 (RS-2) | review-standards | The lineage entry for the handoff skill still records the main-checkout location and the install.sh ignore block | `upstream-lineage.json:2372` | low | `.workflow/rules.md` Cross-cutting policy requires the entry's `changes` to describe the asset; the line reads "a gitignored .workflow/.handoff/ in the main checkout (install.sh's .gitignore block)" | patch (T1) |
+| F3 (RE-1) | review-end-state | The JRN-003 check runs the Locate block twice without fixing the clock, so it does not prove two names made in the same second differ | `tests/scripts/handoff-skill.sh:82-90` | low | verification-plan.md JRN-003 step 1 says "with the clock fixed"; the suite puts no stub `date` on PATH and never compares the two timestamps | patch (T1) |
+
+Failed lenses: none
+Gaps: review-targets: the three Targets rows are not measurable (offer size and exit 0 are asserted by the suite; no coverage tool); review-end-state: whether a live SessionStart payload's `cwd` for a session started in a spec worktree is the worktree path, settled by starting a real session there and reading the offer.
+Outcome: rework 1 of 5
