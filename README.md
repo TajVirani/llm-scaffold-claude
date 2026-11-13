@@ -85,7 +85,7 @@ In target projects, used by the workflow at runtime:
 - It copies the first-party payload listed in `.agents/install-manifest.txt` into `<target>/.agents/` and writes `<target>/.agents/VERSION`. Vendored skills are never installed (D71, D72).
 - Claude: it creates the `.claude/{skills,agents,output-styles}` symlinks and merges `.agents/hooks/claude-settings.template.json` into `.claude/settings.json`. The merge keeps your keys, hooks and deny rules, and it keeps your `outputStyle` and `statusLine` with a warning. The default `statusLine` is the context bar, `context-bridge.cjs` (D83).
 - Codex: it generates `.codex/agents/*.toml` and merges the hook and config templates into `.codex/hooks.json` and `.codex/config.toml`, including a `[tui] status_line` of built-in items as the context bar (D83; a `[tui]` table you already have is kept with a warning). Afterwards, start Codex in the project, trust its `.codex/` layer and review the hooks with `/hooks`. Do this again after every upgrade.
-- It adds `.workflow/specs/*/.step`, `.workflow/initiatives/*/.step`, `.workflow/.worktrees/`, `.workflow/.spec-worktrees/`, `.workflow/.handoff/` and `.workflow/.standards-staging/` to `.gitignore`, for every `--host`. It does not create `.workflow/` itself; `project-setup` does.
+- It adds `.workflow/specs/*/.step`, `.workflow/initiatives/*/.step`, `.workflow/.worktrees/`, `.workflow/.spec-worktrees/`, `.workflow/.handoff/`, `.workflow/.standards-staging/` and `.workflow/.slot` to `.gitignore`, for every `--host`. It does not create `.workflow/` itself; `project-setup` does.
 - It never touches project-owned files: everything under `.workflow/` (the glossary, rules, profiles, model map, specs, deferred items and decisions), `e2e/` and the project's own `docs/` (D81). The one exception is an upgrade from an older format, below.
 - `--dry-run` prints the changes and writes nothing. When something conflicts, it refuses before writing anything; `--force` replaces the conflicting entries instead (see the header of `install.sh`).
 
@@ -109,3 +109,26 @@ Hook matchers on upgrade: when an existing hook group runs a scaffold hook under
 Upgrade note (D75): `design-pattern-doc` conventions and `pr-quality`'s project-specific modules are now project-owned. If an earlier install gave your project `.agents/skills/design-pattern-doc/conventions.md`, or pr-quality's `modules/legend-state-review.md` or `modules/project-pitfalls.md`, the upgrade prunes them. Before upgrading, copy them to `.workflow/design-pattern-doc/conventions.md` and `.workflow/pr-quality/`. The athena originals were removed from this repo (its git history has them).
 
 After the first install, run the `project-setup` skill in the target project. It creates the `.workflow/` folder, where every piece of workflow data lives (glossary, rules, capabilities, decisions, profiles, model map, specs, deferred items, tools and handoffs), and only `e2e/` (the app's browser tests) stays at the project root. It then runs the standards interview (`project-standards`) before offering example profiles or installing any toolchain. Installs made before this layout are not migrated (workflow 2.0 is unreleased); re-run `project-setup` on a clean project.
+
+## Worktree setup
+
+The workflow builds each spec in its own git worktree, the spec worktree, under `.workflow/.spec-worktrees/`. Each task, Phase 1 suite and integration batch then gets an agent worktree inside the spec checkout, under `.workflow/.worktrees/`. Worktree setup makes each new worktree ready to build and test, so nobody copies files or starts services by hand. One script does it: `.agents/skills/feature-workflow/scripts/worktree-setup.sh`. It creates every agent and scratch worktree and sets up every worktree; `spec-worktree.sh` calls it for each new spec worktree.
+
+A project declares what it needs. `project-setup` asks when it creates `.workflow/rules.md`; later changes go through a sign-off proposal.
+
+- `.worktreeinclude`, at the repository root: gitignore-style patterns for the gitignored files a worktree needs, such as `.env`. Each matching file the main checkout's git ignores is copied in as a regular file, never as a link. A tracked file is never copied, and a file the worktree already has is kept.
+- `worktree_setup`, in the `## Workflow settings` block of `.workflow/rules.md`: one shell command that makes a new worktree ready, such as a dependency install. It runs in each new spec, agent and scratch worktree, after the copy. A non-zero exit fails the setup.
+- `services_up`, in the same block: starts the services the test and e2e commands need. The toolchain run (`run-toolchain.sh`) runs it itself, once, in the spec worktree, just before the first test or e2e command it will really run. It must be safe to run when the services are already up. When it fails, the run fails and the tests are skipped.
+- `services_down`, in the same block: stops what `services_up` started. It runs when the spec worktree is removed. A failure is reported and the removal goes on.
+
+Each of these commands, and every toolchain command, receives five isolation values. The project's own commands turn them into ports, container names and database names, so two specs and the main checkout never share them. The workflow sets nothing project-specific.
+
+- `WF_SLOT`: the spec's number among the live spec worktrees, 0 in the main checkout. A spec worktree takes the lowest free slot and keeps it in `.workflow/.slot`; its agent and scratch worktrees read it from there.
+- `WF_INSTANCE`: `s<NNN>` for spec number NNN, or `main`.
+- `WF_PORT_OFFSET`: the slot times 100.
+- `WF_MAIN_ROOT`: the path of the main checkout.
+- `WF_SPEC_ROOT`: the path of the spec worktree (the main checkout for a spec that runs there).
+
+Setup ends with the link check, and every toolchain run starts with it. It fails when a symlink in the worktree, dependency folders included, resolves into the main checkout or another worktree of the repository. A link to a path outside the repository passes.
+
+A project that declares none of these behaves as it did before: the workflow only adds each worktree.
