@@ -1,0 +1,40 @@
+lens: review-combined
+status: done
+blocked_reason: ""
+baseline_revision: "317fdd0f82a86dd95ef360fd59d5ea9dbc8f5575"
+head: "7aee441283a2605f219553526df314564afb7630"
+findings:
+  - id: RC-1
+    category: wrong
+    severity: medium
+    confidence: 90
+    location: ".agents/hooks/claude-settings.template.md:9"
+    claim: "The installed hook-wiring doc still describes the old handoff rule (main checkout sees spec worktrees only; any other checkout sees the main checkout only), which this change replaced."
+    consequence: "Every target project gets a settings rationale doc that contradicts what session-start-resume.sh now does from a session worktree and from the main checkout; a developer or agent reading it to understand or debug the offer is told a session worktree sees only the main checkout's handoffs, the exact behaviour CAP-015 removes."
+    evidence:
+      basis: "CAP-015 intent: \"A session in any checkout that is not a spec worktree is offered its own handoffs and every other worktree's (main, spec worktrees, other session worktrees)\". Template line 9 (unchanged by the diff, shipped via .agents/install-manifest.txt:60): \"Handoffs are listed per checkout: the session's own checkout first, then (from the main checkout) each spec worktree's or (from any other checkout) the main checkout's.\" Same mistake as pitfall \"Grep the modules for the old behaviour when a loop-back decision changes a script\" and RL-003 (whose paths do not cover .agents/hooks/**)."
+      diff: "+if grep -qxF -- \"$own_checkout\" <<<\"$spec_worktrees\"; then\n+  other_checkouts=$root\n+  other_checkouts=${all_worktrees:-$root}"
+    suggested_fix: "Rewrite the SessionStart row's handoff sentence: the own checkout's first, then from a spec worktree the main checkout's, and from any other checkout every other registered worktree's. Consider widening RL-003's paths to .agents/hooks/*.md at 5.7."
+checked:
+  - "git diff 317fdd0f...HEAD (7 files, +71/-20) excluding the spec folder; git log of 9 commits"
+  - ".workflow/specs/00017-handoffs-from-session-worktrees/spec.md, tasks.md, tasks/T01-session-worktree-offer.md, design-log.md (D4, D5)"
+  - "artifacts/T1/toolchain.txt and artifacts/gate-3.9-w1/toolchain.txt (80 suites, 4885 passed, 0 failed): lint and test taken as settled"
+  - "CAP-015 success, part 1: hook from a session worktree lists a spec worktree's and a sibling session worktree's handoff by absolute path (session-start-resume.sh other_checkouts=${all_worktrees:-$root}; tests/hooks/audit-sync-resume.sh session-worktree check)"
+  - "CAP-015 success, part 2: from a spec worktree no sibling spec worktree's handoff (grep -qxF own_checkout in spec_worktrees -> root only; test asserts no BETA, sibling or own-session handoff)"
+  - "CAP-015 success, part 3: handoff SKILL.md Resume step 1 is the move (EnterWorktree path form, matching feature-workflow SKILL.md:52 and assetlist D111)"
+  - "Constraint: Locate block calls no script - the Locate bash block is unchanged; only prose in step 2 changed"
+  - "Constraint: cap of 3, newest first per group, character cap - listing loop unchanged; test asserts '... and 2 older not listed.'"
+  - "Non-goals: no cleanup of target worktrees, no moving nested spec worktrees, no main-checkout-resolver change; .agents/lib untouched"
+  - "Assumption accepted (spec Assumptions): every non-spec registered worktree, agent and task worktrees included, gets the main checkout's view; not flagged"
+  - "Resume renumbering: design-log asset now points at Resume step 4; no other 'Resume step N' reference in .agents/"
+  - ".workflow/rules.md, .workflow/profiles/shell-scripts.md, .workflow/profiles/agent-docs.md (by grep), .workflow/GLOSSARY.md (Session worktree term present at baseline and used correctly)"
+  - ".agents/skills/feature-workflow/references/readable-code.md: added hook and test comments give reasons; shellcheck directives carry reasons; no R1 or R3 breach found"
+  - ".agents/agents/review-standards.md Smell baseline: nothing matched"
+  - ".workflow/review-lessons.md (RL-001..RL-009, RL-007 retired): RL-003 and RL-008 checked against SKILL.md hunks, RL-006 against tests hunks; no repeat in matching paths"
+  - ".workflow/decisions/pitfalls.md and retrospectives/*.md Process lessons: one repeat (stale behaviour description), reported as RC-1"
+  - "Known gap set aside: browser suite skipped (spec Known gaps line 1); .workflow/deferred/browser-suite.md line added accordingly"
+not_verifiable:
+  - "Success signal (a fresh Claude Code desktop session worktree in a real project offers the spec's handoff and moves into the spec worktree): needs a live session; check by starting one in a session worktree of a project with a spec in flight."
+  - "Resume step 1 for a handoff in the main checkout read from a spec or session worktree: whether Claude Code's EnterWorktree accepts the main checkout's path (not a linked worktree) is host behaviour; check live, or confirm ExitWorktree is the route back to main."
+not_checked:
+  - "PROVENANCE.md:166 says the handoff location is 'in the main checkout' - stale since spec 00016, pre-existing and not touched here; not reported."

@@ -122,3 +122,15 @@ Agreement: agreed in Questioning round 1
 ## 2026-11-13 Suite gap at 3.14
 
 - Browser suite missing (no e2e-browser profile): 3.10-3.11 skipped; Later requests line added to .workflow/deferred/browser-suite.md.
+
+## 2026-11-13 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 (RC-1) | review-combined | The hook wiring doc still states the old handoff rule (main sees spec worktrees only; any other checkout sees main only) | `.agents/hooks/claude-settings.template.md:9` | low | Line 9 read: "(from the main checkout) each spec worktree's or (from any other checkout) the main checkout's", contradicting CAP-015 as changed in spec.md; wording only, no behaviour | patch (applied directly, T1's area) |
+
+Failed lenses: none
+Targets: no targets (light path)
+Gaps: (1) review-combined: the Success signal needs a live Claude Code desktop session started in a session worktree of a project with a spec in flight; settle by starting one. (2) review-combined: whether Claude Code's EnterWorktree switches from a session worktree into a spec worktree under `.workflow/.spec-worktrees/` (its tool notes say a switch from inside a worktree targets `.claude/worktrees/`) and into the main checkout; settle live in a desktop session. Not checked: `PROVENANCE.md:166` states the pre-00016 handoff location, pre-existing.
+Outcome: clean, to sign-off
+Patched directly: F1 (f8af45a)
