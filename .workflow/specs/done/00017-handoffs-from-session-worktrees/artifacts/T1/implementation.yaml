@@ -1,0 +1,35 @@
+status: done
+summary: "Fix round after the 3.9 gate: tests/hooks/audit-sync-resume.sh line 400 split so the entries assignment sits on its own line under the file's existing SC2034 disable directive with its reason. Test-harness lint is clean and the suite passes 70/70."
+task_id: T1
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/.worktrees/s00017_t1"
+branch: "task/00017-handoffs-from-session-worktrees/T01-session-worktree-offer"
+base_commit: "53247c278d5de3f637478e21af311c73c8c90779"
+head_commit: "bebc44db9a19634b91d298503884b87802c3f093"
+files_changed: ["tests/hooks/audit-sync-resume.sh"]
+tests_added: []
+evidence:
+  red: "shellcheck -x -P SCRIPTDIR tests/hooks/audit-sync-resume.sh; In tests/hooks/audit-sync-resume.sh line 400: SC2034 (warning): entries appears unused."
+  green: "test-harness lint (shellcheck over tests/*.sh plus check-comments.sh) exit 0; tests/run-all.sh --suite hooks/audit-sync-resume: passed=70 failed=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00017-handoffs-from-session-worktrees --task-id T1 --cwd <worktree>; test pass (scoped, changed=1)"
+  toolchain: ".workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.txt (pass)"
+considered_not_built: []
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "no script change; test fixture only"}
+  - {item: 2, verdict: not-applicable, note: "no hook change"}
+  - {item: 3, verdict: not-applicable, note: "no error path changed"}
+  - {item: 4, verdict: not-applicable, note: "no write or check under || die"}
+  - {item: 5, verdict: not-applicable, note: "no exit code changed"}
+  - {item: 6, verdict: not-applicable, note: "no sibling path resolution changed"}
+  - {item: 7, verdict: not-applicable, note: "header block untouched"}
+  - {item: 8, verdict: pass, note: "edited file keeps its existing syntax; no new file"}
+  - {item: 9, verdict: pass, note: "tests/hooks/audit-sync-resume.sh:401 disable=SC2034 carries its reason, matching :375"}
+  - {item: R1, verdict: not-applicable, note: "no new names"}
+  - {item: R2, verdict: pass, note: "directive comment gives the why: entries is read inside the eval'd check expression"}
+  - {item: R3, verdict: not-applicable, note: "no new logic"}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh; the comment points at no document"}
+  - {item: R5, verdict: pass, note: "no shorthand added"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over tests/*.sh exits 0"}

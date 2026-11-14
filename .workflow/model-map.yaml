@@ -27,6 +27,7 @@ implementation:
     - '2026-11-02 (claude, spec 009-slim-workflow-context): wrote `self_review[].item` as a quoted string in T1 and T2 (wave 1) and again in T1, T9 and T10 (rework 1), each fixed in one resume (backlog B2); every rework converged in one launch. No alias change.'
     - '2026-11-03 (claude opus, spec 00014-tracker-issue-spec-ids): 10 tasks; 3 behaviour fix rounds (T3, T5, T8) and 5 wording rounds, each converging in one launch; wave-1 agents (T1, T2, T3) wrote quoted `self_review[].item` until the brief named the unquoted form; T8 first skipped negative tests ("tests/ is outside the module") and added 16 on one resume. No alias change.'
     - '2026-11-12 (claude opus, spec 00015-worktree-provisioning): nine tasks and one rework, each converging in one launch; gate 3.4 sent T1 and T3 back for listing no tests of their own, and T2 correctly returned discovered work for a lint that failed in every new worktree. No alias change.'
+    - '2026-11-13 (claude opus, spec 00017-handoffs-from-session-worktrees): T1 done in one launch with 7 tests (negative and edge included) and reported the stale step reference it caused as discovered work; it did not run the test-harness lint on its new tests, so the 3.9 gate cost one fix round, which converged in one launch. No alias change.'
 integration:
   tier: strong
   claude: opus

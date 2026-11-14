@@ -14,6 +14,12 @@ Entry shape (newest first):
 -->
 # Pitfalls
 
+## Lint a task's tests with the test-harness profile too
+- What happened: T1 (work type shell-scripts) changed `tests/*.sh`; its toolchain linted only the shell-scripts paths, so a shellcheck SC2034 warning in the new test reached the merged spec branch and failed the 3.9 gate, costing a fix round.
+- Where: implementation-setup 3.1 classification; `run-toolchain.sh` per-task lint
+- Spec: .workflow/specs/done/00017-handoffs-from-session-worktrees
+- Prevented by: none yet (brief the implementer to run the test-harness lint when its task changes `tests/`, or let `run-toolchain.sh` lint changed files by the profile that owns each path)
+
 ## Give every new spec or task key a writer step
 - What happened: the spec template gained `tracker_issue` and six steps read it, but no step wrote it; 0.1.4 still said "frontmatter unchanged", so on a tracker project every later tracker call would have exited 2 (F1, high, fixed in rework 1)
 - Where: `.agents/skills/feature-workflow/modules/discovery.md` (0.1.4)

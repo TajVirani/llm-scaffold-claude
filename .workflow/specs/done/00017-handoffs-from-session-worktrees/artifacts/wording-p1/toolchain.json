@@ -1,0 +1,48 @@
+{
+  "status": "pass",
+  "task_id": "wording-p1",
+  "work_type": "agent-docs",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/profiles/agent-docs.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/wording-p1",
+  "tree": "b075b46d9859300d8b86573878b260ab4eb867b2",
+  "ran": 1,
+  "results": [
+    {
+      "key": "lint",
+      "command": "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh",
+      "status": "pass",
+      "exit_code": 0,
+      "reused_from": "gate-3.9-w1",
+      "reason": "no code changed since that run: only comments and docs differ"
+    }
+  ],
+  "digest": ""
+}

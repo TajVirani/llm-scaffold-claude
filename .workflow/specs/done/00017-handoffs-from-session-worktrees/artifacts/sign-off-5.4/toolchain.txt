@@ -1,0 +1,7 @@
+== lint: git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh
+== lint exit 0
+
+== test: tests/run-all.sh
+(not run: passed in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/wording-p1/toolchain.txt on a tree that differs only in comments and docs)
+== test exit 0
+

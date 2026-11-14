@@ -1,0 +1,58 @@
+verdict: pass
+task_id: T1
+work_type: shell-scripts
+diff: worktree@b27276d..HEAD (whole task diff from the wave-start commit; the launch base 53247c2 holds only the fix commit bebc44d)
+tool_output: .workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.json
+items:
+  - n: 1
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:77-79 (new worktree lines spell no .workflow path; handoff reads still go through $WF_HANDOFF at :105), tests/hooks/audit-sync-resume.sh:383-410 (test fixture, spelling paths is allowed)
+  - n: 2
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:77-115 (worktree selection inside the hook's existing spec and handoff scan; tests/README.md says the handoff skill has no script, so the hook is where this logic already lives; no skill logic added)
+  - n: 3
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:77 (git worktree list with 2>/dev/null and || true; the pre-change spec_worktrees line had the same silent fallback, and an empty result falls back to $root at :109, so no new silent path)
+  - n: 4
+    verdict: not-applicable
+    location: no new write or check inside a loop or command substitution whose caller adds || die or || exit; the new substitutions carry their own || true
+  - n: 5
+    verdict: not-applicable
+    location: no exit code added or changed; the hook still exits 0 on every path it had before
+  - n: 6
+    verdict: not-applicable
+    location: no sibling source line changed; the BASH_SOURCE line at .agents/hooks/session-start-resume.sh:62 is untouched by the diff
+  - n: 7
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:1-47 (File, Goals, Triggers, Behaviour, Outputs, Wiring, Notes, Sources kept in order; the edited Triggers bullet at :11-19 and handoff bullet at :42-46 state the new rule; no decision id added)
+  - n: 8
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:77-115 (existing bash style kept, no new file); tests/hooks/audit-sync-resume.sh:383-410 and tests/scripts/handoff-skill.sh:117-126 (edited files keep the [ ] test syntax and the check helper)
+  - n: 9
+    verdict: pass
+    location: tests/hooks/audit-sync-resume.sh:401 (the new SC2034 directive has its reason and sits directly above the assignment it covers); no new function in the diff; shellcheck -x on both changed test files at bebc44d exits 0
+  - n: R1
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:77-79 (worktree_list, spec_worktrees and all_worktrees each say what they hold), tests/hooks/audit-sync-resume.sh:384 (SIBLING_WT), tests/scripts/handoff-skill.sh:117-126 (first_resume_step, locate_section)
+  - n: R2
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:99-102 (gives the reason a spec worktree sees only the main checkout's handoffs and other checkouts see every worktree's); tests/hooks/audit-sync-resume.sh:401 (the directive reason says why the variable looks unused)
+  - n: R3
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:99-102 (states reasons, not the next lines); tests/hooks/audit-sync-resume.sh:383 ("WT is a session worktree" states the non-spec branch rule the hook depends on, which the fixture setup at :72-73 does not show; it does not narrate the steps below)
+  - n: R4
+    verdict: tool-covered
+    location: .agents/hooks/session-start-resume.sh:99-102
+    note: covered by the lint key's comment lint check-comments.sh; I also ran it on both changed test files at bebc44d and it exits 0; no changed body comment points at a docs/ path or an internal URL
+  - n: R5
+    verdict: pass
+    location: .agents/hooks/session-start-resume.sh:42-46 ("session worktree" is explained in place with .claude/worktrees/<name>); tests/hooks/audit-sync-resume.sh:383 (plain words)
+read_outside_diff:
+  - ".agents/skills/feature-workflow/references/readable-code.md: rules R1-R5 and Checking at 3.7"
+  - ".workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.json: tool keys that ran; its test key tree is bdb2079, HEAD tree is 1597fe6"
+  - ".workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1/mini-review-r1.yaml: round-1 verdicts; its out-of-scope design-log Resume step 3 entry is resolved, design-log.md:3 now reads step 4 and SKILL.md Main drift is step 4"
+  - "tests/hooks/audit-sync-resume.sh at bebc44d via git show: fixture setup at :72-73 and :339-342 for the R3 judgement at :383"
+not_checked:
+  - "tests/scripts/handoff-skill.sh suite was not run by me; only shellcheck and check-comments were run on it, both clean at bebc44d"
+  - "toolchain.json records tree bdb2079 but HEAD tree is 1597fe6bf59e99c16ab5aaf5d79842136272324c, so its test key predates the fix commit; my own run of the hooks/audit-sync-resume suite at bebc44d passed 70 of 70"
+out_of_scope_noticed: []

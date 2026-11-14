@@ -5,7 +5,9 @@
 #   worktree (JRN-001: the folder, its `*` ignore file and the new file name sit under the worktree, the main checkout
 #   gets no handoff folder), in a repo with no workflow ignore block (JRN-002: git status names no handoff path) and twice
 #   for one spec (JRN-003: two different names in the `<stem>--<UTC time>-<4 chars>.md` shape); the Resume section's
-#   wording (JRN-006: resumed without asking, and the resumed handoff deleted). The extracted block is shellcheck-clean.
+#   wording (JRN-006: resumed without asking, and the resumed handoff deleted; its first step moves the session into the
+#   checkout the handoff sits in, by EnterWorktree or by reopening the session there); the Locate section naming session
+#   worktrees among the checkouts a handoff is written in. The extracted block is shellcheck-clean.
 # shellcheck disable=SC2016,SC2034  # check expressions are single-quoted and eval'd on purpose, so their variables look unused
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -111,6 +113,16 @@ check "JRN-006 Resume section says a handoff named by path is resumed without as
   'grep -qF "without asking" <<<"$resume_section"' "Resume section lacks: without asking"
 check "JRN-006 Resume section says to delete the handoff you resumed from" \
   'grep -qF "delete the handoff you resumed from" <<<"$resume_section"' "Resume section lacks: delete the handoff you resumed from"
+
+echo "== resuming a handoff from another checkout"
+first_resume_step=$(sed -n '/^1\. /,/^2\. /p' <<<"$resume_section" | sed '$d')
+check "Resume step 1 moves the session into the checkout the handoff sits in, with EnterWorktree on Claude Code" \
+  'grep -qF "checkout the handoff file sits in" <<<"$first_resume_step" && grep -qF "EnterWorktree" <<<"$first_resume_step"' "$first_resume_step"
+check "Resume step 1 asks the user to reopen the session there on other hosts, before reading the spec" \
+  'grep -qF "reopen the session" <<<"$first_resume_step" && grep -qF "before reading the spec" <<<"$first_resume_step"' "$first_resume_step"
+locate_section=$(awk '/^### 1\. Locate/ { in_section = 1; next } in_section && /^##/ { exit } in_section' "$SKILL")
+check "Write names session worktrees among the checkouts a handoff is written in" \
+  'grep -qF "a session worktree" <<<"$locate_section"' "Locate section lacks: a session worktree"
 
 if [ -n "$LOCATE_BLOCK" ]; then
   shellcheck_files "shellcheck: handoff skill Locate block" "$LOCATE_SCRIPT"
