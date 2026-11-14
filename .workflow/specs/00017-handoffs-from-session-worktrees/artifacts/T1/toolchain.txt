@@ -2,6 +2,10 @@
 == lint exit 0
 
 == test: tests/run-all.sh --only-file "$WF_TASK_TESTS_FILE" --covering-file "$WF_CHANGED_FILES_FILE" --exclude-file "$WF_EXCLUDE_TESTS_FILE"
-(not run: passed in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.txt on a tree that differs only in comments and docs)
+== hooks/audit-sync-resume
+
+== summary
+PASS hooks/audit-sync-resume                passed=70   failed=0   skipped=0   xfail=0   41s
+TOTAL passed=70 failed=0 skipped=0 xfail=0 (1 suites)
 == test exit 0
 

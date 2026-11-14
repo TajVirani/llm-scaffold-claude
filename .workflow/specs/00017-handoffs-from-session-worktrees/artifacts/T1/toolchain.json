@@ -5,8 +5,8 @@
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/.worktrees/s00017_t1/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/.worktrees/s00017_t1",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/00017-handoffs-from-session-worktrees/artifacts/T1",
-  "tree": "d53145c3e90c995f84ba73bde5d4f2084bacabfe",
-  "ran": 1,
+  "tree": "bdb2079ae818053ad94d1080d66ce19d350b1836",
+  "ran": 2,
   "results": [
     {
       "key": "lint",
@@ -43,10 +43,9 @@
       "scoped": true,
       "own": 0,
       "excluded": 0,
-      "changed": 5,
-      "reused_from": "T1",
-      "reason": "no code changed since that run: only comments and docs differ"
+      "changed": 1
     }
   ],
-  "digest": ""
+  "digest": "",
+  "reused_from": "T1"
 }
