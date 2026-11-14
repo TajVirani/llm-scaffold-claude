@@ -397,7 +397,9 @@ out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out"); en
 check "main session lists a session worktree's handoff by absolute path after its own" \
   '[ "$(sed -n 1p <<<"$entries" | cut -d" " -f2)" = ".workflow/.handoff/fix-login.md" ] && [ "$(sed -n 2p <<<"$entries" | cut -d" " -f2)" = "$SIBLING_WT/.workflow/.handoff/sibling-session.md" ]' "$ctx"
 
-out=$(ss "$ALPHA_WT"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out"); entries=$(handoff_entries)
+out=$(ss "$ALPHA_WT"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out")
+# shellcheck disable=SC2034  # entries is read inside the eval'd check expression below
+entries=$(handoff_entries)
 check "spec worktree still lists only its own and the main checkout's, no sibling spec's or session worktree's" \
   '[ "$(grep -c . <<<"$entries")" = 2 ] && ! grep -q "$BETA_NAME\|sibling-session\|own-session" <<<"$ctx"' "$ctx"
 git worktree remove --force "$SIBLING_WT"
