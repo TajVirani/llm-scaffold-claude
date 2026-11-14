@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Offer every worktree's handoffs outside a spec worktree"
-    status: pending
+    status: done
     capability: CAP-015
     depends_on: []
     touches_core: false

@@ -113,3 +113,8 @@ Facts looked up instead of asked (0.3.10): None.
 Revisions: Downstream, Tools and Gotchas filled from round 1.
 
 Agreement: agreed in Questioning round 1
+
+## 2026-11-13 Merge route
+
+- T1: task PR skipped (open-task-pr.sh: gh not installed); merged locally.
+- Discovered work: design-log-asset-step-ref: current work; the design-log asset named the handoff skill's Resume step 3, renumbered to 4 by T1; patched in T1 at 3.8.

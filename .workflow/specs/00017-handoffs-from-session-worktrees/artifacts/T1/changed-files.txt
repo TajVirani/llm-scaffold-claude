@@ -1,0 +1,5 @@
+.agents/hooks/session-start-resume.sh
+.agents/skills/handoff/SKILL.md
+tests/README.md
+tests/hooks/audit-sync-resume.sh
+tests/scripts/handoff-skill.sh

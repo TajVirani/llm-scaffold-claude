@@ -1,0 +1,54 @@
+status: "done"
+summary: "The session-start hook now lists, from any checkout that is not a spec worktree (main or a session worktree), its own handoffs first and then every other registered worktree's, newest first, capped at 3; a spec worktree keeps its own plus main's. The handoff skill's Resume gains a first step that moves the session into the handoff's checkout (EnterWorktree, or reopen elsewhere), and Write names session worktrees. Suite headers and tests/README.md rows updated."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/.worktrees/s00017_t1"
+branch: "task/00017-handoffs-from-session-worktrees/T01-session-worktree-offer"
+base_commit: "b27276df0def31b8f7ac31ab58512969cc2e64c5"
+head_commit: "74c1981efe3156aa0da931bccac8ff04ca0d6abb"
+files_changed:
+  - ".agents/hooks/session-start-resume.sh"
+  - ".agents/skills/handoff/SKILL.md"
+  - "tests/hooks/audit-sync-resume.sh"
+  - "tests/scripts/handoff-skill.sh"
+  - "tests/README.md"
+tests_added:
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "session worktree lists its own handoff first, then every other worktree's newest first: the sibling session's, then the spec worktree's", kind: "behaviour"}
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "session worktree keeps the cap of 3 and counts the main checkout's and the older spec worktree's", kind: "edge"}
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "main session lists a session worktree's handoff by absolute path after its own", kind: "behaviour"}
+  - {file: "tests/hooks/audit-sync-resume.sh", test: "spec worktree still lists only its own and the main checkout's, no sibling spec's or session worktree's", kind: "negative"}
+  - {file: "tests/scripts/handoff-skill.sh", test: "Resume step 1 moves the session into the checkout the handoff sits in, with EnterWorktree on Claude Code", kind: "behaviour"}
+  - {file: "tests/scripts/handoff-skill.sh", test: "Resume step 1 asks the user to reopen the session there on other hosts, before reading the spec", kind: "behaviour"}
+  - {file: "tests/scripts/handoff-skill.sh", test: "Write names session worktrees among the checkouts a handoff is written in", kind: "behaviour"}
+evidence:
+  red: "bash tests/hooks/audit-sync-resume.sh; FAIL session worktree lists its own handoff first, ... (only own-session listed), RESULT passed=67 failed=3. bash tests/scripts/handoff-skill.sh; FAIL Resume step 1 moves the session into the checkout ... (step 1 was 'Read the file'), RESULT passed=12 failed=3"
+  green: "bash tests/hooks/audit-sync-resume.sh: RESULT passed=70 failed=0; bash tests/scripts/handoff-skill.sh: RESULT passed=15 failed=0"
+  suite: "run-toolchain.sh --spec-dir .workflow/specs/00017-handoffs-from-session-worktrees --task-id T1 --cwd <worktree>; test pass, TOTAL passed=1829 failed=0 (38 suites)"
+  toolchain: ".workflow/specs/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "Filtering agent or isolation worktrees out of the 'every other worktree' list: the rule says every registered worktree outside a spec worktree, and those folders rarely hold handoffs."
+  - "Fallback when git worktree list is empty (no git): other checkouts fall back to the main checkout as before, so no new behaviour is needed there."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work:
+  - kind: "bug"
+    summary: "The design-log asset says the 'Main moved since handoff' entry shape is in the handoff skill's Resume step 3; after this task's new first Resume step, that is step 4. The asset lives in the feature-workflow module, outside this task's modules."
+    evidence: ".agents/skills/feature-workflow/assets/design-log.md:3 reads \"its shape is in that skill's Resume step 3\"; .agents/skills/handoff/SKILL.md Resume now numbers Main drift as step 4."
+    blocker_assessment: "can-wait"
+    reason: "A one-word cross-reference fix in another module; the handoff skill itself is correct and no test depends on the number."
+self_review:
+  - {item: 1, verdict: "pass", note: "No new .workflow/ path spelled in the hook; handoff paths still built from $WF_HANDOFF."}
+  - {item: 2, verdict: "pass", note: "Hook change is a few lines of worktree selection in session-start-resume.sh; no new business logic."}
+  - {item: 3, verdict: "pass", note: "git worktree list failure still tolerated by design (offer must not fail); other_checkouts falls back to the main checkout."}
+  - {item: 4, verdict: "not-applicable", note: "No new write or check under a caller's || die."}
+  - {item: 5, verdict: "not-applicable", note: "No exit code changed; hook still exits 0 always."}
+  - {item: 6, verdict: "pass", note: "Sourcing via BASH_SOURCE with cd -P unchanged."}
+  - {item: 7, verdict: "pass", note: "Hook header keeps Goals/Triggers/Behaviour/Outputs/Wiring/Notes/Sources; Triggers and Behaviour lines now state the new rule."}
+  - {item: 8, verdict: "pass", note: "Edited file keeps its [ ] test syntax; no new files."}
+  - {item: 9, verdict: "not-applicable", note: "No new function or shellcheck directive."}
+  - {item: R1, verdict: "pass", note: "worktree_list, all_worktrees, SIBLING_WT, first_resume_step, locate_section say what they hold."}
+  - {item: R2, verdict: "pass", note: "The inline comment above own_checkout gives why a spec worktree sees only main and why other checkouts see every worktree."}
+  - {item: R3, verdict: "pass", note: "The one test comment gives why WT counts as a session worktree; no comment restates code."}
+  - {item: R4, verdict: "pass", note: "tool-covered by check-comments.sh; no changed comment points at another document."}
+  - {item: R5, verdict: "pass", note: "Comments use plain words; 'session worktree' is the glossary term and is explained in place."}
+  - {item: comment-lint, verdict: "pass", note: "check-comments.sh over the five changed files exits 0."}
