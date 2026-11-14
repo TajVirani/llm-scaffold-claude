@@ -1,5 +1,5 @@
 ---
-status: in-review
+status: done
 baseline_revision: "317fdd0f82a86dd95ef360fd59d5ea9dbc8f5575"
 spec_branch: spec/00017-handoffs-from-session-worktrees
 impl_base_revision: "317fdd0f82a86dd95ef360fd59d5ea9dbc8f5575"
@@ -37,11 +37,6 @@ Claude Code desktop starts every session in its own session worktree under `.cla
 
 Starting a session in a fresh Claude Code session worktree of a project with a spec in flight offers that spec's handoff, and choosing it moves the session into the spec worktree before any work runs.
 
-## Assumptions
-
-- "Session worktree" is the glossary term for a host's per-session worktree (design-log Assumed entry, kept in round 1).
-- Every registered worktree other than a spec worktree gets the main checkout's view; agent worktrees hold no handoffs, so listing them is harmless.
-
 ## Links
 
 - Codebase map: [codebase-map.md](codebase-map.md)
@@ -53,3 +48,4 @@ Starting a session in a fresh Claude Code session worktree of a project with a s
 ## Known gaps
 
 - Gate skipped (3.10 browser suite): no `e2e-browser` profile in this repo. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)
+- Not verified live (review pass 1 gaps): a real Claude Code desktop session in a session worktree, and whether its EnterWorktree tool switches from a session worktree into a spec worktree under `.workflow/.spec-worktrees/`. Design-log entry "Triage, review pass 1".

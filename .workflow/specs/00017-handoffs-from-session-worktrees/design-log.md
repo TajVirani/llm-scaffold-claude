@@ -134,3 +134,18 @@ Targets: no targets (light path)
 Gaps: (1) review-combined: the Success signal needs a live Claude Code desktop session started in a session worktree of a project with a spec in flight; settle by starting one. (2) review-combined: whether Claude Code's EnterWorktree switches from a session worktree into a spec worktree under `.workflow/.spec-worktrees/` (its tool notes say a switch from inside a worktree targets `.claude/worktrees/`) and into the main checkout; settle live in a desktop session. Not checked: `PROVENANCE.md:166` states the pre-00016 handoff location, pre-existing.
 Outcome: clean, to sign-off
 Patched directly: F1 (f8af45a)
+
+## 2026-11-13 Sign-off: stakeholder approval (5.5)
+
+- Offered for veto: no assumptions
+- Approval: yes ("Approve both (Recommended)")
+- PR description: approved as shown
+- Proposals: all approved ("Approve all (Recommended)")
+- Backlog: no items
+- Retrospective lessons: recorded as drafted ("Record as drafted (Recommended)")
+- Concerns for the retrospective: none
+- Follow-up: none
+
+## 2026-11-13 Retrospective notes
+
+- In Commonplace the stakeholder hit this through Claude Code desktop: each session opens in `.claude/worktrees/<name>`, and older scaffold versions also nested spec worktrees inside that folder; this spec fixes only the offer and Resume, not the existing nested worktrees. Retrospective: .workflow/decisions/retrospectives/00017-handoffs-from-session-worktrees.md
