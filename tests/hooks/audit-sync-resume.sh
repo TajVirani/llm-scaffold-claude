@@ -6,7 +6,9 @@
 #   rules.md -> boundary config sync (block on parse error, missing yq, worktree); resume offer listing,
 #   discovered-work prompts (an older size-budget block flagged as resuming without a ruling), work-backlog count (the open lines of each spec's backlog list), output cap;
 #   session handoffs across checkouts: the session's own first by their relative path, others by absolute path (JRN-004 from a
-#   spec worktree, JRN-005 from the main checkout, old names listed, the folder's .gitignore never).
+#   spec worktree, JRN-005 from the main checkout, old names listed, the folder's .gitignore never); a session worktree
+#   (.claude/worktrees/<name> on a non-spec branch) lists every other worktree's, a sibling session worktree's and a spec
+#   worktree's included, and the main checkout lists a session worktree's, while a spec worktree still lists neither.
 # The three share one fixture project, so the sections run in order.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
@@ -376,6 +378,31 @@ check "JRN-005 five handoffs across checkouts: own first, 3 listed, 2 counted, e
   '[ "$(grep -c . <<<"$entries")" = 3 ] && [ "$(sed -n 1p <<<"$entries" | cut -c1-35)" = "- .workflow/.handoff/fix-login.md (" ] \
     && [ "$(sed -n 2p <<<"$entries" | cut -d" " -f2)" = "$ALPHA_WT/.workflow/.handoff/007-alpha--20261112T140000Z-gh78.md" ] \
     && grep -qxF -- "- ... and 2 older not listed." <<<"$ctx" && ! grep -q "$(printf "g%.0s" $(seq 1 300))" <<<"$ctx" && [ ${#ctx} -lt 10000 ]' "${#ctx}: $ctx"
+rm -f "$ALPHA_WT/.workflow/.handoff/007-alpha--20261112T130000Z-ef56.md" "$ALPHA_WT/.workflow/.handoff/007-alpha--20261112T140000Z-gh78.md"
+
+# WT is a session worktree: a desktop session's own checkout under .claude/worktrees/, on a branch that is not spec/*.
+SIBLING_WT=$P/.claude/worktrees/sibling
+git worktree add -q "$SIBLING_WT" -b claude/sibling 2>/dev/null
+hand_in "$WT" own-session "Tidy the session notes" 202611120900
+hand_in "$SIBLING_WT" sibling-session "Draft the sibling notes" 202611121300
+out=$(ss "$WT"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out"); entries=$(handoff_entries)
+check "session worktree lists its own handoff first, then every other worktree's newest first: the sibling session's, then the spec worktree's" \
+  '[ "$entries" = "- .workflow/.handoff/own-session.md (created 2026-11-12T10:00:00Z): Tidy the session notes
+- $SIBLING_WT/.workflow/.handoff/sibling-session.md (created 2026-11-12T10:00:00Z): Draft the sibling notes
+- $BETA_WT/.workflow/.handoff/$BETA_NAME.md (created 2026-11-12T10:00:00Z): Start the beta import" ]' "$ctx"
+check "session worktree keeps the cap of 3 and counts the main checkout's and the older spec worktree's" \
+  'grep -qxF -- "- ... and 2 older not listed." <<<"$ctx"' "$ctx"
+
+out=$(ss "$P"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out"); entries=$(handoff_entries)
+check "main session lists a session worktree's handoff by absolute path after its own" \
+  '[ "$(sed -n 1p <<<"$entries" | cut -d" " -f2)" = ".workflow/.handoff/fix-login.md" ] && [ "$(sed -n 2p <<<"$entries" | cut -d" " -f2)" = "$SIBLING_WT/.workflow/.handoff/sibling-session.md" ]' "$ctx"
+
+out=$(ss "$ALPHA_WT"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<"$out"); entries=$(handoff_entries)
+check "spec worktree still lists only its own and the main checkout's, no sibling spec's or session worktree's" \
+  '[ "$(grep -c . <<<"$entries")" = 2 ] && ! grep -q "$BETA_NAME\|sibling-session\|own-session" <<<"$ctx"' "$ctx"
+git worktree remove --force "$SIBLING_WT"
+git branch -q -D claude/sibling
+rm -rf "$WT/.workflow/.handoff"
 git worktree remove --force "$ALPHA_WT"
 git worktree remove --force "$BETA_WT"
 git branch -q -D spec/007-alpha spec/008-beta
