@@ -11,8 +11,9 @@
 #   context has lost it). Paths from the payload `cwd`. Specs and their gitignored .step markers are read in
 #   each checkout above (lib/workflow-paths.sh wf_project_root for the session's own; `git worktree list` for the rest); the backlog
 #   and initiatives in the main checkout (wf_main_root). Handoffs are read in the session's own checkout (the top level of `cwd`:
-#   the main checkout, a spec worktree, or an isolation or agent worktree), then, from the main checkout, in each spec worktree,
-#   and from any other checkout, in the main checkout only.
+#   the main checkout, a spec worktree, a session worktree, or an isolation or agent worktree), then, from a spec worktree, in the
+#   main checkout only, and from any other checkout, in every other worktree `git worktree list` registers (the main checkout,
+#   each spec worktree, each session worktree such as .claude/worktrees/<name>).
 # Behaviour:
 #   - No spec.md with a status other than `done`, no initiative to resume, no open backlog item and no session handoff: exit 0, no output.
 #   - Each non-done spec (draft, ready-for-dev, in-progress, in-review, blocked; sorted by folder name within each checkout, the session's
@@ -39,7 +40,8 @@
 #     A list may be named old_<NNN-slug>.md, the name adopting an issue tracker gives a Done spec's list, matching the names the write guard
 #     accepts in work-backlog/. Other files there are ignored.
 #   - Session handoffs (.workflow/.handoff/*.md in each checkout above, any file name, never the folder's .gitignore): the own checkout's
-#     first as `- .workflow/.handoff/<name>`, then the other checkouts' as `- <absolute path>`, each group newest first by mtime. A file
+#     first as `- .workflow/.handoff/<name>`, then the other checkouts' as `- <absolute path>`, each group newest first by mtime. A spec
+#     worktree's other checkout is the main checkout alone; every other checkout's are all the other registered worktrees. A file
 #     is the own checkout's only when it is in <own checkout>/.workflow/.handoff/, since spec worktrees sit inside the main checkout.
 #     Up to 3 listed in total with frontmatter created, spec and goal (or "frontmatter unreadable"), each cut at 300 characters, the rest
 #     counted; alone they are enough to produce output, and the text names the handoff skill's Resume.
@@ -72,8 +74,9 @@ if main=$(wf_main_root "$root" 2>/dev/null); then root=$main; fi
 if spec_root=$(wf_project_root "$here" 2>/dev/null); then here=$spec_root; fi
 
 shopt -s nullglob
-spec_worktrees=$({ git -C "$root" worktree list --porcelain 2>/dev/null || true; } |
-  awk '/^worktree /{ wt = substr($0, 10) } /^branch refs\/heads\/spec\//{ print wt }')
+worktree_list=$(git -C "$root" worktree list --porcelain 2>/dev/null || true)
+spec_worktrees=$(awk '/^worktree /{ wt = substr($0, 10) } /^branch refs\/heads\/spec\//{ print wt }' <<<"$worktree_list")
+all_worktrees=$(awk '/^worktree /{ print substr($0, 10) }' <<<"$worktree_list")
 # Specs run in their own worktrees, so each checkout that can hold one is scanned: this session's, then every worktree on a spec
 #   branch, then the main checkout. A spec folder seen in an earlier checkout is not listed again.
 checkouts=$( {
@@ -93,13 +96,18 @@ while IFS= read -r checkout; do
   done
 done <<<"$checkouts"
 backlog=("$root/$WF_WORK_BACKLOG"/*.md)
-# Each run writes its handoff in the checkout it ran in, so this session's own checkout (the top level of its cwd, even an
-#   isolation or agent worktree) comes first. The main checkout also sees every spec worktree's handoffs; any other checkout
-#   sees only the main checkout's, so a run never picks up a sibling worktree's handoff.
+# Each run writes its handoff in the checkout it ran in, so this session's own checkout (the top level of its cwd) comes first.
+#   A spec worktree belongs to one spec, so it sees only the main checkout's besides its own and never picks up a sibling
+#   spec's work. Any other checkout (the main checkout, or a session worktree a desktop app opened for this session) sees
+#   every other registered worktree's, since a fresh session there may be picking up work left in any of them.
 own_checkout=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || own_checkout=""
 [ -n "$own_checkout" ] || own_checkout=$(cd "$cwd" && pwd)
 own_handoffs=("$own_checkout/$WF_HANDOFF"/*.md)
-if [ "$own_checkout" = "$root" ]; then other_checkouts=$spec_worktrees; else other_checkouts=$root; fi
+if grep -qxF -- "$own_checkout" <<<"$spec_worktrees"; then
+  other_checkouts=$root
+else
+  other_checkouts=${all_worktrees:-$root}
+fi
 other_handoffs=()
 while IFS= read -r checkout; do
   [ -n "$checkout" ] && [ "$checkout" != "$own_checkout" ] || continue

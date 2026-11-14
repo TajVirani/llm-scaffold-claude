@@ -18,7 +18,7 @@ A **session handoff** is one file a fresh session reads to carry on the work: wh
    yq --front-matter=extract '.status' .workflow/specs/NNN-slug/spec.md; cat .workflow/specs/NNN-slug/.step 2>/dev/null
    ```
 
-2. **Root, folder and file name.** The handoff goes in `.workflow/.handoff/` of the checkout the session works in (a spec worktree, an agent worktree or the main checkout), never in another checkout. Set `stem` to the spec folder name (`NNN-slug`) for spec work, or to the topic (kebab-case, two to four words) otherwise, then run:
+2. **Root, folder and file name.** The handoff goes in `.workflow/.handoff/` of the checkout the session works in (a spec worktree, an agent worktree, a session worktree such as Claude Code desktop's `.claude/worktrees/<name>`, or the main checkout), never in another checkout. Set `stem` to the spec folder name (`NNN-slug`) for spec work, or to the topic (kebab-case, two to four words) otherwise, then run:
 
    ```bash
    root=$(git rev-parse --show-toplevel 2>/dev/null) || root=$PWD
@@ -72,9 +72,10 @@ Give the full path of the file (`$file`) and one line on resuming: start a fresh
 
 When the user picks a handoff from the session-start offer, or the session's first message names a handoff by path, resume from that file; a handoff named by path is resumed without asking. A handoff under an old name (`<NNN-slug | topic>.md`) is resumed the same way.
 
-1. Read the file. Load the skills under **Load first**.
-2. If `spec` is set, load the `feature-workflow` skill for that spec. Its live `spec.md` status and `.step` win over `step_at_handoff`; if they differ, the spec moved on after the handoff: say so and trust the spec. Log any `not logged` decision through the module for the current step.
-3. **Main drift.** When `main_sha` is set, set `root` to the session's own checkout and `main` as Write step 2 does, then compare:
+1. **Move to the handoff's checkout.** The handoff's checkout is the folder that holds `.workflow/.handoff/` with the handoff file in it. When it is not the session's own checkout (the offer lists it by absolute path), move the session into the checkout the handoff file sits in before reading the spec or running anything, because the handoff's paths, branch and live spec state are that checkout's. On Claude Code, call the EnterWorktree tool with that checkout's absolute path. On other hosts, ask the user to reopen the session there, and stop until they do.
+2. Read the file. Load the skills under **Load first**.
+3. If `spec` is set, load the `feature-workflow` skill for that spec. Its live `spec.md` status and `.step` win over `step_at_handoff`; if they differ, the spec moved on after the handoff: say so and trust the spec. Log any `not logged` decision through the module for the current step.
+4. **Main drift.** When `main_sha` is set, set `root` to the session's own checkout and `main` as Write step 2 does, then compare:
 
    ```bash
    root=$(git rev-parse --show-toplevel 2>/dev/null) || root=$PWD
@@ -98,7 +99,7 @@ When the user picks a handoff from the session-start offer, or the session's fir
    ```
 
    Done when the user has the drift report and, for a spec, the design log holds it.
-4. Run the **Verify** check to confirm the state before the first change.
-5. Take the **Next action**.
+5. Run the **Verify** check to confirm the state before the first change.
+6. Take the **Next action**.
 
 The file stays while you work. Once you have written your own handoff or finished the work, delete the handoff you resumed from; delete it too when the user drops the work. Leave every other handoff alone.
