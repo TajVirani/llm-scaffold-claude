@@ -1,11 +1,11 @@
 ---
-status: in-progress
+status: in-review
 baseline_revision: "317fdd0f82a86dd95ef360fd59d5ea9dbc8f5575"
 spec_branch: spec/00017-handoffs-from-session-worktrees
 impl_base_revision: "317fdd0f82a86dd95ef360fd59d5ea9dbc8f5575"
 light_path: true
 followup_review_recommended: false
-deferred: []
+deferred: [.workflow/deferred/browser-suite.md]
 tracker_issue: ""
 budget: {max_tasks: 10, max_changed_files: 30}
 ---
@@ -49,3 +49,7 @@ Starting a session in a fresh Claude Code session worktree of a project with a s
 - Tasks: [tasks.md](tasks.md)
 - Proposals: [proposals.md](proposals.md)
 - Report: [report.md](report.md)
+
+## Known gaps
+
+- Gate skipped (3.10 browser suite): no `e2e-browser` profile in this repo. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)

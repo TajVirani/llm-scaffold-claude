@@ -1,18 +1,18 @@
 {
-  "status": "fail",
+  "status": "pass",
   "task_id": "gate-3.9-w1",
   "work_type": "test-harness",
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/profiles/test-harness.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees",
   "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/00017-handoffs-from-session-worktrees/artifacts/gate-3.9-w1",
-  "tree": "d53145c3e90c995f84ba73bde5d4f2084bacabfe",
+  "tree": "bdb2079ae818053ad94d1080d66ce19d350b1836",
   "ran": 2,
   "results": [
     {
       "key": "lint",
       "command": "git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh",
-      "status": "fail",
-      "exit_code": 1
+      "status": "pass",
+      "exit_code": 0
     },
     {
       "key": "typecheck",
@@ -42,5 +42,5 @@
       "exit_code": 0
     }
   ],
-  "digest": "Toolchain failed for task gate-3.9-w1 (1 of 2 commands). Fix these in the same context, then stop again.\nFull output: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/00017-handoffs-from-session-worktrees/artifacts/gate-3.9-w1/toolchain.txt\n\n[lint] git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR && git ls-files -z -co --exclude-standard -- 'tests/*.sh' | xargs -0 .agents/skills/feature-workflow/scripts/check-comments.sh exited 1. Last 40 lines:\n\nIn tests/hooks/audit-sync-resume.sh line 400:\nout=$(ss \"$ALPHA_WT\"); ctx=$(jq -r .hookSpecificOutput.additionalContext <<<\"$out\"); entries=$(handoff_entries)\n                                                                                     ^-----^ SC2034 (warning): entries appears unused. Verify use (or export if used externally).\n\nFor more information:\n  https://www.shellcheck.net/wiki/SC2034 -- entries appears unused. Verify us...\n"
+  "digest": ""
 }
