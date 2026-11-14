@@ -17,7 +17,7 @@ findings:
     suggested_fix: "Rewrite the SessionStart row's handoff sentence: the own checkout's first, then from a spec worktree the main checkout's, and from any other checkout every other registered worktree's. Consider widening RL-003's paths to .agents/hooks/*.md at 5.7."
 checked:
   - "git diff 317fdd0f...HEAD (7 files, +71/-20) excluding the spec folder; git log of 9 commits"
-  - ".workflow/specs/00017-handoffs-from-session-worktrees/spec.md, tasks.md, tasks/T01-session-worktree-offer.md, design-log.md (D4, D5)"
+  - ".workflow/specs/done/00017-handoffs-from-session-worktrees/spec.md, tasks.md, tasks/T01-session-worktree-offer.md, design-log.md (D4, D5)"
   - "artifacts/T1/toolchain.txt and artifacts/gate-3.9-w1/toolchain.txt (80 suites, 4885 passed, 0 failed): lint and test taken as settled"
   - "CAP-015 success, part 1: hook from a session worktree lists a spec worktree's and a sibling session worktree's handoff by absolute path (session-start-resume.sh other_checkouts=${all_worktrees:-$root}; tests/hooks/audit-sync-resume.sh session-worktree check)"
   - "CAP-015 success, part 2: from a spec worktree no sibling spec worktree's handoff (grep -qxF own_checkout in spec_worktrees -> root only; test asserts no BETA, sibling or own-session handoff)"

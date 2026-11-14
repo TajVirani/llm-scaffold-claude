@@ -4,7 +4,7 @@
   "work_type": "shell-scripts",
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/.worktrees/s00017_t1/.workflow/profiles/shell-scripts.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/.worktrees/s00017_t1",
-  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/00017-handoffs-from-session-worktrees/artifacts/T1",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1",
   "tree": "bdb2079ae818053ad94d1080d66ce19d350b1836",
   "ran": 2,
   "results": [

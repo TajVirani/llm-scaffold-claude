@@ -2,7 +2,7 @@ verdict: pass
 task_id: T1
 work_type: shell-scripts
 diff: .workflow/.worktrees/s00017_t1@b27276df0def31b8f7ac31ab58512969cc2e64c5..HEAD
-tool_output: .workflow/specs/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.json
+tool_output: .workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.json
 items:
   - n: 1
     verdict: pass

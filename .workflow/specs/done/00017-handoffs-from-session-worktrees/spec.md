@@ -47,5 +47,5 @@ Starting a session in a fresh Claude Code session worktree of a project with a s
 
 ## Known gaps
 
-- Gate skipped (3.10 browser suite): no `e2e-browser` profile in this repo. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)
+- Gate skipped (3.10 browser suite): no `e2e-browser` profile in this repo. Handoff: [.workflow/deferred/browser-suite.md](../../../deferred/browser-suite.md)
 - Not verified live (review pass 1 gaps): a real Claude Code desktop session in a session worktree, and whether its EnterWorktree tool switches from a session worktree into a spec worktree under `.workflow/.spec-worktrees/`. Design-log entry "Triage, review pass 1".

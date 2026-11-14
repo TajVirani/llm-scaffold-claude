@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/00017-handoffs-from-session-worktrees
+spec: .workflow/specs/done/00017-handoffs-from-session-worktrees
 date: 2026-11-13
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/00017-handoffs-from-session-worktrees/spec.md` (capabilities: CAP-015, changed)
-- Report: `.workflow/specs/00017-handoffs-from-session-worktrees/report.md`
+- Spec: `.workflow/specs/done/00017-handoffs-from-session-worktrees/spec.md` (capabilities: CAP-015, changed)
+- Report: `.workflow/specs/done/00017-handoffs-from-session-worktrees/report.md`
 - Tasks: 1 done, 0 split out
 - Evidence available: spec.md, report.md, tasks.md, design-log.md (round 1, Merge route, Suite gap, Triage pass 1, Sign-off), proposals.md, artifacts/ (T1, gate-3.9-w1, wording-p1, sign-off-5.4, review/pass-1), git `317fdd0..HEAD`
 - Evidence missing: verification-plan.md not produced (light path); no session logs read

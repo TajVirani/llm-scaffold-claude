@@ -10,8 +10,8 @@ tests_added: []
 evidence:
   red: "shellcheck -x -P SCRIPTDIR tests/hooks/audit-sync-resume.sh; In tests/hooks/audit-sync-resume.sh line 400: SC2034 (warning): entries appears unused."
   green: "test-harness lint (shellcheck over tests/*.sh plus check-comments.sh) exit 0; tests/run-all.sh --suite hooks/audit-sync-resume: passed=70 failed=0"
-  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00017-handoffs-from-session-worktrees --task-id T1 --cwd <worktree>; test pass (scoped, changed=1)"
-  toolchain: ".workflow/specs/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.txt (pass)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00017-handoffs-from-session-worktrees --task-id T1 --cwd <worktree>; test pass (scoped, changed=1)"
+  toolchain: ".workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.txt (pass)"
 considered_not_built: []
 profile_wrong: null
 scope_expansion: null

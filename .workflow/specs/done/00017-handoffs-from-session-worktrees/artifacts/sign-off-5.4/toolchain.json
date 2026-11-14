@@ -1,12 +1,12 @@
 {
   "status": "pass",
-  "task_id": "gate-3.9-w1",
+  "task_id": "sign-off-5.4",
   "work_type": "test-harness",
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/profiles/test-harness.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees",
-  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/00017-handoffs-from-session-worktrees/artifacts/gate-3.9-w1",
-  "tree": "bdb2079ae818053ad94d1080d66ce19d350b1836",
-  "ran": 2,
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/sign-off-5.4",
+  "tree": "b075b46d9859300d8b86573878b260ab4eb867b2",
+  "ran": 1,
   "results": [
     {
       "key": "lint",
@@ -39,7 +39,9 @@
       "key": "test",
       "command": "tests/run-all.sh",
       "status": "pass",
-      "exit_code": 0
+      "exit_code": 0,
+      "reused_from": "gate-3.9-w1",
+      "reason": "no code changed since that run: only comments and docs differ"
     }
   ],
   "digest": ""

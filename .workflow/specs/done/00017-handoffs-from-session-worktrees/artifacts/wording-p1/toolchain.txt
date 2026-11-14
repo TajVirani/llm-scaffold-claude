@@ -22,6 +22,6 @@ TOTAL passed=13 failed=0 skipped=0 xfail=0 (1 suites)
 == lint exit 0
 
 == test: tests/run-all.sh
-(not run: passed in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/00017-handoffs-from-session-worktrees/artifacts/gate-3.9-w1/toolchain.txt on a tree that differs only in comments and docs)
+(not run: passed in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00017-handoffs-from-session-worktrees/.workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/gate-3.9-w1/toolchain.txt on a tree that differs only in comments and docs)
 == test exit 0
 

@@ -2,7 +2,7 @@ verdict: pass
 task_id: T1
 work_type: shell-scripts
 diff: worktree@b27276d..HEAD (whole task diff from the wave-start commit; the launch base 53247c2 holds only the fix commit bebc44d)
-tool_output: .workflow/specs/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.json
+tool_output: .workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.json
 items:
   - n: 1
     verdict: pass
@@ -49,8 +49,8 @@ items:
     location: .agents/hooks/session-start-resume.sh:42-46 ("session worktree" is explained in place with .claude/worktrees/<name>); tests/hooks/audit-sync-resume.sh:383 (plain words)
 read_outside_diff:
   - ".agents/skills/feature-workflow/references/readable-code.md: rules R1-R5 and Checking at 3.7"
-  - ".workflow/specs/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.json: tool keys that ran; its test key tree is bdb2079, HEAD tree is 1597fe6"
-  - ".workflow/specs/00017-handoffs-from-session-worktrees/artifacts/T1/mini-review-r1.yaml: round-1 verdicts; its out-of-scope design-log Resume step 3 entry is resolved, design-log.md:3 now reads step 4 and SKILL.md Main drift is step 4"
+  - ".workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1/toolchain.json: tool keys that ran; its test key tree is bdb2079, HEAD tree is 1597fe6"
+  - ".workflow/specs/done/00017-handoffs-from-session-worktrees/artifacts/T1/mini-review-r1.yaml: round-1 verdicts; its out-of-scope design-log Resume step 3 entry is resolved, design-log.md:3 now reads step 4 and SKILL.md Main drift is step 4"
   - "tests/hooks/audit-sync-resume.sh at bebc44d via git show: fixture setup at :72-73 and :339-342 for the R3 judgement at :383"
 not_checked:
   - "tests/scripts/handoff-skill.sh suite was not run by me; only shellcheck and check-comments were run on it, both clean at bebc44d"

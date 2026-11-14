@@ -25,7 +25,7 @@ No tracker issue yet: the workflow does not create one when a spec starts.
 ## Special things to note
 
 - Report: [report.md](report.md). Task PR: none (`gh` is not installed; T1 merged locally).
-- The browser-suite gate was skipped: this repo has no browser suite ([browser-suite.md](../../deferred/browser-suite.md)).
+- The browser-suite gate was skipped: this repo has no browser suite ([browser-suite.md](../../../deferred/browser-suite.md)).
 - Not verified in a live Claude Code desktop session, and not confirmed that EnterWorktree switches from a session worktree into a spec worktree under `.workflow/.spec-worktrees/`.
 
 ## How to test
