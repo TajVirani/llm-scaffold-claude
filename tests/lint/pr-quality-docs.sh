@@ -6,7 +6,9 @@
 #   this repo's commit-hygiene check sets it and payload-bookkeeping does not. Step 0's two bash blocks, run in a fixture
 #   repo: the spec status from a spec/ branch, the last triage Outcome line after it, from the Done folder, from a spec folder the diff touches on another branch,
 #   nothing with no spec or with two spec folders in the diff, and the covered project checks listed (a check with no
-#   frontmatter left out). Reads the repo; writes only to a scratch dir.
+#   frontmatter left out). Sign-off 5.4 runs the skill before the PR, saves its report, fixes nothing and routes findings
+#   to Known gaps and Open items; 5.5's summary and the report template carry the result; feature-workflow may depend on
+#   the module that owns pr-quality. Reads the repo; writes only to a scratch dir.
 # shellcheck disable=SC2016  # check expressions are single-quoted and eval'd on purpose
 # shellcheck source=../lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
@@ -90,6 +92,21 @@ eq "a branch with no spec and no spec folder in its diff prints nothing" "$(stat
 eq "the covered project checks are listed, a file with no frontmatter left out" \
   "$( (cd "$R" && bash -c "$LIST" 2>/dev/null) )" ".workflow/pr-quality/covered.md"
 t "the listing exits 0" 0 bash -c "cd '$R' && $LIST"
+
+echo "== sign-off runs pr-quality before the PR"
+SIGN_OFF=$AGENTS_SRC/skills/feature-workflow/modules/sign-off.md
+s54=$(awk '/^## 5\.4 / { on = 1; next } on && /^## / { exit } on' "$SIGN_OFF")
+eq "sign-off.md has a 5.4 section" "$(grep -c . <<<"$s54" | awk '{ print ($1 > 0) }')" 1
+check "5.4 runs the pr-quality skill on the spec branch" 'grep -q "run the \`pr-quality\` skill from the spec checkout" <<<"$s54"'
+check "5.4 saves its report beside the toolchain output" 'grep -q "artifacts/sign-off-5.4/pr-quality.md" <<<"$s54"'
+check "5.4 fixes nothing and routes findings to Known gaps and Open items" \
+  'grep -q "Fix nothing at this step" <<<"$s54" && grep -q "under Known gaps" <<<"$s54" && grep -q "under Open items" <<<"$s54"'
+check "the one-task report carries the pr-quality counts" 'grep -q "pr-quality: <n> findings" <<<"$s54"'
+check "5.5's summary names the pr-quality result" 'grep -q "the pr-quality result" "$SIGN_OFF"'
+check "the report template has a PR quality line" \
+  'grep -q "^- PR quality (5.4):" "$AGENTS_SRC/skills/feature-workflow/assets/report.md"'
+check "feature-workflow may depend on standalone-skills, which owns pr-quality" \
+  'grep -A2 "^  feature-workflow:" "$REPO_ROOT/.workflow/rules.md" | grep -q "standalone-skills"'
 
 shellcheck_files "shellcheck: pr-quality-docs suite" "$TESTS_DIR/lint/pr-quality-docs.sh"
 finish
