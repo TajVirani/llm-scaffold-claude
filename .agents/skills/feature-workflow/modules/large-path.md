@@ -157,15 +157,23 @@ Done when every `research` question on the frontier is `researching` and every f
 
 ### 6.5 Ask the round
 
-`IT step .workflow/initiatives/NNN-slug 6.5`. Ask every `decision` question still on the frontier in one round, in the questioning loop's format ([0.3.11](questioning-loop.md#the-round)): options, your recommendation first and marked "(Recommended)" with its reason and source, "Defer to deep dive", worded so "yes" accepts the recommendation. Settle each answer verbatim:
+`IT step .workflow/initiatives/NNN-slug 6.5`. Ask every `decision` question still on the frontier in one round, in the questioning loop's format ([0.3.11](questioning-loop.md#the-round)): options, your recommendation first and marked "(Recommended)" with its reason and source, "Talk it through (deep dive)", worded so "yes" accepts the recommendation. Settle each answer verbatim as it lands:
 
 ```bash
 IT set-question .workflow/initiatives/NNN-slug IQ<n> --state settled --settled "<the stakeholder's answer, verbatim>"
 ```
 
-Take deferred questions one at a time after the round, as the loop's deep dives do. An answer that raises a new question: append it to `questions.md` with the next unused `IQ<n>`, its `kind`, `state: open`, its `depends_on` (questions, or an emitted spec it waits for), `launched: null`, `settled: null`. An answer that puts work outside the initiative's goal: [deferred-handoff](deferred-handoff.md#write) **Write**, with the initiative folder as `origin_spec`.
+When the round holds a deep dive, settle the other answers only after its round check: a settled question cannot be settled again, so an answer the agreed statement contradicts must wait for its re-asked words.
 
-Done when every decision on the frontier is settled or deferred, and every deep dive is answered.
+Straight after the answers return, before 6.6, hold a deep dive on each question answered "Talk it through (deep dive)", one at a time in frontier order, as the loop's [0.3.12–0.3.13](questioning-loop.md#the-round) does: say back the question and why you recommended your answer, ask where that is wrong, and talk it through in plain chat until the stakeholder gives an explicit yes to a written agreed statement. Then check the round's other answers against it, re-ask in one ask only the ones it contradicts, and name the rest as still standing. Settle the question with the agreed statement and their confirming words:
+
+```bash
+IT set-question .workflow/initiatives/NNN-slug IQ<n> --state settled --settled "<agreed statement> (confirmed: \"<their yes>\")"
+```
+
+An answer that raises a new question: append it to `questions.md` with the next unused `IQ<n>`, its `kind`, `state: open`, its `depends_on` (questions, or an emitted spec it waits for), `launched: null`, `settled: null`. An answer that puts work outside the initiative's goal: [deferred-handoff](deferred-handoff.md#write) **Write**, with the initiative folder as `origin_spec`.
+
+Done when every decision on the frontier is settled, a talked-through one on its agreed statement.
 
 ### 6.6 Term gate
 
@@ -177,7 +185,7 @@ When the round settled how the subject divides: `IT step .workflow/initiatives/N
 
 ### 6.8 Log and commit the round
 
-`IT step .workflow/initiatives/NNN-slug 6.8`. Append the `Initiative round <n>` entry to `design-log.md`, shaped as in [../assets/design-log.md](../assets/design-log.md): the round's frontier, one block per question asked or launched (a research question's result is its settled line with the source, or "left researching"), the slices planned or changed at 6.7, and the questions still researching. Decision ids continue the log's `D<n>` sequence. Facts that settled a question at 6.4 go in that question's block.
+`IT step .workflow/initiatives/NNN-slug 6.8`. Append the `Initiative round <n>` entry to `design-log.md`, shaped as in [../assets/design-log.md](../assets/design-log.md): the round's frontier, one block per question asked or launched (a research question's result is its settled line with the source, or "left researching"; a question talked through at 6.5 takes the deep dive block, with its agreed statement and round check), the slices planned or changed at 6.7, and the questions still researching. Decision ids continue the log's `D<n>` sequence. Facts that settled a question at 6.4 go in that question's block.
 
 Then the commit point (`round <n>`). Route on what the record now says:
 
