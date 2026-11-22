@@ -1,6 +1,6 @@
 <!--
 File: Template for .workflow/specs/NNN-slug/design-log.md: the append-only decision log for one feature. No frontmatter. An initiative keeps the same log at .workflow/initiatives/NNN-slug/design-log.md: conversion moves the spec's log there and replaces its `Spec:` line with `Initiative: [initiative.md](initiative.md)`.
-Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4), discovery-impact (0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.28 rulings), implementation-waves (3.15, a Size budget overrun entry), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off (5.5 Sign-off entry, 5.6, 5.9) / retrospective (5.7), any step that assumes an answer (an Assumed entry, references/conventions.md "Asking the stakeholder"), verification-setup (1.2, a Breakdown quiz asked while Phase 1 builds), the handoff skill on resume (a `Main moved since handoff` entry; its shape is in that skill's Resume step 4) and the large path (Conversion at 0.3.23; Initiative round at 6.8 and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
+Created by modules/discovery.md (0.3.21); appended by questioning-loop (every round and deep dive), discovery (0.3.4), discovery-impact (0.4.4), questioning-loop (0.3.17), review-triage (4.4, triage entries), the discovered-work protocol (00.21-00.28 rulings), implementation-waves (3.15, a Size budget overrun entry), discovery 0.1.4 (Origin entry, for specs seeded from a work item), the deeper-prompt skill (0.3.22, Deeper prompt entry), sign-off (5.5 Sign-off entry, 5.6, 5.9) / retrospective (5.7), any step that assumes an answer (an Assumed entry, references/conventions.md "Asking the stakeholder"), verification-setup (1.2, a Breakdown quiz asked while Phase 1 builds), the handoff skill on resume (a `Main moved since handoff` entry; its shape is in that skill's Resume step 4) and the large path (Conversion at 0.3.23; Initiative round at 6.8, with the deep dives held at 6.5, and Emission at 6.9, both in an initiative's log; the Origin entry of an emitted spec at its 0.1.4).
 
 Rules:
   - Append only. Never edit or delete an earlier entry. A reversal is a new entry that names what it supersedes; the old entry stays.
@@ -78,8 +78,8 @@ Agreement: <pending, asked in the first questioning ask | agreed in Questioning 
 - Why now: <the settled decision or fact that made this answerable>
 - Options: <A: concrete option and its cost> · <B: ...>
 - Recommended: <option>, because <reason; cite codebase-map.md where it came from>
-- Answer: "<stakeholder's words, verbatim>" (or: deferred to deep dive)
-- Decision: **D<n>** <the decision, one line>
+- Answer: "<stakeholder's words, verbatim>" (or: deep dive under way)
+- Decision: **D<n>** <the decision, one line> (left out for a deep dive question: its Deep dive entry gives the id)
 
 Facts looked up instead of asked (0.3.10): <fact>: <answer> (source `<path:line>`), or "None."
 
@@ -105,6 +105,19 @@ Frontier: <IQ<n>, IQ<n>, ...>
 - Answer: "<stakeholder's words, verbatim>"
 - Settled: <the line written to questions.md>. Decision: **D<n>** <one line>
 
+**IQ<n>. <question>** (decision, deep dive)
+
+- Options: <A: concrete option and its cost> · <B: ...>
+- Recommended: <option>, because <reason with its source>
+- Restated: <the question and the recommendation's reason, as first said back>
+- Where it was wrong: "<stakeholder's words, verbatim>"
+- Explored: <facts looked up, with sources, or "None.">
+- Exchanges: <back-and-forths until the yes, at least 1>
+- Agreed statement: "<the statement as confirmed, verbatim>"
+- Answer: "<the stakeholder's yes, verbatim>"
+- Settled: <agreed statement> (confirmed: "<their yes>"). Decision: **D<n>** <the agreed statement in one line>
+- Round check: <per other answer in the round: IQ<n> stands | IQ<n> re-asked as **D<n>**: "<answer, verbatim>">
+
 **IQ<n>. <question>** (research)
 
 - Launched: <task_type>, <one line: what the agent was asked>
@@ -124,12 +137,17 @@ Still researching: <IQ<n> (<task_type>)>, or "none".
 
 ## YYYY-MM-DD Deep dive: <question>
 
-<!-- 0.3.12-0.3.13. A question deferred from a round, taken one at a time after the round closes. -->
+<!-- 0.3.12-0.3.13. One question from a round, talked through straight after the round is logged. Written once the stakeholder has said yes to the agreed statement and the round check is done. -->
 
 - From: Q<n> in round <n>
-- Explored: <what was examined, with sources>
-- Answer: "<verbatim>"
-- Decision: **D<n>** <decision>
+- Restated: <the question and the recommendation's reason, as first said back>
+- Where it was wrong: "<stakeholder's words, verbatim>"
+- Explored: <facts looked up, with sources, or "None.">
+- Exchanges: <back-and-forths until the yes, at least 1>
+- Agreed statement: "<the statement as confirmed, verbatim>"
+- Answer: "<the stakeholder's yes, verbatim>"
+- Decision: **D<n>** <the agreed statement in one line>
+- Round check: <per other answer in the round: Q<n> stands | Q<n> re-asked as **D<n>** (supersedes D<m>): "<answer, verbatim>">
 
 ## YYYY-MM-DD Placement: <owning module>
 

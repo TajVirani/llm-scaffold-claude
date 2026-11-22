@@ -13,7 +13,7 @@ Frontmatter contract (read with mikefarah yq v4, `--front-matter=extract`). init
       question    string, one question
       depends_on  list of `IQ<n>` ids or emitted spec folder names `NNN-slug`. The question is on the frontier once every question it names is `settled` and every spec it names is `done` on the main branch.
       launched    `{task_type: <research | fact-lookup | retrieval | library-evaluation>, at: <UTC timestamp>}` or null. Present exactly while the question is `researching`, so a resumed session can see a launch that never reported back; cleared when the question settles or goes back to `open`.
-      settled     string or null. The source (`path:line` or URL) for a research answer, the stakeholder's words verbatim for a decision. Non-null exactly when `state` is `settled`.
+      settled     string or null. The source (`path:line` or URL) for a research answer, the stakeholder's words verbatim for a decision. After a deep dive, the agreed statement followed by `(confirmed: "<their yes, verbatim>")`. Non-null exactly when `state` is `settled`.
   Add no other keys. Records change only through `initiative-transition.sh set-question` (`--state`, `--settled <text>`, `--launched <task_type>|clear`), never by hand.
 
 Writing rules:

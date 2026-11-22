@@ -76,9 +76,9 @@ flowchart TD
             answerable["0.3.8 - Compute the frontier: open decisions whose prerequisites are settled, highest priority first"]
             gAny{"0.3.9 - Any answerable questions?"}
             lookup["0.3.10 - Sub-agent: find any fact a question needs from the code or docs"]
-            ask["0.3.11 - Ask the whole frontier in one round: each question with a recommended answer and a defer option; launch first what does not wait on the answers; one round unless a question stays open"]
-            gDefer{"0.3.12 - Any question deferred to deep dive?"}
-            deepdive["0.3.13 - Deep dive each deferred question in turn, once the round has closed"]
+            ask["0.3.11 - Ask the whole frontier in one round: each question with a recommended answer and a deep dive option; launch first what does not wait on the answers; one round unless a question stays open"]
+            gDefer{"0.3.12 - Any question to talk through? (round logged first)"}
+            deepdive["0.3.13 - Deep dive each picked question in turn, at once: restate, talk it through to an agreed statement, re-ask only the answers it contradicts"]
             gTerm1{"0.3.14 - Answer introduces a new or conflicting term?"}
             agree1["0.3.15 - Agree canonical definition with stakeholder"]
             gScope{"0.3.16 - Outside agreed scope?"}
@@ -176,7 +176,7 @@ flowchart TD
         lgWriteBack["6.2 - Write back research: settle returned questions, reopen the rest"]
         lgFrontier["6.3 - Compute the frontier: open questions whose dependencies are settled or done on main"]
         lgLaunch["6.4 - Launch research and fact lookups"]
-        lgAsk["6.5 - Ask the round: every decision question on the frontier, with a recommended answer and a defer option"]
+        lgAsk["6.5 - Ask the round: every decision question on the frontier, with a recommended answer and a deep dive option, held at once"]
         lgTerm["6.6 - Term gate: agree each new or conflicting term"]
         lgSlices["6.7 - Plan the slices: slice records in initiative.md"]
         lgLog["6.8 - Log and commit the round on the initiative branch"]
