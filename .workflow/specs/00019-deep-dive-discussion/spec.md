@@ -1,8 +1,8 @@
 ---
-status: ready-for-dev
+status: in-progress
 baseline_revision: "55d8ecf2a7bf44d466fa19d52fc1229ab1647da7"
 spec_branch: spec/00019-deep-dive-discussion
-impl_base_revision: ""
+impl_base_revision: "677414b4773a5ecf1542a679502f034dbdfd8fd1"
 light_path: false
 followup_review_recommended: false
 deferred: []

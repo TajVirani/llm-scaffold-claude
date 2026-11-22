@@ -6,7 +6,7 @@ tasks:
     capability: CAP-NEW-deep-dive-discussion
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "feature-workflow"
     seam: "step-file text read by tests/lint/stakeholder-asks-docs.sh (00019 JRN-001 to JRN-005), lint/step-list and scripts/step-progress"
     file: tasks/T01-deep-dive-held-at-once.md
@@ -24,7 +24,7 @@ tasks:
     capability: CAP-NEW-deep-dive-discussion
     depends_on: []
     touches_core: false
-    work_type: null
+    work_type: agent-docs
     module: "retrospective"
     seam: "the evidence.md waits command run on fixture design logs by tests/scripts/retrospective-evidence.sh (00019 JRN-006)"
     file: tasks/T02-waits-count-exchanges.md
