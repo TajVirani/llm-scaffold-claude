@@ -43,7 +43,7 @@ Spec: [spec.md](spec.md)
 | New-feature start load | performance | at most 45,000 bytes (baseline 41,392) | `bash tests/lint/workflow-load-size.sh \| grep '^new-feature start:'` | ADR-0004 (`.workflow/decisions/adr/0004-workflow-load-budget.md`); spec.md Constraints |
 | Questioning loop size | performance | `questioning-loop.md` at most 15,000 bytes (baseline 12,325) | `wc -c < .agents/skills/feature-workflow/modules/questioning-loop.md` | assumed (design-log.md) |
 | Errors | error | none set | Not measurable as a number: the change is to step-file text; the label, wording and order checks are journeys (JRN-001 to JRN-005) | assumed (design-log.md) |
-| Coverage | coverage | none set | Not measurable: no bash line-coverage tool is installed ([.workflow/deferred/bash-line-coverage.md](../../deferred/bash-line-coverage.md)) | assumed (design-log.md) |
+| Coverage | coverage | none set | Not measurable: no bash line-coverage tool is installed ([.workflow/deferred/bash-line-coverage.md](../../../deferred/bash-line-coverage.md)) | assumed (design-log.md) |
 
 ## Suites
 

@@ -292,7 +292,7 @@ Facts looked up instead of asked (0.3.10): None.
 ## 2026-11-22 Task PRs skipped
 
 - Step: 3.16. `task_review` is `pr`, but `gh` is not installed, so `open-task-pr.sh` skipped T1 and T2 before any push ("gh not installed"); both merged locally with `pr: null`.
-- 2026-11-22 3.14: browser gate skipped; no e2e-browser profile. Added a Later requests line to [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md).
+- 2026-11-22 3.14: browser gate skipped; no e2e-browser profile. Added a Later requests line to [.workflow/deferred/browser-suite.md](../../../deferred/browser-suite.md).
 
 ## 2026-11-22 Triage, review pass 1
 

@@ -11,7 +11,7 @@ measurements:
     measured: "41392 bytes"
     result: pass
     exit_code: 0
-    raw_output: ".workflow/specs/00019-deep-dive-discussion/artifacts/review/pass-1/targets/new-feature-start-load.txt"
+    raw_output: ".workflow/specs/done/00019-deep-dive-discussion/artifacts/review/pass-1/targets/new-feature-start-load.txt"
     reason: "The exit code is that of grep in the pipe, not of the load-size script; it agrees with the number."
   - target: "Questioning loop size"
     kind: performance
@@ -20,7 +20,7 @@ measurements:
     measured: "13980 bytes"
     result: pass
     exit_code: 0
-    raw_output: ".workflow/specs/00019-deep-dive-discussion/artifacts/review/pass-1/targets/questioning-loop-size.txt"
+    raw_output: ".workflow/specs/done/00019-deep-dive-discussion/artifacts/review/pass-1/targets/questioning-loop-size.txt"
     reason: ""
   - target: "Errors"
     kind: error

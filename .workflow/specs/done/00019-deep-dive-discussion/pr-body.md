@@ -30,7 +30,7 @@ Source: GitHub issue https://github.com/TajVirani/llm-scaffold-claude/issues/7 (
 
 ## Special things to note
 
-- Report: [report.md](.workflow/specs/00019-deep-dive-discussion/report.md). Task PRs: none (gh is not installed; both tasks merged locally).
+- Report: [report.md](.workflow/specs/done/00019-deep-dive-discussion/report.md). Task PRs: none (gh is not installed; both tasks merged locally).
 - Browser gate skipped: this repo has no browser suite; every journey is a harness check ([.workflow/deferred/browser-suite.md](.workflow/deferred/browser-suite.md)).
 - Not verifiable by the harness: whether an agent actually holds the discussion in a live round; the next real round that picks a deep dive is the first check.
 - In large-path 6.5, a round with a deep dive settles its other answers after the round check, because `initiative-transition.sh` settles a question once; a session cut off mid deep dive leaves them open and the next round asks them again.

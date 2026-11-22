@@ -2,7 +2,7 @@ verdict: "pass"
 task_id: "T1"
 work_type: "agent-docs"
 diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t1@1548c99adf14df69975c2cf92bf7aa7903937932..HEAD"
-tool_output: ".workflow/specs/00019-deep-dive-discussion/artifacts/T1/toolchain.json"
+tool_output: ".workflow/specs/done/00019-deep-dive-discussion/artifacts/T1/toolchain.json"
 items:
   - n: 1
     verdict: "not-applicable"

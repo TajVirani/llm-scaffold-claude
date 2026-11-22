@@ -57,7 +57,7 @@ Behaviour verification: runtime behaviour was not exercised: the change is step-
 
 ## Known gaps
 
-- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)
+- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../../deferred/browser-suite.md)
 - Live-round behaviour of the new 0.3.12–0.3.13 and 6.5 text (review-end-state, not verifiable): settled by the next real round that picks a deep dive.
 - Scaffold-only planning files `assetlist.md:339,343` and `wayfinder-comparison.html:237` still describe the old defer option (review-standards, not checked): no rule says they track behaviour.
 - A large-path session cut off mid deep dive leaves the round's other answers open, so the next round asks them again (accepted in the 2026-11-22 Assumed entry).
@@ -65,7 +65,7 @@ Behaviour verification: runtime behaviour was not exercised: the change is step-
 
 ## Deferred
 
-- [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md): no browser suite in this repo; a Later requests line was added at 3.14.
+- [.workflow/deferred/browser-suite.md](../../../deferred/browser-suite.md): no browser suite in this repo; a Later requests line was added at 3.14.
 
 ## How to verify
 

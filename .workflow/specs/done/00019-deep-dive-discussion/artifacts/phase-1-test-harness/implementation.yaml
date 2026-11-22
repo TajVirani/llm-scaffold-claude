@@ -30,8 +30,8 @@ tests_added:
 evidence:
   red: "bash tests/lint/stakeholder-asks-docs.sh -> RESULT passed=78 failed=22 (the 22 failures are exactly the new 00019 JRN-001..005 checks, e.g. 'FAIL 00019 JRN-001: the deep dive step says \"say back\"', and the order check's detail reads 'item positions: Log the round 5, 0.3.12 6, 0.3.14 7; \"straight after the round is logged\" in the 0.3.12 item: 0'); bash tests/scripts/retrospective-evidence.sh -> 'FAIL 00019 JRN-006 ... got=with deep dive=2, without=2 want=with deep dive=5, without=2', RESULT passed=1 failed=1"
   green: "Both suites run on a scratch copy of tests/ and .agents/ with plausible feature text applied (a mock script under the session scratchpad, deleted afterwards): stakeholder-asks-docs RESULT passed=100 failed=0; retrospective-evidence RESULT passed=2 failed=0"
-  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00019-deep-dive-discussion --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>; lint pass, test skipped (Phase 1)"
-  toolchain: ".workflow/specs/00019-deep-dive-discussion/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00019-deep-dive-discussion --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>; lint pass, test skipped (Phase 1)"
+  toolchain: ".workflow/specs/done/00019-deep-dive-discussion/artifacts/phase-1-test-harness/toolchain.txt (pass)"
 considered_not_built:
   - "A separate JRN-001 order check: it would pass today, because Log the round (5), 0.3.12 (6) and 0.3.14 (7) are already in that order. It is folded into the check for 'straight after the round is logged' so the check is red now, and its detail names the item positions."
   - "Per-line JRN-004 checks for the Deep dive shape: From, Explored, Answer and Decision already exist, so per-line checks would pass today. It is one check that lists the missing lines in its detail."

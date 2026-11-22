@@ -2,7 +2,7 @@ verdict: pass
 task_id: T2
 work_type: agent-docs
 diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t2@1548c99adf14df69975c2cf92bf7aa7903937932..HEAD
-tool_output: .workflow/specs/00019-deep-dive-discussion/artifacts/T2/toolchain.json
+tool_output: .workflow/specs/done/00019-deep-dive-discussion/artifacts/T2/toolchain.json
 items:
   - n: 1
     verdict: not-applicable
@@ -35,7 +35,7 @@ items:
 read_outside_diff:
   - ".agents/skills/retrospective/modules/evidence.md: read the full Measurements block to compare the label convention of neighbouring lines"
   - "tests/scripts/retrospective-evidence.sh: confirmed JRN-006 keys on the '# Waits:' trailing marker"
-  - ".workflow/specs/00019-deep-dive-discussion/artifacts/T2/implementation.yaml: read the implementer's self_review to check each item against the diff"
+  - ".workflow/specs/done/00019-deep-dive-discussion/artifacts/T2/implementation.yaml: read the implementer's self_review to check each item against the diff"
 not_checked:
   - "R3 on evidence.md:41 (literal reading): the trailing label restates the awk line. Left in place because the only fix, delete, breaks JRN-006, which matches on the '# Waits:' marker. Settle by changing the test's locator first if the label should go."
 out_of_scope_noticed: []

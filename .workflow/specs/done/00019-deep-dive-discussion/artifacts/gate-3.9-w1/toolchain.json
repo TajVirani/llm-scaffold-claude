@@ -4,7 +4,7 @@
   "work_type": "test-harness",
   "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/profiles/test-harness.md",
   "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion",
-  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/specs/00019-deep-dive-discussion/artifacts/gate-3.9-w1",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/specs/done/00019-deep-dive-discussion/artifacts/gate-3.9-w1",
   "tree": "3b7b1f76a0296ae50ad4375540203572a83ffe36",
   "ran": 2,
   "results": [

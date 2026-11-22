@@ -58,4 +58,4 @@ A stakeholder who picks the deep dive on a question in a round is, in the same s
 
 ## Known gaps
 
-- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)
+- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../../deferred/browser-suite.md)

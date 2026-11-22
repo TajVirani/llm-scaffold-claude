@@ -1,11 +1,11 @@
 {
   "status": "pass",
-  "task_id": "T2",
+  "task_id": "T1",
   "work_type": "agent-docs",
-  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t2/.workflow/profiles/agent-docs.md",
-  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t2",
-  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/specs/00019-deep-dive-discussion/artifacts/T2",
-  "tree": "bc8441a8cb5342f3a61f03104c382110bba5b59e",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t1/.workflow/profiles/agent-docs.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t1",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/specs/done/00019-deep-dive-discussion/artifacts/T1",
+  "tree": "dae88ab8277383d3951e0dd0b1e6fc465964c2f1",
   "ran": 2,
   "results": [
     {
@@ -43,9 +43,9 @@
       "scoped": true,
       "own": 1,
       "excluded": 1,
-      "changed": 2
+      "changed": 7
     }
   ],
   "digest": "",
-  "reused_from": "T2"
+  "reused_from": "T1"
 }

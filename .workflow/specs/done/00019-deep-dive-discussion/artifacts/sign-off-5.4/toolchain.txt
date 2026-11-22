@@ -2,6 +2,6 @@
 == lint exit 0
 
 == test: tests/run-all.sh
-(not run: passed on this tree in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/specs/00019-deep-dive-discussion/artifacts/wording-p1/toolchain.txt)
+(not run: passed on this tree in /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/specs/done/00019-deep-dive-discussion/artifacts/wording-p1/toolchain.txt)
 == test exit 0
 

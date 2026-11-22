@@ -17,8 +17,8 @@ findings:
     suggested_fix: "In upstream-lineage.json, change that entry's changes[1] to 'added the talk-it-through deep dive (0.3.12-0.3.13: restate, agree a written statement, round check), ...' and its why to '... only the gates, the deep dive and logging are ours'. Bump reviewed_at."
 checked:
   - "Diff 55d8ecf2a7bf44d466fa19d52fc1229ab1647da7...bdd5f5e3be6366808b6aa0a6d8c9528ffb6ede0b, excluding the spec folder: 13 files, 11 commits"
-  - ".workflow/specs/00019-deep-dive-discussion/spec.md: baseline_revision, Non-goals, Assumptions, Known gaps (browser suite gate skipped, handed to .workflow/deferred/browser-suite.md)"
-  - ".workflow/specs/00019-deep-dive-discussion/tasks.md: T1 agent-docs, T2 agent-docs"
+  - ".workflow/specs/done/00019-deep-dive-discussion/spec.md: baseline_revision, Non-goals, Assumptions, Known gaps (browser suite gate skipped, handed to .workflow/deferred/browser-suite.md)"
+  - ".workflow/specs/done/00019-deep-dive-discussion/tasks.md: T1 agent-docs, T2 agent-docs"
   - "AGENTS.md (CLAUDE.md is a one-line @AGENTS.md import); CODING_STANDARDS.md and CONTRIBUTING.md are not in the repo"
   - ".workflow/rules.md, all sections. Ownership: the feature-workflow, retrospective and tests edits stay inside their own owns, and tests may depend on retrospective and feature-workflow. No new file under .agents/, so no PROVENANCE or manifest change is due. The new test reads a copy of .agents/"
   - ".workflow/profiles/agent-docs.md (T1, T2), plus .workflow/profiles/test-harness.md for the Phase 1 test changes. The new suite has # Suite:/# Covers:, sources lib/common.sh, calls preflight, ends with finish and a shellcheck_files assertion, builds fixtures in new_workdir, and has its tests/README.md row"

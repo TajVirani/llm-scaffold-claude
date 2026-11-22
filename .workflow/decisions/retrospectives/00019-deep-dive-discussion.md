@@ -1,5 +1,5 @@
 ---
-spec: .workflow/specs/00019-deep-dive-discussion
+spec: .workflow/specs/done/00019-deep-dive-discussion
 date: 2026-11-22
 verdict: accepted-with-open-items
 ---
@@ -8,8 +8,8 @@ verdict: accepted-with-open-items
 
 ## Summary
 
-- Spec: `.workflow/specs/00019-deep-dive-discussion/spec.md` (capabilities: CAP-017)
-- Report: `.workflow/specs/00019-deep-dive-discussion/report.md`
+- Spec: `.workflow/specs/done/00019-deep-dive-discussion/spec.md` (capabilities: CAP-017)
+- Report: `.workflow/specs/done/00019-deep-dive-discussion/report.md`
 - Tasks: 2 done, 0 split out
 - Evidence available: spec.md, verification-plan.md, report.md, tasks.md, design-log.md (triage pass 1, Sign-off entry), proposals.md, artifacts/ (phase-1-test-harness, phase-1-known-bad, T1, T2, gate-3.9-w1, wording-p1, sign-off-5.4, review/pass-1), git `55d8ecf^..52fb6f1` (14 commits), `.workflow/review-lessons.md`, previous retrospective 00017
 - Evidence missing: session logs (not read); no work-backlog list for this spec (none was written); browser evidence (no browser suite in this repo)

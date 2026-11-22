@@ -12,8 +12,8 @@ tests_added: []
 evidence:
   red: "tests/run-all.sh --suite scripts/retrospective-evidence; FAIL 00019 JRN-006 ... got=with deep dive=2, without=2 want=with deep dive=5, without=2"
   green: "tests/run-all.sh --suite scripts/retrospective-evidence; PASS scripts/retrospective-evidence passed=2 failed=0"
-  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00019-deep-dive-discussion --task-id T2 --cwd <worktree>; test pass (scoped, TOTAL passed=608 failed=0, 23 suites)"
-  toolchain: ".workflow/specs/00019-deep-dive-discussion/artifacts/T2/toolchain.txt (pass)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00019-deep-dive-discussion --task-id T2 --cwd <worktree>; test pass (scoped, TOTAL passed=608 failed=0, 23 suites)"
+  toolchain: ".workflow/specs/done/00019-deep-dive-discussion/artifacts/T2/toolchain.txt (pass)"
 considered_not_built:
   - "Not counting the round's 'deep dive under way' Answer line separately from the deep dive's own Answer line: the acceptance criteria define waits as every Answer line plus the Exchanges numbers, so both still count as before."
   - "No new tests: the Phase 1 suite already covers both acceptance fixtures and shellchecks the line."

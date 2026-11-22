@@ -17,8 +17,8 @@ tests_added: []
 evidence:
   red: "tests/run-all.sh --suite lint/stakeholder-asks-docs; FAIL 00019 JRN-001: the deep dive step comes after Log the round, before the 0.3.14 term gate, and starts straight after the round is logged (22 failures, every 00019 JRN-001 to JRN-005 check; passed=78 failed=22)"
   green: "tests/run-all.sh --suite lint/stakeholder-asks-docs --suite lint/step-list --suite scripts/step-progress --suite lint/workflow-load-size --suite lint/md-links; TOTAL passed=229 failed=0 (5 suites)"
-  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00019-deep-dive-discussion --task-id T1 --cwd <worktree>; lint pass, test (scoped) pass: TOTAL passed=1506 failed=0 (36 suites)"
-  toolchain: ".workflow/specs/00019-deep-dive-discussion/artifacts/T1/toolchain.txt (pass)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00019-deep-dive-discussion --task-id T1 --cwd <worktree>; lint pass, test (scoped) pass: TOTAL passed=1506 failed=0 (36 suites)"
+  toolchain: ".workflow/specs/done/00019-deep-dive-discussion/artifacts/T1/toolchain.txt (pass)"
 considered_not_built:
   - "a settled -> settled transition in initiative-transition.sh so a re-asked initiative answer could be settled again: 6.5 instead settles the round's other answers only after the deep dive's round check, which needs no script change. The cost is that if the session is cut off mid deep dive, those answers are not on disk, and the next round asks them again because they are still open."
   - "a Completion line for the 0.3.12-0.3.13 item: the other round items in questioning-loop.md have none, and the loop's Done section already covers deep dive entries."
