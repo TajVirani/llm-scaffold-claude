@@ -1,0 +1,53 @@
+status: done
+summary: "Journey checks JRN-001 to JRN-005 (22 checks labelled \"00019 JRN-00n\") are added to tests/lint/stakeholder-asks-docs.sh, and JRN-006 is one check in the new suite tests/scripts/retrospective-evidence.sh, which runs the evidence.md waits command as written on two design-log fixtures built under new_workdir. Every new journey check fails today on an assertion, and all of them pass on a scratch copy holding plausible feature text, so the oracles can be met. Harness command: tests/run-all.sh. CI check name: none (no CI)."
+task_id: "phase-1-test-harness"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_phase_1_test_harness"
+branch: "wf/00019-deep-dive-discussion/s00019_phase_1_test_harness"
+base_commit: "55d8ecf2a7bf44d466fa19d52fc1229ab1647da7"
+head_commit: "7b8c9a27cae0f740cad94fbf17738ad57d5e4722"
+files_changed:
+  - "tests/lint/stakeholder-asks-docs.sh"
+  - "tests/scripts/retrospective-evidence.sh"
+  - "tests/README.md"
+tests_added:
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-001: the deep dive step comes after Log the round, before the 0.3.14 term gate, and starts straight after the round is logged", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-001: the deep dive step says \"say back\" / \"where that is wrong\" / \"explicit yes\" / \"agreed statement\" / \"contradicts\" / \"still standing\" (six checks)", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-001: the round no longer holds deep dives until after the round closes", kind: negative}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-002: Entry names a logged answer marked deep dive under way", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-002: Entry resumes the unfinished deep dive before computing a new frontier", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-003: no file under .agents/ says defer or deferred to deep dive", kind: negative}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-003: questioning-loop.md names Talk it through (deep dive) in the step, the Claude Code option and the chat format", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-003: large-path.md names Talk it through (deep dive)", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-004: the Deep dive shape has the From, Restated, Where it was wrong, Explored, Exchanges, Agreed statement, Answer, Decision and Round check lines", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-004: the Initiative round shape records a deep dive's agreed statement", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-004: the Initiative round shape records a deep dive's round check", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-004: the questions.md template documents an agreed statement settled with (confirmed:", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-005: large-path 6.5 says \"Talk it through (deep dive)\" / \"agreed statement\" / \"explicit yes\" (three checks)", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-005: large-path 6.5 settles a deep dive question with (confirmed:", kind: behaviour}
+  - {file: "tests/lint/stakeholder-asks-docs.sh", test: "00019 JRN-005: the 6.5 Done when line no longer says or deferred", kind: negative}
+  - {file: "tests/scripts/retrospective-evidence.sh", test: "00019 JRN-006: the waits count adds the Exchanges numbers (5 for one answer plus a three-exchange deep dive) and stays 2 for two answers and no Exchanges line", kind: edge}
+  - {file: "tests/scripts/retrospective-evidence.sh", test: "shellcheck: retrospective-evidence suite and the waits command", kind: behaviour}
+evidence:
+  red: "bash tests/lint/stakeholder-asks-docs.sh -> RESULT passed=78 failed=22 (the 22 failures are exactly the new 00019 JRN-001..005 checks, e.g. 'FAIL 00019 JRN-001: the deep dive step says \"say back\"', and the order check's detail reads 'item positions: Log the round 5, 0.3.12 6, 0.3.14 7; \"straight after the round is logged\" in the 0.3.12 item: 0'); bash tests/scripts/retrospective-evidence.sh -> 'FAIL 00019 JRN-006 ... got=with deep dive=2, without=2 want=with deep dive=5, without=2', RESULT passed=1 failed=1"
+  green: "Both suites run on a scratch copy of tests/ and .agents/ with plausible feature text applied (a mock script under the session scratchpad, deleted afterwards): stakeholder-asks-docs RESULT passed=100 failed=0; retrospective-evidence RESULT passed=2 failed=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00019-deep-dive-discussion --task-id phase-1-test-harness --work-type test-harness --skip test --cwd <worktree>; lint pass, test skipped (Phase 1)"
+  toolchain: ".workflow/specs/00019-deep-dive-discussion/artifacts/phase-1-test-harness/toolchain.txt (pass)"
+considered_not_built:
+  - "A separate JRN-001 order check: it would pass today, because Log the round (5), 0.3.12 (6) and 0.3.14 (7) are already in that order. It is folded into the check for 'straight after the round is logged' so the check is red now, and its detail names the item positions."
+  - "Per-line JRN-004 checks for the Deep dive shape: From, Explored, Answer and Decision already exist, so per-line checks would pass today. It is one check that lists the missing lines in its detail."
+  - "Checking the order of the Deep dive shape's lines: the contract asks only that each line is present at a line start."
+  - "A check for JRN-007: the brief says the existing lint/step-list and scripts/step-progress suites cover it."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: pass, note: "No external tool or network: the retrospective suite runs only the documented grep line on local fixtures; the lint suite reads files"}
+  - {item: 2, verdict: pass, note: "tests/scripts/retrospective-evidence.sh ends with shellcheck_files over itself and the extracted waits command; no script component changed"}
+  - {item: 3, verdict: pass, note: "Fixtures are written under $WORK/proj from new_workdir (retrospective-evidence.sh), nothing is committed, and no path is absolute or under home"}
+  - {item: R1, verdict: pass, note: "Names say what they hold: DEEP_DIVE_STEP, ASK_THE_ROUND, MISSING_SHAPE_LINES, item_position, item_text, phrase_count, waits_command, run_waits"}
+  - {item: R2, verdict: fixed, note: "retrospective-evidence.sh: the SC2016 disable now explains that the written script must keep the literal $1; waits_command's comment explains why fences are tracked first"}
+  - {item: R3, verdict: pass, note: "The helper comments give each function's contract, not a restatement of its lines"}
+  - {item: R4, verdict: pass, note: "tool-covered by check-comments.sh in the lint key (pass); journey ids appear only in the Suite headers and in check-name strings"}
+  - {item: R5, verdict: fixed, note: "stakeholder-asks-docs.sh item_position: 'lowercase awk regex' reworded to 'compared with the line in lower case'"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh on tests/README.md, tests/lint/stakeholder-asks-docs.sh and tests/scripts/retrospective-evidence.sh exits 0"}

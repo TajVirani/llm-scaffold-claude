@@ -18,12 +18,12 @@ Spec: [spec.md](spec.md)
 
 | Id | Journey | Proves | Steps | Expected outcome | Check |
 | --- | --- | --- | --- | --- | --- |
-| JRN-001 | Deep dive held at once | CAP-NEW-deep-dive-discussion | 1. Read `questioning-loop.md` § The round. 2. Find the deep dive step and the round log step. | The deep dive step follows the round log and comes before the term gate; it holds the restate, where-is-it-wrong, explicit-yes and round-check wording | `JRN-001` checks in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-002 | Unfinished deep dive resumed | CAP-NEW-deep-dive-discussion | 1. Read `questioning-loop.md` § Entry. | It names "deep dive under way" and resuming it before computing a new frontier | `JRN-002` check in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-003 | One label everywhere | CAP-NEW-deep-dive-discussion | 1. Search `.agents/` for the old label in any case. 2. Search the loop and large-path for the new one. | No old label; the new label in the loop step, the Claude Code option, the chat format and 6.5 | `JRN-003` checks in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-004 | Entry shapes carry the agreement | CAP-NEW-deep-dive-discussion | 1. Read the Deep dive and Initiative round shapes in `assets/design-log.md`. 2. Read the `settled` comment in `assets/questions.md`. | Every new line is present; `settled` documents the agreed statement with its confirmation | `JRN-004` checks in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-005 | Large path behaves the same | CAP-NEW-deep-dive-discussion | 1. Read `large-path.md` § 6.5. | Deep dive inside 6.5 before 6.6, settled with the agreed statement, Done line without "or deferred" | `JRN-005` checks in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-006 | Waits count includes exchanges | CAP-NEW-deep-dive-discussion | 1. Build a design log fixture with two `Answer:` lines and a Deep dive entry with `Exchanges: 3`, and one with no `Exchanges:` line. 2. Run the waits command from `retrospective/modules/evidence.md` on each. | 5 for the first (2 answers + 3 exchanges, the Deep dive's own Answer included in the 2); the old count for the second | `JRN-006` check in a retrospective evidence test under `tests/` |
+| JRN-001 | Deep dive held at once | CAP-NEW-deep-dive-discussion | 1. Read `questioning-loop.md` § The round. 2. Find the deep dive step and the round log step. | The deep dive step follows the round log and comes before the term gate; it holds the restate, where-is-it-wrong, explicit-yes and round-check wording | "00019 JRN-001" checks in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-002 | Unfinished deep dive resumed | CAP-NEW-deep-dive-discussion | 1. Read `questioning-loop.md` § Entry. | It names "deep dive under way" and resuming it before computing a new frontier | "00019 JRN-002" check in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-003 | One label everywhere | CAP-NEW-deep-dive-discussion | 1. Search `.agents/` for the old label in any case. 2. Search the loop and large-path for the new one. | No old label; the new label in the loop step, the Claude Code option, the chat format and 6.5 | "00019 JRN-003" checks in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-004 | Entry shapes carry the agreement | CAP-NEW-deep-dive-discussion | 1. Read the Deep dive and Initiative round shapes in `assets/design-log.md`. 2. Read the `settled` comment in `assets/questions.md`. | Every new line is present; `settled` documents the agreed statement with its confirmation | "00019 JRN-004" checks in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-005 | Large path behaves the same | CAP-NEW-deep-dive-discussion | 1. Read `large-path.md` § 6.5. | Deep dive inside 6.5 before 6.6, settled with the agreed statement, Done line without "or deferred" | "00019 JRN-005" checks in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-006 | Waits count includes exchanges | CAP-NEW-deep-dive-discussion | 1. Build a design log fixture with two `Answer:` lines and a Deep dive entry with `Exchanges: 3`, and one with no `Exchanges:` line. 2. Run the waits command from `retrospective/modules/evidence.md` on each. | 5 for the first (2 answers + 3 exchanges, the Deep dive's own Answer included in the 2); the old count for the second | "00019 JRN-006" check in `tests/scripts/retrospective-evidence.sh` |
 | JRN-007 | Step list and totals hold | CAP-NEW-deep-dive-discussion | 1. Run `tests/run-all.sh --suite lint/step-list` and the step-progress suite. | Both pass with the new titles; "step 21 of 46" for 0.3.8 still printed | `tests/lint/step-list.sh`, `tests/scripts/step-progress.sh` |
 
 ## Fixtures and oracles
@@ -35,3 +35,19 @@ Spec: [spec.md](spec.md)
 | Design log fixtures | Two small design logs written at run time under `new_workdir` (`tests/lib/common.sh`) | data-model.md § Deep dive entry (Exchanges line) | JRN-006 |
 | Waits command | The fenced command line in the retrospective's Measurements step, run as written | `.agents/skills/retrospective/modules/evidence.md` | JRN-006 |
 | Pinned totals | "step 21 of 46" for 0.3.8, "of 34" on the light path | `tests/scripts/step-progress.sh:29-44` | JRN-007 |
+
+## Targets
+
+| Target | Kind | Threshold | How measured (exact command) | Source of the threshold |
+| --- | --- | --- | --- | --- |
+| New-feature start load | performance | at most 45,000 bytes (baseline 41,392) | `bash tests/lint/workflow-load-size.sh \| grep '^new-feature start:'` | ADR-0004 (`.workflow/decisions/adr/0004-workflow-load-budget.md`); spec.md Constraints |
+| Questioning loop size | performance | `questioning-loop.md` at most 15,000 bytes (baseline 12,325) | `wc -c < .agents/skills/feature-workflow/modules/questioning-loop.md` | assumed (design-log.md) |
+| Errors | error | none set | Not measurable as a number: the change is to step-file text; the label, wording and order checks are journeys (JRN-001 to JRN-005) | assumed (design-log.md) |
+| Coverage | coverage | none set | Not measurable: no bash line-coverage tool is installed ([.workflow/deferred/bash-line-coverage.md](../../deferred/bash-line-coverage.md)) | assumed (design-log.md) |
+
+## Suites
+
+| Suite | Profile key | Command (copied from the profile) | CI check | Known-bad-build evidence (1.4) |
+| --- | --- | --- | --- | --- |
+| Harness | `test` | `tests/run-all.sh` | none | `artifacts/phase-1-known-bad/record.md` |
+| Browser | `e2e` | none: the project has no e2e profile | none | not applicable |

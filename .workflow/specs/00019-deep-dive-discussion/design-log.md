@@ -253,3 +253,31 @@ Facts looked up instead of asked (0.3.10): None.
 - Question: `spec-worktree.sh create` commits the workflow root, so `.workflow/GLOSSARY.md` would carry spec 00018's two uncommitted entries (Browser-suite evidence, Browser-suite run output) onto this branch. Options: hold them aside · carry them on 00019 · stop.
 - Answer: "Carry them on 00019"
 - Decision: **D8** the two 00018 entries ride on this spec's first commit and reach main with its merge; 00018's draft sees them missing from the main checkout until then.
+
+## 2026-11-21 Assumed: Phase 1 targets
+
+- Step: 1.1
+- Question: what thresholds for the questioning loop's size, errors and coverage, which the spec and rules do not give?
+- Answer taken: `questioning-loop.md` at most 15,000 bytes (12,325 at baseline, about 2,700 bytes for the new deep dive text), since it loads on every questioning-loop resume though it sits outside ADR-0004's two budgets; no error or coverage number (a text change; no bash coverage tool).
+- Why safe to assume: the cap keeps the loop lean in the spirit of ADR-0004 without changing what is built; the breakdown quiz offers it for veto.
+
+## 2026-11-21 Phase 1: tests in tasks?
+
+- Step: 1.1
+- The spec adds a new capability (CAP-NEW-deep-dive-discussion), so "tests in tasks" does not apply: 1.2 builds the journey checks under `test-harness`. No browser suite: the project has no e2e profile and no journey needs one.
+
+## 2026-11-21 Assumed: the seams under test
+
+- Step: 1.2 (2.3 rules)
+- Question: which public interface does each slice's tests drive?
+- Answer taken: T1: the step-file text as read by `tests/lint/stakeholder-asks-docs.sh` (JRN-001 to JRN-005), plus `lint/step-list` and `scripts/step-progress` (JRN-007). Catches missing or misordered wording, a leftover old label and changed step totals; misses whether an agent actually follows the text in a live round. T2: the waits command line in `retrospective/modules/evidence.md`, run as written on fixture design logs (JRN-006). Catches a wrong count; misses other Measurements lines.
+- Why safe to assume: both are existing seams (the doc lints and the fenced command), the highest that reach the behaviour; a live-round check would need a model in the loop, which the harness has no seam for.
+
+## 2026-11-21 Breakdown quiz
+
+- Asked at: 1.2, beside the harness build
+- Slices: approved as shown. T1 Deep dive held at once (feature-workflow; `modules/questioning-loop.md`, `modules/large-path.md`, `assets/design-log.md`, `assets/questions.md`, `references/steps.tsv`, `PLAN/decision-flow.mermaid`, `PLAN/decision-flow-reference.md`; M, ~200 lines; JRN-001 to JRN-005, JRN-007). T2 Waits count includes deep dive exchanges (retrospective; `.agents/skills/retrospective/modules/evidence.md`; S, ~5 lines; JRN-006).
+- Edges, parallel_with and hitl modes: approved; no edges, no overlaps, both afk, one wave.
+- Offered for veto: Assumed: Phase 1 targets; Assumed: the seams under test; vetoed: none
+- Size: within the project defaults: 2 tasks, 8 predicted files
+- Decision: **D9** two tasks in one wave as shown. Answer: "Approve (Recommended)"
