@@ -1,0 +1,32 @@
+status: done
+summary: "The retrospective waits command in modules/evidence.md is now a single awk line. It counts the same answer and approval lines as the old grep and adds the numbers on the Exchanges: lines, so the fixtures give 5 and 2. The Waits bullet in evidence.md and the Waits row of assets/retrospective.md (a path outside the predicted files, inside the retrospective module) now say the count includes deep dive exchanges."
+task_id: "T2"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t2"
+branch: "task/00019-deep-dive-discussion/T02-waits-count-exchanges"
+base_commit: "1548c99adf14df69975c2cf92bf7aa7903937932"
+head_commit: "e94579e42969381e5db3ffe20893c5c217f35376"
+files_changed:
+  - ".agents/skills/retrospective/modules/evidence.md"
+  - ".agents/skills/retrospective/assets/retrospective.md"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite scripts/retrospective-evidence; FAIL 00019 JRN-006 ... got=with deep dive=2, without=2 want=with deep dive=5, without=2"
+  green: "tests/run-all.sh --suite scripts/retrospective-evidence; PASS scripts/retrospective-evidence passed=2 failed=0"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/00019-deep-dive-discussion --task-id T2 --cwd <worktree>; test pass (scoped, TOTAL passed=608 failed=0, 23 suites)"
+  toolchain: ".workflow/specs/00019-deep-dive-discussion/artifacts/T2/toolchain.txt (pass)"
+considered_not_built:
+  - "Not counting the round's 'deep dive under way' Answer line separately from the deep dive's own Answer line: the acceptance criteria define waits as every Answer line plus the Exchanges numbers, so both still count as before."
+  - "No new tests: the Phase 1 suite already covers both acceptance fixtures and shellchecks the line."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "No skill description was added or changed; only modules/evidence.md and assets/retrospective.md."}
+  - {item: 2, verdict: not-applicable, note: "No agent was added."}
+  - {item: R1, verdict: pass, note: "The awk counter is named waits (evidence.md:41)."}
+  - {item: R2, verdict: pass, note: "No workaround or trade-off was added."}
+  - {item: R3, verdict: pass, note: "The trailing comment '# Waits: answers recorded plus deep dive exchanges' labels the measure for the table. It does not restate the awk."}
+  - {item: R4, verdict: pass, note: "No decision id, task id or workflow path in the changed comment."}
+  - {item: R5, verdict: pass, note: "Plain words in the comment, the Waits bullet and the template row."}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over both changed files exited 0 (both are markdown, so it skips them)."}

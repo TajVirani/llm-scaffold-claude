@@ -1,0 +1,34 @@
+verdict: "pass"
+task_id: "T1"
+work_type: "agent-docs"
+diff: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t1@1548c99adf14df69975c2cf92bf7aa7903937932..HEAD"
+tool_output: ".workflow/specs/00019-deep-dive-discussion/artifacts/T1/toolchain.json"
+items:
+  - n: 1
+    verdict: "not-applicable"
+    location: "none"
+    note: "The diff changes no SKILL.md frontmatter: the seven changed files are assets, modules, references and PLAN files only, and the feature-workflow description at SKILL.md:3 is unchanged."
+  - n: 2
+    verdict: "not-applicable"
+    location: "none"
+    note: "The diff adds no agent definition under .agents/agents/."
+  - n: "R1"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/questioning-loop.md:67-70 (step names Restate, Agree, Round check, Log), .agents/skills/feature-workflow/assets/design-log.md:119,150 (Round check field names)"
+  - n: "R2"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/large-path.md:166 (other answers settled only after the round check; the reason is that a settled question cannot be settled again)"
+  - n: "R3"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/assets/design-log.md:140 (the changed template comment says when the Deep dive entry is written, a process the entry shape does not show)"
+  - n: "R4"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/assets/design-log.md:9 (changed file header, step numbers only), .agents/skills/feature-workflow/assets/design-log.md:140 (changed template comment, step numbers only); no decision IDs, spec or task IDs, or new doc paths in any added comment"
+  - n: "R5"
+    verdict: "pass"
+    location: ".agents/skills/feature-workflow/modules/questioning-loop.md:66-70 (plain chat, agreed statement and round check written in plain words)"
+read_outside_diff:
+  - ".agents/skills/feature-workflow/SKILL.md: read line 3 to confirm the router description is not among the changed files (vacuous pass on item 1)"
+not_checked:
+  - "design-log.md:140 comment cites the step numbers 0.3.12-0.3.13; readable-code R4 lists decision IDs, paths, spec or task IDs and URLs, not step numbers, and the file's other comments use step numbers too, so it is not a breach. A standards-lens ruling on whether step numbers count as workflow references would settle it."
+out_of_scope_noticed: []

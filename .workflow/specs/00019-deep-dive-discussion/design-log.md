@@ -281,3 +281,14 @@ Facts looked up instead of asked (0.3.10): None.
 - Offered for veto: Assumed: Phase 1 targets; Assumed: the seams under test; vetoed: none
 - Size: within the project defaults: 2 tasks, 8 predicted files
 - Decision: **D9** two tasks in one wave as shown. Answer: "Approve (Recommended)"
+
+## 2026-11-22 Assumed: when 6.5 settles the other answers of a round with a deep dive
+
+- Step: 3.4 (T1 result)
+- Question: `initiative-transition.sh set-question` refuses to settle a question that is already settled, so an answer a deep dive contradicts could not be settled again. Settle the round's other answers as they land (as "Assumed: the large path's deep dive" said), or only after the round check?
+- Answer taken: in a round that holds a deep dive, 6.5 settles the other answers after the round check; a round without one settles each answer as it lands, as before.
+- Why safe to assume: it keeps the script's one-write rule unchanged; the cost is that a session cut off mid deep dive leaves those answers open, so the next round asks them again. Supersedes the "settles each answer on disk as it lands" line of the earlier entry for rounds with a deep dive.
+
+## 2026-11-22 Task PRs skipped
+
+- Step: 3.16. `task_review` is `pr`, but `gh` is not installed, so `open-task-pr.sh` skipped T1 and T2 before any push ("gh not installed"); both merged locally with `pr: null`.

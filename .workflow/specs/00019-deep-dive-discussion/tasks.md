@@ -2,7 +2,7 @@
 tasks:
   - id: T1
     title: "Deep dive held at once"
-    status: pending
+    status: done
     capability: CAP-NEW-deep-dive-discussion
     depends_on: []
     touches_core: false
@@ -20,7 +20,7 @@ tasks:
     issue: null
   - id: T2
     title: "Waits count includes deep dive exchanges"
-    status: pending
+    status: done
     capability: CAP-NEW-deep-dive-discussion
     depends_on: []
     touches_core: false

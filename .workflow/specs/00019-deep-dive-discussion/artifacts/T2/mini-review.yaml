@@ -1,0 +1,41 @@
+verdict: pass
+task_id: T2
+work_type: agent-docs
+diff: /Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t2@1548c99adf14df69975c2cf92bf7aa7903937932..HEAD
+tool_output: .workflow/specs/00019-deep-dive-discussion/artifacts/T2/toolchain.json
+items:
+  - n: 1
+    verdict: not-applicable
+    location: no skill description in the diff
+    note: "The diff touches only .agents/skills/retrospective/modules/evidence.md and assets/retrospective.md; no frontmatter description is added or changed."
+  - n: 2
+    verdict: not-applicable
+    location: no agent file in the diff
+    note: "The diff adds no agent under .agents/agents/."
+  - n: R1
+    verdict: pass
+    location: .agents/skills/retrospective/modules/evidence.md:41
+    note: "The counter is named waits; the other names are awk built-ins and the existing shell variable S."
+  - n: R2
+    verdict: pass
+    location: no code in the diff the item applies to
+    note: "The diff adds no workaround or trade-off comment."
+  - n: R3
+    verdict: pass
+    location: .agents/skills/retrospective/modules/evidence.md:41
+    note: "The trailing label '# Waits: answers recorded plus deep dive exchanges' is a measure label in the block's existing convention (line 40 and the other Measurements lines carry the same kind of label). It restates the awk line literally, but deleting it breaks tests/scripts/retrospective-evidence.sh (JRN-006), which locates the Waits line by its '# Waits:' marker. See not_checked."
+  - n: R4
+    verdict: pass
+    location: .agents/skills/retrospective/modules/evidence.md:41
+    note: "The comment names no decision id, task id, workflow path or URL."
+  - n: R5
+    verdict: pass
+    location: .agents/skills/retrospective/modules/evidence.md:41
+    note: "The comment uses plain words; 'deep dive' is defined in the bullet at line 49 as the Deep dive entries with Exchanges: lines."
+read_outside_diff:
+  - ".agents/skills/retrospective/modules/evidence.md: read the full Measurements block to compare the label convention of neighbouring lines"
+  - "tests/scripts/retrospective-evidence.sh: confirmed JRN-006 keys on the '# Waits:' trailing marker"
+  - ".workflow/specs/00019-deep-dive-discussion/artifacts/T2/implementation.yaml: read the implementer's self_review to check each item against the diff"
+not_checked:
+  - "R3 on evidence.md:41 (literal reading): the trailing label restates the awk line. Left in place because the only fix, delete, breaks JRN-006, which matches on the '# Waits:' marker. Settle by changing the test's locator first if the label should go."
+out_of_scope_noticed: []

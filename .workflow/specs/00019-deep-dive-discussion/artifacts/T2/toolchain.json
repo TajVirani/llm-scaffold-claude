@@ -1,0 +1,51 @@
+{
+  "status": "pass",
+  "task_id": "T2",
+  "work_type": "agent-docs",
+  "profile": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t2/.workflow/profiles/agent-docs.md",
+  "cwd": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t2",
+  "evidence_dir": "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/specs/00019-deep-dive-discussion/artifacts/T2",
+  "tree": "bc8441a8cb5342f3a61f03104c382110bba5b59e",
+  "ran": 2,
+  "results": [
+    {
+      "key": "lint",
+      "command": "tests/run-all.sh --suite lint/frontmatter && tests/run-all.sh --suite lint/step-list && tests/run-all.sh --suite lint/symlinks && tests/run-all.sh --suite lint/upstream-lineage",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "key": "typecheck",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "format",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "boundary",
+      "command": "",
+      "status": "skipped",
+      "exit_code": null,
+      "reason": "no command"
+    },
+    {
+      "key": "test",
+      "command": "tests/run-all.sh --only-file \"$WF_TASK_TESTS_FILE\" --covering-file \"$WF_CHANGED_FILES_FILE\" --exclude-file \"$WF_EXCLUDE_TESTS_FILE\"",
+      "status": "pass",
+      "exit_code": 0,
+      "scoped": true,
+      "own": 1,
+      "excluded": 1,
+      "changed": 2
+    }
+  ],
+  "digest": "",
+  "reused_from": "T2"
+}
