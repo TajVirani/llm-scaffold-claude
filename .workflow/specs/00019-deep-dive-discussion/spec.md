@@ -1,11 +1,11 @@
 ---
-status: in-progress
+status: in-review
 baseline_revision: "55d8ecf2a7bf44d466fa19d52fc1229ab1647da7"
 spec_branch: spec/00019-deep-dive-discussion
 impl_base_revision: "677414b4773a5ecf1542a679502f034dbdfd8fd1"
 light_path: false
 followup_review_recommended: false
-deferred: []
+deferred: [.workflow/deferred/browser-suite.md]
 tracker_issue: ""
 budget: {max_tasks: 10, max_changed_files: 30}
 ---
@@ -54,3 +54,7 @@ A stakeholder who picks the deep dive on a question in a round is, in the same s
 - Tasks: [tasks.md](tasks.md)
 - Proposals: [proposals.md](proposals.md)
 - Report: [report.md](report.md)
+
+## Known gaps
+
+- Gate skipped (3.10 browser suite): this repo has no browser suite; every journey is a harness check. Handoff: [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md)

@@ -45,3 +45,4 @@ The scaffold is bash scripts plus markdown, with no web UI for a browser to driv
 - .workflow/specs/done/00017-handoffs-from-session-worktrees, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit 383ab6178a3cd5acb2c52cbbf5557bd14005d8ff.
 - .workflow/specs/done/00013-validator-diagnostic, 3.14: light-path browser gate skipped again; no e2e-browser profile at commit 5ae07ecabe569190e5bca4a7083232d6009faed5.
 - .workflow/specs/done/00016-per-run-handoffs, 3.14: browser gate skipped again; no e2e-browser profile at commit 342efd27fdb19344eced8ee79947e2822599ee33.
+- .workflow/specs/00019-deep-dive-discussion, 3.14: browser gate skipped again; no e2e-browser profile at commit ec367b9bda476ea4131ec0e818ba1e457f664684.
