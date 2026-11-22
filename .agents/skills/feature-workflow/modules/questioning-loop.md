@@ -20,6 +20,7 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
    | 5.6 | the router (5.6) | `ST status .workflow/specs/NNN-slug draft --step 5.6` | The stakeholder's change request, verbatim |
    | 00.24 | discovered-work | `ST status .workflow/specs/NNN-slug draft --step 00.24` (from `blocked` only) | The discovered problem and its evidence, from the newest **Discovered work** entry in `design-log.md` |
    | 00.29 (a budget re-scope by an older workflow version) | none | none (already `draft`) | The size-budget crossing and the reduction the stakeholder wants, from the newest **Discovered work** entry in `design-log.md` |
+4. **A deep dive cut off.** When a logged Questioning round holds an answer "deep dive under way" with no Deep dive entry for it, the last session ended inside that deep dive. Resume it at [0.3.12](#the-round), restating from the log, before computing a new frontier.
 
 ## The round
 
@@ -48,21 +49,27 @@ Interview the stakeholder until the feature's design tree is settled. Work in **
    - **Answer + Source:** the fact is settled; use it in the recommendation, never ask it.
    - **not a fact:** it is a decision; it joins the round.
    - **not determinable from the repo:** the stakeholder may know it; ask it in the round, saying the repo could not settle it.
-4. **0.3.11 Ask the whole frontier in one round.** Each question carries options, your recommended answer with its reason (cite the `codebase-map.md` row it rests on), and a **Defer to deep dive** option. Word each question so "yes" accepts the recommendation. Before you send the round, launch what does not wait on its answers, as [conventions](../references/conventions.md#asking-the-stakeholder) says: the 0.3.10 lookups are already out; on the first round, when the owning module is settled (0.3.3–0.3.4) and `codebase-map.md` already shows a footprint too big for the light path (the 0.3.20 table in [discovery-impact](discovery-impact.md#0320-light-path-test)), also launch `module-audit` as [0.4.6](discovery-impact.md#04-model-the-impact-full-path) says, with the deeper prompt's Ask and Goals as what the feature changes in the module.
-   - **Claude Code:** AskUserQuestion, all questions in one call; put the recommended option first and mark it "(Recommended)", and add "Defer to deep dive" as an option. If the round has more questions than one call accepts, use the chat format below for the whole round.
+4. **0.3.11 Ask the whole frontier in one round.** Each question carries options, your recommended answer with its reason (cite the `codebase-map.md` row it rests on), and a **Talk it through (deep dive)** option. Only frontier decision questions carry that option: the deeper prompt's agreement, its own questions and the assumption veto do not. Word each question so "yes" accepts the recommendation. Before you send the round, launch what does not wait on its answers, as [conventions](../references/conventions.md#asking-the-stakeholder) says: the 0.3.10 lookups are already out; on the first round, when the owning module is settled (0.3.3–0.3.4) and `codebase-map.md` already shows a footprint too big for the light path (the 0.3.20 table in [discovery-impact](discovery-impact.md#0320-light-path-test)), also launch `module-audit` as [0.4.6](discovery-impact.md#04-model-the-impact-full-path) says, with the deeper prompt's Ask and Goals as what the feature changes in the module.
+   - **Claude Code:** AskUserQuestion, all questions in one call; put the recommended option first and mark it "(Recommended)", and add "Talk it through (deep dive)" as an option. If the round has more questions than one call accepts, use the chat format below for the whole round.
    - **Codex, or chat:** one message in this format, then wait for the answers:
 
      ```text
      Q1 - <title>: <question, with the options>
      Recommended: <answer> (<reason, source>)
-     Or: defer to deep dive
+     Or: Talk it through (deep dive)
 
      Q2 - ...
      ```
 
    If the stakeholder answers "whatever you think is best", restate your recommendation and get an explicit yes.
-5. **Log the round** in `design-log.md` with the **Questioning round** entry shape: per question the options, recommendation, the answer verbatim (or "deferred to deep dive") and a decision id `D<n>`; then the facts looked up instead of asked. Superseding an earlier decision is a new entry naming it.
-6. **0.3.12–0.3.13 Deep dives.** After the round closes, take each deferred question one at a time: gather what it needs (a `fact-lookup`, the map, the code via a sub-agent), lay out the options, ask it alone, and log a **Deep dive** entry.
+5. **Log the round** in `design-log.md` with the **Questioning round** entry shape: per question the options, recommendation, the answer verbatim and a decision id `D<n>`; then the facts looked up instead of asked. A deep dive question's Answer reads "deep dive under way" with no decision id: its `D<n>` is given in the Deep dive entry. Superseding an earlier decision is a new entry naming it.
+6. **0.3.12–0.3.13 Deep dives.** Start straight after the round is logged, before the term gate, the scope gate or the next round. Take each question answered "Talk it through (deep dive)" one at a time, in frontier order; a later one starts from the statements already agreed. Hold it in plain chat, not as a multiple-choice ask. A fact it needs is looked up (a `fact-lookup`, the map, the code via a sub-agent), never asked.
+   - **Restate.** Say back what you think the question is and why you recommended your answer, then ask where that is wrong.
+   - **Agree.** Go back and forth until you can write one statement of what was agreed. Show it in full and ask for an explicit yes; "whatever you think" is not one. A change goes back to the discussion.
+   - **Round check.** Check every other answer in the round against the agreed statement. Re-ask, in one ask, only the answers it contradicts; name the rest to the stakeholder as still standing.
+   - **Log** a **Deep dive** entry: the agreed statement is its decision, and its Round check line gives each re-asked answer a new decision that supersedes the old one.
+
+   A round with a deep dive drops its Last round summary answer: 0.3.19 asks the revised summary. A Yes to conversion acts only after the round's deep dives. Agreed statements and re-asked answers pass the term gate and the scope gate like any answer.
 7. **0.3.14–0.3.15 Term gate.** For each answer that introduces a new or conflicting term, invoke the `domain-modeling` skill for gate 0.3.14; it agrees the term and writes the glossary under step `0.3.15`.
 8. **0.3.16–0.3.17 Scope gate.** For each answer that puts work outside the agreed scope, run [deferred-handoff](deferred-handoff.md#write) **Write** at step `0.3.17`. It writes `.workflow/deferred/<slug>.md`, adds it to `spec.md` `deferred` and Non-goals, and logs the **Scope decision**.
 9. **0.3.18 Questions remaining?** Answers reshape the tree: settled decisions push the frontier outward and surface new questions. Any open or newly surfaced → `ST step .workflow/specs/NNN-slug 0.3.8` and run the next round. None → 0.3.19. A small request usually needs one round: ask its frontier with the summary as the last question ([Last round](#settle-the-goal)), and run a second round only when a question stays open after it.

@@ -1,0 +1,38 @@
+status: done
+summary: "The questioning loop now holds a deep dive straight after the round is logged, before the term gate, the scope gate and the next round. The agent restates the question, talks it through in plain chat until the stakeholder gives an explicit yes to an agreed statement, then re-asks only the answers that statement contradicts and names the rest as still standing. Entry resumes a deep dive that was cut off. Large-path 6.5 does the same. The design-log shapes, questions.md, the steps.tsv titles and the PLAN node labels match; JRN-001 to JRN-005 are green."
+task_id: "T1"
+worktree: "/Users/tvirani/Desktop/Projects/llm-scaffold-claude/.workflow/.spec-worktrees/00019-deep-dive-discussion/.workflow/.worktrees/s00019_t1"
+branch: "task/00019-deep-dive-discussion/T01-deep-dive-held-at-once"
+base_commit: "1548c99adf14df69975c2cf92bf7aa7903937932"
+head_commit: "ccfefc1650411f0dae74530bfae14879e5718346"
+files_changed:
+  - ".agents/skills/feature-workflow/modules/questioning-loop.md"
+  - ".agents/skills/feature-workflow/modules/large-path.md"
+  - ".agents/skills/feature-workflow/assets/design-log.md"
+  - ".agents/skills/feature-workflow/assets/questions.md"
+  - ".agents/skills/feature-workflow/references/steps.tsv"
+  - "PLAN/decision-flow.mermaid"
+  - "PLAN/decision-flow-reference.md"
+tests_added: []
+evidence:
+  red: "tests/run-all.sh --suite lint/stakeholder-asks-docs; FAIL 00019 JRN-001: the deep dive step comes after Log the round, before the 0.3.14 term gate, and starts straight after the round is logged (22 failures, every 00019 JRN-001 to JRN-005 check; passed=78 failed=22)"
+  green: "tests/run-all.sh --suite lint/stakeholder-asks-docs --suite lint/step-list --suite scripts/step-progress --suite lint/workflow-load-size --suite lint/md-links; TOTAL passed=229 failed=0 (5 suites)"
+  suite: "bash <spec checkout>/.agents/skills/feature-workflow/scripts/run-toolchain.sh --spec-dir .workflow/specs/done/00019-deep-dive-discussion --task-id T1 --cwd <worktree>; lint pass, test (scoped) pass: TOTAL passed=1506 failed=0 (36 suites)"
+  toolchain: ".workflow/specs/done/00019-deep-dive-discussion/artifacts/T1/toolchain.txt (pass)"
+considered_not_built:
+  - "a settled -> settled transition in initiative-transition.sh so a re-asked initiative answer could be settled again: 6.5 instead settles the round's other answers only after the deep dive's round check, which needs no script change. The cost is that if the session is cut off mid deep dive, those answers are not on disk, and the next round asks them again because they are still open."
+  - "a Completion line for the 0.3.12-0.3.13 item: the other round items in questioning-loop.md have none, and the loop's Done section already covers deep dive entries."
+  - "checklist.md:156 still says defer-to-deep-dive: it is a historical, ticked build checklist outside .agents/ and outside the task's files."
+profile_wrong: null
+scope_expansion: null
+blocked: null
+discovered_work: []
+self_review:
+  - {item: 1, verdict: not-applicable, note: "the diff adds or changes no skill description frontmatter"}
+  - {item: 2, verdict: not-applicable, note: "no new agent definition in the diff"}
+  - {item: R1, verdict: pass, note: "step and line names say what they hold: Restate, Agree, Round check, Log in questioning-loop.md item 6; the nine Deep dive shape lines in assets/design-log.md"}
+  - {item: R2, verdict: pass, note: "the one trade-off, settling 6.5 answers after the round check, gives its reason in the text (a settled question cannot be settled again), large-path.md 6.5"}
+  - {item: R3, verdict: pass, note: "the changed template comments in assets/design-log.md (Deep dive shape) say when the entry is written, which the lines below do not say"}
+  - {item: R4, verdict: pass, note: "no decision ids or workflow paths added to any comment; check-comments.sh exit 0"}
+  - {item: R5, verdict: pass, note: "plain wording and glossary terms (Questioning round, Deep dive, frontier) throughout"}
+  - {item: comment-lint, verdict: pass, note: "check-comments.sh over the 7 changed files exited 0 with no lines listed"}

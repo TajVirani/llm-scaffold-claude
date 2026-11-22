@@ -1,0 +1,27 @@
+lens: review-end-state
+status: done
+blocked_reason: ""
+baseline_revision: "55d8ecf2a7bf44d466fa19d52fc1229ab1647da7"
+head: "bdd5f5e3be6366808b6aa0a6d8c9528ffb6ede0b"
+findings: []
+checked:
+  - "Diff pinned: 55d8ecf...HEAD excluding the spec folder, 13 files (+249/-32); commit log 7b8c9a2..bdd5f5e read; every non-test hunk and both test files read in full."
+  - "CAP-NEW-deep-dive-discussion success line, clause by clause: questioning-loop.md 0.3.11-0.3.13 (option label, step 6 runs 'straight after the round is logged, before the term gate, the scope gate or the next round', Restate / Agree with explicit yes / Round check re-asking only contradicted answers and naming the rest as still standing / Log); large-path.md 6.5 (deep dive held inside 6.5 before 6.6, same restate, explicit yes, round check, settled with '(confirmed:'); Deep dive shape carries From, Restated, Where it was wrong, Explored, Exchanges, Agreed statement, Answer, Decision, Round check; Initiative round shape gains a '(decision, deep dive)' block with the same lines plus Settled; label 'Talk it through (deep dive)' in the loop step, the Claude Code option, the chat format and 6.5."
+  - "End state 1-9 in verification-plan.md: each met in the diff (Entry item 4 resumes 'deep dive under way' before a new frontier; no 'after the round closes'; 6.5 Done line reads 'Done when every decision on the frontier is settled, a talked-through one on its agreed statement.'; assets/questions.md settled comment documents the confirmed form; steps.tsv rows 0.3.12/0.3.13 retitled in place)."
+  - "Constraint: round still one ask (0.3.11 Claude Code and chat bullets unchanged in substance); deep dive starts after it returns."
+  - "Constraint: 0.3.12/0.3.13 keep ids; steps.tsv changed two lines in place (152 lines at HEAD); no large-path step moves."
+  - "Constraint: append only: re-asked answers get a new D<n> that supersedes (loop step 6 Log bullet; Deep dive shape Round check '(supersedes D<m>)'); large path defers settling contradicted answers rather than editing them."
+  - "Constraint: facts looked up, never asked: loop step 6 'A fact it needs is looked up ... never asked'; 6.5 defers to the loop's 0.3.12-0.3.13."
+  - "Constraint: ADR-0004 load budget: 'new-feature start: 41392 bytes (limit 45000)' in a scratch worktree of HEAD; questioning-loop.md 13,980 bytes (target at most 15,000)."
+  - "Non-goals: option restricted to frontier decision questions ('the deeper prompt's agreement, its own questions and the assumption veto do not'); no change to frontier computation (0.3.8 untouched) or to the deeper-prompt skill (not in diff)."
+  - "Deferred: .workflow/deferred/browser-suite.md only gains a Later requests line (3.14 gate skip); no browser work in the diff."
+  - "Kept Assumed entries in design-log.md (round logged first, several deep dives one at a time in frontier order, plain chat, label, step ids, entry shape, waits count, resume, decision id in Deep dive entry only, first-round extras, summary and conversion, large-path handling, settled text, and the 2026-11-22 entry settling other 6.5 answers only after the round check): each reflected in the diff."
+  - "JRN-001 to JRN-005: 'tests/run-all.sh --suite lint/stakeholder-asks-docs' in a scratch worktree of HEAD: PASS passed=100 failed=0; test code read and its checks match the journey rows."
+  - "JRN-006: 'tests/run-all.sh --suite scripts/retrospective-evidence': PASS passed=2; additionally ran the old grep -cE and the new awk waits command on all 18 design logs under .workflow/specs and .workflow/specs/done: identical counts (none has an Exchanges line), confirming 'same number as today'."
+  - "JRN-007: lint/step-list PASS passed=36; scripts/step-progress PASS passed=73."
+  - "Artifacts read: artifacts/T1/toolchain.json and T2/toolchain.json (lint pass, test pass), artifacts/gate-3.9-w1/toolchain.json and toolchain.txt (TOTAL passed=4909 failed=0, 81 suites, lint/stakeholder-asks-docs 100 passed, lint/workflow-load-size 14 passed), artifacts/T1/mini-review.yaml and T2/mini-review.yaml (verdict pass), artifacts/phase-1-test-harness/toolchain.json."
+  - "Searched .agents/, PLAN/, README.md, AGENTS.md, .workflow/GLOSSARY.md for 'defer(red)? to deep dive' and 'defer option' (case-insensitive, hidden dirs): only the glossary's _Avoid_ alias 'Deferred question' remains, which is correct usage."
+not_verifiable:
+  - "Whether an agent following the new 0.3.12-0.3.13 and 6.5 text actually holds the discussion in a live round (the Success signal's 'in the same sitting' experience): the harness reads step-file text only, as the 'seams under test' Assumed entry notes. The orchestrator can confirm on the next real questioning round that picks the deep dive."
+not_checked:
+  - "Full tests/run-all.sh was not re-run at HEAD; the gate-3.9-w1 run (4909 passed, 0 failed) covers the code, and HEAD adds only spec-folder workflow data after it. The five journey suites were re-run at HEAD and pass."

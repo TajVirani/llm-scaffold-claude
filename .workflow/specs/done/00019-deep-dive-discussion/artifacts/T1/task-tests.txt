@@ -1,0 +1,1 @@
+tests/lint/stakeholder-asks-docs.sh

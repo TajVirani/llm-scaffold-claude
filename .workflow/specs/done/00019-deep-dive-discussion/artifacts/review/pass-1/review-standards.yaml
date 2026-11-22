@@ -1,0 +1,37 @@
+lens: review-standards
+status: done
+blocked_reason: ""
+baseline_revision: "55d8ecf2a7bf44d466fa19d52fc1229ab1647da7"
+head: "bdd5f5e3be6366808b6aa0a6d8c9528ffb6ede0b"
+findings:
+  - id: RS-1
+    category: rule
+    severity: low
+    confidence: 80
+    location: "upstream-lineage.json (entry for .agents/skills/feature-workflow/modules/questioning-loop.md, mattpocock/skills grilling: changes[1] and why)"
+    claim: "The questioning loop's lineage entry still records the local change as 'added defer-to-deep-dive (0.3.12-0.3.13)' and says 'only the gates, deferral and logging are ours'. This change replaced that deferral with a deep dive held at once that ends in an agreed statement, and left the entry as it was."
+    consequence: "A maintainer who picks up a grilling update follows the rule's procedure: diff the upstream file, then keep what changes says is ours. The list names a behaviour that no longer exists and leaves out the restate, agreed statement and round check steps that are now the local part. The why also uses 'deferral', which the glossary's Deep dive entry avoids ('Deferred question')."
+    evidence:
+      basis: ".workflow/rules.md, Cross-cutting policy: \"Every first-party asset derived from upstream (skill, module, reference, agent, hook, script, template) gets an `upstream-lineage.json` entry: `kind` `copy`, `derived` or `pinned-addon`, upstream repo, path and commit, `changes`, `why`, `reviewed_at`. To pick up a vendor update, diff each `upstream_path` from its pinned commit, review with the user, bring in what we want, then update the entry.\""
+      diff: "questioning-loop.md: -   add \"Defer to deep dive\" as an option. / +   add \"Talk it through (deep dive)\" as an option. / + 6. **0.3.12–0.3.13 Deep dives.** Start straight after the round is logged, before the term gate ..."
+    suggested_fix: "In upstream-lineage.json, change that entry's changes[1] to 'added the talk-it-through deep dive (0.3.12-0.3.13: restate, agree a written statement, round check), ...' and its why to '... only the gates, the deep dive and logging are ours'. Bump reviewed_at."
+checked:
+  - "Diff 55d8ecf2a7bf44d466fa19d52fc1229ab1647da7...bdd5f5e3be6366808b6aa0a6d8c9528ffb6ede0b, excluding the spec folder: 13 files, 11 commits"
+  - ".workflow/specs/done/00019-deep-dive-discussion/spec.md: baseline_revision, Non-goals, Assumptions, Known gaps (browser suite gate skipped, handed to .workflow/deferred/browser-suite.md)"
+  - ".workflow/specs/done/00019-deep-dive-discussion/tasks.md: T1 agent-docs, T2 agent-docs"
+  - "AGENTS.md (CLAUDE.md is a one-line @AGENTS.md import); CODING_STANDARDS.md and CONTRIBUTING.md are not in the repo"
+  - ".workflow/rules.md, all sections. Ownership: the feature-workflow, retrospective and tests edits stay inside their own owns, and tests may depend on retrospective and feature-workflow. No new file under .agents/, so no PROVENANCE or manifest change is due. The new test reads a copy of .agents/"
+  - ".workflow/profiles/agent-docs.md (T1, T2), plus .workflow/profiles/test-harness.md for the Phase 1 test changes. The new suite has # Suite:/# Covers:, sources lib/common.sh, calls preflight, ends with finish and a shellcheck_files assertion, builds fixtures in new_workdir, and has its tests/README.md row"
+  - "Placement record: design-log.md '2026-11-21 Placement: feature-workflow' (D1, no ADR). The diff stays inside it: feature-workflow owns the behaviour, retrospective and tests change only to match, and PLAN files follow the step list"
+  - ".workflow/GLOSSARY.md (no GLOSSARY-MAP.md in the repo). The added lines use 'Deep dive' and 'Questioning round' as defined. Searching the added lines for every _Avoid_ alias found only unrelated uses: 'module' as an Ownership module, 'map' as codebase-map, 'footprint' in its light-path meaning, and 'project root' for a test fixture directory"
+  - "Toolchain output read: artifacts/T1/toolchain.json and artifacts/T2/toolchain.json (lint pass, test pass; typecheck, format and boundary are empty keys in the agent-docs profile); artifacts/gate-3.9-w1/toolchain.json (test-harness lint pass, full harness pass); artifacts/phase-1-test-harness/toolchain.json present"
+  - ".agents/skills/feature-workflow/references/readable-code.md. New comments in tests/scripts/retrospective-evidence.sh and tests/lint/stakeholder-asks-docs.sh are function usage lines (the shell style's '# name ARGS : what it does' convention), suite headers, or reasons (the fence-tracking reason, the SC2016 reason). Names say what they hold; P=$WORK/proj follows 27 other suites"
+  - "Smell baseline matched against the diff. The spec's Capabilities success line requires the large-path 6.5 restatement of the loop's deep dive ('questioning-loop.md 0.3.11-0.3.13 and large-path.md 6.5 say the deep dive ...') and the deep-dive block in both the Deep dive and Initiative round shapes ('the Deep dive entry shape and the Initiative round shape carry ...'), so Duplicated Code is suppressed"
+  - ".workflow/review-lessons.md: 8 live lessons (RL-007 retired). RL-003, RL-004, RL-008 and RL-009 each match changed files. RL-001, RL-002 and RL-005 have no matching file. RL-006 matches tests/** but the new test fills a single placeholder (S)"
+  - "RL-008 set aside for large-path.md 6.5, which paraphrases the loop's 0.3.12-0.3.13 next to a link to it. spec.md Capabilities success line requires large-path.md 6.5 itself to say the deep dive restates, continues to an explicit yes on a written statement and re-asks only contradicted answers, and JRN-005 pins those phrases. The second home is a stakeholder-agreed design, not a leftover copy"
+  - "RL-003: no script changed. The changed evidence.md command and its Waits prose agree, and the retrospective template cell matches. RL-004: no added asset or module line names a scaffold-only .workflow/ file. RL-009: no frontmatter key added; questions.md settled only gains a documented value form"
+  - ".workflow/decisions/pitfalls.md. 'Leave no copy of a rule in the step file it moved out of' is skipped as the same mistake as RL-008. 'Lint a task's tests with the test-harness profile too' is not repeated: T1 and T2 did not touch tests/, and the Phase 1 build ran the test-harness lint. The script-change, PROVENANCE, heredoc and YAML pitfalls do not apply"
+  - ".workflow/decisions/retrospectives/*.md Process lessons tables (002-009, 00010-00017): none repeated by this diff"
+not_checked:
+  - "assetlist.md:339 and :343 (scaffold-only) still describe 'a defer-to-deep-dive option' and 'Deep-dive deferred questions one at a time, after the round closes'; wayfinder-comparison.html:237 still says 'Defer to deep dive'. No written rule says these planning files must track behaviour. A rule or the stakeholder would decide whether they should"
+  - "Suspicion outside this lens: in large-path 6.5, a round with a deep dive now settles its other answers only after the round check, but large-path has no resume rule for a deep dive cut off part way (the loop's Entry item 4 covers only the spec loop). A session that ends mid deep dive may lose those answers. The end-state lens or a read of large-path's resume path would settle this"

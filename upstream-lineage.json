@@ -1447,11 +1447,11 @@
       "commit_basis": "blob-match",
       "changes": [
         "took the design tree, frontier rounds with numbered questions and a recommended answer each, 'yes' accepts the recommendation, facts via a sub-agent without blocking, recompute after each round, done when the frontier is empty and understanding is confirmed",
-        "added defer-to-deep-dive (0.3.12-0.3.13), the host multi-question UI, the term gate (0.3.14-0.3.15) and the scope gate (0.3.16-0.3.17)",
+        "added the talk-it-through deep dive (0.3.12-0.3.13: held straight after the round is logged, restate, agree a written statement, round check), the host multi-question UI, the term gate (0.3.14-0.3.15) and the scope gate (0.3.16-0.3.17)",
         "input is the agreed 0.3.22 deeper prompt; every round is logged to design-log.md"
       ],
-      "why": "Grilling already batched the frontier; only the gates, deferral and logging are ours. 'Grill me' routes here (D76).",
-      "reviewed_at": "2026-10-19"
+      "why": "Grilling already batched the frontier; only the gates, the deep dive and logging are ours. 'Grill me' routes here (D76).",
+      "reviewed_at": "2026-11-22"
     },
     {
       "path": ".agents/skills/feature-workflow/modules/questioning-loop.md",
