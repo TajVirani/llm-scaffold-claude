@@ -34,7 +34,9 @@
 #   5. <target>/.gitignore: .workflow/specs/*/.step, .workflow/initiatives/*/.step, .workflow/.worktrees/,
 #      .workflow/.spec-worktrees/ (the worktrees specs run in), .workflow/.handoff/, .workflow/.standards-staging/ and
 #      .workflow/.slot (the slot number a spec worktree records) in a marker block, since they hold local, in-progress state.
-#      Paths come from .agents/lib/workflow-paths.sh.
+#      Paths come from .agents/lib/workflow-paths.sh. With --host claude|all, when the project's own ignore rules hide
+#      .claude/ or a shim path, the block also re-includes the shim (.claude/settings.json and the symlinks) so a clone
+#      gets it; the rest of .claude/ stays ignored. A shim the rules still hide after the write is a warning.
 #   6. Older workflow data: .workflow/ is project-owned (GLOSSARY.md, rules.md, model-map.yaml, profiles/, decisions/, deferred/,
 #      specs/, ...) and created by the project-setup skill. install.sh creates nothing there; it only converts a format this payload
 #      no longer reads, keeping every value. A .workflow/model-map/ folder (one <type>.md per task type) and agent-overrides.yaml
@@ -137,6 +139,7 @@ RETIRED_PATHS="$WF_DIR/cache/ $WF_DIR/.cache-staging/ $WF_DIR/model-map/ $WF_DIR
 .agents/skills/project-setup/assets/agent-overrides.yaml .agents/skills/project-setup/assets/model-map/"
 GI_ENTRIES=("$WF_SPECS/*/.step" "$WF_INITIATIVES/*/.step" "$WF_WORKTREES/" "$WF_SPEC_WORKTREES/" "$WF_HANDOFF/" "$WF_STANDARDS_STAGING/" "$WF_SLOT_FILE")
 SHIM_DIRS="skills agents output-styles"
+SHIM_PATHS="settings.json $SHIM_DIRS"
 
 die() { echo "install.sh: error: $*" >&2; exit 2; }
 usage() { sed -n '/^# Usage:/,/^# What it does:/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'; }
@@ -702,7 +705,29 @@ fi
 GI=$T/.gitignore
 rm -f "$tmp/gitignore"
 : >"$tmp/gi.retired"
+
+# shim_ignored PATH : succeed when the target's ignore rules hide .claude/PATH (PATH empty: the .claude/ folder itself).
+shim_ignored() { git -C "$T" check-ignore -q --no-index ".claude/$1"; }
+
+# shim_unignore_lines : print the block lines that re-include the Claude shim when the project's own rules hide it. Once
+#   written they hide the rule from shim_ignored, so the lines an earlier run wrote are kept.
+shim_unignore_lines() {
+  local earlier="" folder=0 entry=0 p
+  [ "$want_claude" -eq 1 ] || return 0
+  [ "$(block_state "$GI" gitignore)" != present ] ||
+    earlier=$(awk -v b="$(mark_begin gitignore)" -v e="$(mark_end gitignore)" '$0 == e { exit } f; $0 == b { f = 1 }' "$GI")
+  if grep -qxF '!/.claude/' <<<"$earlier" || shim_ignored ""; then folder=1; fi
+  for p in $SHIM_PATHS; do
+    if grep -qxF "!/.claude/$p" <<<"$earlier" || shim_ignored "$p"; then entry=1; fi
+  done
+  if [ "$folder" -eq 1 ]; then printf '%s\n' '!/.claude/' '/.claude/*'; fi
+  if [ "$folder" -eq 1 ] || [ "$entry" -eq 1 ]; then
+    for p in $SHIM_PATHS; do printf '!/.claude/%s\n' "$p"; done
+  fi
+}
+
 printf '%s\n' "${GI_ENTRIES[@]}" >"$tmp/gi.block"
+shim_unignore_lines >>"$tmp/gi.block"
 case "$(block_state "$GI" gitignore)" in
   absent) block_append "$GI" gitignore "$tmp/gi.block" >"$tmp/gitignore" ;;
   present)
@@ -1053,9 +1078,15 @@ fi
 # ------------------------------------------------------------------------------------------------------------- .gitignore
 echo ".gitignore:"
 if [ -f "$tmp/gitignore" ]; then
-  write_file "$tmp/gitignore" "$GI" ".gitignore ($(printf '%s, ' "${GI_ENTRIES[@]}" | sed 's/, $//'))"
+  write_file "$tmp/gitignore" "$GI" ".gitignore ($(sed '/^$/d' "$tmp/gi.block" | tr '\n' ',' | sed 's/,$//; s/,/, /g'))"
 else
   echo "  up to date"
+fi
+if [ "$want_claude" -eq 1 ] && [ "$dry" -eq 0 ]; then
+  for p in $SHIM_PATHS; do
+    shim_ignored "$p" || continue
+    warn ".claude/$p is still ignored ($(git -C "$T" check-ignore -v --no-index ".claude/$p" | cut -f1)); a clone will not get the Claude shim. Move that rule above the workflow-2.0 gitignore block or remove it, then commit .claude/."
+  done
 fi
 
 # ---------------------------------------------------------------------------------------------- older workflow data

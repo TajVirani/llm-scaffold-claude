@@ -38,7 +38,7 @@ modules:
     may_depend_on: [lib, feature-workflow, project-setup]
   feature-workflow:
     owns: [".agents/skills/feature-workflow/**"]
-    may_depend_on: [lib, domain-modeling, project-setup, issue-tracking]
+    may_depend_on: [lib, domain-modeling, project-setup, issue-tracking, standalone-skills]
   issue-tracking:
     owns: [".agents/skills/issue-tracking/**"]
     may_depend_on: [lib, feature-workflow]
