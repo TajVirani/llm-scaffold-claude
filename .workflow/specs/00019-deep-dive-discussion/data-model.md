@@ -47,7 +47,7 @@ The design log's record of one deep dive.
 | Field | Type | Required | Validation rule | Change |
 | --- | --- | --- | --- | --- |
 | From | text | yes | `Q<n> in round <n>` | unchanged |
-| Restated | text | yes | the question and the recommendation's reason as first said back (CAP-NEW-deep-dive-discussion) | create |
+| Restated | text | yes | the question and the recommendation's reason as first said back (CAP-017) | create |
 | Where it was wrong | quote | yes | the stakeholder's words, verbatim | create |
 | Explored | text | yes | facts looked up, with sources, or "None." | unchanged |
 | Exchanges | integer | yes | back-and-forths until the yes, ≥ 1 | create |

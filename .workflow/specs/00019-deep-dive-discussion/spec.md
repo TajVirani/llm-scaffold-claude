@@ -1,5 +1,5 @@
 ---
-status: in-review
+status: done
 baseline_revision: "55d8ecf2a7bf44d466fa19d52fc1229ab1647da7"
 spec_branch: spec/00019-deep-dive-discussion
 impl_base_revision: "677414b4773a5ecf1542a679502f034dbdfd8fd1"
@@ -14,11 +14,11 @@ budget: {max_tasks: 10, max_changed_files: 30}
 
 ## Why
 
-When the stakeholder wants to talk a question through, find and fix the misunderstanding behind it before any other answer in the round depends on it, so every decision the questioning loop logs is one the stakeholder agreed to in their own understanding. Today, picking "Defer to deep dive" parks the question until the questioning round ends (0.3.12–0.3.13) and then asks it again with the same options. That is too late, because the parked question often shapes the round's other answers, and it is not a discussion, so the misunderstanding is never found. The deep dive now starts as soon as it is picked: the agent says back what it thinks the question is and why it recommended its answer, asks where that is wrong, and the two go back and forth until the stakeholder confirms a written statement of what was agreed. That statement is the logged decision, and the rest of the round is checked against it before the loop carries on. The large path's round (6.5), which reuses the loop's format, behaves the same way.
+When the stakeholder wants to talk a question through, find and fix the misunderstanding behind it before any other answer in the round depends on it, so every decision the questioning loop logs is one the stakeholder agreed to in their own understanding. Before this change, picking "Defer to deep dive" parked the question until the questioning round ended (0.3.12–0.3.13) and then asked it again with the same options. That was too late, because the parked question often shapes the round's other answers, and it was not a discussion, so the misunderstanding was never found. The deep dive now starts as soon as it is picked: the agent says back what it thinks the question is and why it recommended its answer, asks where that is wrong, and the two go back and forth until the stakeholder confirms a written statement of what was agreed. That statement is the logged decision, and the rest of the round is checked against it before the loop carries on. The large path's round (6.5), which reuses the loop's format, behaves the same way.
 
 ## Capabilities
 
-- **CAP-NEW-deep-dive-discussion** Deep dive held at once, ending in an agreed statement
+- **CAP-017** Deep dive held at once, ending in an agreed statement
   - **intent:** A stakeholder who picks "Talk it through (deep dive)" on a questioning round question gets a discussion of that question straight after the round returns, ending in a written statement they confirm, and the round's other answers are checked against it before the loop carries on.
   - **success:** `questioning-loop.md` 0.3.11–0.3.13 and `large-path.md` 6.5 say the deep dive runs straight after the round's answers return (after the round is logged in the spec loop), opens by restating the question and the recommendation's reason and asking where that is wrong, continues in chat until the stakeholder's explicit yes to a written statement, logs that statement as the decision, and then re-asks only the round's answers it contradicts while naming the rest as standing; the Deep dive entry shape and the Initiative round shape carry Restated, Where it was wrong, Exchanges, Agreed statement, Answer and Round check lines; the option reads "Talk it through (deep dive)" everywhere; `tests/run-all.sh` passes.
 
@@ -42,7 +42,8 @@ A stakeholder who picks the deep dive on a question in a round is, in the same s
 
 ## Assumptions
 
-- The fourteen Assumed entries in [design-log.md](design-log.md) (the two glossary terms, round-logging order, several deep dives, plain-chat discussion, label, step ids, entry shape, waits count, resume, decision id placement, first-round extras, summary and conversion, large-path handling, initiative `settled` text), each offered for veto and kept.
+- The Assumed entries in [design-log.md](design-log.md): the two glossary terms, round-logging order, several deep dives, plain-chat discussion, label, step ids, entry shape, waits count, resume, decision id placement, first-round extras, summary and conversion, large-path handling, initiative `settled` text, Phase 1 targets and the seams under test, each offered for veto and kept.
+- In large-path 6.5, a round that holds a deep dive settles its other answers only after the round check, because `initiative-transition.sh` settles a question once; a session cut off mid deep dive leaves those answers open, so the next round asks them again (Assumed entry of 2026-11-22, offered for veto at 5.5).
 
 ## Links
 

@@ -3,7 +3,7 @@ tasks:
   - id: T1
     title: "Deep dive held at once"
     status: done
-    capability: CAP-NEW-deep-dive-discussion
+    capability: CAP-017
     depends_on: []
     touches_core: false
     work_type: agent-docs
@@ -21,7 +21,7 @@ tasks:
   - id: T2
     title: "Waits count includes deep dive exchanges"
     status: done
-    capability: CAP-NEW-deep-dive-discussion
+    capability: CAP-017
     depends_on: []
     touches_core: false
     work_type: agent-docs

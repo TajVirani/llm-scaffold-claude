@@ -264,7 +264,7 @@ Facts looked up instead of asked (0.3.10): None.
 ## 2026-11-21 Phase 1: tests in tasks?
 
 - Step: 1.1
-- The spec adds a new capability (CAP-NEW-deep-dive-discussion), so "tests in tasks" does not apply: 1.2 builds the journey checks under `test-harness`. No browser suite: the project has no e2e profile and no journey needs one.
+- The spec adds a new capability (CAP-017), so "tests in tasks" does not apply: 1.2 builds the journey checks under `test-harness`. No browser suite: the project has no e2e profile and no journey needs one.
 
 ## 2026-11-21 Assumed: the seams under test
 
@@ -306,3 +306,18 @@ Failed lenses: none
 Gaps: live-round behaviour of the new 0.3.12-0.3.13 and 6.5 text (review-end-state; settled by the next real round that picks a deep dive); scaffold-only planning files `assetlist.md:339,343` and `wayfinder-comparison.html:237` still describe the old defer option (review-standards; no rule says they track behaviour, the stakeholder decides); a large-path session cut off mid deep dive leaves the round's other answers open, the cost the 2026-11-22 Assumed entry accepted (review-standards).
 Outcome: clean, to sign-off
 Patched directly: F1 (201c795)
+
+## 2026-11-22 Sign-off: stakeholder approval (5.5)
+
+- Offered for veto: Assumed: when 6.5 settles the other answers of a round with a deep dive; vetoed: none ("Keep it (Recommended)")
+- Approval: yes: "Approve both (Recommended)"
+- PR description: approved as shown
+- Proposals: all approved: "Approve all (Recommended)"
+- Ruling: Backlog: no items
+- Retrospective lessons: recorded as drafted: "Record as drafted (Recommended)"
+- Concerns for the retrospective: none
+- Follow-up: none
+
+## 2026-11-22 Retrospective notes
+
+- Watch the first real questioning round that picks "Talk it through (deep dive)": it is the only check that an agent holds the discussion as the text says, see .workflow/decisions/retrospectives/00019-deep-dive-discussion.md

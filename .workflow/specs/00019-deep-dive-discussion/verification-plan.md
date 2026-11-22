@@ -4,27 +4,27 @@ Spec: [spec.md](spec.md)
 
 ## End state
 
-- [ ] CAP-NEW-deep-dive-discussion: `questioning-loop.md` says a question picked for a deep dive is discussed straight after the round is logged, before the term gate, scope gate and next round, and not "after the round closes".
-- [ ] CAP-NEW-deep-dive-discussion: the loop's deep dive step says the agent opens by saying back the question and its recommendation's reason and asking where that is wrong, continues in chat, and ends only on the stakeholder's explicit yes to a written statement, which is the logged decision.
-- [ ] CAP-NEW-deep-dive-discussion: the loop's deep dive step says every other answer in the round is checked against the agreed statement, only contradicted answers are re-asked in one ask, and the rest are named as standing.
-- [ ] CAP-NEW-deep-dive-discussion: the loop's Entry says a logged "deep dive under way" answer with no matching Deep dive entry is resumed before a new frontier is computed.
-- [ ] CAP-NEW-deep-dive-discussion: no file under `.agents/` says "Defer to deep dive", "defer to deep dive" or "deferred to deep dive"; the loop, its chat format and large-path 6.5 say "Talk it through (deep dive)".
-- [ ] CAP-NEW-deep-dive-discussion: the design-log template's Deep dive shape carries the lines Restated, Where it was wrong, Explored, Exchanges, Agreed statement, Answer, Decision and Round check, and its Initiative round shape carries a deep dive block.
-- [ ] CAP-NEW-deep-dive-discussion: `large-path.md` 6.5 holds the deep dive inside 6.5 the same way, settles the question with the agreed statement and its confirmation, and its Done line no longer says "or deferred"; `assets/questions.md` documents that `settled` form.
-- [ ] CAP-NEW-deep-dive-discussion: the retrospective's waits count adds the `Exchanges:` numbers, and on a design log with no `Exchanges:` line gives the same number as today.
-- [ ] CAP-NEW-deep-dive-discussion: `steps.tsv` keeps 0.3.11, 0.3.12 and 0.3.13 with new titles, `step-progress.sh` totals are unchanged, and `tests/run-all.sh` passes.
+- [ ] CAP-017: `questioning-loop.md` says a question picked for a deep dive is discussed straight after the round is logged, before the term gate, scope gate and next round, and not "after the round closes".
+- [ ] CAP-017: the loop's deep dive step says the agent opens by saying back the question and its recommendation's reason and asking where that is wrong, continues in chat, and ends only on the stakeholder's explicit yes to a written statement, which is the logged decision.
+- [ ] CAP-017: the loop's deep dive step says every other answer in the round is checked against the agreed statement, only contradicted answers are re-asked in one ask, and the rest are named as standing.
+- [ ] CAP-017: the loop's Entry says a logged "deep dive under way" answer with no matching Deep dive entry is resumed before a new frontier is computed.
+- [ ] CAP-017: no file under `.agents/` says "Defer to deep dive", "defer to deep dive" or "deferred to deep dive"; the loop, its chat format and large-path 6.5 say "Talk it through (deep dive)".
+- [ ] CAP-017: the design-log template's Deep dive shape carries the lines Restated, Where it was wrong, Explored, Exchanges, Agreed statement, Answer, Decision and Round check, and its Initiative round shape carries a deep dive block.
+- [ ] CAP-017: `large-path.md` 6.5 holds the deep dive inside 6.5 the same way, settles the question with the agreed statement and its confirmation, and its Done line no longer says "or deferred"; `assets/questions.md` documents that `settled` form.
+- [ ] CAP-017: the retrospective's waits count adds the `Exchanges:` numbers, and on a design log with no `Exchanges:` line gives the same number as today.
+- [ ] CAP-017: `steps.tsv` keeps 0.3.11, 0.3.12 and 0.3.13 with new titles, `step-progress.sh` totals are unchanged, and `tests/run-all.sh` passes.
 
 ## Journeys
 
 | Id | Journey | Proves | Steps | Expected outcome | Check |
 | --- | --- | --- | --- | --- | --- |
-| JRN-001 | Deep dive held at once | CAP-NEW-deep-dive-discussion | 1. Read `questioning-loop.md` § The round. 2. Find the deep dive step and the round log step. | The deep dive step follows the round log and comes before the term gate; it holds the restate, where-is-it-wrong, explicit-yes and round-check wording | "00019 JRN-001" checks in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-002 | Unfinished deep dive resumed | CAP-NEW-deep-dive-discussion | 1. Read `questioning-loop.md` § Entry. | It names "deep dive under way" and resuming it before computing a new frontier | "00019 JRN-002" check in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-003 | One label everywhere | CAP-NEW-deep-dive-discussion | 1. Search `.agents/` for the old label in any case. 2. Search the loop and large-path for the new one. | No old label; the new label in the loop step, the Claude Code option, the chat format and 6.5 | "00019 JRN-003" checks in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-004 | Entry shapes carry the agreement | CAP-NEW-deep-dive-discussion | 1. Read the Deep dive and Initiative round shapes in `assets/design-log.md`. 2. Read the `settled` comment in `assets/questions.md`. | Every new line is present; `settled` documents the agreed statement with its confirmation | "00019 JRN-004" checks in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-005 | Large path behaves the same | CAP-NEW-deep-dive-discussion | 1. Read `large-path.md` § 6.5. | Deep dive inside 6.5 before 6.6, settled with the agreed statement, Done line without "or deferred" | "00019 JRN-005" checks in `tests/lint/stakeholder-asks-docs.sh` |
-| JRN-006 | Waits count includes exchanges | CAP-NEW-deep-dive-discussion | 1. Build a design log fixture with two `Answer:` lines and a Deep dive entry with `Exchanges: 3`, and one with no `Exchanges:` line. 2. Run the waits command from `retrospective/modules/evidence.md` on each. | 5 for the first (2 answers + 3 exchanges, the Deep dive's own Answer included in the 2); the old count for the second | "00019 JRN-006" check in `tests/scripts/retrospective-evidence.sh` |
-| JRN-007 | Step list and totals hold | CAP-NEW-deep-dive-discussion | 1. Run `tests/run-all.sh --suite lint/step-list` and the step-progress suite. | Both pass with the new titles; "step 21 of 46" for 0.3.8 still printed | `tests/lint/step-list.sh`, `tests/scripts/step-progress.sh` |
+| JRN-001 | Deep dive held at once | CAP-017 | 1. Read `questioning-loop.md` § The round. 2. Find the deep dive step and the round log step. | The deep dive step follows the round log and comes before the term gate; it holds the restate, where-is-it-wrong, explicit-yes and round-check wording | "00019 JRN-001" checks in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-002 | Unfinished deep dive resumed | CAP-017 | 1. Read `questioning-loop.md` § Entry. | It names "deep dive under way" and resuming it before computing a new frontier | "00019 JRN-002" check in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-003 | One label everywhere | CAP-017 | 1. Search `.agents/` for the old label in any case. 2. Search the loop and large-path for the new one. | No old label; the new label in the loop step, the Claude Code option, the chat format and 6.5 | "00019 JRN-003" checks in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-004 | Entry shapes carry the agreement | CAP-017 | 1. Read the Deep dive and Initiative round shapes in `assets/design-log.md`. 2. Read the `settled` comment in `assets/questions.md`. | Every new line is present; `settled` documents the agreed statement with its confirmation | "00019 JRN-004" checks in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-005 | Large path behaves the same | CAP-017 | 1. Read `large-path.md` § 6.5. | Deep dive inside 6.5 before 6.6, settled with the agreed statement, Done line without "or deferred" | "00019 JRN-005" checks in `tests/lint/stakeholder-asks-docs.sh` |
+| JRN-006 | Waits count includes exchanges | CAP-017 | 1. Build a design log fixture with two `Answer:` lines and a Deep dive entry with `Exchanges: 3`, and one with no `Exchanges:` line. 2. Run the waits command from `retrospective/modules/evidence.md` on each. | 5 for the first (2 answers + 3 exchanges, the Deep dive's own Answer included in the 2); the old count for the second | "00019 JRN-006" check in `tests/scripts/retrospective-evidence.sh` |
+| JRN-007 | Step list and totals hold | CAP-017 | 1. Run `tests/run-all.sh --suite lint/step-list` and the step-progress suite. | Both pass with the new titles; "step 21 of 46" for 0.3.8 still printed | `tests/lint/step-list.sh`, `tests/scripts/step-progress.sh` |
 
 ## Fixtures and oracles
 
