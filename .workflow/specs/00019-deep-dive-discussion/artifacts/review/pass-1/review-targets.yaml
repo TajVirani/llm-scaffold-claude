@@ -1,0 +1,51 @@
+lens: review-targets
+status: done
+blocked_reason: ""
+baseline_revision: "55d8ecf2a7bf44d466fa19d52fc1229ab1647da7"
+head: "bdd5f5e3be6366808b6aa0a6d8c9528ffb6ede0b"
+measurements:
+  - target: "New-feature start load"
+    kind: performance
+    threshold: "at most 45,000 bytes (baseline 41,392)"
+    command: "bash tests/lint/workflow-load-size.sh | grep '^new-feature start:'"
+    measured: "41392 bytes"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/00019-deep-dive-discussion/artifacts/review/pass-1/targets/new-feature-start-load.txt"
+    reason: "The exit code is that of grep in the pipe, not of the load-size script; it agrees with the number."
+  - target: "Questioning loop size"
+    kind: performance
+    threshold: "questioning-loop.md at most 15,000 bytes (baseline 12,325)"
+    command: "wc -c < .agents/skills/feature-workflow/modules/questioning-loop.md"
+    measured: "13980 bytes"
+    result: pass
+    exit_code: 0
+    raw_output: ".workflow/specs/00019-deep-dive-discussion/artifacts/review/pass-1/targets/questioning-loop-size.txt"
+    reason: ""
+  - target: "Errors"
+    kind: error
+    threshold: "none set"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "no command in verification-plan.md: the change is to step-file text; the label, wording and order checks are journeys (JRN-001 to JRN-005)"
+  - target: "Coverage"
+    kind: coverage
+    threshold: "none set"
+    command: ""
+    measured: ""
+    result: not_measurable
+    exit_code: null
+    raw_output: ""
+    reason: "no command in verification-plan.md: no bash line-coverage tool is installed (.workflow/deferred/bash-line-coverage.md)"
+findings: []
+checked:
+  - "New-feature start load"
+  - "Questioning loop size"
+  - "serve: none; agent-docs profile sets serve to empty, so no build was started"
+not_checked:
+  - "Errors: not measurable: no command in verification-plan.md (step-file text; covered by JRN-001 to JRN-005)"
+  - "Coverage: not measurable: no bash line-coverage tool installed"
+  - "serve: no serve command in the agent-docs profile for work type agent-docs; no build started, so no serve_ready poll or stop was needed"

@@ -293,3 +293,16 @@ Facts looked up instead of asked (0.3.10): None.
 
 - Step: 3.16. `task_review` is `pr`, but `gh` is not installed, so `open-task-pr.sh` skipped T1 and T2 before any push ("gh not installed"); both merged locally with `pr: null`.
 - 2026-11-22 3.14: browser gate skipped; no e2e-browser profile. Added a Later requests line to [.workflow/deferred/browser-suite.md](../../deferred/browser-suite.md).
+
+## 2026-11-22 Triage, review pass 1
+
+| Id | Source lens | Finding | Location | Verdict | Evidence | Route |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 (RS-1) | review-standards | The questioning loop's lineage entry still says "added defer-to-deep-dive (0.3.12-0.3.13)" and "only the gates, deferral and logging are ours" after this change replaced the deferral | `upstream-lineage.json:1450,1453` | low | Both strings read at the cited lines at HEAD; `.workflow/rules.md` cross-cutting policy keeps lineage entries in step with the vendored file's local changes | patch (applied directly, wording only) |
+
+review-targets: 0 findings; measurements New-feature start load 41392 bytes (pass), Questioning loop size 13980 bytes (pass), Errors and Coverage not measurable. review-end-state: 0 findings.
+
+Failed lenses: none
+Gaps: live-round behaviour of the new 0.3.12-0.3.13 and 6.5 text (review-end-state; settled by the next real round that picks a deep dive); scaffold-only planning files `assetlist.md:339,343` and `wayfinder-comparison.html:237` still describe the old defer option (review-standards; no rule says they track behaviour, the stakeholder decides); a large-path session cut off mid deep dive leaves the round's other answers open, the cost the 2026-11-22 Assumed entry accepted (review-standards).
+Outcome: clean, to sign-off
+Patched directly: F1 (201c795)
