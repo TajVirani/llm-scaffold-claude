@@ -102,6 +102,14 @@ _Avoid_: Expanded prompt, pre-grill
 The open decisions whose prerequisites are all settled, so the questioning loop can ask them now; recomputed after every round and asked together in one round. Implementation waves use the same word for the pending tasks whose dependencies are all done.
 _Avoid_: Answerable set, question queue
 
+**Questioning round**:
+One ask in the questioning loop that puts the whole **Frontier** to the stakeholder at once, each question with options and a recommended answer. Called a round for short inside the questioning loop.
+_Avoid_: Question batch, grill round
+
+**Deep dive**:
+A discussion of one question from a **Questioning round**, held with the stakeholder on its own because they chose to talk it through rather than pick an option.
+_Avoid_: Deferred question, follow-up question
+
 **Step marker**:
 The gitignored per-spec file recording the workflow step the spec is currently at (and, while blocked, where it blocked from). Write guards read it to decide what may be written.
 _Avoid_: Progress file
@@ -147,6 +155,14 @@ _Avoid_: Provisioning, bootstrap (names the greenfield bootstrap order), environ
 **Result file**:
 The one YAML file a coding or review sub-agent (implementation, integration, profile-mini-review) writes under `<spec_dir>/artifacts/<id>/` in the **Spec checkout**, holding its structured result for the orchestrator to check by script. Not a Phase 4 lens's pass file.
 _Avoid_: Return file, output file, result block (the block is its content)
+
+**Browser-suite evidence**:
+The files the evidence-capture hook copies from one browser-suite run into the spec's `artifacts/`, filed by run and journey: screenshots, traces, videos, console and network logs, the run's JSON report and an evidence index.
+_Avoid_: Browser evidence, e2e evidence, e2e results
+
+**Browser-suite run output**:
+The files the browser suite's runner writes in the project itself on every run: its results folder and its HTML report. The source **Browser-suite evidence** is copied from.
+_Avoid_: Test results, e2e output, run artifacts
 
 **Artifacts gate**:
 The check `check-merge-artifacts.sh` runs before every merge into the spec branch (1.2, 1.3, 3.2, 3.16). It refuses a branch or commit that adds, changes or deletes anything under `<spec_dir>/artifacts/` since its merge-base with the spec branch.

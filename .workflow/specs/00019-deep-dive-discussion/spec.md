@@ -1,0 +1,55 @@
+---
+status: ready-for-dev
+baseline_revision: ""
+spec_branch: ""
+impl_base_revision: ""
+light_path: false
+followup_review_recommended: false
+deferred: []
+tracker_issue: ""
+---
+
+# Hold the deep dive at once, as a discussion that reaches agreement
+
+## Why
+
+When the stakeholder wants to talk a question through, find and fix the misunderstanding behind it before any other answer in the round depends on it, so every decision the questioning loop logs is one the stakeholder agreed to in their own understanding. Today, picking "Defer to deep dive" parks the question until the questioning round ends (0.3.12–0.3.13) and then asks it again with the same options. That is too late, because the parked question often shapes the round's other answers, and it is not a discussion, so the misunderstanding is never found. The deep dive now starts as soon as it is picked: the agent says back what it thinks the question is and why it recommended its answer, asks where that is wrong, and the two go back and forth until the stakeholder confirms a written statement of what was agreed. That statement is the logged decision, and the rest of the round is checked against it before the loop carries on. The large path's round (6.5), which reuses the loop's format, behaves the same way.
+
+## Capabilities
+
+- **CAP-NEW-deep-dive-discussion** Deep dive held at once, ending in an agreed statement
+  - **intent:** A stakeholder who picks "Talk it through (deep dive)" on a questioning round question gets a discussion of that question straight after the round returns, ending in a written statement they confirm, and the round's other answers are checked against it before the loop carries on.
+  - **success:** `questioning-loop.md` 0.3.11–0.3.13 and `large-path.md` 6.5 say the deep dive runs straight after the round's answers return (after the round is logged in the spec loop), opens by restating the question and the recommendation's reason and asking where that is wrong, continues in chat until the stakeholder's explicit yes to a written statement, logs that statement as the decision, and then re-asks only the round's answers it contradicts while naming the rest as standing; the Deep dive entry shape and the Initiative round shape carry Restated, Where it was wrong, Exchanges, Agreed statement, Answer and Round check lines; the option reads "Talk it through (deep dive)" everywhere; `tests/run-all.sh` passes.
+
+## Constraints
+
+- The round still goes out as one ask (one AskUserQuestion call, or all in chat when too many); the deep dive starts after it returns (D7).
+- Steps 0.3.12 and 0.3.13 keep their ids and `steps.tsv` keeps its row count, so progress-line totals do not change; no large-path step moves.
+- The design log stays append only: an answer a deep dive changes is superseded by a new decision, never edited.
+- Facts a deep dive needs are looked up, never asked of the stakeholder.
+- ADR-0004's load budget: the new-feature start stays under 45,000 bytes (`lint/workflow-load-size`).
+
+## Non-goals
+
+- A deep dive option on asks outside the questioning round's frontier decisions: the term gates, placement, the deeper-prompt agreement and its questions, the assumption veto, sign-off.
+- Changing how the frontier is computed or ordered.
+- Changing the `deeper-prompt` skill's own restate loop.
+
+## Success signal
+
+A stakeholder who picks the deep dive on a question in a round is, in the same sitting, asked "here is what I think the question is and why I recommended X; where is that wrong?", talks it through until they say yes to a written statement, sees that statement as the decision in `design-log.md`, and is asked again only about the earlier answers in the round that the statement contradicts.
+
+## Assumptions
+
+- The fourteen Assumed entries in [design-log.md](design-log.md) (the two glossary terms, round-logging order, several deep dives, plain-chat discussion, label, step ids, entry shape, waits count, resume, decision id placement, first-round extras, summary and conversion, large-path handling, initiative `settled` text), each offered for veto and kept.
+
+## Links
+
+- Source: GitHub issue [TajVirani/llm-scaffold-claude#7](https://github.com/TajVirani/llm-scaffold-claude/issues/7)
+- Codebase map: [codebase-map.md](codebase-map.md)
+- Design log: [design-log.md](design-log.md)
+- Data model: [data-model.md](data-model.md)
+- Verification plan: [verification-plan.md](verification-plan.md)
+- Tasks: [tasks.md](tasks.md)
+- Proposals: [proposals.md](proposals.md)
+- Report: [report.md](report.md)
