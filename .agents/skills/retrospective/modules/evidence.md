@@ -38,7 +38,7 @@ Fill the document's **Measurements** table from the spec folder and git. Each nu
 ```bash
 S=.workflow/specs/NNN-slug
 git log --reverse --format=%cI <range> | sed -n '1p;$p'          # Elapsed: first and last commit time
-grep -cE 'Answer:|^- (Approval|PR description|Proposals|Backlog [^:]*|Retrospective lessons|Concerns for the retrospective):' "$S/design-log.md"   # Waits: answers recorded
+awk '/Answer:|^- (Approval|PR description|Proposals|Backlog [^:]*|Retrospective lessons|Concerns for the retrospective):/ { waits++ } /^- Exchanges:/ { waits += $3 } END { print waits + 0 }' "$S/design-log.md"   # Waits: answers recorded plus deep dive exchanges
 for k in implementation mini-review integration; do printf '%s %s\n' "$k" "$(ls "$S"/artifacts/*/"$k"*.yaml 2>/dev/null | wc -l)"; done
 printf 'review lenses %s\n' "$(ls "$S"/artifacts/review/pass-*/*.yaml 2>/dev/null | wc -l)"
 jq -r 'select((.reused_from // .task_id) == .task_id) | .results[] | select(.key == "test" and .reused_from == null and .status != "skipped") | .status' "$S"/artifacts/*/toolchain.json | sort | uniq -c   # Harness runs
@@ -46,7 +46,7 @@ grep -l '^verdict: "fail"' "$S"/artifacts/*/mini-review*.yaml | wc -l    # mini-
 ```
 
 - **Elapsed:** the first design-log entry's date, then the first and last commit times and the span between them in hours and minutes.
-- **Waits:** the count of answers the log records. The minutes spent waiting are not in the files: `not recorded`.
+- **Waits:** the count of answers the log records plus the deep dive exchanges, the numbers on the Deep dive entries' `Exchanges:` lines. The minutes spent waiting are not in the files: `not recorded`.
 - **Agent launches:** one result file per launch or fix round, by type. Discovery launches leave no file: `not recorded`.
 - **Harness runs:** the records whose `test` ran, by status; the other records with a `test` result reused it. Each evidence dir keeps only its newest run, so the count is a floor.
 - **Findings by class:** the triage entries' rows in `design-log.md` by verdict (`high`, `medium`, `low`, `false`, `unproven`) and by route (patch, decision needed, discovered work, proposal, none), and the mini-review fails.
